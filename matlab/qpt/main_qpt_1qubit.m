@@ -13,7 +13,7 @@ size_Choi  = dim * dim;% size of Choi matrix, d^2 x d^2.
 label = 1;
 matI2 = eye(dim);
 
-eps = 1e-8;% = sedumi.eps, desired accuracy of optimization, used in sdpsettings(). 
+eps = 1e-10;% = sedumi.eps, desired accuracy of optimization, used in sdpsettings(). 
 
 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -75,7 +75,6 @@ list_empiDist = csvread(filename_listEmpiDist);
 
 % 4.1 D
 matD = MatD( list_state, list_povm, list_schedule, list_weight );
-
 
 % 4.2 vec(E)
 vecE = VecE( list_state, list_povm, list_schedule, list_weight, list_empiDist );
