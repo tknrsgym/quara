@@ -16,6 +16,6 @@ function list_vecA = ListVecA( list_state, list_povm, list_schedule )
             matA = kron(povm_element, state.');
             list_vecA(id, i_omega).vec = matA(:);
         end
-            
+    end
 end
 
