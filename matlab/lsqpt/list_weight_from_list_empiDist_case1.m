@@ -7,11 +7,11 @@ function output = list_weight_from_list_empiDist_case1(list_empiDist, Nrep)
         list_weight(id).mat = zeros(num_x, num_x);
         for i_x = 1:num_x
             prob = list_empiDist(id, i_x); 
-            if prob < 1.0/Nrep 
-                prob = 1.0/Nrep;
-            else if prob > 1.0 - 1.0/Nrep
-                prob = 1.0 - 1.0/Nrep;    
-            end
+             if prob < 1.0/Nrep 
+                 prob = 1.0/Nrep;
+             elseif prob > 1.0 - 1.0/Nrep
+                 prob = 1.0 - 1.0/Nrep;    
+             end
             v = prob .* (1.0 - prob);
             list_weight(id).mat(i_x, i_x) = 1/v;
         end

@@ -5,30 +5,16 @@ function output = list_weight_from_list_empiDist_case2(list_empiDist, Nrep)
     num_x  = size(list_empiDist, 2);
     for id = 1:num_id
         list_weight(id).mat = zeros(num_x, num_x);
-        mat = zeros(nm_x, num_x);
-        for i_x1 = 1:num_x
-            p1 = list_empiDist(id, i_x1); 
-            if p1 < 1.0/Nrep 
-                p1 = 1.0/Nrep;
-            elseif p1 > 1.0 - 1.0/Nrep  
-                p1 = 1.0 - 1.0/Nrep;    
+        for i_x = 1:num_x
+            prob = list_empiDist(id, i_x); 
+            if prob < 1.0/Nrep 
+                prob = 1.0/Nrep;
+            elseif prob > 1.0 - 1.0/Nrep
+                prob = 1.0 - 1.0/Nrep;    
             end
-            
-            for i_x2 = 1:num_x
-                p2 = list_empiDist(id, i_x2); 
-                if p2 < 1.0/Nrep 
-                    p2 = 1.0/Nrep;
-                elseif p2 > 1.0 - 1.0/Nrep  
-                    p2 = 1.0 - 1.0/Nrep;    
-                end 
-                
-                if i_x1 == i_x2
-                    mat(i_x1, i_x2) = p1 * (1.0 - p1);
-                else
-                    mat(i_x1, i_x2) = - p1 * p2;
-            end
+            v = prob .* (1.0 - prob).* Nrep ./ (Nrep -1);
+            list_weight(id).mat(i_x, i_x) = 1/v;
         end
-        list_weight(id).mat(i_x, i_x) = inv(mat);
     end
     output = list_weight;
 end

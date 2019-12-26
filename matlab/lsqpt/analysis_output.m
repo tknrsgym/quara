@@ -12,7 +12,7 @@ num_Nrep = numel(list_Nrep);
 
 diff_HSgb_G_target_prepared = 3.999479590474600e-04;
 
-filename = './OutputFiles/191210_squared_error_GSgb_G.mat';
+filename = './OutputFiles/191226_squared_error_GSgb_G_uniformWeight.mat';
 data = load(filename);
 error = data.squared_error_HSgb_G;
 
@@ -74,5 +74,5 @@ legend(str_legend)
 set(gca, 'XScale','log', 'YScale','log')
 grid on
 
-filename_plot = './OutputFiles/191210_plot.pdf';
+filename_plot = './OutputFiles/191226_plot_uniformWeight.pdf';
 saveas(gcf, filename_plot)

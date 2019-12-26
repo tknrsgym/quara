@@ -1,0 +1,2 @@
+k Nrep i_ave squared_error_HSgb_G
+1 100 1 0.01048947640

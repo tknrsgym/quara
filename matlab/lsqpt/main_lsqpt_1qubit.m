@@ -3,13 +3,26 @@ clear;
 format long
 char_precision = '%.15e';
 
+path_importFolder = '/Users/sugiyamac3/GitHub/quara/tests/';
+path_outputFolder = '/Users/sugiyamac3/GitHub/quara/pseudoData/191226_test_weight_case1/';
+
+fileID_output = fopen(strcat(path_outputFolder, 'lsqpt_191226_test.txt'),'w');
+filename_output = strcat(path_outputFolder, 'squared_error_GSgb_G_test.mat');
+
+is_weight_variance = true; 
+
+
 % = = = = = = = = = = = = = = = = = = = = = = = = = = =
 % 0. Parameters for Numerical Experiments
 % = = = = = = = = = = = = = = = = = = = = = = = = = = =
-list_k    = [1, 3, 5, 7, 9, 11, 13];
+list_k    = [1, 13];
 %list_Nrep = [100, 300, 1000, 3000, 10000, 30000, 100000];
 list_Nrep = [100, 1000, 10000, 100000];
-Nave      = 100;
+Nave      = 3;
+
+%list_k    = [1];
+%list_Nrep = [10];
+%Nave      = 3;
 
 seed_x = 999;
 gene_x = 'twister';
@@ -30,7 +43,7 @@ size_Choi  = dim * dim;% size of Choi matrix, d^2 x d^2.
 label = 1;
 matI2 = eye(dim);
 
-eps_sedumi = 1e-8;% = sedumi.eps, desired accuracy of optimization, used in sdpsettings(). 
+eps_sedumi = 0;%1e-10;% = sedumi.eps, desired accuracy of optimization, used in sdpsettings(). 
 
 % Target Gate
 theta = 0.50 * pi;
@@ -57,18 +70,26 @@ Choi_G_prepared  = Choi_from_HSpb_1qubit(HSgb_G_prepared);
 
 diff = norm(HSgb_G_prepared - HSgb_G_target);
 diff_HSgb_G_target_prepared = diff .* diff;
-display(diff_HSgb_G_target_prepared);
+%display(diff_HSgb_G_target_prepared);
 %pause()
 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 % 2. Prepared States and Prepared POVMs 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-p = 0.02;
-filename_state_prepared = './ImportFiles/tester_1qubit_state_withError.csv';
-num_state = FilePreparation_1qubit_state_withError(filename_state_prepared, p, char_precision);
+num_state   = 4;
+num_povm    = 3;
+num_outcome = 2;
 
-filename_povm_prepared = './ImportFiles/tester_1qubit_povm.csv';
-[num_povm, num_outcome] = FilePreparation_1qubit_povm(filename_povm_prepared, char_precision);
+%p = 0.02;
+%filename_state_prepared = './ImportFiles/tester_1qubit_state_withError.csv';
+%num_state = FilePreparation_1qubit_state_withError(filename_state_prepared, p, char_precision);
+
+%filename_povm_prepared = './ImportFiles/tester_1qubit_povm.csv';
+%[num_povm, num_outcome] = FilePreparation_1qubit_povm(filename_povm_prepared, char_precision);
+
+filename_state_prepared = strcat(path_importFolder, 'tester_1qubit_state.csv');
+%filename_state_prepared = strcat(path_importFolder, 'tester_1qubit_state_withError.csv');
+filename_povm_prepared  = strcat(path_importFolder, 'tester_1qubit_povm.csv');
 
 list_state_prepared    = FileImport_state(filename_state_prepared, dim, num_state);
 list_povm_prepared     = FileImport_povm(filename_povm_prepared, dim, num_povm, num_outcome);
@@ -77,22 +98,50 @@ list_povm_prepared     = FileImport_povm(filename_povm_prepared, dim, num_povm, 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 % 3. Tester States, Tester POVMs, IDs, Weights.
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-filename_state_tester = './ImportFiles/tester_1qubit_state.csv';
-num_state = FilePreparation_1qubit_state(filename_state_tester, char_precision);
+%filename_state_tester = './ImportFiles/tester_1qubit_state.csv';
+%num_state = FilePreparation_1qubit_state(filename_state_tester, char_precision);
 
-filename_povm_tester = './ImportFiles/tester_1qubit_povm.csv';
-[num_povm, num_outcome] = FilePreparation_1qubit_povm(filename_povm_tester, char_precision);
+%filename_povm_tester = './ImportFiles/tester_1qubit_povm.csv';
+%[num_povm, num_outcome] = FilePreparation_1qubit_povm(filename_povm_tester, char_precision);
 
-filename_schedule = './ImportFiles/schedule.csv';
-num_schedule = FilePreparation_1qubit_schedule(filename_schedule, num_state, num_povm);
+%filename_schedule = './ImportFiles/schedule.csv';
+%num_schedule = FilePreparation_1qubit_schedule(filename_schedule, num_state, num_povm);
 
-filename_weight = './ImportFiles/weight_2valued_uniform.csv';
-FilePreparation_1qubit_weight_2valued_uniform(filename_weight, filename_schedule, char_precision);
+%filename_weight = './ImportFiles/weight_2valued_uniform.csv';
+%FilePreparation_1qubit_weight_2valued_uniform(filename_weight, filename_schedule, char_precision);
+
+filename_state_tester = strcat(path_importFolder, 'tester_1qubit_state.csv');
+%filename_state_tester = strcat(path_importFolder, 'tester_1qubit_state_withError.csv');
+filename_povm_tester  = strcat(path_importFolder, 'tester_1qubit_povm.csv');
+filename_weight       = strcat(path_importFolder, 'weight_2valued_uniform.csv');
+filename_schedule     = strcat(path_importFolder, 'schedule_1qubit.csv');
 
 list_state_tester = FileImport_state(filename_state_tester, dim, num_state);
 list_povm_tester  = FileImport_povm(filename_povm_tester, dim, num_povm, num_outcome);
 list_weight   = FileImport_weight(filename_weight, num_outcome);
 list_schedule = csvread(filename_schedule);
+
+
+
+% Output files
+% - Set of true probability distributions
+filename_output_probDist_prepared = strcat(path_outputFolder, 'probDist_prepared.mat');
+
+% - List of set of empirical distributions
+filename_output_empiDist = strcat(path_outputFolder, 'empiDist.mat');
+
+% - List of estimates Gk^est
+filename_output_HSgb_Gk_est = strcat(path_outputFolder, 'HSgb_Gk_est.mat');
+
+% - List of estimates G^est by k-th root of Gk^est
+filename_output_HSgb_G_est = strcat(path_outputFolder, 'HSgb_G_est.mat');
+
+% - Time for optimization
+filename_output_cputime = strcat(path_outputFolder, 'time_optimization.mat') ;
+
+
+
+
 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 % 4. Tester States, Tester POVMs, IDs, Weights.
@@ -113,7 +162,8 @@ for i_k = 1:num_k
     % 4.1. Calculation of List of Prepared Probability Distributions
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
     list_probDist = ListProbDist_QPT_v2( Choi_Gk_prepared, list_state_prepared, list_povm_prepared, list_schedule );     
-
+    full_list_probDist_prepared(i_k, :, :) = list_probDist;
+    
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
     % 4.2 Generation of List of Empirical Distributions
     % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -133,8 +183,12 @@ for i_k = 1:num_k
                 end
             end
             
-            list_weight = list_weight_from_list_empiDist_case1(list_empiDist, Nrep);
-            %display(list_weight);
+            full_list_empiDist(i_k, i_ave, i_Nrep, :, :) = list_empiDist;
+            
+            if is_weight_variance 
+                list_weight = list_weight_from_list_empiDist_case1(list_empiDist, Nave);
+                %display(list_weight);
+            end
 
 
             % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -149,29 +203,41 @@ for i_k = 1:num_k
             % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
             % 4.4.1 Standard QPT
-
             option            = sdpsettings('solver', 'sedumi');
             option            = sdpsettings(option, 'sedumi.eps', eps_sedumi);
+            %option            = sdpsettings(option, 'beeponproblem', 0);
+            option            = sdpsettings(option, 'verbose', 0);
             varChoi           = sdpvar(size_Choi, size_Choi, 'hermitian', 'complex');
             constraints       = [PartialTrace(varChoi, dim, dim, label) == matI2, varChoi >=0];
             objectiveFunction = WeightedSquaredDistance(varChoi, matD, vecE, h);
 
-            tic
+            t_start = cputime;
             optimize(constraints, objectiveFunction, option);
-            toc
-
+            t_end_1 = cputime - t_start;
+          
+            
             obj_opt  = value(objectiveFunction);
             Choi_Gk_est = value(varChoi);
-            %option.sedumi
+            HSpb_Gk_est = HSpb_from_Choi_1qubit(Choi_Gk_est);
+
+            full_list_HSpb_Gk_est(i_k, i_ave, i_Nrep, :, :) = HSpb_Gk_est;
 
             % 4.4.2 matrix k-th root
-            eps = 0.10;
-            HSpb_Gk_est = HSpb_from_Choi_1qubit(Choi_Gk_est);
-            nPlogMat_HSpb_Gk = logMat_nonPrincipal_1qubit(vecH_target, HSpb_Gk_est, k, eps_overlap);
-            HSpb_L_est = nPlogMat_HSpb_Gk ./ k;
-            HSpb_G_est = expm(HSpb_L_est);
-            Choi_G_est = Choi_from_HSpb_1qubit(HSpb_G_est);
-
+            if k == 1
+                Choi_G_est = Choi_Gk_est;
+                HSpb_G_est = HSpb_Gk_est; 
+            else
+                nPlogMat_HSpb_Gk = logMat_nonPrincipal_1qubit(vecH_target, HSpb_Gk_est, k, eps_overlap);
+                HSpb_L_est = nPlogMat_HSpb_Gk ./ k;
+                HSpb_G_est = expm(HSpb_L_est);
+                Choi_G_est = Choi_from_HSpb_1qubit(HSpb_G_est);
+            end
+            full_list_HSpb_G_est(i_k, i_ave, i_Nrep, :, :) = HSpb_G_est;
+            
+            t_end_2 = cputime - t_end_1;
+            
+            time_optimization(i_k, i_ave, i_Nrep, 1) = t_end_1;
+            time_optimization(i_k, i_ave, i_Nrep, 2) = t_end_2;
 
             % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
             % 5. Result Analysis
@@ -208,19 +274,21 @@ end% i_k
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 % 6. Output files
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-fileID = fopen('./OutputFiles/output_lsqpt_191210_test.txt','w');
-fprintf(fileID,'%1s %4s %5s %20s\n','k', 'Nrep', 'i_ave', 'squared_error_HSgb_G');
+fprintf(fileID_output,'%1s %4s %5s %20s\n','k', 'Nrep', 'i_ave', 'squared_error_HSgb_G');
 for i_k = 1:num_k
     k = list_k(i_k);
     for i_Nrep = 1:num_Nrep
         Nrep = list_Nrep(i_Nrep);
         for i_ave = 1:Nave
-            fprintf(fileID,'%d %d %d %12.11f\n', k, Nrep, i_ave, squared_error_HSgb_G(i_k, i_Nrep, i_ave));
+            fprintf(fileID_output,'%d %d %d %12.11f\n', k, Nrep, i_ave, squared_error_HSgb_G(i_k, i_Nrep, i_ave));
         end
     end
 end
-fclose(fileID);
+fclose(fileID_output);
 
-filename = './OutputFiles/191210_squared_error_GSgb_G.mat';
-save(filename, 'squared_error_HSgb_G');
-
+save(filename_output, 'squared_error_HSgb_G');
+save(filename_output_probDist_prepared, 'full_list_probDist_prepared')
+save(filename_output_empiDist, 'full_list_empiDist')
+save(filename_output_HSgb_Gk_est, 'full_list_HSpb_Gk_est');
+save(filename_output_HSgb_G_est, 'full_list_HSpb_G_est');
+save(filename_output_cputime, 'time_optimization');
