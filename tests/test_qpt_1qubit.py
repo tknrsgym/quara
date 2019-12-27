@@ -72,12 +72,12 @@ if __name__ == "__main__":
     print("--- load povm list ---")
     m, povm_np = load_povm_list(csv_path + "tester_1qubit_povm.csv", dim, num_povm)
     povm_ml = matlab.double(povm_np.tolist(), is_complex=True)
-    print(f"M={m}")
+    # print(f"M={m}")
     print(povm_ml)
 
     print("--- load schedule ---")
     num_schedule, schedule_np = load_schedule(csv_path + "schedule_1qubit.csv")
-    print(f"n_schedule={num_schedule}")
+    # print(f"n_schedule={num_schedule}")
     schedule_ml = matlab.uint64(schedule_np.tolist())
     print(schedule_ml)
 
