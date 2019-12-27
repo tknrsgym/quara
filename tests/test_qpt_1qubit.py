@@ -96,6 +96,6 @@ if __name__ == "__main__":
     print(weight_list_ml)
 
     eng = matlab.engine.start_matlab()
-    _ = eng.check_pass_from_python_to_matlab(state_ml)
+    _ = eng.check_pass_from_python_to_matlab(state_ml, nargout=0)
 
     print("completed")
