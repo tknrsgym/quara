@@ -7,7 +7,7 @@ char_precision = '%.15e';
 % = = = = = = = = = = = = = = = = = = = = = = = = = = =
 dim         = 2;% 1-qubit system.
 eps_sedumi  = 0;
-int_verbose = 1;% 0: no stdout, 1: 
+int_verbose = 0;% 0: no stdout, 1: 
 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 % 2. Import Files of Tester States, Tester POVMs, IDs, Weights.
