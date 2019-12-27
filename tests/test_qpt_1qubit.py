@@ -2,13 +2,19 @@ import os
 
 import matlab
 import numpy as np
+import pytest
 
 
-def load_state_list(path: str, dim: int) -> np.ndarray:
+def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.complex128)
-    num_data = int(len(raw_data) / dim)
+
     # TODO: check row of data
-    state_list = np.reshape(raw_data, (num_data, dim * dim))
+    if raw_data.shape[0] != num_state * dim:
+        raise ValueError(
+            "Invalid number of data in state list"
+        )  # TODO: consider error message
+
+    state_list = np.reshape(raw_data, (num_state, dim * dim))
     return state_list
 
 
@@ -40,13 +46,24 @@ def load_weight_list(path: str, num_schedule: int, m: int) -> np.ndarray:
     return weight_list
 
 
+def test_load_state_list_invalid_num():
+    path = os.path.dirname(__file__) + "/data/tester_1qubit_state.csv"
+    dim = 2 ** 1
+    state_np = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+    invalid_num_state = state_np.shape[0] // dim + 1  # make invalid data
+
+    with pytest.raises(ValueError):
+        _ = load_state_list(path, dim, invalid_num_state)
+
+
 if __name__ == "__main__":
     dim = 2 ** 1  # 2**qubits
+    num_state = 4
     num_povm = 3
     csv_path = os.path.dirname(__file__) + "/data/"
 
     print("--- load state list ---")
-    state_np = load_state_list(csv_path + "tester_1qubit_state.csv", dim)
+    state_np = load_state_list(csv_path + "tester_1qubit_state.csv", dim, num_state)
     state_ml = matlab.double(state_np.tolist(), is_complex=True)
     print(state_ml)
 
@@ -63,11 +80,15 @@ if __name__ == "__main__":
     print(schedule_ml)
 
     print("--- load emp list ---")
-    emp_list_np = load_emp_list(csv_path + "listEmpiDist_2valued.csv", dim, num_schedule)
+    emp_list_np = load_emp_list(
+        csv_path + "listEmpiDist_2valued.csv", dim, num_schedule
+    )
     emp_list_ml = matlab.double(emp_list_np.tolist())
     print(emp_list_ml)
 
     print("--- load weight list ---")
-    weight_list_np = load_weight_list(csv_path + "weight_2valued_uniform.csv", num_schedule, m)
+    weight_list_np = load_weight_list(
+        csv_path + "weight_2valued_uniform.csv", num_schedule, m
+    )
     weight_list_ml = matlab.double(weight_list_np.tolist())
     print(weight_list_ml)
