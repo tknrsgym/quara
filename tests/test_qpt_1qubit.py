@@ -1,6 +1,7 @@
 import os
 
 import matlab
+import matlab.engine
 import numpy as np
 import pytest
 
@@ -60,7 +61,8 @@ if __name__ == "__main__":
     dim = 2 ** 1  # 2**qubits
     num_state = 4
     num_povm = 3
-    csv_path = os.path.dirname(__file__) + "/data/"
+    # csv_path = os.path.dirname(__file__) + "/data/"
+    csv_path = "data/"
 
     print("--- load state list ---")
     state_np = load_state_list(csv_path + "tester_1qubit_state.csv", dim, num_state)
@@ -92,3 +94,8 @@ if __name__ == "__main__":
     )
     weight_list_ml = matlab.double(weight_list_np.tolist())
     print(weight_list_ml)
+
+    eng = matlab.engine.start_matlab()
+    _ = eng.check_pass_from_python_to_matlab(state_ml)
+
+    print("completed")
