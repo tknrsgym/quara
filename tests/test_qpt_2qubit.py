@@ -1,5 +1,6 @@
 import os
 
+import matlab
 import matlab.engine
 import numpy as np
 
@@ -74,14 +75,11 @@ def main(settings: dict) -> np.ndarray:
     weight_list_ml = matlab.double(weight_list_np.tolist())
     print(weight_list_ml)
 
-    """
     eng = matlab.engine.start_matlab()
-    choi_matrix = eng.xxx(
-        state_list_ml, povm_list_ml, schedule_ml, empi_list_ml, weight_list_ml
+    eng.check_pass_from_python_to_matlab(
+        state_list_ml, nargout=0,
     )
     eng.quit()
-    print(choi_matrix)
-    """
 
 
 if __name__ == "__main__":
