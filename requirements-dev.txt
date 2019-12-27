@@ -1,0 +1,4 @@
+numpy
+black
+pytest
+pytest-cov
