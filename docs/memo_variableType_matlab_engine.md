@@ -16,7 +16,7 @@ To explain the variable types in Python scripts for calling MATLAB functions usi
 2. num_state, $N_{\mathrm{s}}$, the number of states used.
    - Type: integer (uint16)
 
-3. list_state, $\{ |\rho_j \rangle\!\rangle \}_{j=0}^{N_{\mathrm{s}}-1}$, the list of vectorized density matrices
+3. list_state_vec, $\{ |\rho_j \rangle\!\rangle \}_{j=0}^{N_{\mathrm{s}}-1}$, the list of vectorized density matrices
    - Type: list of list of complex double (complex float in Python)
    - Math:$|\rho\rangle\!\rangle \in \mathbf{C}^{d^2}$ is the vectorization of a matrix $\rho \in \mathbf{C}^{d \times d}$ with respect to the computational basis (row-major-order). 
    - Size: $N_{\mathrm{s}} \times d^2$
@@ -27,7 +27,7 @@ To explain the variable types in Python scripts for calling MATLAB functions usi
 5. num_outcome, $M$, the number of possible outcomes for each POVM. Assumed to be common among all POVMs.
     - Type: integer (unit 8)
 
-6. list_povm, $\{ | \mathbf{\Pi}_{j} \rangle\!\rangle \}_{j=0}^{N_{\mathrm{p}}-1}$, the list of vectorized POVMS
+6. list_povm_vec, $\{ | \mathbf{\Pi}_{j} \rangle\!\rangle \}_{j=0}^{N_{\mathrm{p}}-1}$, the list of vectorized POVMS
     - Type: list of list of list of complex double (complex float in Python)
     - Math:$|\mathbf{P}_j\rangle\!\rangle = \{ | \Pi_{j, \omega}\rangle\!\rangle \}_{\omega = 0}^{M -1}$, $| \Pi_{j, \omega} \rangle\!\rangle \in \mathbf{C}^{d^2}$ is the vectorization of a POVM element $\Pi_{\omega} \in \mathbf{C}^{d \times d}$ with respect to the computational basis (row-major-order). 
     - Size: $N_{\mathrm{p}} \times M \times d^2$
@@ -61,4 +61,9 @@ To explain the variable types in Python scripts for calling MATLAB functions usi
     - Type: list of list of complex double (complex float in Python)
     - Math: $L_0 \in \mathbf{C}^{d^2 \times d^2}$
     - Size: $d^2 \times d^2$
+
+13. $\bf{B}=\{ B_{\alpha} \}_{\alpha=0}^{d^2 -1}$, the matrix basis for the vectorization and the Hilbert-Schmidt representation.
+    - Type: list of list of list of complex double (complex float in Python)
+    - Math: $B_{\alpha} \in \mathbf{C}^{d \times d}$,
+            Assumed to be Hermitian, orthonormalied, and the 0th element proportionals to the identity matrix, i.e., $B_{\alpha} = B_{\alpha}^{\dagger}$, $\mathrm{Tr}[B_{\alpha}^{\dagger} B_{\beta}] = \delta_{\alpha\beta}$, and $B_{0} = \mathbf{1}/\sqrt{d}$.
 

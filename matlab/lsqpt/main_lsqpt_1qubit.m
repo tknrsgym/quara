@@ -3,11 +3,12 @@ clear;
 format long
 char_precision = '%.15e';
 
-path_importFolder = '/Users/sugiyamac3/GitHub/quara/tests/';
-path_outputFolder = '/Users/sugiyamac3/GitHub/quara/pseudoData/191226_test_weight_case1/';
+path_quara = '../../quara/';
+path_importFolder = strcat(path_quara, 'tests/');
+path_outputFolder = strcat(path_quara, '/pseudoData/191227_test1/');
 
-fileID_output = fopen(strcat(path_outputFolder, 'lsqpt_191226_test.txt'),'w');
-filename_output = strcat(path_outputFolder, 'squared_error_GSgb_G_test.mat');
+fileID_output = fopen(strcat(path_outputFolder, 'squared_error_HSgb_est_prepared.txt'),'w');
+filename_output = strcat(path_outputFolder, 'squared_error_HSgb_est_prepared.mat');
 
 is_weight_variance = true; 
 
