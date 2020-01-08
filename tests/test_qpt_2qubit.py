@@ -1,7 +1,9 @@
+import logging
 import os
 
 from quara.protocol import simple_qpt
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 csv_path = os.path.dirname(__file__) + "/data/"
 settings = {
