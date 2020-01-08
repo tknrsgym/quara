@@ -1,7 +1,11 @@
+import logging
+
 import matlab.engine
 import numpy as np
 
 from quara.engine.matlabengine import MatlabEngine
+
+logger = logging.getLogger(__name__)
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
@@ -35,26 +39,26 @@ def load_weight_list(path: str, n_schedule: int, num_outcome: int) -> np.ndarray
 
 
 def execute(settings: dict) -> np.ndarray:
-    print("--- load schedule ---")
+    logger.debug("--- load schedule ---")
     num_schedule, schedule_np = load_schedule(settings["path_schedule"])
-    print(f"num_schedule={num_schedule}")
+    logger.debug(f"num_schedule={num_schedule}")
     schedule_ml = matlab.uint64(schedule_np.tolist())
-    print(schedule_ml)
+    logger.debug(schedule_ml)
 
-    print("--- load empi list ---")
+    logger.debug("--- load empi list ---")
     num_outcome, empi_list_np = load_empi_list(settings["path_empi"], num_schedule)
     empi_list_ml = matlab.double(empi_list_np.tolist())
-    print(f"num_outcome={num_outcome}")
-    print(empi_list_ml)
+    logger.debug(f"num_outcome={num_outcome}")
+    logger.debug(empi_list_ml)
 
-    print("--- load state list ---")
+    logger.debug("--- load state list ---")
     state_list_np = load_state_list(
         settings["path_state"], settings["dim"], settings["num_state"]
     )
     state_list_ml = matlab.double(state_list_np.tolist(), is_complex=True)
-    print(state_list_ml)
+    logger.debug(state_list_ml)
 
-    print("--- load povm list ---")
+    logger.debug("--- load povm list ---")
     povm_list_np = load_povm_list(
         settings["path_povm"],
         settings["dim"],
@@ -62,14 +66,14 @@ def execute(settings: dict) -> np.ndarray:
         settings["num_outcome"],
     )
     povm_list_ml = matlab.double(povm_list_np.tolist(), is_complex=True)
-    print(povm_list_ml)
+    logger.debug(povm_list_ml)
 
-    print("--- load weight list ---")
+    logger.debug("--- load weight list ---")
     weight_list_np = load_weight_list(
         settings["path_weight"], num_schedule, settings["num_outcome"]
     )
     weight_list_ml = matlab.double(weight_list_np.tolist())
-    print(weight_list_ml)
+    logger.debug(weight_list_ml)
 
     with MatlabEngine() as engine:
         engine.check_pass_from_python_to_matlab(
