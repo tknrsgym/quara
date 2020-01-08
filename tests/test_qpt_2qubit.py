@@ -5,6 +5,15 @@ import matlab.engine
 import numpy as np
 
 
+class MatlabEngine(object):
+    def __enter__(self):
+        self.eng = matlab.engine.start_matlab()
+        return self.eng
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.eng.quit()
+
+
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.complex128)
     state_list = np.reshape(raw_data, (num_state, dim * dim))
@@ -12,9 +21,7 @@ def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
     return state_list
 
 
-def load_povm_list(
-    path: str, dim: int, num_povm: int, num_outcome: int
-) -> (int, np.ndarray):
+def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.ndarray:
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.complex128)
     povm_list = np.reshape(raw_data, (num_povm, num_outcome, dim * dim))
     return povm_list
@@ -26,7 +33,7 @@ def load_schedule(path: str) -> (int, np.ndarray):
     return num_schedule, raw_data
 
 
-def load_empi_list(path: str, num_schedule: int = None) -> np.ndarray:
+def load_empi_list(path: str, num_schedule: int = None) -> (int, np.ndarray):
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.float64)
     _, num_outcome = raw_data.shape
     return num_outcome, raw_data
@@ -75,11 +82,10 @@ def main(settings: dict) -> np.ndarray:
     weight_list_ml = matlab.double(weight_list_np.tolist())
     print(weight_list_ml)
 
-    eng = matlab.engine.start_matlab()
-    eng.check_pass_from_python_to_matlab(
-        state_list_ml, nargout=0,
-    )
-    eng.quit()
+    with MatlabEngine() as engine:
+        engine.check_pass_from_python_to_matlab(
+            state_list_ml, nargout=0,
+        )
 
 
 if __name__ == "__main__":
