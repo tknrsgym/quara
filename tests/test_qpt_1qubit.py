@@ -1,9 +1,12 @@
 import os
+from pathlib import Path
 
 import matlab
 import matlab.engine
 import numpy as np
 import pytest
+
+from quara.engine.matlabengine import MatlabEngine
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
@@ -61,41 +64,45 @@ if __name__ == "__main__":
     dim = 2 ** 1  # 2**qubits
     num_state = 4
     num_povm = 3
-    # csv_path = os.path.dirname(__file__) + "/data/"
-    csv_path = "data/"
+    this_pypath = os.path.abspath(__file__)
+    matlab_func_path = os.path.dirname(this_pypath)
+    csv_path = Path(os.path.dirname(this_pypath)) / "data"
+    # csv_path = "data/"
 
     print("--- load state list ---")
-    state_np = load_state_list(csv_path + "tester_1qubit_state.csv", dim, num_state)
+    state_np = load_state_list(csv_path / "tester_1qubit_state.csv", dim, num_state)
     state_ml = matlab.double(state_np.tolist(), is_complex=True)
     print(state_ml)
 
     print("--- load povm list ---")
-    m, povm_np = load_povm_list(csv_path + "tester_1qubit_povm.csv", dim, num_povm)
+    m, povm_np = load_povm_list(csv_path / "tester_1qubit_povm.csv", dim, num_povm)
     povm_ml = matlab.double(povm_np.tolist(), is_complex=True)
     print(f"M={m}")
     print(povm_ml)
 
     print("--- load schedule ---")
-    num_schedule, schedule_np = load_schedule(csv_path + "schedule_1qubit.csv")
+    num_schedule, schedule_np = load_schedule(csv_path / "schedule_1qubit.csv")
     print(f"n_schedule={num_schedule}")
     schedule_ml = matlab.uint64(schedule_np.tolist())
     print(schedule_ml)
 
     print("--- load emp list ---")
     emp_list_np = load_emp_list(
-        csv_path + "listEmpiDist_2valued.csv", dim, num_schedule
+        csv_path / "listEmpiDist_2valued.csv", dim, num_schedule
     )
     emp_list_ml = matlab.double(emp_list_np.tolist())
     print(emp_list_ml)
 
     print("--- load weight list ---")
     weight_list_np = load_weight_list(
-        csv_path + "weight_2valued_uniform.csv", num_schedule, m
+        csv_path / "weight_2valued_uniform.csv", num_schedule, m
     )
     weight_list_ml = matlab.double(weight_list_np.tolist())
     print(weight_list_ml)
 
-    eng = matlab.engine.start_matlab()
-    _ = eng.check_pass_from_python_to_matlab(state_ml, nargout=0)
+    with MatlabEngine() as engine:
+        engine.check_pass_from_python_to_matlab(
+            state_ml, nargout=0,
+        )
 
     print("completed")
