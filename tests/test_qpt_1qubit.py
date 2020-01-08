@@ -67,7 +67,6 @@ if __name__ == "__main__":
     this_pypath = os.path.abspath(__file__)
     matlab_func_path = os.path.dirname(this_pypath)
     csv_path = Path(os.path.dirname(this_pypath)) / "data"
-    # csv_path = "data/"
 
     print("--- load state list ---")
     state_np = load_state_list(csv_path / "tester_1qubit_state.csv", dim, num_state)
