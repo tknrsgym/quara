@@ -6,23 +6,7 @@ import matlab.engine
 import numpy as np
 import pytest
 
-from ..quara.engine.matlabengine import MatlabEngine
-
-class MatlabEngine(object):
-    def __init__(self):
-        this_pypath = Path(os.path.abspath(__file__))
-        # TODO: matlab関数を配置するフォルダについてはmtgで検討する
-        self._matlab_func_path = str(
-            this_pypath.parent.parent / "quara" / "core" / "matlab"
-        )
-
-    def __enter__(self):
-        self.eng = matlab.engine.start_matlab()
-        self.eng.cd(self._matlab_func_path, nargout=0)
-        return self.eng
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.eng.quit()
+from quara.engine.matlabengine import MatlabEngine
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
@@ -115,10 +99,6 @@ if __name__ == "__main__":
     )
     weight_list_ml = matlab.double(weight_list_np.tolist())
     print(weight_list_ml)
-
-    # eng = matlab.engine.start_matlab()
-    # eng.cd(matlab_func_path, nargout=0)
-    # _ = eng.check_pass_from_python_to_matlab(state_ml, nargout=0)
 
     with MatlabEngine() as engine:
         engine.check_pass_from_python_to_matlab(
