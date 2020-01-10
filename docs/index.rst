@@ -6,12 +6,16 @@
 Welcome to quara's documentation!
 =================================
 
-.. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+**Quara** , which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.
 
-   quara
+.. currentmodule:: quara
 
+API Reference
+=============
+
+.. autosummary::
+   quara.protocol
+   quara.engine
 
 Indices and tables
 ==================

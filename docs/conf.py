@@ -32,6 +32,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
     "sphinx_rtd_theme",
+    'sphinx.ext.autosummary'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -69,3 +70,8 @@ html_static_path = ['_static']
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# Generate autosummary pages
+autosummary_generate = True
+
+add_module_names = False
