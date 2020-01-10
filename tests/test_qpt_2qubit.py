@@ -13,7 +13,7 @@ settings = {
     "num_outcome": 4,
     "path_state": csv_path + "tester_2qubit_state.csv",
     "path_povm": csv_path + "tester_2qubit_povm.csv",
-    "path_schedule": csv_path + "schedule_2qubit.csv",
+    "path_schedule": csv_path + "schedule_2qubit_start_from_0.csv",
     "path_empi": csv_path + "listEmpiDist_4valued.csv",
     "path_weight": csv_path + "weight_4valued_uniform.csv",
 }
