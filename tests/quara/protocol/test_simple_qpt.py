@@ -60,3 +60,55 @@ def test_load_state_list():
 
     actual_data = s_qpt.load_state_list(path, dim, num_state)
     assert np.array_equal(actual_data, expected_data)
+
+
+def test_load_weight_list_invalid_num_outcome():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/weight_2valued_uniform.csv"
+    state_np = np.loadtxt(path, delimiter=",", dtype=np.float64)
+    num_outcome = state_np.shape[1]
+    invalid_num_outcome = num_outcome + 1  # make invalid data
+    num_schedule = state_np.shape[0] // num_outcome
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_weight_list(path, num_schedule, invalid_num_outcome)
+
+
+def test_load_weight_list_invalid_num_schedule():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/weight_2valued_uniform.csv"
+    state_np = np.loadtxt(path, delimiter=",", dtype=np.float64)
+    num_outcome = state_np.shape[1]
+    num_schedule = state_np.shape[0] // num_outcome
+    invalid_num_schedule = num_schedule + 1  # make invalid data
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_weight_list(path, invalid_num_schedule, num_outcome)
+
+
+def test_load_weight_list():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/weight_2valued_uniform.csv"
+    state_np = np.loadtxt(path, delimiter=",", dtype=np.float64)
+    num_outcome = state_np.shape[1]
+    num_schedule = state_np.shape[0] // num_outcome
+
+    expected_data = np.array(
+        [
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+            [[1.0, 0.0], [0.0, 1.0],],
+        ]
+    )
+
+    actual_data = s_qpt.load_weight_list(path, num_schedule, num_outcome)
+    assert np.array_equal(actual_data, expected_data)
