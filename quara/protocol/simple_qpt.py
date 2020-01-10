@@ -20,6 +20,36 @@ def check_file_extension(path: str) -> None:
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
+    """Load state list from a csv file.
+    The csv file must satisfy the followings:
+    - the csv file extension is `csv`.
+    - number of columns is equal to ``dim``.
+    - number of rows is equal to ``dim * num_state``.
+    
+    Parameters
+    ----------
+    path : str
+        the csv file path to load.
+    dim : int
+        dimension of Hilbert space.
+    num_state : int
+        number of state in the csv file.
+    
+    Returns
+    -------
+    np.ndarray
+        state list represented by ndarray of dtype ``np.complex128``.
+        its shape is ``(num_state, dim * dim)``.
+    
+    Raises
+    ------
+    ValueError
+        the csv file extension is not `csv`.
+    ValueError
+        number of columns is not equal to ``dim``.
+    ValueError
+        number of rows is not equal to  ``dim * num_state``.
+    """
     # check file extension
     check_file_extension(path)
 
@@ -40,6 +70,38 @@ def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
 
 
 def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.ndarray:
+    """Load povm list from a csv file.
+    The csv file must satisfy the followings:
+    - the csv file extension is `csv`.
+    - number of columns is equal to ``dim``.
+    - number of rows is equal to ``dim * num_outcome * num_povm``.
+    
+    Parameters
+    ----------
+    path : str
+        the csv file path to load.
+    dim : int
+        dimension of Hilbert space.
+    num_povm : int
+        number of povm in the csv file.
+    num_outcome : int
+        number of outcome in the csv file.
+    
+    Returns
+    -------
+    np.ndarray
+        povm list represented by ndarray of dtype ``np.complex128``.
+        its shape is ``(num_povm, num_outcome, dim * dim)``.
+    
+    Raises
+    ------
+    ValueError
+        the csv file extension is not `csv`.
+    ValueError
+        number of columns is not equal to ``dim``.
+    ValueError
+        number of rows is not equal to  ``dim * num_outcome * num_povm``.
+    """
     # check file extension
     check_file_extension(path)
 
@@ -60,6 +122,47 @@ def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.n
 
 
 def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray):
+    """Load schedule list from a csv file.
+    The csv file must satisfy the followings:
+    - the csv file extension is `csv`.
+    - number of columns is equal to two.
+    - each value of first column is less than or equal to ``num_state - 1``.
+    - each value of first column is greater than or equal to ``0``.
+    - each value of second column is less than or equal to ``num_povm - 1``.
+    - each value of second column is greater than or equal to ``0``. 
+    
+    Parameters
+    ----------
+    path : str
+        the csv file path to load.
+    num_state : int
+        number of state in the csv file.
+    num_povm : int
+        number of povm in the csv file.
+    
+    Returns
+    -------
+    int
+        number of schedule
+    np.ndarray
+        empi list represented by ndarray of dtype ``np.uint16``.
+        its shape is ``(number of schedule, 2)``.
+    
+    Raises
+    ------
+    ValueError
+        the csv file extension is not `csv`.
+    ValueError
+        number of columns is not equal to two.
+    ValueError
+        at least one value of first column is not less than or equal to ``num_state - 1``.
+    ValueError
+        at least one value of first column is not greater than or equal to ``0``.
+    ValueError
+        at least one value of second column is not less than or equal to ``num_povm - 1``.
+    ValueError
+        at least one value of second column is not greater than or equal to ``0``.
+    """
     # check file extension
     check_file_extension(path)
 
@@ -96,6 +199,42 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
 
 
 def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray:
+    """Load empi list from a csv file.
+    The csv file must satisfy the followings:
+    - the csv file extension is `csv`.
+    - number of columns is equal to ``num_outcome``.
+    - number of rows is equal to ``num_schedule``.
+    - each value is a non-negative real number.
+    - sum of each row is equal to ``1``.
+    
+    Parameters
+    ----------
+    path : str
+        the csv file path to load.
+    num_schedule : int
+        number of schedule in the csv file.
+    num_outcome : int
+        number of outcome in the csv file.
+    
+    Returns
+    -------
+    np.ndarray
+        empi list represented by ndarray of dtype ``np.float64``.
+        its shape is ``(num_schedule, num_outcome)``.
+    
+    Raises
+    ------
+    ValueError
+        the csv file extension is not `csv`.
+    ValueError
+        number of columns is not equal to ``num_outcome``.
+    ValueError
+        number of rows is not equal to  ``num_schedule * num_schedule``.
+    ValueError
+        at least one value is not a non-negative real number.
+    ValueError
+        at least one sum of each row is not equal to ``1``.
+    """
     # check file extension
     check_file_extension(path)
 
@@ -130,6 +269,36 @@ def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray
 
 
 def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray:
+    """Load weight list from a csv file.
+    The csv file must satisfy the followings:
+    - the csv file extension is `csv`.
+    - number of columns is equal to ``num_outcome``.
+    - number of rows is equal to ``num_schedule * num_outcome``.
+    
+    Parameters
+    ----------
+    path : str
+        the csv file path to load.
+    num_schedule : int
+        number of schedule in the csv file.
+    num_outcome : int
+        number of outcome in the csv file.
+    
+    Returns
+    -------
+    np.ndarray
+        weight list represented by ndarray of dtype ``np.float64``.
+        its shape is ``(num_schedule, num_outcome, num_outcome)``.
+    
+    Raises
+    ------
+    ValueError
+        the csv file extension is not `csv`.
+    ValueError
+        number of columns is not equal to ``num_outcome``.
+    ValueError
+        number of rows is not equal to  ``num_schedule * num_outcome``.
+    """
     # check file extension
     check_file_extension(path)
 
