@@ -2,5 +2,3 @@ numpy
 black
 pytest
 pytest-cov
-sphinx>=2.3
-sphinx_rtd_theme
