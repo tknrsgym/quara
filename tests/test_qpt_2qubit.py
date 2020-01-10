@@ -17,4 +17,4 @@ settings = {
     "path_empi": csv_path + "listEmpiDist_4valued.csv",
     "path_weight": csv_path + "weight_4valued_uniform.csv",
 }
-simple_qpt.execute(settings)
+# simple_qpt.execute(settings)
