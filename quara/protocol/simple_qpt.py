@@ -1,5 +1,6 @@
 import logging
 import math
+from pathlib import Path
 
 import matlab.engine
 import numpy as np
@@ -10,10 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 def check_file_extension(path: str) -> None:
-    extension = path.split(".")[-1]
-    if extension != "csv":
+    extension = Path(path).suffix
+    target_extensions = [".csv"]
+    if extension not in target_extensions:
         raise ValueError(
-            f"Invalid file extension in '{path}'. expected=csv, actual={extension}"
+            f"Invalid file extension in '{path}'. expected={target_extensions}, actual={extension}"
         )
 
 
