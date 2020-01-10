@@ -1,4 +1,5 @@
 import logging
+import math
 
 import matlab.engine
 import numpy as np
@@ -8,49 +9,145 @@ from quara.engine.matlabengine import MatlabEngine
 logger = logging.getLogger(__name__)
 
 
+def check_file_extension(path: str) -> None:
+    extension = path.split(".")[-1]
+    if extension != "csv":
+        raise ValueError(
+            f"Invalid file extension in '{path}'. expected=csv, actual={extension}"
+        )
+
+
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
+    # check file extension
+    check_file_extension(path)
+
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+
+    # check data
+    if raw_data.shape[1] != dim:
+        raise ValueError(
+            f"Invalid number of columns in state list '{path}'. expected={dim}(dim), actual={raw_data.shape[1]}"
+        )
+    if raw_data.shape[0] != num_state * dim:
+        raise ValueError(
+            f"Invalid number of rows in state list '{path}'. expected={dim * num_state}(dim * num_state), actual={raw_data.shape[0]}"
+        )
+
     state_list = np.reshape(raw_data, (num_state, dim * dim))
     return state_list
 
 
 def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.ndarray:
+    # check file extension
+    check_file_extension(path)
+
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+
+    # check data
+    if raw_data.shape[1] != dim:
+        raise ValueError(
+            f"Invalid number of columns in povm list '{path}'. expected={dim}(dim), actual={raw_data.shape[1]}"
+        )
+    if raw_data.shape[0] != dim * num_outcome * num_povm:
+        raise ValueError(
+            f"Invalid number of rows in povm list '{path}'. expected={dim * num_outcome * num_povm}(dim * num_outcome * num_povm), actual={raw_data.shape[0]}"
+        )
+
     povm_list = np.reshape(raw_data, (num_povm, num_outcome, dim * dim))
     return povm_list
 
 
-def load_schedule(path: str) -> (int, np.ndarray):
+def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray):
+    # check file extension
+    check_file_extension(path)
+
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.uint16)
-    num_schedule, _ = raw_data.shape
+    num_schedule = raw_data.shape[0]
+
+    # check data
+    if raw_data.shape[1] != 2:
+        raise ValueError(
+            f"Invalid number of columns in schedule list '{path}'. expected=2, actual={raw_data.shape[1]}"
+        )
+    state_max = np.max(raw_data[:, 0])
+    if state_max > num_state:
+        raise ValueError(
+            f"Invalid state in schedule list '{path}'. expected<={num_state}(num_state), actual={state_max}"
+        )
+    state_min = np.min(raw_data[:, 0])
+    if state_min < 1:
+        raise ValueError(
+            f"Invalid state in schedule list '{path}'. expected>=1, actual={state_min}"
+        )
+    povm_max = np.max(raw_data[:, 1])
+    if povm_max > num_povm:
+        raise ValueError(
+            f"Invalid povm in schedule list '{path}'. expected<={num_povm}(num_povm), actual={povm_max}"
+        )
+    povm_min = np.min(raw_data[:, 1])
+    if povm_min < 1:
+        raise ValueError(
+            f"Invalid povm in schedule list '{path}'. expected>=1, actual={povm_min}"
+        )
+
     return num_schedule, raw_data
 
 
-def load_empi_list(path: str, num_schedule: int = None) -> (int, np.ndarray):
+def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray:
+    # check file extension
+    check_file_extension(path)
+
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.float64)
-    _, num_outcome = raw_data.shape
-    return num_outcome, raw_data
+
+    # check data
+    if raw_data.shape[1] != num_outcome:
+        raise ValueError(
+            f"Invalid number of columns in empi list '{path}'. expected={num_outcome}(num_outcome), actual={raw_data.shape[1]}"
+        )
+    if raw_data.shape[0] != num_schedule:
+        raise ValueError(
+            f"Invalid number of rows in empi list '{path}'. expected={num_schedule}(num_schedule), actual={raw_data.shape[0]}"
+        )
+    empi_min = np.min(raw_data)
+    if empi_min < 0:
+        raise ValueError(
+            f"Invalid value in empi list '{path}'. expected>=0, actual={empi_min}"
+        )
+
+    empi_sum = np.sum(raw_data, axis=1)
+    check_sum_is_one = np.vectorize(lambda x: True if math.isclose(x, 1.0) else False)
+    check_result = np.where(check_sum_is_one(empi_sum) == False)
+    if len(check_result[0]) > 0:
+        invalid_sum = empi_sum[check_result[0]][0]
+        invalid_row = raw_data[check_result[0]][0]
+        raise ValueError(
+            f"Invalid sum of rows in empi list '{path}'. expected=1.0, actual={invalid_sum} {invalid_row}"
+        )
+
+    return raw_data
 
 
-def load_weight_list(path: str, n_schedule: int, num_outcome: int) -> np.ndarray:
+def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray:
+    # check file extension
+    check_file_extension(path)
+
     raw_data = np.loadtxt(path, delimiter=",", dtype=np.float64)
-    weight_list = np.reshape(raw_data, (n_schedule, num_outcome, num_outcome))
+
+    # check data
+    if raw_data.shape[1] != num_outcome:
+        raise ValueError(
+            f"Invalid number of columns in weight list '{path}'. expected={num_outcome}(num_outcome), actual={raw_data.shape[1]}"
+        )
+    if raw_data.shape[0] != num_schedule * num_outcome:
+        raise ValueError(
+            f"Invalid number of rows in weight list '{path}'. expected={num_schedule * num_outcome}(num_schedule * num_outcome), actual={raw_data.shape[0]}"
+        )
+
+    weight_list = np.reshape(raw_data, (num_schedule, num_outcome, num_outcome))
     return weight_list
 
 
 def execute(settings: dict) -> np.ndarray:
-    logger.debug("--- load schedule ---")
-    num_schedule, schedule_np = load_schedule(settings["path_schedule"])
-    logger.debug(f"num_schedule={num_schedule}")
-    schedule_ml = matlab.uint64(schedule_np.tolist())
-    logger.debug(schedule_ml)
-
-    logger.debug("--- load empi list ---")
-    num_outcome, empi_list_np = load_empi_list(settings["path_empi"], num_schedule)
-    empi_list_ml = matlab.double(empi_list_np.tolist())
-    logger.debug(f"num_outcome={num_outcome}")
-    logger.debug(empi_list_ml)
-
     logger.debug("--- load state list ---")
     state_list_np = load_state_list(
         settings["path_state"], settings["dim"], settings["num_state"]
@@ -67,6 +164,19 @@ def execute(settings: dict) -> np.ndarray:
     )
     povm_list_ml = matlab.double(povm_list_np.tolist(), is_complex=True)
     logger.debug(povm_list_ml)
+
+    logger.debug("--- load schedule ---")
+    num_schedule, schedule_np = load_schedule(
+        settings["path_schedule"], settings["num_state"], settings["num_povm"]
+    )
+    logger.debug(f"num_schedule={num_schedule}")
+    schedule_ml = matlab.uint64(schedule_np.tolist())
+    logger.debug(schedule_ml)
+
+    logger.debug("--- load empi list ---")
+    empi_list_np = load_empi_list(settings["path_empi"], num_schedule)
+    empi_list_ml = matlab.double(empi_list_np.tolist())
+    logger.debug(empi_list_ml)
 
     logger.debug("--- load weight list ---")
     weight_list_np = load_weight_list(
