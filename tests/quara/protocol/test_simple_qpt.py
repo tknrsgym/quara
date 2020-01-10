@@ -62,6 +62,52 @@ def test_load_state_list():
     assert np.array_equal(actual_data, expected_data)
 
 
+def test_load_povm_list_invalid_dim():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/tester_1qubit_povm.csv"
+    povm_np = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+    invalid_dim = povm_np.shape[1] + 1  # make invalid data
+    num_povm, num_outcome = 3, 2
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_povm_list(path, invalid_dim, num_povm, num_outcome)
+
+
+def test_load_povm_list_invalid_rows():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/tester_1qubit_povm.csv"
+    povm_np = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+    dim = povm_np.shape[1]
+    num_povm, num_outcome = 3, 2
+    invalid_num_povm, invalid_num_outcome = 4, 3
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_povm_list(path, dim, invalid_num_povm, num_outcome)
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_povm_list(path, dim, num_povm, invalid_num_outcome)
+
+
+def test_load_povm_list():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/tester_1qubit_povm.csv"
+    povm_np = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+    dim = povm_np.shape[1]
+    num_povm, num_outcome = 3, 2
+
+    expected_data = np.array(
+        [
+            [[0.5, 0.5, 0.5, 0.5], [0.5, -0.5, -0.5, 0.5]],
+            [[0.5, -0.5j, 0.5j, 0.5 + 0], [0.5, 0.5j, -0.5j, 0.5]],
+            [[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
+        ]
+    )
+
+    actual_data = s_qpt.load_povm_list(path, dim, num_povm, num_outcome)
+
+    assert np.array_equal(actual_data, expected_data)
+
+
 def test_load_weight_list_invalid_num_outcome():
     test_root_dir = Path(os.path.dirname(__file__)).parent.parent
     path = test_root_dir / "data/weight_2valued_uniform.csv"
