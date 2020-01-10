@@ -63,7 +63,7 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
     # check file extension
     check_file_extension(path)
 
-    raw_data = np.loadtxt(path, delimiter=",", dtype=np.uint16)
+    raw_data = np.loadtxt(path, delimiter=",", dtype=np.int16)
     num_schedule = raw_data.shape[0]
 
     # check data
@@ -72,27 +72,27 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
             f"Invalid number of columns in schedule list '{path}'. expected=2, actual={raw_data.shape[1]}"
         )
     state_max = np.max(raw_data[:, 0])
-    if state_max > num_state:
+    if state_max > num_state - 1:
         raise ValueError(
-            f"Invalid state in schedule list '{path}'. expected<={num_state}(num_state), actual={state_max}"
+            f"Invalid state in schedule list '{path}'. expected<={num_state - 1}(num_state - 1), actual={state_max}"
         )
     state_min = np.min(raw_data[:, 0])
-    if state_min < 1:
+    if state_min < 0:
         raise ValueError(
-            f"Invalid state in schedule list '{path}'. expected>=1, actual={state_min}"
+            f"Invalid state in schedule list '{path}'. expected>=0, actual={state_min}"
         )
     povm_max = np.max(raw_data[:, 1])
-    if povm_max > num_povm:
+    if povm_max > num_povm - 1:
         raise ValueError(
-            f"Invalid povm in schedule list '{path}'. expected<={num_povm}(num_povm), actual={povm_max}"
+            f"Invalid povm in schedule list '{path}'. expected<={num_povm - 1}(num_povm - 1), actual={povm_max}"
         )
     povm_min = np.min(raw_data[:, 1])
-    if povm_min < 1:
+    if povm_min < 0:
         raise ValueError(
-            f"Invalid povm in schedule list '{path}'. expected>=1, actual={povm_min}"
+            f"Invalid povm in schedule list '{path}'. expected>=0, actual={povm_min}"
         )
 
-    return num_schedule, raw_data
+    return num_schedule, raw_data.astype(np.uint16)
 
 
 def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray:
@@ -172,11 +172,14 @@ def execute(settings: dict) -> np.ndarray:
         settings["path_schedule"], settings["num_state"], settings["num_povm"]
     )
     logger.debug(f"num_schedule={num_schedule}")
+    schedule_np_start_from_0 = schedule_np + 1
     schedule_ml = matlab.uint64(schedule_np.tolist())
     logger.debug(schedule_ml)
 
     logger.debug("--- load empi list ---")
-    empi_list_np = load_empi_list(settings["path_empi"], num_schedule)
+    empi_list_np = load_empi_list(
+        settings["path_empi"], num_schedule, settings["num_outcome"]
+    )
     empi_list_ml = matlab.double(empi_list_np.tolist())
     logger.debug(empi_list_ml)
 
