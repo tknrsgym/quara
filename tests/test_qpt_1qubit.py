@@ -6,7 +6,7 @@ import matlab.engine
 import numpy as np
 import pytest
 
-from quara.engine.matlabengine import MatlabEngine
+# from quara.engine.matlabengine import MatlabEngine
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
@@ -61,6 +61,9 @@ def test_load_state_list_invalid_num():
 
 
 if __name__ == "__main__":
+
+    eng = matlab.engine.start_matlab()
+
     dim = 2 ** 1  # 2**qubits
     num_state = 4
     num_povm = 3
@@ -73,17 +76,23 @@ if __name__ == "__main__":
     state_ml = matlab.double(state_np.tolist(), is_complex=True)
     print(state_ml)
 
+    # eng.List_state_from_python(state_ml)
+
     print("--- load povm list ---")
     m, povm_np = load_povm_list(csv_path / "tester_1qubit_povm.csv", dim, num_povm)
     povm_ml = matlab.double(povm_np.tolist(), is_complex=True)
     print(f"M={m}")
     print(povm_ml)
 
+    # eng.List_povm_from_python(povm_ml)
+
     print("--- load schedule ---")
     num_schedule, schedule_np = load_schedule(csv_path / "schedule_1qubit.csv")
     print(f"n_schedule={num_schedule}")
     schedule_ml = matlab.uint64(schedule_np.tolist())
     print(schedule_ml)
+
+    # eng.List_schedule_from_python(schedule_ml)
 
     print("--- load emp list ---")
     emp_list_np = load_emp_list(
@@ -92,6 +101,8 @@ if __name__ == "__main__":
     emp_list_ml = matlab.double(emp_list_np.tolist())
     print(emp_list_ml)
 
+    # eng.List_empiDist_from_python(emp_list_ml)
+
     print("--- load weight list ---")
     weight_list_np = load_weight_list(
         csv_path / "weight_2valued_uniform.csv", num_schedule, m
@@ -99,9 +110,28 @@ if __name__ == "__main__":
     weight_list_ml = matlab.double(weight_list_np.tolist())
     print(weight_list_ml)
 
-    with MatlabEngine() as engine:
+    # eng.List_weight_from_python(weight_list_ml)
+
+    eps_sedumi = 0.0  # matlab.double(0.0)
+    int_verbose = 1  # matlab.uint8(1)
+    [Choi, value] = eng.simple_qpt(
+        dim,
+        state_ml,
+        povm_ml,
+        schedule_ml,
+        weight_list_ml,
+        emp_list_ml,
+        eps_sedumi,
+        int_verbose,
+    )
+    print(Choi)
+    print(value)
+
+    eng.quit()
+
+    """with MatlabEngine() as engine:
         engine.check_pass_from_python_to_matlab(
             state_ml, nargout=0,
-        )
+        ) """
 
     print("completed")

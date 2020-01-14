@@ -1,3 +1,4 @@
+
 % Start of test_qpt_1qubit.m
 format long
 char_precision = '%.15e';
@@ -16,8 +17,8 @@ num_state   = 4;
 num_povm    = 3;
 num_outcome = 2;
 
-path_quara = '../../quara/';
-path_importFolder = strcat(path_quara, 'tests/data/');
+path_quara = './ImportFiles/';
+path_importFolder = strcat(path_quara, '');
 
 filename_state        = strcat(path_importFolder, 'tester_1qubit_state.csv');
 filename_povm         = strcat(path_importFolder, 'tester_1qubit_povm.csv');
