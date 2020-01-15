@@ -12,9 +12,16 @@ class MatlabEngine(object):
     def __enter__(self):
         self.engine = matlab.engine.start_matlab()
 
-        self.engine.cd(str(self._matlab_func_path), nargout=0)
+        self.engine.addpath(str(self._matlab_func_path), nargout=0)
+
         for path in self._matlab_func_path.glob("**"):
             self.engine.addpath(str(path))
+        # print(self.engine.path())
+        # debug
+        # self.engine.addpath("/Users/furuki/applications/sedumi-master")
+        # self.engine.addpath("/Users/furuki/applications/yalmip")
+        self.engine.addpath("/Users/furuki/Applications/YALMIP/@sdpvar/")
+        self.engine.addpath("/Applications/MATLAB_R2019b.app/toolbox/matlab/sparfun/")
 
         return self.engine
 

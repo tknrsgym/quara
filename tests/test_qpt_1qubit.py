@@ -6,7 +6,7 @@ import matlab.engine
 import numpy as np
 import pytest
 
-# from quara.engine.matlabengine import MatlabEngine
+from quara.engine.matlabengine import MatlabEngine
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
@@ -62,7 +62,7 @@ def test_load_state_list_invalid_num():
 
 if __name__ == "__main__":
 
-    eng = matlab.engine.start_matlab()
+    # eng = matlab.engine.start_matlab()
 
     dim = 2 ** 1  # 2**qubits
     num_state = 4
@@ -114,24 +114,48 @@ if __name__ == "__main__":
 
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 1  # matlab.uint8(1)
-    [Choi, value] = eng.simple_qpt(
-        dim,
-        state_ml,
-        povm_ml,
-        schedule_ml,
-        weight_list_ml,
-        emp_list_ml,
-        eps_sedumi,
-        int_verbose,
-    )
-    print(Choi)
-    print(value)
+    # [Choi, value] = eng.simple_qpt(
+    #     dim,
+    #     state_ml,
+    #     povm_ml,
+    #     schedule_ml,
+    #     weight_list_ml,
+    #     emp_list_ml,
+    #     eps_sedumi,
+    #     int_verbose,
+    # )
+    # print(Choi)
+    # print(value)
 
-    eng.quit()
+    # eng.quit()
 
-    """with MatlabEngine() as engine:
-        engine.check_pass_from_python_to_matlab(
-            state_ml, nargout=0,
-        ) """
+    # with MatlabEngine() as engine:
+    #     engine.check_pass_from_python_to_matlab(
+    #         state_ml, nargout=0,
+    #     )
+
+    with MatlabEngine() as engine:
+        Choi, value = engine.simple_qpt(
+            float(dim),
+            state_ml,
+            povm_ml,
+            schedule_ml,
+            weight_list_ml,
+            emp_list_ml,
+            eps_sedumi,
+            int_verbose,
+        )
+    # with MatlabEngine() as engine:
+    #     # engine.sparse(2, 2)
+    #     # engine.sprand(3.0, 3.0, 3.0)
+    #     # engine.isprime(37)
+    #     size_Choi = 2.0 * 2.0
+    #     engine.sdpvar(size_Choi, size_Choi, "hermitian", "complex")
+    #     # engine.sparse(2)
+
+    # print(Choi)
+    # print(value)
+    # with MatlabEngine() as engine:
+    #     engine.yalmiptest("sedumi")
 
     print("completed")
