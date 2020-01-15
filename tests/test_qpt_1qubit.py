@@ -115,7 +115,7 @@ if __name__ == "__main__":
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 1  # matlab.uint8(1)
     [Choi, value] = eng.simple_qpt(
-        dim,
+        float(dim),
         state_ml,
         povm_ml,
         schedule_ml,
