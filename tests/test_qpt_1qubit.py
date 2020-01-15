@@ -6,7 +6,7 @@ import matlab.engine
 import numpy as np
 import pytest
 
-# from quara.engine.matlabengine import MatlabEngine
+from quara.engine.matlabengine import MatlabEngine
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
@@ -113,8 +113,8 @@ if __name__ == "__main__":
     # eng.List_weight_from_python(weight_list_ml)
 
     eps_sedumi = 0.0  # matlab.double(0.0)
-    int_verbose = 1  # matlab.uint8(1)
-    [Choi, value] = eng.simple_qpt(
+    int_verbose = 0  # matlab.uint8(1)
+    res = eng.simple_qpt(
         float(dim),
         state_ml,
         povm_ml,
@@ -124,8 +124,7 @@ if __name__ == "__main__":
         eps_sedumi,
         int_verbose,
     )
-    print(Choi)
-    print(value)
+    print(res)
 
     eng.quit()
 
