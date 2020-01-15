@@ -129,9 +129,9 @@ if __name__ == "__main__":
 
     eng.quit()
 
-    """with MatlabEngine() as engine:
+    with MatlabEngine() as engine:
         engine.check_pass_from_python_to_matlab(
             state_ml, nargout=0,
-        ) """
+        )
 
     print("completed")
