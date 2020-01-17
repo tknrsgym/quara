@@ -2,6 +2,8 @@ import logging
 import os
 
 from quara.protocol import simple_qpt
+from quara.utils import matrix_util
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -17,4 +19,12 @@ settings = {
     "path_empi": csv_path + "listEmpiDist_4valued.csv",
     "path_weight": csv_path + "weight_4valued_uniform.csv",
 }
-# simple_qpt.execute(settings)
+choi, obj_value = simple_qpt.execute_from_csv(settings)
+print("--- result ---")
+print(f"choi={choi}")
+print(f"obj_value={obj_value}")
+
+print("--- validation ---")
+print(f"is_hermitian={matrix_util.is_hermitian(choi)}")
+print(f"is_positive_semidefinite={matrix_util.is_positive_semidefinite(choi)}")
+print(f"is_tp={matrix_util.is_tp(choi, settings['dim'])}")
