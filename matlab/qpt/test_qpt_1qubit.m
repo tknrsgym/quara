@@ -1,6 +1,6 @@
 
 % Start of test_qpt_1qubit.m
-format long
+format longE
 char_precision = '%.15e';
 
 % = = = = = = = = = = = = = = = = = = = = = = = = = = =
