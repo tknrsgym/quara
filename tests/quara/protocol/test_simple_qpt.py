@@ -158,3 +158,47 @@ def test_load_weight_list():
 
     actual_data = s_qpt.load_weight_list(path, num_schedule, num_outcome)
     assert np.array_equal(actual_data, expected_data)
+
+
+@pytest.mark.call_matlab
+def test_execute():
+    # load test data
+    dim = 2 ** 1  # 2**qubits
+    num_state = 4
+    num_povm = 3
+    num_outcome = 2
+    num_schedule = 12
+
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    data_dir = test_root_dir / "data"
+    states = s_qpt.load_state_list(
+        data_dir / "tester_1qubit_state.csv", dim=dim, num_state=num_state
+    )
+    povms = s_qpt.load_povm_list(
+        data_dir / "tester_1qubit_povm.csv",
+        dim=dim,
+        num_povm=num_povm,
+        num_outcome=num_outcome,
+    )
+    schedule = s_qpt.load_schedule(
+        data_dir / "schedule_1qubit_start_from_0.csv",
+        num_state=num_state,
+        num_povm=num_povm,
+    )
+    empis = s_qpt.load_empi_list(
+        data_dir / "listEmpiDist_2valued.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+    weights = s_qpt.load_weight_list(
+        data_dir / "weight_2valued_uniform.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+
+    # Expected data (MATLAB output)
+    path = Path(os.path.dirname(__file__)) / "data/expected_simple_qpt_1qubit.csv"
+    expected_data = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+
+    # Confirm that it is the same as the output in MATLAB.
+
