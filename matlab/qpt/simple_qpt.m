@@ -1,4 +1,4 @@
-function output = simple_qpt(dim, list_state_py, list_povm_py, list_schedule_py, list_weight_py, list_empiDist_py, eps_sedumi, int_verbose)
+function [output1, output2] = simple_qpt(dim, list_state_py, list_povm_py, list_schedule_py, list_weight_py, list_empiDist_py, eps_sedumi, int_verbose)
 %SIMPLE この関数の概要をここに記述
 %   詳細説明をここに記述
 
@@ -13,10 +13,8 @@ function output = simple_qpt(dim, list_state_py, list_povm_py, list_schedule_py,
     % = = = = = = = = = = = = = = =
     [Choi, obj_value, option] = qpt(dim, list_state, list_povm, list_schedule, list_weight, list_empiDist, eps_sedumi, int_verbose);
 
-    dim4      = dim * dim * dim *dim;
-    list_Choi = reshape(Choi, dim4, 1);
-    res       = cat(1, list_Choi, obj_value);
-    output    = res;
+    output1 = Choi;
+    output2 = obj_value;
 
 end
 

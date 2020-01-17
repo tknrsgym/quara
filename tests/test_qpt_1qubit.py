@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 0  # matlab.uint8(1)
-    res = eng.simple_qpt(
+    choi_ml, obj_value = eng.simple_qpt(
         float(dim),
         state_ml,
         povm_ml,
@@ -123,14 +123,19 @@ if __name__ == "__main__":
         emp_list_ml,
         eps_sedumi,
         int_verbose,
+        nargout=2,
     )
-    print(res)
+    choi_np = np.array(choi_ml)
+    print("-----")
+    print(f"choi={choi_np}")
+    print(f"obj_value={obj_value}")
 
     eng.quit()
 
+    """
     with MatlabEngine() as engine:
         engine.check_pass_from_python_to_matlab(
             state_ml, nargout=0,
         )
-
+    """
     print("completed")
