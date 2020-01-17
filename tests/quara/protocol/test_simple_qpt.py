@@ -187,6 +187,72 @@ def test_load_schedule():
     assert np.array_equal(actual_data, expected_data)
 
 
+def test_load_empi_list_invalid_rows():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/listEmpiDist_2valued.csv"
+    empi_list_np = np.loadtxt(path, delimiter=",", dtype=np.float64)
+    num_schedule = empi_list_np.shape[0]
+    num_outcome = empi_list_np.shape[1]
+    invalid_num_schedule = num_schedule - 1
+    invalid_num_outcome = num_outcome - 1
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_empi_list(path, invalid_num_schedule, num_outcome)
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_empi_list(path, num_schedule, invalid_num_outcome)
+
+
+def test_load_empi_list_invalid_vlaue_negative():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/listEmpiDist_2valued_invalid_vlaue_negative.csv"
+    empi_list_np = np.loadtxt(path, delimiter=",", dtype=np.float64)
+    num_schedule = empi_list_np.shape[0]
+    num_outcome = empi_list_np.shape[1]
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_empi_list(path, num_schedule, num_outcome)
+
+
+def test_load_empi_list_invalid_sum():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/listEmpiDist_2valued_invalid_sum.csv"
+    empi_list_np = np.loadtxt(path, delimiter=",", dtype=np.float64)
+    num_schedule = empi_list_np.shape[0]
+    num_outcome = empi_list_np.shape[1]
+
+    with pytest.raises(ValueError):
+        _ = s_qpt.load_empi_list(path, num_schedule, num_outcome)
+
+
+def test_load_empi_list():
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    path = test_root_dir / "data/listEmpiDist_2valued.csv"
+    empi_list_np = np.loadtxt(path, delimiter=",", dtype=np.float64)
+    num_schedule = empi_list_np.shape[0]
+    num_outcome = empi_list_np.shape[1]
+
+    expected_data = np.array(
+        [
+            [5.043978292038679e-01, 4.956021707961321e-01],
+            [5.142542524664510e-01, 4.857457475335489e-01],
+            [9.997774258456620e-01, 2.225741543378976e-04],
+            [4.956021707961321e-01, 5.043978292038679e-01],
+            [4.857457475335489e-01, 5.142542524664510e-01],
+            [2.225741543378976e-04, 9.997774258456620e-01],
+            [9.778858482455595e-01, 2.211415175444042e-02],
+            [3.529451941440284e-01, 6.470548058559715e-01],
+            [4.999889870767086e-01, 5.000110129232912e-01],
+            [6.469890306958841e-01, 3.530109693041158e-01],
+            [9.776732150343842e-01, 2.232678496561569e-02],
+            [4.850827450984023e-01, 5.149172549015976e-01],
+        ]
+    )
+
+    actual_data = s_qpt.load_empi_list(path, num_schedule, num_outcome)
+    assert np.array_equal(actual_data, expected_data)
+
+
 def test_load_weight_list_invalid_num_outcome():
     test_root_dir = Path(os.path.dirname(__file__)).parent.parent
     path = test_root_dir / "data/weight_2valued_uniform.csv"
