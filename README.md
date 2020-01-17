@@ -10,18 +10,24 @@ Python version: 3.6+
 
 Mac OS:
 ```
+# in the project root directory
 python -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements-dev.txt
+cd ../
+pip install -e ./quara
 ```
 
 Windows:
 ```
+# in the project root directory
 python -m venv venv
 .\venv\Scripts\activate
 pip install --upgrade pip
 pip install -r requirements-dev.txt
+cd ../
+pip install -e ./quara
 ```
 
 #### Install MATLAB engine API for Python
