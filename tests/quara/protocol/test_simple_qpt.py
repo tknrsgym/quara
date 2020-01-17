@@ -307,7 +307,7 @@ def test_load_weight_list():
 
 
 @pytest.mark.call_matlab
-def test_execute():
+def test_execute_1qubit():
     # load test data
     dim = 2 ** 1  # 2**qubits
     num_state = 4
@@ -342,9 +342,66 @@ def test_execute():
     )
 
     # Expected data (MATLAB output)
+    # output of test_qpt_1qubit.m
     path = Path(os.path.dirname(__file__)) / "data/expected_simple_qpt_1qubit.csv"
     expected_choi = np.loadtxt(path, delimiter=",", dtype=np.complex128)
     expected_obj_value = 5.484953853954200e-13
+
+    # Confirm that it is the same as the output in MATLAB.\
+    actual_data = s_qpt.execute(
+        dim=dim,
+        state_list=states,
+        povm_list=povms,
+        schedule=schedule,
+        weight_list=weights,
+        empi_list=empis,
+    )
+    actual_choi, actual_obj_value = actual_data
+
+    npt.assert_almost_equal(actual_choi, expected_choi, decimal=15)
+    npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=15)
+
+
+@pytest.mark.call_matlab
+def test_execute_2qubit():
+    # load test data
+    dim = 2 ** 2  # 2**qubits
+    num_state = 16
+    num_povm = 9
+    num_outcome = 4
+
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    data_dir = test_root_dir / "data"
+    states = s_qpt.load_state_list(
+        data_dir / "tester_2qubit_state.csv", dim=dim, num_state=num_state
+    )
+    povms = s_qpt.load_povm_list(
+        data_dir / "tester_2qubit_povm.csv",
+        dim=dim,
+        num_povm=num_povm,
+        num_outcome=num_outcome,
+    )
+    num_schedule, schedule = s_qpt.load_schedule(
+        data_dir / "schedule_2qubit_start_from_0.csv",
+        num_state=num_state,
+        num_povm=num_povm,
+    )
+    empis = s_qpt.load_empi_list(
+        data_dir / "listEmpiDist_4valued.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+    weights = s_qpt.load_weight_list(
+        data_dir / "weight_4valued_uniform.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+
+    # Expected data (MATLAB output)
+    # output of test_qpt_1qubit.m
+    path = Path(os.path.dirname(__file__)) / "data/expected_simple_qpt_2qubit.csv"
+    expected_choi = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+    expected_obj_value = 3.301576395880159e-12
 
     # Confirm that it is the same as the output in MATLAB.\
     actual_data = s_qpt.execute(
