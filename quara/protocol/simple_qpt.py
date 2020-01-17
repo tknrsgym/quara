@@ -318,48 +318,84 @@ def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarr
     return weight_list
 
 
-def execute(settings: dict) -> np.ndarray:
+def execute_from_csv(settings: dict) -> (np.ndarray, float):
     logger.debug("--- load state list ---")
-    state_list_np = load_state_list(
+    state_list = load_state_list(
         settings["path_state"], settings["dim"], settings["num_state"]
     )
-    state_list_ml = matlab.double(state_list_np.tolist(), is_complex=True)
-    logger.debug(state_list_ml)
+    logger.debug(state_list)
 
     logger.debug("--- load povm list ---")
-    povm_list_np = load_povm_list(
+    povm_list = load_povm_list(
         settings["path_povm"],
         settings["dim"],
         settings["num_povm"],
         settings["num_outcome"],
     )
-    povm_list_ml = matlab.double(povm_list_np.tolist(), is_complex=True)
-    logger.debug(povm_list_ml)
+    logger.debug(povm_list)
 
     logger.debug("--- load schedule ---")
-    num_schedule, schedule_np = load_schedule(
+    num_schedule, schedule = load_schedule(
         settings["path_schedule"], settings["num_state"], settings["num_povm"]
     )
     logger.debug(f"num_schedule={num_schedule}")
-    schedule_np_start_from_0 = schedule_np + 1
-    schedule_ml = matlab.uint64(schedule_np.tolist())
-    logger.debug(schedule_ml)
+    logger.debug(schedule)
 
     logger.debug("--- load empi list ---")
-    empi_list_np = load_empi_list(
+    empi_list = load_empi_list(
         settings["path_empi"], num_schedule, settings["num_outcome"]
     )
-    empi_list_ml = matlab.double(empi_list_np.tolist())
-    logger.debug(empi_list_ml)
+    logger.debug(empi_list)
 
     logger.debug("--- load weight list ---")
-    weight_list_np = load_weight_list(
+    weight_list = load_weight_list(
         settings["path_weight"], num_schedule, settings["num_outcome"]
     )
-    weight_list_ml = matlab.double(weight_list_np.tolist())
-    logger.debug(weight_list_ml)
+    logger.debug(weight_list)
 
+    eps_sedumi = 0.0  # matlab.double(0.0)
+    int_verbose = 0  # matlab.uint8(1)
+    choi, obj_value = execute(
+        settings["dim"], state_list, povm_list, schedule, weight_list, empi_list
+    )
+    logger.debug("-----")
+    logger.debug(f"choi={choi}")
+    logger.debug(f"obj_value={obj_value}")
+
+    return choi, obj_value
+
+
+def execute(
+    dim: int,
+    state_list: np.ndarray,
+    povm_list: np.ndarray,
+    schedule: np.ndarray,
+    weight_list: np.ndarray,
+    empi_list: np.ndarray,
+) -> (np.ndarray, float):
+
+    state_list_ml = matlab.double(state_list.tolist(), is_complex=True)
+    povm_list_ml = matlab.double(povm_list.tolist(), is_complex=True)
+    schedule = schedule + 1
+    schedule_ml = matlab.uint64(schedule.tolist())
+    logger.debug(schedule_ml)
+    empi_list_ml = matlab.double(empi_list.tolist())
+    weight_list_ml = matlab.double(weight_list.tolist())
+
+    eps_sedumi = 0.0  # matlab.double(0.0)
+    int_verbose = 0  # matlab.uint8(1)
     with MatlabEngine() as engine:
-        engine.check_pass_from_python_to_matlab(
-            state_list_ml, nargout=0,
+        choi_ml, obj_value = engine.simple_qpt(
+            float(dim),
+            state_list_ml,
+            povm_list_ml,
+            schedule_ml,
+            weight_list_ml,
+            empi_list_ml,
+            eps_sedumi,
+            int_verbose,
+            nargout=2,
         )
+    choi_np = np.array(choi_ml)
+
+    return choi_np, obj_value
