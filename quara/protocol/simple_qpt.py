@@ -229,7 +229,7 @@ def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray
     ValueError
         number of columns is not equal to ``num_outcome``.
     ValueError
-        number of rows is not equal to  ``num_schedule * num_schedule``.
+        number of rows is not equal to ``num_schedule``.
     ValueError
         at least one value is not a non-negative real number.
     ValueError
