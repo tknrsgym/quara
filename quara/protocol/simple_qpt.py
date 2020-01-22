@@ -438,9 +438,9 @@ def execute(
     Returns
     -------
     Tuple[np.ndarray, float]
-        first value is a Choi matrix represented by ndarray of dtype ``np.complex128``.
+        first value of tuple is a Choi matrix represented by ndarray of dtype ``np.complex128``.
         its shape is ``(dim * dim, dim * dim)``.
-        second value is a weighted squared distance between optimized value and actual value.
+        second value of tuple is a weighted squared distance between optimized value and actual value.
     """
     state_list_ml = matlab.double(state_list.tolist(), is_complex=True)
     povm_list_ml = matlab.double(povm_list.tolist(), is_complex=True)
