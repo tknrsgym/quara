@@ -31,6 +31,8 @@ We currently use [SeDuMi](http://sedumi.ie.lehigh.edu/) as a solver for semidefi
 
 **Python version:** 3.6+
 
+To create environment for development, follow these steps:
+
 Mac OS:
 ```
 # in the project root directory
@@ -55,8 +57,10 @@ pip install -e ./quara
 
 #### Install MATLAB engine API for Python and other tools
 
-- [Install MATLAB engine for Python](https://github.com/tknrsgym/quara#install-matlab-engine-api-for-python)
-- [Install other tools (solvers, parsers, etc.)](https://github.com/tknrsgym/quara#install-other-tools-solvers-parsers-etc)
+Activate the Python environment for development, and follow these steps:
+
+1. [Install MATLAB engine for Python](https://github.com/tknrsgym/quara#install-matlab-engine-api-for-python)
+2. [Install other tools (solvers, parsers, etc.)](https://github.com/tknrsgym/quara#install-other-tools-solvers-parsers-etc)
 
 ### Testing
 
