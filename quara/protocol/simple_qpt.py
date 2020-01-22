@@ -1,6 +1,7 @@
 import logging
 import math
 from pathlib import Path
+from typing import Tuple
 
 import matlab.engine
 import numpy as np
@@ -11,6 +12,18 @@ logger = logging.getLogger(__name__)
 
 
 def check_file_extension(path: str) -> None:
+    """check if the file extension is `csv`.
+    
+    Parameters
+    ----------
+    path : str
+        the file path to check.
+    
+    Raises
+    ------
+    ValueError
+        the file extension is not `csv`.
+    """
     extension = Path(path).suffix
     target_extensions = [".csv"]
     if extension not in target_extensions:
@@ -22,6 +35,7 @@ def check_file_extension(path: str) -> None:
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
     """Load state list from a csv file.
     The csv file must satisfy the followings:
+
     - the csv file extension is `csv`.
     - number of columns is equal to ``dim``.
     - number of rows is equal to ``dim * num_state``.
@@ -72,6 +86,7 @@ def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
 def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.ndarray:
     """Load povm list from a csv file.
     The csv file must satisfy the followings:
+
     - the csv file extension is `csv`.
     - number of columns is equal to ``dim``.
     - number of rows is equal to ``dim * num_outcome * num_povm``.
@@ -124,6 +139,7 @@ def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.n
 def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray):
     """Load schedule list from a csv file.
     The csv file must satisfy the followings:
+
     - the csv file extension is `csv`.
     - number of columns is equal to two.
     - each value of first column is less than or equal to ``num_state - 1``.
@@ -145,7 +161,7 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
     int
         number of schedule
     np.ndarray
-        empi list represented by ndarray of dtype ``np.uint16``.
+        schedule list represented by ndarray of dtype ``np.uint16``.
         its shape is ``(number of schedule, 2)``.
     
     Raises
@@ -201,6 +217,7 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
 def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray:
     """Load empi list from a csv file.
     The csv file must satisfy the followings:
+
     - the csv file extension is `csv`.
     - number of columns is equal to ``num_outcome``.
     - number of rows is equal to ``num_schedule``.
@@ -271,6 +288,7 @@ def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray
 def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray:
     """Load weight list from a csv file.
     The csv file must satisfy the followings:
+
     - the csv file extension is `csv`.
     - number of columns is equal to ``num_outcome``.
     - number of rows is equal to ``num_schedule * num_outcome``.
@@ -318,7 +336,29 @@ def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarr
     return weight_list
 
 
-def execute_from_csv(settings: dict) -> (np.ndarray, float):
+def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
+    """loading data from csv files and execute simple QPT.
+    
+    Parameters
+    ----------
+    settings : dict
+        following dictionary:
+
+        - "dim": dimension of Hilbert space.
+        - "num_state": number of state in the csv file.
+        - "num_povm": number of povm in the csv file.
+        - "num_outcome": number of outcome in the csv file.
+        - "path_state": path of the state csv file.
+        - "path_povm": path of the povm csv file.
+        - "path_schedule": path of the schedule csv file.
+        - "path_empi": path of the empi csv file.
+        - "path_weight": path of the weight csv file.
+    
+    Returns
+    -------
+    Tuple[np.ndarray, float]
+        see :func:`~quara.protocol.simple_qpt.execute`.
+    """
     logger.debug("--- load state list ---")
     state_list = load_state_list(
         settings["path_state"], settings["dim"], settings["num_state"]
@@ -356,7 +396,7 @@ def execute_from_csv(settings: dict) -> (np.ndarray, float):
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 0  # matlab.uint8(1)
     choi, obj_value = execute(
-        settings["dim"], state_list, povm_list, schedule, weight_list, empi_list
+        settings["dim"], state_list, povm_list, schedule, empi_list, weight_list
     )
     logger.debug("-----")
     logger.debug(f"choi={choi}")
@@ -370,10 +410,38 @@ def execute(
     state_list: np.ndarray,
     povm_list: np.ndarray,
     schedule: np.ndarray,
-    weight_list: np.ndarray,
     empi_list: np.ndarray,
-) -> (np.ndarray, float):
-
+    weight_list: np.ndarray,
+) -> Tuple[np.ndarray, float]:
+    """execute simple QPT.
+    
+    Parameters
+    ----------
+    dim : int
+        dimension of Hilbert space.
+    state_list : np.ndarray
+        state list represented by ndarray of dtype ``np.complex128``.
+        its shape is ``(num_state, dim * dim)``.
+    povm_list : np.ndarray
+        povm list represented by ndarray of dtype ``np.complex128``.
+        its shape is ``(num_povm, num_outcome, dim * dim)``.
+    schedule : np.ndarray
+        schedule list represented by ndarray of dtype ``np.uint16``.
+        its shape is ``(number of schedule, 2)``.
+    empi_list : np.ndarray
+        empi list represented by ndarray of dtype ``np.float64``.
+        its shape is ``(num_schedule, num_outcome)``.
+    weight_list : np.ndarray
+        weight list represented by ndarray of dtype ``np.float64``.
+        its shape is ``(num_schedule, num_outcome, num_outcome)``.
+    
+    Returns
+    -------
+    Tuple[np.ndarray, float]
+        first value is a Choi matrix represented by ndarray of dtype ``np.complex128``.
+        its shape is ``(dim * dim, dim * dim)``.
+        second value is a weighted squared distance between optimized value and actual value.
+    """
     state_list_ml = matlab.double(state_list.tolist(), is_complex=True)
     povm_list_ml = matlab.double(povm_list.tolist(), is_complex=True)
     schedule = schedule + 1
@@ -385,7 +453,7 @@ def execute(
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 0  # matlab.uint8(1)
     with MatlabEngine() as engine:
-        choi_ml, obj_value = engine.simple_qpt(
+        choi_ml, wsd = engine.simple_qpt(
             float(dim),
             state_list_ml,
             povm_list_ml,
@@ -396,6 +464,6 @@ def execute(
             int_verbose,
             nargout=2,
         )
-    choi_np = np.array(choi_ml)
+    choi_np = np.array(choi_ml, dtype=np.complex128)
 
-    return choi_np, obj_value
+    return choi_np, wsd

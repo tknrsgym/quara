@@ -5,8 +5,10 @@ from quara.protocol import simple_qpt
 from quara.utils import matrix_util
 
 
+# logging setting
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
+# setting for simple QPT
 csv_path = os.path.dirname(__file__) + "/data/"
 settings = {
     "dim": 2 ** 2,
@@ -19,12 +21,17 @@ settings = {
     "path_empi": csv_path + "listEmpiDist_4valued.csv",
     "path_weight": csv_path + "weight_4valued_uniform.csv",
 }
-choi, obj_value = simple_qpt.execute_from_csv(settings)
-print("--- result ---")
-print(f"choi={choi}")
-print(f"obj_value={obj_value}")
 
-print("--- validation ---")
-print(f"is_hermitian={matrix_util.is_hermitian(choi)}")
-print(f"is_positive_semidefinite={matrix_util.is_positive_semidefinite(choi)}")
-print(f"is_tp={matrix_util.is_tp(choi, settings['dim'])}")
+# execute simple QPT
+choi, wsd = simple_qpt.execute_from_csv(settings)
+
+# print result
+print("--- result ---")
+print(f"Choi matrix:\n{choi}")
+print(f"weighted squared distance={wsd}")
+
+# validate result
+print("\n--- validation ---")
+print(f"is Hermitian? : {matrix_util.is_hermitian(choi)}")
+print(f"is positive semidefinite? : {matrix_util.is_positive_semidefinite(choi)}")
+print(f"is TP? : {matrix_util.is_tp(choi, settings['dim'])}")
