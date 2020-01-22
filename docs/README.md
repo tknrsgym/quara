@@ -8,9 +8,8 @@ First, you neeed to have a environment for developing quara (see the [docs on cr
 
 ## Building the docs
 
-To build the HTML documentation, enter:
+To build the HTML documentation, enter the following command in the ``docs/`` directory:
 
     source build_docs.sh
 
-in the ``docs/`` directory.
 Then you can find the HTML output in the directory ``quara/docs/_build/html/``.
