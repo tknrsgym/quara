@@ -453,7 +453,7 @@ def execute(
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 0  # matlab.uint8(1)
     with MatlabEngine() as engine:
-        choi_ml, obj_value = engine.simple_qpt(
+        choi_ml, wsd = engine.simple_qpt(
             float(dim),
             state_list_ml,
             povm_list_ml,
@@ -466,4 +466,4 @@ def execute(
         )
     choi_np = np.array(choi_ml, dtype=np.complex128)
 
-    return choi_np, obj_value
+    return choi_np, wsd
