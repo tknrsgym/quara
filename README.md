@@ -5,6 +5,8 @@ Quara, which stands for "**Qua**ntum Ch**ara**cterization", is an open-source li
 
 **Python version:** 3.6+
 
+To use Quara, follow these steps:
+
 1. Install Quara
 2. Install MATLAB engine API for Python
 3. Install other tools (solvers, parsers, etc.)
