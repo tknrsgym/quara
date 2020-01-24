@@ -17,6 +17,15 @@ API Reference
    quara.protocol
    quara.engine
 
+Tutorials
+=========
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   ./tutorials/*
+
 Indices and tables
 ==================
 
