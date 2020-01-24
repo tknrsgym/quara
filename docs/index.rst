@@ -3,19 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to quara's documentation!
+Welcome to Quara's documentation!
 =================================
 
 **Quara** , which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.
 
 .. currentmodule:: quara
-
-API Reference
-=============
-
-.. autosummary::
-   quara.protocol
-   quara.engine
 
 Tutorials
 =========
@@ -25,6 +18,14 @@ Tutorials
    :glob:
 
    ./tutorials/*
+
+API Reference
+=============
+
+.. autosummary::
+   quara.engine
+   quara.protocol
+   quara.utils
 
 Indices and tables
 ==================
