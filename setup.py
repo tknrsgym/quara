@@ -22,6 +22,5 @@ setup(
         "Operating System :: Unix",
     ],
     keywords=["quara"],  # TODO
-    package_data={"quara.matlab": ["checker/*.m"]},
 )
 
