@@ -130,3 +130,6 @@ dmypy.json
 
 # VSCode
 .vscode/
+
+# working for docs
+docs/tutorials/
