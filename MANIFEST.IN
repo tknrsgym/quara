@@ -1,0 +1,5 @@
+recursive-include matlab *.m *.csv
+recursive-include tests *.py *.csv
+recursive-include tutorials *.ipynb
+global-exclude *~
+global-exclude *.pyc
