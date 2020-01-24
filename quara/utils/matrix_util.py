@@ -1,3 +1,4 @@
+"""utility package about matrix."""
 import numpy as np
 
 
