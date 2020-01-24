@@ -28,8 +28,8 @@ shutil.copytree("../tutorials", "./tutorials")
 # -- Project information -----------------------------------------------------
 
 project = "quara"
-copyright = "2020, Author"
-author = "Author"
+copyright = "2020, Takanori Sugiyama"
+author = "Takanori Sugiyama"
 
 
 # -- General configuration ---------------------------------------------------
