@@ -1,8 +1,8 @@
 Contributing
 ============
 
-Createing environment for deveropment
--------------------------------------
+Creating environment for development
+------------------------------------
 
 Creating a Python environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
