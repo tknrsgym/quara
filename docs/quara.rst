@@ -8,6 +8,7 @@ Subpackages
 
    quara.engine
    quara.protocol
+   quara.utils
 
 Module contents
 ---------------

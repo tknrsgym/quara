@@ -97,3 +97,19 @@ autosummary_generate = True
 add_module_names = False
 
 master_doc = "index"
+
+nbsphinx_prolog = r"""
+{% set docname = env.doc2path(env.docname, base=None) %}
+
+.. only:: html
+
+    :download:`Download Notebook <https://quara.readthedocs.io/en/latest/{{ docname }}>`
+"""
+
+nbsphinx_epilog = r"""
+{% set docname = env.doc2path(env.docname, base=None) %}
+
+.. only:: html
+
+    :download:`Download Notebook <https://quara.readthedocs.io/en/latest/{{ docname }}>`
+"""
