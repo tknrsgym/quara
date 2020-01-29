@@ -17,6 +17,12 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.abspath("../.."))
 
+# for Getting Started
+if Path("./getting_started").exists():
+    shutil.rmtree("./getting_started")
+os.mkdir("./getting_started")
+shutil.copy("../README.md", "./getting_started/README.md")
+
 # for Jupyter Notebook
 if Path("./tutorials").exists():
     shutil.rmtree("./tutorials")
@@ -45,6 +51,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "nbsphinx",
+    "recommonmark",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
