@@ -10,6 +10,13 @@ Welcome to Quara's documentation!
 
 .. currentmodule:: quara
 
+Getting Started
+===============
+
+.. toctree::
+
+   ./getting_started/README.md
+
 Tutorials
 =========
 
@@ -23,9 +30,18 @@ API Reference
 =============
 
 .. autosummary::
+
    quara.engine
    quara.protocol
    quara.utils
+
+Contributing
+=============
+
+.. toctree::
+
+   contributing
+
 
 Indices and tables
 ==================
