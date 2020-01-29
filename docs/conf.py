@@ -103,7 +103,8 @@ nbsphinx_prolog = r"""
 
 .. only:: html
 
-    :download:`Download Notebook <https://quara.readthedocs.io/en/latest/{{ docname }}>`
+    :download:`Download Notebook <https://quara.readthedocs.io/en/latest/{{ docname }}>` / 
+    :download:`Download Dataset <https://github.com/tknrsgym/quara/tree/master/tutorials/data>`
 """
 
 nbsphinx_epilog = r"""
@@ -111,5 +112,6 @@ nbsphinx_epilog = r"""
 
 .. only:: html
 
-    :download:`Download Notebook <https://quara.readthedocs.io/en/latest/{{ docname }}>`
+    :download:`Download Notebook <https://quara.readthedocs.io/en/latest/{{ docname }}>` / 
+    :download:`Download Dataset <https://github.com/tknrsgym/quara/tree/master/tutorials/data>`
 """
