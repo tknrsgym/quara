@@ -36,7 +36,7 @@ def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
     """Load state list from a csv file.
     The csv file must satisfy the followings:
 
-    - the csv file extension is `csv`.
+    - the file extension is `csv`.
     - number of columns is equal to ``dim``.
     - number of rows is equal to ``dim * num_state``.
     
@@ -58,7 +58,7 @@ def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:
     Raises
     ------
     ValueError
-        the csv file extension is not `csv`.
+        the file extension is not `csv`.
     ValueError
         number of columns is not equal to ``dim``.
     ValueError
@@ -87,7 +87,7 @@ def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.n
     """Load povm list from a csv file.
     The csv file must satisfy the followings:
 
-    - the csv file extension is `csv`.
+    - the file extension is `csv`.
     - number of columns is equal to ``dim``.
     - number of rows is equal to ``dim * num_outcome * num_povm``.
     
@@ -111,7 +111,7 @@ def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.n
     Raises
     ------
     ValueError
-        the csv file extension is not `csv`.
+        the file extension is not `csv`.
     ValueError
         number of columns is not equal to ``dim``.
     ValueError
@@ -140,7 +140,7 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
     """Load schedule list from a csv file.
     The csv file must satisfy the followings:
 
-    - the csv file extension is `csv`.
+    - the file extension is `csv`.
     - number of columns is equal to two.
     - each value of first column is less than or equal to ``num_state - 1``.
     - each value of first column is greater than or equal to ``0``.
@@ -167,7 +167,7 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
     Raises
     ------
     ValueError
-        the csv file extension is not `csv`.
+        the file extension is not `csv`.
     ValueError
         number of columns is not equal to two.
     ValueError
@@ -218,7 +218,7 @@ def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray
     """Load empi list from a csv file.
     The csv file must satisfy the followings:
 
-    - the csv file extension is `csv`.
+    - the file extension is `csv`.
     - number of columns is equal to ``num_outcome``.
     - number of rows is equal to ``num_schedule``.
     - each value is a non-negative real number.
@@ -242,7 +242,7 @@ def load_empi_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarray
     Raises
     ------
     ValueError
-        the csv file extension is not `csv`.
+        the file extension is not `csv`.
     ValueError
         number of columns is not equal to ``num_outcome``.
     ValueError
@@ -289,7 +289,7 @@ def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarr
     """Load weight list from a csv file.
     The csv file must satisfy the followings:
 
-    - the csv file extension is `csv`.
+    - the file extension is `csv`.
     - number of columns is equal to ``num_outcome``.
     - number of rows is equal to ``num_schedule * num_outcome``.
     
@@ -311,7 +311,7 @@ def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarr
     Raises
     ------
     ValueError
-        the csv file extension is not `csv`.
+        the file extension is not `csv`.
     ValueError
         number of columns is not equal to ``num_outcome``.
     ValueError
@@ -337,7 +337,7 @@ def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarr
 
 
 def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
-    """loading data from csv files and execute simple QPT.
+    """load data from csv files and execute simple QPT.
     
     Parameters
     ----------
