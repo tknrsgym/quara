@@ -42,6 +42,16 @@ Contributing
 
    contributing
 
+Source code
+===========
+
+the source code for this project is maintained on `GitHub <https://github.com/tknrsgym/quara>`__.
+
+License
+=======
+
+this project is licensed under the Apache License, Version 2.0.
+
 
 Indices and tables
 ==================
