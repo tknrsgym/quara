@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-import matlab
+import matlab.engine
 
 
 class MatlabEngine(object):
