@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 if Path("./getting_started").exists():
     shutil.rmtree("./getting_started")
 os.mkdir("./getting_started")
-shutil.copy("../README.md", "./getting_started/README.md")
+shutil.copy("../README.rst", "./getting_started/README.rst")
 
 # for Jupyter Notebook
 if Path("./tutorials").exists():
