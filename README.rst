@@ -8,11 +8,11 @@ Quara, which stands for "Quantum Characterization", is an open-source library fo
 
 .. _end_of_about:
 
-- Documentation: https://quara.readthedocs.io/en/latest/
-- Tutorials: https://quara.readthedocs.io/en/latest/index.html#tutorials
-- Source code: https://github.com/quara/quara
-- Bug reports: https://github.com/quara/quara/issues
-- Contributing: https://quara.readthedocs.io/en/latest/contributing.html
+- **Documentation:** https://quara.readthedocs.io/en/latest/
+- **Tutorials:** https://quara.readthedocs.io/en/latest/index.html#tutorials
+- **Source code:** https://github.com/quara/quara
+- **Bug reports:** https://github.com/quara/quara/issues
+- **Contributing:** https://quara.readthedocs.io/en/latest/contributing.html
 
 .. _start_of_install:
 
