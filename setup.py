@@ -18,7 +18,7 @@ setup(
     author_email="",  # TODO
     packages=find_packages(),
     description='Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.',
-    long_description=read_file("README.md"),
+    long_description=read_file("README.rst"),
     url="https://github.com/tknrsgym/quara",  # TODO: update
     python_requires="~=3.6",
     install_requires=["numpy>=1.18"],
