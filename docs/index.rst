@@ -6,7 +6,9 @@
 Welcome to Quara's documentation!
 =================================
 
-**Quara** , which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.
+.. include:: ./getting_started/README.rst
+   :start-after: .. _start_of_about:
+   :end-before: .. _end_of_about:
 
 .. currentmodule:: quara
 
@@ -15,7 +17,7 @@ Getting Started
 
 .. toctree::
 
-   ./getting_started/README.md
+   ./getting_started_base
 
 Tutorials
 =========
