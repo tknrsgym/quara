@@ -14,8 +14,8 @@ def read_file(filename):
 setup(
     name="quara",
     version="0.0.dev",
-    author="Takanori Sugiyama",
-    author_email="",  # TODO
+    author="Tomoko Furuki, Satoyuki Tsukano, Takanori Sugiyama",
+    author_email="quara@googlegroups.com",
     packages=find_packages(),
     description='Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.',
     long_description=read_file("README.rst"),
@@ -28,11 +28,11 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering :: Physics",
+        "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Science/Research",
+        "Intended Audience :: Education",
         "Operating System :: MacOS :: MacOS X",
-        "Operating System :: Microsoft :: Windows",
-        "Operating System :: Unix",
+        "Operating System :: Microsoft :: Windows :: Windows 10",
     ],
-    keywords=["quara"],  # TODO
+    keywords=["quara", "lsqpt", "quantum process tomography"],
 )
-
