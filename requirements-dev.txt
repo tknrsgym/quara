@@ -6,3 +6,4 @@ sphinx>=2.3
 sphinx_rtd_theme
 ipykernel
 recommonmark
+pytest-randomly
