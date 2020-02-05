@@ -12,56 +12,44 @@ Welcome to Quara's documentation!
 
 .. currentmodule:: quara
 
-Getting Started
-===============
-
 .. toctree::
+   :caption: Getting Started
 
    ./about_quara
    ./getting_started_base
 
-Tutorials
-=========
-
 .. toctree::
    :maxdepth: 1
+   :caption: Tutorials
    :glob:
 
    ./tutorials/*
 
-Limitations
-===========
-
 .. toctree::
+   :caption: Limitations
+   :maxdepth: 2
 
    ./limitations
 
+.. toctree::
+   :caption: API Reference
 
-API Reference
-=============
-
-.. autosummary::
-
-   quara.engine
-   quara.protocol
-   quara.utils
-
-Contributing
-=============
+   api_reference
 
 .. toctree::
+   :caption: Contributing
 
    contributing
 
 Source code
 ===========
 
-the source code for this project is maintained on `GitHub <https://github.com/tknrsgym/quara>`__.
+The source code for this project is maintained on `GitHub <https://github.com/tknrsgym/quara>`__.
 
 License
 =======
 
-this project is licensed under the XXX.
+This project is licensed under the XXX.
 
 
 Indices and tables
