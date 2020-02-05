@@ -1,6 +1,5 @@
 function matD = MatD( list_state, list_povm, list_schedule, list_weight )
-%LARGEMATD Summary of this function goes here
-%   Detailed explanation goes here
+%LARGEMATD 
     dim = size(list_state(1).mat, 1);
     size_D = dim * dim * dim * dim;
     matD = zeros(size_D);

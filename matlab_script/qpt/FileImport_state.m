@@ -1,6 +1,5 @@
 function list_state = FileImport_state( filename, dim, num_state )
-%FILEIMPORT_1QUBIT_STATE Summary of this function goes here
-%   Detailed explanation goes here
+%FILEIMPORT_1QUBIT_STATE 
     list = csvread(filename);
     
     for ix = 1:num_state

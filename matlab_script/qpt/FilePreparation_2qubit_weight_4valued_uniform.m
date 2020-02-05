@@ -1,6 +1,5 @@
 function [] = FilePreparation_2qubit_weight_4valued_uniform( filename_weight, filename_schedule, char_precision )
-%FILEPREPARATION_1QUBIT_WEIGHT Summary of this function goes here
-%   Detailed explanation goes here
+%FILEPREPARATION_1QUBIT_WEIGHT 
     list_schedule = csvread(filename_schedule);
     num_schedule = numel(list_schedule)/2;
     

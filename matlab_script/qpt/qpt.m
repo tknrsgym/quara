@@ -1,5 +1,5 @@
 function [Choi, obj_value, list_option] = qpt(dim, list_state, list_povm, list_schedule, list_weight, list_empiDist, eps_sedumi, int_verbose)
-%QPT ‚±‚ÌŠÖ”‚ÌŠT—v‚ğ‚±‚±‚É‹Lq
+%QPT
 %  - dim: dimension of the system
 %
 %  - list_state: list of density matrices. 

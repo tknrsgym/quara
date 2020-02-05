@@ -1,6 +1,5 @@
 function mat = Choi_1qubit_stochasticPauli( p1, p2, p3 )
-%CHOI_1QUBIT_STOCHASTICPAULI Summary of this function goes here
-%   Detailed explanation goes here
+%CHOI_1QUBIT_STOCHASTICPAULI 
     p = p1 + p2 + p3;
     mat = zeros(4);
     mat(1,1) = 1 - p + p3;

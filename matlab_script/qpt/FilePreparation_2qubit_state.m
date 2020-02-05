@@ -1,6 +1,5 @@
 function num_state = FilePreparation_2qubit_state(filename, char_precision)
-%FILEPREPARATION_STATE_1QUBIT Summary of this function goes here
-%   Detailed explanation goes here
+%FILEPREPARATION_STATE_1QUBIT 
     num_state = 16;
 
     state_1q(1).mat = [1.0, 0.0; 0.0, 0.0];% Z+

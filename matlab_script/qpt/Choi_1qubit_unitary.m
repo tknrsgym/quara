@@ -1,5 +1,5 @@
 function Choi = Choi_1qubit_unitary( alpha, beta, theta )
-%CHOI_1QUBIT_UNITARY Summary of this function goes here
+%CHOI_1QUBIT_UNITARY 
 %   U = cos( theta/2 ) I + i sin( theta/2 ) vec_n cdot vec_sigma
 %   vec_n = [sin(alpha) cos(beta); sin(alpha) sin(beta); cos(alpha)]
     matI = [1, 0; 0, 1];

@@ -1,6 +1,5 @@
 function num_schedule = FilePreparation_2qubit_schedule( filename, num_state, num_povm )
-%FILEPREPARATION_ID_1QUBIT Summary of this function goes here
-%   Detailed explanation goes here
+%FILEPREPARATION_ID_1QUBIT 
    id = 0; 
    for i_state = 1:num_state
        for j_povm = 1:num_povm

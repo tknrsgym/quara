@@ -1,6 +1,5 @@
 function [num_povm, num_outcome] = FilePreparation_1qubit_povm(filename, char_precision)
-%FILEPREPARATION_STATE_1QUBIT Summary of this function goes here
-%   Detailed explanation goes here
+%FILEPREPARATION_STATE_1QUBIT 
     num_povm    = 3;
     num_outcome = 2;
    
