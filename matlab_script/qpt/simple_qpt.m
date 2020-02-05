@@ -1,6 +1,5 @@
 function [output1, output2] = simple_qpt(dim, list_state_py, list_povm_py, list_schedule_py, list_weight_py, list_empiDist_py, eps_sedumi, int_verbose)
-%SIMPLE この関数の概要をここに記述
-%   詳細説明をここに記述
+%SIMPLE_QPT
 
     list_state    = List_state_from_python(list_state_py);
     list_povm     = List_povm_from_python(list_povm_py);

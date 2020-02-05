@@ -1,6 +1,5 @@
 function [ mat_Output ] = PartialTrace( mat_Input, n1, n2, label)
 %PARTIALTRANSPOSE Calculate partially transposed matrix on systems 1 & 2
-% 150807 written by Takanori Sugiyama.
 %   Transposition is taken w.r.t. the computational basis.
 %   matrix:  square real or complex matrix to be partially transposed.
 %   n1: dimension of the system 1

@@ -1,6 +1,5 @@
 function list_weight = FileImport_weight( filename_weight, num_outcome )
-%FILEIMPORT_WEIGHT Summary of this function goes here
-%   Detailed explanation goes here
+%FILEIMPORT_WEIGHT 
     list = csvread(filename_weight);
     num_element = numel(list);
     num_schedule = num_element / (num_outcome * num_outcome);

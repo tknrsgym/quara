@@ -1,6 +1,5 @@
 function output = List_povm_from_python(list_povm_py)
-%LIST_STATE_FROM_PYTHON この関数の概要をここに記述
-%   詳細説明をここに記
+%LIST_STATE_FROM_PYTHON 
     num_povm    = size(list_povm_py, 1);
     num_outcome = size(list_povm_py, 2);
     dim2        = size(list_povm_py, 3);

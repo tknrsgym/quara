@@ -1,6 +1,5 @@
 function mat = Choi_2qubit_stochasticPauli( vec_p)
-%CHOI_1QUBIT_STOCHASTICPAULI Summary of this function goes here
-%   Detailed explanation goes here    
+%CHOI_1QUBIT_STOCHASTICPAULI   
     pauli_1q(1).mat = [1.0, 0.0; 0.0, 1.0];% I
     pauli_1q(2).mat = [0.0, 1.0; 1.0, 0.0];% X
     pauli_1q(3).mat = [0.0, -1.0i; 1.0i, 0.0];% Y
