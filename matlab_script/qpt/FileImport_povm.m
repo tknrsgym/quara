@@ -1,6 +1,5 @@
 function list_povm = FileImport_povm( filename, dim, num_povm, num_outcome )
-%FILEIMPORT_1QUBIT_STATE Summary of this function goes here
-%   Detailed explanation goes here
+%FILEIMPORT_1QUBIT_STATE 
     list = csvread(filename);
     
     for ix = 1:num_povm

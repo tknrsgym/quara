@@ -1,6 +1,5 @@
 function list_probDist = ListProbDist_QPT( Choi, list_state, list_povm, list_schedule )
-%LISTPROBDIST_QPT Summary of this function goes here
-%   Detailed explanation goes here
+%LISTPROBDIST_QPT 
     num_schedule = size(list_schedule, 1);
     num_povm     = size(list_povm, 1);
     num_outcome  = size(list_povm, 2);

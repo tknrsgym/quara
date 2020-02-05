@@ -1,6 +1,5 @@
 function probDist = ProbDist_QPT( Choi, state, povm )
-%PROBDIST_QPT Summary of this function goes here
-%   Detailed explanation goes here
+%PROBDIST_QPT 
     num_outcome = size(povm,2);
     
     for i_omega = 1:num_outcome

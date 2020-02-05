@@ -1,6 +1,5 @@
 function list_vecA = ListVecA( list_state, list_povm, list_schedule )
-%LISTVECA Summary of this function goes here
-%   Detailed explanation goes here
+%LISTVECA 
     num_outcome  = size(list_povm, 2);
     num_schedule = size(list_schedule, 1);
     
