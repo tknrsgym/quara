@@ -358,8 +358,9 @@ def test_execute_1qubit():
     )
     actual_choi, actual_obj_value = actual_data
 
-    npt.assert_almost_equal(actual_choi, expected_choi, decimal=15)
-    npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=15)
+    # NOTICE: the decimal that tests can pass depends on the execution machine
+    npt.assert_almost_equal(actual_choi, expected_choi, decimal=7)
+    npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=13)
 
 
 @pytest.mark.call_matlab
@@ -414,5 +415,6 @@ def test_execute_2qubit():
     )
     actual_choi, actual_obj_value = actual_data
 
-    npt.assert_almost_equal(actual_choi, expected_choi, decimal=15)
-    npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=15)
+    # NOTICE: the decimal that tests can pass depends on the execution machine
+    npt.assert_almost_equal(actual_choi, expected_choi, decimal=10)
+    npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=13)
