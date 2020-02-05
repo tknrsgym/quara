@@ -24,7 +24,7 @@ class MatlabEngine(object):
 
     def __init__(self):
         this_pypath = Path(os.path.abspath(__file__))
-        self._matlab_func_path = this_pypath.parent.parent.parent / "matlab_script"
+        self._matlab_func_path = this_pypath.parent.parent / "matlab_script"
 
     def __enter__(self):
         self._engine = matlab.engine.start_matlab()
