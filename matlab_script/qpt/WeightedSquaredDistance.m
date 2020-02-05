@@ -11,5 +11,5 @@ function res = WeightedSquaredDistance(matC, D, vecE, h)
     term2 = vecE' * vecC;
     term3 = h;
 
-    res = term1 - 2.0 * term2 + h;
+    res = term1 - 2.0 * term2 + term3;
 end
