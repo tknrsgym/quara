@@ -35,4 +35,5 @@ setup(
         "Operating System :: Microsoft :: Windows :: Windows 10",
     ],
     keywords=["quara", "lsqpt", "quantum process tomography"],
+    include_package_data=True,
 )
