@@ -17,6 +17,7 @@ Getting Started
 
 .. toctree::
 
+   ./about_quara
    ./getting_started_base
 
 Tutorials
@@ -27,6 +28,14 @@ Tutorials
    :glob:
 
    ./tutorials/*
+
+Limitations
+===========
+
+.. toctree::
+
+   ./limitations
+
 
 API Reference
 =============
@@ -52,7 +61,7 @@ the source code for this project is maintained on `GitHub <https://github.com/tk
 License
 =======
 
-this project is licensed under the Apache License, Version 2.0.
+this project is licensed under the XXX.
 
 
 Indices and tables
