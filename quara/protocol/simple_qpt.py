@@ -96,18 +96,23 @@ def execute(
     dim : int
         dimension of Hilbert space.
     state_list : np.ndarray
+        list of density matrices.
         state list represented by ndarray of dtype ``np.complex128``.
         its shape is ``(num_state, dim * dim)``.
     povm_list : np.ndarray
+        list of POVMs.
         povm list represented by ndarray of dtype ``np.complex128``.
         its shape is ``(num_povm, num_outcome, dim * dim)``.
     schedule : np.ndarray
+        list of pair of labels for an input state and for measurement.
         schedule list represented by ndarray of dtype ``np.uint16``.
         its shape is ``(number of schedule, 2)``.
     empi_list : np.ndarray
+        list of empirical distributions.
         empi list represented by ndarray of dtype ``np.float64``.
         its shape is ``(num_schedule, num_outcome)``.
     weight_list : np.ndarray
+        list of weight matrices.
         weight list represented by ndarray of dtype ``np.float64``.
         its shape is ``(num_schedule, num_outcome, num_outcome)``.
     
