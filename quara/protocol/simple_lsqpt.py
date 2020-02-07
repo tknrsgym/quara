@@ -477,7 +477,7 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
 
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 0  # matlab.uint8(1)
-    hs, obj_value = execute(
+    choi, obj_value = execute(
         settings["dim"],
         state_list,
         povm_list,
@@ -492,7 +492,7 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
     logger.debug(f"choi={choi}")
     logger.debug(f"obj_value={obj_value}")
 
-    return hs, obj_value
+    return choi, obj_value
 
 
 def execute(
