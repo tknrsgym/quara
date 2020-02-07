@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from quara.utils.io_util import check_file_extension
+from quara.utils.file_util import check_file_extension
 
 
 def load_state_list(path: str, dim: int, num_state: int) -> np.ndarray:

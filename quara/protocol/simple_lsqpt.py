@@ -8,7 +8,7 @@ import matlab
 
 from quara.engine.matlabengine import MatlabEngine
 from quara.protocol import simple_io
-from quara.utils import io_util
+from quara.utils import number_util
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
     Tuple[np.ndarray, float]
         see :func:`~quara.protocol.simple_lsqpt.execute`.
     """
-    io_util.check_positive_number(settings["dim"], "dim")
+    number_util.check_positive_number(settings["dim"], "dim")
 
     logger.debug("--- load state list ---")
     state_list = simple_io.load_state_list(
@@ -75,13 +75,13 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
     )
     logger.debug(weight_list)
 
-    io_util.check_positive_number(settings["k"], "k")
+    number_util.check_positive_number(settings["k"], "k")
 
     logger.debug("--- load matL0 ---")
     matL0 = simple_io.load_matL0(settings["path_matL0"], settings["dim"])
     logger.debug(matL0)
 
-    io_util.check_nonnegative_number(settings["eps_logmat"], "eps_logmat")
+    number_util.check_nonnegative_number(settings["eps_logmat"], "eps_logmat")
 
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 0  # matlab.uint8(1)
