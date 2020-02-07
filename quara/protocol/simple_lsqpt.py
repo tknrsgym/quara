@@ -563,7 +563,7 @@ def execute(
             empi_list_ml,
             eps_sedumi,
             int_verbose,
-            k,
+            float(k),
             matL0_ml,
             eps_logmat,
             nargout=2,
