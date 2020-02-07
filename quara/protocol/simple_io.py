@@ -306,3 +306,51 @@ def load_weight_list(path: str, num_schedule: int, num_outcome: int) -> np.ndarr
 
     weight_list = np.reshape(raw_data, (num_schedule, num_outcome, num_outcome))
     return weight_list
+
+
+def load_matL0(path: str, dim: int) -> np.ndarray:
+    """Load matL0 list from a csv file.
+    The csv file must satisfy the followings:
+
+    - the file extension is `csv`.
+    - number of columns is equal to ``dim * dim``.
+    - number of rows is equal to ``dim * dim``.
+    
+    Parameters
+    ----------
+    path : str
+        the csv file path to load.
+    dim : int
+        dimension of Hilbert space.
+    
+    Returns
+    -------
+    np.ndarray
+        weight list represented by ndarray of dtype ``np.complex128``.
+        its shape is ``(dim * dim, dim * dim)``.
+    
+    Raises
+    ------
+    ValueError
+        the file extension is not `csv`.
+    ValueError
+        number of columns is not equal to ``dim * dim``.
+    ValueError
+        number of rows is not equal to  ``dim * dim``.
+    """
+    # check file extension
+    check_file_extension(path)
+
+    raw_data = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+
+    # check data
+    if raw_data.shape[1] != dim * dim:
+        raise ValueError(
+            f"Invalid number of columns in matL0 '{path}'. expected={dim * dim}(dim * dim), actual={raw_data.shape[1]}"
+        )
+    if raw_data.shape[0] != dim * dim:
+        raise ValueError(
+            f"Invalid number of rows in matL0 '{path}'. expected={dim * dim}(dim * dim), actual={raw_data.shape[0]}"
+        )
+
+    return raw_data
