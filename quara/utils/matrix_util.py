@@ -15,8 +15,12 @@ def is_hermitian(matrix: np.ndarray) -> bool:
     bool
         True where ``matrix`` is Hermitian, False otherwise.
     """
+    rows, columns = matrix.shape
+    if rows != columns:
+        return False
+
     adjoint = matrix.T.conj()
-    return np.array_equal(matrix, adjoint)
+    return np.allclose(matrix, adjoint, atol=1e-15, rtol=0.0)
 
 
 def is_positive_semidefinite(matrix: np.ndarray) -> bool:
@@ -88,4 +92,4 @@ def is_tp(matrix: np.ndarray, dim: int) -> bool:
     """
     p_trace = partial_trace(matrix, dim)
     identity = np.eye(dim, dtype=np.complex128).reshape(dim, dim)
-    return np.allclose(p_trace, identity, atol=1e-06)
+    return np.allclose(p_trace, identity, atol=1e-06, rtol=0.0)
