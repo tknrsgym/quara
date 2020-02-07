@@ -6,20 +6,20 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-import quara.protocol.lsqpt as lsqpt
+import quara.protocol.simple_lsqpt as s_lsqpt
 
 
 def test_check_natural_number():
     parameter_name = "dim"
     # valid
     target = 1
-    lsqpt.check_natural_number(target, parameter_name)
+    s_lsqpt.check_natural_number(target, parameter_name)
 
     # invalid
     target = 0
 
     with pytest.raises(ValueError):
-        lsqpt.check_natural_number(target, parameter_name)
+        s_lsqpt.check_natural_number(target, parameter_name)
 
 
 def test_load_matL0_invalid_rows():
@@ -29,7 +29,7 @@ def test_load_matL0_invalid_rows():
     dim = 1
 
     with pytest.raises(ValueError):
-        _ = lsqpt.load_matL0(path, dim)
+        _ = s_lsqpt.load_matL0(path, dim)
 
 
 def test_load_matL0():
@@ -67,5 +67,64 @@ def test_load_matL0():
         ]
     )
 
-    actual_data = lsqpt.load_matL0(path, dim)
+    actual_data = s_lsqpt.load_matL0(path, dim)
     assert np.array_equal(actual_data, expected_data)
+
+
+@pytest.mark.call_matlab
+def test_execute_1qubit():
+    # load test data
+    dim = 2 ** 1  # 2**qubits
+    num_state = 4
+    num_povm = 3
+    num_outcome = 2
+
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    data_dir = test_root_dir / "data"
+    states = s_lsqpt.load_state_list(
+        data_dir / "tester_1qubit_state.csv", dim=dim, num_state=num_state
+    )
+    povms = s_lsqpt.load_povm_list(
+        data_dir / "tester_1qubit_povm.csv",
+        dim=dim,
+        num_povm=num_povm,
+        num_outcome=num_outcome,
+    )
+    num_schedule, schedule = s_lsqpt.load_schedule(
+        data_dir / "schedule_1qubit_start_from_0.csv",
+        num_state=num_state,
+        num_povm=num_povm,
+    )
+    empis = s_lsqpt.load_empi_list(
+        data_dir / "listEmpiDist_2valued_k3.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+    weights = s_lsqpt.load_weight_list(
+        data_dir / "weight_2valued_uniform.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+    k = 3
+    matL0 = s_lsqpt.load_matL0(data_dir / "matL0_1qubit_X90.csv", dim=dim,)
+    eps_logmat = 10e-10
+
+    # Expected data (MATLAB output)
+    # output of test_qpt_1qubit.m
+    path = Path(os.path.dirname(__file__)) / "data/expected_simple_qpt_1qubit.csv"
+    expected_choi = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+    expected_obj_value = 5.484953853954200e-13
+
+    # Confirm that it is the same as the output in MATLAB.\
+    actual_data = s_lsqpt.execute(
+        dim=dim,
+        state_list=states,
+        povm_list=povms,
+        schedule=schedule,
+        weight_list=weights,
+        empi_list=empis,
+        k=3,
+        matL0=matL0,
+        eps_logmat=eps_logmat,
+    )
+    actual_choi, actual_obj_value = actual_data
