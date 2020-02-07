@@ -111,9 +111,9 @@ def test_execute_1qubit():
 
     # Expected data (MATLAB output)
     # output of test_qpt_1qubit.m
-    path = Path(os.path.dirname(__file__)) / "data/expected_simple_qpt_1qubit.csv"
+    path = Path(os.path.dirname(__file__)) / "data/expected_simple_lsqpt_1qubit.csv"
     expected_choi = np.loadtxt(path, delimiter=",", dtype=np.complex128)
-    expected_obj_value = 5.484953853954200e-13
+    expected_obj_value = 2.83106871279414917808e-15
 
     # Confirm that it is the same as the output in MATLAB.\
     actual_data = s_lsqpt.execute(
@@ -128,3 +128,70 @@ def test_execute_1qubit():
         eps_logmat=eps_logmat,
     )
     actual_choi, actual_obj_value = actual_data
+
+    # NOTICE: the decimal that tests can pass depends on the execution machine
+    npt.assert_almost_equal(actual_choi, expected_choi, decimal=8)
+    npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=14)
+
+
+@pytest.mark.call_matlab
+def test_execute_2qubit():
+    # load test data
+    dim = 2 ** 2  # 2**qubits
+    num_state = 16
+    num_povm = 9
+    num_outcome = 4
+
+    test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+    data_dir = test_root_dir / "data"
+    states = s_lsqpt.load_state_list(
+        data_dir / "tester_2qubit_state.csv", dim=dim, num_state=num_state
+    )
+    povms = s_lsqpt.load_povm_list(
+        data_dir / "tester_2qubit_povm.csv",
+        dim=dim,
+        num_povm=num_povm,
+        num_outcome=num_outcome,
+    )
+    num_schedule, schedule = s_lsqpt.load_schedule(
+        data_dir / "schedule_2qubit_start_from_0.csv",
+        num_state=num_state,
+        num_povm=num_povm,
+    )
+    empis = s_lsqpt.load_empi_list(
+        data_dir / "listEmpiDist_4valued_k3.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+    weights = s_lsqpt.load_weight_list(
+        data_dir / "weight_4valued_uniform.csv",
+        num_schedule=num_schedule,
+        num_outcome=num_outcome,
+    )
+    k = 3
+    matL0 = s_lsqpt.load_matL0(data_dir / "matL0_2qubit_ZX90.csv", dim=dim,)
+    eps_logmat = 10e-10
+
+    # Expected data (MATLAB output)
+    # output of test_qpt_1qubit.m
+    path = Path(os.path.dirname(__file__)) / "data/expected_simple_lsqpt_2qubit.csv"
+    expected_choi = np.loadtxt(path, delimiter=",", dtype=np.complex128)
+    expected_obj_value = 6.51636522519538630149e-11
+
+    # Confirm that it is the same as the output in MATLAB.\
+    actual_data = s_lsqpt.execute(
+        dim=dim,
+        state_list=states,
+        povm_list=povms,
+        schedule=schedule,
+        weight_list=weights,
+        empi_list=empis,
+        k=3,
+        matL0=matL0,
+        eps_logmat=eps_logmat,
+    )
+    actual_choi, actual_obj_value = actual_data
+
+    # NOTICE: the decimal that tests can pass depends on the execution machine
+    npt.assert_almost_equal(actual_choi, expected_choi, decimal=10)
+    npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=12)
