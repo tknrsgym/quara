@@ -424,14 +424,14 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
         - "path_schedule": path of the schedule csv file.
         - "path_empi": path of the empi csv file.
         - "path_weight": path of the weight csv file.
-        - "k": power of the gate.
-        - "matL0": the gate.
-        - "eps_logmat": TODO.
+        - "k": the length of an amplified gate sequence.
+        - "matL0": the Hilbert-Schmidt representation of a Lindbladian in the computational basis.
+        - "eps_logmat": a nonnegative parameter for numerical error tolerance.
     
     Returns
     -------
     Tuple[np.ndarray, float]
-        see :func:`~quara.protocol.lsqpt.execute`.
+        see :func:`~quara.protocol.simple_lsqpt.execute`.
     """
     check_natural_number(settings["dim"], "dim")
 
@@ -528,13 +528,12 @@ def execute(
         weight list represented by ndarray of dtype ``np.float64``.
         its shape is ``(num_schedule, num_outcome, num_outcome)``.
     k : int
-        power of the gate.
+        the length of an amplified gate sequence. positive integer.
     matL0 : np.ndarray
-        the gate represented by ndarray of dtype ``np.complex128``.
+        the Hilbert-Schmidt representation of a Lindbladian in the computational basis represented by ndarray of dtype ``np.complex128``.
         its shape is ``(dim * dim, dim * dim)``
     eps_logmat : float
-        TODO
-        real number greater than or equal to zero.
+        a nonnegative parameter for numerical error tolerance.
     
     Returns
     -------
