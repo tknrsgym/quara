@@ -51,11 +51,18 @@ Testing
 We currently use `pytest <https://docs.pytest.org/en/latest/>`__ for
 testing.
 
-To test all the code , enter the following command:
+To test all the code, enter the following command:
 
 ::
 
    pytest
+
+Some tests depend on MATLAB.
+To skip MATLAB-dependent code and run tests, enter the following command:
+
+::
+
+   pytest -m "not matlab_dependent"
 
 To generate a coverage report, enter the following command:
 
