@@ -408,7 +408,7 @@ def load_matL0(path: str, dim: int) -> np.ndarray:
 
 
 def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
-    """load data from csv files and execute simple QPT.
+    """load data from csv files and execute lsQPT.
     
     Parameters
     ----------
@@ -489,7 +489,7 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
         settings["eps_logmat"],
     )
     logger.debug("-----")
-    logger.debug(f"Hilbert–Schmidt={hs}")
+    logger.debug(f"choi={choi}")
     logger.debug(f"obj_value={obj_value}")
 
     return hs, obj_value
@@ -506,7 +506,7 @@ def execute(
     matL0: np.ndarray,
     eps_logmat: float,
 ) -> Tuple[np.ndarray, float]:
-    """execute simple QPT.
+    """execute lsQPT.
     
     Parameters
     ----------
@@ -539,7 +539,7 @@ def execute(
     Returns
     -------
     Tuple[np.ndarray, float]
-        first value of tuple is a Hilbert–Schmidt matrix represented by ndarray of dtype ``np.float64``.
+        first value of tuple is a Choi matrix represented by ndarray of dtype ``np.complex128``.
         its shape is ``(dim * dim, dim * dim)``.
         second value of tuple is a weighted squared distance between optimized value and actual value.
     """
@@ -550,12 +550,12 @@ def execute(
     logger.debug(schedule_ml)
     empi_list_ml = matlab.double(empi_list.tolist())
     weight_list_ml = matlab.double(weight_list.tolist())
-    matL0_ml = matlab.double(matL0.tolist())
+    matL0_ml = matlab.double(matL0.tolist(), is_complex=True)
 
     eps_sedumi = 0.0  # matlab.double(0.0)
     int_verbose = 0  # matlab.uint8(1)
     with MatlabEngine() as engine:
-        choi_ml, wsd = engine.lsqpt(
+        choi_ml, wsd = engine.simple_lsqpt(
             float(dim),
             state_list_ml,
             povm_list_ml,
@@ -569,6 +569,6 @@ def execute(
             eps_logmat,
             nargout=2,
         )
-    hs_np = np.array(choi_ml, dtype=np.float64)
+    choi_np = np.array(choi_ml, dtype=np.complex128)
 
-    return hs_np, wsd
+    return choi_np, wsd
