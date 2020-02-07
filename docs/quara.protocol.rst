@@ -4,6 +4,14 @@ quara.protocol package
 Submodules
 ----------
 
+quara.protocol.simple\_io module
+--------------------------------
+
+.. automodule:: quara.protocol.simple_io
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 quara.protocol.simple\_qpt module
 ---------------------------------
 
