@@ -7,12 +7,18 @@ class ElementalSystem:
         # system_idで持たせておくとうっかり同値判定（==）で比較しても異なる値として判断されるので、
         # とりあえず持たせておく
         self._system_id: int = id(self)
-        self._matrix_basis: MatrixBasis = None  # TODO: インスタンス生成時に設定して後からは変更不可？
+        self.dimension: int = None  # TODO
+        self._computational_basis: MatrixBasis = None  # TODO
+        self._hemirtian_basis: MatrixBasis = None  # TODO
 
     @property
     def system_id(self):  # read only
         return self._system_id
 
     @property
-    def basis(self):  # read only
-        return self._matrix_basis
+    def computational_basis(self):  # read only?
+        return self._computational_basis
+
+    @property
+    def hemirtian_basis_basis(self):  # read only?
+        return self._hemirtian_basis
