@@ -18,6 +18,14 @@ class VectorizedMatrixBasis:
     def __str__(self):
         return str(self._basis)
 
+    @property
+    def org_basis(self):  # read only
+        return self._org_basis
+
+    @property
+    def basis(self):  # read only
+        return self._basis
+
     def is_hermitian(self) -> bool:
         # 元の行列がエルミート行列になっているかどうかのチェック
         return self._org_basis.is_hermitian()
