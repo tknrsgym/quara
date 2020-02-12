@@ -30,7 +30,7 @@ class MatrixBasis:
         # 各B_{\alpha}を返す
         assert 0 <= index
         assert index <= len(self.basis)
-        return np.copy(self.basis[index])
+        return self.basis[index]
 
     def size(self):
         # 行列サイズを返す
@@ -39,3 +39,6 @@ class MatrixBasis:
     def __len__(self):
         # 行列の個数を返す
         return len(self.basis)
+
+    def __iter__(self):
+        return iter(self.basis)
