@@ -9,7 +9,7 @@ def is_hermitian(matrix: np.ndarray) -> bool:
     ----------
     matrix : np.ndarray
         input matrix.
-    
+
     Returns
     -------
     bool
@@ -26,7 +26,7 @@ def is_positive_semidefinite(matrix: np.ndarray) -> bool:
     ----------
     matrix : np.ndarray
         input matrix.
-    
+
     Returns
     -------
     bool
@@ -40,7 +40,7 @@ def is_positive_semidefinite(matrix: np.ndarray) -> bool:
 
 def partial_trace(matrix: np.ndarray, dim: int) -> np.array:
     """calculates partial trace.
-    
+
     Parameters
     ----------
     matrix : np.ndarray
