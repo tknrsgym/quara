@@ -1,6 +1,6 @@
 import numpy as np
 
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import MatrixBasis, VectorizedMatrixBasis
 
 # computational basis
 array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -9,8 +9,12 @@ array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
 array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
 comp_basis = MatrixBasis([array00, array01, array10, array11])
 
-for b in comp_basis:
-    print(b)
+print("Before")
+print(comp_basis)
+
+v = VectorizedMatrixBasis(comp_basis)
+print("After")
+print(v)
 
 # # Pauli basis
 # identity = 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
