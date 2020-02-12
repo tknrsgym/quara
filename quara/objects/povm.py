@@ -1,9 +1,8 @@
 from typing import List
-from quara.engine.matlabengine import MatlabEngine
-from quara.objects.elemental_system import ElementalSystem
+from quara.objects.composite_system import CompositeSystem
 
 
 class Povm:
     def __init__(self):
-        self.elemental_systems: List[ElementalSystem] = []
+        self.composite_systems: CompositeSystem = None  # TODO
 
