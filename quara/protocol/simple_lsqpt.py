@@ -92,7 +92,7 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
         schedule,
         empi_list,
         weight_list,
-        k,
+        settings["k"],
         matL0,
         settings["eps_logmat"],
     )

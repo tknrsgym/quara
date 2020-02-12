@@ -6,6 +6,7 @@ import numpy.testing as npt
 import pytest
 
 from quara.protocol import simple_io as s_io
+import quara.utils.matrix_util as util
 
 
 @pytest.mark.matlab_dependent
@@ -73,6 +74,10 @@ class TestSimplelsQptMatlab:
         npt.assert_almost_equal(actual_choi, expected_choi, decimal=8)
         npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=14)
 
+        assert util.is_hermitian(actual_choi, atol=1e-15) == True
+        assert util.is_positive_semidefinite(actual_choi, atol=1e-15) == True
+        assert util.is_tp(actual_choi, 2, atol=1e-02) == True
+
     def test_execute_2qubit(self):
         import quara.protocol.simple_lsqpt as s_lsqpt
 
@@ -135,3 +140,7 @@ class TestSimplelsQptMatlab:
         # NOTICE: the decimal that tests can pass depends on the execution machine
         npt.assert_almost_equal(actual_choi, expected_choi, decimal=10)
         npt.assert_almost_equal(actual_obj_value, expected_obj_value, decimal=12)
+
+        assert util.is_hermitian(actual_choi, atol=1e-14) == True
+        assert util.is_positive_semidefinite(actual_choi, atol=1e-14) == True
+        assert util.is_tp(actual_choi, 4, atol=1e-03) == True
