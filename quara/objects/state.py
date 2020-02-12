@@ -1,7 +1,7 @@
 from typing import List
-from quara.objects.elemental_system import ElementalSystem
+from quara.objects.composite_system import CompositeSystem
 
 
 class State:
     def __init__(self):
-        self.elemental_systems: List[ElementalSystem] = []
+        self.composite_systems: CompositeSystem = None  # TODO
