@@ -96,3 +96,12 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-02) -> bool:
     p_trace = partial_trace(matrix, dim)
     identity = np.eye(dim, dtype=np.complex128).reshape(dim, dim)
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
+
+
+def inner_product(left: np.ndarray, right: np.ndarray) -> np.complex128:
+    # Hilbert-Schmidt内積<left, right>を計算する
+    mat_left = np.matrix(left)
+    mat_right = np.matrix(right)
+    mul = np.matmul(mat_left.T.conj(), mat_right)
+    trace = np.trace(mul)
+    return trace
