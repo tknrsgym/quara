@@ -21,7 +21,7 @@ class MatrixBasis:
 
     def is_orthogonal(self):
         # 直交性のチェック
-        return np.equal(self.array @ self.array.T, self.array.T @ self.array)
+        return np.allocate(self.array @ self.array.T, self.array.T @ self.array)
 
     def to_vect(self) -> VectorizedMatrixBasis:
         # 自分自身をベクトル化したクラスを返す
