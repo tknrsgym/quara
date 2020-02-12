@@ -31,7 +31,7 @@ def execute_from_csv(settings: dict) -> Tuple[np.ndarray, float]:
         - "path_empi": path of the empi csv file.
         - "path_weight": path of the weight csv file.
         - "k": the length of an amplified gate sequence.
-        - "matL0": the Hilbert-Schmidt representation of a Lindbladian in the computational basis.
+        - "matL0": path of the matL0 csv file.
         - "eps_logmat": a nonnegative parameter for numerical error tolerance.
     
     Returns
