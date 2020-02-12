@@ -1,10 +1,13 @@
+from typing import List
+
 import numpy as np
 import quara.utils.matrix_util as mutil
 
 
 class VectorizedMatrixBasis:
-    def __init__(self, array):
-        self._org_basis: MatrixBasis = array  # TODO
+    def __init__(self, source):
+        self._org_basis: MatrixBasis = source
+        # self._basis:
 
     def is_hermitian(self) -> bool:
         # 元の行列がエルミート行列になっているかどうかのチェック
@@ -12,26 +15,27 @@ class VectorizedMatrixBasis:
 
 
 class MatrixBasis:
-    def __init__(self, array):
-        self.array: np.ndarray = array
+    def __init__(self, basis: List[np.ndarray]):
+        self.basis = basis
 
-    def is_hermitian(self) -> bool:
-        # エルミート行列になっているかどうかのチェック
-        return mutil.is_hermitian(self.array)
-
-    def is_orthogonal(self):
-        # 直交性のチェック
-        return np.allocate(self.array @ self.array.T, self.array.T @ self.array)
+    # def is_hermitian(self) -> bool:
+    #     # エルミート行列になっているかどうかのチェック
+    #     return mutil.is_hermitian(self.array)
 
     def to_vect(self) -> VectorizedMatrixBasis:
         # 自分自身をベクトル化したクラスを返す
         return VectorizedMatrixBasis(self)
 
+    def __getitem__(self, index: int) -> np.ndarray:
+        # 各B_{\alpha}を返す
+        assert 0 <= index
+        assert index <= len(self.basis)
+        return np.copy(self.basis[index])
+
     def size(self):
         # 行列サイズを返す
-        return self.array.size
+        return self[0].shape
 
-    def n(self):
+    def __len__(self):
         # 行列の個数を返す
-        return self.array[0] * self.array[2]  # ?
-
+        return len(self.basis)
