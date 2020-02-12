@@ -9,11 +9,7 @@ def is_hermitian(matrix: np.ndarray, atol: float = 1e-14) -> bool:
     ----------
     matrix : np.ndarray
         input matrix.
-    atol : float, optional
-        the absolute tolerance parameter, by default 1e-14.
-        returns True, if ``absolute(matrix - conjugate of matrix) <= atol``.
-        otherwise returns False.
-    
+
     Returns
     -------
     bool
@@ -34,11 +30,7 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = 1e-14) -> bool:
     ----------
     matrix : np.ndarray
         input matrix.
-    atol : float, optional
-        the absolute tolerance parameter, by default 1e-14.
-        this function checks if ``matrix`` is Hermitian using :func:`~quara.utils.matrix_util.is_hermitian`.
-        Use ``atol`` as arguments of :func:`~quara.utils.matrix_util.is_hermitian`.
-    
+
     Returns
     -------
     bool
@@ -52,7 +44,7 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = 1e-14) -> bool:
 
 def partial_trace(matrix: np.ndarray, dim: int) -> np.array:
     """calculates partial trace.
-    
+
     Parameters
     ----------
     matrix : np.ndarray
