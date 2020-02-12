@@ -1,6 +1,8 @@
 import numpy as np
 import quara.utils.matrix_util as mutil
 
+from typing import List
+
 
 class VectorizedMatrixBasis:
     def __init__(self, array):
@@ -12,8 +14,8 @@ class VectorizedMatrixBasis:
 
 
 class MatrixBasis:
-    def __init__(self, array):
-        self.array: np.ndarray = array
+    def __init__(self, basis: List[np.ndarray]):
+        self.basis = basis
 
     def is_hermitian(self) -> bool:
         # エルミート行列になっているかどうかのチェック
@@ -23,6 +25,16 @@ class MatrixBasis:
         # 自分自身をベクトル化したクラスを返す
         return VectorizedMatrixBasis(self)
 
+    def base(self, index: int) -> np.ndarray:
+        # 各B_{\alpha}を返す
+        assert 0 <= index
+        assert index <= len(self.basis)
+        return np.copy(self.basis[index])
+
     def size(self):
         # 行列サイズを返す
-        return self.array.size()
+        return self.base(0).shape
+
+    def len(self):
+        # 行列の個数を返す
+        return len(self.basis)
