@@ -93,14 +93,14 @@ class MatrixBasis:
         return True
 
     def is_scalar_mult_of_identity(self) -> bool:
-        # 最初の要素(\alpha=1)が恒等行列の定数倍になっているかどうかのチェック
+        # 最初の要素(\alpha=0)が恒等行列の定数倍になっているかどうかのチェック
         mat = self[0]
         scalar = mat[0, 0]
         identity = np.identity(2, dtype=np.complex128)
         return np.allclose(scalar * identity, mat)
 
     def is_trace_less(self) -> bool:
-        # 最初以外の要素(\alpha >= 2)がトレースレスになっているかどうかのチェック
+        # 最初以外の要素(\alpha >= 1)がトレースレスになっているかどうかのチェック
         for index in range(1, len(self)):
             mat = self[index]
             tr = np.trace(mat)
@@ -125,3 +125,25 @@ class MatrixBasis:
 
     def __str__(self):
         return str(self._basis)
+
+
+def get_comp_basis() -> MatrixBasis:
+    # computational basis
+    array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+    array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+    array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+    array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+    comp_basis = MatrixBasis([array00, array01, array10, array11])
+
+    return comp_basis
+
+
+def get_pauli_basis() -> MatrixBasis:
+    # Pauli basis
+    identity = 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
+    pauli_x = 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    pauli_y = 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+    pauli_z = 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
+    pauli_basis = MatrixBasis([identity, pauli_x, pauli_y, pauli_z])
+
+    return pauli_basis
