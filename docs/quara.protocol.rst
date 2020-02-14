@@ -12,6 +12,14 @@ quara.protocol.simple\_io module
    :undoc-members:
    :show-inheritance:
 
+quara.protocol.simple\_lsqpt module
+-----------------------------------
+
+.. automodule:: quara.protocol.simple_lsqpt
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 quara.protocol.simple\_qpt module
 ---------------------------------
 

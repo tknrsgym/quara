@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
    quara.engine
+   quara.objects
    quara.protocol
    quara.utils
 
