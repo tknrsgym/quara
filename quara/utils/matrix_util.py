@@ -19,7 +19,7 @@ def is_hermitian(matrix: np.ndarray, atol: float = 1e-14) -> bool:
     if rows != columns:
         return False
 
-    adjoint = matrix.T.conj()
+    adjoint = matrix.conj().T
     return np.allclose(matrix, adjoint, atol=atol, rtol=0.0)
 
 
@@ -99,9 +99,20 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-02) -> bool:
 
 
 def inner_product(left: np.ndarray, right: np.ndarray) -> np.complex128:
-    # Hilbert-Schmidt内積<left, right>を計算する
-    mat_left = np.matrix(left)
-    mat_right = np.matrix(right)
-    mul = np.matmul(mat_left.T.conj(), mat_right)
+    """calculates Hilbert-Schmidt inner product ``<left, right> := Tr(left^{\dagger} @ right)``.
+    
+    Parameters
+    ----------
+    left : np.ndarray
+        left argument of inner product
+    right : np.ndarray
+        right argument of inner product
+    
+    Returns
+    -------
+    np.complex128
+        Hilbert-Schmidt inner product
+    """
+    mul = left.conj().T @ right
     trace = np.trace(mul)
     return trace
