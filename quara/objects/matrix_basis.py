@@ -128,7 +128,7 @@ class MatrixBasis:
         return str(self._basis)
 
 
-class VectorizedMatrixBasis:
+class VectorizedMatrixBasis(MatrixBasis):
     def __init__(self, source: List[np.ndarray]):
         self._org_basis: MatrixBasis = source
         self._basis: List[np.ndarray] = []
