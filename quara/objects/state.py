@@ -8,8 +8,8 @@ import quara.utils.matrix_util as mutil
 
 class State:
     def __init__(self, c_sys: CompositeSystem, vec: np.ndarray):
-        self._composite_system = c_sys
-        self._vec = vec
+        self._composite_system: CompositeSystem = c_sys
+        self._vec: np.ndarray = vec
 
         size = self._vec.shape
         # 1次元配列(=ベクトル)なのかチェック
@@ -49,12 +49,3 @@ class State:
         # 固有値を返す(順不同)
         # see: https://numpy.org/doc/1.18/reference/generated/numpy.linalg.eigvals.html
         return np.linalg.eigvals(self.get_density_matrix())
-
-    def __mul__(self, other):
-        # テンソル積
-        if type(other) == State:
-            print(self.get_density_matrix())
-            print(other.get_density_matrix())
-            return np.kron(self.get_density_matrix(), other.get_density_matrix())
-        else:
-            return None
