@@ -105,7 +105,7 @@ class MatrixBasis(Basis):
         # 最初の要素(\alpha=0)が恒等行列の定数倍になっているかどうかのチェック
         mat = self[0]
         scalar = mat[0, 0]
-        identity = np.identity(2, dtype=np.complex128)
+        identity = np.identity(self._dim, dtype=np.complex128)
         return np.allclose(scalar * identity, mat)
 
     def is_trace_less(self) -> bool:
