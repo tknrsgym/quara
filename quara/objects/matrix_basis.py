@@ -105,7 +105,7 @@ class MatrixBasis(Basis):
         # 最初の要素(\alpha=0)が恒等行列の定数倍になっているかどうかのチェック
         mat = self[0]
         scalar = mat[0, 0]
-        identity = np.identity(2, dtype=np.complex128)
+        identity = np.identity(self._dim, dtype=np.complex128)
         return np.allclose(scalar * identity, mat)
 
     def is_trace_less(self) -> bool:
@@ -232,7 +232,7 @@ def get_normalized_pauli_basis() -> MatrixBasis:
 
 
 def get_gell_mann_basis() -> MatrixBasis:
-    identity = np.eye(3, dtype=np.complex128)
+    identity = 1 / np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
     l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_3 = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128)

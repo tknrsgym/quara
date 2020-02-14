@@ -115,3 +115,17 @@ class TestVectorizedMatrixBasis:
         actual_org_basis = actual_vec_basis.org_basis
         for i, actual in enumerate(actual_org_basis):
             assert np.array_equal(actual, source_basis[i])
+
+
+def test_get_gell_mann_basis():
+    basis = matrix_basis.get_gell_mann_basis()
+
+    assert basis.dim == 3
+    assert basis.is_squares() == True
+    assert basis.is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == False
+    assert basis.is_hermitian() == True
+    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_trace_less() == True
