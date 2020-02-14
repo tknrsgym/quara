@@ -2,6 +2,7 @@ import numpy as np
 import quara.utils.matrix_util as mutil
 
 from typing import List
+from typing import Tuple
 
 
 class VectorizedMatrixBasis:
@@ -109,26 +110,55 @@ class MatrixBasis:
         return True
 
     def __getitem__(self, index: int) -> np.ndarray:
-        # 各B_{\alpha}を返す
+        """returns ``index``-th element of basis.
+        
+        Parameters
+        ----------
+        index : int
+            index of the desired element of basis.
+        
+        Returns
+        -------
+        np.ndarray
+            ``index``-th element of basis.
+        """
         return np.copy(self._basis[index])
 
-    def size(self):
-        # 行列サイズを返す
+    def size(self) -> Tuple[int, int]:
+        """returns shape(=size) of basis.
+        
+        Returns
+        -------
+        Tuple[int, int]
+            shape(=size) of basis.
+        """
         return self[0].shape
 
-    def __len__(self):
-        # 行列の個数を返す
+    def __len__(self) -> int:
+        """returns number of basis.
+        
+        Returns
+        -------
+        int
+            number of basis.
+        """
         return len(self._basis)
 
     def __iter__(self):
         return iter(self._basis)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._basis)
 
 
 def get_comp_basis() -> MatrixBasis:
-    # computational basis
+    """returns computational basis.
+    
+    Returns
+    -------
+    MatrixBasis
+        computational basis ``[|00><00|, |01><01|, |10><10|, |11><11|]``
+    """
     array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
     array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
     array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
@@ -139,7 +169,30 @@ def get_comp_basis() -> MatrixBasis:
 
 
 def get_pauli_basis() -> MatrixBasis:
-    # Pauli basis
+    """returns Pauli basis.
+    
+    Returns
+    -------
+    MatrixBasis
+        Pauli basis ``[I, X, Y, Z]``
+    """
+    identity = np.array([[1, 0], [0, 1]], dtype=np.complex128)
+    pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    pauli_y = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+    pauli_z = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+    pauli_basis = MatrixBasis([identity, pauli_x, pauli_y, pauli_z])
+
+    return pauli_basis
+
+
+def get_normalized_pauli_basis() -> MatrixBasis:
+    """returns normalized Pauli basis.
+    
+    Returns
+    -------
+    MatrixBasis
+        Pauli basis ``\frac{1}{\sqrt{2}}[I, X, Y, Z]``
+    """
     identity = 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
     pauli_x = 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
     pauli_y = 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
