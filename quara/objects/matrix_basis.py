@@ -44,6 +44,9 @@ class MatrixBasis(Basis):
         assert self.is_squares()
         assert self.is_same_size()
 
+        if not self._is_basis():
+            raise ValueError("Invalid argument. `basis` is not basis.")
+
     @property
     def dim(self):
         # dimを返す
@@ -68,7 +71,7 @@ class MatrixBasis(Basis):
                 return False
         return True
 
-    def is_basis(self) -> bool:
+    def _is_basis(self) -> bool:
         # 基底になっているかどうかのチェック
         row_list = [mat.reshape(1, -1)[0] for mat in self]
         rank = np.linalg.matrix_rank(row_list)
@@ -226,3 +229,26 @@ def get_normalized_pauli_basis() -> MatrixBasis:
     pauli_basis = MatrixBasis([identity, pauli_x, pauli_y, pauli_z])
 
     return pauli_basis
+
+
+def get_gell_mann_basis() -> MatrixBasis:
+    identity = np.eye(3, dtype=np.complex128)
+    l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    l_3 = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128)
+    l_4 = np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=np.complex128)
+    l_5 = np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
+    l_6 = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.complex128)
+    l_7 = np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128)
+    l_8 = (
+        1
+        / np.sqrt(3)
+        * np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128)
+    )
+
+    gell_mann_basis = MatrixBasis([identity, l_1, l_2, l_3, l_4, l_5, l_6, l_7, l_8])
+    return gell_mann_basis
+
+
+def get_normalized_gell_mann_basis() -> MatrixBasis:
+    pass
