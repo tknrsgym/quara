@@ -116,3 +116,4 @@ def inner_product(left: np.ndarray, right: np.ndarray) -> np.complex128:
     mul = left.conj().T @ right
     trace = np.trace(mul)
     return trace
+

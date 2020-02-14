@@ -5,31 +5,8 @@ from typing import List
 from typing import Tuple
 
 
-class VectorizedMatrixBasis:
-    def __init__(self, source: List[np.ndarray]):
-        self._org_basis: MatrixBasis = source
-        self._basis: List[np.ndarray] = []
-
-        # vectorize
-        # これはutilに置いてもいいかもしれない
-        for b in self._org_basis:
-            b_vect = b.copy()
-            self._basis.append(b_vect.flatten())
-
-    def __str__(self):
-        return str(self._basis)
-
-    @property
-    def org_basis(self):  # read only
-        return self._org_basis
-
-    @property
-    def basis(self):  # read only
-        return self._basis
-
-    def is_hermitian(self) -> bool:
-        # 元の行列がエルミート行列になっているかどうかのチェック
-        return self._org_basis.is_hermitian()
+def to_vect(source: "MatrixBasis") -> "VectorizedMatrixBasis":
+    return VectorizedMatrixBasis(source)
 
 
 class MatrixBasis:
@@ -44,9 +21,9 @@ class MatrixBasis:
         # dimを返す
         return self._dim
 
-    def to_vect(self) -> VectorizedMatrixBasis:
+    def to_vect(self) -> "VectorizedMatrixBasis":
         # 自分自身をベクトル化したクラスを返す
-        return VectorizedMatrixBasis(self)
+        return to_vect(self)
 
     def is_squares(self) -> bool:
         # すべての行列が正方行列かどうかのチェック
@@ -151,6 +128,44 @@ class MatrixBasis:
         return str(self._basis)
 
 
+class VectorizedMatrixBasis:
+    def __init__(self, source: List[np.ndarray]):
+        self._org_basis: MatrixBasis = source
+        self._basis: List[np.ndarray] = []
+
+        # vectorize
+        # これはutilに置いてもいいかもしれない
+        for b in self._org_basis:
+            b_vect = b.copy()
+            self._basis.append(b_vect.flatten())
+
+    def __str__(self):
+        return str(self._basis)
+
+    @property
+    def org_basis(self):  # read only
+        return self._org_basis
+
+    @property
+    def basis(self):  # read only
+        return self._basis
+
+    def is_hermitian(self) -> bool:
+        return self._org_basis.is_hermitian()
+
+    def is_orthogonal(self) -> bool:
+        return self._org_basis.is_orthogonal()
+
+    def is_normal(self) -> bool:
+        return self._org_basis.is_normal()
+
+    def is_scalar_mult_of_identity(self) -> bool:
+        return self._org_basis.is_scalar_mult_of_identity()
+
+    def is_trace_less(self) -> bool:
+        return self._org_basis.is_trace_less()
+
+
 def get_comp_basis() -> MatrixBasis:
     """returns computational basis.
     
@@ -200,3 +215,4 @@ def get_normalized_pauli_basis() -> MatrixBasis:
     pauli_basis = MatrixBasis([identity, pauli_x, pauli_y, pauli_z])
 
     return pauli_basis
+
