@@ -4,6 +4,8 @@ from quara.objects.elemental_system import ElementalSystem
 
 
 class CompositeSystem:
+    """合成系を記述するためのクラス"""
+
     def __init__(self, systems: List[ElementalSystem]):
         self._elemental_systems = systems
         # TODO 合成後の基底をMatrixBasisの形で持っておくこと
@@ -20,4 +22,3 @@ def get_with_normalized_pauli_basis() -> CompositeSystem:
     elem_system = elemental_system.get_with_normalized_pauli_basis()
     system = CompositeSystem([elem_system])
     return system
-

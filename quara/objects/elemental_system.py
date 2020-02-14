@@ -3,6 +3,8 @@ from quara.objects.matrix_basis import MatrixBasis
 
 
 class ElementalSystem:
+    """個々の量子系を記述するためのクラス"""
+
     def __init__(self, basis: MatrixBasis):
         # system_idを持たせなくても同値ではなく同一インスタンスであるかどうかの判定はisで可能だが、
         # system_idで持たせておくとうっかり同値判定（==）で比較しても異なる値として判断されるので、
@@ -17,7 +19,7 @@ class ElementalSystem:
         return self._system_id
 
     @property
-    def computational_basis(self):  # read only?
+    def computational_basis(self):  # read only
         return self._computational_basis
 
     @property
