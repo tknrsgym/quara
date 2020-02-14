@@ -62,8 +62,9 @@ def test_get_normalized_pauli_basis():
     assert np.all(
         basis[2] == 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
     )
-    assert np.all(basis[3] == 1 / np.sqrt(2) * [[1, 0], [0, -1]], dtype=np.complex128)
-
+    assert np.all(
+        basis[3] == 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
+    )
     assert basis.size() == (2, 2)
     assert len(basis) == 4
 
