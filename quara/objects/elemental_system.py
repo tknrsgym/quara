@@ -10,13 +10,18 @@ class ElementalSystem:
         # system_idで持たせておくとうっかり同値判定（==）で比較しても異なる値として判断されるので、
         # とりあえず持たせておく
         self._system_id: int = id(self)
-        self.dimension: int = None  # TODO
+        self._dim: int = basis.dim
         self._computational_basis: MatrixBasis = None  # TODO
-        self._hemirtian_basis = basis
+        self._hemirtian_basis: MatrixBasis = basis
 
     @property
     def system_id(self):  # read only
         return self._system_id
+
+    @property
+    def dim(self):
+        # dimを返す
+        return self._dim
 
     @property
     def computational_basis(self):  # read only
@@ -27,6 +32,7 @@ class ElementalSystem:
         return self._hemirtian_basis
 
 
+# TODO この関数は不要？
 def get_with_normalized_pauli_basis() -> ElementalSystem:
     basis = matrix_basis.get_normalized_pauli_basis()
     system = ElementalSystem(basis)
