@@ -1,31 +1,49 @@
 import numpy as np
 
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects import matrix_basis
 
-# computational basis
-array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
-array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
-array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
-comp_basis = MatrixBasis([array00, array01, array10, array11])
 
-# Pauli basis
-identity = 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
-pauli_x = 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
-pauli_y = 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
-pauli_z = 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
-pauli_basis = MatrixBasis([identity, pauli_x, pauli_y, pauli_z])
+def test_get_comp_basis():
+    basis = matrix_basis.get_comp_basis()
+    assert basis.dim == 2
+    assert basis.is_squares() == True
+    assert basis.is_same_size() == True
+    assert basis.is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == True
+    assert basis.is_hermitian() == False  # computational basisはFalse
+    assert basis.is_scalar_mult_of_identity() == False  # computational basisはFalse
+    assert basis.is_trace_less() == False  # computational basisはFalse
+    assert np.all(basis[0] == np.array([[1, 0], [0, 0]], dtype=np.complex128))
+    assert np.all(basis[1] == np.array([[0, 1], [0, 0]], dtype=np.complex128))
+    assert np.all(basis[2] == np.array([[0, 0], [1, 0]], dtype=np.complex128))
+    assert np.all(basis[3] == np.array([[0, 0], [0, 1]], dtype=np.complex128))
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
 
-print(pauli_basis.dim)
-print(pauli_basis.is_squares())
-print(pauli_basis.is_same_size())
-print(pauli_basis.is_basis())
-print(pauli_basis.is_orthogonal())
-print(pauli_basis.is_normal())
-print(pauli_basis.is_hermitian())
-print(pauli_basis.is_scalar_mult_of_identity())
-print(pauli_basis.is_trace_less())
-print(pauli_basis[0])
-print(pauli_basis.size())
-print(len(pauli_basis))
-print(pauli_basis)
+
+def test_get_pauli_basis():
+    basis = matrix_basis.get_pauli_basis()
+    assert basis.dim == 2
+    assert basis.is_squares() == True
+    assert basis.is_same_size() == True
+    assert basis.is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == True
+    assert basis.is_hermitian() == True
+    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_trace_less() == True
+    assert np.all(
+        basis[0] == 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[1] == 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[2] == 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[3] == 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
+    )
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
