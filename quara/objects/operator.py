@@ -21,7 +21,7 @@ def tensor_product(*elements):
 
 def _tensor_product(elem1, elem2):
     # implement tensor product calculation for each type
-    if type(elem1) == MatrixBasis and type(elem1) == MatrixBasis:
+    if type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         mat_list = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
         ]
@@ -29,7 +29,7 @@ def _tensor_product(elem1, elem2):
         return basis
     else:
         raise ValueError(
-            f"Unknown type combination! type=({type(elem1)}, {type(elem1)})"
+            f"Unknown type combination! type=({type(elem1)}, {type(elem2)})"
         )
 
 
