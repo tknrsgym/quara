@@ -76,7 +76,11 @@ class TestSimplelsQptMatlab:
 
         assert util.is_hermitian(actual_choi, atol=1e-15) == True
         assert util.is_positive_semidefinite(actual_choi, atol=1e-15) == True
-        assert util.is_tp(actual_choi, 2, atol=1e-02) == True
+        assert util.is_tp(actual_choi, 2, atol=1e-15) == True
+
+        assert util.is_hermitian(actual_choi) == True
+        assert util.is_positive_semidefinite(actual_choi) == True
+        assert util.is_tp(actual_choi, 2) == True
 
     def test_execute_2qubit(self):
         import quara.protocol.simple_lsqpt as s_lsqpt
@@ -143,4 +147,8 @@ class TestSimplelsQptMatlab:
 
         assert util.is_hermitian(actual_choi, atol=1e-14) == True
         assert util.is_positive_semidefinite(actual_choi, atol=1e-14) == True
-        assert util.is_tp(actual_choi, 4, atol=1e-03) == True
+        assert util.is_tp(actual_choi, 4, atol=1e-13) == True
+
+        assert util.is_hermitian(actual_choi) == True
+        assert util.is_positive_semidefinite(actual_choi) == True
+        assert util.is_tp(actual_choi, 4) == True

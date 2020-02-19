@@ -1,4 +1,7 @@
 """utility package about matrix."""
+from functools import reduce
+from operator import add
+
 import numpy as np
 
 
@@ -42,37 +45,37 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = 1e-14) -> bool:
         return False
 
 
-def partial_trace(matrix: np.ndarray, dim: int) -> np.array:
-    """calculates partial trace.
+def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.array:
+    """calculates partial trace ``Tr_1[X \otimes Y] := Tr[X]Y``.
 
     Parameters
     ----------
     matrix : np.ndarray
         input matrix.
-    dim : int
-        dim of partial trace.
+    dim_Y : int
+        dim of ``Y``.
     
     Returns
     -------
     np.array
         partial trace.
     """
-    # split input matrix to blocks
-    entry = []
-    for row_block in range(dim):
-        for col_block in range(dim):
-            block = matrix[
-                row_block * dim : (row_block + 1) * dim,
-                col_block * dim : (col_block + 1) * dim,
-            ]
-            entry.append(np.trace(block))
+    # split input matrix to diagonal blocks
+    block_list = []
+    dim_X = int(matrix.shape[0] / dim_Y)
+    for block_index in range(dim_X):
+        block = matrix[
+            block_index * dim_Y : (block_index + 1) * dim_Y,
+            block_index * dim_Y : (block_index + 1) * dim_Y,
+        ]
+        block_list.append(block)
 
-    # reshape
-    p_trace = np.array(entry).reshape(dim, dim)
-    return p_trace
+    # sum diagonal blocks
+    P_trace = reduce(add, block_list)
+    return P_trace
 
 
-def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-02) -> bool:
+def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-13) -> bool:
     """returns whether the matrix is TP.
     if ``Tr_1[matrix] = I_2``, we think the matrix is TP.
     ``dim`` is a size of ``I_2``.
@@ -84,7 +87,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-02) -> bool:
     dim : int
         dim of partial trace.
     atol : float, optional
-        the absolute tolerance parameter, by default 1e-02.
+        the absolute tolerance parameter, by default 1e-13.
         returns True, if ``absolute(identity matrix - partial trace) <= atol``.
         otherwise returns False.
     
@@ -93,7 +96,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-02) -> bool:
     bool
         True where ``matrix`` is TP, False otherwise.
     """
-    p_trace = partial_trace(matrix, dim)
+    p_trace = partial_trace1(matrix, dim)
     identity = np.eye(dim, dtype=np.complex128).reshape(dim, dim)
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
 
