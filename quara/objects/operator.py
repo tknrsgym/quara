@@ -9,10 +9,10 @@ import quara.utils.matrix_util as mutil
 
 
 def tensor_product(*elements):
-    # 引数をリスト化
+    # convert argument to list
     element_list = _to_list(*elements)
 
-    # 再帰的にテンソル積を計算(リストの前から後ろに計算する)
+    # recursively calculate tensor products(calculate from head to tail of list)
     temp = element_list[0]
     for elem in element_list[1:]:
         temp = _tensor_product(temp, elem)
@@ -20,7 +20,7 @@ def tensor_product(*elements):
 
 
 def _tensor_product(elem1, elem2):
-    # TODO 型ごとにテンソル積の計算を実装する
+    # implement tensor product calculation for each type
     if type(elem1) == MatrixBasis and type(elem1) == MatrixBasis:
         mat_list = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
@@ -34,10 +34,10 @@ def _tensor_product(elem1, elem2):
 
 
 def composite(*elements):
-    # 引数をリスト化
+    # convert argument to list
     element_list = _to_list(*elements)
 
-    # 再帰的に合成を計算(リストを後ろから前に計算する)
+    # recursively calculate composite(calculate from tail to head of list)
     temp = element_list[-1]
     for elem in reversed(element_list[:-1]):
         temp = _composite(elem, temp)
@@ -45,12 +45,12 @@ def composite(*elements):
 
 
 def _composite(elem1, elem2):
-    # TODO 要実装
+    # implement composite calculation for each type
     pass
 
 
 def _to_list(*elements):
-    # 引数をリスト化
+    # convert argument to list
     element_list = []
     for element in elements:
         if type(element) == list:
@@ -58,13 +58,12 @@ def _to_list(*elements):
         else:
             element_list.append(element)
 
-    # 要素が2以上でない場合はエラー
+    # length of list must be at least two
+    if len(element_list) < 2:
+        raise ValueError(
+            f"arguments must be at least two! arguments={len(element_list)})"
+        )
+
     assert len(element_list) >= 2
 
     return element_list
-
-
-# comp1 = m_basis.get_comp_basis()
-# comp2 = m_basis.get_comp_basis()
-# tensor = tensor_product(comp1, comp2)
-# print(tensor)
