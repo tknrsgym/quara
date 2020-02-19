@@ -8,8 +8,8 @@ from quara.objects.matrix_basis import MatrixBasis, VectorizedMatrixBasis
 def test_get_comp_basis():
     basis = matrix_basis.get_comp_basis()
     assert basis.dim == 2
-    assert basis.is_squares() == True
-    assert basis.is_same_size() == True
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
     assert basis._is_basis() == True
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == True
@@ -27,8 +27,8 @@ def test_get_comp_basis():
 def test_get_pauli_basis():
     basis = matrix_basis.get_pauli_basis()
     assert basis.dim == 2
-    assert basis.is_squares() == True
-    assert basis.is_same_size() == True
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
     assert basis._is_basis() == True
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == False  # Pauli basisはFalse
@@ -46,8 +46,8 @@ def test_get_pauli_basis():
 def test_get_normalized_pauli_basis():
     basis = matrix_basis.get_normalized_pauli_basis()
     assert basis.dim == 2
-    assert basis.is_squares() == True
-    assert basis.is_same_size() == True
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
     assert basis._is_basis() == True
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == True
@@ -84,6 +84,38 @@ class TestMatrixBasis:
         source = source[:-1]
         invalid_array = source[0] + source[1]
         source.append(invalid_array)
+        with pytest.raises(ValueError):
+            _ = MatrixBasis(source)
+
+    def test_is_same_size(self):
+        # Case1: All the same size
+        source_basis = matrix_basis.get_pauli_basis().basis
+        basis = MatrixBasis(source_basis)
+        assert basis._is_same_size() == True
+
+        # Case2: Not same size
+        source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        with pytest.raises(ValueError):
+            _ = MatrixBasis(source)
+
+    def test_is_squares(self):
+        # Case1: Square matrix
+        source_basis = matrix_basis.get_pauli_basis().basis
+        basis = MatrixBasis(source_basis)
+        assert basis._is_squares() == True
+
+        # Case2: There is a non-square matrix
+        source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1], [0, 0], [0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
         with pytest.raises(ValueError):
             _ = MatrixBasis(source)
 
@@ -160,6 +192,26 @@ class TestMatrixBasis:
         basis = MatrixBasis(source)
         assert basis.is_trace_less() == False
 
+    def test_to_vect(self):
+        source = matrix_basis.get_pauli_basis().basis
+        basis = MatrixBasis(source)
+        v_basis = basis.to_vect()
+        assert np.allclose(v_basis.basis[0], np.array([1, 0, 0, 1]))
+        assert np.allclose(v_basis.basis[1], np.array([0, 1, 1, 0]))
+        assert np.allclose(v_basis.basis[2], np.array([0, -1j, 1j, 0]))
+        assert np.allclose(v_basis.basis[3], np.array([1, 0, 0, -1]))
+
+    def test_get_item(self):
+        source_np = matrix_basis.get_pauli_basis().basis
+        basis = MatrixBasis(source_np)
+        for i in range(len(source_np)):
+            assert np.allclose(basis[i], source_np[i])
+
+    def test_str(self):
+        source_np = matrix_basis.get_pauli_basis().basis
+        basis = MatrixBasis(source_np)
+        assert str(basis) == str(source_np)
+
 
 class TestVectorizedMatrixBasis:
     def test_convert(self):
@@ -195,8 +247,8 @@ def test_get_gell_mann_basis():
     basis = matrix_basis.get_gell_mann_basis()
 
     assert basis.dim == 3
-    assert basis.is_squares() == True
-    assert basis.is_same_size() == True
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
     assert basis._is_basis() == True
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == False
