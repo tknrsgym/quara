@@ -43,10 +43,32 @@ def test_is_positive_semidefinite():
     assert not util.is_positive_semidefinite(target_matrix)
 
 
-def test_partial_trace():
+def test_partial_trace1():
     whole = np.arange(16).reshape(4, 4)
-    expected = np.array([[5, 9], [21, 25]])
-    actual = util.partial_trace(whole, 2)
+    # expected = np.array([[5, 9], [21, 25]])
+    expected = np.array([[10, 12], [18, 20]])
+    actual = util.partial_trace1(whole, 2)
+    assert np.array_equal(actual, expected)
+
+    identity = np.eye(2, dtype=np.complex128)
+    pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+
+    # Tr_1[I \otimes I] = Tr[I]I
+    expected = np.array([[2, 0], [0, 2]])
+    tensor = np.kron(identity, identity)
+    actual = util.partial_trace1(tensor, 2)
+    assert np.array_equal(actual, expected)
+
+    # Tr_1[X \otimes I] = Tr[X]I
+    expected = np.array([[0, 0], [0, 0]])
+    tensor = np.kron(pauli_x, identity)
+    actual = util.partial_trace1(tensor, 2)
+    assert np.array_equal(actual, expected)
+
+    # Tr_1[I \otimes X] = Tr[I]X
+    expected = np.array([[0, 2], [2, 0]])
+    tensor = np.kron(identity, pauli_x)
+    actual = util.partial_trace1(tensor, 2)
     assert np.array_equal(actual, expected)
 
 
@@ -54,37 +76,6 @@ def test_is_tp():
     # cases: TP
     target_matrix = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]], dtype=np.complex128
-    )
-    assert util.is_tp(target_matrix, 2)
-
-    target_matrix = np.array(
-        [
-            [
-                9.99777211e-01 + 0.00000000e00j,
-                -1.10126364e-05 - 1.49172469e-02j,
-                4.39788591e-03 - 1.42542774e-02j,
-                9.55558552e-01 + 2.94043679e-01j,
-            ],
-            [
-                -1.10126364e-05 + 1.49172469e-02j,
-                2.22786124e-04 + 0.00000000e00j,
-                2.12627558e-04 + 6.57931277e-05j,
-                -4.39776874e-03 + 1.42542154e-02j,
-            ],
-            [
-                4.39788591e-03 + 1.42542774e-02j,
-                2.12627558e-04 - 6.57931277e-05j,
-                2.22788923e-04 + 0.00000000e00j,
-                1.10126364e-05 + 1.49172469e-02j,
-            ],
-            [
-                9.55558552e-01 - 2.94043679e-01j,
-                -4.39776874e-03 - 1.42542154e-02j,
-                1.10126364e-05 - 1.49172469e-02j,
-                9.99777214e-01 + 0.00000000e00j,
-            ],
-        ],
-        dtype=np.complex128,
     )
     assert util.is_tp(target_matrix, 2)
 
