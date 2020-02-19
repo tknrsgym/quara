@@ -12,8 +12,9 @@ class Povm:
     """
 
     def __init__(self):
-        self.composite_systems: CompositeSystem = None  # TODO
-        self._vec: List[np.ndarray] = []  # TODO
+        self.composite_system: CompositeSystem = None  # TODO
+        self.w_list: list = None  # TODO: 取りうる測定値のリスト
+        self._vec: List[np.ndarray] = []  # TODO: エルミート行列基底であることを要請する
 
     def __getitem__(self, key: int):
         return self._vec[key]
@@ -34,9 +35,10 @@ class Povm:
 
     def is_identity(self):
         # 要素の総和が恒等行列になっているか確認する
-        sum_matrix = self.zeros(size)
+        size = self._vec[0].shape
+        sum_matrix = np.zeros(size)
         for v in self._vec:
-            sum_matrix = +v
+            sum_matrix += v
 
         identity = np.identity(len(self._vec), dtype=np.complex128)
         return np.allclose(sum_matrix, identity)
@@ -45,11 +47,11 @@ class Povm:
         # 各要素の固有値を返す
         if index:
             target = self._vec[index]
-            w, _ = np.linalg.eig(target)
+            w = np.linalg.eigvals(target)
             return w
         else:
             w_list = []
             for target in self._vec:
-                w, _ = np.linalg.eig(target)
+                w = np.linalg.eigvals(target)
                 w_list.append(w)
             return w_list
