@@ -1,5 +1,5 @@
 rm quara*.rst
 cd ../
-sphinx-apidoc -F -o docs/ quara/
+sphinx-apidoc -F -e -M -o docs/ quara/
 cd docs/
 make html
