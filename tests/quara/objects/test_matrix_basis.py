@@ -8,8 +8,8 @@ from quara.objects.matrix_basis import MatrixBasis, VectorizedMatrixBasis
 def test_get_comp_basis():
     basis = matrix_basis.get_comp_basis()
     assert basis.dim == 2
-    assert basis.is_squares() == True
-    assert basis.is_same_size() == True
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
     assert basis._is_basis() == True
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == True
@@ -27,8 +27,8 @@ def test_get_comp_basis():
 def test_get_pauli_basis():
     basis = matrix_basis.get_pauli_basis()
     assert basis.dim == 2
-    assert basis.is_squares() == True
-    assert basis.is_same_size() == True
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
     assert basis._is_basis() == True
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == False  # Pauli basisはFalse
@@ -46,8 +46,8 @@ def test_get_pauli_basis():
 def test_get_normalized_pauli_basis():
     basis = matrix_basis.get_normalized_pauli_basis()
     assert basis.dim == 2
-    assert basis.is_squares() == True
-    assert basis.is_same_size() == True
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
     assert basis._is_basis() == True
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == True
