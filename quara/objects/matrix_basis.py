@@ -85,8 +85,8 @@ class MatrixBasis(Basis):
 
     def is_orthogonal(self) -> bool:
         # 直交性のチェック
-        for index, left in enumerate(self[:-1]):
-            for right in self[index + 1 :]:
+        for index, left in enumerate(self.basis[:-1]):
+            for right in self.basis[index + 1 :]:
                 i_product = mutil.inner_product(left, right)
                 if not np.isclose(i_product, 0):
                     return False
