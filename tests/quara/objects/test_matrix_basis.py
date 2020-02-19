@@ -213,6 +213,57 @@ class TestMatrixBasis:
         assert str(basis) == str(source_np)
 
 
+class TestMatrixBasis_3x3:
+    def test_raise_not_basis(self):
+        # Testing for non-basis inputs
+        # Case 1: Not enough matrices.
+        source = matrix_basis.get_gell_mann_basis().basis
+        source = source[:-1]
+        with pytest.raises(ValueError):
+            _ = MatrixBasis(source)
+
+        # Case 2: Not independent (B_3 = B_0 + B_1)
+        source = matrix_basis.get_gell_mann_basis().basis
+        source = source[:-1]
+        invalid_array = source[0] + source[1]
+        source.append(invalid_array)
+        with pytest.raises(ValueError):
+            _ = MatrixBasis(source)
+
+    def test_is_same_size(self):
+        # Case1: All the same size
+        source_basis = matrix_basis.get_gell_mann_basis().basis
+        basis = MatrixBasis(source_basis)
+        assert basis._is_same_size() == True
+
+        # Case2: Not same size
+        source_basis[1] = np.array([[1, 0], [0, 1]])
+        with pytest.raises(ValueError):
+            _ = MatrixBasis(source_basis)
+
+    def test_is_squares(self):
+        # Case1: Square matrix
+        source_basis = matrix_basis.get_gell_mann_basis().basis
+        basis = MatrixBasis(source_basis)
+        assert basis._is_squares() == True
+
+        # Case2: There is a non-square matrix
+        source_basis[1] = np.array([[0, 1, 1], [0, 0, 1], [0, 0, 1], [1, 1, 1]])
+        with pytest.raises(ValueError):
+            _ = MatrixBasis(source_basis)
+
+    def test_is_normal(self):
+        # Case1: Normalized
+        source = matrix_basis.get_normalized_gell_mann_basis().basis
+        normalized_basis = MatrixBasis(source)
+        assert normalized_basis.is_normal() == True
+
+        # Case2: Not Normalized
+        source = matrix_basis.get_gell_mann_basis().basis
+        non_normalized_basis = MatrixBasis(source)
+        assert non_normalized_basis.is_normal() == False
+
+
 class TestVectorizedMatrixBasis:
     def test_convert(self):
         source_basis = matrix_basis.get_pauli_basis()
