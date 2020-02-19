@@ -48,16 +48,34 @@ class MatrixBasis(Basis):
             raise ValueError("Invalid argument. `basis` is not basis.")
 
     @property
-    def dim(self):
-        # dimを返す
+    def dim(self) -> int:
+        """returns dim of matrix.
+        
+        Returns
+        -------
+        int
+            dim of matrix
+        """
         return self._dim
 
     def to_vect(self) -> "VectorizedMatrixBasis":
-        # 自分自身をベクトル化したクラスを返す
+        """returns the class that vectorizes itself.
+        
+        Returns
+        -------
+        VectorizedMatrixBasis
+            the class that vectorizes itself
+        """
         return to_vect(self)
 
     def is_squares(self) -> bool:
-        # すべての行列が正方行列かどうかのチェック
+        """returns whether all matrices are square.
+        
+        Returns
+        -------
+        bool
+            True where all matrices are square, False otherwise.
+        """
         for mat in self:
             row, column = mat.shape
             if row != column:
@@ -65,20 +83,38 @@ class MatrixBasis(Basis):
         return True
 
     def is_same_size(self) -> bool:
-        # すべての行列がサイズが一致しているかどうかのチェック
+        """returns whether all matrices are the same size.
+        
+        Returns
+        -------
+        bool
+            True where all matrices are the same size, False otherwise.
+        """
         for index in range(len(self) - 1):
             if self[index].shape != self[index + 1].shape:
                 return False
         return True
 
     def _is_basis(self) -> bool:
-        # 基底になっているかどうかのチェック
+        """returns whether matrices are basis.
+        
+        Returns
+        -------
+        bool
+            True where matrices are basis, False otherwise.
+        """
         row_list = [mat.reshape(1, -1)[0] for mat in self]
         rank = np.linalg.matrix_rank(row_list)
         return rank >= self.dim ** 2
 
     def is_orthogonal(self) -> bool:
-        # 直交性のチェック
+        """returns whether matrices are orthogonal.
+        
+        Returns
+        -------
+        bool
+            True where matrices are orthogonal, False otherwise.
+        """
         for index, left in enumerate(self[:-1]):
             for right in self[index + 1 :]:
                 i_product = mutil.inner_product(left, right)
@@ -87,7 +123,13 @@ class MatrixBasis(Basis):
         return True
 
     def is_normal(self) -> bool:
-        # 規格化されているかどうかのチェック
+        """returns whether matrices are normalized.
+        
+        Returns
+        -------
+        bool
+            True where matrices are normalized, False otherwise.
+        """
         for mat in self:
             i_product = mutil.inner_product(mat, mat)
             if not np.isclose(i_product, 1):
@@ -95,21 +137,40 @@ class MatrixBasis(Basis):
         return True
 
     def is_hermitian(self) -> bool:
-        # エルミート行列になっているかどうかのチェック
+        """returns whether matrices are Hermitian.
+        
+        Returns
+        -------
+        bool
+            True where matrices are Hermitian, False otherwise.
+        """
+        # TODO globalなatolを指定すること
         for mat in self:
             if not mutil.is_hermitian(mat):
                 return False
         return True
 
     def is_scalar_mult_of_identity(self) -> bool:
-        # 最初の要素(\alpha=0)が恒等行列の定数倍になっているかどうかのチェック
+        """returns whether first matrix is constant multiple of identity matrix.
+        
+        Returns
+        -------
+        bool
+            True where first matrix is constant multiple of identity matrix, False otherwise.
+        """
         mat = self[0]
         scalar = mat[0, 0]
         identity = np.identity(self._dim, dtype=np.complex128)
         return np.allclose(scalar * identity, mat)
 
     def is_trace_less(self) -> bool:
-        # 最初以外の要素(\alpha >= 1)がトレースレスになっているかどうかのチェック
+        """returns whether matrices are traceless except for first matrix.
+        
+        Returns
+        -------
+        bool
+            True where matrices are traceless except for first matrix, False otherwise.
+        """
         for index in range(1, len(self)):
             mat = self[index]
             tr = np.trace(mat)
