@@ -1,6 +1,11 @@
 quara package
 =============
 
+.. automodule:: quara
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
@@ -10,11 +15,3 @@ Subpackages
    quara.objects
    quara.protocol
    quara.utils
-
-Module contents
----------------
-
-.. automodule:: quara
-   :members:
-   :undoc-members:
-   :show-inheritance:
