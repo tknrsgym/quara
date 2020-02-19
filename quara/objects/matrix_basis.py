@@ -223,7 +223,7 @@ def get_normalized_pauli_basis() -> MatrixBasis:
 
 
 def get_gell_mann_basis() -> MatrixBasis:
-    identity = 1 / np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
+    identity = np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
     l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_3 = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128)
