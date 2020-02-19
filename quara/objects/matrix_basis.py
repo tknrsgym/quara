@@ -135,7 +135,7 @@ class MatrixBasis(Basis):
 
 
 class VectorizedMatrixBasis(Basis):
-    def __init__(self, source: List[MatrixBasis]):
+    def __init__(self, source: MatrixBasis):
         # 現状は、一旦MatrixBasisでくることだけが想定されている
         # もともとベクトル化されたnp.ndarrayがくることは想定されていない
         self._org_basis: MatrixBasis = source
