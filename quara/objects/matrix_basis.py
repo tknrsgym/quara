@@ -242,4 +242,21 @@ def get_gell_mann_basis() -> MatrixBasis:
 
 
 def get_normalized_gell_mann_basis() -> MatrixBasis:
-    pass
+    identity = np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
+    l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    l_3 = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128)
+    l_4 = np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=np.complex128)
+    l_5 = np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
+    l_6 = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.complex128)
+    l_7 = np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128)
+    l_8 = (
+        1
+        / np.sqrt(3)
+        * np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128)
+    )
+    source = [
+        1 / np.sqrt(2) * x for x in [identity, l_1, l_2, l_3, l_4, l_5, l_6, l_7, l_8]
+    ]
+    gell_mann_basis = MatrixBasis(source)
+    return gell_mann_basis
