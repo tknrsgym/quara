@@ -184,21 +184,6 @@ class MatrixBasis(Basis):
                 return False
         return True
 
-    def __getitem__(self, index: int) -> np.ndarray:
-        """returns ``index``-th element of basis.
-
-        Parameters
-        ----------
-        index : int
-            index of the desired element of basis.
-
-        Returns
-        -------
-        np.ndarray
-            ``index``-th element of basis.
-        """
-        return np.copy(self._basis[index])
-
     def size(self) -> Tuple[int, int]:
         """returns shape(=size) of basis.
 
@@ -211,7 +196,7 @@ class MatrixBasis(Basis):
 
 
 class VectorizedMatrixBasis(Basis):
-    def __init__(self, source: List[MatrixBasis]):
+    def __init__(self, source: MatrixBasis):
         # 現状は、一旦MatrixBasisでくることだけが想定されている
         # もともとベクトル化されたnp.ndarrayがくることは想定されていない
         self._org_basis: MatrixBasis = source
@@ -299,7 +284,7 @@ def get_normalized_pauli_basis() -> MatrixBasis:
 
 
 def get_gell_mann_basis() -> MatrixBasis:
-    identity = 1 / np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
+    identity = np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
     l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_3 = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128)
@@ -318,4 +303,21 @@ def get_gell_mann_basis() -> MatrixBasis:
 
 
 def get_normalized_gell_mann_basis() -> MatrixBasis:
-    pass
+    identity = np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
+    l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    l_3 = np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128)
+    l_4 = np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=np.complex128)
+    l_5 = np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
+    l_6 = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.complex128)
+    l_7 = np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128)
+    l_8 = (
+        1
+        / np.sqrt(3)
+        * np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128)
+    )
+    source = [
+        1 / np.sqrt(2) * x for x in [identity, l_1, l_2, l_3, l_4, l_5, l_6, l_7, l_8]
+    ]
+    gell_mann_basis = MatrixBasis(source)
+    return gell_mann_basis
