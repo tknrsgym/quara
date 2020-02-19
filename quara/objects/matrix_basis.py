@@ -41,8 +41,14 @@ class MatrixBasis(Basis):
     def __init__(self, basis: List[np.ndarray]):
         self._basis = basis
         self._dim = self[0].shape[0]
-        assert self.is_squares()
-        assert self.is_same_size()
+
+        if not self._is_squares():
+            raise ValueError("Invalid argument. There is a non-square matrix.")
+
+        if not self._is_same_size():
+            raise ValueError(
+                "Invalid argument. The sizes of the matrices are different."
+            )
 
         if not self._is_basis():
             raise ValueError("Invalid argument. `basis` is not basis.")
@@ -56,7 +62,7 @@ class MatrixBasis(Basis):
         # 自分自身をベクトル化したクラスを返す
         return to_vect(self)
 
-    def is_squares(self) -> bool:
+    def _is_squares(self) -> bool:
         # すべての行列が正方行列かどうかのチェック
         for mat in self:
             row, column = mat.shape
@@ -64,7 +70,7 @@ class MatrixBasis(Basis):
                 return False
         return True
 
-    def is_same_size(self) -> bool:
+    def _is_same_size(self) -> bool:
         # すべての行列がサイズが一致しているかどうかのチェック
         for index in range(len(self) - 1):
             if self[index].shape != self[index + 1].shape:
@@ -116,21 +122,6 @@ class MatrixBasis(Basis):
             if tr != 0:
                 return False
         return True
-
-    def __getitem__(self, index: int) -> np.ndarray:
-        """returns ``index``-th element of basis.
-
-        Parameters
-        ----------
-        index : int
-            index of the desired element of basis.
-
-        Returns
-        -------
-        np.ndarray
-            ``index``-th element of basis.
-        """
-        return np.copy(self._basis[index])
 
     def size(self) -> Tuple[int, int]:
         """returns shape(=size) of basis.
