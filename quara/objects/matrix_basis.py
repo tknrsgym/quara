@@ -41,8 +41,14 @@ class MatrixBasis(Basis):
     def __init__(self, basis: List[np.ndarray]):
         self._basis = basis
         self._dim = self[0].shape[0]
-        assert self.is_squares()
-        assert self.is_same_size()
+
+        if not self._is_squares():
+            raise ValueError("Invalid argument. There is a non-square matrix.")
+
+        if not self._is_same_size():
+            raise ValueError(
+                "Invalid argument. The sizes of the matrices are different."
+            )
 
         if not self._is_basis():
             raise ValueError("Invalid argument. `basis` is not basis.")
@@ -68,7 +74,7 @@ class MatrixBasis(Basis):
         """
         return to_vect(self)
 
-    def is_squares(self) -> bool:
+    def _is_squares(self) -> bool:
         """returns whether all matrices are square.
         
         Returns
@@ -82,7 +88,7 @@ class MatrixBasis(Basis):
                 return False
         return True
 
-    def is_same_size(self) -> bool:
+    def _is_same_size(self) -> bool:
         """returns whether all matrices are the same size.
         
         Returns
@@ -115,8 +121,8 @@ class MatrixBasis(Basis):
         bool
             True where matrices are orthogonal, False otherwise.
         """
-        for index, left in enumerate(self[:-1]):
-            for right in self[index + 1 :]:
+        for index, left in enumerate(self.basis[:-1]):
+            for right in self.basis[index + 1 :]:
                 i_product = mutil.inner_product(left, right)
                 if not np.isclose(i_product, 0):
                     return False
