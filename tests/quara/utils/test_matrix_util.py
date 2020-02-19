@@ -84,3 +84,28 @@ def test_is_tp():
         [[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]], dtype=np.complex128
     )
     assert not util.is_tp(target_matrix, 2)
+
+
+def test_inner_product():
+    identity = np.eye(2, dtype=np.complex128)
+    pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+
+    # <I, I> = Tr[I^{\dagger}I] = Tr[I] = 2
+    expected = 2
+    actual = util.inner_product(identity, identity)
+    assert np.array_equal(actual, expected)
+
+    # <X, X> = Tr[X^{\dagger}X] = Tr[I] = 2
+    expected = 2
+    actual = util.inner_product(pauli_x, pauli_x)
+    assert np.array_equal(actual, expected)
+
+    # <X, I> = Tr[X^{\dagger}I] = Tr[X] = 0
+    expected = 0
+    actual = util.inner_product(pauli_x, identity)
+    assert np.array_equal(actual, expected)
+
+    # <I, X> = Tr[I^{\dagger}X] = Tr[X] = 0
+    expected = 0
+    actual = util.inner_product(identity, pauli_x)
+    assert np.array_equal(actual, expected)
