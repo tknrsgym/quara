@@ -1,8 +1,8 @@
-import numpy as np
-import quara.utils.matrix_util as mutil
+from typing import List, Tuple
 
-from typing import List
-from typing import Tuple
+import numpy as np
+
+import quara.utils.matrix_util as mutil
 
 
 def to_vect(source: "MatrixBasis") -> "VectorizedMatrixBasis":

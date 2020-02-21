@@ -1,6 +1,5 @@
-import pytest
-
 import numpy as np
+import pytest
 
 import quara.utils.matrix_util as util
 

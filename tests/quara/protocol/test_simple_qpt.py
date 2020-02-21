@@ -5,8 +5,8 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.protocol import simple_io as s_io
 import quara.utils.matrix_util as util
+from quara.protocol import simple_io as s_io
 
 
 @pytest.mark.matlab_dependent

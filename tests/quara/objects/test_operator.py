@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
+from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.operator import tensor_product
-from quara.objects import matrix_basis
 from quara.objects.state import State
 
 
