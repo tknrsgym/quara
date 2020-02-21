@@ -8,6 +8,9 @@ from quara.objects.matrix_basis import MatrixBasis
 class CompositeSystem:
     """合成系を記述するためのクラス"""
 
+    # TODO ElamentalSystemを利用して__eq__関数を実装すること。ElamentalSystemの比較順は決めておくこと
+    # E1 \otimes E2のCompositeSystemがある場合には、E2 \otimes E1は実行できない
+
     def __init__(self, systems: List[ElementalSystem]):
         self._elemental_systems: List[ElementalSystem] = systems
         # 合成後の基底をMatrixBasisの形で持っておく
