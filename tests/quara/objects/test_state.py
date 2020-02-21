@@ -6,7 +6,7 @@ from quara.objects.state import State
 
 
 def test_with_normalized_pauli_basis():
-    e_sys = elemental_system.get_with_normalized_pauli_basis()
+    e_sys = elemental_system.get_with_normalized_pauli_basis("q1")
     c_sys = CompositeSystem([e_sys])
 
     state = State(c_sys, np.array([1, 0, 0, 0], dtype=np.float64))

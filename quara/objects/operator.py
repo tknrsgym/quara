@@ -4,7 +4,9 @@ from typing import List
 import numpy as np
 
 import quara.objects.matrix_basis as m_basis
+from quara.objects.composite_system import CompositeSystem
 from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.state import State
 import quara.utils.matrix_util as mutil
 
 
@@ -22,11 +24,18 @@ def tensor_product(*elements):
 def _tensor_product(elem1, elem2):
     # implement tensor product calculation for each type
     if type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
-        mat_list = [
+        new_basis = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
         ]
-        basis = MatrixBasis(mat_list)
-        return basis
+        m_basis = MatrixBasis(new_basis)
+        return m_basis
+    elif type(elem1) == State and type(elem2) == State:
+        # Stateを含むCompositeSystemを作成
+        c_sys = CompositeSystem([elem1.composite_system, elem2.composite_system])
+        # TODO Stateそのもののテンソル積を計算
+        # |elem1>> \otimes |elem2>>の行列表現を計算し、|elem1 \otimes elem2>>の表現と解釈する
+
+        return None
     else:
         raise ValueError(
             f"Unknown type combination! type=({type(elem1)}, {type(elem2)})"
