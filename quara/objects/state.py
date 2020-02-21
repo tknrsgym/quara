@@ -1,3 +1,4 @@
+import itertools
 from typing import List
 
 import numpy as np
@@ -92,7 +93,19 @@ class State:
         """
         return np.linalg.eigvals(self.get_density_matrix())
 
-    def convert_basis(self, basis: MatrixBasis) -> np.array:
+    def convert_basis(self, new_basis: MatrixBasis) -> np.array:
         # TODO 別の行列基底に対するベクトル表現を返す
+        # check length and dim
+        assert len(self._composite_system.basis) == len(new_basis)
+        assert self._composite_system.basis.dim == new_basis.dim
+
         # "converted vec"_{\alpha} = Tr["new basis"_{\alpha}^{\dagger} "old basis"_{\alpha}]
-        pass
+        """
+        new_basis = [
+            mutil.inner_product(val1, val2)
+            for val1, val2 in itertools.product(
+                new_basis.basis, self._composite_system.basis.basis
+            )
+        ]
+        """
+        return None
