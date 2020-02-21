@@ -16,8 +16,10 @@ class CompositeSystem:
     def __init__(self, systems: List[ElementalSystem]):
         self._elemental_systems: List[ElementalSystem] = systems
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
+        self._basis: MatrixBasis
+
         if len(self._elemental_systems) == 1:
-            self._basis: MatrixBasis = self._elemental_systems[0].hemirtian_basis
+            self._basis = self._elemental_systems[0].hemirtian_basis
         else:
             basis_list = [e_sys.hemirtian_basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
@@ -25,7 +27,7 @@ class CompositeSystem:
                 temp = [
                     np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
                 ]
-            self._basis: MatrixBasis = MatrixBasis(temp)
+            self._basis = MatrixBasis(temp)
         self._dim: int = self._basis[0].shape[0]
 
     @property
