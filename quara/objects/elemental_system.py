@@ -17,7 +17,7 @@ class ElementalSystem:
 
     @property
     def name(self):
-        return self.name
+        return self._name
 
     @property
     def system_id(self):  # read only
