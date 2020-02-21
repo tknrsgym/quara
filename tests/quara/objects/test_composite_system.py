@@ -1,6 +1,6 @@
-from quara.objects.matrix_basis import get_pauli_basis
-from quara.objects.elemental_system import ElementalSystem
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_pauli_basis
 
 
 class TestCompositeSystem:

@@ -1,7 +1,6 @@
 import copy
 import itertools
-from typing import List
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 

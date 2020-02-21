@@ -2,9 +2,9 @@ from typing import List
 
 import numpy as np
 
+import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.matrix_basis import MatrixBasis
-import quara.utils.matrix_util as mutil
 
 
 class State:
