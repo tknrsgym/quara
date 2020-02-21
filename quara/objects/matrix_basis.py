@@ -17,9 +17,9 @@ class Basis:
     def basis(self):  # read only
         return self._basis
 
-    def __getitem__(self, index: int) -> np.ndarray:
+    def __getitem__(self, key: int) -> np.ndarray:
         # return B_{\alpha}
-        return np.copy(self._basis[index])
+        return np.copy(self._basis[key])
 
     def __len__(self):
         """returns number of basis.
@@ -56,7 +56,7 @@ class MatrixBasis(Basis):
     @property
     def dim(self) -> int:
         """returns dim of matrix.
-        
+
         Returns
         -------
         int
@@ -66,7 +66,7 @@ class MatrixBasis(Basis):
 
     def to_vect(self) -> "VectorizedMatrixBasis":
         """returns the class that vectorizes itself.
-        
+
         Returns
         -------
         VectorizedMatrixBasis
@@ -76,7 +76,7 @@ class MatrixBasis(Basis):
 
     def _is_squares(self) -> bool:
         """returns whether all matrices are square.
-        
+
         Returns
         -------
         bool
@@ -90,7 +90,7 @@ class MatrixBasis(Basis):
 
     def _is_same_size(self) -> bool:
         """returns whether all matrices are the same size.
-        
+
         Returns
         -------
         bool
@@ -103,7 +103,7 @@ class MatrixBasis(Basis):
 
     def _is_basis(self) -> bool:
         """returns whether matrices are basis.
-        
+
         Returns
         -------
         bool
@@ -115,7 +115,7 @@ class MatrixBasis(Basis):
 
     def is_orthogonal(self) -> bool:
         """returns whether matrices are orthogonal.
-        
+
         Returns
         -------
         bool
@@ -130,7 +130,7 @@ class MatrixBasis(Basis):
 
     def is_normal(self) -> bool:
         """returns whether matrices are normalized.
-        
+
         Returns
         -------
         bool
@@ -144,7 +144,7 @@ class MatrixBasis(Basis):
 
     def is_hermitian(self) -> bool:
         """returns whether matrices are Hermitian.
-        
+
         Returns
         -------
         bool
@@ -158,7 +158,7 @@ class MatrixBasis(Basis):
 
     def is_scalar_mult_of_identity(self) -> bool:
         """returns whether first matrix is constant multiple of identity matrix.
-        
+
         Returns
         -------
         bool
@@ -171,7 +171,7 @@ class MatrixBasis(Basis):
 
     def is_trace_less(self) -> bool:
         """returns whether matrices are traceless except for first matrix.
-        
+
         Returns
         -------
         bool
