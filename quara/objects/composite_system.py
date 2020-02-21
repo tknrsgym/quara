@@ -38,7 +38,7 @@ class CompositeSystem:
     @property
     def dim(self):
         """returns dim of CompositeSystem.
-        
+
         Returns
         -------
         int
@@ -65,3 +65,24 @@ class CompositeSystem:
             return self._basis[temp_grobal_index]
         else:
             return self._basis[index]
+
+    def __len__(self):
+        return len(self._elemental_systems)
+
+    def __getitem__(self, key: int):
+        return self._elemental_systems[key]
+
+    def __iter__(self):
+        return iter(self._elemental_systems)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, CompositeSystem):
+            return False
+
+        if len(self) != len(other):
+            return False
+
+        for s, o in zip(self, other):
+            if s is not o:
+                return False
+        return True
