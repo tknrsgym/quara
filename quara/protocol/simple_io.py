@@ -1,4 +1,5 @@
 import math
+from typing import Tuple
 
 import numpy as np
 
@@ -109,7 +110,7 @@ def load_povm_list(path: str, dim: int, num_povm: int, num_outcome: int) -> np.n
     return povm_list
 
 
-def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray):
+def load_schedule(path: str, num_state: int, num_povm: int) -> Tuple[int, np.ndarray]:
     """Load schedule list from a csv file.
     The csv file must satisfy the followings:
 
@@ -118,7 +119,7 @@ def load_schedule(path: str, num_state: int, num_povm: int) -> (int, np.ndarray)
     - each value of first column is less than or equal to ``num_state - 1``.
     - each value of first column is greater than or equal to ``0``.
     - each value of second column is less than or equal to ``num_povm - 1``.
-    - each value of second column is greater than or equal to ``0``. 
+    - each value of second column is greater than or equal to ``0``.
 
     Parameters
     ----------
