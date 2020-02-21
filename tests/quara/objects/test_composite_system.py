@@ -21,3 +21,7 @@ class TestCompositeSystem:
         assert (c1 == c2) is False
 
         assert (c1 == c1) is True
+
+        assert (c1 == "string") is False
+        assert (c1 == None) is False
+        assert (c1 == 1) is False
