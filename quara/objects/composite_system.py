@@ -1,5 +1,5 @@
 import itertools
-from typing import List
+from typing import List, Union, Tuple
 
 from quara.objects import elemental_system
 from quara.objects.elemental_system import ElementalSystem
@@ -11,7 +11,6 @@ import numpy as np
 class CompositeSystem:
     """合成系を記述するためのクラス"""
 
-    # TODO ElamentalSystemを利用して__eq__関数を実装すること。ElamentalSystemの比較順は決めておくこと
     # E1 \otimes E2のCompositeSystemがある場合には、E2 \otimes E1は実行できない
 
     def __init__(self, systems: List[ElementalSystem]):
@@ -31,8 +30,6 @@ class CompositeSystem:
 
     @property
     def basis(self):
-        # TODO read onlyであるべき
-        # CompositeSystemのbasisを返す
         return self._basis
 
     @property
@@ -46,7 +43,7 @@ class CompositeSystem:
         """
         return self._dim
 
-    def get_basis(self, index) -> MatrixBasis:
+    def get_basis(self, index: Union[int, tuple]) -> MatrixBasis:
         # 基底のテンソル積を返す
         # TODO read onlyであるべき
         if type(index) == tuple:
@@ -66,10 +63,10 @@ class CompositeSystem:
         else:
             return self._basis[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._elemental_systems)
 
-    def __getitem__(self, key: int):
+    def __getitem__(self, key: int) -> ElementalSystem:
         return self._elemental_systems[key]
 
     def __iter__(self):
