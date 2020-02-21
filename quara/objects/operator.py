@@ -9,7 +9,21 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.state import State
 
 
-def tensor_product(*elements):
+def tensor_product(*elements) -> Union[MatrixBasis, State]:
+    """calculates tensor product of ``elements``.
+    
+    this function can calculate tensor product of the following combinations of types:
+
+    - (MatrixBasis, MatrixBasis)
+    - (State, State)
+    - list conststs of these combinations
+
+    Returns
+    -------
+    Union[MatrixBasis, State]
+        tensor product of ``elements``
+    """
+
     # convert argument to list
     element_list = _to_list(*elements)
 
