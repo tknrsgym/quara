@@ -1,4 +1,5 @@
 import math
+
 import numpy as np
 
 from quara.utils.file_util import check_file_extension

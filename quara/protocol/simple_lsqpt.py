@@ -3,8 +3,8 @@ import math
 from pathlib import Path
 from typing import Tuple
 
-import numpy as np
 import matlab
+import numpy as np
 
 from quara.engine.matlabengine import MatlabEngine
 from quara.protocol import simple_io
