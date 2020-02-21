@@ -11,13 +11,17 @@ class Povm:
     Positive Operator-Valued Measure
     """
 
-    def __init__(self):
-        self.composite_system: CompositeSystem = None  # TODO
+    def __init__(self, c_sys: CompositeSystem, vec: List[np.ndarray]):
+        self._composite_system: CompositeSystem = c_sys
         self.w_list: list = None  # TODO: 取りうる測定値のリスト
-        self._vec: List[np.ndarray] = []  # TODO: エルミート行列基底であることを要請する
+        self._vec: List[np.ndarray] = vec  # TODO: エルミート行列基底であることを要請する
 
     def __getitem__(self, key: int):
         return self._vec[key]
+
+    @property
+    def composite_system(self):
+        return self._composite_system
 
     def is_positive_semidefinite(self, atol: float = None) -> bool:
         # 各要素が半正定値か確認する
