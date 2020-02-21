@@ -40,10 +40,3 @@ class ElementalSystem:
         if not isinstance(other, ElementalSystem):
             return False
         return self.name == other.name
-
-
-# TODO この関数は不要？
-def get_with_normalized_pauli_basis(name: str) -> ElementalSystem:
-    basis = matrix_basis.get_normalized_pauli_basis()
-    system = ElementalSystem(name, basis)
-    return system
