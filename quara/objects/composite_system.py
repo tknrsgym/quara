@@ -1,8 +1,11 @@
+import itertools
 from typing import List
+
 from quara.objects import elemental_system
-from quara.objects import operator
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis
+
+import numpy as np
 
 
 class CompositeSystem:
@@ -13,12 +16,17 @@ class CompositeSystem:
 
     def __init__(self, systems: List[ElementalSystem]):
         self._elemental_systems: List[ElementalSystem] = systems
-        # 合成後の基底をMatrixBasisの形で持っておく
+        # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
         if len(self._elemental_systems) == 1:
             self._basis: MatrixBasis = self._elemental_systems[0].hemirtian_basis
         else:
             basis_list = [e_sys.hemirtian_basis for e_sys in self._elemental_systems]
-            self._basis: MatrixBasis = operator.tensor_product(basis_list)
+            temp = basis_list[0]
+            for elem in basis_list[1:]:
+                temp = [
+                    np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                ]
+            self._basis: MatrixBasis = MatrixBasis(temp)
         self._dim: int = self._basis[0].shape[0]
 
     @property
@@ -57,21 +65,3 @@ class CompositeSystem:
             return self._basis[temp_grobal_index]
         else:
             return self._basis[index]
-
-
-# TODO この関数は不要？
-def get_with_normalized_pauli_basis() -> CompositeSystem:
-    e_sys = elemental_system.get_with_normalized_pauli_basis()
-    c_sys = CompositeSystem([e_sys])
-    return c_sys
-
-
-"""
-e_sys1 = elemental_system.get_with_normalized_pauli_basis()
-e_sys2 = elemental_system.get_with_normalized_pauli_basis()
-c_sys = CompositeSystem([e_sys1, e_sys2])
-print(len(c_sys.basis))
-# print(c_sys.basis)
-print(c_sys.get_basis(4))
-print(c_sys.get_basis((1, 0)))
-"""
