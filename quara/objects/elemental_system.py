@@ -25,21 +25,15 @@ class ElementalSystem:
 
     @property
     def dim(self):
-        # dimを返す
         return self._dim
 
-    @property
-    def computational_basis(self):  # read only
-        return self._computational_basis
+    # @property
+    # def computational_basis(self):  # read only
+    #     return self._computational_basis
 
     @property
     def hemirtian_basis(self):  # read only?
         return self._hemirtian_basis
-
-    def __eq__(self, other):
-        if not isinstance(other, ElementalSystem):
-            return False
-        return self.name == other.name
 
 
 # TODO この関数は不要？
