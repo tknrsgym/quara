@@ -1,13 +1,13 @@
+import copy
 import itertools
 from typing import List
+from typing import Union
 
 import numpy as np
 
-import quara.objects.matrix_basis as m_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.state import State
-import quara.utils.matrix_util as mutil
 
 
 def tensor_product(*elements):
@@ -22,6 +22,7 @@ def tensor_product(*elements):
 
 
 def _tensor_product(elem1, elem2):
+
     # implement tensor product calculation for each type
     if type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         new_basis = [
@@ -30,12 +31,16 @@ def _tensor_product(elem1, elem2):
         m_basis = MatrixBasis(new_basis)
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
-        # Stateを含むCompositeSystemを作成
-        c_sys = CompositeSystem([elem1.composite_system, elem2.composite_system])
-        # TODO Stateそのもののテンソル積を計算
-        # |elem1>> \otimes |elem2>>の行列表現を計算し、|elem1 \otimes elem2>>の表現と解釈する
+        # create CompositeSystem
+        e_sys_list = copy.copy(elem1._composite_system._elemental_systems)
+        e_sys_list.extend(elem2._composite_system._elemental_systems)
+        c_sys = CompositeSystem(e_sys_list)
+        # calculate vecs of stetes
+        tensor_vec = np.kron(elem1._vec, elem2._vec)
 
-        return None
+        # create State
+        tensor_state = State(c_sys, tensor_vec)
+        return tensor_state
     else:
         raise ValueError(
             f"Unknown type combination! type=({type(elem1)}, {type(elem2)})"

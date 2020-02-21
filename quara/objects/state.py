@@ -24,10 +24,6 @@ class State:
         assert self._composite_system.dim == self._dim
 
     @property
-    def composite_system(self):
-        return self._composite_system
-
-    @property
     def dim(self):
         """returns dim of vector.
         
