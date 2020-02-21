@@ -2,8 +2,8 @@ from typing import List, Union
 
 import numpy as np
 
-from quara.objects.composite_system import CompositeSystem
 import quara.utils.matrix_util as mutil
+from quara.objects.composite_system import CompositeSystem
 
 
 class Povm:

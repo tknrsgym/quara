@@ -1,11 +1,11 @@
 import itertools
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
+
+import numpy as np
 
 from quara.objects import elemental_system
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis
-
-import numpy as np
 
 
 class CompositeSystem:
