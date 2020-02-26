@@ -1,11 +1,19 @@
 import numpy as np
+import numpy.testing as npt
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis
-from quara.objects.state import State
-
+from quara.objects.state import (
+    State,
+    get_X0_1q_with_normalized_pauli_basis,
+    get_X1_1q_with_normalized_pauli_basis,
+    get_Y0_1q_with_normalized_pauli_basis,
+    get_Y1_1q_with_normalized_pauli_basis,
+    get_Z0_1q_with_normalized_pauli_basis,
+    get_Z1_1q_with_normalized_pauli_basis
+)
 import numpy.testing as npt
 import pytest
 
@@ -217,25 +225,25 @@ def test_convert_basis_form_comp_to_pauli():
     # converts [1, 0, 0, 0] with comp basis to Pauli basis
     state = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64))
     actual = state.convert_basis(pauli_basis)
-    expected = 1 / np.sqrt(2) * np.array([[1, 0, 0, 1]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128)
     assert np.all(actual == expected)
 
     # converts [0, 1, 0, 0] with comp basis to Pauli basis
     state = State(c_sys1, np.array([0, 1, 0, 0], dtype=np.float64))
     actual = state.convert_basis(pauli_basis)
-    expected = 1 / np.sqrt(2) * np.array([[0, 1, 1j, 0]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([0, 1, 1j, 0], dtype=np.complex128)
     assert np.all(actual == expected)
 
     # converts [0, 0, 1, 0] with comp basis to Pauli basis
     state = State(c_sys1, np.array([0, 0, 1, 0], dtype=np.float64))
     actual = state.convert_basis(pauli_basis)
-    expected = 1 / np.sqrt(2) * np.array([[0, 1, -1j, 0]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([0, 1, -1j, 0], dtype=np.complex128)
     assert np.all(actual == expected)
 
     # converts [0, 0, 0, 1] with comp basis to Pauli basis
     state = State(c_sys1, np.array([0, 0, 0, 1], dtype=np.float64))
     actual = state.convert_basis(pauli_basis)
-    expected = 1 / np.sqrt(2) * np.array([[1, 0, 0, -1]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128)
     assert np.all(actual == expected)
 
 
@@ -250,23 +258,78 @@ def test_convert_basis_form_pauli_to_comp():
     # converts [1, 0, 0, 0] with Pauli basis to comp basis
     state = State(c_sys2, np.array([1, 0, 0, 0], dtype=np.float64))
     actual = state.convert_basis(comp_basis)
-    expected = 1 / np.sqrt(2) * np.array([[1, 0, 0, 1]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128)
     assert np.all(actual == expected)
 
     # converts [0, 1, 0, 0] with Pauli basis to comp basis
     state = State(c_sys2, np.array([0, 1, 0, 0], dtype=np.float64))
     actual = state.convert_basis(comp_basis)
-    expected = 1 / np.sqrt(2) * np.array([[0, 1, 1, 0]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([0, 1, 1, 0], dtype=np.complex128)
     assert np.all(actual == expected)
 
     # converts [0, 0, 1, 0] with Pauli basis to comp basis
     state = State(c_sys2, np.array([0, 0, 1, 0], dtype=np.float64))
     actual = state.convert_basis(comp_basis)
-    expected = 1 / np.sqrt(2) * np.array([[0, -1j, 1j, 0]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([0, -1j, 1j, 0], dtype=np.complex128)
     assert np.all(actual == expected)
 
     # converts [0, 0, 0, 1] with Pauli basis to comp basis
     state = State(c_sys2, np.array([0, 0, 0, 1], dtype=np.float64))
     actual = state.convert_basis(comp_basis)
-    expected = 1 / np.sqrt(2) * np.array([[1, 0, 0, -1]], dtype=np.complex128)
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128)
     assert np.all(actual == expected)
+
+
+def test_get_X0_1q_with_normalized_pauli_basis():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_X0_1q_with_normalized_pauli_basis(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_get_X1_1q_with_normalized_pauli_basis():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_X1_1q_with_normalized_pauli_basis(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_get_Y0_1q_with_normalized_pauli_basis():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_Y0_1q_with_normalized_pauli_basis(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array([[0.5, -0.5j], [0.5j, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_get_Y1_1q_with_normalized_pauli_basis():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_Y1_1q_with_normalized_pauli_basis(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array([[0.5, 0.5j], [-0.5j, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_get_Z0_with_normalized_pauli_basis():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_Z0_1q_with_normalized_pauli_basis(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+def test_get_Z1_with_normalized_pauli_basis():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_Z1_1q_with_normalized_pauli_basis(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+# TODO implement test of convert_vec
