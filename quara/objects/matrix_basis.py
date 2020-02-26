@@ -12,7 +12,7 @@ def to_vect(source: "MatrixBasis") -> "VectorizedMatrixBasis":
 
 class Basis:
     def __init__(self, basis: List[np.ndarray]):
-        self._basis = basis
+        self._basis = copy.deepcopy(basis)
 
     @property
     def basis(self):  # read only
@@ -20,7 +20,7 @@ class Basis:
 
     def __getitem__(self, key: int) -> np.ndarray:
         # return B_{\alpha}
-        return np.copy(self._basis[key])
+        return self._basis[key]
 
     def __len__(self):
         """returns number of basis.
@@ -204,10 +204,12 @@ class VectorizedMatrixBasis(Basis):
         self._basis: List[np.ndarray] = []
 
         # vectorize
-        # これはutilに置いてもいいかもしれない
+        # vectorize
         for b in self._org_basis:
-            b_vect = b.copy()
-            self._basis.append(b_vect.flatten())
+            # "ravel" doesn't make copies, so it performs better than "flatten".
+            # But, use "flatten" at this time to avoid breaking the original data(self._org_basis).
+            # When performance issues arise, reconsider.
+            self._basis.append(b.flatten())
 
     @property
     def org_basis(self):  # read only
