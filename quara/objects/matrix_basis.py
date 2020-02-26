@@ -7,6 +7,13 @@ import quara.utils.matrix_util as mutil
 
 
 def to_vect(source: "MatrixBasis") -> "VectorizedMatrixBasis":
+    """Convert MatrixBasis to VectorizedMatrixBasis
+
+    Returns
+    -------
+    VectorizedMatrixBasis
+        VectorizedMatrixBasis converted from MatrixBasis
+    """
     return VectorizedMatrixBasis(source)
 
 
@@ -23,7 +30,7 @@ class Basis:
         return self._basis[key]
 
     def __len__(self):
-        """returns number of basis.
+        """Returns number of basis.
         Returns
         -------
         int
@@ -60,7 +67,7 @@ class MatrixBasis(Basis):
 
     @property
     def dim(self) -> int:
-        """returns dim of matrix.
+        """Returns dim of matrix.
 
         Returns
         -------
@@ -70,7 +77,7 @@ class MatrixBasis(Basis):
         return self._dim
 
     def to_vect(self) -> "VectorizedMatrixBasis":
-        """returns the class that vectorizes itself.
+        """Returns the class that vectorizes itself.
 
         Returns
         -------
@@ -80,7 +87,7 @@ class MatrixBasis(Basis):
         return to_vect(self)
 
     def _is_squares(self) -> bool:
-        """returns whether all matrices are square.
+        """Returns whether all matrices are square.
 
         Returns
         -------
@@ -94,7 +101,7 @@ class MatrixBasis(Basis):
         return True
 
     def _is_same_size(self) -> bool:
-        """returns whether all matrices are the same size.
+        """Returns whether all matrices are the same size.
 
         Returns
         -------
@@ -107,7 +114,7 @@ class MatrixBasis(Basis):
         return True
 
     def _is_basis(self) -> bool:
-        """returns whether matrices are basis.
+        """Returns whether matrices are basis.
 
         Returns
         -------
@@ -119,7 +126,7 @@ class MatrixBasis(Basis):
         return rank >= self.dim ** 2
 
     def is_orthogonal(self) -> bool:
-        """returns whether matrices are orthogonal.
+        """Returns whether matrices are orthogonal.
 
         Returns
         -------
@@ -134,7 +141,7 @@ class MatrixBasis(Basis):
         return True
 
     def is_normal(self) -> bool:
-        """returns whether matrices are normalized.
+        """Returns whether matrices are normalized.
 
         Returns
         -------
@@ -148,7 +155,7 @@ class MatrixBasis(Basis):
         return True
 
     def is_hermitian(self) -> bool:
-        """returns whether matrices are Hermitian.
+        """Returns whether matrices are Hermitian.
 
         Returns
         -------
@@ -162,7 +169,7 @@ class MatrixBasis(Basis):
         return True
 
     def is_scalar_mult_of_identity(self) -> bool:
-        """returns whether first matrix is constant multiple of identity matrix.
+        """Returns whether first matrix is constant multiple of identity matrix.
 
         Returns
         -------
@@ -175,7 +182,7 @@ class MatrixBasis(Basis):
         return np.allclose(scalar * identity, mat)
 
     def is_trace_less(self) -> bool:
-        """returns whether matrices are traceless except for first matrix.
+        """Returns whether matrices are traceless except for first matrix.
 
         Returns
         -------
@@ -190,7 +197,7 @@ class MatrixBasis(Basis):
         return True
 
     def size(self) -> Tuple[int, int]:
-        """returns shape(=size) of basis.
+        """Returns shape(=size) of basis.
 
         Returns
         -------
@@ -202,8 +209,8 @@ class MatrixBasis(Basis):
 
 class VectorizedMatrixBasis(Basis):
     def __init__(self, source: MatrixBasis):
-        # 現状は、一旦MatrixBasisでくることだけが想定されている
-        # もともとベクトル化されたnp.ndarrayがくることは想定されていない
+        # Currently, only the MatrixBasis parameter is assumed.
+        # It is not currently assumed that a vectorized np.ndarray is passed as a parameter.
         self._org_basis: MatrixBasis = source
 
         # vectorize
@@ -242,7 +249,7 @@ class VectorizedMatrixBasis(Basis):
 
 
 def get_comp_basis() -> MatrixBasis:
-    """returns computational basis.
+    """Returns computational basis.
 
     Returns
     -------
@@ -259,7 +266,7 @@ def get_comp_basis() -> MatrixBasis:
 
 
 def get_pauli_basis() -> MatrixBasis:
-    """returns Pauli basis.
+    """Returns Pauli basis.
 
     Returns
     -------
@@ -276,12 +283,12 @@ def get_pauli_basis() -> MatrixBasis:
 
 
 def get_normalized_pauli_basis() -> MatrixBasis:
-    """returns normalized Pauli basis.
+    """Returns normalized Pauli basis.
 
     Returns
     -------
     MatrixBasis
-        Pauli basis ``\frac{1}{\sqrt{2}}[I, X, Y, Z]``
+        Pauli basis ``\\frac{1}{\\sqrt{2}}[I, X, Y, Z]``
     """
     identity = 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
     pauli_x = 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
@@ -293,6 +300,13 @@ def get_normalized_pauli_basis() -> MatrixBasis:
 
 
 def get_gell_mann_basis() -> MatrixBasis:
+    """Returns Gell-Mann matrices basis.
+
+    Returns
+    -------
+    MatrixBasis
+        Gell-Mann matrices basis
+    """
     identity = np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
     l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
@@ -312,6 +326,13 @@ def get_gell_mann_basis() -> MatrixBasis:
 
 
 def get_normalized_gell_mann_basis() -> MatrixBasis:
+    """Returns normalized Gell-Mann matrices basis.
+
+    Returns
+    -------
+    MatrixBasis
+        Normalized Gell-Mann matrices basis
+    """
     identity = np.sqrt(2 / 3) * np.eye(3, dtype=np.complex128)
     l_1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
     l_2 = np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
