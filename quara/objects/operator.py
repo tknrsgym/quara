@@ -5,6 +5,7 @@ from typing import List, Union
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.gate import Gate
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.state import State
 
@@ -22,6 +23,11 @@ def tensor_product(*elements) -> Union[MatrixBasis, State]:
     -------
     Union[MatrixBasis, State]
         tensor product of ``elements``
+
+    Raises
+    ------
+    ValueError
+        Unsupported type combination.
     """
 
     # convert argument to list
@@ -35,7 +41,6 @@ def tensor_product(*elements) -> Union[MatrixBasis, State]:
 
 
 def _tensor_product(elem1, elem2):
-
     # implement tensor product calculation for each type
     if type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         new_basis = [
@@ -56,7 +61,7 @@ def _tensor_product(elem1, elem2):
         return tensor_state
     else:
         raise ValueError(
-            f"Unknown type combination! type=({type(elem1)}, {type(elem2)})"
+            f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
         )
 
 
@@ -73,7 +78,13 @@ def composite(*elements):
 
 def _composite(elem1, elem2):
     # implement composite calculation for each type
-    pass
+    if type(elem1) == Gate and type(elem2) == State:
+        # TODO check same CompositeSystem
+        return elem1.HS @ elem2.vec
+    else:
+        raise ValueError(
+            f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
+        )
 
 
 def _to_list(*elements):
