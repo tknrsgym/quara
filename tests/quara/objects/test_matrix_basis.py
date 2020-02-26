@@ -320,3 +320,26 @@ def test_get_normalized_gell_mann_basis():
     assert basis.is_hermitian() == True
     assert basis.is_scalar_mult_of_identity() == True
     assert basis.is_trace_less() == True
+
+
+class TestMatrixBasisImmutable:
+    def test_deney_update_basis(self):
+        array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+        array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+        array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+        source = [array00, array01, array10, array11]
+        comp_basis = MatrixBasis(source)
+
+        assert id(source) != id(comp_basis.basis)
+
+        # If "source" is updated, the data in MatrixBasis is not updated
+        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        source[0] = np.zeros([2, 2], dtype=np.complex128)
+        assert np.array_equal(comp_basis.basis[0], expected)
+        assert np.array_equal(comp_basis[0], expected)
+
+        # If "array00" is updated, the data in MatrixBasis is not updated
+        array00[0] = np.array([2, 2], dtype=np.complex128)
+        assert np.array_equal(comp_basis.basis[0], expected)
+        assert np.array_equal(comp_basis[0], expected)
