@@ -1,3 +1,4 @@
+import copy
 from typing import List, Tuple
 
 import numpy as np
@@ -39,7 +40,7 @@ class Basis:
 
 class MatrixBasis(Basis):
     def __init__(self, basis: List[np.ndarray]):
-        self._basis = basis
+        self._basis = copy.deepcopy(basis)
         self._dim = self[0].shape[0]
 
         if not self._is_squares():
