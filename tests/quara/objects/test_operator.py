@@ -1,11 +1,19 @@
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.operator import tensor_product
-from quara.objects.state import State
+from quara.objects.gate import Gate, get_Z
+from quara.objects.operator import composite, tensor_product
+from quara.objects.state import (
+    State,
+    get_X0_1q_with_normalized_pauli_basis,
+    get_X1_1q_with_normalized_pauli_basis,
+    get_Z0_1q_with_normalized_pauli_basis,
+    get_Z1_1q_with_normalized_pauli_basis,
+)
 
 
 def test_tensor_product_MatrixBasis_MatrixBasis():
@@ -185,3 +193,33 @@ def test_tensor_product_State_State():
 
     assert e_sys1 is actual._composite_system._elemental_systems[0]
     assert e_sys2 is actual._composite_system._elemental_systems[1]
+
+
+def test_composite_product_Gate_State():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_Z(c_sys)
+
+    # case: Z gate \circ X_0 state
+    state = get_X0_1q_with_normalized_pauli_basis(c_sys)
+    actual = composite(gate, state)
+    expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # case: Z gate \circ X_1 state
+    state = get_X1_1q_with_normalized_pauli_basis(c_sys)
+    actual = composite(gate, state)
+    expected = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # case: Z gate \circ Z_0 state
+    state = get_Z0_1q_with_normalized_pauli_basis(c_sys)
+    actual = composite(gate, state)
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # case: Z gate \circ Z_1 state
+    state = get_Z1_1q_with_normalized_pauli_basis(c_sys)
+    actual = composite(gate, state)
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
