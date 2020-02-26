@@ -12,7 +12,7 @@ def to_vect(source: "MatrixBasis") -> "VectorizedMatrixBasis":
 
 class Basis:
     def __init__(self, basis: List[np.ndarray]):
-        self._basis = copy.deepcopy(basis)
+        self._basis: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(basis))
 
     @property
     def basis(self):  # read only
@@ -40,7 +40,11 @@ class Basis:
 
 class MatrixBasis(Basis):
     def __init__(self, basis: List[np.ndarray]):
-        self._basis = copy.deepcopy(basis)
+        # make _basis immutable
+        self._basis: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(basis))
+        for b in self._basis:
+            b.setflags(write=False)
+
         self._dim = self[0].shape[0]
 
         if not self._is_squares():
