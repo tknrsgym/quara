@@ -349,7 +349,7 @@ class TestMatrixBasisImmutable:
         assert np.array_equal(comp_basis.basis[0], expected)
         assert np.array_equal(comp_basis[0], expected)
 
-    def test_deney_update_basis_getitem(self):
+    def test_deney_update_basis_item(self):
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
         array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
         array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
@@ -414,3 +414,47 @@ class TestVectorizedMatrixBasiImmutable:
 
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
         assert np.array_equal(v_basis.org_basis[0], expected)
+
+    def test_deney_update_basis_item(self):
+        array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+        array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+        array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+        source = [array00, array01, array10, array11]
+        comp_basis = MatrixBasis(source)
+        v_basis = VectorizedMatrixBasis(comp_basis)
+
+        expected = np.array([1, 0, 0, 0], dtype=np.complex128)
+
+        with pytest.raises(TypeError):
+            # TypeError: 'VectorizedMatrixBasis' object does not support item assignment
+            v_basis[0] = np.array([0, 0, 0, 0], dtype=np.complex128)
+        assert np.array_equal(v_basis[0], expected)
+
+        with pytest.raises(TypeError):
+            # TypeError: 'tuple' object does not support item assignment
+            v_basis.basis[0] = np.array([0, 0, 0, 0], dtype=np.complex128)
+        assert np.array_equal(v_basis.basis[0], expected)
+
+        with pytest.raises(ValueError):
+            # ValueError: assignment destination is read-only
+            v_basis.basis[0][0] = 2
+        assert np.array_equal(v_basis.basis[0], expected)
+
+        # Test to ensure that no copies are made on each access
+        first_access = id(v_basis[0])
+        second_access = id(v_basis[0])
+        assert first_access == second_access
+
+    def test_deney_update_org_basis_item(self):
+        array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+        array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+        array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+        source = [array00, array01, array10, array11]
+        comp_basis = MatrixBasis(source)
+        v_basis = VectorizedMatrixBasis(comp_basis)
+
+        with pytest.raises(AttributeError):
+            # AttributeError: can't set attribute
+            v_basis.org_basis = 1

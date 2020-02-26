@@ -205,15 +205,17 @@ class VectorizedMatrixBasis(Basis):
         # 現状は、一旦MatrixBasisでくることだけが想定されている
         # もともとベクトル化されたnp.ndarrayがくることは想定されていない
         self._org_basis: MatrixBasis = source
-        self._basis: List[np.ndarray] = []
 
         # vectorize
-        # vectorize
+        temp_basis: List[np.ndarray] = []
         for b in self._org_basis:
             # "ravel" doesn't make copies, so it performs better than "flatten".
             # But, use "flatten" at this time to avoid breaking the original data(self._org_basis).
             # When performance issues arise, reconsider.
-            self._basis.append(b.flatten())
+            vectorized_b = b.flatten()
+            vectorized_b.setflags(write=False)
+            temp_basis.append(vectorized_b)
+        self._basis: Tuple[np.ndarray, ...] = tuple(temp_basis)
 
     @property
     def org_basis(self):  # read only
