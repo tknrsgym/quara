@@ -102,7 +102,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-13) -> bool:
 
 
 def inner_product(left: np.ndarray, right: np.ndarray) -> np.complex128:
-    """calculates Hilbert-Schmidt inner product ``<left, right> := Tr(left^{\dagger} @ right)``.
+    """calculates Hilbert-Schmidt inner product ``<left, right> := Tr(left^{\dagger} @ right)`` = <<left|right>>.
     
     Parameters
     ----------
@@ -116,6 +116,6 @@ def inner_product(left: np.ndarray, right: np.ndarray) -> np.complex128:
     np.complex128
         Hilbert-Schmidt inner product
     """
-    mul = left.conj().T @ right
-    trace = np.trace(mul)
-    return trace
+    # calculate <<left|right>>
+    i_product = np.inner(left.conj().reshape((1, -1))[0], right.reshape((1, -1))[0])
+    return i_product
