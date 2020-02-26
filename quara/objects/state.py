@@ -3,10 +3,10 @@ from typing import List
 
 import numpy as np
 
-import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis, get_normalized_pauli_basis
+import quara.utils.matrix_util as mutil
 
 
 class State:
@@ -19,10 +19,12 @@ class State:
         if len(size) != 1:
             raise ValueError(f"vec must be one-dimensional array. shape is {size}")
 
-        # whether size of vec is square
+        # whether size of vec is square number
         self._dim = int(np.sqrt(size[0]))
         if self._dim ** 2 != size[0]:
-            raise ValueError(f"size of vec must be square. dim of vec is {size[0]}")
+            raise ValueError(
+                f"size of vec must be square number. dim of vec is {size[0]}"
+            )
 
         # whether entries of vec are real numbers
         if self._vec.dtype != np.float64:
@@ -185,7 +187,6 @@ def convert_vec(
     return converted_vec
 
 
-# basis
 def get_X0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_0`` with normalized pauli basis.
     
@@ -199,6 +200,7 @@ def get_X0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
+    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
@@ -219,6 +221,7 @@ def get_X1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
+    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
@@ -239,6 +242,7 @@ def get_Y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
+    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
@@ -259,6 +263,7 @@ def get_Y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
+    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
@@ -279,6 +284,7 @@ def get_Z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
+    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
@@ -299,6 +305,7 @@ def get_Z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
+    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
