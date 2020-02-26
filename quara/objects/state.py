@@ -12,17 +12,28 @@ class State:
     def __init__(self, c_sys: CompositeSystem, vec: np.ndarray):
         self._composite_system: CompositeSystem = c_sys
         self._vec: np.ndarray = vec
-
         size = self._vec.shape
+
         # whether vec is one-dimensional array
-        assert len(size) == 1
+        if len(size) != 1:
+            raise ValueError(f"vec must be one-dimensional array. shape is {size}")
+
         # whether size of vec is square
         self._dim = int(np.sqrt(size[0]))
-        assert self._dim ** 2 == size[0]
+        if self._dim ** 2 != size[0]:
+            raise ValueError(f"size of vec must be square. dim of vec is {size[0]}")
+
         # whether entries of vec are real numbers
-        assert self._vec.dtype == np.float64
+        if self._vec.dtype != np.float64:
+            raise ValueError(
+                f"entries of vec must be real numbers. dtype of vec is {self._vec.dtype}"
+            )
+
         # whether dim of CompositeSystem equals dim of vec
-        assert self._composite_system.dim == self._dim
+        if self._composite_system.dim != self._dim:
+            raise ValueError(
+                f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim}. dim of vec is {self._dim}"
+            )
 
     @property
     def dim(self):
@@ -93,19 +104,31 @@ class State:
         """
         return np.linalg.eigvals(self.get_density_matrix())
 
-    def convert_basis(self, new_basis: MatrixBasis) -> np.array:
-        # TODO 別の行列基底に対するベクトル表現を返す
-        # check length and dim
-        assert len(self._composite_system.basis) == len(new_basis)
-        assert self._composite_system.basis.dim == new_basis.dim
-
-        # "converted vec"_{\alpha} = Tr["new basis"_{\alpha}^{\dagger} "old basis"_{\alpha}]
+    def convert_basis(self, other_basis: MatrixBasis) -> np.array:
+        """returns vector representation for ``other_basis``.
+        
+        Parameters
+        ----------
+        other_basis : MatrixBasis
+            basis
+        
+        Returns
+        -------
+        np.array
+            vector representation for ``other_basis``
         """
-        new_basis = [
+        # check length and dim
+        len_basis = len(self._composite_system.basis)
+        assert len_basis == len(other_basis)
+        assert self._composite_system.basis.dim == other_basis.dim
+
+        # "converted vec"_{\alpha} = \sum_{\beta} Tr["other basis"_{\beta}^{\dagger} "self basis"_{\alpha}] "self vec"_{\alpha}
+        representation_matrix = [
             mutil.inner_product(val1, val2)
             for val1, val2 in itertools.product(
-                new_basis.basis, self._composite_system.basis.basis
+                other_basis.basis, self._composite_system.basis.basis
             )
         ]
-        """
-        return None
+        rep_mat = np.array(representation_matrix).reshape(len_basis, len_basis)
+        converted_vec = rep_mat @ self._vec
+        return converted_vec
