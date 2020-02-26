@@ -343,3 +343,38 @@ class TestMatrixBasisImmutable:
         array00[0] = np.array([2, 2], dtype=np.complex128)
         assert np.array_equal(comp_basis.basis[0], expected)
         assert np.array_equal(comp_basis[0], expected)
+
+
+class TestVectorizedMatrixBasiImmutable:
+    def test_deney_update_basis(self):
+        # Case1: Use constructor of VectorizedMatrixBasis
+        array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+        array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+        array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+        source = [array00, array01, array10, array11]
+        comp_basis = MatrixBasis(source)
+        v_basis = VectorizedMatrixBasis(comp_basis)
+
+        assert id(v_basis.org_basis) == id(comp_basis)
+        assert id(v_basis.org_basis.basis) == id(comp_basis.basis)
+        assert id(v_basis.org_basis[0]) == id(comp_basis.basis[0])
+
+        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        assert np.array_equal(v_basis.org_basis[0], expected)
+
+        # Case 2: Use a method of MatrixBasis
+        array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+        array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+        array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+        source = [array00, array01, array10, array11]
+        comp_basis = MatrixBasis(source)
+        v_basis = comp_basis.to_vect()
+
+        assert id(v_basis.org_basis) == id(comp_basis)
+        assert id(v_basis.org_basis.basis) == id(comp_basis.basis)
+        assert id(v_basis.org_basis.basis[0]) == id(comp_basis.basis[0])
+
+        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        assert np.array_equal(v_basis.org_basis[0], expected)
