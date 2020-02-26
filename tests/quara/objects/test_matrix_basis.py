@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import pytest
 
@@ -72,18 +74,20 @@ def test_get_normalized_pauli_basis():
 
 class TestMatrixBasis:
     def test_raise_not_basis(self):
+        identity = np.array([[1, 0], [0, 1]], dtype=np.complex128)
+        pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        pauli_y = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        pauli_z = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+
         # Testing for non-basis inputs
         # Case 1: Not enough matrices.
-        source = matrix_basis.get_pauli_basis().basis
-        source = source[:-1]
+        source = [identity, pauli_x, pauli_y]
         with pytest.raises(ValueError):
             _ = MatrixBasis(source)
 
         # Case 2: Not independent (B_3 = B_0 + B_1)
-        source = matrix_basis.get_pauli_basis().basis
-        source = source[:-1]
-        invalid_array = source[0] + source[1]
-        source.append(invalid_array)
+        invalid_array = identity + pauli_x
+        source = [identity, pauli_x, pauli_y, invalid_array]
         with pytest.raises(ValueError):
             _ = MatrixBasis(source)
 
@@ -215,18 +219,17 @@ class TestMatrixBasis:
 
 class TestMatrixBasis_3x3:
     def test_raise_not_basis(self):
+        gell_mann_source = list(matrix_basis.get_gell_mann_basis().basis)
+
         # Testing for non-basis inputs
         # Case 1: Not enough matrices.
-        source = matrix_basis.get_gell_mann_basis().basis
-        source = source[:-1]
+        source = gell_mann_source[:-1]
         with pytest.raises(ValueError):
             _ = MatrixBasis(source)
 
         # Case 2: Not independent (B_3 = B_0 + B_1)
-        source = matrix_basis.get_gell_mann_basis().basis
-        source = source[:-1]
-        invalid_array = source[0] + source[1]
-        source.append(invalid_array)
+        source = copy.copy(gell_mann_source)
+        source[3] = source[0] + source[1]
         with pytest.raises(ValueError):
             _ = MatrixBasis(source)
 
@@ -237,6 +240,7 @@ class TestMatrixBasis_3x3:
         assert basis._is_same_size() == True
 
         # Case2: Not same size
+        source_basis = list(source_basis)
         source_basis[1] = np.array([[1, 0], [0, 1]])
         with pytest.raises(ValueError):
             _ = MatrixBasis(source_basis)
@@ -248,6 +252,7 @@ class TestMatrixBasis_3x3:
         assert basis._is_squares() == True
 
         # Case2: There is a non-square matrix
+        source_basis = list(source_basis)
         source_basis[1] = np.array([[0, 1, 1], [0, 0, 1], [0, 0, 1], [1, 1, 1]])
         with pytest.raises(ValueError):
             _ = MatrixBasis(source_basis)
@@ -344,6 +349,37 @@ class TestMatrixBasisImmutable:
         assert np.array_equal(comp_basis.basis[0], expected)
         assert np.array_equal(comp_basis[0], expected)
 
+    def test_deney_update_basis_getitem(self):
+        array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+        array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+        array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+        source = [array00, array01, array10, array11]
+        comp_basis = MatrixBasis(source)
+
+        with pytest.raises(TypeError):
+            # TypeError: 'MatrixBasis' object does not support item assignment
+            comp_basis[0] = np.array([[0, 0], [0, 0]], dtype=np.complex128)
+        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        assert np.array_equal(comp_basis[0], expected)
+
+        with pytest.raises(TypeError):
+            # TypeError: 'tuple' object does not support item assignment
+            comp_basis.basis[0] = np.array([[0, 0], [0, 0]], dtype=np.complex128)
+        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        assert np.array_equal(comp_basis.basis[0], expected)
+
+        with pytest.raises(ValueError):
+            # ValueError: assignment destination is read-only
+            comp_basis.basis[0][0] = np.array([2, 2], dtype=np.complex128)
+        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        assert np.array_equal(comp_basis.basis[0], expected)
+
+        # Test to ensure that no copies are made on each access
+        first_access = id(comp_basis[0])
+        second_access = id(comp_basis[0])
+        assert first_access == second_access
+
 
 class TestVectorizedMatrixBasiImmutable:
     def test_deney_update_basis(self):
@@ -374,7 +410,7 @@ class TestVectorizedMatrixBasiImmutable:
 
         assert id(v_basis.org_basis) == id(comp_basis)
         assert id(v_basis.org_basis.basis) == id(comp_basis.basis)
-        assert id(v_basis.org_basis.basis[0]) == id(comp_basis.basis[0])
+        assert id(v_basis.org_basis[0]) == id(comp_basis.basis[0])
 
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
         assert np.array_equal(v_basis.org_basis[0], expected)
