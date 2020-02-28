@@ -7,8 +7,9 @@ from quara.objects.matrix_basis import get_pauli_basis
 
 class TestCompositeSystem:
     def test_eq(self):
-        e1 = ElementalSystem("pauli", get_pauli_basis())
-        e2 = ElementalSystem("pauli", get_pauli_basis())
+        e1 = ElementalSystem("pauli_1", get_pauli_basis())
+        e2 = ElementalSystem("pauli_2", get_pauli_basis())
+        e3 = ElementalSystem("pauli_3", get_pauli_basis())
 
         c1 = CompositeSystem([e1, e2])
         c2 = CompositeSystem([e1, e2])
@@ -18,8 +19,8 @@ class TestCompositeSystem:
         c2 = CompositeSystem([e1, e2])
         assert (c1 == c2) is False
 
-        c1 = CompositeSystem([e1, e1])
-        c2 = CompositeSystem([e1, e1, e1])
+        c1 = CompositeSystem([e1, e2])
+        c2 = CompositeSystem([e1, e2, e3])
         assert (c1 == c2) is False
 
         assert (c1 == c1) is True
@@ -39,6 +40,19 @@ class TestCompositeSystem:
         # Test that element_system list cannot be updated
         with pytest.raises(TypeError):
             c1[0] = e2
+
+    def test_duplicate_elemental_system(self):
+        e1 = ElementalSystem("pauli_1", get_pauli_basis())
+
+        with pytest.raises(ValueError):
+            _ = CompositeSystem([e1, e1])
+
+    def test_duplicate_elemental_system_name(self):
+        e1 = ElementalSystem("pauli_1", get_pauli_basis())
+        e2 = ElementalSystem("pauli_1", get_pauli_basis())
+
+        with pytest.raises(ValueError):
+            _ = CompositeSystem([e1, e2])
 
 
 class TestCompositeSystemImmutable:
@@ -64,14 +78,3 @@ class TestCompositeSystemImmutable:
             c_sys.elemental_systems[0] = e3
         assert c_sys[0] is e1
         assert c_sys[1] is e2
-
-        # with pytest.raises(ValueError):
-        #     # ValueError: assignment destination is read-only
-        #     comp_basis.basis[0][0] = np.array([2, 2], dtype=np.complex128)
-        # expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        # assert np.array_equal(comp_basis.basis[0], expected)
-
-        # # Test to ensure that no copies are made on each access
-        # first_access = id(comp_basis[0])
-        # second_access = id(comp_basis[0])
-        # assert first_access == second_access
