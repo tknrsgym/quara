@@ -92,7 +92,7 @@ class CompositeSystem:
         return True
 
     def __str__(self):
-        desc = "elemental_systems:"
+        desc = "elemental_systems:\n"
         for i, e_sys in enumerate(self._elemental_systems):
             desc += f"[{i}] {e_sys.name} (system_id={e_sys.system_id})\n"
 
@@ -101,3 +101,6 @@ class CompositeSystem:
         desc += f"basis:\n"
         desc += str(self._basis)
         return desc
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(systems={repr(self.elemental_systems)})"
