@@ -17,12 +17,15 @@ class CompositeSystem:
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(systems)
 
         names: List[str] = []
-        e_syses: List[ElementalSystem] = []
+        e_sys_ids: List[int] = []
 
         for e_sys in self._elemental_systems:
-            if e_sys in e_syses:
-                raise ValueError(f"Duplicate ElementalSystem. \n{str(e_sys)}")
-            e_syses.append(e_sys)
+            # これだと同値判定になる
+            if e_sys.system_id in e_sys_ids:
+                raise ValueError(
+                    f"Duplicate ElementalSystem. \n system_id={e_sys.system_id}, name={e_sys.name}"
+                )
+            e_sys_ids.append(e_sys.system_id)
 
             if e_sys.name in names:
                 raise ValueError(f"Duplicate ElementalSystem name. name={e_sys.name}")
