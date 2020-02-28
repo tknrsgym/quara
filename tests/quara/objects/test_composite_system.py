@@ -64,14 +64,3 @@ class TestCompositeSystemImmutable:
             c_sys.elemental_systems[0] = e3
         assert c_sys[0] is e1
         assert c_sys[1] is e2
-
-        # with pytest.raises(ValueError):
-        #     # ValueError: assignment destination is read-only
-        #     comp_basis.basis[0][0] = np.array([2, 2], dtype=np.complex128)
-        # expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        # assert np.array_equal(comp_basis.basis[0], expected)
-
-        # # Test to ensure that no copies are made on each access
-        # first_access = id(comp_basis[0])
-        # second_access = id(comp_basis[0])
-        # assert first_access == second_access
