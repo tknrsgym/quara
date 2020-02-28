@@ -34,3 +34,9 @@ class ElementalSystem:
     @property
     def hemirtian_basis(self):  # read only
         return self._hemirtian_basis
+
+    def __str__(self):
+        desc = f"name: {self.name} \n"
+        desc += f"system_id: {self.system_id} \n"
+        desc += f"hemirtian_basis: {self._hemirtian_basis}"
+        return desc

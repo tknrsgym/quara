@@ -14,7 +14,8 @@ class CompositeSystem:
     # E1 \otimes E2のCompositeSystemがある場合には、E2 \otimes E1は実行できない
 
     def __init__(self, systems: List[ElementalSystem]):
-        self._elemental_systems: List[ElementalSystem] = systems
+        self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(systems)
+
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
         self._basis: MatrixBasis
 
@@ -65,6 +66,10 @@ class CompositeSystem:
         else:
             return self._basis[index]
 
+    @property
+    def elemental_systems(self):  # read only
+        return self._elemental_systems
+
     def __len__(self) -> int:
         return len(self._elemental_systems)
 
@@ -85,3 +90,14 @@ class CompositeSystem:
             if s is not o:
                 return False
         return True
+
+    def __str__(self):
+        desc = "elemental_systems:"
+        for i, e_sys in enumerate(self._elemental_systems):
+            desc += f"[{i}] {e_sys.name} (system_id={e_sys.system_id})\n"
+
+        desc += "\n"
+        desc += f"dim: {self._dim}\n"
+        desc += f"basis:\n"
+        desc += str(self._basis)
+        return desc

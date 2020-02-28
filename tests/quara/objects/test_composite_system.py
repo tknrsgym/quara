@@ -39,3 +39,39 @@ class TestCompositeSystem:
         # Test that element_system list cannot be updated
         with pytest.raises(TypeError):
             c1[0] = e2
+
+
+class TestCompositeSystemImmutable:
+    def test_deney_update_elemental_systems_item(self):
+        m_basis_1 = get_pauli_basis()
+        m_basis_2 = get_pauli_basis()
+        e1 = ElementalSystem("pauli_1", m_basis_1)
+        e2 = ElementalSystem("pauli_2", m_basis_2)
+        c_sys = CompositeSystem([e1, e2])
+
+        m_basis_3 = get_pauli_basis()
+        e3 = ElementalSystem("pauli_3", m_basis_3)
+
+        with pytest.raises(TypeError):
+            # TypeError: 'CompositeSystem' object does not support item assignment
+            c_sys[0] = e3
+
+        assert c_sys[0] is e1
+        assert c_sys[1] is e2
+
+        with pytest.raises(TypeError):
+            # TypeError: 'tuple' object does not support item assignment
+            c_sys.elemental_systems[0] = e3
+        assert c_sys[0] is e1
+        assert c_sys[1] is e2
+
+        # with pytest.raises(ValueError):
+        #     # ValueError: assignment destination is read-only
+        #     comp_basis.basis[0][0] = np.array([2, 2], dtype=np.complex128)
+        # expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+        # assert np.array_equal(comp_basis.basis[0], expected)
+
+        # # Test to ensure that no copies are made on each access
+        # first_access = id(comp_basis[0])
+        # second_access = id(comp_basis[0])
+        # assert first_access == second_access
