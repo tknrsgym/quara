@@ -187,7 +187,7 @@ def convert_vec(
     return converted_vec
 
 
-def get_X0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
+def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_0`` with normalized pauli basis.
     
     Parameters
@@ -208,7 +208,7 @@ def get_X0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_X1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
+def get_x1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_1`` with normalized pauli basis.
     
     Parameters
@@ -229,7 +229,7 @@ def get_X1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_Y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
+def get_y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_0`` with normalized pauli basis.
     
     Parameters
@@ -250,7 +250,7 @@ def get_Y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_Y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
+def get_y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_1`` with normalized pauli basis.
     
     Parameters
@@ -271,7 +271,7 @@ def get_Y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_Z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
+def get_z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_0`` with normalized pauli basis.
     
     Parameters
@@ -292,7 +292,7 @@ def get_Z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_Z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
+def get_z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_1`` with normalized pauli basis.
     
     Parameters

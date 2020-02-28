@@ -7,12 +7,12 @@ from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.state import (
     State,
-    get_X0_1q_with_normalized_pauli_basis,
-    get_X1_1q_with_normalized_pauli_basis,
-    get_Y0_1q_with_normalized_pauli_basis,
-    get_Y1_1q_with_normalized_pauli_basis,
-    get_Z0_1q_with_normalized_pauli_basis,
-    get_Z1_1q_with_normalized_pauli_basis
+    get_x0_1q_with_normalized_pauli_basis,
+    get_x1_1q_with_normalized_pauli_basis,
+    get_y0_1q_with_normalized_pauli_basis,
+    get_y1_1q_with_normalized_pauli_basis,
+    get_z0_1q_with_normalized_pauli_basis,
+    get_z1_1q_with_normalized_pauli_basis
 )
 import numpy.testing as npt
 import pytest
@@ -280,54 +280,54 @@ def test_convert_basis_form_pauli_to_comp():
     assert np.all(actual == expected)
 
 
-def test_get_X0_1q_with_normalized_pauli_basis():
+def test_get_x0_1q_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    state = get_X0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_x0_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
     expected = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_X1_1q_with_normalized_pauli_basis():
+def test_get_x1_1q_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    state = get_X1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_x1_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
     expected = np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_Y0_1q_with_normalized_pauli_basis():
+def test_get_y0_1q_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    state = get_Y0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_y0_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
     expected = np.array([[0.5, -0.5j], [0.5j, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_Y1_1q_with_normalized_pauli_basis():
+def test_get_y1_1q_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    state = get_Y1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_y1_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
     expected = np.array([[0.5, 0.5j], [-0.5j, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_Z0_with_normalized_pauli_basis():
+def test_get_z0_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    state = get_Z0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z0_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
     expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-def test_get_Z1_with_normalized_pauli_basis():
+def test_get_z1_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    state = get_Z1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z1_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
     expected = np.array([[0, 0], [0, 1]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)

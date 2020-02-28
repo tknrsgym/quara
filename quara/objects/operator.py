@@ -80,7 +80,7 @@ def _composite(elem1, elem2):
     # implement composite calculation for each type
     if type(elem1) == Gate and type(elem2) == State:
         # TODO check same CompositeSystem
-        return elem1.HS @ elem2.vec
+        return elem1.hs @ elem2.vec
     else:
         raise ValueError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
