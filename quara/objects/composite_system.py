@@ -16,6 +16,18 @@ class CompositeSystem:
     def __init__(self, systems: List[ElementalSystem]):
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(systems)
 
+        names: List[str] = []
+        e_syses: List[ElementalSystem] = []
+
+        for e_sys in self._elemental_systems:
+            if e_sys in e_syses:
+                raise ValueError(f"Duplicate ElementalSystem. \n{str(e_sys)}")
+            e_syses.append(e_sys)
+
+            if e_sys.name in names:
+                raise ValueError(f"Duplicate ElementalSystem name. name={e_sys.name}")
+            names.append(e_sys.name)
+
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
         self._basis: MatrixBasis
 
