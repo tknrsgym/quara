@@ -16,11 +16,11 @@ class CompositeSystem:
     def __init__(self, systems: List[ElementalSystem]):
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(systems)
 
+        # Check for duplicate ElementalSystem
         names: List[str] = []
         e_sys_ids: List[int] = []
 
         for e_sys in self._elemental_systems:
-            # これだと同値判定になる
             if e_sys.system_id in e_sys_ids:
                 raise ValueError(
                     f"Duplicate ElementalSystem. \n system_id={e_sys.system_id}, name={e_sys.name}"
