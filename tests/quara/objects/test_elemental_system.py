@@ -37,3 +37,16 @@ class TestElementalSystem:
         # Test that "dim" cannot be updated
         with pytest.raises(AttributeError):
             e1.dim = 100
+
+    def test_access_hemirtian_basis(self):
+        m_basis = get_comp_basis()
+        e1 = esys.ElementalSystem("e1", m_basis)
+
+        assert id(m_basis) == id(e1.hemirtian_basis)
+
+        # Test that "hemirtian_basis" cannot be updated
+        with pytest.raises(AttributeError):
+            e1.hemirtian_basis = 1
+
+        with pytest.raises(AttributeError):
+            e1.hemirtian_basis.basis = 1
