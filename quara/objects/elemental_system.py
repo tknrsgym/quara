@@ -40,3 +40,6 @@ class ElementalSystem:
         desc += f"system_id: {self.system_id} \n"
         desc += f"hemirtian_basis: {self._hemirtian_basis}"
         return desc
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(name={repr(self.name)}, basis={repr(self._hemirtian_basis)}))"

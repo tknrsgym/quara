@@ -206,6 +206,9 @@ class MatrixBasis(Basis):
         """
         return self[0].shape
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(basis={repr(list(self._basis))})"
+
 
 class VectorizedMatrixBasis(Basis):
     def __init__(self, source: MatrixBasis):
@@ -246,6 +249,9 @@ class VectorizedMatrixBasis(Basis):
 
     def is_trace_less(self) -> bool:
         return self._org_basis.is_trace_less()
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(source=MatrixBasis(basis={repr(list(self._org_basis))}))"
 
 
 def get_comp_basis() -> MatrixBasis:
