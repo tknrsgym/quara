@@ -316,7 +316,7 @@ def test_get_y1_1q_with_normalized_pauli_basis():
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_z0_with_normalized_pauli_basis():
+def test_get_z0_1q_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_z0_1q_with_normalized_pauli_basis(c_sys)
@@ -324,7 +324,7 @@ def test_get_z0_with_normalized_pauli_basis():
     expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-def test_get_z1_with_normalized_pauli_basis():
+def test_get_z1_1q_with_normalized_pauli_basis():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_z1_1q_with_normalized_pauli_basis(c_sys)
