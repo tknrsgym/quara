@@ -12,7 +12,7 @@ from quara.objects.state import State
 
 def tensor_product(*elements) -> Union[MatrixBasis, State]:
     """calculates tensor product of ``elements``.
-    
+
     this function can calculate tensor product of the following combinations of types:
 
     - (MatrixBasis, MatrixBasis)
@@ -50,7 +50,7 @@ def _tensor_product(elem1, elem2):
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
         # create CompositeSystem
-        e_sys_list = copy.copy(elem1._composite_system._elemental_systems)
+        e_sys_list = list(elem1._composite_system._elemental_systems)
         e_sys_list.extend(elem2._composite_system._elemental_systems)
         c_sys = CompositeSystem(e_sys_list)
         # calculate vecs of stetes
