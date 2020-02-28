@@ -78,9 +78,20 @@ def composite(*elements):
 
 def _composite(elem1, elem2):
     # implement composite calculation for each type
-    if type(elem1) == Gate and type(elem2) == State:
+    if type(elem1) == Gate and type(elem2) == Gate:
         # TODO check same CompositeSystem
-        return elem1.hs @ elem2.vec
+
+        # create Gate
+        matrix = elem1.hs @ elem2.hs
+        gate = Gate(elem1._composite_system, matrix)
+        return gate
+    elif type(elem1) == Gate and type(elem2) == State:
+        # TODO check same CompositeSystem
+
+        # create State
+        vec = elem1.hs @ elem2.vec
+        state = State(elem1._composite_system, vec.real.astype(np.float64))
+        return state
     else:
         raise ValueError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
