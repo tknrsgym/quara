@@ -16,7 +16,7 @@ class ElementalSystem:
         self._hemirtian_basis: MatrixBasis = basis
 
     @property
-    def name(self):
+    def name(self):  # read only
         return self._name
 
     @property
@@ -24,7 +24,7 @@ class ElementalSystem:
         return self._system_id
 
     @property
-    def dim(self):
+    def dim(self):  # read only
         return self._dim
 
     # @property
@@ -32,5 +32,5 @@ class ElementalSystem:
     #     return self._computational_basis
 
     @property
-    def hemirtian_basis(self):  # read only?
+    def hemirtian_basis(self):  # read only
         return self._hemirtian_basis
