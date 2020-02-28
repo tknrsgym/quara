@@ -5,14 +5,14 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, get_Z
+from quara.objects.gate import Gate, get_z
 from quara.objects.operator import composite, tensor_product
 from quara.objects.state import (
     State,
-    get_X0_1q_with_normalized_pauli_basis,
-    get_X1_1q_with_normalized_pauli_basis,
-    get_Z0_1q_with_normalized_pauli_basis,
-    get_Z1_1q_with_normalized_pauli_basis,
+    get_x0_1q_with_normalized_pauli_basis,
+    get_x1_1q_with_normalized_pauli_basis,
+    get_z0_1q_with_normalized_pauli_basis,
+    get_z1_1q_with_normalized_pauli_basis,
 )
 
 
@@ -198,28 +198,28 @@ def test_tensor_product_State_State():
 def test_composite_product_Gate_State():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    gate = get_Z(c_sys)
+    gate = get_z(c_sys)
 
     # case: Z gate \circ X_0 state
-    state = get_X0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_x0_1q_with_normalized_pauli_basis(c_sys)
     actual = composite(gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # case: Z gate \circ X_1 state
-    state = get_X1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_x1_1q_with_normalized_pauli_basis(c_sys)
     actual = composite(gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # case: Z gate \circ Z_0 state
-    state = get_Z0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z0_1q_with_normalized_pauli_basis(c_sys)
     actual = composite(gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # case: Z gate \circ Z_1 state
-    state = get_Z1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z1_1q_with_normalized_pauli_basis(c_sys)
     actual = composite(gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
