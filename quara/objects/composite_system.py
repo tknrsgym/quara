@@ -34,7 +34,8 @@ class CompositeSystem:
 
         # Sort by name of ElementalSystem
         ## Copy to avoid affecting the original source.
-        ## ElementalSystem should remain the same instance as the original source to check if the instances are the same in the tensor product calculation.
+        ## ElementalSystem should remain the same instance as the original source
+        ## to check if the instances are the same in the tensor product calculation.
         ## Therefore, use `copy.copy` instead of `copy.deepcopy`.
         sored_e_syses = copy.copy(systems)
         sored_e_syses.sort(key=lambda x: x.name)
