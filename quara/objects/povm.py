@@ -17,6 +17,7 @@ class Povm:
 
         # Validation
         ## Validate whether `vecs` is a set of Hermitian matrices
+        # TODO: Consider using VectorizedMatrixBasis
         size = vecs[0].shape
         self._dim = int(np.sqrt(size[0]))
         size = [self._dim, self._dim]
@@ -52,12 +53,12 @@ class Povm:
 
     def is_identity(self):
         # 要素の総和が恒等行列になっているか確認する
-        size = self._vecs[0].shape
-        sum_matrix = np.zeros(size)
+        size = [self._dim, self._dim]
+        sum_matrix = np.zeros(size, dtype=np.complex128)
         for v in self._vecs:
-            sum_matrix += v
+            sum_matrix += np.reshape(v, size)
 
-        identity = np.identity(len(self._vecs), dtype=np.complex128)
+        identity = np.identity(self._dim, dtype=np.complex128)
         return np.allclose(sum_matrix, identity)
 
     def eig(self, index: int = None) -> Union[List[np.ndarray], np.ndarray]:
