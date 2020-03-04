@@ -26,19 +26,24 @@ def is_hermitian(matrix: np.ndarray, atol: float = 1e-14) -> bool:
     return np.allclose(matrix, adjoint, atol=atol, rtol=0.0)
 
 
-def is_positive_semidefinite(matrix: np.ndarray, atol: float = 1e-14) -> bool:
-    """returns whether the matrix is positive semidifinite.
+def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
+    """Returns whether the matrix is positive semidifinite.
 
     Parameters
     ----------
     matrix : np.ndarray
         input matrix.
+    atol : float, optional
+        by default None.
+        If atol is None, the default value ``1e-14`` is used.
 
     Returns
     -------
     bool
         True where ``matrix`` is positive semidifinite, False otherwise.
     """
+
+    atol = atol if atol else 1e-14
     if is_hermitian(matrix, atol):
         return np.all(np.linalg.eigvals(matrix) >= 0)
     else:
