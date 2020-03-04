@@ -15,8 +15,8 @@ class TestCompositeSystem:
         c2 = CompositeSystem([e1, e2])
         assert (c1 == c2) is True
 
-        c1 = CompositeSystem([e2, e1])
-        c2 = CompositeSystem([e1, e2])
+        c1 = CompositeSystem([e1, e2])
+        c2 = CompositeSystem([e1, e3])
         assert (c1 == c2) is False
 
         c1 = CompositeSystem([e1, e2])
@@ -53,6 +53,26 @@ class TestCompositeSystem:
 
         with pytest.raises(ValueError):
             _ = CompositeSystem([e1, e2])
+
+    def test_sorted(self):
+        # Arange
+        e1 = ElementalSystem("pauli_1", get_pauli_basis())
+        e2 = ElementalSystem("pauli_2", get_pauli_basis())
+        e3 = ElementalSystem("pauli_3", get_pauli_basis())
+        source = [e2, e3, e1]
+
+        # Act
+        actual = CompositeSystem(source)
+
+        # Assert
+        expected = [e1, e2, e3]
+        assert actual[0] is expected[0]
+        assert actual[1] is expected[1]
+        assert actual[2] is expected[2]
+
+        # Verify that source is not affected
+        expected = [e2, e3, e1]
+        assert source == expected
 
 
 class TestCompositeSystemImmutable:
