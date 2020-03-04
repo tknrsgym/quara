@@ -1,3 +1,4 @@
+import copy
 import itertools
 from typing import List, Tuple, Union
 
@@ -14,13 +15,12 @@ class CompositeSystem:
     # E1 \otimes E2のCompositeSystemがある場合には、E2 \otimes E1は実行できない
 
     def __init__(self, systems: List[ElementalSystem]):
-        self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(systems)
 
         # Check for duplicate ElementalSystem
         names: List[str] = []
         e_sys_ids: List[int] = []
 
-        for e_sys in self._elemental_systems:
+        for e_sys in systems:
             if e_sys.system_id in e_sys_ids:
                 raise ValueError(
                     f"Duplicate ElementalSystem. \n system_id={e_sys.system_id}, name={e_sys.name}"
@@ -31,7 +31,13 @@ class CompositeSystem:
                 raise ValueError(f"Duplicate ElementalSystem name. name={e_sys.name}")
             names.append(e_sys.name)
 
-        # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
+        # Sort by name of ElementalSystem
+        sored_e_syses = copy.copy(systems)
+        sored_e_syses.sort(key=lambda x: x.name)
+
+        self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(sored_e_syses)
+
+        # Calculate tensor product of ElamentalSystem list for getting new MatrixBasis
         self._basis: MatrixBasis
 
         if len(self._elemental_systems) == 1:
