@@ -6,6 +6,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import (
     Gate,
+    calculate_agf,
     get_i,
     get_x,
     get_y,
@@ -19,14 +20,72 @@ from quara.objects.gate import (
 )
 
 
-"""
-def test_convert_to_comp_basis():
+def test_is_tp():
     e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    gate = get_h(c_sys)
-    print(gate.convert_to_comp_basis())
-    # TODO implement
-"""
+
+    # case: TP
+    z = get_z(c_sys)
+    assert z.is_tp() == True
+
+    # case: not TP
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+    )
+    gate = Gate(c_sys, hs)
+    assert gate.is_tp() == False
+
+
+def test_is_cp():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # case: CP
+    x = get_x(c_sys)
+    assert x.is_cp() == True
+    y = get_y(c_sys)
+    assert y.is_cp() == True
+    z = get_z(c_sys)
+    assert z.is_cp() == True
+
+    # case: not CP
+    hs = np.array(
+        [[-1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+    )
+    gate = Gate(c_sys, hs)
+    assert gate.is_cp() == False
+
+
+def test_get_choi_matrix():
+    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # for I
+    actual = get_i(c_sys)
+    expected = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
+    npt.assert_almost_equal(actual.get_choi_matrix(), expected, decimal=15)
+
+    # for X
+    actual = get_x(c_sys)
+    expected = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
+    npt.assert_almost_equal(actual.get_choi_matrix(), expected, decimal=15)
+
+    # for Y
+    actual = get_y(c_sys)
+    expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
+    npt.assert_almost_equal(actual.get_choi_matrix(), expected, decimal=15)
+
+    # for Z
+    actual = get_z(c_sys)
+    expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
+    npt.assert_almost_equal(actual.get_choi_matrix(), expected, decimal=15)
+
+    # for H
+    actual = get_h(c_sys)
+    expected = (
+        1 / 2 * np.array([[1, 1, 1, -1], [1, 1, 1, -1], [1, 1, 1, -1], [-1, -1, -1, 1]])
+    )
+    npt.assert_almost_equal(actual.get_choi_matrix(), expected, decimal=15)
 
 
 def test_get_i():
