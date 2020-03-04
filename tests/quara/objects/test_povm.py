@@ -10,12 +10,13 @@ from quara.objects.povm import Povm
 class TestPovm:
     def test_validate_set_of_hermitian_matrices_ok(self):
         # Arrange
-        # TODO: Is dtype complex or real?
-        a1 = np.array([1, 0, 0, 1], dtype=np.complex128)
-        a2 = np.array([0, 1, 1, 0], dtype=np.complex128)
-        a3 = np.array([0, -1j, 1j, 0], dtype=np.complex128)
-        a4 = np.array([1, 0, 0, -1], dtype=np.complex128)
-        vecs = [a1, a2, a3, a4]
+        p1 = np.array(
+            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
+        )
+        p2 = np.array(
+            [0.5 + 0.0j, -0.5 + 0.0j, -0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
+        )
+        vecs = [p1, p2]
 
         e_sys = esys.ElementalSystem("q1", get_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
@@ -24,21 +25,16 @@ class TestPovm:
         povm = Povm(c_sys=c_sys, vecs=vecs)
 
         # Assert
-        expected = [a1, a2, a3, a4]
+        expected = [p1, p2]
         assert (povm[0] == expected[0]).all()
         assert (povm[1] == expected[1]).all()
-        assert (povm[2] == expected[2]).all()
-        assert (povm[3] == expected[3]).all()
         assert povm.composite_system is c_sys
 
     def test_validate_set_of_hermitian_matrices_ng(self):
         # Arrange
-        # TODO: Is dtype complex or real?
-        a1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        a2 = np.array([0, 1, 0, 0], dtype=np.complex128)
-        a3 = np.array([0, 0, 1, 0], dtype=np.complex128)
-        a4 = np.array([0, 0, 0, 1], dtype=np.complex128)
-        vecs = [a1, a2, a3, a4]
+        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        p2 = np.array([0, 1, 0, 0], dtype=np.complex128)
+        vecs = [p1, p2]
 
         e_sys = esys.ElementalSystem("q1", get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
@@ -47,3 +43,43 @@ class TestPovm:
         with pytest.raises(ValueError):
             # ValueError: povm must be a set of Hermitian matrices
             _ = Povm(c_sys=c_sys, vecs=vecs)
+
+    def test_is_identity_true(self):
+        # Arrange
+        p1 = np.array(
+            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
+        )
+        p2 = np.array(
+            [0.5 + 0.0j, -0.5 + 0.0j, -0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
+        )
+        vecs = [p1, p2]
+
+        e_sys = esys.ElementalSystem("q1", get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.is_identity()
+
+        # Assert
+        assert actual is True
+
+    def test_is_identity_false(self):
+        # Arrange
+        p1 = np.array(
+            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
+        )
+        p2 = np.array(
+            [1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j], dtype=np.complex128
+        )
+        vecs = [p1, p2]
+
+        e_sys = esys.ElementalSystem("q1", get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.is_identity()
+
+        # Assert
+        assert actual is False
