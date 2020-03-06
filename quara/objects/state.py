@@ -33,9 +33,9 @@ class State:
             )
 
         # whether dim of CompositeSystem equals dim of vec
-        if self._composite_system.dim != self._dim:
+        if self._composite_system.dim() != self._dim:
             raise ValueError(
-                f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim}. dim of vec is {self._dim}"
+                f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim()}. dim of vec is {self._dim}"
             )
 
     @property
@@ -69,7 +69,7 @@ class State:
             density matrix
         """
         density = np.zeros((self._dim, self._dim), dtype=np.complex128)
-        for coefficient, basis in zip(self._vec, self._composite_system.basis):
+        for coefficient, basis in zip(self._vec, self._composite_system.basis()):
             density += coefficient * basis
         return density
 
@@ -132,7 +132,7 @@ class State:
             vector representation for ``other_basis``
         """
         converted_vec = convert_vec(
-            self._vec, self._composite_system.basis, other_basis
+            self._vec, self._composite_system.basis(), other_basis
         )
         return converted_vec
 
@@ -203,7 +203,7 @@ def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
-    to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
 
@@ -224,7 +224,7 @@ def get_x1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
-    to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
 
@@ -245,7 +245,7 @@ def get_y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
-    to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
 
@@ -266,7 +266,7 @@ def get_y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
-    to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
 
@@ -287,7 +287,7 @@ def get_z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
-    to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
 
@@ -308,7 +308,7 @@ def get_z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
-    to_vec = convert_vec(from_vec, from_basis, c_sys.basis)
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
 
