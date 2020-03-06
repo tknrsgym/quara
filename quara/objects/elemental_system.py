@@ -5,8 +5,13 @@ from quara.objects.matrix_basis import MatrixBasis
 class ElementalSystem:
     """個々の量子系を記述するためのクラス"""
 
-    def __init__(self, name: str, basis: MatrixBasis):
-        self._name: str = name
+    def __init__(self, name: int, basis: MatrixBasis):
+        # Validate
+        if type(name) != int:
+            raise TypeError("Type of 'name' must be int.")
+
+        # Set
+        self._name: int = name
         # system_idを持たせなくても同値ではなく同一インスタンスであるかどうかの判定はisで可能だが、
         # system_idで持たせておくとうっかり同値判定（==）で比較しても異なる値として判断されるので、
         # とりあえず持たせておく
