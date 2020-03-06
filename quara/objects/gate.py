@@ -66,6 +66,13 @@ class Gate:
         return self._hs
 
     def get_basis(self) -> MatrixBasis:
+        """returns MatrixBasis of gate
+        
+        Returns
+        -------
+        MatrixBasis
+            MatrixBasis of gate
+        """
         return self._composite_system.basis()
 
     def is_tp(self, atol: float = 1e-13) -> bool:
@@ -97,6 +104,13 @@ class Gate:
         return True
 
     def is_cp(self) -> bool:
+        """returns whether gate is CP(Complete-Positivity-Preserving).
+        
+        Returns
+        -------
+        bool
+            True where gate is CP, False otherwise.
+        """
         # "A is CP"  <=> "C(A) >= 0"
         return np.all(np.linalg.eigvals(self.get_choi_matrix()) >= 0)
 
@@ -129,7 +143,14 @@ class Gate:
         )
         return converted_hs
 
-    def get_choi_matrix(self):
+    def get_choi_matrix(self) -> np.array:
+        """returns Choi matrix of gate.
+        
+        Returns
+        -------
+        np.array
+            Choi matrix of gate
+        """
         # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
         tmp_list = []
         basis = self._composite_system.basis()
@@ -144,19 +165,51 @@ class Gate:
         choi = reduce(add, tmp_list)
         return choi
 
-    def get_kraus(self):
+    def get_kraus(self) -> List[np.array]:
         # TODO implement
         # cpのときのみ。cpでなければNoneを返す
         pass
 
-    def get_process_matrix(self):
+    def get_process_matrix(self) -> np.array:
+        """returns process matrix of gate.
+        
+        Returns
+        -------
+        np.array
+            process matrix of gate
+        """
         # TODO implement
-        pass
+        # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
+        hs_comp = self.convert_to_comp_basis()
+        comp_basis = get_comp_basis()
+        process_matrix = [
+            np.trace(np.kron(B_alpha.conj().T , B_beta.T) @ hs_comp)
+            for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
+        ]
+        return np.array(process_matrix).reshape((4, 4))
+
 
 def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
-    # EP <=> HS on Hermitian basis is real matrix.
-    # therefore converts input basis to Pauli basis, and checks whetever converted HS is real matrix.
+    """returns whether gate is EP(Hermiticity-Preserving).
 
+    EP <=> HS on Hermitian basis is real matrix.
+    therefore converts input basis to Pauli basis, and checks whetever converted HS is real matrix.
+
+    Parameters
+    ----------
+    hs : np.array
+        HS representation of gate
+    basis : MatrixBasis
+        [description]
+    atol : float, optional
+        the absolute tolerance parameter, by default 1e-13.
+        this function checks ``absolute(imaginary part of matrix - zero matrix) <= atol``.
+    
+    Returns
+    -------
+    bool
+        True where gate is EP, False otherwise.
+    """
     # convert Hermitian basis(Pauli basis)
     hs_converted = convert_hs(hs, basis, get_normalized_pauli_basis())
 
@@ -166,7 +219,6 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
 
 
 def calculate_agf(g: Gate, u: Gate) -> np.float64:
-    # TODO test
     # TODO HS(u)がHermitianでなければ、エラー
 
     # trace = Tr[HS(u)^{\dagger}HS(g)]とおくと、
@@ -180,6 +232,33 @@ def calculate_agf(g: Gate, u: Gate) -> np.float64:
 def convert_hs(
     from_hs: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
 ) -> np.array:
+    """returns HS representation for ``to_basis``
+    
+    Parameters
+    ----------
+    from_hs : np.array
+        HS representation before convert
+    from_basis : MatrixBasis
+        basis before convert
+    to_basis : MatrixBasis
+        basis after convert
+    
+    Returns
+    -------
+    np.array
+        HS representation for ``to_basis``
+    
+    Raises
+    ------
+    ValueError
+        ``from_hs`` is not square matrix
+    ValueError
+        dim of ``from_hs`` is not square number
+    ValueError
+        dim of ``from_basis`` does not equal dim of ``to_basis``
+    ValueError
+        length of ``from_basis`` does not equal length of ``to_basis``
+    """
     ### parameter check
 
     # whether HS is square matrix
@@ -221,7 +300,12 @@ def convert_hs(
 def _get_1q_gate_from_hs_on_pauli_basis(
     matrix: np.array, c_sys: CompositeSystem
 ) -> Gate:
-    # TODO check dim of CompositeSystem = 2
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim() != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim()}"
+        )
+
     # convert "HS representation in Pauli basis" to "HS representation in basis of CompositeSystem"
     hs = convert_hs(matrix, get_normalized_pauli_basis(), c_sys.basis())
     gate = Gate(c_sys, hs.real.astype(np.float64))
