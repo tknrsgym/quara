@@ -177,12 +177,12 @@ def test_tensor_product_MatrixBasis_MatrixBasis():
 def test_tensor_product_State_State():
     # tensor_product of computational basis and Pauli basis(multi arguments)
     basis1 = matrix_basis.get_comp_basis()
-    e_sys1 = ElementalSystem("q1", basis1)
+    e_sys1 = ElementalSystem(1, basis1)
     c_sys1 = CompositeSystem([e_sys1])
     state1 = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64))
 
     basis2 = matrix_basis.get_pauli_basis()
-    e_sys2 = ElementalSystem("q2", basis2)
+    e_sys2 = ElementalSystem(2, basis2)
     c_sys2 = CompositeSystem([e_sys2])
     state2 = State(c_sys2, np.array([0, 1, 0, 0], dtype=np.float64))
 
@@ -204,7 +204,7 @@ def test_tensor_product_State_State():
 
 
 def test_composite_product_Gate_Gate():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i_gate = get_i(c_sys)
     x_gate = get_x(c_sys)
@@ -227,9 +227,8 @@ def test_composite_product_Gate_Gate():
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
 def test_composite_product_Gate_State():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    x_gate = get_x(c_sys)
     z_gate = get_z(c_sys)
     h_gate = get_h(c_sys)
     s_gate = get_s(c_sys)
