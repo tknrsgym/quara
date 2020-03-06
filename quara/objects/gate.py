@@ -28,7 +28,7 @@ class Gate:
         self._dim: int = int(np.sqrt(size[0]))
         if self._dim ** 2 != size[0]:
             raise ValueError(
-                f"size of vec must be square number. dim of vec is {size[0]}"
+                f"dim of HS must be square number. dim of HS is {size[0]}"
             )
 
         # whether dtype=np.float64
@@ -65,6 +65,9 @@ class Gate:
         """
         return self._hs
 
+    def get_basis(self) -> MatrixBasis:
+        return self._composite_system.basis()
+
     def is_tp(self, atol: float = 1e-13) -> bool:
         """returns whether the gate is TP(trace-preserving map).
         
@@ -93,20 +96,9 @@ class Gate:
 
         return True
 
-    def is_cp(self, atol: float = 1e-13) -> bool:
+    def is_cp(self) -> bool:
         # "A is CP"  <=> "C(A) >= 0"
         return np.all(np.linalg.eigvals(self.get_choi_matrix()) >= 0)
-
-    def is_ep(self, atol: float = 1e-13) -> bool:
-        # TODO implement
-        # Hermitian basisに変換したときに、実成分になっていれば良い。
-        # Pauli basisに変換して確認する
-
-        # convert Hermitian basis(Pauli basis)
-        hs = convert_hs(
-            self._hs, self._composite_system.basis, get_normalized_pauli_basis()
-        )
-        return False
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns HS representation for ``other_basis``.
@@ -121,7 +113,7 @@ class Gate:
         np.array
             HS representation for ``other_basis``
         """
-        converted_hs = convert_hs(self.hs, self._composite_system.basis, other_basis)
+        converted_hs = convert_hs(self.hs, self._composite_system.basis(), other_basis)
         return converted_hs
 
     def convert_to_comp_basis(self) -> np.array:
@@ -133,7 +125,7 @@ class Gate:
             HS representation for computational basis
         """
         converted_hs = convert_hs(
-            self.hs, self._composite_system.basis, get_comp_basis()
+            self.hs, self._composite_system.basis(), get_comp_basis()
         )
         return converted_hs
 
@@ -161,6 +153,17 @@ class Gate:
         # TODO implement
         pass
 
+def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
+    # EP <=> HS on Hermitian basis is real matrix.
+    # therefore converts input basis to Pauli basis, and checks whetever converted HS is real matrix.
+
+    # convert Hermitian basis(Pauli basis)
+    hs_converted = convert_hs(hs, basis, get_normalized_pauli_basis())
+
+    # whetever converted HS is real matrix(imaginary part is zero matrix)
+    zero_matrix = np.zeros(hs_converted.shape)
+    return np.allclose(hs_converted.imag, zero_matrix, atol=atol, rtol=0.0)
+
 
 def calculate_agf(g: Gate, u: Gate) -> np.float64:
     # TODO test
@@ -177,7 +180,34 @@ def calculate_agf(g: Gate, u: Gate) -> np.float64:
 def convert_hs(
     from_hs: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
 ) -> np.array:
-    # TODO parameter check
+    ### parameter check
+
+    # whether HS is square matrix
+    size = from_hs.shape
+    if size[0] != size[1]:
+        raise ValueError(f"HS must be square matrix. size of HS is {size}")
+
+    # whether dim of HS is square number
+    dim: int = int(np.sqrt(size[0]))
+    if dim ** 2 != size[0]:
+        raise ValueError(
+            f"dim of HS must be square number. dim of HS is {size[0]}"
+        )
+
+    # whether dim of from_basis equals dim of to_basis
+    if from_basis.dim != to_basis.dim:
+        raise ValueError(
+            f"dim of from_basis must equal dim of to_basis.  dim of from_basis is {from_basis.dim}. dim of to_basis is {to_basis.dim}"
+        )
+
+    # whether length of from_basis equals length of to_basis
+    if len(from_basis) != len(to_basis):
+        raise ValueError(
+            f"length of from_basis must equal length of to_basis.  length of from_basis is {len(from_basis)}. length of to_basis is {len(to_basis)}"
+        )
+
+    ### main logic
+
     # U_{\alpha,\bata} := Tr[to_basis_{\alpha}^{\dagger} @ from_basis_{\beta}]
     trans_matrix = [
         mutil.inner_product(B_alpha.reshape(1, -1)[0], B_beta.reshape(1, -1)[0])
