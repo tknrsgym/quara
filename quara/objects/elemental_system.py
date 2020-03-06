@@ -12,24 +12,25 @@ class ElementalSystem:
 
         # Set
         self._name: int = name
-        # system_idを持たせなくても同値ではなく同一インスタンスであるかどうかの判定はisで可能だが、
-        # system_idで持たせておくとうっかり同値判定（==）で比較しても異なる値として判断されるので、
-        # とりあえず持たせておく
+        # Without system _ id,
+        # it is possible to determine if the instances are the same (not the same value)
+        # by using ``is``.
+        # But just in case, implement ``system_id``.
         self._system_id: int = id(self)
         self._dim: int = basis.dim
         # self._computational_basis: MatrixBasis = None  # TODO
         self._hemirtian_basis: MatrixBasis = basis
 
     @property
-    def name(self):  # read only
+    def name(self) -> int:  # read only
         return self._name
 
     @property
-    def system_id(self):  # read only
+    def system_id(self) -> int:  # read only
         return self._system_id
 
     @property
-    def dim(self):  # read only
+    def dim(self) -> int:  # read only
         return self._dim
 
     # @property
@@ -37,7 +38,7 @@ class ElementalSystem:
     #     return self._computational_basis
 
     @property
-    def hemirtian_basis(self):  # read only
+    def hemirtian_basis(self) -> MatrixBasis:  # read only
         return self._hemirtian_basis
 
     def __str__(self):
@@ -47,4 +48,5 @@ class ElementalSystem:
         return desc
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(name={repr(self.name)}, basis={repr(self._hemirtian_basis)}))"
+        return f"{self.__class__.__name__}(name={repr(self.name)}, \
+            basis={repr(self._hemirtian_basis)})"

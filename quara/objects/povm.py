@@ -58,8 +58,14 @@ class Povm:
 
         return True
 
-    def is_identity(self):
-        # 要素の総和が恒等行列になっているか確認する
+    def is_identity(self) -> bool:
+        """Returns whether the sum of the elements ``_vecs`` is an identity matrix.
+
+        Returns:
+            bool: Return True
+            if the sum of the elements ``_vecs`` is an identity matrix,
+            otherwise it returns False.
+        """
         size = [self._dim, self._dim]
         sum_matrix = np.zeros(size, dtype=np.complex128)
         for v in self._vecs:

@@ -228,29 +228,78 @@ class VectorizedMatrixBasis(Basis):
         self._basis: Tuple[np.ndarray, ...] = tuple(temp_basis)
 
     @property
-    def org_basis(self):  # read only
+    def org_basis(self) -> MatrixBasis:  # read only
+        """Original matrix basis.
+
+        Returns
+        -------
+        MatrixBasis
+            Original matrix basis.
+        """
         return self._org_basis
 
     @property
-    def dim(self):
+    def dim(self) -> int:
+        """Returns dim of matrix.
+
+        Returns
+        -------
+        int
+            dim of matrix
+        """
         return self._org_basis.dim
 
     def is_hermitian(self) -> bool:
+        """Returns whether matrices are Hermitian.
+
+        Returns
+        -------
+        bool
+            True where matrices are Hermitian, False otherwise.
+        """
         return self._org_basis.is_hermitian()
 
     def is_orthogonal(self) -> bool:
+        """Returns whether matrices are orthogonal.
+
+        Returns
+        -------
+        bool
+            True where matrices are orthogonal, False otherwise.
+        """
         return self._org_basis.is_orthogonal()
 
     def is_normal(self) -> bool:
+        """Returns whether matrices are normalized.
+
+        Returns
+        -------
+        bool
+            True where matrices are normalized, False otherwise.
+        """
         return self._org_basis.is_normal()
 
     def is_scalar_mult_of_identity(self) -> bool:
+        """Returns whether first matrix is constant multiple of identity matrix.
+
+        Returns
+        -------
+        bool
+            True where first matrix is constant multiple of identity matrix, False otherwise.
+        """
         return self._org_basis.is_scalar_mult_of_identity()
 
     def is_trace_less(self) -> bool:
+        """Returns whether matrices are traceless except for first matrix.
+
+        Returns
+        -------
+        bool
+            True where matrices are traceless except for first matrix, False otherwise.
+        """
         return self._org_basis.is_trace_less()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}(source=MatrixBasis(basis={repr(list(self._org_basis))}))"
 
 

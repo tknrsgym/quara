@@ -15,10 +15,9 @@ class CompositeSystem:
     # E1 \otimes E2のCompositeSystemがある場合には、E2 \otimes E1は実行できない
 
     def __init__(self, systems: List[ElementalSystem]):
-
         # Validation
         # Check for duplicate ElementalSystem
-        names: List[str] = []
+        names: List[int] = []
         e_sys_ids: List[int] = []
 
         for e_sys in systems:
@@ -33,13 +32,14 @@ class CompositeSystem:
             names.append(e_sys.name)
 
         # Sort by name of ElementalSystem
-        ## Copy to avoid affecting the original source.
-        ## ElementalSystem should remain the same instance as the original source
-        ## to check if the instances are the same in the tensor product calculation.
-        ## Therefore, use `copy.copy` instead of `copy.deepcopy`.
+        # Copy to avoid affecting the original source.
+        # ElementalSystem should remain the same instance as the original source
+        # to check if the instances are the same in the tensor product calculation.
+        # Therefore, use `copy.copy` instead of `copy.deepcopy`.
         sored_e_syses = copy.copy(systems)
         sored_e_syses.sort(key=lambda x: x.name)
 
+        # Set
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(sored_e_syses)
 
     def basis(self) -> MatrixBasis:
@@ -58,7 +58,7 @@ class CompositeSystem:
             basis_tmp = MatrixBasis(temp)
         return basis_tmp
 
-    def dim(self):
+    def dim(self) -> int:
         return self.basis()[0].shape[0]
 
     def get_basis(self, index: Union[int, tuple]) -> MatrixBasis:
@@ -82,7 +82,7 @@ class CompositeSystem:
             return self.basis()[index]
 
     @property
-    def elemental_systems(self):  # read only
+    def elemental_systems(self) -> Tuple[ElementalSystem, ...]:  # read only
         return self._elemental_systems
 
     def __len__(self) -> int:
