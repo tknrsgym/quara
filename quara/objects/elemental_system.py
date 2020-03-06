@@ -12,6 +12,7 @@ class ElementalSystem:
 
         # Set
         self._name: int = name
+
         # Without system _ id,
         # it is possible to determine if the instances are the same (not the same value)
         # by using ``is``.
