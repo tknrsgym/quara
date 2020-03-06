@@ -13,7 +13,7 @@ class Povm:
 
     def __init__(self, c_sys: CompositeSystem, vecs: List[np.ndarray]):
         # 観測されうる測定値の集合
-        self._measurements: list = None
+        self._measurements: list
 
         # Validation
         ## Validate whether `vecs` is a set of Hermitian matrices
