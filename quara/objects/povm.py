@@ -26,7 +26,7 @@ class Povm:
                 raise ValueError("povm must be a set of Hermitian matrices")
 
         # Whether dim of CompositeSystem equals dim of vec
-        if c_sys.dim != self._dim:
+        if c_sys.dim() != self._dim:
             raise ValueError(
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
