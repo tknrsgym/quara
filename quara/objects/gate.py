@@ -38,9 +38,9 @@ class Gate:
             )
 
         # whether dim of HS equals dim of compsite system
-        if self._dim != self._composite_system.dim:
+        if self._dim != self._composite_system.dim():
             raise ValueError(
-                f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim}"
+                f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim()}"
             )
 
     @property
@@ -80,8 +80,8 @@ class Gate:
             True where the gate is TP, False otherwise.
         """
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
-        dim = self._composite_system.basis.dim
-        for basis in self._composite_system.basis:
+        dim = self._composite_system.basis().dim
+        for basis in self._composite_system.basis():
             trace_before_mapped = np.trace(basis)
             vec_basis = basis.reshape((-1, 1))
             trace_after_mapped = np.trace((self.hs @ vec_basis).reshape((dim, dim)))
@@ -140,7 +140,7 @@ class Gate:
     def get_choi_matrix(self):
         # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
         tmp_list = []
-        basis = self._composite_system.basis
+        basis = self._composite_system.basis()
         indexed_basis = list(zip(range(len(basis)), basis))
         for B_alpha, B_beta in itertools.product(indexed_basis, indexed_basis):
             tmp = self._hs[B_alpha[0]][B_beta[0]] * np.kron(
@@ -193,7 +193,7 @@ def _get_1q_gate_from_hs_on_pauli_basis(
 ) -> Gate:
     # TODO check dim of CompositeSystem = 2
     # convert "HS representation in Pauli basis" to "HS representation in basis of CompositeSystem"
-    hs = convert_hs(matrix, get_normalized_pauli_basis(), c_sys.basis)
+    hs = convert_hs(matrix, get_normalized_pauli_basis(), c_sys.basis())
     gate = Gate(c_sys, hs.real.astype(np.float64))
     return gate
 
