@@ -6,6 +6,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import (
     Gate,
+    is_ep,
     calculate_agf,
     get_i,
     get_x,
@@ -21,7 +22,7 @@ from quara.objects.gate import (
 
 
 def test_is_tp():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
     # case: TP
@@ -37,7 +38,7 @@ def test_is_tp():
 
 
 def test_is_cp():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
     # case: CP
@@ -56,8 +57,25 @@ def test_is_cp():
     assert gate.is_cp() == False
 
 
+def test_is_ep():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # case: EP
+    x = get_x(c_sys)
+    assert is_ep(x.hs, x.get_basis()) == True
+    y = get_y(c_sys)
+    assert is_ep(y.hs, y.get_basis()) == True
+    z = get_z(c_sys)
+    assert is_ep(z.hs, z.get_basis()) == True
+
+    # case: not EP
+    hs = np.array([[1j, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    assert is_ep(hs, matrix_basis.get_comp_basis()) == False
+
+
 def test_get_choi_matrix():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
     # for I
@@ -89,7 +107,7 @@ def test_get_choi_matrix():
 
 
 def test_get_i():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i = get_i(c_sys)
     x = get_x(c_sys)
@@ -104,7 +122,7 @@ def test_get_i():
 
 
 def test_get_x():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i = get_i(c_sys)
     x = get_x(c_sys)
@@ -115,7 +133,7 @@ def test_get_x():
 
 
 def test_get_y():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i = get_i(c_sys)
     x = get_x(c_sys)
@@ -126,7 +144,7 @@ def test_get_y():
 
 
 def test_get_z():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i = get_i(c_sys)
     x = get_x(c_sys)
@@ -137,7 +155,7 @@ def test_get_z():
 
 
 def test_get_root_x():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     x = get_x(c_sys)
     rootx = get_root_x(c_sys)
@@ -145,7 +163,7 @@ def test_get_root_x():
 
 
 def test_get_root_y():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     y = get_y(c_sys)
     rooty = get_root_y(c_sys)
@@ -153,7 +171,7 @@ def test_get_root_y():
 
 
 def test_get_s():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     z = get_z(c_sys)
     s = get_s(c_sys)
@@ -161,7 +179,7 @@ def test_get_s():
 
 
 def test_get_sdg():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     s = get_s(c_sys)
     sdg = get_sdg(c_sys)
@@ -170,7 +188,7 @@ def test_get_sdg():
 
 
 def test_get_t():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     s = get_s(c_sys)
     t = get_t(c_sys)
