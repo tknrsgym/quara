@@ -74,15 +74,21 @@ class Povm:
         identity = np.identity(self._dim, dtype=np.complex128)
         return np.allclose(sum_matrix, identity)
 
-    def eig(self, index: int = None) -> Union[List[np.ndarray], np.ndarray]:
+    def get_eigen_values(
+        self, index: int = None
+    ) -> Union[List[np.ndarray], np.ndarray]:
         # 各要素の固有値を返す
+
+        size = [self._dim, self._dim]
         if index:
-            target = self._vecs[index]
-            w = np.linalg.eigvals(target)
+            v = self._vecs[index]
+            matrix = np.reshape(v, size)
+            w = np.linalg.eigvals(matrix)
             return w
         else:
             w_list = []
-            for target in self._vecs:
-                w = np.linalg.eigvals(target)
+            for v in self._vecs:
+                matrix = np.reshape(v, size)
+                w = np.linalg.eigvals(matrix)
                 w_list.append(w)
             return w_list

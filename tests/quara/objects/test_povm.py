@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 import quara.objects.composite_system as csys
@@ -115,3 +116,24 @@ class TestPovm:
 
         # Assert
         assert actual is False
+
+    def test_get_eigen_values_all(self):
+        # Arrange
+        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
+        not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
+        vecs = [ps, not_ps]
+
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.get_eigen_values()
+
+        # Assert
+        expected = [np.array([1, 1], dtype=np.complex128),
+                    np.array([1, -1], dtype=np.complex128)]
+
+        assert len(actual) == len(expected)
+        assert npt.assert_almost_equal(actual[0], expected[0], decimal=15)
+        assert npt.assert_almost_equal(actual[1], expected[1], decimal=15)
