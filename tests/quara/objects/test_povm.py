@@ -18,7 +18,7 @@ class TestPovm:
         )
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem("q1", get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act
@@ -36,7 +36,7 @@ class TestPovm:
         p2 = np.array([0, 1, 0, 0], dtype=np.complex128)
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem("q1", get_comp_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act & Assert
@@ -54,7 +54,7 @@ class TestPovm:
         )
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem("q1", get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act
@@ -74,7 +74,7 @@ class TestPovm:
         )
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem("q1", get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act
