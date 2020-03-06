@@ -17,7 +17,7 @@ class CompositeSystem:
     def __init__(self, systems: List[ElementalSystem]):
         # Validation
         # Check for duplicate ElementalSystem
-        names: List[str] = []
+        names: List[int] = []
         e_sys_ids: List[int] = []
 
         for e_sys in systems:
