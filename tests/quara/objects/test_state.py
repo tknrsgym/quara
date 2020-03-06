@@ -19,7 +19,7 @@ import pytest
 
 
 def test_init_error():
-    e_sys = ElementalSystem("q1", matrix_basis.get_comp_basis())
+    e_sys = ElementalSystem(1, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys])
 
     # vec is not one-dimensional array
@@ -40,7 +40,7 @@ def test_init_error():
 
 
 def test_comp_basis():
-    e_sys = ElementalSystem("q1", matrix_basis.get_comp_basis())
+    e_sys = ElementalSystem(1, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys])
 
     # test for vec[1, 0, 0, 0]
@@ -89,7 +89,7 @@ def test_comp_basis():
 
 
 def test_pauli_basis():
-    e_sys = ElementalSystem("q1", matrix_basis.get_pauli_basis())
+    e_sys = ElementalSystem(1, matrix_basis.get_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
     # test for vec[1, 0, 0, 0]
@@ -146,7 +146,7 @@ def test_pauli_basis():
 
 
 def test_normalized_pauli_basis():
-    e_sys = ElementalSystem("q1", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
     # test for vec[1, 0, 0, 0]
@@ -219,7 +219,7 @@ def test_convert_basis_form_comp_to_pauli():
     pauli_basis = matrix_basis.get_normalized_pauli_basis()
 
     # CompositeSystem of comp basis
-    e_sys1 = ElementalSystem("q1", matrix_basis.get_comp_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_comp_basis())
     c_sys1 = CompositeSystem([e_sys1])
 
     # converts [1, 0, 0, 0] with comp basis to Pauli basis
@@ -252,7 +252,7 @@ def test_convert_basis_form_pauli_to_comp():
     pauli_basis = matrix_basis.get_normalized_pauli_basis()
 
     # CompositeSystem of Pauli basis
-    e_sys2 = ElementalSystem("q2", matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
     c_sys2 = CompositeSystem([e_sys2])
 
     # converts [1, 0, 0, 0] with Pauli basis to comp basis
@@ -281,7 +281,7 @@ def test_convert_basis_form_pauli_to_comp():
 
 
 def test_get_x0_1q_with_normalized_pauli_basis():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_x0_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
@@ -290,7 +290,7 @@ def test_get_x0_1q_with_normalized_pauli_basis():
 
 
 def test_get_x1_1q_with_normalized_pauli_basis():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_x1_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
@@ -299,7 +299,7 @@ def test_get_x1_1q_with_normalized_pauli_basis():
 
 
 def test_get_y0_1q_with_normalized_pauli_basis():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_y0_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
@@ -308,7 +308,7 @@ def test_get_y0_1q_with_normalized_pauli_basis():
 
 
 def test_get_y1_1q_with_normalized_pauli_basis():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_y1_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
@@ -317,7 +317,7 @@ def test_get_y1_1q_with_normalized_pauli_basis():
 
 
 def test_get_z0_1q_with_normalized_pauli_basis():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_z0_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
@@ -325,7 +325,7 @@ def test_get_z0_1q_with_normalized_pauli_basis():
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 def test_get_z1_1q_with_normalized_pauli_basis():
-    e_sys = ElementalSystem("q0", matrix_basis.get_normalized_pauli_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_z1_1q_with_normalized_pauli_basis(c_sys)
     actual = state.get_density_matrix()
