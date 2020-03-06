@@ -42,11 +42,12 @@ class CompositeSystem:
 
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(sored_e_syses)
 
-        # Calculate tensor product of ElamentalSystem list for getting new MatrixBasis
-        self._basis: MatrixBasis
+    def basis(self) -> MatrixBasis:
+        # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
+        basis_tmp: MatrixBasis
 
         if len(self._elemental_systems) == 1:
-            self._basis = self._elemental_systems[0].hemirtian_basis
+            basis_tmp = self._elemental_systems[0].hemirtian_basis
         else:
             basis_list = [e_sys.hemirtian_basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
@@ -54,23 +55,11 @@ class CompositeSystem:
                 temp = [
                     np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
                 ]
-            self._basis = MatrixBasis(temp)
-        self._dim: int = self._basis[0].shape[0]
+            basis_tmp = MatrixBasis(temp)
+        return basis_tmp
 
-    @property
-    def basis(self):
-        return self._basis
-
-    @property
     def dim(self):
-        """returns dim of CompositeSystem.
-
-        Returns
-        -------
-        int
-            dim of CompositeSystem
-        """
-        return self._dim
+        return self.basis()[0].shape[0]
 
     def get_basis(self, index: Union[int, tuple]) -> MatrixBasis:
         # 基底のテンソル積を返す
@@ -88,9 +77,9 @@ class CompositeSystem:
             for e_sys_position, local_index in enumerate(reversed(index)):
                 temp_grobal_index += local_index * temp_dim
                 temp_dim = temp_dim * (self._elemental_systems[e_sys_position].dim ** 2)
-            return self._basis[temp_grobal_index]
+            return self.basis()[temp_grobal_index]
         else:
-            return self._basis[index]
+            return self.basis()[index]
 
     @property
     def elemental_systems(self):  # read only
@@ -123,9 +112,9 @@ class CompositeSystem:
             desc += f"[{i}] {e_sys.name} (system_id={e_sys.system_id})\n"
 
         desc += "\n"
-        desc += f"dim: {self._dim}\n"
+        desc += f"dim: {self.dim()}\n"
         desc += f"basis:\n"
-        desc += str(self._basis)
+        desc += str(self.basis())
         return desc
 
     def __repr__(self):
