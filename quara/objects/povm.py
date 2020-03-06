@@ -43,7 +43,14 @@ class Povm:
         return self._composite_system
 
     def is_positive_semidefinite(self, atol: float = None) -> bool:
-        # 各要素が半正定値か確認する
+        """Returns whether each element is positive semidifinite.
+
+        Returns
+        -------
+        bool
+            True where each element is positive semidifinite, False otherwise.
+        """
+
         size = [self._dim, self._dim]
         for v in self._vecs:
             if not mutil.is_positive_semidefinite(np.reshape(v, size), atol):

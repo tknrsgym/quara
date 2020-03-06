@@ -83,3 +83,35 @@ class TestPovm:
 
         # Assert
         assert actual is False
+
+    def test_is_positive_semidefinite_true(self):
+        # Arrange
+        ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vecs = [ps_1, ps_2]
+
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.is_positive_semidefinite()
+
+        # Assert
+        assert actual is True
+
+    def test_is_positive_semidefinite_false(self):
+        # Arrange
+        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
+        not_ps = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        vecs = [ps, not_ps]
+
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.is_positive_semidefinite()
+
+        # Assert
+        assert actual is False
