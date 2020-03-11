@@ -112,7 +112,7 @@ class Gate:
             True where gate is CP, False otherwise.
         """
         # "A is CP"  <=> "C(A) >= 0"
-        return np.all(np.linalg.eigvals(self.get_choi_matrix()) >= 0)
+        return np.all(np.linalg.eigvals(self.calc_choi_matrix()) >= 0)
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns HS representation for ``other_basis``.
@@ -143,8 +143,8 @@ class Gate:
         )
         return converted_hs
 
-    def get_choi_matrix(self) -> np.array:
-        """returns Choi matrix of gate.
+    def calc_choi_matrix(self) -> np.array:
+        """calculates Choi matrix of gate.
         
         Returns
         -------
@@ -165,8 +165,8 @@ class Gate:
         choi = reduce(add, tmp_list)
         return choi
 
-    def get_kraus_matrices(self) -> List[np.array]:
-        """returns Kraus matrices of gate.
+    def calc_kraus_matrices(self) -> List[np.array]:
+        """calculates Kraus matrices of gate.
 
         this function returns Kraus matrices as list of ``np.array`` with ``dtype=np.complex128``.
         the list is sorted large eigenvalue order.
@@ -182,7 +182,7 @@ class Gate:
 
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
-        choi = self.get_choi_matrix()
+        choi = self.calc_choi_matrix()
         eigen_vals, eigen_vecs = np.linalg.eig(choi)
         eigens = [(eigen_vals[index], eigen_vecs[:,index]) for index in range(len(eigen_vals))]
         # filter positive eigen values
@@ -196,8 +196,8 @@ class Gate:
 
         return kraus
 
-    def get_process_matrix(self) -> np.array:
-        """returns process matrix of gate.
+    def calc_process_matrix(self) -> np.array:
+        """calculates process matrix of gate.
         
         Returns
         -------
@@ -243,15 +243,15 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
     return np.allclose(hs_converted.imag, zero_matrix, atol=atol, rtol=0.0)
 
 
-def calc_agf(g: np.array, u: Gate) -> np.float64:
+def calc_agf(g: Gate, u: Gate) -> np.float64:
     """returns AGF(Average Gate Fidelity) and ``g`` and ``u``.
     
     Parameters
     ----------
-    g : np.array
-        HS representation of L-TP-CP map
+    g : Gate
+        L-TP-CP map
     u : Gate
-        unitary gate that is Hermitian
+        unitary gate
     
     Returns
     -------
@@ -263,14 +263,15 @@ def calc_agf(g: np.array, u: Gate) -> np.float64:
     ValueError
         HS representation of ``u`` is not Hermitian
     """
+    # u: unitary gate <=> HS(u) is Hermitian
     # whetever HS(u) is Hermitian
     if not mutil.is_hermitian(u.hs):
-        raise ValueError("Gate u must be Hermitian.")
+        raise ValueError("gate u must be unitary")
 
-    # trace = Tr[HS(u)^{\dagger}HS(g)]とおくと、
+    # let trace = Tr[HS(u)^{\dagger}HS(g)]
     # AGF = 1-\frac{d^2-trace}{d(d+1)}
     d = u.dim
-    trace = mutil.inner_product(u.hs, g)
+    trace = mutil.inner_product(u.hs, g.hs)
     agf = 1 - (d ** 2 - trace) / (d * (d + 1))
     return agf
 

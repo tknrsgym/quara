@@ -168,32 +168,32 @@ def test_convert_to_comp_basis():
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_choi_matrix():
+def test_calc_choi_matrix():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
     # for I
-    actual = get_i(c_sys).get_choi_matrix()
+    actual = get_i(c_sys).calc_choi_matrix()
     expected = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # for X
-    actual = get_x(c_sys).get_choi_matrix()
+    actual = get_x(c_sys).calc_choi_matrix()
     expected = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # for Y
-    actual = get_y(c_sys).get_choi_matrix()
+    actual = get_y(c_sys).calc_choi_matrix()
     expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # for Z
-    actual = get_z(c_sys).get_choi_matrix()
+    actual = get_z(c_sys).calc_choi_matrix()
     expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # for H
-    actual = get_h(c_sys).get_choi_matrix()
+    actual = get_h(c_sys).calc_choi_matrix()
     expected = (
         1 / 2 * np.array([[1, 1, 1, -1], [1, 1, 1, -1], [1, 1, 1, -1], [-1, -1, -1, 1]])
     )
@@ -209,41 +209,41 @@ def calc_sum_of_kraus(kraus):
     return sum
 
 
-def test_get_kraus_matrices():
+def test_calc_kraus_matrices():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     eye2 = np.eye(2, dtype=np.complex128)
 
     # for I
-    actual = get_i(c_sys).get_kraus_matrices()
+    actual = get_i(c_sys).calc_kraus_matrices()
     expected = [np.array([[1, 0], [0, 1]], dtype=np.complex128)]
     assert len(actual) == 1
     npt.assert_almost_equal(actual[0], expected[0], decimal=15)
     npt.assert_almost_equal(calc_sum_of_kraus(actual), eye2, decimal=14)
 
     # for X
-    actual = get_x(c_sys).get_kraus_matrices()
+    actual = get_x(c_sys).calc_kraus_matrices()
     expected = [np.array([[0, 1], [1, 0]], dtype=np.complex128)]
     assert len(actual) == 1
     npt.assert_almost_equal(actual[0], expected[0], decimal=15)
     npt.assert_almost_equal(calc_sum_of_kraus(actual), eye2, decimal=14)
 
     # for Y
-    actual = get_y(c_sys).get_kraus_matrices()
+    actual = get_y(c_sys).calc_kraus_matrices()
     expected = [np.array([[0, 1], [-1, 0]], dtype=np.complex128)]
     assert len(actual) == 1
     npt.assert_almost_equal(actual[0], expected[0], decimal=15)
     npt.assert_almost_equal(calc_sum_of_kraus(actual), eye2, decimal=14)
 
     # for Z
-    actual = get_z(c_sys).get_kraus_matrices()
+    actual = get_z(c_sys).calc_kraus_matrices()
     expected = [np.array([[-1, 0], [0, 1]], dtype=np.complex128)]
     assert len(actual) == 1
     npt.assert_almost_equal(actual[0], expected[0], decimal=15)
     npt.assert_almost_equal(calc_sum_of_kraus(actual), eye2, decimal=14)
 
     # for H
-    actual = get_h(c_sys).get_kraus_matrices()
+    actual = get_h(c_sys).calc_kraus_matrices()
     expected = [1 / np.sqrt(2) * np.array([[1, 1], [1, -1]], dtype=np.complex128)]
     assert len(actual) == 1
     npt.assert_almost_equal(actual[0], expected[0], decimal=15)
@@ -253,7 +253,7 @@ def test_get_kraus_matrices():
     hs = np.array(
         [[-1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
     )
-    actual = Gate(c_sys, hs).get_kraus_matrices()
+    actual = Gate(c_sys, hs).calc_kraus_matrices()
     assert len(actual) == 0
 
 
@@ -274,7 +274,7 @@ def test_is_ep():
     assert is_ep(hs, matrix_basis.get_comp_basis()) == False
 
 
-def test_get_process_matrix():
+def test_calc_process_matrix():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i = get_i(c_sys)
@@ -283,25 +283,26 @@ def test_get_process_matrix():
     z = get_z(c_sys)
 
     # for I
-    actual = i.get_process_matrix()
+    actual = i.calc_process_matrix()
     expected = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # for X
-    actual = x.get_process_matrix()
+    actual = x.calc_process_matrix()
     expected = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # for Y
-    actual = y.get_process_matrix()
+    actual = y.calc_process_matrix()
     print(actual)
     expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # for Z
-    actual = z.get_process_matrix()
+    actual = z.calc_process_matrix()
     expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
     npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 def test_calc_agf():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -311,12 +312,12 @@ def test_calc_agf():
     z = get_z(c_sys)
 
     # case: g=u
-    actual = calc_agf(i.hs, i)
+    actual = calc_agf(i, i)
     expected = 1
     assert np.isclose(actual, expected, atol=1e-15)
  
     # case: g is not u
-    actual = calc_agf(z.hs, x)
+    actual = calc_agf(z, x)
     expected = 1.0/3.0
     print(actual)
     assert np.isclose(actual, expected, atol=1e-15)
@@ -325,7 +326,7 @@ def test_calc_agf():
     hs = np.array([[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64)
     gate = Gate(c_sys, hs)
     with pytest.raises(ValueError):
-        calc_agf(z, gate)
+        calc_agf(z.hs, gate)
 
 
 def test_convert_hs():
