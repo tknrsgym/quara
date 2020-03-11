@@ -12,8 +12,6 @@ class Povm:
     """
 
     def __init__(self, c_sys: CompositeSystem, vecs: List[np.ndarray]):
-        # 観測されうる測定値の集合
-        self._measurements: list
 
         # Validation
         ## Validate whether `vecs` is a set of Hermitian matrices
@@ -27,6 +25,8 @@ class Povm:
 
         # Whether dim of CompositeSystem equals dim of vec
         if c_sys.dim() != self._dim:
+            print(f"c_sys.dim() = {c_sys.dim()}")
+            print(f"self._dim = {self._dim}")
             raise ValueError(
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
@@ -34,6 +34,8 @@ class Povm:
         # Set
         self._composite_system: CompositeSystem = c_sys
         self._vecs: List[np.ndarray] = vecs
+        # 観測されうる測定値の集合
+        self._measurements: list
 
     def __getitem__(self, key: int):
         return self._vecs[key]
@@ -77,7 +79,18 @@ class Povm:
     def get_eigen_values(
         self, index: int = None
     ) -> Union[List[np.ndarray], np.ndarray]:
-        # 各要素の固有値を返す
+        """[summary]
+
+        Parameters
+        ----------
+        index : int, optional
+            [description], by default None
+
+        Returns
+        -------
+        Union[List[np.ndarray], np.ndarray]
+            [description]
+        """
 
         size = [self._dim, self._dim]
         if index is not None:
