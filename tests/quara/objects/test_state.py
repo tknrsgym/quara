@@ -52,7 +52,7 @@ def test_comp_basis():
     assert state.is_trace_one() == True
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == True
-    assert np.all(state.get_eigen_values() == np.array([1, 0], dtype=np.complex128))
+    assert np.all(state.calc_eigenvalues() == np.array([1, 0], dtype=np.complex128))
 
     # test for vec[0, 1, 0, 0]
     state = State(c_sys, np.array([0, 1, 0, 0], dtype=np.float64))
@@ -63,7 +63,7 @@ def test_comp_basis():
     assert state.is_trace_one() == False
     assert state.is_hermitian() == False
     assert state.is_positive_semidefinite() == False
-    assert np.all(state.get_eigen_values() == np.array([0, 0], dtype=np.complex128))
+    assert np.all(state.calc_eigenvalues() == np.array([0, 0], dtype=np.complex128))
 
     # test for vec[0, 0, 1, 0]
     state = State(c_sys, np.array([0, 0, 1, 0], dtype=np.float64))
@@ -74,7 +74,7 @@ def test_comp_basis():
     assert state.is_trace_one() == False
     assert state.is_hermitian() == False
     assert state.is_positive_semidefinite() == False
-    assert np.all(state.get_eigen_values() == np.array([0, 0], dtype=np.complex128))
+    assert np.all(state.calc_eigenvalues() == np.array([0, 0], dtype=np.complex128))
 
     # test for vec[0, 0, 0, 1]
     state = State(c_sys, np.array([0, 0, 0, 1], dtype=np.float64))
@@ -85,7 +85,7 @@ def test_comp_basis():
     assert state.is_trace_one() == True
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == True
-    assert np.all(state.get_eigen_values() == np.array([0, 1], dtype=np.complex128))
+    assert np.all(state.calc_eigenvalues() == np.array([0, 1], dtype=np.complex128))
 
 
 def test_pauli_basis():
@@ -102,7 +102,7 @@ def test_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == True
     npt.assert_almost_equal(
-        state.get_eigen_values(), np.array([1, 1], dtype=np.complex128), decimal=15,
+        state.calc_eigenvalues(), np.array([1, 1], dtype=np.complex128), decimal=15,
     )
 
     # test for vec [0, 1, 0, 0]
@@ -115,7 +115,7 @@ def test_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == False
     npt.assert_almost_equal(
-        state.get_eigen_values(), np.array([1, -1], dtype=np.complex128), decimal=15,
+        state.calc_eigenvalues(), np.array([1, -1], dtype=np.complex128), decimal=15,
     )
 
     # test for vec [0, 0, 1, 0]
@@ -128,7 +128,7 @@ def test_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == False
     npt.assert_almost_equal(
-        state.get_eigen_values(), np.array([1, -1], dtype=np.complex128), decimal=15,
+        state.calc_eigenvalues(), np.array([1, -1], dtype=np.complex128), decimal=15,
     )
 
     # test for vec [0, 0, 0, 1]
@@ -141,7 +141,7 @@ def test_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == False
     npt.assert_almost_equal(
-        state.get_eigen_values(), np.array([1, -1], dtype=np.complex128), decimal=15,
+        state.calc_eigenvalues(), np.array([1, -1], dtype=np.complex128), decimal=15,
     )
 
 
@@ -160,7 +160,7 @@ def test_normalized_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == True
     npt.assert_almost_equal(
-        state.get_eigen_values(),
+        state.calc_eigenvalues(),
         np.array([1 / np.sqrt(2), 1 / np.sqrt(2)], dtype=np.complex128),
         decimal=15,
     )
@@ -176,7 +176,7 @@ def test_normalized_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == False
     npt.assert_almost_equal(
-        state.get_eigen_values(),
+        state.calc_eigenvalues(),
         np.array([1 / np.sqrt(2), -1 / np.sqrt(2)], dtype=np.complex128),
         decimal=15,
     )
@@ -192,7 +192,7 @@ def test_normalized_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == False
     npt.assert_almost_equal(
-        state.get_eigen_values(),
+        state.calc_eigenvalues(),
         np.array([1 / np.sqrt(2), -1 / np.sqrt(2)], dtype=np.complex128),
         decimal=15,
     )
@@ -208,7 +208,7 @@ def test_normalized_pauli_basis():
     assert state.is_hermitian() == True
     assert state.is_positive_semidefinite() == False
     npt.assert_almost_equal(
-        state.get_eigen_values(),
+        state.calc_eigenvalues(),
         np.array([1 / np.sqrt(2), -1 / np.sqrt(2)], dtype=np.complex128),
         decimal=15,
     )
