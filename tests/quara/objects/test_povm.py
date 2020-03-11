@@ -137,3 +137,29 @@ class TestPovm:
         assert len(actual) == len(expected)
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+
+    def test_get_eigen_values_one(self):
+        # Arrange
+        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
+        not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
+        vecs = [ps, not_ps]
+
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.get_eigen_values(0)
+
+        # Assert
+        expected = np.array([1, 0], dtype=np.complex128)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+         # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.get_eigen_values(1)
+
+        # Assert
+        expected = np.array([1, -1], dtype=np.complex128)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+        # npt.assert_almost_equal(actual[1], expected[1], decimal=15)

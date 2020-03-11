@@ -80,7 +80,7 @@ class Povm:
         # 各要素の固有値を返す
 
         size = [self._dim, self._dim]
-        if index:
+        if index is not None:
             v = self._vecs[index]
             matrix = np.reshape(v, size)
             w = np.linalg.eigvals(matrix)
