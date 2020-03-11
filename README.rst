@@ -2,9 +2,6 @@
 quara
 =================
 
-.. image:: https://circleci.com/gh/tknrsgym/quara/tree/master.svg?style=svg
-    :target: https://circleci.com/gh/tknrsgym/quara/tree/master
-
 .. _start_of_about:
 
 Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.
@@ -12,10 +9,10 @@ Quara, which stands for "Quantum Characterization", is an open-source library fo
 .. _end_of_about:
 
 - **Documentation:** https://quara.readthedocs.io/en/latest/
-- **Tutorials:** https://quara.readthedocs.io/en/latest/index.html#tutorials
+- **Tutorials:** https://github.com/tknrsgym/quara/tree/master/tutorials
 - **Source code:** https://github.com/quara/quara
 - **Bug reports:** https://github.com/quara/quara/issues
-- **Contributing:** https://quara.readthedocs.io/en/latest/contributing.html
+- **Contributing:** https://github.com/tknrsgym/quara/blob/master/docs/contributing.rst
 
 .. _start_of_install:
 
