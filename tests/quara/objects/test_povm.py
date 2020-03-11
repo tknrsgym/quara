@@ -121,7 +121,7 @@ class TestPovm:
         # Assert
         assert actual is False
 
-    def test_get_eigen_values_all(self):
+    def test_calc_eigenvalues_all(self):
         # Arrange
         ps = np.array([1, 0, 0, 0], dtype=np.complex128)
         not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
@@ -132,7 +132,7 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm.get_eigen_values()
+        actual = povm.calc_eigenvalues()
 
         # Assert
         expected = [np.array([1, 0], dtype=np.complex128),
@@ -142,7 +142,7 @@ class TestPovm:
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
-    def test_get_eigen_values_one(self):
+    def test_calc_eigenvalues_one(self):
         # Arrange
         ps = np.array([1, 0, 0, 0], dtype=np.complex128)
         not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
@@ -153,7 +153,7 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm.get_eigen_values(0)
+        actual = povm.calc_eigenvalues(0)
 
         # Assert
         expected = np.array([1, 0], dtype=np.complex128)
@@ -161,7 +161,7 @@ class TestPovm:
 
          # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm.get_eigen_values(1)
+        actual = povm.calc_eigenvalues(1)
 
         # Assert
         expected = np.array([1, -1], dtype=np.complex128)
