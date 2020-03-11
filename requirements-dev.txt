@@ -8,3 +8,4 @@ ipykernel
 recommonmark
 pytest-randomly
 mypy
+nbsphinx
