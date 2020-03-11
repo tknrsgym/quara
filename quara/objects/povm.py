@@ -76,7 +76,7 @@ class Povm:
         identity = np.identity(self._dim, dtype=np.complex128)
         return np.allclose(sum_matrix, identity)
 
-    def get_eigen_values(
+    def calc_eigenvalues(
         self, index: int = None
     ) -> Union[List[np.ndarray], np.ndarray]:
         """[summary]
