@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -6,6 +9,7 @@ import quara.objects.composite_system as csys
 import quara.objects.elemental_system as esys
 from quara.objects.matrix_basis import get_comp_basis, get_pauli_basis
 from quara.objects.povm import Povm
+from quara.protocol import simple_io as s_io
 
 
 class TestPovm:
@@ -162,4 +166,28 @@ class TestPovm:
         # Assert
         expected = np.array([1, -1], dtype=np.complex128)
         npt.assert_almost_equal(actual, expected, decimal=15)
-        # npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+
+    def test_validate_dim_ng(self):
+        # Arrange
+        test_root_dir = Path(os.path.dirname(__file__)).parent.parent
+        data_dir = test_root_dir / "data"
+
+        dim = 2 ** 2  # 2 qubits
+        num_state = 16
+        num_povm = 9
+        num_outcome = 4
+
+        povms = s_io.load_povm_list(
+            data_dir / "tester_2qubit_povm.csv",
+            dim=dim,
+            num_povm=num_povm,
+            num_outcome=num_outcome,
+        )
+        vecs = list(povms[0])  # 2qubit
+
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())  # 1qubit
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = Povm(c_sys=c_sys, vecs=vecs)
