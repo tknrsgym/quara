@@ -104,8 +104,8 @@ class State:
         """
         return mutil.is_positive_semidefinite(self.get_density_matrix())
 
-    def get_eigen_values(self) -> List:
-        """returns eigen values of density matrix.
+    def calc_eigenvalues(self) -> List:
+        """calculates eigen values of density matrix.
 
         this function uses numpy API.
         see this URL for details:
