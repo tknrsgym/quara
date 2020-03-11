@@ -131,9 +131,9 @@ class TestPovm:
         actual = povm.get_eigen_values()
 
         # Assert
-        expected = [np.array([1, 1], dtype=np.complex128),
+        expected = [np.array([1, 0], dtype=np.complex128),
                     np.array([1, -1], dtype=np.complex128)]
 
         assert len(actual) == len(expected)
-        assert npt.assert_almost_equal(actual[0], expected[0], decimal=15)
-        assert npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+        npt.assert_almost_equal(actual[0], expected[0], decimal=15)
+        npt.assert_almost_equal(actual[1], expected[1], decimal=15)
