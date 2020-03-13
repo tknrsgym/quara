@@ -41,7 +41,7 @@ class State:
     @property
     def vec(self):
         """returns vector.
-        
+
         Returns
         -------
         np.array
@@ -52,7 +52,7 @@ class State:
     @property
     def dim(self):
         """returns dim of vector.
-        
+
         Returns
         -------
         int
@@ -62,7 +62,7 @@ class State:
 
     def get_density_matrix(self) -> np.ndarray:
         """returns density matrix.
-        
+
         Returns
         -------
         int
@@ -75,7 +75,7 @@ class State:
 
     def is_trace_one(self) -> bool:
         """returns whether trace of density matrix is one.
-        
+
         Returns
         -------
         bool
@@ -86,7 +86,7 @@ class State:
 
     def is_hermitian(self) -> bool:
         """returns whether density matrix is Hermitian.
-        
+
         Returns
         -------
         bool
@@ -110,7 +110,7 @@ class State:
         this function uses numpy API.
         see this URL for details:
         https://numpy.org/doc/1.18/reference/generated/numpy.linalg.eigvals.html
-        
+
         Returns
         -------
         List
@@ -120,12 +120,12 @@ class State:
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns vector representation for ``other_basis``.
-        
+
         Parameters
         ----------
         other_basis : MatrixBasis
             basis
-        
+
         Returns
         -------
         np.array
@@ -141,7 +141,7 @@ def convert_vec(
     from_vec: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
 ) -> np.array:
     """converts vector representation from ``from_basis`` to ``to_basis``.
-    
+
     Parameters
     ----------
     from_vec : np.array
@@ -150,7 +150,7 @@ def convert_vec(
         basis before converts vector representation
     to_basis : MatrixBasis
         basis after converts vector representation
-    
+
     Returns
     -------
     np.array
@@ -189,12 +189,12 @@ def convert_vec(
 
 def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_0`` with normalized pauli basis.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     np.array
@@ -210,12 +210,12 @@ def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
 
 def get_x1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_1`` with normalized pauli basis.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     np.array
@@ -231,12 +231,12 @@ def get_x1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
 
 def get_y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_0`` with normalized pauli basis.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     np.array
@@ -252,12 +252,12 @@ def get_y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
 
 def get_y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_1`` with normalized pauli basis.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     np.array
@@ -273,12 +273,12 @@ def get_y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
 
 def get_z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_0`` with normalized pauli basis.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     np.array
@@ -294,12 +294,12 @@ def get_z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
 
 def get_z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_1`` with normalized pauli basis.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     np.array
