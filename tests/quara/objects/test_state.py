@@ -331,5 +331,3 @@ def test_get_z1_1q_with_normalized_pauli_basis():
     actual = state.get_density_matrix()
     expected = np.array([[0, 0], [0, 1]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
-
-# TODO implement test of convert_vec
