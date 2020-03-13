@@ -59,7 +59,7 @@ def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.array:
         input matrix.
     dim_Y : int
         dim of ``Y``.
-    
+
     Returns
     -------
     np.array
@@ -95,7 +95,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-13) -> bool:
         the absolute tolerance parameter, by default 1e-13.
         returns True, if ``absolute(identity matrix - partial trace) <= atol``.
         otherwise returns False.
-    
+
     Returns
     -------
     bool
@@ -108,19 +108,19 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-13) -> bool:
 
 def inner_product(left: np.ndarray, right: np.ndarray) -> np.complex128:
     """calculates Hilbert-Schmidt inner product ``<left, right> := Tr(left^{\dagger} @ right)`` = <<left|right>>.
-    
+
     Parameters
     ----------
     left : np.ndarray
         left argument of inner product
     right : np.ndarray
         right argument of inner product
-    
+
     Returns
     -------
     np.complex128
         Hilbert-Schmidt inner product
     """
     # calculate <<left|right>>
-    i_product = np.inner(left.conj().reshape((1, -1))[0], right.reshape((1, -1))[0])
+    i_product = np.inner(left.conj().flatten(), right.flatten())
     return i_product

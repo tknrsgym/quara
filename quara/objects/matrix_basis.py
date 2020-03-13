@@ -1,4 +1,5 @@
 import copy
+import itertools
 from typing import List, Tuple
 
 import numpy as np
@@ -54,6 +55,7 @@ class MatrixBasis(Basis):
 
         self._dim = self[0].shape[0]
 
+        # Validate
         if not self._is_squares():
             raise ValueError("Invalid argument. There is a non-square matrix.")
 
@@ -121,7 +123,7 @@ class MatrixBasis(Basis):
         bool
             True where matrices are basis, False otherwise.
         """
-        row_list = [mat.reshape(1, -1)[0] for mat in self]
+        row_list = [mat.flatten() for mat in self]
         rank = np.linalg.matrix_rank(row_list)
         return rank >= self.dim ** 2
 
@@ -406,3 +408,47 @@ def get_normalized_gell_mann_basis() -> MatrixBasis:
     ]
     gell_mann_basis = MatrixBasis(source)
     return gell_mann_basis
+
+
+def convert_vec(
+    from_vec: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
+) -> np.array:
+    """converts vector representation from ``from_basis`` to ``to_basis``.
+
+    Parameters
+    ----------
+    from_vec : np.array
+        vector representation before converts vector representation
+    from_basis : MatrixBasis
+        basis before converts vector representation
+    to_basis : MatrixBasis
+        basis after converts vector representation
+
+    Returns
+    -------
+    np.array
+        vector representation after converts vector representation
+        ``dtype`` is ``float64``
+    """
+    # whether length of from_basis equals length of to_basis
+    if len(from_basis) != len(to_basis):
+        raise ValueError(
+            f"length of from_basis must equal length of to_basis. length of from_basis={len(from_basis)}. length of to_basis is {len(to_basis)}"
+        )
+    len_basis = len(from_basis)
+
+    # whether dim of from_basis equals dim of to_basis
+    if from_basis.dim != to_basis.dim:
+        raise ValueError(
+            f"dim of from_basis must equal dim of to_basis. dim of from_basis={from_basis.dim}. dim of to_basis is {to_basis.dim}"
+        )
+
+    # "converted_vec"_{\alpha} = \sum_{\beta} Tr["to_basis"_{\beta}^{\dagger} "from_basis"_{\alpha}] "from_vec"_{\alpha}
+    representation_matrix = [
+        mutil.inner_product(val1, val2)
+        for val1, val2 in itertools.product(to_basis, from_basis)
+    ]
+    rep_mat = np.array(representation_matrix).reshape(len_basis, len_basis)
+    converted_vec = rep_mat @ from_vec
+
+    return converted_vec
