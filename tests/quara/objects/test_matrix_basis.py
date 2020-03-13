@@ -477,6 +477,25 @@ def test_convert_vec_raise_exception_invalid_length():
         # length of from_basis=5. length of to_basis is 4
         _ = matrix_basis.convert_vec(v, basis_1, basis_2)
 
+def test_convert_vec_raise_exception_invalid_dim():
+    # Arrange
+    m_1 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+    m_2 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
+    m_3 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
+    m_4 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+
+    source = [m_1, m_2, m_3,
+              m_4, m_4, m_4,
+              m_4, m_4, m_4]
+    basis_1 = MatrixBasis(source)  # len=9, dim=2
+    basis_2 = matrix_basis.get_gell_mann_basis()  # len=9, dim=3
+    v = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        # ValueError: dim of from_basis must equal dim of to_basis. dim of from_basis=2. dim of to_basis is 3
+        _ = matrix_basis.convert_vec(v, basis_1, basis_2)
+
 
 def test_convert_vec():
     # Arrange
