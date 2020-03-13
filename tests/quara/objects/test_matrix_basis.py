@@ -465,12 +465,14 @@ def test_convert_vec_raise_exception_invalid_length():
     m_2 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
     m_3 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
     m_4 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
-    m_5 = np.array([[0, 0], [0, 0]], dtype=np.complex128)
-    source = [m_1, m_2, m_3, m_4, m_5]
-    m_1 = MatrixBasis(source)
-    m_2 = matrix_basis.get_pauli_basis()
+
+    source = [m_1, m_2, m_3, m_4, m_4]
+    basis_1 = MatrixBasis(source)  # len = 5
+    basis_2 = matrix_basis.get_pauli_basis()  # len = 5
     v = np.array([1, 2, 3, 4])
 
     # Act & Assert
     with pytest.raises(ValueError):
-        _ = matrix_basis.convert_vec(v, m_1, m_2)
+        # ValueError: length of from_basis must equal length of to_basis.
+        # length of from_basis=5. length of to_basis is 4
+        _ = matrix_basis.convert_vec(v, basis_1, basis_2)
