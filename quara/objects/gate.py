@@ -336,7 +336,7 @@ def convert_hs(
 
     # U_{\alpha,\bata} := Tr[to_basis_{\alpha}^{\dagger} @ from_basis_{\beta}]
     trans_matrix = [
-        mutil.inner_product(B_alpha.reshape(1, -1)[0], B_beta.reshape(1, -1)[0])
+        mutil.inner_product(B_alpha.flatten(), B_beta.flatten())
         for B_alpha, B_beta in itertools.product(to_basis, from_basis)
     ]
     U = np.array(trans_matrix).reshape(from_basis.dim ** 2, from_basis.dim ** 2)
