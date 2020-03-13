@@ -46,24 +46,12 @@ def test_tensor_product_Gate_Gate():
     c_sys2 = CompositeSystem([e_sys2])
 
     hs1 = np.array(
-        [
-            [0, 1, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ],
-        dtype=np.float64
+        [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
     )
     gate1 = Gate(c_sys1, hs1)
 
     hs2 = np.array(
-        [
-            [1, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ],
-        dtype=np.float64
+        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
     )
     gate2 = Gate(c_sys2, hs2)
 
@@ -293,6 +281,7 @@ def test_composite_product_Gate_Gate():
     actual = composite(x_gate, x_gate, x_gate)
     expected = x_gate.hs
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
 
 def test_composite_product_Gate_State():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
