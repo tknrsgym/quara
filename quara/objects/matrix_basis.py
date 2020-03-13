@@ -122,6 +122,7 @@ class MatrixBasis(Basis):
         bool
             True where matrices are basis, False otherwise.
         """
+        # TODO: mat.reshape(1, -1)[0]よりmat.flattern()の方が意図が明確になる気がする
         row_list = [mat.reshape(1, -1)[0] for mat in self]
         rank = np.linalg.matrix_rank(row_list)
         return rank >= self.dim ** 2
