@@ -55,6 +55,7 @@ class MatrixBasis(Basis):
 
         self._dim = self[0].shape[0]
 
+        # Validate
         if not self._is_squares():
             raise ValueError("Invalid argument. There is a non-square matrix.")
 
