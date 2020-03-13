@@ -122,5 +122,5 @@ def inner_product(left: np.ndarray, right: np.ndarray) -> np.complex128:
         Hilbert-Schmidt inner product
     """
     # calculate <<left|right>>
-    i_product = np.inner(left.conj().reshape((1, -1))[0], right.reshape((1, -1))[0])
+    i_product = np.inner(left.conj().flatten(), right.flatten())
     return i_product
