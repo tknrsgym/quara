@@ -476,3 +476,17 @@ def test_convert_vec_raise_exception_invalid_length():
         # ValueError: length of from_basis must equal length of to_basis.
         # length of from_basis=5. length of to_basis is 4
         _ = matrix_basis.convert_vec(v, basis_1, basis_2)
+
+
+def test_convert_vec():
+    # Arrange
+    comp_basis = matrix_basis.get_comp_basis()
+    pauli_basis = matrix_basis.get_normalized_pauli_basis()
+    vec = np.array([1, 0, 0, 0], dtype=np.float64)
+
+    # Act
+    actual = matrix_basis.convert_vec(vec, comp_basis, pauli_basis)
+
+    # Assert
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128)
+    assert np.all(actual == expected)
