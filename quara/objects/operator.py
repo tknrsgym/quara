@@ -51,14 +51,14 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     # notice:
     #   HS(g1 \otimes g2) != HS(g1) \otimes HS(g2).
     #   so, we convert "entry of |HS(g1)>> \otimes |HS(g2)>>" to "entry |HS(g1 \otimes g2)>>".
-    # 
+    #
     # notations:
     #   let E1 be d1-dim square matrix and e_{m1, n1} be the matrix its (m1, n1) entry is 1, otherwise 0.
     #   let E2 be d2-dim square matrix and e_{m2, n2} be the matrix its (m2, n2) entry is 1, otherwise 0.
     #
     # method:
     # - (|e_{m1, n1}>> \otimes |e_{m2, n2}>>)_{d1*d2*(d1*m1+n1) + d2*m2+n2} = 1. other entry is 0.
-    # - on the other hand, 
+    # - on the other hand,
     #   e_{m1, n1} \otimes e_{m2, n2} = e_{d1*m1+m2, d1*n1+n2}.
     #   so, |e_{m1, n1} \otimes e_{m2, n2}>>_{d1+d2(d1*m1+m2) + d1*n1+n2} = 1. other entry is 0.
     # =>
@@ -68,17 +68,19 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     d1 = gate1.dim ** 2
     d2 = gate2.dim ** 2
 
-    # calculate |HS(g1)>> |HS(g2)>>
+    # calculate |HS(g1)>> \otimes |HS(g2)>>
     from_vec = np.kron(gate1.hs.flatten(), gate2.hs.flatten())
 
-    # convert |HS(g1)>> |HS(g2)>> to |HS(g1) \otimes |HS(g2)>>
+    # convert |HS(g1)>> \otimes |HS(g2)>> to |HS(g1 \otimes g2)>>
     vec_entries = []
     for m1 in range(d1):
         for m2 in range(d2):
             for n1 in range(d1):
                 for n2 in range(d2):
-                    vec_entries.append(from_vec[d1*d2*(d1*m1+n1) + d2*m2+n2])
-    to_hs = np.array(vec_entries).reshape((d1*d2, d1*d2))
+                    vec_entries.append(
+                        from_vec[d1 * d2 * (d1 * m1 + n1) + d2 * m2 + n2]
+                    )
+    to_hs = np.array(vec_entries).reshape((d1 * d2, d1 * d2))
     gate = Gate(c_sys, to_hs)
     return gate
 
