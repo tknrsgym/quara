@@ -24,6 +24,74 @@ from quara.objects.state import (
 )
 
 
+def test_tensor_product_Gate_Gate():
+    # case: HS(Z \otimes Z) on Pauli basis
+    # coincidentally HS(Z \otimes Z) = HS(Z) \otimes HS(Z)
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+
+    z1 = get_z(c_sys1)
+    z2 = get_z(c_sys2)
+
+    actual = tensor_product(z1, z2)
+    expected = np.kron(z1.hs, z2.hs)
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+    # case: HS(g1 \otimes g2) != HS(g1) \otimes HS(g2)
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+
+    hs1 = np.array(
+        [
+            [0, 1, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
+        dtype=np.float64
+    )
+    gate1 = Gate(c_sys1, hs1)
+
+    hs2 = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
+        dtype=np.float64
+    )
+    gate2 = Gate(c_sys2, hs2)
+
+    actual = tensor_product(gate1, gate2)
+
+    expected = np.array(
+        [
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+
 def test_tensor_product_MatrixBasis_MatrixBasis():
     # tensor_product of computational basis (multi arguments)
     comp1 = matrix_basis.get_comp_basis()
