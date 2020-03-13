@@ -40,14 +40,61 @@ def tensor_product(*elements) -> Union[MatrixBasis, State]:
     return temp
 
 
+def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
+    # create CompositeSystem
+    e_sys_list = list(gate1._composite_system._elemental_systems)
+    e_sys_list.extend(gate2._composite_system._elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
+
+    # How to calculate HS(g1 \otimes g2)
+    #
+    # notice:
+    #   HS(g1 \otimes g2) != HS(g1) \otimes HS(g2).
+    #   so, we convert "entry of |HS(g1)>> \otimes |HS(g2)>>" to "entry |HS(g1 \otimes g2)>>".
+    # 
+    # notations:
+    #   let E1 be d1-dim square matrix and e_{m1, n1} be the matrix its (m1, n1) entry is 1, otherwise 0.
+    #   let E2 be d2-dim square matrix and e_{m2, n2} be the matrix its (m2, n2) entry is 1, otherwise 0.
+    #
+    # method:
+    # - (|e_{m1, n1}>> \otimes |e_{m2, n2}>>)_{d1*d2*(d1*m1+n1) + d2*m2+n2} = 1. other entry is 0.
+    # - on the other hand, 
+    #   e_{m1, n1} \otimes e_{m2, n2} = e_{d1*m1+m2, d1*n1+n2}.
+    #   so, |e_{m1, n1} \otimes e_{m2, n2}>>_{d1+d2(d1*m1+m2) + d1*n1+n2} = 1. other entry is 0.
+    # =>
+    #   convert d1*d2*(d1*m1+n1) + d2*m2+n2 entry of |e_{m1, n1}>> \otimes  |e_{m2, n2}>>.
+    #   to d1*d2*(d1*m1+m2) + d1*n1+n2 entry of |e_{m1, n1} \otimes e_{m2, n2}>>
+
+    d1 = gate1.dim ** 2
+    d2 = gate2.dim ** 2
+
+    # calculate |HS(g1)>> |HS(g2)>>
+    from_vec = np.kron(gate1.hs.flatten(), gate2.hs.flatten())
+
+    # convert |HS(g1)>> |HS(g2)>> to |HS(g1) \otimes |HS(g2)>>
+    vec_entries = []
+    for m1 in range(d1):
+        for m2 in range(d2):
+            for n1 in range(d1):
+                for n2 in range(d2):
+                    vec_entries.append(from_vec[d1*d2*(d1*m1+n1) + d2*m2+n2])
+    to_hs = np.array(vec_entries).reshape((d1*d2, d1*d2))
+    gate = Gate(c_sys, to_hs)
+    return gate
+
+
 def _tensor_product(elem1, elem2):
     # implement tensor product calculation for each type
-    if type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
+    if type(elem1) == Gate and type(elem2) == Gate:
+        return _tensor_product_Gate_Gate(elem1, elem2)
+
+    elif type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         new_basis = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
         ]
         m_basis = MatrixBasis(new_basis)
         return m_basis
+
     elif type(elem1) == State and type(elem2) == State:
         # create CompositeSystem
         e_sys_list = list(elem1._composite_system._elemental_systems)
@@ -59,6 +106,7 @@ def _tensor_product(elem1, elem2):
         # create State
         tensor_state = State(c_sys, tensor_vec)
         return tensor_state
+
     else:
         raise ValueError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
