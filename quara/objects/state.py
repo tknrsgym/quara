@@ -1,10 +1,15 @@
+import itertools
 from typing import List
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis, get_normalized_pauli_basis, convert_vec
+from quara.objects.matrix_basis import (
+    MatrixBasis,
+    get_normalized_pauli_basis,
+    convert_vec,
+)
 import quara.utils.matrix_util as mutil
 
 
@@ -134,6 +139,7 @@ class State:
             self._vec, self._composite_system.basis(), other_basis
         )
         return converted_vec
+
 
 def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_0`` with normalized pauli basis.
