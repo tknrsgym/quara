@@ -313,4 +313,23 @@ def get_z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-# TODO 2qubit. \frac{1}{\sqrt{2}}(|00>+|11>)
+def get_epr_2q(c_sys: CompositeSystem) -> State:
+    # TODO implement
+    # \frac{1}{\sqrt{2}}(|00><00|+|11><11|) = \frac{1}{\sqrt{2}}( \frac{I}{\sqrt{2}} \otimes \frac{I}{\sqrt{2}} + \frac{Z}{\sqrt{2}} \otimes \frac{Z}{\sqrt{2}} )
+    # so, \frac{1}{\sqrt{2}}(|00><00|+|11><11|) = \frac{1}{\sqrt{2}} [1, 0,..., 0, 1]^T (basis is tensors of normalized Pauli)
+
+    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
+    from_vec = np.array(
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] / np.sqrt(2), dtype=np.float64
+    )
+
+    new_basis = [
+        np.kron(val1, val2)
+        for val1, val2 in itertools.product(
+            get_normalized_pauli_basis(), get_normalized_pauli_basis()
+        )
+    ]
+    from_basis = MatrixBasis(new_basis)
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
+    state = State(c_sys, to_vec.real.astype(np.float64))
+    return state
