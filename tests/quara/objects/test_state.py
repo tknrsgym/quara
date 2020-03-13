@@ -12,7 +12,8 @@ from quara.objects.state import (
     get_y0_1q_with_normalized_pauli_basis,
     get_y1_1q_with_normalized_pauli_basis,
     get_z0_1q_with_normalized_pauli_basis,
-    get_z1_1q_with_normalized_pauli_basis
+    get_z1_1q_with_normalized_pauli_basis,
+    get_epr_2q,
 )
 import numpy.testing as npt
 import pytest
@@ -324,6 +325,7 @@ def test_get_z0_1q_with_normalized_pauli_basis():
     expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
+
 def test_get_z1_1q_with_normalized_pauli_basis():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
@@ -331,5 +333,20 @@ def test_get_z1_1q_with_normalized_pauli_basis():
     actual = state.get_density_matrix()
     expected = np.array([[0, 0], [0, 1]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_get_epr_2q():
+    # TODO tesst variable case
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    state = get_epr_2q(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array(
+        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]] / np.sqrt(2),
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 # TODO implement test of convert_vec
