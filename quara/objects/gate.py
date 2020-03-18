@@ -27,9 +27,7 @@ class Gate:
         # whether dim of HS is square number
         self._dim: int = int(np.sqrt(size[0]))
         if self._dim ** 2 != size[0]:
-            raise ValueError(
-                f"dim of HS must be square number. dim of HS is {size[0]}"
-            )
+            raise ValueError(f"dim of HS must be square number. dim of HS is {size[0]}")
 
         # whether dtype=np.float64
         if self._hs.dtype != np.float64:
@@ -184,15 +182,25 @@ class Gate:
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
         choi = self.calc_choi_matrix()
         eigen_vals, eigen_vecs = np.linalg.eig(choi)
-        eigens = [(eigen_vals[index], eigen_vecs[:,index]) for index in range(len(eigen_vals))]
+        eigens = [
+            (eigen_vals[index], eigen_vecs[:, index])
+            for index in range(len(eigen_vals))
+        ]
         # filter positive eigen values
-        eigens = [(eigen_val, eigen_vec) for (eigen_val, eigen_vec) in eigens if eigen_val > 0 and not np.isclose(eigen_val, 0, atol=1e-14)]
+        eigens = [
+            (eigen_val, eigen_vec)
+            for (eigen_val, eigen_vec) in eigens
+            if eigen_val > 0 and not np.isclose(eigen_val, 0, atol=1e-14)
+        ]
         # sort large eigenvalue order
         eigens = sorted(eigens, key=lambda x: x[0], reverse=True)
 
         # step2. calc Kraus representaion.
         #   K_{\alpha} = \sqrt{c_{\alpha}} unvec(|c_{\alpha}>)
-        kraus = [np.sqrt(eigen_val) * eigen_vec.reshape((2, 2)) for (eigen_val, eigen_vec) in eigens]
+        kraus = [
+            np.sqrt(eigen_val) * eigen_vec.reshape((2, 2))
+            for (eigen_val, eigen_vec) in eigens
+        ]
 
         return kraus
 
@@ -208,7 +216,7 @@ class Gate:
         hs_comp = self.convert_to_comp_basis()
         comp_basis = get_comp_basis()
         process_matrix = [
-            np.trace(np.kron(B_alpha.conj().T , B_beta.T) @ hs_comp)
+            np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
             for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
         ]
         return np.array(process_matrix).reshape((4, 4))
@@ -271,7 +279,7 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
     # let trace = Tr[HS(u)^{\dagger}HS(g)]
     # AGF = 1-\frac{d^2-trace}{d(d+1)}
     d = u.dim
-    trace = mutil.inner_product(u.hs, g.hs)
+    trace = np.vdot(u.hs, g.hs)
     agf = 1 - (d ** 2 - trace) / (d * (d + 1))
     return agf
 
@@ -316,9 +324,7 @@ def convert_hs(
     # whether dim of HS is square number
     dim: int = int(np.sqrt(size[0]))
     if dim ** 2 != size[0]:
-        raise ValueError(
-            f"dim of HS must be square number. dim of HS is {size[0]}"
-        )
+        raise ValueError(f"dim of HS must be square number. dim of HS is {size[0]}")
 
     # whether dim of from_basis equals dim of to_basis
     if from_basis.dim != to_basis.dim:
@@ -336,7 +342,7 @@ def convert_hs(
 
     # U_{\alpha,\bata} := Tr[to_basis_{\alpha}^{\dagger} @ from_basis_{\beta}]
     trans_matrix = [
-        mutil.inner_product(B_alpha.flatten(), B_beta.flatten())
+        np.vdot(B_alpha, B_beta)
         for B_alpha, B_beta in itertools.product(to_basis, from_basis)
     ]
     U = np.array(trans_matrix).reshape(from_basis.dim ** 2, from_basis.dim ** 2)
