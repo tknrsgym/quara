@@ -569,3 +569,41 @@ def get_t(c_sys: CompositeSystem) -> Gate:
     )
     gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
     return gate
+
+
+def get_cnot(c_sys: CompositeSystem) -> Gate:
+    # TODO implement
+    comp_basis_1q = get_comp_basis()
+    new_basis = [
+        np.kron(val1, val2)
+        for val1, val2 in itertools.product(comp_basis_1q, comp_basis_1q)
+    ]
+    comp_basis_2q = MatrixBasis(new_basis)
+
+    hs_comp_basis = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        ],
+        dtype=np.float64,
+    )
+
+    hs_for_c_sys = convert_hs(hs_comp_basis, comp_basis_2q, c_sys.basis()).real.astype(
+        np.float64
+    )
+    gate = Gate(c_sys, hs_for_c_sys)
+    return gate
