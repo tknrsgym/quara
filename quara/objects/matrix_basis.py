@@ -137,7 +137,7 @@ class MatrixBasis(Basis):
         """
         for index, left in enumerate(self.basis[:-1]):
             for right in self.basis[index + 1 :]:
-                i_product = mutil.inner_product(left, right)
+                i_product = np.vdot(left, right)
                 if not np.isclose(i_product, 0):
                     return False
         return True
@@ -151,7 +151,7 @@ class MatrixBasis(Basis):
             True where matrices are normalized, False otherwise.
         """
         for mat in self:
-            i_product = mutil.inner_product(mat, mat)
+            i_product = np.vdot(mat, mat)
             if not np.isclose(i_product, 1):
                 return False
         return True
@@ -445,8 +445,7 @@ def convert_vec(
 
     # "converted_vec"_{\alpha} = \sum_{\beta} Tr["to_basis"_{\beta}^{\dagger} "from_basis"_{\alpha}] "from_vec"_{\alpha}
     representation_matrix = [
-        mutil.inner_product(val1, val2)
-        for val1, val2 in itertools.product(to_basis, from_basis)
+        np.vdot(val1, val2) for val1, val2 in itertools.product(to_basis, from_basis)
     ]
     rep_mat = np.array(representation_matrix).reshape(len_basis, len_basis)
     converted_vec = rep_mat @ from_vec
