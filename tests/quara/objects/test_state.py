@@ -13,7 +13,7 @@ from quara.objects.state import (
     get_y1_1q,
     get_z0_1q,
     get_z1_1q,
-    get_epr_2q,
+    get_bell_2q,
 )
 import numpy.testing as npt
 import pytest
@@ -38,6 +38,91 @@ def test_init_error():
     # dim of CompositeSystem does not equal dim of vec
     with pytest.raises(ValueError):
         State(c_sys, np.array([1], dtype=np.float64))
+
+
+def test_access_vec():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_x0_1q(c_sys)
+    actual = state.vec
+    expected = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that "vec" cannot be updated
+    with pytest.raises(AttributeError):
+        state.vec = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)  # New vec
+
+
+def test_access_dim():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_x0_1q(c_sys)
+    assert state.dim == 2
+
+    # Test that "vec" cannot be updated
+    with pytest.raises(AttributeError):
+        state.dim = 2  # New dim
+
+
+def test_get_density_matrix():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_is_trace_one():
+    # case: True
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = State(c_sys, np.array([1, 0, 0, 0], dtype=np.float64))
+    assert state.is_trace_one() == True
+
+    # case: False
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+    assert state.is_trace_one() == False
+
+
+def test_is_hermitian():
+    # case: True
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+    assert state.is_hermitian() == True
+
+    # case: False
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = State(c_sys, np.array([0, 1, 0, 0], dtype=np.float64))
+    assert state.is_hermitian() == False
+
+
+def test_is_positive_semidefinite():
+    # case: True
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+    assert state.is_positive_semidefinite() == True
+
+    # case: False
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = State(c_sys, np.array([-1, 0, 0, 0], dtype=np.float64))
+    assert state.is_positive_semidefinite() == False
+
+
+def test_calc_eigenvalues():
+    # TODO implement
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+    actual = state.calc_eigenvalues()
+    expected = np.array([1, 0], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_comp_basis():
@@ -216,7 +301,6 @@ def test_normalized_pauli_basis():
 
 
 def test_convert_basis_form_comp_to_pauli():
-    comp_basis = matrix_basis.get_comp_basis()
     pauli_basis = matrix_basis.get_normalized_pauli_basis()
 
     # CompositeSystem of comp basis
@@ -250,7 +334,6 @@ def test_convert_basis_form_comp_to_pauli():
 
 def test_convert_basis_form_pauli_to_comp():
     comp_basis = matrix_basis.get_comp_basis()
-    pauli_basis = matrix_basis.get_normalized_pauli_basis()
 
     # CompositeSystem of Pauli basis
     e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
@@ -335,12 +418,12 @@ def test_get_z1_1q():
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_epr_2q():
-    # TODO tesst variable case
+def test_get_bell_2q():
+    # test for Pauli basis
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
-    state = get_epr_2q(c_sys)
+    state = get_bell_2q(c_sys)
     actual = state.get_density_matrix()
     expected = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]] / np.sqrt(2),
@@ -348,5 +431,14 @@ def test_get_epr_2q():
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-
-# TODO implement test of convert_vec
+    # test for comp basis
+    e_sys2 = ElementalSystem(2, matrix_basis.get_comp_basis())
+    e_sys3 = ElementalSystem(3, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys2, e_sys3])
+    state = get_bell_2q(c_sys)
+    actual = state.get_density_matrix()
+    expected = np.array(
+        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]] / np.sqrt(2),
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
