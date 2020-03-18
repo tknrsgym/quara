@@ -31,15 +31,10 @@ Welcome to Quara's documentation!
 
    ./limitations
 
-API Reference
-=============
+.. toctree::
+   :caption: API Reference
 
-.. autosummary::
-
-   quara.objects
-   quara.engine
-   quara.protocol
-   quara.utils
+   api_reference.rst
 
 .. toctree::
    :caption: Contributing
