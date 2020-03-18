@@ -17,10 +17,10 @@ from quara.objects.gate import (
 from quara.objects.operator import composite, tensor_product
 from quara.objects.state import (
     State,
-    get_x0_1q_with_normalized_pauli_basis,
-    get_x1_1q_with_normalized_pauli_basis,
-    get_z0_1q_with_normalized_pauli_basis,
-    get_z1_1q_with_normalized_pauli_basis,
+    get_x0_1q,
+    get_x1_1q,
+    get_z0_1q,
+    get_z1_1q,
 )
 
 
@@ -291,44 +291,44 @@ def test_composite_product_Gate_State():
     s_gate = get_s(c_sys)
 
     # case: Z gate \circ x0 state. Z|+><+|Z^{\dagger} = |-><-|
-    state = get_x0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_x0_1q(c_sys)
     actual = composite(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.complex128)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: Z gate \circ x1 state. Z|-><-|Z^{\dagger} = |+><+|
-    state = get_x1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_x1_1q(c_sys)
     actual = composite(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: Z gate \circ z0 state. Z|0><0|Z^{\dagger} = |0><0|
-    state = get_z0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z0_1q(c_sys)
     actual = composite(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: Z gate \circ z1 state. Z|1><1|Z^{\dagger} = |1><1|
-    state = get_z1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z1_1q(c_sys)
     actual = composite(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: S gate \circ S gate \circ z0 state. SS|0><0|S^{\dagger}S^{\dagger} = |0><0|
     # S = root(Z), hense SS = Z
-    state = get_z0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z0_1q(c_sys)
     actual = composite(s_gate, s_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: H gate \circ z0 state. H|0><0|H^{\dagger} = 1/2(I+X)
-    state = get_z0_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z0_1q(c_sys)
     actual = composite(h_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: H gate \circ z1 state. H|1><1|H^{\dagger} = 1/2(I-X)
-    state = get_z1_1q_with_normalized_pauli_basis(c_sys)
+    state = get_z1_1q(c_sys)
     actual = composite(h_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)

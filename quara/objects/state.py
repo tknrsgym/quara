@@ -141,8 +141,8 @@ class State:
         return converted_vec
 
 
-def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
-    """returns vec of state ``X_0`` with normalized pauli basis.
+def get_x0_1q(c_sys: CompositeSystem) -> np.array:
+    """returns vec of state ``X_0`` with the basis of ``c_sys``.
 
     Parameters
     ----------
@@ -154,7 +154,7 @@ def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
-    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
+    # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
@@ -162,8 +162,8 @@ def get_x0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_x1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
-    """returns vec of state ``X_1`` with normalized pauli basis.
+def get_x1_1q(c_sys: CompositeSystem) -> np.array:
+    """returns vec of state ``X_1`` with the basis of ``c_sys``.
 
     Parameters
     ----------
@@ -175,7 +175,7 @@ def get_x1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
-    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
+    # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
@@ -183,8 +183,8 @@ def get_x1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
-    """returns vec of state ``Y_0`` with normalized pauli basis.
+def get_y0_1q(c_sys: CompositeSystem) -> np.array:
+    """returns vec of state ``Y_0`` with the basis of ``c_sys``.
 
     Parameters
     ----------
@@ -196,7 +196,7 @@ def get_y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
-    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
+    # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
@@ -204,8 +204,8 @@ def get_y0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
-    """returns vec of state ``Y_1`` with normalized pauli basis.
+def get_y1_1q(c_sys: CompositeSystem) -> np.array:
+    """returns vec of state ``Y_1`` with the basis of ``c_sys``.
 
     Parameters
     ----------
@@ -217,7 +217,7 @@ def get_y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
-    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
+    # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
@@ -225,8 +225,8 @@ def get_y1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
-    """returns vec of state ``Z_0`` with normalized pauli basis.
+def get_z0_1q(c_sys: CompositeSystem) -> np.array:
+    """returns vec of state ``Z_0`` with the basis of ``c_sys``.
 
     Parameters
     ----------
@@ -238,7 +238,7 @@ def get_z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
-    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
+    # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
@@ -246,8 +246,8 @@ def get_z0_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
-    """returns vec of state ``Z_1`` with normalized pauli basis.
+def get_z1_1q(c_sys: CompositeSystem) -> np.array:
+    """returns vec of state ``Z_1`` with the basis of ``c_sys``.
 
     Parameters
     ----------
@@ -259,7 +259,7 @@ def get_z1_1q_with_normalized_pauli_basis(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state
     """
-    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
+    # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
