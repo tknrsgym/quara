@@ -267,8 +267,19 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_epr_2q(c_sys: CompositeSystem) -> State:
-    # TODO implement
+def get_bell_2q(c_sys: CompositeSystem) -> State:
+    """returns vec of Bell state, \frac{1}{\sqrt{2}}(|00><00|+|11><11|), with the basis of ``c_sys``.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing state
+    
+    Returns
+    -------
+    State
+        vec of state
+    """
     # \frac{1}{\sqrt{2}}(|00><00|+|11><11|) = \frac{1}{\sqrt{2}}( \frac{I}{\sqrt{2}} \otimes \frac{I}{\sqrt{2}} + \frac{Z}{\sqrt{2}} \otimes \frac{Z}{\sqrt{2}} )
     # so, \frac{1}{\sqrt{2}}(|00><00|+|11><11|) = \frac{1}{\sqrt{2}} [1, 0,..., 0, 1]^T (basis is tensors of normalized Pauli)
 
