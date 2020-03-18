@@ -20,7 +20,10 @@ from quara.objects.gate import (
     get_s,
     get_sdg,
     get_t,
+    get_cnot,
 )
+from quara.objects.operator import composite, tensor_product
+from quara.objects.state import get_z0_1q, get_z1_1q
 
 
 def test_access_dim():
@@ -315,15 +318,17 @@ def test_calc_agf():
     actual = calc_agf(i, i)
     expected = 1
     assert np.isclose(actual, expected, atol=1e-15)
- 
+
     # case: g is not u
     actual = calc_agf(z, x)
-    expected = 1.0/3.0
+    expected = 1.0 / 3.0
     print(actual)
     assert np.isclose(actual, expected, atol=1e-15)
 
     # case: u is not Hermitian
-    hs = np.array([[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64)
+    hs = np.array(
+        [[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
+    )
     gate = Gate(c_sys, hs)
     with pytest.raises(ValueError):
         calc_agf(z.hs, gate)
@@ -445,3 +450,24 @@ def test_get_t():
     s = get_s(c_sys)
     t = get_t(c_sys)
     npt.assert_almost_equal(t.hs @ t.hs, s.hs, decimal=15)
+
+
+def test_get_cnot():
+    # TODO implement
+    e_sys0 = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys0 = CompositeSystem([e_sys0])
+    e_sys1 = ElementalSystem(1, matrix_basis.get_comp_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+
+    c_sys01 = CompositeSystem([e_sys0, e_sys1])
+    gate = get_cnot(c_sys01)
+
+    z0_c_sys0 = get_z1_1q(c_sys0)
+    z0_c_sys1 = get_z0_1q(c_sys1)
+    z0_z0 = tensor_product(z0_c_sys0, z0_c_sys1)
+    # print(z0_z0.get_density_matrix())
+
+    # state = composite(gate, z0_z0)
+    # print(state.get_density_matrix())
+    # assert False
+
