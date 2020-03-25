@@ -708,7 +708,7 @@ def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
     Raises
     ------
     ValueError
-        CompositeSystem is not 2quit
+        CompositeSystem is not 2quits
     """
     # whether CompositeSystem is 2 qubits
     size = len(c_sys._elemental_systems)
@@ -788,8 +788,17 @@ def get_cz(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         CZ gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quits
     """
-    # TODO check dim
+    # whether CompositeSystem is 2 qubits
+    size = len(c_sys._elemental_systems)
+    if size != 2:
+        raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
+
     comp_basis_1q = get_comp_basis()
     new_basis = [
         np.kron(val1, val2)
@@ -814,6 +823,65 @@ def get_cz(c_sys: CompositeSystem) -> Gate:
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        ],
+        dtype=np.float64,
+    )
+
+    hs_for_c_sys = convert_hs(hs_comp_basis, comp_basis_2q, c_sys.basis()).real.astype(
+        np.float64
+    )
+    gate = Gate(c_sys, hs_for_c_sys)
+    return gate
+
+
+def get_swap(c_sys: CompositeSystem) -> Gate:
+    """returns SWAP gate.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate
+    
+    Returns
+    -------
+    Gate
+        SWAP gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quits
+    """
+    # whether CompositeSystem is 2 qubits
+    size = len(c_sys._elemental_systems)
+    if size != 2:
+        raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
+
+    comp_basis_1q = get_comp_basis()
+    new_basis = [
+        np.kron(val1, val2)
+        for val1, val2 in itertools.product(comp_basis_1q, comp_basis_1q)
+    ]
+    comp_basis_2q = MatrixBasis(new_basis)
+
+    hs_comp_basis = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         ],
         dtype=np.float64,

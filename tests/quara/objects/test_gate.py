@@ -22,6 +22,7 @@ from quara.objects.gate import (
     get_t,
     get_cnot,
     get_cz,
+    get_swap,
 )
 from quara.objects.operator import composite, tensor_product
 from quara.objects.state import (
@@ -667,3 +668,50 @@ def test_get_cz():
     # |-i,-i> -> |-i,i>
     state = composite(gate, y1_y1)
     assert np.all(state.get_density_matrix() == y1_y0.get_density_matrix())
+
+    # Test that not 2qubits ElementalSystem
+    with pytest.raises(ValueError):
+        get_cnot(c_sys0, e_sys0)
+
+
+def test_get_swap():
+    # prepare gate
+    e_sys0 = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys0 = CompositeSystem([e_sys0])
+    e_sys1 = ElementalSystem(1, matrix_basis.get_comp_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+
+    c_sys01 = CompositeSystem([e_sys0, e_sys1])
+
+    # prepare states
+    z0_c_sys0 = get_z0_1q(c_sys0)
+    z1_c_sys0 = get_z1_1q(c_sys0)
+    z0_c_sys1 = get_z0_1q(c_sys1)
+    z1_c_sys1 = get_z1_1q(c_sys1)
+    z0_z0 = tensor_product(z0_c_sys0, z0_c_sys1)
+    z0_z1 = tensor_product(z0_c_sys0, z1_c_sys1)
+    z1_z0 = tensor_product(z1_c_sys0, z0_c_sys1)
+    z1_z1 = tensor_product(z1_c_sys0, z1_c_sys1)
+
+    ### gete
+    gate = get_swap(c_sys01)
+
+    # |00> -> |00>
+    state = composite(gate, z0_z0)
+    assert np.all(state.get_density_matrix() == z0_z0.get_density_matrix())
+
+    # |01> -> |10>
+    state = composite(gate, z0_z1)
+    assert np.all(state.get_density_matrix() == z1_z0.get_density_matrix())
+
+    # |10> -> |01>
+    state = composite(gate, z1_z0)
+    assert np.all(state.get_density_matrix() == z0_z1.get_density_matrix())
+
+    # |11> -> |11>
+    state = composite(gate, z1_z1)
+    assert np.all(state.get_density_matrix() == z1_z1.get_density_matrix())
+
+    # Test that not 2qubits ElementalSystem
+    with pytest.raises(ValueError):
+        get_cnot(c_sys0, e_sys0)
