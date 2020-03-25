@@ -6,6 +6,7 @@ from typing import List
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.composite_system import ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
     get_comp_basis,
@@ -378,6 +379,7 @@ def get_i(c_sys: CompositeSystem) -> Gate:
     Gate
         identity gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -398,6 +400,7 @@ def get_x(c_sys: CompositeSystem) -> Gate:
     Gate
         Pauli X gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
@@ -418,6 +421,7 @@ def get_y(c_sys: CompositeSystem) -> Gate:
     Gate
         Pauli Y gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
@@ -438,6 +442,7 @@ def get_z(c_sys: CompositeSystem) -> Gate:
     Gate
         Pauli Z gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -458,6 +463,7 @@ def get_h(c_sys: CompositeSystem) -> Gate:
     Gate
         H gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, -1, 0], [0, 1, 0, 0]], dtype=np.float64
     )
@@ -478,6 +484,7 @@ def get_root_x(c_sys: CompositeSystem) -> Gate:
     Gate
         root of X gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]], dtype=np.float64
     )
@@ -498,6 +505,7 @@ def get_root_y(c_sys: CompositeSystem) -> Gate:
     Gate
         root of Y gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, -1, 0, 0]], dtype=np.float64
     )
@@ -518,6 +526,7 @@ def get_s(c_sys: CompositeSystem) -> Gate:
     Gate
         S gate(root of Z)
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -538,6 +547,7 @@ def get_sdg(c_sys: CompositeSystem) -> Gate:
     Gate
         dagger of S gate
     """
+    # TODO check dim
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -558,6 +568,7 @@ def get_t(c_sys: CompositeSystem) -> Gate:
     Gate
         T gate
     """
+    # TODO check dim
     matrix = np.array(
         [
             [1, 0, 0, 0],
@@ -571,8 +582,106 @@ def get_t(c_sys: CompositeSystem) -> Gate:
     return gate
 
 
-def get_cnot(c_sys: CompositeSystem) -> Gate:
-    # TODO implement
+def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
+    """returns CNOT gate.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate
+    control : ElementalSystem
+        ElementalSystem of control qubit
+    
+    Returns
+    -------
+    Gate
+        CNOT gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit
+    """
+    # whether "CompositeSystem is 2 qubits
+    size = len(c_sys._elemental_systems)
+    if size != 2:
+        raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
+
+    comp_basis_1q = get_comp_basis()
+    new_basis = [
+        np.kron(val1, val2)
+        for val1, val2 in itertools.product(comp_basis_1q, comp_basis_1q)
+    ]
+    comp_basis_2q = MatrixBasis(new_basis)
+
+    if control == c_sys.elemental_systems[0]:
+        # control bit is 1st qubit
+        hs_comp_basis = np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            ],
+            dtype=np.float64,
+        )
+    else:
+        # control bit is 2nd qubit
+        hs_comp_basis = np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            dtype=np.float64,
+        )
+
+    hs_for_c_sys = convert_hs(hs_comp_basis, comp_basis_2q, c_sys.basis()).real.astype(
+        np.float64
+    )
+    gate = Gate(c_sys, hs_for_c_sys)
+    return gate
+
+
+def get_cz(c_sys: CompositeSystem) -> Gate:
+    """returns CZ gate.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate
+    
+    Returns
+    -------
+    Gate
+        CZ gate
+    """
+    # TODO check dim
     comp_basis_1q = get_comp_basis()
     new_basis = [
         np.kron(val1, val2)
@@ -586,18 +695,18 @@ def get_cnot(c_sys: CompositeSystem) -> Gate:
             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         ],
         dtype=np.float64,
     )

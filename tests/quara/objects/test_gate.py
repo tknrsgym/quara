@@ -21,9 +21,15 @@ from quara.objects.gate import (
     get_sdg,
     get_t,
     get_cnot,
+    get_cz,
 )
 from quara.objects.operator import composite, tensor_product
-from quara.objects.state import get_z0_1q, get_z1_1q
+from quara.objects.state import (
+    get_y0_1q,
+    get_y1_1q,
+    get_z0_1q,
+    get_z1_1q,
+)
 
 
 def test_access_dim():
@@ -207,7 +213,6 @@ def calc_sum_of_kraus(kraus):
     # calc \sum_{\alpha} K__{\alpha} K_{\alpha}^{\dagger}
     sum = np.zeros(kraus[0].shape, dtype=np.complex128)
     for matrix in kraus:
-        print(matrix)
         sum += matrix @ matrix.conj().T
     return sum
 
@@ -297,7 +302,6 @@ def test_calc_process_matrix():
 
     # for Y
     actual = y.calc_process_matrix()
-    print(actual)
     expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -322,7 +326,6 @@ def test_calc_agf():
     # case: g is not u
     actual = calc_agf(z, x)
     expected = 1.0 / 3.0
-    print(actual)
     assert np.isclose(actual, expected, atol=1e-15)
 
     # case: u is not Hermitian
@@ -453,21 +456,101 @@ def test_get_t():
 
 
 def test_get_cnot():
-    # TODO implement
+    # prepare gate
     e_sys0 = ElementalSystem(0, matrix_basis.get_comp_basis())
     c_sys0 = CompositeSystem([e_sys0])
     e_sys1 = ElementalSystem(1, matrix_basis.get_comp_basis())
     c_sys1 = CompositeSystem([e_sys1])
 
     c_sys01 = CompositeSystem([e_sys0, e_sys1])
-    gate = get_cnot(c_sys01)
 
-    z0_c_sys0 = get_z1_1q(c_sys0)
+    # prepare states
+    z0_c_sys0 = get_z0_1q(c_sys0)
+    z1_c_sys0 = get_z1_1q(c_sys0)
     z0_c_sys1 = get_z0_1q(c_sys1)
+    z1_c_sys1 = get_z1_1q(c_sys1)
     z0_z0 = tensor_product(z0_c_sys0, z0_c_sys1)
-    # print(z0_z0.get_density_matrix())
+    z0_z1 = tensor_product(z0_c_sys0, z1_c_sys1)
+    z1_z0 = tensor_product(z1_c_sys0, z0_c_sys1)
+    z1_z1 = tensor_product(z1_c_sys0, z1_c_sys1)
 
-    # state = composite(gate, z0_z0)
-    # print(state.get_density_matrix())
-    # assert False
+    ### gete: control bit is 1st qubit
+    gate = get_cnot(c_sys01, e_sys0)
 
+    # |00> -> |00>
+    state = composite(gate, z0_z0)
+    assert np.all(state.get_density_matrix() == z0_z0.get_density_matrix())
+
+    # |01> -> |01>
+    state = composite(gate, z0_z1)
+    assert np.all(state.get_density_matrix() == z0_z1.get_density_matrix())
+
+    # |10> -> |11>
+    state = composite(gate, z1_z0)
+    assert np.all(state.get_density_matrix() == z1_z1.get_density_matrix())
+
+    # |11> -> |10>
+    state = composite(gate, z1_z1)
+    assert np.all(state.get_density_matrix() == z1_z0.get_density_matrix())
+
+    ### gete: control bit is 2st qubit
+    gate = get_cnot(c_sys01, e_sys1)
+
+    # |00> -> |00>
+    state = composite(gate, z0_z0)
+    assert np.all(state.get_density_matrix() == z0_z0.get_density_matrix())
+
+    # |01> -> |11>
+    state = composite(gate, z0_z1)
+    assert np.all(state.get_density_matrix() == z1_z1.get_density_matrix())
+
+    # |10> -> |10>
+    state = composite(gate, z1_z0)
+    assert np.all(state.get_density_matrix() == z1_z0.get_density_matrix())
+
+    # |11> -> |01>
+    state = composite(gate, z1_z1)
+    assert np.all(state.get_density_matrix() == z0_z1.get_density_matrix())
+
+    # Test that not 2qubit ElementalSystem
+    with pytest.raises(ValueError):
+        get_cnot(c_sys0, e_sys0)
+
+
+def test_get_cz():
+    # prepare gate
+    e_sys0 = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys0 = CompositeSystem([e_sys0])
+    e_sys1 = ElementalSystem(1, matrix_basis.get_comp_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+
+    c_sys01 = CompositeSystem([e_sys0, e_sys1])
+
+    # prepare states
+    y0_c_sys0 = get_y0_1q(c_sys0)
+    y1_c_sys0 = get_y1_1q(c_sys0)
+    y0_c_sys1 = get_y0_1q(c_sys1)
+    y1_c_sys1 = get_y1_1q(c_sys1)
+    y0_y0 = tensor_product(y0_c_sys0, y0_c_sys1)
+    y0_y1 = tensor_product(y0_c_sys0, y1_c_sys1)
+    y1_y0 = tensor_product(y1_c_sys0, y0_c_sys1)
+    y1_y1 = tensor_product(y1_c_sys0, y1_c_sys1)
+
+    ### gete
+    gate = get_cz(c_sys01)
+
+    # |i,i> -> |i,i>
+    state = composite(gate, y0_y0)
+    assert np.all(state.get_density_matrix() == y0_y0.get_density_matrix())
+
+    # |i,-i> -> |i,-i>
+    state = composite(gate, y0_y1)
+    assert np.all(state.get_density_matrix() == y0_y1.get_density_matrix())
+
+    # |-i,i> -> |-i,-i>
+    state = composite(gate, y1_y0)
+    assert np.all(state.get_density_matrix() == y1_y1.get_density_matrix())
+
+    # |-i,-i> -> |-i,i>
+    state = composite(gate, y1_y1)
+    assert np.all(state.get_density_matrix() == y1_y0.get_density_matrix())
