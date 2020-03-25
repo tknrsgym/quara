@@ -110,7 +110,7 @@ class Povm:
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         converted_vecs = []
         for vec in self._vecs:
-            converted_vecs = convert_vec(
-                vec, self._composite_system.basis(), other_basis
+            converted_vecs.append(
+                convert_vec(vec, self._composite_system.basis(), other_basis)
             )
         return converted_vecs
