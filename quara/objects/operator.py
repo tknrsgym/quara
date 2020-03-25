@@ -10,11 +10,12 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.state import State
 
 
-def tensor_product(*elements) -> Union[MatrixBasis, State]:
+def tensor_product(*elements) -> Union[Gate, MatrixBasis, State]:
     """calculates tensor product of ``elements``.
 
     this function can calculate tensor product of the following combinations of types:
 
+    - (Gate, Gate)
     - (MatrixBasis, MatrixBasis)
     - (State, State)
     - list conststs of these combinations
@@ -50,7 +51,7 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     #
     # notice:
     #   HS(g1 \otimes g2) != HS(g1) \otimes HS(g2).
-    #   so, we convert "entry of |HS(g1)>> \otimes |HS(g2)>>" to "entry |HS(g1 \otimes g2)>>".
+    #   so, we convert "entries of |HS(g1)>> \otimes |HS(g2)>>" to "entries of |HS(g1 \otimes g2)>>".
     #
     # notations:
     #   let E1 be d1-dim square matrix and e_{m1, n1} be the matrix its (m1, n1) entry is 1, otherwise 0.
@@ -115,7 +116,25 @@ def _tensor_product(elem1, elem2):
         )
 
 
-def composite(*elements):
+def composite(*elements) -> Union[Gate, State]:
+    """calculates composite of ``elements``.
+
+    this function can calculate composite of the following combinations of types:
+
+    - (Gate, Gate)
+    - (Gate, State)
+    - list conststs of these combinations
+
+    Returns
+    -------
+    Union[Gate, State]
+        composite of ``elements``
+
+    Raises
+    ------
+    ValueError
+        Unsupported type combination.
+    """
     # convert argument to list
     element_list = _to_list(*elements)
 
