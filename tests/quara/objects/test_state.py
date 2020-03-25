@@ -419,16 +419,20 @@ def test_get_z1_1q():
 
 
 def test_get_bell_2q():
+    expected = (
+        np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]],
+            dtype=np.complex128,
+        )
+        / 2
+    )
+
     # test for Pauli basis
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     state = get_bell_2q(c_sys)
     actual = state.get_density_matrix()
-    expected = np.array(
-        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]] / np.sqrt(2),
-        dtype=np.complex128,
-    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # test for comp basis
@@ -437,8 +441,4 @@ def test_get_bell_2q():
     c_sys = CompositeSystem([e_sys2, e_sys3])
     state = get_bell_2q(c_sys)
     actual = state.get_density_matrix()
-    expected = np.array(
-        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]] / np.sqrt(2),
-        dtype=np.complex128,
-    )
     npt.assert_almost_equal(actual, expected, decimal=15)

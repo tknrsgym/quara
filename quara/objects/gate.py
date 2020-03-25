@@ -17,26 +17,44 @@ import quara.utils.matrix_util as mutil
 
 class Gate:
     def __init__(self, c_sys: CompositeSystem, hs: np.ndarray):
+        """Constructor
+        
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of gate.
+        hs : np.ndarray
+            HS representation of gate.
+        
+        Raises
+        ------
+        ValueError
+            HS representation is not square matrix.
+        ValueError
+            dim of HS representation is not square number.
+        ValueError
+            HS representation is not real matrix.
+        ValueError
+            dim of HS representation does not equal dim of CompositeSystem.
+        """
         self._composite_system: CompositeSystem = c_sys
         self._hs: np.ndarray = hs
 
-        # whether HS is square matrix
+        # whether HS representation is square matrix
         size = self._hs.shape
         if size[0] != size[1]:
             raise ValueError(f"HS must be square matrix. size of HS is {size}")
 
-        # whether dim of HS is square number
+        # whether dim of HS representation is square number
         self._dim: int = int(np.sqrt(size[0]))
         if self._dim ** 2 != size[0]:
             raise ValueError(f"dim of HS must be square number. dim of HS is {size[0]}")
 
-        # whether dtype=np.float64
+        # whether HS representation is real matrix
         if self._hs.dtype != np.float64:
-            raise ValueError(
-                f"entries of HS must be real numbers. dtype of HS is {self._hs.dtype}"
-            )
+            raise ValueError(f"HS must be real matrix. dtype of HS is {self._hs.dtype}")
 
-        # whether dim of HS equals dim of compsite system
+        # whether dim of HS equals dim of CompositeSystem
         if self._dim != self._composite_system.dim():
             raise ValueError(
                 f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim()}"
@@ -44,12 +62,12 @@ class Gate:
 
     @property
     def dim(self):
-        """returns dim representation of gate.
+        """returns dim of gate.
         
         Returns
         -------
         int
-            dim representation of gate
+            dim of gate
         """
         return self._dim
 
@@ -378,8 +396,17 @@ def get_i(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         identity gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -399,8 +426,17 @@ def get_x(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         Pauli X gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
@@ -420,8 +456,17 @@ def get_y(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         Pauli Y gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
@@ -441,8 +486,17 @@ def get_z(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         Pauli Z gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -462,8 +516,17 @@ def get_h(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         H gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, -1, 0], [0, 1, 0, 0]], dtype=np.float64
     )
@@ -483,8 +546,17 @@ def get_root_x(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         root of X gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]], dtype=np.float64
     )
@@ -504,8 +576,17 @@ def get_root_y(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         root of Y gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, -1, 0, 0]], dtype=np.float64
     )
@@ -525,8 +606,17 @@ def get_s(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         S gate(root of Z)
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -546,8 +636,17 @@ def get_sdg(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         dagger of S gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]], dtype=np.float64
     )
@@ -567,8 +666,17 @@ def get_t(c_sys: CompositeSystem) -> Gate:
     -------
     Gate
         T gate
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit
     """
-    # TODO check dim
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
     matrix = np.array(
         [
             [1, 0, 0, 0],
@@ -602,7 +710,7 @@ def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
     ValueError
         CompositeSystem is not 2quit
     """
-    # whether "CompositeSystem is 2 qubits
+    # whether CompositeSystem is 2 qubits
     size = len(c_sys._elemental_systems)
     if size != 2:
         raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")

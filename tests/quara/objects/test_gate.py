@@ -32,6 +32,56 @@ from quara.objects.state import (
 )
 
 
+def test_init_error():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # Test that HS must be square matrix
+    hs = np.array(
+        [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+        dtype=np.float64,
+    )
+    with pytest.raises(ValueError):
+        Gate(c_sys, hs)
+
+    # Test that dim of HS must be square number
+    hs = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]], dtype=np.float64)
+    with pytest.raises(ValueError):
+        Gate(c_sys, hs)
+
+    # Test that HS must be real matrix
+    hs = np.array(
+        [[1j, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.complex128
+    )
+    with pytest.raises(ValueError):
+        Gate(c_sys, hs)
+
+    # Test that dim of HS equals dim of CompositeSystem
+    hs = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        ],
+        dtype=np.float64,
+    )
+    with pytest.raises(ValueError):
+        Gate(c_sys, hs)
+
+
 def test_access_dim():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
@@ -380,6 +430,13 @@ def test_get_i():
     npt.assert_almost_equal(z.hs @ i.hs, z.hs, decimal=15)
     npt.assert_almost_equal(i.hs @ z.hs, z.hs, decimal=15)
 
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
+
 
 def test_get_x():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -390,6 +447,13 @@ def test_get_x():
     z = get_z(c_sys)
     npt.assert_almost_equal(x.hs @ x.hs, i.hs, decimal=15)
     npt.assert_almost_equal(x.hs @ y.hs, z.hs, decimal=15)
+
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
 
 
 def test_get_y():
@@ -402,6 +466,13 @@ def test_get_y():
     npt.assert_almost_equal(y.hs @ y.hs, i.hs, decimal=15)
     npt.assert_almost_equal(y.hs @ z.hs, x.hs, decimal=15)
 
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
+
 
 def test_get_z():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -413,6 +484,13 @@ def test_get_z():
     npt.assert_almost_equal(z.hs @ z.hs, i.hs, decimal=15)
     npt.assert_almost_equal(z.hs @ x.hs, y.hs, decimal=15)
 
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
+
 
 def test_get_root_x():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -420,6 +498,13 @@ def test_get_root_x():
     x = get_x(c_sys)
     rootx = get_root_x(c_sys)
     npt.assert_almost_equal(rootx.hs @ rootx.hs, x.hs, decimal=15)
+
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
 
 
 def test_get_root_y():
@@ -429,6 +514,13 @@ def test_get_root_y():
     rooty = get_root_y(c_sys)
     npt.assert_almost_equal(rooty.hs @ rooty.hs, y.hs, decimal=10)
 
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
+
 
 def test_get_s():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -436,6 +528,13 @@ def test_get_s():
     z = get_z(c_sys)
     s = get_s(c_sys)
     npt.assert_almost_equal(s.hs @ s.hs, z.hs, decimal=15)
+
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
 
 
 def test_get_sdg():
@@ -446,6 +545,13 @@ def test_get_sdg():
     i = get_i(c_sys)
     npt.assert_almost_equal(s.hs @ sdg.hs, i.hs, decimal=15)
 
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
+
 
 def test_get_t():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -453,6 +559,13 @@ def test_get_t():
     s = get_s(c_sys)
     t = get_t(c_sys)
     npt.assert_almost_equal(t.hs @ t.hs, s.hs, decimal=15)
+
+    # Test that not 1qubit ElementalSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_i(c_sys)
 
 
 def test_get_cnot():
@@ -512,7 +625,7 @@ def test_get_cnot():
     state = composite(gate, z1_z1)
     assert np.all(state.get_density_matrix() == z0_z1.get_density_matrix())
 
-    # Test that not 2qubit ElementalSystem
+    # Test that not 2qubits ElementalSystem
     with pytest.raises(ValueError):
         get_cnot(c_sys0, e_sys0)
 

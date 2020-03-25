@@ -7,6 +7,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
+    get_comp_basis,
     get_normalized_pauli_basis,
     convert_vec,
 )
@@ -15,6 +16,26 @@ import quara.utils.matrix_util as mutil
 
 class State:
     def __init__(self, c_sys: CompositeSystem, vec: np.ndarray):
+        """Constructor
+        
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of state.
+        vec : np.ndarray
+            vec of state.
+        
+        Raises
+        ------
+        ValueError
+            vec is not one-dimensional array.
+        ValueError
+            size of vec is not square number.
+        ValueError
+            entries of vec are not real numbers.
+        ValueError
+            dim of CompositeSystem does not equal dim of vec.
+        """
         self._composite_system: CompositeSystem = c_sys
         self._vec: np.ndarray = vec
         size = self._vec.shape
@@ -268,7 +289,7 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
 
 
 def get_bell_2q(c_sys: CompositeSystem) -> State:
-    """returns vec of Bell state, \frac{1}{\sqrt{2}}(|00><00|+|11><11|), with the basis of ``c_sys``.
+    """returns vec of Bell state, \frac{1}{2}(|00>+|11>)(<00|+<11|), with the basis of ``c_sys``.
     
     Parameters
     ----------
@@ -280,21 +301,16 @@ def get_bell_2q(c_sys: CompositeSystem) -> State:
     State
         vec of state
     """
-    # \frac{1}{\sqrt{2}}(|00><00|+|11><11|) = \frac{1}{\sqrt{2}}( \frac{I}{\sqrt{2}} \otimes \frac{I}{\sqrt{2}} + \frac{Z}{\sqrt{2}} \otimes \frac{Z}{\sqrt{2}} )
-    # so, \frac{1}{\sqrt{2}}(|00><00|+|11><11|) = \frac{1}{\sqrt{2}} [1, 0,..., 0, 1]^T (basis is tensors of normalized Pauli)
-
-    # convert "vec in Pauli basis" to "vec in basis of CompositeSystem"
-    from_vec = np.array(
-        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1] / np.sqrt(2), dtype=np.float64
+    # \frac{1}{2}(|00>+|11>)(<00|+<11|) = \frac{1}{2}(|0><0|\otimes|0><0| + |0><0|\otimes|1><1| + |1><1|\otimes|0><0| + |1><1|\otimes|1><1|)
+    # convert "vec in comp basis" to "vec in basis of CompositeSystem"
+    from_vec = (
+        np.array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], dtype=np.float64) / 2
     )
-
-    new_basis = [
+    from_basis_list = [
         np.kron(val1, val2)
-        for val1, val2 in itertools.product(
-            get_normalized_pauli_basis(), get_normalized_pauli_basis()
-        )
+        for val1, val2 in itertools.product(get_comp_basis(), get_comp_basis())
     ]
-    from_basis = MatrixBasis(new_basis)
+    from_basis = MatrixBasis(from_basis_list)
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
