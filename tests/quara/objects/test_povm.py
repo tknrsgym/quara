@@ -202,16 +202,20 @@ class TestPovm:
         # Arrange
         e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
-        vecs = [np.array([1, 0, 0, 0])]  # TODO
+        ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vecs = [ps_1, ps_2]
         povm = Povm(c_sys=c_sys, vecs=vecs)
-
         to_basis = get_normalized_pauli_basis()
 
         # Act
         actual = povm.convert_basis(to_basis)
 
         # Assert
-        expected = [1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128)]
+        expected = [
+            1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128),
+            1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128),
+        ]
         assert len(actual) == len(expected)
         for i, a in enumerate(actual):
-            assert np.all(actual == expected[i])
+            assert np.all(a == expected[i])
