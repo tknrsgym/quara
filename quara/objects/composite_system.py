@@ -10,7 +10,7 @@ from quara.objects.matrix_basis import MatrixBasis
 
 
 class CompositeSystem:
-    """合成系を記述するためのクラス"""
+    """Class for describing Composite system"""
 
     # E1 \otimes E2のCompositeSystemがある場合には、E2 \otimes E1は実行できない
 

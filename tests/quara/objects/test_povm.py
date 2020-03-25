@@ -7,7 +7,11 @@ import pytest
 
 import quara.objects.composite_system as csys
 import quara.objects.elemental_system as esys
-from quara.objects.matrix_basis import get_comp_basis, get_pauli_basis
+from quara.objects.matrix_basis import (
+    get_comp_basis,
+    get_normalized_pauli_basis,
+    get_pauli_basis,
+)
 from quara.objects.povm import Povm
 from quara.protocol import simple_io as s_io
 
@@ -135,8 +139,10 @@ class TestPovm:
         actual = povm.calc_eigenvalues()
 
         # Assert
-        expected = [np.array([1, 0], dtype=np.complex128),
-                    np.array([1, -1], dtype=np.complex128)]
+        expected = [
+            np.array([1, 0], dtype=np.complex128),
+            np.array([1, -1], dtype=np.complex128),
+        ]
 
         assert len(actual) == len(expected)
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
@@ -159,7 +165,7 @@ class TestPovm:
         expected = np.array([1, 0], dtype=np.complex128)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-         # Act
+        # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
         actual = povm.calc_eigenvalues(1)
 
@@ -191,3 +197,25 @@ class TestPovm:
         # Act & Assert
         with pytest.raises(ValueError):
             _ = Povm(c_sys=c_sys, vecs=vecs)
+
+    def test_convert_basis(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vecs = [ps_1, ps_2]
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        to_basis = get_normalized_pauli_basis()
+
+        # Act
+        actual = povm.convert_basis(to_basis)
+
+        # Assert
+        expected = [
+            1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128),
+            1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128),
+        ]
+        assert len(actual) == len(expected)
+        for i, a in enumerate(actual):
+            assert np.all(a == expected[i])
