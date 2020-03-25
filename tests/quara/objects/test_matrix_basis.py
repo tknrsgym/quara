@@ -459,6 +459,7 @@ class TestVectorizedMatrixBasiImmutable:
             # AttributeError: can't set attribute
             v_basis.org_basis = 1
 
+
 def test_convert_vec_raise_exception_invalid_length():
     # Arrange
     m_1 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -477,6 +478,7 @@ def test_convert_vec_raise_exception_invalid_length():
         # length of from_basis=5. length of to_basis is 4
         _ = matrix_basis.convert_vec(v, basis_1, basis_2)
 
+
 def test_convert_vec_raise_exception_invalid_dim():
     # Arrange
     m_1 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -484,9 +486,7 @@ def test_convert_vec_raise_exception_invalid_dim():
     m_3 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
     m_4 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
 
-    source = [m_1, m_2, m_3,
-              m_4, m_4, m_4,
-              m_4, m_4, m_4]
+    source = [m_1, m_2, m_3, m_4, m_4, m_4, m_4, m_4, m_4]
     basis_1 = MatrixBasis(source)  # len=9, dim=2
     basis_2 = matrix_basis.get_gell_mann_basis()  # len=9, dim=3
     v = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -498,6 +498,9 @@ def test_convert_vec_raise_exception_invalid_dim():
 
 
 def test_convert_vec():
+    # computational basis -> pauli basis
+
+    # Case 1
     # Arrange
     comp_basis = matrix_basis.get_comp_basis()
     pauli_basis = matrix_basis.get_normalized_pauli_basis()
@@ -508,4 +511,37 @@ def test_convert_vec():
 
     # Assert
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128)
+    assert np.all(actual == expected)
+
+    # Case 2
+    # Arrange
+    vec = np.array([0, 1, 0, 0])
+
+    # Act
+    actual = matrix_basis.convert_vec(vec, comp_basis, pauli_basis)
+
+    # Assert
+    expected = 1 / np.sqrt(2) * np.array([0, 1, 1j, 0])
+    assert np.all(actual == expected)
+
+    # Case 3
+    # Arrange
+    vec = np.array([0, 0, 1, 0])
+
+    # Act
+    actual = matrix_basis.convert_vec(vec, comp_basis, pauli_basis)
+
+    # Assert
+    expected = 1 / np.sqrt(2) * np.array([0, 1, -1j, 0])
+    assert np.all(actual == expected)
+
+    # Case 4
+    # Arrange
+    vec = np.array([0, 0, 0, 1])
+
+    # Act
+    actual = matrix_basis.convert_vec(vec, comp_basis, pauli_basis)
+
+    # Assert
+    expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1])
     assert np.all(actual == expected)
