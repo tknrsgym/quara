@@ -4,6 +4,7 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.matrix_basis import MatrixBasis, convert_vec
 
 
 class Povm:
@@ -105,3 +106,11 @@ class Povm:
                 w = np.linalg.eigvals(matrix)
                 w_list.append(w)
             return w_list
+
+    def convert_basis(self, other_basis: MatrixBasis) -> np.array:
+        converted_vecs = []
+        for vec in self._vecs:
+            converted_vecs = convert_vec(
+                vec, self._composite_system.basis(), other_basis
+            )
+        return converted_vecs
