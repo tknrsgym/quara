@@ -3,9 +3,24 @@ from quara.objects.matrix_basis import MatrixBasis
 
 
 class ElementalSystem:
-    """個々の量子系を記述するためのクラス"""
+    """Class for representing an individual quantum system."""
 
     def __init__(self, name: int, basis: MatrixBasis):
+        """Constructor
+
+        Parameters
+        ----------
+        name : int
+            The name of quantum system.
+        basis : MatrixBasis
+            The basis of quantum system.
+
+        Raises
+        ------
+        TypeError
+            Type of ``name`` must be int.
+        """
+
         # Validate
         if type(name) != int:
             raise TypeError("Type of 'name' must be int.")
@@ -24,14 +39,38 @@ class ElementalSystem:
 
     @property
     def name(self) -> int:  # read only
+        """Property to get the name of a quantum system.
+
+        Returns
+        -------
+        int
+            The name of a quantum system.
+        """
         return self._name
 
     @property
     def system_id(self) -> int:  # read only
+        """Property to get the system ID of a quantum system.
+
+        Returns
+        -------
+        int
+            The system ID of a quantum system.
+            Although ``name`` can be specified by a user,
+            the system ID is assigned automatically.
+            Now, ``system_id`` is the same as the result of passing an instance to ``id()``.
+        """
         return self._system_id
 
     @property
     def dim(self) -> int:  # read only
+        """Property to get the dimension of the basis.
+
+        Returns
+        -------
+        int
+            The dimension of the basis.
+        """
         return self._dim
 
     # @property
