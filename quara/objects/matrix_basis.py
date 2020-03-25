@@ -311,7 +311,7 @@ def get_comp_basis() -> MatrixBasis:
     Returns
     -------
     MatrixBasis
-        computational basis ``[|00><00|, |01><01|, |10><10|, |11><11|]``
+        computational basis ``[|0><0|, |0><1|, |1><0|, |1><1|]``
     """
     array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
     array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
