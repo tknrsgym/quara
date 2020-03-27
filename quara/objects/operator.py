@@ -110,7 +110,19 @@ def _tensor_product(elem1, elem2):
         tensor_state = State(c_sys, tensor_vec)
         return tensor_state
     elif type(elem1) == Povm and type(elem2) == Povm:
-        return _tensor_product_povm(elem1, elem1)
+        # Povm (x) Povm -> Povm
+        e_sys_list = list(elem1.composite_system.elemental_systems)
+        e_sys_list.extend(elem2.composite_system.elemental_systems)
+        c_sys = CompositeSystem(e_sys_list)
+
+        tensor_vecs = []
+        # TODO: It is working in progress
+        for vec1, vec2 in zip(elem1.vecs, elem2.vecs):
+            tensor_vec = np.kron(vec1, vec2)
+            tensor_vecs.append(tensor_vec)
+
+        tensor_povm = Povm(c_sys, tensor_vecs)
+        return tensor_povm
     else:
         raise ValueError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
@@ -197,8 +209,3 @@ def _to_list(*elements):
     assert len(element_list) >= 2
 
     return element_list
-
-
-def _tensor_product_povm(elem1: Povm, elem2: Povm):
-    # TODO: implement
-    raise NotImplementedError("TODO")
