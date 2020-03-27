@@ -19,6 +19,7 @@ def tensor_product(*elements) -> Union[Gate, MatrixBasis, State]:
     - (Gate, Gate)
     - (MatrixBasis, MatrixBasis)
     - (State, State)
+    - (Povm, Povm)
     - list conststs of these combinations
 
     Returns
@@ -120,6 +121,11 @@ def _tensor_product(elem1, elem2):
         for vec1, vec2 in zip(elem1.vecs, elem2.vecs):
             tensor_vec = np.kron(vec1, vec2)
             tensor_vecs.append(tensor_vec)
+
+        # or
+        # tensor_vecs = [
+        #     np.kron(vec1, vec2) for vec1, vec2 in itertools.product(elem1.vecs, elem2.vecs)
+        # ]
 
         tensor_povm = Povm(c_sys, tensor_vecs)
         return tensor_povm
