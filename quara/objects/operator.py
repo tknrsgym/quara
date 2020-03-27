@@ -11,20 +11,20 @@ from quara.objects.povm import Povm
 from quara.objects.state import State
 
 
-def tensor_product(*elements) -> Union[Gate, MatrixBasis, State]:
+def tensor_product(*elements) -> Union[MatrixBasis, State, Povm, Gate]:
     """calculates tensor product of ``elements``.
 
     this function can calculate tensor product of the following combinations of types:
 
-    - (Gate, Gate)
-    - (MatrixBasis, MatrixBasis)
-    - (State, State)
-    - (Povm, Povm)
+    - (Gate, Gate) -> Gate
+    - (MatrixBasis, MatrixBasis) -> MatrixBasis
+    - (State, State) -> State
+    - (Povm, Povm) -> Povm
     - list conststs of these combinations
 
     Returns
     -------
-    Union[MatrixBasis, State]
+    Union[MatrixBasis, State, Povm, Gate]
         tensor product of ``elements``
 
     Raises
@@ -88,7 +88,7 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     return gate
 
 
-def _tensor_product(elem1, elem2):
+def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         return _tensor_product_Gate_Gate(elem1, elem2)

@@ -34,12 +34,25 @@ class Povm:
 
         # Set
         self._composite_system: CompositeSystem = c_sys
+
+        # TODO: consider make it tuple of np.ndarray
         self._vecs: List[np.ndarray] = vecs
         # 観測されうる測定値の集合
         self._measurements: list
 
     def __getitem__(self, key: int):
         return self._vecs[key]
+
+    @property
+    def vecs(self) -> List[np.ndarray]:  # read only
+        """Property to get vecs of povm.
+
+        Returns
+        -------
+        List[np.ndarray]
+            vecs of povm.
+        """
+        return self._vecs
 
     @property
     def composite_system(self) -> CompositeSystem:
