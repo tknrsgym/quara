@@ -98,7 +98,6 @@ def _tensor_product(elem1, elem2):
         ]
         m_basis = MatrixBasis(new_basis)
         return m_basis
-
     elif type(elem1) == State and type(elem2) == State:
         # create CompositeSystem
         e_sys_list = list(elem1._composite_system._elemental_systems)
@@ -110,7 +109,8 @@ def _tensor_product(elem1, elem2):
         # create State
         tensor_state = State(c_sys, tensor_vec)
         return tensor_state
-
+    elif type(elem1) == Povm and type(elem2) == Povm:
+        return _tensor_product_povm(elem1, elem1)
     else:
         raise ValueError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
@@ -190,3 +190,8 @@ def _to_list(*elements):
     assert len(element_list) >= 2
 
     return element_list
+
+
+def _tensor_product_povm(elem1: Povm, elem2: Povm):
+    # TODO: implement
+    raise NotImplementedError("TODO")
