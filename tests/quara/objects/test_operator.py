@@ -334,6 +334,25 @@ def test_composite_Gate_State():
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
 
+def test_composite_Povm_Gate():
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    vecs = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    povm = Povm(c_sys, vecs)
+
+    # composite Z-measurement and X gate
+    gate = get_x(c_sys)
+    actual = composite(povm, gate)
+    expected = [
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+    ]
+    npt.assert_almost_equal(actual._vecs, expected, decimal=15)
+
+
 def test_composite_Povm_State():
     e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys])
