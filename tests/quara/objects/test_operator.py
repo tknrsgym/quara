@@ -259,7 +259,20 @@ def test_tensor_product_State_State():
     assert e_sys2 is actual._composite_system._elemental_systems[1]
 
 
-def test_composite_product_Gate_Gate():
+def test_composite_error():
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys0 = CompositeSystem([e_sys0])
+    i_gate0 = get_i(c_sys0)
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    i_gate1 = get_i(c_sys1)
+
+    # error case: composite different composite systems
+    with pytest.raises(ValueError):
+        composite(i_gate0, i_gate1)
+
+
+def test_composite_Gate_Gate():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i_gate = get_i(c_sys)
@@ -283,7 +296,7 @@ def test_composite_product_Gate_Gate():
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
 
-def test_composite_product_Gate_State():
+def test_composite_Gate_State():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     z_gate = get_z(c_sys)
