@@ -146,17 +146,17 @@ def composite(*elements) -> Union[Gate, State]:
 
 
 def _composite(elem1, elem2):
+    # check CompositeSystem
+    if elem1._composite_system != elem2._composite_system:
+        raise ValueError(f"Cannot composite different composite systems.")
+
     # implement composite calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
-        # TODO check same CompositeSystem
-
         # create Gate
         matrix = elem1.hs @ elem2.hs
         gate = Gate(elem1._composite_system, matrix)
         return gate
     elif type(elem1) == Gate and type(elem2) == State:
-        # TODO check same CompositeSystem
-
         # create State
         vec = elem1.hs @ elem2.vec
         state = State(elem1._composite_system, vec.real.astype(np.float64))
