@@ -42,7 +42,14 @@ class Povm:
         return self._vecs[key]
 
     @property
-    def composite_system(self):
+    def composite_system(self) -> CompositeSystem:
+        """Property to get composite system.
+
+        Returns
+        -------
+        CompositeSystem
+            composite system.
+        """
         return self._composite_system
 
     def is_positive_semidefinite(self, atol: float = None) -> bool:
@@ -64,9 +71,10 @@ class Povm:
     def is_identity(self) -> bool:
         """Returns whether the sum of the elements ``_vecs`` is an identity matrix.
 
-        Returns:
-            bool: Return True
-            if the sum of the elements ``_vecs`` is an identity matrix,
+        Returns
+        -------
+        bool
+            If the sum of the elements ``_vecs`` is an identity matrix,
             otherwise it returns False.
         """
         size = [self._dim, self._dim]
@@ -80,17 +88,17 @@ class Povm:
     def calc_eigenvalues(
         self, index: int = None
     ) -> Union[List[np.ndarray], np.ndarray]:
-        """[summary]
+        """Calculates eigenvalues.
 
         Parameters
         ----------
         index : int, optional
-            [description], by default None
+            Index to obtain eigenvalues, by default None
 
         Returns
         -------
         Union[List[np.ndarray], np.ndarray]
-            [description]
+            eigenvalues.
         """
 
         size = [self._dim, self._dim]
@@ -107,7 +115,20 @@ class Povm:
                 w_list.append(w)
             return w_list
 
-    def convert_basis(self, other_basis: MatrixBasis) -> np.array:
+    def convert_basis(self, other_basis: MatrixBasis) -> List[np.array]:
+        """Calculate vector representation for ``other_basis``.
+
+        Parameters
+        ----------
+        other_basis : MatrixBasis
+            basis
+
+        Returns
+        -------
+        List[np.array]
+            Vector representation after conversion to ``other_basis`` .
+        """
+
         converted_vecs = []
         for vec in self._vecs:
             converted_vecs.append(
