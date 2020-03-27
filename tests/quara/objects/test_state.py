@@ -1,22 +1,13 @@
 import numpy as np
 import numpy.testing as npt
+import pytest
 
+from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis
-from quara.objects.state import (
-    State,
-    get_x0_1q,
-    get_x1_1q,
-    get_y0_1q,
-    get_y1_1q,
-    get_z0_1q,
-    get_z1_1q,
-    get_bell_2q,
-)
-import numpy.testing as npt
-import pytest
+from quara.objects.state import (State, get_bell_2q, get_x0_1q, get_x1_1q,
+                                 get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q)
 
 
 def test_init_error():

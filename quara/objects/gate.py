@@ -1,31 +1,27 @@
+import itertools
 from functools import reduce
 from operator import add
-import itertools
 from typing import List
 
 import numpy as np
 
-from quara.objects.composite_system import CompositeSystem
-from quara.objects.composite_system import ElementalSystem
-from quara.objects.matrix_basis import (
-    MatrixBasis,
-    get_comp_basis,
-    get_normalized_pauli_basis,
-)
 import quara.utils.matrix_util as mutil
+from quara.objects.composite_system import CompositeSystem, ElementalSystem
+from quara.objects.matrix_basis import (MatrixBasis, get_comp_basis,
+                                        get_normalized_pauli_basis)
 
 
 class Gate:
     def __init__(self, c_sys: CompositeSystem, hs: np.ndarray):
         """Constructor
-        
+
         Parameters
         ----------
         c_sys : CompositeSystem
             CompositeSystem of gate.
         hs : np.ndarray
             HS representation of gate.
-        
+
         Raises
         ------
         ValueError
@@ -63,7 +59,7 @@ class Gate:
     @property
     def dim(self):
         """returns dim of gate.
-        
+
         Returns
         -------
         int
@@ -74,7 +70,7 @@ class Gate:
     @property
     def hs(self):
         """returns HS representation of gate.
-        
+
         Returns
         -------
         np.array
@@ -84,7 +80,7 @@ class Gate:
 
     def get_basis(self) -> MatrixBasis:
         """returns MatrixBasis of gate
-        
+
         Returns
         -------
         MatrixBasis
@@ -94,13 +90,13 @@ class Gate:
 
     def is_tp(self, atol: float = 1e-13) -> bool:
         """returns whether the gate is TP(trace-preserving map).
-        
+
         Parameters
         ----------
         atol : float, optional
             the absolute tolerance parameter, by default 1e-13.
             this function checks ``absolute(trace after mapped - trace before mapped) <= atol``.
-        
+
         Returns
         -------
         bool
@@ -122,7 +118,7 @@ class Gate:
 
     def is_cp(self) -> bool:
         """returns whether gate is CP(Complete-Positivity-Preserving).
-        
+
         Returns
         -------
         bool
@@ -133,12 +129,12 @@ class Gate:
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns HS representation for ``other_basis``.
-        
+
         Parameters
         ----------
         other_basis : MatrixBasis
             basis
-        
+
         Returns
         -------
         np.array
@@ -149,7 +145,7 @@ class Gate:
 
     def convert_to_comp_basis(self) -> np.array:
         """returns HS representation for computational basis.
-        
+
         Returns
         -------
         np.array
@@ -162,7 +158,7 @@ class Gate:
 
     def calc_choi_matrix(self) -> np.array:
         """calculates Choi matrix of gate.
-        
+
         Returns
         -------
         np.array
@@ -225,7 +221,7 @@ class Gate:
 
     def calc_process_matrix(self) -> np.array:
         """calculates process matrix of gate.
-        
+
         Returns
         -------
         np.array
@@ -256,7 +252,7 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
     atol : float, optional
         the absolute tolerance parameter, by default 1e-13.
         this function checks ``absolute(imaginary part of matrix - zero matrix) <= atol``.
-    
+
     Returns
     -------
     bool
@@ -272,19 +268,19 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
 
 def calc_agf(g: Gate, u: Gate) -> np.float64:
     """returns AGF(Average Gate Fidelity) and ``g`` and ``u``.
-    
+
     Parameters
     ----------
     g : Gate
         L-TP-CP map
     u : Gate
         unitary gate
-    
+
     Returns
     -------
     np.float64
         AGF
-    
+
     Raises
     ------
     ValueError
@@ -307,7 +303,7 @@ def convert_hs(
     from_hs: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
 ) -> np.array:
     """returns HS representation for ``to_basis``
-    
+
     Parameters
     ----------
     from_hs : np.array
@@ -316,12 +312,12 @@ def convert_hs(
         basis before convert
     to_basis : MatrixBasis
         basis after convert
-    
+
     Returns
     -------
     np.array
         HS representation for ``to_basis``
-    
+
     Raises
     ------
     ValueError
@@ -386,17 +382,17 @@ def _get_1q_gate_from_hs_on_pauli_basis(
 
 def get_i(c_sys: CompositeSystem) -> Gate:
     """returns identity gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         identity gate
-    
+
     Raises
     ------
     ValueError
@@ -416,17 +412,17 @@ def get_i(c_sys: CompositeSystem) -> Gate:
 
 def get_x(c_sys: CompositeSystem) -> Gate:
     """returns Pauli X gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         Pauli X gate
-    
+
     Raises
     ------
     ValueError
@@ -446,17 +442,17 @@ def get_x(c_sys: CompositeSystem) -> Gate:
 
 def get_y(c_sys: CompositeSystem) -> Gate:
     """returns Pauli Y gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         Pauli Y gate
-    
+
     Raises
     ------
     ValueError
@@ -476,17 +472,17 @@ def get_y(c_sys: CompositeSystem) -> Gate:
 
 def get_z(c_sys: CompositeSystem) -> Gate:
     """returns Pauli Z gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         Pauli Z gate
-    
+
     Raises
     ------
     ValueError
@@ -506,17 +502,17 @@ def get_z(c_sys: CompositeSystem) -> Gate:
 
 def get_h(c_sys: CompositeSystem) -> Gate:
     """returns H gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         H gate
-    
+
     Raises
     ------
     ValueError
@@ -536,17 +532,17 @@ def get_h(c_sys: CompositeSystem) -> Gate:
 
 def get_root_x(c_sys: CompositeSystem) -> Gate:
     """returns root of X gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         root of X gate
-    
+
     Raises
     ------
     ValueError
@@ -566,17 +562,17 @@ def get_root_x(c_sys: CompositeSystem) -> Gate:
 
 def get_root_y(c_sys: CompositeSystem) -> Gate:
     """returns root of Y gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         root of Y gate
-    
+
     Raises
     ------
     ValueError
@@ -596,17 +592,17 @@ def get_root_y(c_sys: CompositeSystem) -> Gate:
 
 def get_s(c_sys: CompositeSystem) -> Gate:
     """returns S gate(root of Z).
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         S gate(root of Z)
-    
+
     Raises
     ------
     ValueError
@@ -626,17 +622,17 @@ def get_s(c_sys: CompositeSystem) -> Gate:
 
 def get_sdg(c_sys: CompositeSystem) -> Gate:
     """returns dagger of S gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         dagger of S gate
-    
+
     Raises
     ------
     ValueError
@@ -656,17 +652,17 @@ def get_sdg(c_sys: CompositeSystem) -> Gate:
 
 def get_t(c_sys: CompositeSystem) -> Gate:
     """returns T gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         T gate
-    
+
     Raises
     ------
     ValueError
@@ -692,19 +688,19 @@ def get_t(c_sys: CompositeSystem) -> Gate:
 
 def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
     """returns CNOT gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
     control : ElementalSystem
         ElementalSystem of control qubit
-    
+
     Returns
     -------
     Gate
         CNOT gate
-    
+
     Raises
     ------
     ValueError
@@ -778,17 +774,17 @@ def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
 
 def get_cz(c_sys: CompositeSystem) -> Gate:
     """returns CZ gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         CZ gate
-    
+
     Raises
     ------
     ValueError
@@ -837,17 +833,17 @@ def get_cz(c_sys: CompositeSystem) -> Gate:
 
 def get_swap(c_sys: CompositeSystem) -> Gate:
     """returns SWAP gate.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing gate
-    
+
     Returns
     -------
     Gate
         SWAP gate
-    
+
     Raises
     ------
     ValueError

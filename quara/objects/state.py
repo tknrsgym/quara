@@ -3,28 +3,28 @@ from typing import List
 
 import numpy as np
 
+import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
+    convert_vec,
     get_comp_basis,
     get_normalized_pauli_basis,
-    convert_vec,
 )
-import quara.utils.matrix_util as mutil
 
 
 class State:
     def __init__(self, c_sys: CompositeSystem, vec: np.ndarray):
         """Constructor
-        
+
         Parameters
         ----------
         c_sys : CompositeSystem
             CompositeSystem of state.
         vec : np.ndarray
             vec of state.
-        
+
         Raises
         ------
         ValueError
@@ -290,12 +290,12 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
 
 def get_bell_2q(c_sys: CompositeSystem) -> State:
     """returns vec of Bell state, \frac{1}{2}(|00>+|11>)(<00|+<11|), with the basis of ``c_sys``.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     State
