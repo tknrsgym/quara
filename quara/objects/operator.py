@@ -129,15 +129,15 @@ def _tensor_product(elem1, elem2):
         )
 
 
-def composite(*elements) -> Union[Gate, Povm, State]:
+def composite(*elements) -> Union[Gate, Povm, State, List[float]]:
     """calculates composite of ``elements``.
 
     this function can calculate composite of the following combinations of types:
 
-    - (Gate, Gate)
-    - (Gate, State)
-    - (Povm, Gate)
-    - (Povm, State)
+    - (Gate, Gate) -> Gate
+    - (Gate, State) -> State
+    - (Povm, Gate) -> Povm
+    - (Povm, State) -> List[float] (probability distribution)
     - list conststs of these combinations
 
     Returns
