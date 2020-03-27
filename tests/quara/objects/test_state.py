@@ -116,7 +116,6 @@ def test_is_positive_semidefinite():
 
 
 def test_calc_eigenvalues():
-    # TODO implement
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_z0_1q(c_sys)
