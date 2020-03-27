@@ -7,6 +7,7 @@ import numpy as np
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
 from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.povm import Povm
 from quara.objects.state import State
 
 
@@ -161,6 +162,10 @@ def _composite(elem1, elem2):
         vec = elem1.hs @ elem2.vec
         state = State(elem1._composite_system, vec.real.astype(np.float64))
         return state
+    elif type(elem1) == Povm and type(elem2) == State:
+        # calculate probability distribution
+        prob = [np.vdot(povm_element, elem2._vec) for povm_element in elem1._vecs]
+        return prob
     else:
         raise ValueError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
