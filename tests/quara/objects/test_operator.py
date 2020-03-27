@@ -7,6 +7,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_s, get_x, get_y, get_z
 from quara.objects.operator import composite, tensor_product
+from quara.objects.povm import Povm
 from quara.objects.state import State, get_x0_1q, get_x1_1q, get_z0_1q, get_z1_1q
 
 
@@ -331,3 +332,31 @@ def test_composite_Gate_State():
     actual = composite(h_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
+
+
+def test_composite_Povm_State():
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    vecs = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    povm = Povm(c_sys, vecs)
+
+    # measurement z0 by Z-measurement
+    state = get_z0_1q(c_sys)
+    actual = composite(povm, state)
+    expected = [1, 0]
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # measurement z1 by Z-measurement
+    state = get_z1_1q(c_sys)
+    actual = composite(povm, state)
+    expected = [0, 1]
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # measurement x0 by Z-measurement
+    state = get_x0_1q(c_sys)
+    actual = composite(povm, state)
+    expected = [0.5, 0.5]
+    npt.assert_almost_equal(actual, expected, decimal=15)
