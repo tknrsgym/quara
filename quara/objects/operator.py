@@ -117,13 +117,15 @@ def _tensor_product(elem1, elem2):
         )
 
 
-def composite(*elements) -> Union[Gate, State]:
+def composite(*elements) -> Union[Gate, Povm, State]:
     """calculates composite of ``elements``.
 
     this function can calculate composite of the following combinations of types:
 
     - (Gate, Gate)
     - (Gate, State)
+    - (Povm, Gate)
+    - (Povm, State)
     - list conststs of these combinations
 
     Returns
@@ -162,6 +164,11 @@ def _composite(elem1, elem2):
         vec = elem1.hs @ elem2.vec
         state = State(elem1._composite_system, vec.real.astype(np.float64))
         return state
+    elif type(elem1) == Povm and type(elem2) == Gate:
+        # calculate Povm
+        vecs = [povm_element.conjugate() @ elem2.hs for povm_element in elem1._vecs]
+        povm = Povm(elem1._composite_system, vecs)
+        return povm
     elif type(elem1) == Povm and type(elem2) == State:
         # calculate probability distribution
         prob = [np.vdot(povm_element, elem2._vec) for povm_element in elem1._vecs]
