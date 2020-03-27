@@ -17,14 +17,14 @@ from quara.objects.matrix_basis import (
 class State:
     def __init__(self, c_sys: CompositeSystem, vec: np.ndarray):
         """Constructor
-        
+
         Parameters
         ----------
         c_sys : CompositeSystem
             CompositeSystem of state.
         vec : np.ndarray
             vec of state.
-        
+
         Raises
         ------
         ValueError
@@ -290,12 +290,12 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
 
 def get_bell_2q(c_sys: CompositeSystem) -> State:
     """returns vec of Bell state, \frac{1}{2}(|00>+|11>)(<00|+<11|), with the basis of ``c_sys``.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing state
-    
+
     Returns
     -------
     State
