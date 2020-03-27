@@ -3,15 +3,15 @@ from typing import List
 
 import numpy as np
 
+import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
+    convert_vec,
     get_comp_basis,
     get_normalized_pauli_basis,
-    convert_vec,
 )
-import quara.utils.matrix_util as mutil
 
 
 class State:

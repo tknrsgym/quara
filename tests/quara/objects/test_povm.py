@@ -7,11 +7,9 @@ import pytest
 
 import quara.objects.composite_system as csys
 import quara.objects.elemental_system as esys
-from quara.objects.matrix_basis import (
-    get_comp_basis,
-    get_normalized_pauli_basis,
-    get_pauli_basis,
-)
+from quara.objects.matrix_basis import (get_comp_basis,
+                                        get_normalized_pauli_basis,
+                                        get_pauli_basis)
 from quara.objects.povm import Povm
 from quara.protocol import simple_io as s_io
 

@@ -5,32 +5,12 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import (
-    Gate,
-    is_ep,
-    calc_agf,
-    convert_hs,
-    get_i,
-    get_x,
-    get_y,
-    get_z,
-    get_h,
-    get_root_x,
-    get_root_y,
-    get_s,
-    get_sdg,
-    get_t,
-    get_cnot,
-    get_cz,
-    get_swap,
-)
+from quara.objects.gate import (Gate, calc_agf, convert_hs, get_cnot, get_cz,
+                                get_h, get_i, get_root_x, get_root_y, get_s,
+                                get_sdg, get_swap, get_t, get_x, get_y, get_z,
+                                is_ep)
 from quara.objects.operator import composite, tensor_product
-from quara.objects.state import (
-    get_y0_1q,
-    get_y1_1q,
-    get_z0_1q,
-    get_z1_1q,
-)
+from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
 
 
 def test_init_error():
