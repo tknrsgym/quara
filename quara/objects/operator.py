@@ -19,6 +19,7 @@ def tensor_product(*elements) -> Union[Gate, MatrixBasis, State]:
     - (Gate, Gate)
     - (MatrixBasis, MatrixBasis)
     - (State, State)
+    - (Povm, Povm)
     - list conststs of these combinations
 
     Returns
