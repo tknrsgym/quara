@@ -1,18 +1,17 @@
+import itertools
 from functools import reduce
 from operator import add
-import itertools
 from typing import List
 
 import numpy as np
 
-from quara.objects.composite_system import CompositeSystem
-from quara.objects.composite_system import ElementalSystem
+import quara.utils.matrix_util as mutil
+from quara.objects.composite_system import CompositeSystem, ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
     get_comp_basis,
     get_normalized_pauli_basis,
 )
-import quara.utils.matrix_util as mutil
 
 
 class Gate:

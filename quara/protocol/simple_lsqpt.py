@@ -3,9 +3,9 @@ import math
 from pathlib import Path
 from typing import Tuple
 
-import matlab
 import numpy as np
 
+import matlab
 from quara.engine.matlabengine import MatlabEngine
 from quara.protocol import simple_io
 from quara.utils import number_util

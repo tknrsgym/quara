@@ -104,4 +104,3 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-13) -> bool:
     p_trace = partial_trace1(matrix, dim)
     identity = np.eye(dim, dtype=np.complex128).reshape(dim, dim)
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
-
