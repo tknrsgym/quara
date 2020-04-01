@@ -68,7 +68,7 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm.is_identity()
+        actual = povm._is_identity()
 
         # Assert
         assert actual is True
@@ -102,7 +102,7 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm.is_positive_semidefinite()
+        actual = povm._is_positive_semidefinite()
 
         # Assert
         assert actual is True
