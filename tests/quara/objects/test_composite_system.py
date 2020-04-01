@@ -1,11 +1,145 @@
 import pytest
 
+import numpy as np
+
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import get_pauli_basis
+from quara.objects.matrix_basis import get_comp_basis, get_pauli_basis
+from quara.objects.operator import tensor_product
 
 
 class TestCompositeSystem:
+    def test_init_duplicate_elemental_system(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+
+        with pytest.raises(ValueError):
+            _ = CompositeSystem([e1, e1])
+
+    def test_init_duplicate_elemental_system_name(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(1, get_pauli_basis())
+
+        with pytest.raises(ValueError):
+            _ = CompositeSystem([e1, e2])
+
+    def test_init_sorted(self):
+        # Arange
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_pauli_basis())
+        e3 = ElementalSystem(3, get_pauli_basis())
+        source = [e2, e3, e1]
+
+        # Act
+        actual = CompositeSystem(source)
+
+        # Assert
+        expected = [e1, e2, e3]
+        assert actual[0] is expected[0]
+        assert actual[1] is expected[1]
+        assert actual[2] is expected[2]
+
+        # Verify that source is not affected
+        expected = [e2, e3, e1]
+        assert source == expected
+
+    def test_basis(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+
+        # case: single ElementalSystem
+        source = [e1]
+        actual = CompositeSystem(source).basis()
+        expected = get_pauli_basis()
+        assert len(actual) == 4
+        assert np.all(actual[0] == expected[0])
+        assert np.all(actual[1] == expected[1])
+        assert np.all(actual[2] == expected[2])
+        assert np.all(actual[3] == expected[3])
+
+        # case: multi ElementalSystem
+        source = [e2, e1]
+        actual = CompositeSystem(source).basis()
+        expected = tensor_product(get_pauli_basis(), get_comp_basis())
+        assert len(actual) == 16
+        assert np.all(actual[0] == expected[0])
+        assert np.all(actual[1] == expected[1])
+
+    def test_access_dim(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+
+        # case: single ElementalSystem
+        source = [e1]
+        actual = CompositeSystem(source).dim
+        assert actual == 2
+
+        # case: multi ElementalSystem
+        source = [e2, e1]
+        actual = CompositeSystem(source).dim
+        assert actual == 4
+
+    def test_get_basis(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+        source = [e2, e1]
+        c_sys = CompositeSystem(source)
+
+        # access by int
+        actual = c_sys.get_basis(0)
+        expected = tensor_product(get_pauli_basis(), get_comp_basis())[0]
+        assert np.all(actual == expected)
+
+        # access by tuple
+        actual = c_sys.get_basis((0, 0))
+        expected = tensor_product(get_pauli_basis(), get_comp_basis())[0]
+        assert np.all(actual == expected)
+
+        actual = c_sys.get_basis((1, 2))
+        expected = tensor_product(get_pauli_basis(), get_comp_basis())[6]  # 1*2**2 + 2
+        assert np.all(actual == expected)
+
+        actual = c_sys.get_basis((3, 1))
+        expected = tensor_product(get_pauli_basis(), get_comp_basis())[13]  # 3*2**2 + 1
+        assert np.all(actual == expected)
+
+    def test_access_elemental_systems(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+        source = [e2, e1]
+        actual = CompositeSystem(source).elemental_systems
+
+        assert actual[0] is e1
+        assert actual[1] is e2
+
+    def test_len(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+        source = [e2, e1]
+        actual = len(CompositeSystem(source))
+
+        assert actual == 2
+
+    def test_iter(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+        source = [e2, e1]
+        actual = iter(CompositeSystem(source))
+
+        assert next(actual) is e1
+        assert next(actual) is e2
+
+    def test_getitem(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_pauli_basis())
+
+        c1 = CompositeSystem([e1, e2])
+        assert c1[0] is e1
+        assert c1[1] is not e1
+
+        # Test that element_system list cannot be updated
+        with pytest.raises(TypeError):
+            c1[0] = e2
+
     def test_eq(self):
         e1 = ElementalSystem(1, get_pauli_basis())
         e2 = ElementalSystem(2, get_pauli_basis())
@@ -28,51 +162,6 @@ class TestCompositeSystem:
         assert (c1 == "string") is False
         assert (c1 == None) is False
         assert (c1 == 1) is False
-
-    def test_getitem(self):
-        e1 = ElementalSystem(1, get_pauli_basis())
-        e2 = ElementalSystem(2, get_pauli_basis())
-
-        c1 = CompositeSystem([e1, e2])
-        assert c1[0] is e1
-        assert c1[1] is not e1
-
-        # Test that element_system list cannot be updated
-        with pytest.raises(TypeError):
-            c1[0] = e2
-
-    def test_duplicate_elemental_system(self):
-        e1 = ElementalSystem(1, get_pauli_basis())
-
-        with pytest.raises(ValueError):
-            _ = CompositeSystem([e1, e1])
-
-    def test_duplicate_elemental_system_name(self):
-        e1 = ElementalSystem(1, get_pauli_basis())
-        e2 = ElementalSystem(1, get_pauli_basis())
-
-        with pytest.raises(ValueError):
-            _ = CompositeSystem([e1, e2])
-
-    def test_sorted(self):
-        # Arange
-        e1 = ElementalSystem(1, get_pauli_basis())
-        e2 = ElementalSystem(2, get_pauli_basis())
-        e3 = ElementalSystem(3, get_pauli_basis())
-        source = [e2, e3, e1]
-
-        # Act
-        actual = CompositeSystem(source)
-
-        # Assert
-        expected = [e1, e2, e3]
-        assert actual[0] is expected[0]
-        assert actual[1] is expected[1]
-        assert actual[2] is expected[2]
-
-        # Verify that source is not affected
-        expected = [e2, e3, e1]
-        assert source == expected
 
 
 class TestCompositeSystemImmutable:

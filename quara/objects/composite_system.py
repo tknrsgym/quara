@@ -92,16 +92,31 @@ class CompositeSystem:
         return self.basis()[0].shape[0]
 
     def get_basis(self, index: Union[int, tuple]) -> MatrixBasis:
-        # 基底のテンソル積を返す
-        # TODO read onlyであるべき
+        """returns basis specified by index.
+        
+        Parameters
+        ----------
+        index : Union[int, tuple]
+            index of basis.
+            if type is int, then regardes it as the index after calculating the basis of CompositeSystem.
+            if tyep is tuple, then regardes it as the indices of the basis of ElementalSystems.
+        
+        Returns
+        -------
+        MatrixBasis
+            basis specified by index.
+        """
         if type(index) == tuple:
-            # tupleのサイズは_elemental_systemsのリスト長と一致していること
-            assert len(index) == len(self._elemental_systems)
+            # whether size of tuple equals length of the list of ElementalSystems
+            if len(index) != len(self._elemental_systems):
+                raise ValueError(
+                    f"length of tuple must equal length of the list of ElementalSystems. length of tuple={len(index)}, length of the list of ElementalSystems={len(self._elemental_systems)}"
+                )
 
-            # _basisでの位置を計算(tupleの中を後ろから走査)
-            # ElementalSystemのリスト長=3で、次元をそれぞれdim1,dim2,dim3とする
-            # このとき、tuple(x1, x2, x3)が返す_basisのインデックスは、次の式で表される
-            # x1 * (dim1 ** 2) * (dim2 ** 2) * (dim3 ** 2) + x2 * (dim2 ** 2) * (dim3 ** 2) + x3 * (dim3 ** 2)
+            # calculate index in _basis by traversing the tuple from the back.
+            # for example, if length of ElementalSystem is 3 and each dim are dim1, dim2, dim3,
+            # then index in _basis of tuple(x1, x2, x3) can be calculated the following expression:
+            #   x1 * (dim2 ** 2) * (dim3 ** 2) + x2 * (dim3 ** 2) + x3
             temp_grobal_index = 0
             temp_dim = 1
             for e_sys_position, local_index in enumerate(reversed(index)):
@@ -112,7 +127,14 @@ class CompositeSystem:
             return self.basis()[index]
 
     @property
-    def elemental_systems(self) -> Tuple[ElementalSystem, ...]:  # read only
+    def elemental_systems(self) -> Tuple[ElementalSystem]:
+        """returns list of ElementalSystem of this CompositeSystem.
+        
+        Returns
+        -------
+        Tuple[ElementalSystem]
+            list of ElementalSystem of this CompositeSystem.
+        """
         return self._elemental_systems
 
     def __len__(self) -> int:
