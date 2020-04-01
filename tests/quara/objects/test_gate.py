@@ -5,12 +5,28 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import (Gate, calc_agf, convert_hs, get_cnot, get_cz,
-                                get_h, get_i, get_root_x, get_root_y, get_s,
-                                get_sdg, get_swap, get_t, get_x, get_y, get_z,
-                                is_ep)
+from quara.objects.gate import (
+    Gate,
+    calc_agf,
+    convert_hs,
+    get_cnot,
+    get_cz,
+    get_h,
+    get_i,
+    get_root_x,
+    get_root_y,
+    get_s,
+    get_sdg,
+    get_swap,
+    get_t,
+    get_x,
+    get_y,
+    get_z,
+    is_ep,
+)
 from quara.objects.operators import composite, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
+from quara.settings import Settings
 
 
 def test_init_error():
@@ -352,12 +368,12 @@ def test_calc_agf():
     # case: g=u
     actual = calc_agf(i, i)
     expected = 1
-    assert np.isclose(actual, expected, atol=1e-15)
+    assert np.isclose(actual, expected, atol=Settings.get_atol())
 
     # case: g is not u
     actual = calc_agf(z, x)
     expected = 1.0 / 3.0
-    assert np.isclose(actual, expected, atol=1e-15)
+    assert np.isclose(actual, expected, atol=Settings.get_atol())
 
     # case: u is not Hermitian
     hs = np.array(
