@@ -87,6 +87,7 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     gate = Gate(c_sys, to_hs)
     return gate
 
+
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # Povm (x) Povm -> Povm
     e_sys_list = list(elem1.composite_system.elemental_systems)
@@ -99,6 +100,7 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
 
     tensor_povm = Povm(c_sys, tensor_vecs)
     return tensor_povm
+
 
 def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
@@ -126,7 +128,7 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
     else:
-        raise ValueError(
+        raise TypeError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
         )
 
