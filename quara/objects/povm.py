@@ -22,12 +22,19 @@ class Povm:
         size = [self._dim, self._dim]
         for v in vecs:
             if not mutil.is_hermitian(np.reshape(v, size)):
-                raise ValueError("povm must be a set of Hermitian matrices")
+                raise ValueError("POVM must be a set of Hermitian matrices")
+
+        if not self.is_identity(vecs):
+            # whether the sum of the elements is an identity matrix or not
+            raise ValueError(
+                "The sum of the elements of POVM must be an identity matrix."
+            )
+
+        if not self.is_positive_semidefinite(vecs):
+            raise ValueError("Eigenvalues of POVM elements must be non-negative.")
 
         # Whether dim of CompositeSystem equals dim of vec
         if c_sys.dim != self._dim:
-            print(f"c_sys.dim = {c_sys.dim}")
-            print(f"self._dim = {self._dim}")
             raise ValueError(
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
@@ -65,7 +72,7 @@ class Povm:
         """
         return self._composite_system
 
-    def is_positive_semidefinite(self, atol: float = None) -> bool:
+    def is_positive_semidefinite(self, vecs=None, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.
 
         Returns
@@ -74,14 +81,15 @@ class Povm:
             True where each element is positive semidifinite, False otherwise.
         """
 
+        vecs = vecs if vecs else self._vecs
         size = [self._dim, self._dim]
-        for v in self._vecs:
+        for v in vecs:
             if not mutil.is_positive_semidefinite(np.reshape(v, size), atol):
                 return False
 
         return True
 
-    def is_identity(self) -> bool:
+    def is_identity(self, vecs=None) -> bool:
         """Returns whether the sum of the elements ``_vecs`` is an identity matrix.
 
         Returns
@@ -90,9 +98,11 @@ class Povm:
             If the sum of the elements ``_vecs`` is an identity matrix,
             otherwise it returns False.
         """
+
+        vecs = vecs if vecs else self._vecs
         size = [self._dim, self._dim]
         sum_matrix = np.zeros(size, dtype=np.complex128)
-        for v in self._vecs:
+        for v in vecs:
             sum_matrix += np.reshape(v, size)
 
         identity = np.identity(self._dim, dtype=np.complex128)
