@@ -164,7 +164,7 @@ class CompositeSystem:
             desc += f"[{i}] {e_sys.name} (system_id={e_sys.system_id})\n"
 
         desc += "\n"
-        desc += f"dim: {self.dim()}\n"
+        desc += f"dim: {self.dim}\n"
         desc += f"basis:\n"
         desc += str(self.basis())
         return desc

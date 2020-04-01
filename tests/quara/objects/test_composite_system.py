@@ -162,6 +162,15 @@ class TestCompositeSystem:
         assert (c1 == None) is False
         assert (c1 == 1) is False
 
+    def test_str(self):
+        # Arrange
+        e1 = ElementalSystem(1, get_pauli_basis())
+        c1 = CompositeSystem([e1])
+
+        # Act
+        # Only test that the call does not cause an error
+        print(c1)
+
 
 class TestCompositeSystemImmutable:
     def test_deney_update_elemental_systems_item(self):
