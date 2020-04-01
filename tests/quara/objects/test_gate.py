@@ -9,7 +9,7 @@ from quara.objects.gate import (Gate, calc_agf, convert_hs, get_cnot, get_cz,
                                 get_h, get_i, get_root_x, get_root_y, get_s,
                                 get_sdg, get_swap, get_t, get_x, get_y, get_z,
                                 is_ep)
-from quara.objects.operator import composite, tensor_product
+from quara.objects.operators import composite, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
 
 
