@@ -5,6 +5,7 @@ import numpy as np
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.matrix_basis import MatrixBasis, convert_vec
+from quara.settings import Settings
 
 
 class Povm:
@@ -65,7 +66,7 @@ class Povm:
         """
         return self._composite_system
 
-    def is_positive_semidefinite(self, atol: float = None) -> bool:
+    def is_positive_semidefinite(self, atol: float = Settings.get_atol()) -> bool:
         """Returns whether each element is positive semidifinite.
 
         Returns
