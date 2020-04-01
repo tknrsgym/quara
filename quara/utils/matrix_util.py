@@ -4,14 +4,18 @@ from operator import add
 
 import numpy as np
 
+from quara.settings import Settings
 
-def is_hermitian(matrix: np.ndarray, atol: float = 1e-14) -> bool:
+
+def is_hermitian(matrix: np.ndarray, atol: float = Settings.get_atol()) -> bool:
     """returns whether the matrix is Hermitian.
 
     Parameters
     ----------
     matrix : np.ndarray
         input matrix.
+    atol : float, optional
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
     Returns
     -------
@@ -26,7 +30,9 @@ def is_hermitian(matrix: np.ndarray, atol: float = 1e-14) -> bool:
     return np.allclose(matrix, adjoint, atol=atol, rtol=0.0)
 
 
-def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
+def is_positive_semidefinite(
+    matrix: np.ndarray, atol: float = Settings.get_atol()
+) -> bool:
     """Returns whether the matrix is positive semidifinite.
 
     Parameters
@@ -34,16 +40,13 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
     matrix : np.ndarray
         input matrix.
     atol : float, optional
-        by default None.
-        If atol is None, the default value ``1e-14`` is used.
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
     Returns
     -------
     bool
         True where ``matrix`` is positive semidifinite, False otherwise.
     """
-
-    atol = atol if atol else 1e-14
     if is_hermitian(matrix, atol):
         return np.all(np.linalg.eigvals(matrix) >= 0)
     else:
@@ -80,7 +83,7 @@ def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.array:
     return P_trace
 
 
-def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-13) -> bool:
+def is_tp(matrix: np.ndarray, dim: int, atol: float = Settings.get_atol()) -> bool:
     """returns whether the matrix is TP.
     if ``Tr_1[matrix] = I_2``, we think the matrix is TP.
     ``dim`` is a size of ``I_2``.
@@ -92,7 +95,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = 1e-13) -> bool:
     dim : int
         dim of partial trace.
     atol : float, optional
-        the absolute tolerance parameter, by default 1e-13.
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
         returns True, if ``absolute(identity matrix - partial trace) <= atol``.
         otherwise returns False.
 

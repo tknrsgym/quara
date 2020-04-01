@@ -4,18 +4,8 @@ from typing import List, Tuple
 
 import numpy as np
 
+from quara.settings import Settings
 import quara.utils.matrix_util as mutil
-
-
-def to_vect(source: "MatrixBasis") -> "VectorizedMatrixBasis":
-    """Convert MatrixBasis to VectorizedMatrixBasis
-
-    Returns
-    -------
-    VectorizedMatrixBasis
-        VectorizedMatrixBasis converted from MatrixBasis
-    """
-    return VectorizedMatrixBasis(source)
 
 
 class Basis:
@@ -138,7 +128,7 @@ class MatrixBasis(Basis):
         for index, left in enumerate(self.basis[:-1]):
             for right in self.basis[index + 1 :]:
                 i_product = np.vdot(left, right)
-                if not np.isclose(i_product, 0):
+                if not np.isclose(i_product, 0, atol=Settings.get_atol()):
                     return False
         return True
 
@@ -152,7 +142,7 @@ class MatrixBasis(Basis):
         """
         for mat in self:
             i_product = np.vdot(mat, mat)
-            if not np.isclose(i_product, 1):
+            if not np.isclose(i_product, 1, atol=Settings.get_atol()):
                 return False
         return True
 
@@ -303,6 +293,17 @@ class VectorizedMatrixBasis(Basis):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(source=MatrixBasis(basis={repr(list(self._org_basis))}))"
+
+
+def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
+    """Convert MatrixBasis to VectorizedMatrixBasis
+
+    Returns
+    -------
+    VectorizedMatrixBasis
+        VectorizedMatrixBasis converted from MatrixBasis
+    """
+    return VectorizedMatrixBasis(source)
 
 
 def get_comp_basis() -> MatrixBasis:
