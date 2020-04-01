@@ -1,11 +1,10 @@
-import pytest
-
 import numpy as np
+import pytest
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_comp_basis, get_pauli_basis
-from quara.objects.operator import tensor_product
+from quara.objects.operators import tensor_product
 
 
 class TestCompositeSystem:
