@@ -7,71 +7,6 @@ from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis, VectorizedMatrixBasis
 
 
-def test_get_comp_basis():
-    basis = matrix_basis.get_comp_basis()
-    assert basis.dim == 2
-    assert basis._is_squares() == True
-    assert basis._is_same_size() == True
-    assert basis._is_basis() == True
-    assert basis.is_orthogonal() == True
-    assert basis.is_normal() == True
-    assert basis.is_hermitian() == False  # computational basis: False
-    assert basis.is_scalar_mult_of_identity() == False  # computational basis: False
-    assert basis.is_trace_less() == False  # computational basis: False
-    assert np.all(basis[0] == np.array([[1, 0], [0, 0]], dtype=np.complex128))
-    assert np.all(basis[1] == np.array([[0, 1], [0, 0]], dtype=np.complex128))
-    assert np.all(basis[2] == np.array([[0, 0], [1, 0]], dtype=np.complex128))
-    assert np.all(basis[3] == np.array([[0, 0], [0, 1]], dtype=np.complex128))
-    assert basis.size() == (2, 2)
-    assert len(basis) == 4
-
-
-def test_get_pauli_basis():
-    basis = matrix_basis.get_pauli_basis()
-    assert basis.dim == 2
-    assert basis._is_squares() == True
-    assert basis._is_same_size() == True
-    assert basis._is_basis() == True
-    assert basis.is_orthogonal() == True
-    assert basis.is_normal() == False  # Pauli basis: False
-    assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
-    assert basis.is_trace_less() == True
-    assert np.all(basis[0] == np.array([[1, 0], [0, 1]], dtype=np.complex128))
-    assert np.all(basis[1] == np.array([[0, 1], [1, 0]], dtype=np.complex128))
-    assert np.all(basis[2] == np.array([[0, -1j], [1j, 0]], dtype=np.complex128))
-    assert np.all(basis[3] == np.array([[1, 0], [0, -1]], dtype=np.complex128))
-    assert basis.size() == (2, 2)
-    assert len(basis) == 4
-
-
-def test_get_normalized_pauli_basis():
-    basis = matrix_basis.get_normalized_pauli_basis()
-    assert basis.dim == 2
-    assert basis._is_squares() == True
-    assert basis._is_same_size() == True
-    assert basis._is_basis() == True
-    assert basis.is_orthogonal() == True
-    assert basis.is_normal() == True
-    assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
-    assert basis.is_trace_less() == True
-    assert np.all(
-        basis[0] == 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
-    )
-    assert np.all(
-        basis[1] == 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
-    )
-    assert np.all(
-        basis[2] == 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
-    )
-    assert np.all(
-        basis[3] == 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
-    )
-    assert basis.size() == (2, 2)
-    assert len(basis) == 4
-
-
 class TestMatrixBasis:
     def test_raise_not_basis(self):
         identity = np.array([[1, 0], [0, 1]], dtype=np.complex128)
@@ -299,34 +234,6 @@ class TestVectorizedMatrixBasis:
             assert np.array_equal(actual, source_basis[i])
 
 
-def test_get_gell_mann_basis():
-    basis = matrix_basis.get_gell_mann_basis()
-
-    assert basis.dim == 3
-    assert basis._is_squares() == True
-    assert basis._is_same_size() == True
-    assert basis._is_basis() == True
-    assert basis.is_orthogonal() == True
-    assert basis.is_normal() == False
-    assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
-    assert basis.is_trace_less() == True
-
-
-def test_get_normalized_gell_mann_basis():
-    basis = matrix_basis.get_normalized_gell_mann_basis()
-
-    assert basis.dim == 3
-    assert basis._is_squares() == True
-    assert basis._is_same_size() == True
-    assert basis._is_basis() == True
-    assert basis.is_orthogonal() == True
-    assert basis.is_normal() == True
-    assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
-    assert basis.is_trace_less() == True
-
-
 class TestMatrixBasisImmutable:
     def test_deney_update_basis(self):
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -458,6 +365,109 @@ class TestVectorizedMatrixBasiImmutable:
         with pytest.raises(AttributeError):
             # AttributeError: can't set attribute
             v_basis.org_basis = 1
+
+
+def test_to_vect():
+    basis = matrix_basis.get_comp_basis()
+    actual = matrix_basis.to_vect(basis)
+    assert len(actual) == 4
+    assert np.all(actual[0] == matrix_basis.get_comp_basis()[0].flatten())
+    assert np.all(actual[1] == matrix_basis.get_comp_basis()[1].flatten())
+    assert np.all(actual[2] == matrix_basis.get_comp_basis()[2].flatten())
+    assert np.all(actual[3] == matrix_basis.get_comp_basis()[3].flatten())
+
+
+def test_get_comp_basis():
+    basis = matrix_basis.get_comp_basis()
+    assert basis.dim == 2
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == True
+    assert basis.is_hermitian() == False  # computational basis: False
+    assert basis.is_scalar_mult_of_identity() == False  # computational basis: False
+    assert basis.is_trace_less() == False  # computational basis: False
+    assert np.all(basis[0] == np.array([[1, 0], [0, 0]], dtype=np.complex128))
+    assert np.all(basis[1] == np.array([[0, 1], [0, 0]], dtype=np.complex128))
+    assert np.all(basis[2] == np.array([[0, 0], [1, 0]], dtype=np.complex128))
+    assert np.all(basis[3] == np.array([[0, 0], [0, 1]], dtype=np.complex128))
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+
+def test_get_pauli_basis():
+    basis = matrix_basis.get_pauli_basis()
+    assert basis.dim == 2
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == False  # Pauli basis: False
+    assert basis.is_hermitian() == True
+    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_trace_less() == True
+    assert np.all(basis[0] == np.array([[1, 0], [0, 1]], dtype=np.complex128))
+    assert np.all(basis[1] == np.array([[0, 1], [1, 0]], dtype=np.complex128))
+    assert np.all(basis[2] == np.array([[0, -1j], [1j, 0]], dtype=np.complex128))
+    assert np.all(basis[3] == np.array([[1, 0], [0, -1]], dtype=np.complex128))
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+
+def test_get_normalized_pauli_basis():
+    basis = matrix_basis.get_normalized_pauli_basis()
+    assert basis.dim == 2
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == True
+    assert basis.is_hermitian() == True
+    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_trace_less() == True
+    assert np.all(
+        basis[0] == 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[1] == 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[2] == 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[3] == 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
+    )
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+
+def test_get_gell_mann_basis():
+    basis = matrix_basis.get_gell_mann_basis()
+
+    assert basis.dim == 3
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == False
+    assert basis.is_hermitian() == True
+    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_trace_less() == True
+
+
+def test_get_normalized_gell_mann_basis():
+    basis = matrix_basis.get_normalized_gell_mann_basis()
+
+    assert basis.dim == 3
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == True
+    assert basis.is_hermitian() == True
+    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_trace_less() == True
 
 
 def test_convert_vec_raise_exception_invalid_length():

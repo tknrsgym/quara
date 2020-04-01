@@ -6,6 +6,15 @@ from quara.objects.matrix_basis import get_comp_basis
 
 
 class TestElementalSystem:
+    def test_init_raise_name_is_not_int(self):
+        # Arrange
+        m_basis = get_comp_basis()
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            # TypeError: Type of 'name' must be int.
+            _ = esys.ElementalSystem("str is invalid type", m_basis)
+
     def test_access_name(self):
         m_basis = get_comp_basis()
         e1 = esys.ElementalSystem(1, m_basis)
@@ -50,12 +59,3 @@ class TestElementalSystem:
 
         with pytest.raises(AttributeError):
             e1.hemirtian_basis.basis = 1
-
-    def test_raise_name_is_not_int(self):
-        # Arrange
-        m_basis = get_comp_basis()
-
-        # Act & Assert
-        with pytest.raises(TypeError):
-            # TypeError: Type of 'name' must be int.
-            _ = esys.ElementalSystem("str is invalid type", m_basis)
