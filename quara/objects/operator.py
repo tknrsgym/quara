@@ -190,7 +190,7 @@ def _composite(elem1, elem2):
         prob = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
         return prob
     else:
-        raise ValueError(
+        raise TypeError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
         )
 
