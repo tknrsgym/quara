@@ -90,12 +90,12 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
 
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # Povm (x) Povm -> Povm
-    e_sys_list = list(elem1.composite_system.elemental_systems)
-    e_sys_list.extend(elem2.composite_system.elemental_systems)
+    e_sys_list = list(povm1.composite_system.elemental_systems)
+    e_sys_list.extend(povm2.composite_system.elemental_systems)
     c_sys = CompositeSystem(e_sys_list)
 
     tensor_vecs = [
-        np.kron(vec1, vec2) for vec1, vec2 in itertools.product(elem1.vecs, elem2.vecs)
+        np.kron(vec1, vec2) for vec1, vec2 in itertools.product(povm1.vecs, povm2.vecs)
     ]
 
     tensor_povm = Povm(c_sys, tensor_vecs)
