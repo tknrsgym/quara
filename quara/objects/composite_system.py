@@ -12,9 +12,22 @@ from quara.objects.matrix_basis import MatrixBasis
 class CompositeSystem:
     """Class for describing Composite system"""
 
-    # E1 \otimes E2のCompositeSystemがある場合には、E2 \otimes E1は実行できない
-
     def __init__(self, systems: List[ElementalSystem]):
+        """Constructor
+        
+        Parameters
+        ----------
+        systems : List[ElementalSystem]
+            list of ElementalSystem of this CompositeSystem.
+        
+        Raises
+        ------
+        ValueError
+            duplicate ElementalSystem instance.
+        ValueError
+            duplicate ElementalSystem name.
+        """
+
         # Validation
         # Check for duplicate ElementalSystem
         names: List[int] = []
@@ -43,6 +56,13 @@ class CompositeSystem:
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(sored_e_syses)
 
     def basis(self) -> MatrixBasis:
+        """returns MatrixBasis of CompositeSystem.
+        
+        Returns
+        -------
+        MatrixBasis
+            MatrixBasis of CompositeSystem.
+        """
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
         basis_tmp: MatrixBasis
 
@@ -58,7 +78,17 @@ class CompositeSystem:
             basis_tmp = MatrixBasis(temp)
         return basis_tmp
 
+    @property
     def dim(self) -> int:
+        """returns dim of CompositeSystem.
+
+        the dim of CompositeSystem equals the dim of basis.
+
+        Returns
+        -------
+        int
+            dim of CompositeSystem.
+        """
         return self.basis()[0].shape[0]
 
     def get_basis(self, index: Union[int, tuple]) -> MatrixBasis:

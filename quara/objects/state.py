@@ -21,9 +21,9 @@ class State:
         Parameters
         ----------
         c_sys : CompositeSystem
-            CompositeSystem of state.
+            CompositeSystem of this state.
         vec : np.ndarray
-            vec of state.
+            vec of this state.
 
         Raises
         ------
@@ -58,9 +58,9 @@ class State:
             )
 
         # whether dim of CompositeSystem equals dim of vec
-        if self._composite_system.dim() != self._dim:
+        if self._composite_system.dim != self._dim:
             raise ValueError(
-                f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim()}. dim of vec is {self._dim}"
+                f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim}. dim of vec is {self._dim}"
             )
 
     @property
