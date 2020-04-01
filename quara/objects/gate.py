@@ -12,6 +12,7 @@ from quara.objects.matrix_basis import (
     get_comp_basis,
     get_normalized_pauli_basis,
 )
+from quara.settings import Settings
 
 
 class Gate:
@@ -91,13 +92,13 @@ class Gate:
         """
         return self._composite_system.basis()
 
-    def is_tp(self, atol: float = 1e-13) -> bool:
+    def is_tp(self, atol: float = Settings.get_atol()) -> bool:
         """returns whether the gate is TP(trace-preserving map).
 
         Parameters
         ----------
         atol : float, optional
-            the absolute tolerance parameter, by default 1e-13.
+            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
             this function checks ``absolute(trace after mapped - trace before mapped) <= atol``.
 
         Returns
@@ -208,7 +209,7 @@ class Gate:
         eigens = [
             (eigen_val, eigen_vec)
             for (eigen_val, eigen_vec) in eigens
-            if eigen_val > 0 and not np.isclose(eigen_val, 0, atol=1e-14)
+            if eigen_val > 0 and not np.isclose(eigen_val, 0, atol=Settings.get_atol())
         ]
         # sort large eigenvalue order
         eigens = sorted(eigens, key=lambda x: x[0], reverse=True)
