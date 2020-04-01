@@ -154,7 +154,6 @@ class MatrixBasis(Basis):
         bool
             True where matrices are Hermitian, False otherwise.
         """
-        # TODO globalなatolを指定すること
         for mat in self:
             if not mutil.is_hermitian(mat):
                 return False
