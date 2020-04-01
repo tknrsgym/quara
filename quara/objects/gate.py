@@ -7,8 +7,11 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.matrix_basis import (MatrixBasis, get_comp_basis,
-                                        get_normalized_pauli_basis)
+from quara.objects.matrix_basis import (
+    MatrixBasis,
+    get_comp_basis,
+    get_normalized_pauli_basis,
+)
 
 
 class Gate:
@@ -18,9 +21,9 @@ class Gate:
         Parameters
         ----------
         c_sys : CompositeSystem
-            CompositeSystem of gate.
+            CompositeSystem of this gate.
         hs : np.ndarray
-            HS representation of gate.
+            HS representation of this gate.
 
         Raises
         ------
@@ -51,9 +54,9 @@ class Gate:
             raise ValueError(f"HS must be real matrix. dtype of HS is {self._hs.dtype}")
 
         # whether dim of HS equals dim of CompositeSystem
-        if self._dim != self._composite_system.dim():
+        if self._dim != self._composite_system.dim:
             raise ValueError(
-                f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim()}"
+                f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim}"
             )
 
     @property
@@ -369,7 +372,7 @@ def _get_1q_gate_from_hs_on_pauli_basis(
     matrix: np.array, c_sys: CompositeSystem
 ) -> Gate:
     # whether dim of CompositeSystem equals 2
-    if c_sys.dim() != 2:
+    if c_sys.dim != 2:
         raise ValueError(
             f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim()}"
         )
