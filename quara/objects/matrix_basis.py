@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 import numpy as np
 
+from quara.settings import Settings
 import quara.utils.matrix_util as mutil
 
 
@@ -127,7 +128,7 @@ class MatrixBasis(Basis):
         for index, left in enumerate(self.basis[:-1]):
             for right in self.basis[index + 1 :]:
                 i_product = np.vdot(left, right)
-                if not np.isclose(i_product, 0):
+                if not np.isclose(i_product, 0, atol=Settings.get_atol()):
                     return False
         return True
 
@@ -141,7 +142,7 @@ class MatrixBasis(Basis):
         """
         for mat in self:
             i_product = np.vdot(mat, mat)
-            if not np.isclose(i_product, 1):
+            if not np.isclose(i_product, 1, atol=Settings.get_atol()):
                 return False
         return True
 
