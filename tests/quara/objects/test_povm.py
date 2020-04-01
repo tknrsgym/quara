@@ -120,53 +120,53 @@ class TestPovm:
         with pytest.raises(ValueError):
             _ = Povm(c_sys=c_sys, vecs=vecs)
 
-    # def test_calc_eigenvalues_all(self):
-    #     # Arrange
-    #     ps = np.array([1, 0, 0, 0], dtype=np.complex128)
-    #     not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
-    #     vecs = [ps, not_ps]
+    def test_calc_eigenvalues_all(self):
+        # Arrange
+        vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vecs = [vec_1, vec_2]
 
-    #     e_sys = esys.ElementalSystem(1, get_pauli_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
 
-    #     # Act
-    #     povm = Povm(c_sys=c_sys, vecs=vecs)
-    #     actual = povm.calc_eigenvalues()
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.calc_eigenvalues()
 
-    #     # Assert
-    #     expected = [
-    #         np.array([1, 0], dtype=np.complex128),
-    #         np.array([1, -1], dtype=np.complex128),
-    #     ]
+        # Assert
+        expected = [
+            np.array([1, 0], dtype=np.complex128),
+            np.array([0, 1], dtype=np.complex128),
+        ]
 
-    #     assert len(actual) == len(expected)
-    #     npt.assert_almost_equal(actual[0], expected[0], decimal=15)
-    #     npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+        assert len(actual) == len(expected)
+        npt.assert_almost_equal(actual[0], expected[0], decimal=15)
+        npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
-    # def test_calc_eigenvalues_one(self):
-    #     # Arrange
-    #     ps = np.array([1, 0, 0, 0], dtype=np.complex128)
-    #     not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
-    #     vecs = [ps, not_ps]
+    def test_calc_eigenvalues_one(self):
+        # Arrange
+        vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vecs = [vec_1, vec_2]
 
-    #     e_sys = esys.ElementalSystem(1, get_pauli_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
 
-    #     # Act
-    #     povm = Povm(c_sys=c_sys, vecs=vecs)
-    #     actual = povm.calc_eigenvalues(0)
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.calc_eigenvalues(0)
 
-    #     # Assert
-    #     expected = np.array([1, 0], dtype=np.complex128)
-    #     npt.assert_almost_equal(actual, expected, decimal=15)
+        # Assert
+        expected = np.array([1, 0], dtype=np.complex128)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
-    #     # Act
-    #     povm = Povm(c_sys=c_sys, vecs=vecs)
-    #     actual = povm.calc_eigenvalues(1)
+        # Act
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        actual = povm.calc_eigenvalues(1)
 
-    #     # Assert
-    #     expected = np.array([1, -1], dtype=np.complex128)
-    #     npt.assert_almost_equal(actual, expected, decimal=15)
+        # Assert
+        expected = np.array([0, 1], dtype=np.complex128)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_validate_dim_ng(self):
         # Arrange
