@@ -87,6 +87,18 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     gate = Gate(c_sys, to_hs)
     return gate
 
+def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
+    # Povm (x) Povm -> Povm
+    e_sys_list = list(elem1.composite_system.elemental_systems)
+    e_sys_list.extend(elem2.composite_system.elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
+
+    tensor_vecs = [
+        np.kron(vec1, vec2) for vec1, vec2 in itertools.product(elem1.vecs, elem2.vecs)
+    ]
+
+    tensor_povm = Povm(c_sys, tensor_vecs)
+    return tensor_povm
 
 def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
@@ -112,23 +124,7 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         return tensor_state
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
-        e_sys_list = list(elem1.composite_system.elemental_systems)
-        e_sys_list.extend(elem2.composite_system.elemental_systems)
-        c_sys = CompositeSystem(e_sys_list)
-
-        tensor_vecs = []
-        # TODO: It is working in progress
-        for vec1, vec2 in zip(elem1.vecs, elem2.vecs):
-            tensor_vec = np.kron(vec1, vec2)
-            tensor_vecs.append(tensor_vec)
-
-        # or
-        # tensor_vecs = [
-        #     np.kron(vec1, vec2) for vec1, vec2 in itertools.product(elem1.vecs, elem2.vecs)
-        # ]
-
-        tensor_povm = Povm(c_sys, tensor_vecs)
-        return tensor_povm
+        return _tensor_product_Povm_Povm(elem1, elem2)
     else:
         raise ValueError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
