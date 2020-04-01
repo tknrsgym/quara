@@ -239,7 +239,7 @@ def test_tensor_product_State_State():
         np.array([[0, 1], [1, 0]], dtype=np.complex128),
     )
 
-    assert np.all(actual._vec == expected_vec)
+    assert np.all(actual.vec == expected_vec)
     assert np.all(actual.get_density_matrix() == expected_density_matrix)
 
     assert e_sys1 is actual._composite_system._elemental_systems[0]
@@ -350,7 +350,7 @@ def test_composite_Povm_Gate():
         np.array([0, 0, 0, 1], dtype=np.complex128),
         np.array([1, 0, 0, 0], dtype=np.complex128),
     ]
-    npt.assert_almost_equal(actual._vecs, expected, decimal=15)
+    npt.assert_almost_equal(actual.vecs, expected, decimal=15)
 
 
 def test_composite_Povm_State():

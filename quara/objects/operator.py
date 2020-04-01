@@ -105,7 +105,7 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         e_sys_list.extend(elem2._composite_system._elemental_systems)
         c_sys = CompositeSystem(e_sys_list)
         # calculate vecs of stetes
-        tensor_vec = np.kron(elem1._vec, elem2._vec)
+        tensor_vec = np.kron(elem1.vec, elem2.vec)
 
         # create State
         tensor_state = State(c_sys, tensor_vec)
@@ -184,12 +184,12 @@ def _composite(elem1, elem2):
         return state
     elif type(elem1) == Povm and type(elem2) == Gate:
         # calculate Povm
-        vecs = [povm_element.conjugate() @ elem2.hs for povm_element in elem1._vecs]
+        vecs = [povm_element.conjugate() @ elem2.hs for povm_element in elem1.vecs]
         povm = Povm(elem1._composite_system, vecs)
         return povm
     elif type(elem1) == Povm and type(elem2) == State:
         # calculate probability distribution
-        prob = [np.vdot(povm_element, elem2._vec) for povm_element in elem1._vecs]
+        prob = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
         return prob
     else:
         raise ValueError(
