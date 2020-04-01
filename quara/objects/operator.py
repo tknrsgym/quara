@@ -29,7 +29,7 @@ def tensor_product(*elements) -> Union[MatrixBasis, State, Povm, Gate]:
 
     Raises
     ------
-    ValueError
+    TypeError
         Unsupported type combination.
     """
 
@@ -151,7 +151,7 @@ def composite(*elements) -> Union[Gate, Povm, State, List[float]]:
 
     Raises
     ------
-    ValueError
+    TypeError
         Unsupported type combination.
     """
     # convert argument to list
