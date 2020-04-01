@@ -7,17 +7,6 @@ import numpy as np
 import quara.utils.matrix_util as mutil
 
 
-def to_vect(source: "MatrixBasis") -> "VectorizedMatrixBasis":
-    """Convert MatrixBasis to VectorizedMatrixBasis
-
-    Returns
-    -------
-    VectorizedMatrixBasis
-        VectorizedMatrixBasis converted from MatrixBasis
-    """
-    return VectorizedMatrixBasis(source)
-
-
 class Basis:
     def __init__(self, basis: List[np.ndarray]):
         self._basis: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(basis))
@@ -303,6 +292,17 @@ class VectorizedMatrixBasis(Basis):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(source=MatrixBasis(basis={repr(list(self._org_basis))}))"
+
+
+def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
+    """Convert MatrixBasis to VectorizedMatrixBasis
+
+    Returns
+    -------
+    VectorizedMatrixBasis
+        VectorizedMatrixBasis converted from MatrixBasis
+    """
+    return VectorizedMatrixBasis(source)
 
 
 def get_comp_basis() -> MatrixBasis:
