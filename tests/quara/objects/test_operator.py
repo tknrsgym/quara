@@ -6,7 +6,13 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_s, get_x, get_y, get_z
-from quara.objects.operator import composite, tensor_product
+from quara.objects.operator import (
+    _composite,
+    _tensor_product,
+    _to_list,
+    composite,
+    tensor_product,
+)
 from quara.objects.povm import Povm
 from quara.objects.state import State, get_x0_1q, get_x1_1q, get_z0_1q, get_z1_1q
 
@@ -246,6 +252,29 @@ def test_tensor_product_State_State():
     assert e_sys2 is actual._composite_system._elemental_systems[1]
 
 
+def test_tensor_product_povm_povm():
+    # TODO
+    pass
+
+
+def test_tensor_product_unexpected_type():
+    # Arrange
+    basis1 = matrix_basis.get_comp_basis()
+    e_sys1 = ElementalSystem(1, basis1)
+    c_sys1 = CompositeSystem([e_sys1])
+    state1 = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64))
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        # TypeError: Unsupported type combination!
+        _ = _tensor_product(basis1, state1)
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        # TypeError: Unsupported type combination!
+        _ = _tensor_product(e_sys1, e_sys1)
+
+
 def test_composite_error():
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys0 = CompositeSystem([e_sys0])
@@ -257,6 +286,20 @@ def test_composite_error():
     # error case: composite different composite systems
     with pytest.raises(ValueError):
         composite(i_gate0, i_gate1)
+
+
+def test_composite_unexpected_type():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    z_gate = get_z(c_sys)
+    state = get_x0_1q(c_sys)
+
+    # Act & Assert
+    # Gate (x) State is OK, but State (x) Gate is NG
+    with pytest.raises(TypeError):
+        # TypeError: Unsupported type combination!
+        _ = _composite(state, z_gate)
 
 
 def test_composite_Gate_Gate():
@@ -379,3 +422,26 @@ def test_composite_Povm_State():
     actual = composite(povm, state)
     expected = [0.5, 0.5]
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_to_list():
+    # Arrange & Act
+    actual = _to_list(1, 2, 3)
+
+    # Assert
+    expected = [1, 2, 3]
+    assert actual == expected
+
+    # Arrange & Act
+    actual = _to_list([4, 5, 6])
+
+    # Assert
+    expected = [4, 5, 6]
+    assert actual == expected
+
+
+def test_to_list_unexpected_value():
+    # Arrange & Act & Assert
+    with pytest.raises(ValueError):
+        # ValueError: arguments must be at least two! arguments=0)
+        _ = _to_list([], [])
