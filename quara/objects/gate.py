@@ -7,11 +7,8 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.matrix_basis import (
-    MatrixBasis,
-    get_comp_basis,
-    get_normalized_pauli_basis,
-)
+from quara.objects.matrix_basis import (MatrixBasis, get_comp_basis,
+                                        get_normalized_pauli_basis)
 from quara.settings import Settings
 
 
@@ -67,7 +64,7 @@ class Gate:
         Returns
         -------
         int
-            dim of gate
+            dim of gate.
         """
         return self._dim
 
@@ -78,21 +75,21 @@ class Gate:
         Returns
         -------
         np.array
-            HS representation of gate
+            HS representation of gate.
         """
         return self._hs
 
     def get_basis(self) -> MatrixBasis:
-        """returns MatrixBasis of gate
+        """returns MatrixBasis of gate.
 
         Returns
         -------
         MatrixBasis
-            MatrixBasis of gate
+            MatrixBasis of gate.
         """
         return self._composite_system.basis()
 
-    def is_tp(self, atol: float = Settings.get_atol()) -> bool:
+    def is_tp(self, atol: float = None) -> bool:
         """returns whether the gate is TP(trace-preserving map).
 
         Parameters
@@ -106,6 +103,8 @@ class Gate:
         bool
             True where the gate is TP, False otherwise.
         """
+        atol = atol if atol else Settings.get_atol()
+
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
         dim = self._composite_system.basis().dim
         for basis in self._composite_system.basis():
@@ -120,16 +119,30 @@ class Gate:
 
         return True
 
-    def is_cp(self) -> bool:
+    def is_cp(self, atol: float = None) -> bool:
         """returns whether gate is CP(Complete-Positivity-Preserving).
+
+        Parameters
+        ----------
+        atol : float, optional
+            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+            this function ignores eigenvalues close zero.
 
         Returns
         -------
         bool
             True where gate is CP, False otherwise.
         """
+        atol = atol if atol else Settings.get_atol()
+
         # "A is CP"  <=> "C(A) >= 0"
-        return np.all(np.linalg.eigvals(self.calc_choi_matrix()) >= 0)
+        eigvals_array = np.linalg.eigvals(self.calc_choi_matrix())
+
+        # ignore eigvals close zero
+        close_zero = np.where(np.isclose(eigvals_array, 0, atol=atol, rtol=0.0))
+        eigvals_not_close_zero = np.delete(eigvals_array, close_zero)
+
+        return np.all(eigvals_not_close_zero >= 0)
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns HS representation for ``other_basis``.
@@ -137,12 +150,12 @@ class Gate:
         Parameters
         ----------
         other_basis : MatrixBasis
-            basis
+            basis.
 
         Returns
         -------
         np.array
-            HS representation for ``other_basis``
+            HS representation for ``other_basis``.
         """
         converted_hs = convert_hs(self.hs, self._composite_system.basis(), other_basis)
         return converted_hs
@@ -153,10 +166,10 @@ class Gate:
         Returns
         -------
         np.array
-            HS representation for computational basis
+            HS representation for computational basis.
         """
         converted_hs = convert_hs(
-            self.hs, self._composite_system.basis(), get_comp_basis()
+            self.hs, self._composite_system.basis(), self._composite_system.comp_basis()
         )
         return converted_hs
 
@@ -166,7 +179,7 @@ class Gate:
         Returns
         -------
         np.array
-            Choi matrix of gate
+            Choi matrix of gate.
         """
         # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
         tmp_list = []
@@ -192,7 +205,7 @@ class Gate:
         Returns
         -------
         List[np.array]
-            Kraus matrices of gate
+            Kraus matrices of gate.
         """
         if not self.is_cp():
             return []
@@ -229,11 +242,11 @@ class Gate:
         Returns
         -------
         np.array
-            process matrix of gate
+            process matrix of gate.
         """
         # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
         hs_comp = self.convert_to_comp_basis()
-        comp_basis = get_comp_basis()
+        comp_basis = self._composite_system.comp_basis()
         process_matrix = [
             np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
             for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
@@ -241,7 +254,7 @@ class Gate:
         return np.array(process_matrix).reshape((4, 4))
 
 
-def is_ep(hs: np.array, basis: MatrixBasis, atol: float = Settings.get_atol()) -> bool:
+def is_ep(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
     """returns whether gate is EP(Hermiticity-Preserving).
 
     EP <=> HS on Hermitian basis is real matrix.
@@ -250,9 +263,9 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = Settings.get_atol()) -
     Parameters
     ----------
     hs : np.array
-        HS representation of gate
+        HS representation of gate.
     basis : MatrixBasis
-        basis of HS representation
+        basis of HS representation.
     atol : float, optional
         the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
         this function checks ``absolute(imaginary part of matrix - zero matrix) <= atol``.
@@ -262,6 +275,9 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = Settings.get_atol()) -
     bool
         True where gate is EP, False otherwise.
     """
+
+    atol = atol if atol else Settings.get_atol()
+
     # convert Hermitian basis(Pauli basis)
     hs_converted = convert_hs(hs, basis, get_normalized_pauli_basis())
 
@@ -276,19 +292,19 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
     Parameters
     ----------
     g : Gate
-        L-TP-CP map
+        L-TP-CP map.
     u : Gate
-        unitary gate
+        unitary gate.
 
     Returns
     -------
     np.float64
-        AGF
+        AGF.
 
     Raises
     ------
     ValueError
-        HS representation of ``u`` is not Hermitian
+        HS representation of ``u`` is not Hermitian.
     """
     # u: unitary gate <=> HS(u) is Hermitian
     # whetever HS(u) is Hermitian
@@ -311,27 +327,27 @@ def convert_hs(
     Parameters
     ----------
     from_hs : np.array
-        HS representation before convert
+        HS representation before convert.
     from_basis : MatrixBasis
-        basis before convert
+        basis before convert.
     to_basis : MatrixBasis
-        basis after convert
+        basis after convert.
 
     Returns
     -------
     np.array
-        HS representation for ``to_basis``
+        HS representation for ``to_basis``.
 
     Raises
     ------
     ValueError
-        ``from_hs`` is not square matrix
+        ``from_hs`` is not square matrix.
     ValueError
-        dim of ``from_hs`` is not square number
+        dim of ``from_hs`` is not square number.
     ValueError
-        dim of ``from_basis`` does not equal dim of ``to_basis``
+        dim of ``from_basis`` does not equal dim of ``to_basis``.
     ValueError
-        length of ``from_basis`` does not equal length of ``to_basis``
+        length of ``from_basis`` does not equal length of ``to_basis``.
     """
     ### parameter check
 
@@ -375,7 +391,7 @@ def _get_1q_gate_from_hs_on_pauli_basis(
     # whether dim of CompositeSystem equals 2
     if c_sys.dim != 2:
         raise ValueError(
-            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim()}"
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
         )
 
     # convert "HS representation in Pauli basis" to "HS representation in basis of CompositeSystem"
@@ -390,27 +406,15 @@ def get_i(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        identity gate
-
-    Raises
-    ------
-    ValueError
-        CompositeSystem is not 1quit
+        identity gate.
     """
-    # whether CompositeSystem is 1 qubit
-    size = len(c_sys._elemental_systems)
-    if size != 1:
-        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
-
-    matrix = np.array(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
-    )
-    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    hs = np.eye(c_sys.dim ** 2, dtype=np.float64)
+    gate = Gate(c_sys, hs)
     return gate
 
 
@@ -420,17 +424,19 @@ def get_x(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        Pauli X gate
+        Pauli X gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -450,17 +456,19 @@ def get_y(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        Pauli Y gate
+        Pauli Y gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -480,17 +488,19 @@ def get_z(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        Pauli Z gate
+        Pauli Z gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -510,17 +520,19 @@ def get_h(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        H gate
+        H gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -540,17 +552,19 @@ def get_root_x(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        root of X gate
+        root of X gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -570,17 +584,19 @@ def get_root_y(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        root of Y gate
+        root of Y gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -600,17 +616,19 @@ def get_s(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        S gate(root of Z)
+        S gate(root of Z).
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -630,17 +648,19 @@ def get_sdg(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        dagger of S gate
+        dagger of S gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -660,17 +680,19 @@ def get_t(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        T gate
+        T gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 1quit
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
     """
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -696,31 +718,32 @@ def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
     control : ElementalSystem
-        ElementalSystem of control qubit
+        ElementalSystem of control qubit.
 
     Returns
     -------
     Gate
-        CNOT gate
+        CNOT gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 2quits
+        CompositeSystem is not 2quits.
+    ValueError
+        dim of CompositeSystem does not equal 4.
     """
     # whether CompositeSystem is 2 qubits
     size = len(c_sys._elemental_systems)
     if size != 2:
         raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
 
-    comp_basis_1q = get_comp_basis()
-    new_basis = [
-        np.kron(val1, val2)
-        for val1, val2 in itertools.product(comp_basis_1q, comp_basis_1q)
-    ]
-    comp_basis_2q = MatrixBasis(new_basis)
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
 
     if control == c_sys.elemental_systems[0]:
         # control bit is 1st qubit
@@ -769,9 +792,9 @@ def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
             dtype=np.float64,
         )
 
-    hs_for_c_sys = convert_hs(hs_comp_basis, comp_basis_2q, c_sys.basis()).real.astype(
-        np.float64
-    )
+    hs_for_c_sys = convert_hs(
+        hs_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    ).real.astype(np.float64)
     gate = Gate(c_sys, hs_for_c_sys)
     return gate
 
@@ -782,29 +805,30 @@ def get_cz(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        CZ gate
+        CZ gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 2quits
+        CompositeSystem is not 2quits.
+    ValueError
+        dim of CompositeSystem does not equal 4.
     """
     # whether CompositeSystem is 2 qubits
     size = len(c_sys._elemental_systems)
     if size != 2:
         raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
 
-    comp_basis_1q = get_comp_basis()
-    new_basis = [
-        np.kron(val1, val2)
-        for val1, val2 in itertools.product(comp_basis_1q, comp_basis_1q)
-    ]
-    comp_basis_2q = MatrixBasis(new_basis)
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
 
     hs_comp_basis = np.array(
         [
@@ -828,9 +852,9 @@ def get_cz(c_sys: CompositeSystem) -> Gate:
         dtype=np.float64,
     )
 
-    hs_for_c_sys = convert_hs(hs_comp_basis, comp_basis_2q, c_sys.basis()).real.astype(
-        np.float64
-    )
+    hs_for_c_sys = convert_hs(
+        hs_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    ).real.astype(np.float64)
     gate = Gate(c_sys, hs_for_c_sys)
     return gate
 
@@ -841,29 +865,30 @@ def get_swap(c_sys: CompositeSystem) -> Gate:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing gate
+        CompositeSystem containing gate.
 
     Returns
     -------
     Gate
-        SWAP gate
+        SWAP gate.
 
     Raises
     ------
     ValueError
-        CompositeSystem is not 2quits
+        CompositeSystem is not 2quits.
+    ValueError
+        dim of CompositeSystem does not equal 4
     """
     # whether CompositeSystem is 2 qubits
     size = len(c_sys._elemental_systems)
     if size != 2:
         raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
 
-    comp_basis_1q = get_comp_basis()
-    new_basis = [
-        np.kron(val1, val2)
-        for val1, val2 in itertools.product(comp_basis_1q, comp_basis_1q)
-    ]
-    comp_basis_2q = MatrixBasis(new_basis)
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
 
     hs_comp_basis = np.array(
         [
@@ -887,8 +912,8 @@ def get_swap(c_sys: CompositeSystem) -> Gate:
         dtype=np.float64,
     )
 
-    hs_for_c_sys = convert_hs(hs_comp_basis, comp_basis_2q, c_sys.basis()).real.astype(
-        np.float64
-    )
+    hs_for_c_sys = convert_hs(
+        hs_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    ).real.astype(np.float64)
     gate = Gate(c_sys, hs_for_c_sys)
     return gate

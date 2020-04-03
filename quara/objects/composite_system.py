@@ -55,6 +55,31 @@ class CompositeSystem:
         # Set
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(sored_e_syses)
 
+    def comp_basis(self) -> MatrixBasis:
+        """returns computational basis of CompositeSystem.
+        
+        Returns
+        -------
+        MatrixBasis
+            computational basis of CompositeSystem.
+        """
+        # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
+        basis_tmp: MatrixBasis
+
+        if len(self._elemental_systems) == 1:
+            basis_tmp = self._elemental_systems[0].computational_basis
+        else:
+            basis_list = [
+                e_sys.computational_basis for e_sys in self._elemental_systems
+            ]
+            temp = basis_list[0]
+            for elem in basis_list[1:]:
+                temp = [
+                    np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                ]
+            basis_tmp = MatrixBasis(temp)
+        return basis_tmp
+
     def basis(self) -> MatrixBasis:
         """returns MatrixBasis of CompositeSystem.
         

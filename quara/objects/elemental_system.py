@@ -1,5 +1,7 @@
 from quara.objects import matrix_basis
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
+
+import numpy as np
 
 
 class ElementalSystem:
@@ -34,7 +36,7 @@ class ElementalSystem:
         # But just in case, implement ``system_id``.
         self._system_id: int = id(self)
         self._dim: int = basis.dim
-        # self._computational_basis: MatrixBasis = None  # TODO
+        self._computational_basis: MatrixBasis = get_comp_basis(self._dim)
         self._hemirtian_basis: MatrixBasis = basis
 
     @property
@@ -73,9 +75,9 @@ class ElementalSystem:
         """
         return self._dim
 
-    # @property
-    # def computational_basis(self):  # read only
-    #     return self._computational_basis
+    @property
+    def computational_basis(self) -> MatrixBasis:  # read only
+        return self._computational_basis
 
     @property
     def hemirtian_basis(self) -> MatrixBasis:  # read only
