@@ -375,6 +375,13 @@ def test_get_x0_1q():
     expected = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_x0_1q(c_sys)
+
 
 def test_get_x1_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -383,6 +390,13 @@ def test_get_x1_1q():
     actual = state.get_density_matrix()
     expected = np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_x1_1q(c_sys)
 
 
 def test_get_y0_1q():
@@ -393,6 +407,13 @@ def test_get_y0_1q():
     expected = np.array([[0.5, -0.5j], [0.5j, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_y0_1q(c_sys)
+
 
 def test_get_y1_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -401,6 +422,13 @@ def test_get_y1_1q():
     actual = state.get_density_matrix()
     expected = np.array([[0.5, 0.5j], [-0.5j, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_y1_1q(c_sys)
 
 
 def test_get_z0_1q():
@@ -411,6 +439,13 @@ def test_get_z0_1q():
     expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_z0_1q(c_sys)
+
 
 def test_get_z1_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -419,6 +454,13 @@ def test_get_z1_1q():
     actual = state.get_density_matrix()
     expected = np.array([[0, 0], [0, 1]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        get_z1_1q(c_sys)
 
 
 def test_get_bell_2q():
@@ -445,3 +487,9 @@ def test_get_bell_2q():
     state = get_bell_2q(c_sys)
     actual = state.get_density_matrix()
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 2qubit CompositeSystem
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys2])
+    with pytest.raises(ValueError):
+        get_bell_2q(c_sys)
