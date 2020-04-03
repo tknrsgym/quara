@@ -64,7 +64,7 @@ class MatrixBasis(Basis):
         Returns
         -------
         int
-            dim of matrix
+            dim of matrix.
         """
         return self._dim
 
@@ -74,7 +74,7 @@ class MatrixBasis(Basis):
         Returns
         -------
         VectorizedMatrixBasis
-            the class that vectorizes itself
+            the class that vectorizes itself.
         """
         return to_vect(self)
 
@@ -300,7 +300,7 @@ def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
     Returns
     -------
     VectorizedMatrixBasis
-        VectorizedMatrixBasis converted from MatrixBasis
+        VectorizedMatrixBasis converted from MatrixBasis.
     """
     return VectorizedMatrixBasis(source)
 
@@ -311,7 +311,7 @@ def get_comp_basis(dim: int = 2) -> MatrixBasis:
     Parameters
     ----------
     dim : int, optional
-        dim of computational basis, by default 2
+        dim of computational basis, by default 2.
     
     Returns
     -------
@@ -424,17 +424,17 @@ def convert_vec(
     Parameters
     ----------
     from_vec : np.array
-        vector representation before converts vector representation
+        vector representation before converts vector representation.
     from_basis : MatrixBasis
-        basis before converts vector representation
+        basis before converts vector representation.
     to_basis : MatrixBasis
-        basis after converts vector representation
+        basis after converts vector representation.
 
     Returns
     -------
     np.array
-        vector representation after converts vector representation
-        ``dtype`` is ``float64``
+        vector representation after converts vector representation.
+        ``dtype`` is ``float64``.
     """
     # whether length of from_basis equals length of to_basis
     if len(from_basis) != len(to_basis):
