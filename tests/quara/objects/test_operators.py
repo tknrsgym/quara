@@ -377,7 +377,7 @@ def test_composite_Gate_State():
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
 
-@pytest.mark.skip(reasons="It only fails at CircleCI.")
+# @pytest.mark.skip(reasons="It only fails at CircleCI.")
 def test_composite_Povm_Gate():
     e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys])
