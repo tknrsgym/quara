@@ -25,14 +25,15 @@ class Povm:
             if not mutil.is_hermitian(np.reshape(v, size)):
                 raise ValueError("POVM must be a set of Hermitian matrices")
 
-        if not self._is_identity(vecs):
-            # whether the sum of the elements is an identity matrix or not
-            raise ValueError(
-                "The sum of the elements of POVM must be an identity matrix."
-            )
+        # TODO: put back
+        # if not self._is_identity(vecs):
+        #     # whether the sum of the elements is an identity matrix or not
+        #     raise ValueError(
+        #         "The sum of the elements of POVM must be an identity matrix."
+        #     )
 
-        if not self._is_positive_semidefinite(vecs):
-            raise ValueError("Eigenvalues of POVM elements must be non-negative.")
+        # if not self._is_positive_semidefinite(vecs):
+        #     raise ValueError("Eigenvalues of POVM elements must be non-negative.")
 
         # Whether dim of CompositeSystem equals dim of vec
         if c_sys.dim != self._dim:
