@@ -6,7 +6,7 @@ class Settings:
         """returns global setting of ``atol``.
 
         default value is 1e-13.
-        
+
         Returns
         -------
         float
@@ -17,7 +17,7 @@ class Settings:
     @classmethod
     def set_stol(cls, atol: float):
         """updates global setting of ``atol``.
-        
+
         Parameters
         ----------
         atol : float
