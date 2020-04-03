@@ -241,7 +241,7 @@ class Gate:
         return np.array(process_matrix).reshape((4, 4))
 
 
-def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
+def is_ep(hs: np.array, basis: MatrixBasis, atol: float = Settings.get_atol()) -> bool:
     """returns whether gate is EP(Hermiticity-Preserving).
 
     EP <=> HS on Hermitian basis is real matrix.
@@ -252,9 +252,9 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = 1e-13) -> bool:
     hs : np.array
         HS representation of gate
     basis : MatrixBasis
-        [description]
+        basis of HS representation
     atol : float, optional
-        the absolute tolerance parameter, by default 1e-13.
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
         this function checks ``absolute(imaginary part of matrix - zero matrix) <= atol``.
 
     Returns
