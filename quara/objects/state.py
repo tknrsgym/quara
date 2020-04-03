@@ -306,11 +306,6 @@ def get_bell_2q(c_sys: CompositeSystem) -> State:
     from_vec = (
         np.array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], dtype=np.float64) / 2
     )
-    from_basis_list = [
-        np.kron(val1, val2)
-        for val1, val2 in itertools.product(get_comp_basis(), get_comp_basis())
-    ]
-    from_basis = MatrixBasis(from_basis_list)
-    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
+    to_vec = convert_vec(from_vec, c_sys.comp_basis(), c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
