@@ -20,7 +20,7 @@ jobs:
             pip install -r requirements-dev.txt
             pip install --upgrade pip
             python setup.py install
-            pytest -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
   test-3.7:
@@ -36,7 +36,7 @@ jobs:
             pip install -r requirements-dev.txt
             pip install --upgrade pip
             python setup.py install
-            pytest -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
   test-3.8:
@@ -52,6 +52,6 @@ jobs:
             pip install -r requirements-dev.txt
             pip install --upgrade pip
             python setup.py install
-            pytest -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
