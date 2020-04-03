@@ -65,23 +65,23 @@ class State:
 
     @property
     def vec(self):
-        """returns vector.
+        """returns vec of this state.
 
         Returns
         -------
         np.array
-            vector
+            vec of this state.
         """
         return self._vec
 
     @property
     def dim(self):
-        """returns dim of vector.
+        """returns dim of this state.
 
         Returns
         -------
         int
-            dim of matrix
+            dim of this state.
         """
         return self._dim
 
@@ -91,7 +91,7 @@ class State:
         Returns
         -------
         int
-            density matrix
+            density matrix.
         """
         density = np.zeros((self._dim, self._dim), dtype=np.complex128)
         for coefficient, basis in zip(self._vec, self._composite_system.basis()):
@@ -139,7 +139,7 @@ class State:
         Returns
         -------
         List
-            eigen values of density matrix
+            eigen values of density matrix.
         """
         return np.linalg.eigvals(self.get_density_matrix())
 
@@ -149,12 +149,12 @@ class State:
         Parameters
         ----------
         other_basis : MatrixBasis
-            basis
+            basis.
 
         Returns
         -------
         np.array
-            vector representation for ``other_basis``
+            vector representation for ``other_basis``.
         """
         converted_vec = convert_vec(
             self._vec, self._composite_system.basis(), other_basis
@@ -168,12 +168,12 @@ def get_x0_1q(c_sys: CompositeSystem) -> np.array:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing state
+        CompositeSystem containing state.
 
     Returns
     -------
     np.array
-        vec of state
+        vec of state.
     """
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
@@ -189,12 +189,12 @@ def get_x1_1q(c_sys: CompositeSystem) -> np.array:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing state
+        CompositeSystem containing state.
 
     Returns
     -------
     np.array
-        vec of state
+        vec of state.
     """
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
@@ -210,12 +210,12 @@ def get_y0_1q(c_sys: CompositeSystem) -> np.array:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing state
+        CompositeSystem containing state.
 
     Returns
     -------
     np.array
-        vec of state
+        vec of state.
     """
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
@@ -231,12 +231,12 @@ def get_y1_1q(c_sys: CompositeSystem) -> np.array:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing state
+        CompositeSystem containing state.
 
     Returns
     -------
     np.array
-        vec of state
+        vec of state.
     """
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64)
@@ -252,12 +252,12 @@ def get_z0_1q(c_sys: CompositeSystem) -> np.array:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing state
+        CompositeSystem containing state.
 
     Returns
     -------
     np.array
-        vec of state
+        vec of state.
     """
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
@@ -273,12 +273,12 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing state
+        CompositeSystem containing state.
 
     Returns
     -------
     np.array
-        vec of state
+        vec of state.
     """
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
@@ -294,12 +294,12 @@ def get_bell_2q(c_sys: CompositeSystem) -> State:
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem containing state
+        CompositeSystem containing state.
 
     Returns
     -------
     State
-        vec of state
+        vec of state.
     """
     # \frac{1}{2}(|00>+|11>)(<00|+<11|) = \frac{1}{2}(|0><0|\otimes|0><0| + |0><0|\otimes|1><1| + |1><1|\otimes|0><0| + |1><1|\otimes|1><1|)
     # convert "vec in comp basis" to "vec in basis of CompositeSystem"
