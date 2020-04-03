@@ -41,6 +41,28 @@ class TestCompositeSystem:
         expected = [e2, e3, e1]
         assert source == expected
 
+    def test_comp_basis(self):
+        e1 = ElementalSystem(1, get_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+
+        # case: single ElementalSystem
+        source = [e1]
+        actual = CompositeSystem(source).comp_basis()
+        expected = get_comp_basis()
+        assert len(actual) == 4
+        assert np.all(actual[0] == expected[0])
+        assert np.all(actual[1] == expected[1])
+        assert np.all(actual[2] == expected[2])
+        assert np.all(actual[3] == expected[3])
+
+        # case: multi ElementalSystem
+        source = [e2, e1]
+        actual = CompositeSystem(source).comp_basis()
+        expected = tensor_product(get_comp_basis(), get_comp_basis())
+        assert len(actual) == 16
+        assert np.all(actual[0] == expected[0])
+        assert np.all(actual[1] == expected[1])
+
     def test_basis(self):
         e1 = ElementalSystem(1, get_pauli_basis())
         e2 = ElementalSystem(2, get_comp_basis())
