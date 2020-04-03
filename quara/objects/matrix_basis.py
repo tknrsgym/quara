@@ -64,7 +64,7 @@ class MatrixBasis(Basis):
         Returns
         -------
         int
-            dim of matrix
+            dim of matrix.
         """
         return self._dim
 
@@ -74,7 +74,7 @@ class MatrixBasis(Basis):
         Returns
         -------
         VectorizedMatrixBasis
-            the class that vectorizes itself
+            the class that vectorizes itself.
         """
         return to_vect(self)
 
@@ -300,25 +300,31 @@ def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
     Returns
     -------
     VectorizedMatrixBasis
-        VectorizedMatrixBasis converted from MatrixBasis
+        VectorizedMatrixBasis converted from MatrixBasis.
     """
     return VectorizedMatrixBasis(source)
 
 
-def get_comp_basis() -> MatrixBasis:
+def get_comp_basis(dim: int = 2) -> MatrixBasis:
     """Returns computational basis.
-
+    
+    Parameters
+    ----------
+    dim : int, optional
+        dim of computational basis, by default 2.
+    
     Returns
     -------
     MatrixBasis
-        computational basis ``[|0><0|, |0><1|, |1><0|, |1><1|]``
+        computational basis with specific dim.
     """
-    array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-    array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
-    array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
-    array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
-    comp_basis = MatrixBasis([array00, array01, array10, array11])
-
+    comp_basis_list = []
+    for row in range(dim):
+        for col in range(dim):
+            tmp_basis = np.zeros((dim, dim), dtype=np.complex128)
+            tmp_basis[row, col] = 1
+            comp_basis_list.append(tmp_basis)
+    comp_basis = MatrixBasis(comp_basis_list)
     return comp_basis
 
 
@@ -418,17 +424,17 @@ def convert_vec(
     Parameters
     ----------
     from_vec : np.array
-        vector representation before converts vector representation
+        vector representation before converts vector representation.
     from_basis : MatrixBasis
-        basis before converts vector representation
+        basis before converts vector representation.
     to_basis : MatrixBasis
-        basis after converts vector representation
+        basis after converts vector representation.
 
     Returns
     -------
     np.array
-        vector representation after converts vector representation
-        ``dtype`` is ``float64``
+        vector representation after converts vector representation.
+        ``dtype`` is ``float64``.
     """
     # whether length of from_basis equals length of to_basis
     if len(from_basis) != len(to_basis):

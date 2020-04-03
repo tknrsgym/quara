@@ -378,6 +378,7 @@ def test_to_vect():
 
 
 def test_get_comp_basis():
+    # case: dim = 2
     basis = matrix_basis.get_comp_basis()
     assert basis.dim == 2
     assert basis._is_squares() == True
@@ -388,12 +389,45 @@ def test_get_comp_basis():
     assert basis.is_hermitian() == False  # computational basis: False
     assert basis.is_scalar_mult_of_identity() == False  # computational basis: False
     assert basis.is_trace_less() == False  # computational basis: False
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
     assert np.all(basis[0] == np.array([[1, 0], [0, 0]], dtype=np.complex128))
     assert np.all(basis[1] == np.array([[0, 1], [0, 0]], dtype=np.complex128))
     assert np.all(basis[2] == np.array([[0, 0], [1, 0]], dtype=np.complex128))
     assert np.all(basis[3] == np.array([[0, 0], [0, 1]], dtype=np.complex128))
-    assert basis.size() == (2, 2)
-    assert len(basis) == 4
+
+    # case: dim = 3
+    basis = matrix_basis.get_comp_basis(3)
+    assert basis.dim == 3
+    assert basis.size() == (3, 3)
+    assert len(basis) == 9
+    assert np.all(
+        basis[0] == np.array([[1, 0, 0], [0, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[1] == np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[2] == np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[3] == np.array([[0, 0, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[4] == np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[5] == np.array([[0, 0, 0], [0, 0, 1], [0, 0, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[6] == np.array([[0, 0, 0], [0, 0, 0], [1, 0, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[7] == np.array([[0, 0, 0], [0, 0, 0], [0, 1, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[8] == np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=np.complex128)
+    )
 
 
 def test_get_pauli_basis():

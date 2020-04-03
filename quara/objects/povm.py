@@ -74,9 +74,7 @@ class Povm:
         """
         return self._composite_system
 
-    def _is_positive_semidefinite(
-        self, vecs=None, atol: float = Settings.get_atol()
-    ) -> bool:
+    def _is_positive_semidefinite(self, vecs=None, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.
 
         Returns
@@ -84,6 +82,7 @@ class Povm:
         bool
             True where each element is positive semidifinite, False otherwise.
         """
+        atol = atol if atol else Settings.get_atol()
 
         vecs = vecs if vecs else self._vecs
         size = [self._dim, self._dim]
