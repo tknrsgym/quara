@@ -407,6 +407,7 @@ def test_convert_hs():
 
 
 def test_get_i():
+    # case: dim = 2
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i = get_i(c_sys)
@@ -420,12 +421,12 @@ def test_get_i():
     npt.assert_almost_equal(z.hs @ i.hs, z.hs, decimal=15)
     npt.assert_almost_equal(i.hs @ z.hs, z.hs, decimal=15)
 
-    # Test that not 1qubit ElementalSystem
-    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
-    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-    c_sys = CompositeSystem([e_sys0, e_sys1])
-    with pytest.raises(ValueError):
-        get_i(c_sys)
+    # case: dim = 3
+    e_sys = ElementalSystem(1, matrix_basis.get_gell_mann_basis())
+    c_sys = CompositeSystem([e_sys])
+    actual = get_i(c_sys)
+    expected = np.eye(9, dtype=np.float64)
+    assert np.all(actual.hs == expected)
 
 
 def test_get_x():
@@ -443,7 +444,7 @@ def test_get_x():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_x(c_sys)
 
 
 def test_get_y():
@@ -461,7 +462,7 @@ def test_get_y():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_y(c_sys)
 
 
 def test_get_z():
@@ -479,7 +480,7 @@ def test_get_z():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_z(c_sys)
 
 
 def test_get_root_x():
@@ -494,7 +495,7 @@ def test_get_root_x():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_root_x(c_sys)
 
 
 def test_get_root_y():
@@ -509,7 +510,7 @@ def test_get_root_y():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_root_y(c_sys)
 
 
 def test_get_s():
@@ -524,7 +525,7 @@ def test_get_s():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_s(c_sys)
 
 
 def test_get_sdg():
@@ -540,7 +541,7 @@ def test_get_sdg():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_sdg(c_sys)
 
 
 def test_get_t():
@@ -555,7 +556,7 @@ def test_get_t():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     with pytest.raises(ValueError):
-        get_i(c_sys)
+        get_t(c_sys)
 
 
 def test_get_cnot():
@@ -619,6 +620,13 @@ def test_get_cnot():
     with pytest.raises(ValueError):
         get_cnot(c_sys0, e_sys0)
 
+    # Test that not 4 dim ElementalSystem
+    e_sys2 = ElementalSystem(2, matrix_basis.get_gell_mann_basis())
+    e_sys3 = ElementalSystem(3, matrix_basis.get_gell_mann_basis())
+    c_sys23 = CompositeSystem([e_sys2, e_sys3])
+    with pytest.raises(ValueError):
+        get_cnot(c_sys23, e_sys2)
+
 
 def test_get_cz():
     # prepare gate
@@ -662,6 +670,13 @@ def test_get_cz():
     with pytest.raises(ValueError):
         get_cnot(c_sys0, e_sys0)
 
+    # Test that not 4 dim ElementalSystem
+    e_sys2 = ElementalSystem(2, matrix_basis.get_gell_mann_basis())
+    e_sys3 = ElementalSystem(3, matrix_basis.get_gell_mann_basis())
+    c_sys23 = CompositeSystem([e_sys2, e_sys3])
+    with pytest.raises(ValueError):
+        get_cnot(c_sys23, e_sys2)
+
 
 def test_get_swap():
     # prepare gate
@@ -704,3 +719,10 @@ def test_get_swap():
     # Test that not 2qubits ElementalSystem
     with pytest.raises(ValueError):
         get_cnot(c_sys0, e_sys0)
+
+    # Test that not 4 dim ElementalSystem
+    e_sys2 = ElementalSystem(2, matrix_basis.get_gell_mann_basis())
+    e_sys3 = ElementalSystem(3, matrix_basis.get_gell_mann_basis())
+    c_sys23 = CompositeSystem([e_sys2, e_sys3])
+    with pytest.raises(ValueError):
+        get_cnot(c_sys23, e_sys2)

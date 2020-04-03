@@ -305,20 +305,26 @@ def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
     return VectorizedMatrixBasis(source)
 
 
-def get_comp_basis() -> MatrixBasis:
+def get_comp_basis(dim: int = 2) -> MatrixBasis:
     """Returns computational basis.
-
+    
+    Parameters
+    ----------
+    dim : int, optional
+        dim of computational basis, by default 2
+    
     Returns
     -------
     MatrixBasis
-        computational basis ``[|0><0|, |0><1|, |1><0|, |1><1|]``
+        computational basis with specific dim.
     """
-    array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-    array01 = np.array([[0, 1], [0, 0]], dtype=np.complex128)
-    array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
-    array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
-    comp_basis = MatrixBasis([array00, array01, array10, array11])
-
+    comp_basis_list = []
+    for row in range(dim):
+        for col in range(dim):
+            tmp_basis = np.zeros((dim, dim), dtype=np.complex128)
+            tmp_basis[row, col] = 1
+            comp_basis_list.append(tmp_basis)
+    comp_basis = MatrixBasis(comp_basis_list)
     return comp_basis
 
 
