@@ -15,7 +15,7 @@ class Settings:
         return cls.atol
 
     @classmethod
-    def set_stol(cls, atol: float):
+    def set_atol(cls, atol: float):
         """updates global setting of ``atol``.
 
         Parameters
