@@ -1,5 +1,5 @@
 class Settings:
-    atol = 1e-13
+    __atol = 1e-13
 
     @classmethod
     def get_atol(cls) -> float:
@@ -12,7 +12,7 @@ class Settings:
         float
             global setting of ``atol``.
         """
-        return cls.atol
+        return cls.__atol
 
     @classmethod
     def set_atol(cls, atol: float):
@@ -23,4 +23,4 @@ class Settings:
         atol : float
             global setting of ``atol``.
         """
-        cls.atol = atol
+        cls.__atol = atol
