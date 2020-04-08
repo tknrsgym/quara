@@ -7,7 +7,7 @@ import numpy as np
 from quara.settings import Settings
 
 
-def is_hermitian(matrix: np.ndarray, atol: float = Settings.get_atol()) -> bool:
+def is_hermitian(matrix: np.ndarray, atol: float = None) -> bool:
     """returns whether the matrix is Hermitian.
 
     Parameters
@@ -22,6 +22,8 @@ def is_hermitian(matrix: np.ndarray, atol: float = Settings.get_atol()) -> bool:
     bool
         True where ``matrix`` is Hermitian, False otherwise.
     """
+    atol = atol if atol else Settings.get_atol()
+
     rows, columns = matrix.shape
     if rows != columns:
         return False
@@ -30,9 +32,7 @@ def is_hermitian(matrix: np.ndarray, atol: float = Settings.get_atol()) -> bool:
     return np.allclose(matrix, adjoint, atol=atol, rtol=0.0)
 
 
-def is_positive_semidefinite(
-    matrix: np.ndarray, atol: float = Settings.get_atol()
-) -> bool:
+def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
     """Returns whether the matrix is positive semidifinite.
 
     Parameters
@@ -47,6 +47,8 @@ def is_positive_semidefinite(
     bool
         True where ``matrix`` is positive semidifinite, False otherwise.
     """
+    atol = atol if atol else Settings.get_atol()
+
     if is_hermitian(matrix, atol):
         # ignore eigvals close zero
         eigvals_array = np.linalg.eigvals(matrix)
@@ -87,7 +89,7 @@ def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.array:
     return P_trace
 
 
-def is_tp(matrix: np.ndarray, dim: int, atol: float = Settings.get_atol()) -> bool:
+def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     """returns whether the matrix is TP.
     if ``Tr_1[matrix] = I_2``, we think the matrix is TP.
     ``dim`` is a size of ``I_2``.
@@ -108,6 +110,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = Settings.get_atol()) -> bo
     bool
         True where ``matrix`` is TP, False otherwise.
     """
+    atol = atol if atol else Settings.get_atol()
     p_trace = partial_trace1(matrix, dim)
     identity = np.eye(dim, dtype=np.complex128).reshape(dim, dim)
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
