@@ -98,7 +98,9 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
         np.kron(vec1, vec2) for vec1, vec2 in itertools.product(povm1.vecs, povm2.vecs)
     ]
 
-    tensor_povm = Povm(c_sys, tensor_vecs)
+    is_physical = povm1.is_physical and povm2.is_physical
+
+    tensor_povm = Povm(c_sys, tensor_vecs, is_physical=is_physical)
     return tensor_povm
 
 
