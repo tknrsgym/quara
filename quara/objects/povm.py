@@ -13,7 +13,9 @@ class Povm:
     Positive Operator-Valued Measure
     """
 
-    def __init__(self, c_sys: CompositeSystem, vecs: List[np.ndarray]):
+    def __init__(
+        self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True
+    ):
 
         # Validation
         ## Validate whether `vecs` is a set of Hermitian matrices
@@ -21,18 +23,21 @@ class Povm:
         size = vecs[0].shape
         self._dim = int(np.sqrt(size[0]))
         size = [self._dim, self._dim]
-        for v in vecs:
-            if not mutil.is_hermitian(np.reshape(v, size)):
-                raise ValueError("POVM must be a set of Hermitian matrices")
 
-        if not self._is_identity(vecs):
-            # whether the sum of the elements is an identity matrix or not
-            raise ValueError(
-                "The sum of the elements of POVM must be an identity matrix."
-            )
+        if is_physical:
+            # Validate to meet requirements as Povm
+            for v in vecs:
+                if not mutil.is_hermitian(np.reshape(v, size)):
+                    raise ValueError("POVM must be a set of Hermitian matrices")
 
-        if not self._is_positive_semidefinite(vecs):
-            raise ValueError("Eigenvalues of POVM elements must be non-negative.")
+            if not self._is_identity(vecs):
+                # whether the sum of the elements is an identity matrix or not
+                raise ValueError(
+                    "The sum of the elements of POVM must be an identity matrix."
+                )
+
+            if not self._is_positive_semidefinite(vecs):
+                raise ValueError("Eigenvalues of POVM elements must be non-negative.")
 
         # Whether dim of CompositeSystem equals dim of vec
         if c_sys.dim != self._dim:
@@ -47,6 +52,8 @@ class Povm:
         self._vecs: List[np.ndarray] = vecs
         # 観測されうる測定値の集合
         self._measurements: list
+
+        self._is_physical = is_physical
 
     def __getitem__(self, key: int):
         return self._vecs[key]
@@ -72,6 +79,10 @@ class Povm:
             composite system.
         """
         return self._composite_system
+
+    @property
+    def is_physical(self) -> bool:  # read only
+        return self._is_physical
 
     def _is_positive_semidefinite(self, vecs=None, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.

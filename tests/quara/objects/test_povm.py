@@ -53,6 +53,19 @@ class TestPovm:
             # ValueError: povm must be a set of Hermitian matrices
             _ = Povm(c_sys=c_sys, vecs=vecs)
 
+    def test_validate_set_of_hermitian_matrices_not_physical_ok(self):
+        # Arrange
+        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        p2 = np.array([0, 1, 0, 0], dtype=np.complex128)
+        vecs = [p1, p2]
+
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act & Assert
+        # Test that no exceptions are raised.
+        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+
     def test_validate_sum_is_identity_ok(self):
         # Arrange
         p1 = np.array(
@@ -91,6 +104,23 @@ class TestPovm:
             # ValueError: The sum of the elements of POVM must be an identity matrix.
             _ = Povm(c_sys=c_sys, vecs=vecs)
 
+    def test_validate_sum_is_identity_not_physical_ok(self):
+        # Arrange
+        p1 = np.array(
+            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
+        )
+        p2 = np.array(
+            [1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j], dtype=np.complex128
+        )
+        vecs = [p1, p2]
+
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act & Assert
+        # Test that no exceptions are raised.
+        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+
     def test_validate_is_positive_semidefinite_ok(self):
         # Arrange
         ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
@@ -119,6 +149,19 @@ class TestPovm:
         # Act & Assert
         with pytest.raises(ValueError):
             _ = Povm(c_sys=c_sys, vecs=vecs)
+
+    def test_validate_is_positive_semidefinite_not_physical_ok(self):
+        # Arrange
+        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
+        not_ps = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        vecs = [ps, not_ps]
+
+        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Act & Assert
+        # Test that no exceptions are raised.
+        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
 
     def test_calc_eigenvalues_all(self):
         # Arrange
