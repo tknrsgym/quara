@@ -396,10 +396,6 @@ def test_composite_Povm_Gate():
     ]
     npt.assert_almost_equal(actual.vecs, expected, decimal=15)
 
-    # TODO: it is temporary
-    actual = actual._is_positive_semidefinite()
-    assert actual is True
-
 
 def test_composite_Povm_State():
     e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
