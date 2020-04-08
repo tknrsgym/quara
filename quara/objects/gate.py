@@ -7,7 +7,8 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis, get_normalized_pauli_basis
+from quara.objects.matrix_basis import (MatrixBasis, get_comp_basis,
+                                        get_normalized_pauli_basis)
 from quara.settings import Settings
 
 
@@ -88,7 +89,7 @@ class Gate:
         """
         return self._composite_system.basis()
 
-    def is_tp(self, atol: float = Settings.get_atol()) -> bool:
+    def is_tp(self, atol: float = None) -> bool:
         """returns whether the gate is TP(trace-preserving map).
 
         Parameters
@@ -102,6 +103,8 @@ class Gate:
         bool
             True where the gate is TP, False otherwise.
         """
+        atol = atol if atol else Settings.get_atol()
+
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
         dim = self._composite_system.basis().dim
         for basis in self._composite_system.basis():
@@ -116,7 +119,7 @@ class Gate:
 
         return True
 
-    def is_cp(self, atol: float = Settings.get_atol()) -> bool:
+    def is_cp(self, atol: float = None) -> bool:
         """returns whether gate is CP(Complete-Positivity-Preserving).
 
         Parameters
@@ -130,6 +133,8 @@ class Gate:
         bool
             True where gate is CP, False otherwise.
         """
+        atol = atol if atol else Settings.get_atol()
+
         # "A is CP"  <=> "C(A) >= 0"
         eigvals_array = np.linalg.eigvals(self.calc_choi_matrix())
 
@@ -249,7 +254,7 @@ class Gate:
         return np.array(process_matrix).reshape((4, 4))
 
 
-def is_ep(hs: np.array, basis: MatrixBasis, atol: float = Settings.get_atol()) -> bool:
+def is_ep(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
     """returns whether gate is EP(Hermiticity-Preserving).
 
     EP <=> HS on Hermitian basis is real matrix.
@@ -270,6 +275,9 @@ def is_ep(hs: np.array, basis: MatrixBasis, atol: float = Settings.get_atol()) -
     bool
         True where gate is EP, False otherwise.
     """
+
+    atol = atol if atol else Settings.get_atol()
+
     # convert Hermitian basis(Pauli basis)
     hs_converted = convert_hs(hs, basis, get_normalized_pauli_basis())
 
