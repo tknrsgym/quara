@@ -7,8 +7,11 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.matrix_basis import (MatrixBasis, get_comp_basis,
-                                        get_normalized_pauli_basis)
+from quara.objects.matrix_basis import (
+    MatrixBasis,
+    get_comp_basis,
+    get_normalized_pauli_basis,
+)
 from quara.settings import Settings
 
 
@@ -136,13 +139,7 @@ class Gate:
         atol = atol if atol else Settings.get_atol()
 
         # "A is CP"  <=> "C(A) >= 0"
-        eigvals_array = np.linalg.eigvals(self.calc_choi_matrix())
-
-        # ignore eigvals close zero
-        close_zero = np.where(np.isclose(eigvals_array, 0, atol=atol, rtol=0.0))
-        eigvals_not_close_zero = np.delete(eigvals_array, close_zero)
-
-        return np.all(eigvals_not_close_zero >= 0)
+        return mutil.is_positive_semidefinite(self.calc_choi_matrix(), atol=atol)
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns HS representation for ``other_basis``.
