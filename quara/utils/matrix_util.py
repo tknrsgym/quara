@@ -50,7 +50,11 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
     atol = atol if atol else Settings.get_atol()
 
     if is_hermitian(matrix, atol):
-        return np.all(np.linalg.eigvals(matrix) >= 0)
+        # ignore eigvals close zero
+        eigvals_array = np.linalg.eigvals(matrix)
+        close_zero = np.where(np.isclose(eigvals_array, 0, atol=atol, rtol=0.0))
+        eigvals_not_close_zero = np.delete(eigvals_array, close_zero)
+        return np.all(eigvals_not_close_zero >= 0)
     else:
         return False
 

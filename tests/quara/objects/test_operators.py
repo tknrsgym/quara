@@ -228,12 +228,12 @@ def test_tensor_product_State_State():
     basis1 = matrix_basis.get_comp_basis()
     e_sys1 = ElementalSystem(1, basis1)
     c_sys1 = CompositeSystem([e_sys1])
-    state1 = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64))
+    state1 = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False)
 
     basis2 = matrix_basis.get_pauli_basis()
     e_sys2 = ElementalSystem(2, basis2)
     c_sys2 = CompositeSystem([e_sys2])
-    state2 = State(c_sys2, np.array([0, 1, 0, 0], dtype=np.float64))
+    state2 = State(c_sys2, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False)
 
     # actual
     actual = tensor_product(state1, state2)
