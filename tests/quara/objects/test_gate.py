@@ -138,9 +138,9 @@ class TestGate:
 
         # case: not TP
         hs = np.array(
-            [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+            [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
         )
-        gate = Gate(c_sys, hs)
+        gate = Gate(c_sys, hs, is_physical=False)
         assert gate.is_tp() == False
 
     def test_is_cp(self):
@@ -159,7 +159,7 @@ class TestGate:
         hs = np.array(
             [[-1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
         )
-        gate = Gate(c_sys, hs)
+        gate = Gate(c_sys, hs, is_physical=False)
         assert gate.is_cp() == False
 
     def test_convert_basis(self):
@@ -303,7 +303,7 @@ class TestGate:
         hs = np.array(
             [[-1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
         )
-        actual = Gate(c_sys, hs).calc_kraus_matrices()
+        actual = Gate(c_sys, hs, is_physical=False).calc_kraus_matrices()
         assert len(actual) == 0
 
     def test_is_ep(self):
@@ -372,7 +372,7 @@ def test_calc_agf():
     hs = np.array(
         [[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
     )
-    gate = Gate(c_sys, hs)
+    gate = Gate(c_sys, hs, is_physical=False)
     with pytest.raises(ValueError):
         calc_agf(z.hs, gate)
 
@@ -561,9 +561,9 @@ def test_get_t():
 
 def test_get_cnot():
     # prepare gate
-    e_sys0 = ElementalSystem(0, matrix_basis.get_comp_basis())
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys0 = CompositeSystem([e_sys0])
-    e_sys1 = ElementalSystem(1, matrix_basis.get_comp_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys1 = CompositeSystem([e_sys1])
 
     c_sys01 = CompositeSystem([e_sys0, e_sys1])
@@ -583,38 +583,54 @@ def test_get_cnot():
 
     # |00> -> |00>
     state = composite(gate, z0_z0)
-    assert np.all(state.get_density_matrix() == z0_z0.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z0_z0.get_density_matrix(), decimal=15
+    )
 
     # |01> -> |01>
     state = composite(gate, z0_z1)
-    assert np.all(state.get_density_matrix() == z0_z1.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z0_z1.get_density_matrix(), decimal=15
+    )
 
     # |10> -> |11>
     state = composite(gate, z1_z0)
-    assert np.all(state.get_density_matrix() == z1_z1.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z1_z1.get_density_matrix(), decimal=15
+    )
 
     # |11> -> |10>
     state = composite(gate, z1_z1)
-    assert np.all(state.get_density_matrix() == z1_z0.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z1_z0.get_density_matrix(), decimal=15
+    )
 
     ### gete: control bit is 2st qubit
     gate = get_cnot(c_sys01, e_sys1)
 
     # |00> -> |00>
     state = composite(gate, z0_z0)
-    assert np.all(state.get_density_matrix() == z0_z0.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z0_z0.get_density_matrix(), decimal=15
+    )
 
     # |01> -> |11>
     state = composite(gate, z0_z1)
-    assert np.all(state.get_density_matrix() == z1_z1.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z1_z1.get_density_matrix(), decimal=15
+    )
 
     # |10> -> |10>
     state = composite(gate, z1_z0)
-    assert np.all(state.get_density_matrix() == z1_z0.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z1_z0.get_density_matrix(), decimal=15
+    )
 
     # |11> -> |01>
     state = composite(gate, z1_z1)
-    assert np.all(state.get_density_matrix() == z0_z1.get_density_matrix())
+    npt.assert_almost_equal(
+        state.get_density_matrix(), z0_z1.get_density_matrix(), decimal=15
+    )
 
     # Test that not 2qubits ElementalSystem
     with pytest.raises(ValueError):
