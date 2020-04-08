@@ -73,7 +73,6 @@ class TestPovm:
         # Assert
         assert actual is True
 
-    @pytest.mark.skip(reasons="for analysis")
     def test_validate_sum_is_identity_ng(self):
         # Arrange
         p1 = np.array(
@@ -108,7 +107,6 @@ class TestPovm:
         # Assert
         assert actual is True
 
-    @pytest.mark.skip(reasons="for analysis")
     def test_validate_is_positive_semidefinite_ng(self):
         # Arrange
         ps = np.array([1, 0, 0, 0], dtype=np.complex128)
