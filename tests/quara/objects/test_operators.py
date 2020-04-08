@@ -41,12 +41,12 @@ def test_tensor_product_Gate_Gate():
     hs1 = np.array(
         [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
     )
-    gate1 = Gate(c_sys1, hs1)
+    gate1 = Gate(c_sys1, hs1, is_physical=False)
 
     hs2 = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
     )
-    gate2 = Gate(c_sys2, hs2)
+    gate2 = Gate(c_sys2, hs2, is_physical=False)
 
     actual = tensor_product(gate1, gate2)
 

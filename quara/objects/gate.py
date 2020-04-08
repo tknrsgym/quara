@@ -16,7 +16,9 @@ from quara.settings import Settings
 
 
 class Gate:
-    def __init__(self, c_sys: CompositeSystem, hs: np.ndarray):
+    def __init__(
+        self, c_sys: CompositeSystem, hs: np.ndarray, is_physical: bool = True
+    ):
         """Constructor
 
         Parameters
@@ -25,6 +27,11 @@ class Gate:
             CompositeSystem of this gate.
         hs : np.ndarray
             HS representation of this gate.
+        is_physical : bool, optional
+            checks whether the state is physically wrong, by default True.
+            if at least one of the following conditions is ``False``, the state is physically wrong:
+            - gate is TP(trace-preserving map).
+            - gate is CP(Complete-Positivity-Preserving).
 
         Raises
         ------
@@ -36,9 +43,14 @@ class Gate:
             HS representation is not real matrix.
         ValueError
             dim of HS representation does not equal dim of CompositeSystem.
+        ValueError
+            ``is_physical`` is ``True`` and gate is not TP.
+        ValueError
+            ``is_physical`` is ``True`` and gate is not CP.
         """
         self._composite_system: CompositeSystem = c_sys
         self._hs: np.ndarray = hs
+        self._is_physical = is_physical
 
         # whether HS representation is square matrix
         size = self._hs.shape
@@ -59,6 +71,13 @@ class Gate:
             raise ValueError(
                 f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim}"
             )
+
+        # whether the state is physically wrong
+        if self._is_physical:
+            if not self.is_tp():
+                raise ValueError("the state is physically wrong. gate is not TP.")
+            elif not self.is_cp():
+                raise ValueError("the state is physically wrong. gate is not CP.")
 
     @property
     def dim(self):
@@ -81,6 +100,17 @@ class Gate:
             HS representation of gate.
         """
         return self._hs
+
+    @property
+    def is_physical(self):
+        """returns argument ``is_physical`` specified in the constructor.
+
+        Returns
+        -------
+        int
+            argument ``is_physical`` specified in the constructor.
+        """
+        return self._is_physical
 
     def get_basis(self) -> MatrixBasis:
         """returns MatrixBasis of gate.
@@ -109,11 +139,24 @@ class Gate:
         atol = atol if atol else Settings.get_atol()
 
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
-        dim = self._composite_system.basis().dim
-        for basis in self._composite_system.basis():
+        for index, basis in enumerate(self._composite_system.basis()):
+            # calculate Tr[B_\alpha]
             trace_before_mapped = np.trace(basis)
-            vec_basis = basis.reshape((-1, 1))
-            trace_after_mapped = np.trace((self.hs @ vec_basis).reshape((dim, dim)))
+
+            # calculate Tr[A(B_\alpha)]
+            vec = np.zeros((self._dim ** 2))
+            vec[index] = 1
+            vec_after_mapped = self.hs @ vec
+
+            density = np.zeros((self._dim, self._dim), dtype=np.complex128)
+            for coefficient, basis in zip(
+                vec_after_mapped, self._composite_system.basis()
+            ):
+                density += coefficient * basis
+
+            trace_after_mapped = np.trace(density)
+
+            # check Tr[A(B_\alpha)] = Tr[B_\alpha]
             tp_for_basis = np.isclose(
                 trace_after_mapped, trace_before_mapped, atol=atol, rtol=0.0
             )
@@ -754,10 +797,10 @@ def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
                 [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],

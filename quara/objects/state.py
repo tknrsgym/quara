@@ -29,8 +29,8 @@ class State:
         is_physical : bool, optional
             checks whether the state is physically wrong, by default True.
             if at least one of the following conditions is ``False``, the state is physically wrong:
-            - density matrix is not positive semidefinite.
-            - trace of density matrix does not equal 1
+            - density matrix is positive semidefinite.
+            - trace of density matrix equals 1.
 
         Raises
         ------
