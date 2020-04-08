@@ -122,7 +122,7 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         tensor_vec = np.kron(elem1.vec, elem2.vec)
 
         # create State
-        tensor_state = State(c_sys, tensor_vec)
+        tensor_state = State(c_sys, tensor_vec, is_physical=False)
         return tensor_state
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
