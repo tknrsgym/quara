@@ -53,6 +53,8 @@ class Povm:
         # 観測されうる測定値の集合
         self._measurements: list
 
+        self._is_physical = is_physical
+
     def __getitem__(self, key: int):
         return self._vecs[key]
 
@@ -77,6 +79,10 @@ class Povm:
             composite system.
         """
         return self._composite_system
+
+    @property
+    def is_physical(self) -> bool:  # read only
+        return self._is_physical
 
     def _is_positive_semidefinite(self, vecs=None, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.

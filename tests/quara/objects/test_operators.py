@@ -252,9 +252,63 @@ def test_tensor_product_State_State():
     assert e_sys2 is actual._composite_system._elemental_systems[1]
 
 
-def test_tensor_product_povm_povm():
+def test_tensor_product_povm_povm_is_physical_true():
+    # Arrange
+    # Physical POVM
+    physical_povm_list = []
+    for i in range(2):
+        e_sys = ElementalSystem(i, matrix_basis.get_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vecs = [ps_1, ps_2]
+
+        povm = Povm(c_sys=c_sys, vecs=vecs)
+        physical_povm_list.append(povm)
+
+    # Not Physical POVM
+    not_physical_povm_list = []
+    for i in range(2, 4):
+        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
+        not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
+        vecs = [ps, not_ps]
+
+        e_sys = ElementalSystem(i, matrix_basis.get_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        not_physical_povm_list.append(povm)
+
+    povm_1, povm_2 = physical_povm_list
+    not_povm_1, not_povm_2 = not_physical_povm_list
+
+    # Act
+    actual_povm = tensor_product(povm_1, not_povm_1)
+
+    # Assert
+    expected = False
+    assert actual_povm.is_physical is expected
+
+    # Act
+    actual_povm = tensor_product(not_povm_1, povm_1)
+
+    # Assert
+    expected = False
+    assert actual_povm.is_physical is expected
+
+    # Act
+    actual_povm = tensor_product(not_povm_1, not_povm_2)
+
+    # Assert
+    expected = False
+    assert actual_povm.is_physical is expected
+
     # TODO
-    pass
+    # # Act
+    # actual_povm = tensor_product(povm_1, povm_2)
+
+    # # Assert
+    # expected = True
+    # assert actual_povm.is_physical is expected
 
 
 def test_tensor_product_unexpected_type():
