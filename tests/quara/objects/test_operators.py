@@ -377,6 +377,7 @@ def test_composite_Gate_State():
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
 
+# @pytest.mark.skip(reasons="It only fails at CircleCI.")
 def test_composite_Povm_Gate():
     e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys])
@@ -394,6 +395,10 @@ def test_composite_Povm_Gate():
         np.array([1, 0, 0, 0], dtype=np.complex128),
     ]
     npt.assert_almost_equal(actual.vecs, expected, decimal=15)
+
+    # TODO: it is temporary
+    actual = actual._is_positive_semidefinite()
+    assert actual is True
 
 
 def test_composite_Povm_State():
