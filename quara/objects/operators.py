@@ -84,7 +84,9 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
                         from_vec[d1 * d2 * (d1 * m1 + n1) + d2 * m2 + n2]
                     )
     to_hs = np.array(vec_entries).reshape((d1 * d2, d1 * d2))
-    gate = Gate(c_sys, to_hs)
+
+    is_physical = gate1.is_physical and gate1.is_physical
+    gate = Gate(c_sys, to_hs, is_physical=is_physical)
     return gate
 
 
@@ -122,7 +124,8 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         tensor_vec = np.kron(elem1.vec, elem2.vec)
 
         # create State
-        tensor_state = State(c_sys, tensor_vec, is_physical=False)
+        is_physical = elem1.is_physical and elem1.is_physical
+        tensor_state = State(c_sys, tensor_vec, is_physical=is_physical)
         return tensor_state
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
