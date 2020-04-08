@@ -112,7 +112,7 @@ class Gate:
         dim = self._composite_system.basis().dim
         for basis in self._composite_system.basis():
             trace_before_mapped = np.trace(basis)
-            vec_basis = basis.reshape((-1, 1))
+            vec_basis = basis.flatten()
             trace_after_mapped = np.trace((self.hs @ vec_basis).reshape((dim, dim)))
             tp_for_basis = np.isclose(
                 trace_after_mapped, trace_before_mapped, atol=atol, rtol=0.0
