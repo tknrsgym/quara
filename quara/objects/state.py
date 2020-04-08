@@ -9,13 +9,15 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
     convert_vec,
-    get_comp_basis,
     get_normalized_pauli_basis,
 )
+from quara.settings import Settings
 
 
 class State:
-    def __init__(self, c_sys: CompositeSystem, vec: np.ndarray):
+    def __init__(
+        self, c_sys: CompositeSystem, vec: np.ndarray, is_physical: bool = True
+    ):
         """Constructor
 
         Parameters
@@ -24,6 +26,11 @@ class State:
             CompositeSystem of this state.
         vec : np.ndarray
             vec of this state.
+        is_physical : bool, optional
+            checks whether the state is physically wrong, by default True.
+            if at least one of the following conditions is ``False``, the state is physically wrong:
+            - density matrix is not positive semidefinite.
+            - trace of density matrix does not equal 1
 
         Raises
         ------
@@ -35,10 +42,15 @@ class State:
             entries of vec are not real numbers.
         ValueError
             dim of CompositeSystem does not equal dim of vec.
+        ValueError
+            ``is_physical`` is ``True`` and density matrix is not positive semidefinite.
+        ValueError
+            ``is_physical`` is ``True`` and trace of density matrix does not equal 1.
         """
         self._composite_system: CompositeSystem = c_sys
         self._vec: np.ndarray = vec
         size = self._vec.shape
+        self._is_physical = is_physical
 
         # whether vec is one-dimensional array
         if len(size) != 1:
@@ -63,6 +75,17 @@ class State:
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim}. dim of vec is {self._dim}"
             )
 
+        # whether the state is physically wrong
+        if self._is_physical:
+            if not self.is_positive_semidefinite():
+                raise ValueError(
+                    "the state is physically wrong. density matrix is not positive semidefinite."
+                )
+            elif not self.is_trace_one():
+                raise ValueError(
+                    "the state is physically wrong. trace of density matrix does not equal 1."
+                )
+
     @property
     def vec(self):
         """returns vec of this state.
@@ -84,6 +107,17 @@ class State:
             dim of this state.
         """
         return self._dim
+
+    @property
+    def is_physical(self):
+        """returns argument ``is_physical`` specified in the constructor.
+
+        Returns
+        -------
+        int
+            argument ``is_physical`` specified in the constructor.
+        """
+        return self._is_physical
 
     def get_density_matrix(self) -> np.ndarray:
         """returns density matrix.
@@ -107,7 +141,7 @@ class State:
             True where trace of density matrix is one, False otherwise.
         """
         tr = np.trace(self.get_density_matrix())
-        return tr == 1
+        return np.isclose(tr, 1, atol=Settings.get_atol())
 
     def is_hermitian(self) -> bool:
         """returns whether density matrix is Hermitian.
@@ -175,6 +209,12 @@ def get_x0_1q(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state.
     """
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
@@ -196,6 +236,12 @@ def get_x1_1q(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state.
     """
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
@@ -217,6 +263,12 @@ def get_y0_1q(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state.
     """
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
@@ -238,6 +290,12 @@ def get_y1_1q(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state.
     """
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
@@ -259,6 +317,12 @@ def get_z0_1q(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state.
     """
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
@@ -280,6 +344,12 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
     np.array
         vec of state.
     """
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
     # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
     from_vec = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
     from_basis = get_normalized_pauli_basis()
@@ -301,7 +371,13 @@ def get_bell_2q(c_sys: CompositeSystem) -> State:
     State
         vec of state.
     """
-    # \frac{1}{2}(|00>+|11>)(<00|+<11|) = \frac{1}{2}(|0><0|\otimes|0><0| + |0><0|\otimes|1><1| + |1><1|\otimes|0><0| + |1><1|\otimes|1><1|)
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    # \frac{1}{2}(|00>+|11>)(<00|+<11|) = \frac{1}{2}(|0><0|\otimes|0><0| + |0><1|\otimes|0><1| + |1><0|\otimes|1><0| + |1><1|\otimes|1><1|)
     # convert "vec in comp basis" to "vec in basis of CompositeSystem"
     from_vec = (
         np.array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], dtype=np.float64) / 2

@@ -6,11 +6,15 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_s, get_x, get_y, get_z
-from quara.objects.operators import (_composite, _tensor_product, _to_list,
-                                     composite, tensor_product)
+from quara.objects.operators import (
+    _composite,
+    _tensor_product,
+    _to_list,
+    composite,
+    tensor_product,
+)
 from quara.objects.povm import Povm
-from quara.objects.state import (State, get_x0_1q, get_x1_1q, get_z0_1q,
-                                 get_z1_1q)
+from quara.objects.state import State, get_x0_1q, get_x1_1q, get_z0_1q, get_z1_1q
 
 
 def test_tensor_product_Gate_Gate():
@@ -224,12 +228,12 @@ def test_tensor_product_State_State():
     basis1 = matrix_basis.get_comp_basis()
     e_sys1 = ElementalSystem(1, basis1)
     c_sys1 = CompositeSystem([e_sys1])
-    state1 = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64))
+    state1 = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False)
 
     basis2 = matrix_basis.get_pauli_basis()
     e_sys2 = ElementalSystem(2, basis2)
     c_sys2 = CompositeSystem([e_sys2])
-    state2 = State(c_sys2, np.array([0, 1, 0, 0], dtype=np.float64))
+    state2 = State(c_sys2, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False)
 
     # actual
     actual = tensor_product(state1, state2)
