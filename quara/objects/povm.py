@@ -53,7 +53,6 @@ class Povm:
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
 
-
     def __getitem__(self, key: int):
         return self._vecs[key]
 
