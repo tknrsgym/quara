@@ -87,13 +87,8 @@ class Povm:
         return self._is_physical
 
     def is_hermitian(self) -> bool:
-        size = (self.dim, self.dim)
-        for v in self.vecs:
-            matrix = np.zeros(size, dtype=np.complex128)
-            for coefficient, basis in zip(v, self._composite_system.basis()):
-                matrix += coefficient * basis
-
-            if not mutil.is_hermitian(matrix):
+        for m in self.matrixes():
+            if not mutil.is_hermitian(m):
                 return False
         return True
 
@@ -108,8 +103,8 @@ class Povm:
         atol = atol if atol else Settings.get_atol()
 
         size = [self.dim, self.dim]
-        for v in self.vecs:
-            if not mutil.is_positive_semidefinite(np.reshape(v, size), atol):
+        for m in self.matrixes():
+            if not mutil.is_positive_semidefinite(m, atol):
                 return False
 
         return True
@@ -125,24 +120,24 @@ class Povm:
         """
 
         # vecs = vecs if vecs else self._vecs
-        size = [self._dim, self._dim]
+        size = [self.dim, self.dim]
         sum_matrix = np.zeros(size, dtype=np.complex128)
-        for v in self.vecs:
-            sum_matrix += np.reshape(v, size)
+        for m in self.matrixes():
+            sum_matrix += np.reshape(m, size)
 
-        identity = np.identity(self._dim, dtype=np.complex128)
+        identity = np.identity(self.dim, dtype=np.complex128)
         return np.allclose(sum_matrix, identity)
 
-    # It is for debug
-    def d_list(self):
-        d_list = []
+    # TODO: あとで良い名前に変える
+    def matrixes(self):
+        matrix_list = []
         size = (self.dim, self.dim)
         for v in self.vecs:
             matrix = np.zeros(size, dtype=np.complex128)
             for coefficient, basis in zip(v, self._composite_system.basis()):
                 matrix += coefficient * basis
-            d_list.append(matrix)
-        return d_list
+            matrix_list.append(matrix)
+        return matrix_list
 
     def calc_eigenvalues(
         self, index: int = None
@@ -162,13 +157,13 @@ class Povm:
 
         size = [self._dim, self._dim]
         if index is not None:
-            v = self.vecs[index]
+            v = self.matrixes()[index]
             matrix = np.reshape(v, size)
             w = np.linalg.eigvals(matrix)
             return w
         else:
             w_list = []
-            for v in self.vecs:
+            for v in self.matrixes():
                 matrix = np.reshape(v, size)
                 w = np.linalg.eigvals(matrix)
                 w_list.append(w)
