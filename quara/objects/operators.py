@@ -43,6 +43,21 @@ def tensor_product(*elements) -> Union[MatrixBasis, State, Povm, Gate]:
     return temp
 
 
+def _U(dim1, dim2, i, j):
+    matrix = np.zeros((dim1, dim2))
+    matrix[i, j] = 1
+    return matrix
+
+
+def _K(dim1: int, dim2: int) -> np.array:
+    matrix = np.zeros((dim1 * dim2, dim1 * dim2))
+    for row in range(dim1):
+        for col in range(dim2):
+            matrix += np.kron(_U(dim1, dim2, row, col), _U(dim2, dim1, col, row))
+
+    return matrix
+
+
 def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     # create CompositeSystem
     e_sys_list = list(gate1._composite_system._elemental_systems)
@@ -53,37 +68,21 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     #
     # notice:
     #   HS(g1 \otimes g2) != HS(g1) \otimes HS(g2).
-    #   so, we convert "entries of |HS(g1)>> \otimes |HS(g2)>>" to "entries of |HS(g1 \otimes g2)>>".
-    #
-    # notations:
-    #   let E1 be d1-dim square matrix and e_{m1, n1} be the matrix its (m1, n1) entry is 1, otherwise 0.
-    #   let E2 be d2-dim square matrix and e_{m2, n2} be the matrix its (m2, n2) entry is 1, otherwise 0.
+    #   so, we convert "|HS(g1)>> \otimes |HS(g2)>>" to "|HS(g1 \otimes g2)>>".
     #
     # method:
-    # - (|e_{m1, n1}>> \otimes |e_{m2, n2}>>)_{d1*d2*(d1*m1+n1) + d2*m2+n2} = 1. other entry is 0.
-    # - on the other hand,
-    #   e_{m1, n1} \otimes e_{m2, n2} = e_{d1*m1+m2, d1*n1+n2}.
-    #   so, |e_{m1, n1} \otimes e_{m2, n2}>>_{d1+d2(d1*m1+m2) + d1*n1+n2} = 1. other entry is 0.
-    # =>
-    #   convert d1*d2*(d1*m1+n1) + d2*m2+n2 entry of |e_{m1, n1}>> \otimes  |e_{m2, n2}>>.
-    #   to d1*d2*(d1*m1+m2) + d1*n1+n2 entry of |e_{m1, n1} \otimes e_{m2, n2}>>
-
-    d1 = gate1.dim ** 2
-    d2 = gate2.dim ** 2
+    #   use vec-permutation matrix.
+    #   see "Matrix Algebra From a Statistician's Perspective" section 16.3.
 
     # calculate |HS(g1)>> \otimes |HS(g2)>>
     from_vec = np.kron(gate1.hs.flatten(), gate2.hs.flatten())
 
     # convert |HS(g1)>> \otimes |HS(g2)>> to |HS(g1 \otimes g2)>>
-    vec_entries = []
-    for m1 in range(d1):
-        for m2 in range(d2):
-            for n1 in range(d1):
-                for n2 in range(d2):
-                    vec_entries.append(
-                        from_vec[d1 * d2 * (d1 * m1 + n1) + d2 * m2 + n2]
-                    )
-    to_hs = np.array(vec_entries).reshape((d1 * d2, d1 * d2))
+    d1 = gate1.dim ** 2
+    d2 = gate2.dim ** 2
+    permutation = np.kron(np.kron(np.eye(d1), _K(d2, d1)), np.eye(d2))
+    to_vec = permutation @ from_vec
+    to_hs = to_vec.reshape((d1 * d2, d1 * d2))
 
     is_physical = gate1.is_physical and gate2.is_physical
     gate = Gate(c_sys, to_hs, is_physical=is_physical)
