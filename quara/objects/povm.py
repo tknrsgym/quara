@@ -16,6 +16,15 @@ class Povm:
     def __init__(
         self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True
     ):
+        # Set
+        # TODO: consider make it tuple of np.ndarray
+        self._vecs: List[np.ndarray] = vecs
+        self._composite_system: CompositeSystem = c_sys
+
+        # 観測されうる測定値の集合
+        self._measurements: list
+
+        self._is_physical = is_physical
 
         # Validation
         ## Validate whether `vecs` is a set of Hermitian matrices
@@ -26,9 +35,8 @@ class Povm:
 
         if is_physical:
             # Validate to meet requirements as Povm
-            for v in vecs:
-                if not mutil.is_hermitian(np.reshape(v, size)):
-                    raise ValueError("POVM must be a set of Hermitian matrices")
+            if not self.is_hermitian():
+                raise ValueError("POVM must be a set of Hermitian matrices")
 
             if not self.is_identity(vecs):
                 # whether the sum of the elements is an identity matrix or not
@@ -45,15 +53,6 @@ class Povm:
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
 
-        # Set
-        self._composite_system: CompositeSystem = c_sys
-
-        # TODO: consider make it tuple of np.ndarray
-        self._vecs: List[np.ndarray] = vecs
-        # 観測されうる測定値の集合
-        self._measurements: list
-
-        self._is_physical = is_physical
 
     def __getitem__(self, key: int):
         return self._vecs[key]
@@ -88,6 +87,17 @@ class Povm:
     def is_physical(self) -> bool:  # read only
         return self._is_physical
 
+    def is_hermitian(self) -> bool:
+        size = (self.dim, self.dim)
+        for v in self.vecs:
+            matrix = np.zeros(size, dtype=np.complex128)
+            for coefficient, basis in zip(v, self._composite_system.basis()):
+                matrix += coefficient * basis
+
+            if not mutil.is_hermitian(matrix):
+                return False
+        return True
+
     def is_positive_semidefinite(self, vecs=None, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.
 
@@ -99,7 +109,7 @@ class Povm:
         atol = atol if atol else Settings.get_atol()
 
         vecs = vecs if vecs else self._vecs
-        size = [self._dim, self._dim]
+        size = [self.dim, self.dim]
         for v in vecs:
             if not mutil.is_positive_semidefinite(np.reshape(v, size), atol):
                 return False
