@@ -19,15 +19,11 @@ from quara.protocol import simple_io as s_io
 class TestPovm:
     def test_validate_set_of_hermitian_matrices_ok(self):
         # Arrange
-        p1 = np.array(
-            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
-        )
-        p2 = np.array(
-            [0.5 + 0.0j, -0.5 + 0.0j, -0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
-        )
+        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        p2 = np.array([0, 0, 0, 1], dtype=np.complex128)
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act
@@ -68,15 +64,11 @@ class TestPovm:
 
     def test_validate_sum_is_identity_ok(self):
         # Arrange
-        p1 = np.array(
-            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
-        )
-        p2 = np.array(
-            [0.5 + 0.0j, -0.5 + 0.0j, -0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
-        )
+        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        p2 = np.array([0, 0, 0, 1], dtype=np.complex128)
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act
@@ -88,15 +80,11 @@ class TestPovm:
 
     def test_validate_sum_is_identity_ng(self):
         # Arrange
-        p1 = np.array(
-            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
-        )
-        p2 = np.array(
-            [1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j], dtype=np.complex128
-        )
+        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        p2 = np.array([0, 1, 0, 0], dtype=np.complex128)
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act & Assert
@@ -127,7 +115,7 @@ class TestPovm:
         ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
         vecs = [ps_1, ps_2]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act
@@ -173,7 +161,7 @@ class TestPovm:
         vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
         vecs = [vec_1, vec_2]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act
@@ -196,7 +184,7 @@ class TestPovm:
         vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
         vecs = [vec_1, vec_2]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act

@@ -118,15 +118,17 @@ class Povm:
             If the sum of the elements ``_vecs`` is an identity matrix,
             otherwise it returns False.
         """
+        sum_matrix = self._sum_matrix()
+        identity = np.identity(self.dim, dtype=np.complex128)
+        return np.allclose(sum_matrix, identity)
 
-        # vecs = vecs if vecs else self._vecs
+    def _sum_matrix(self):
         size = [self.dim, self.dim]
         sum_matrix = np.zeros(size, dtype=np.complex128)
         for m in self.matrixes():
             sum_matrix += np.reshape(m, size)
 
-        identity = np.identity(self.dim, dtype=np.complex128)
-        return np.allclose(sum_matrix, identity)
+        return sum_matrix
 
     # TODO: あとで良い名前に変える
     def matrixes(self):
