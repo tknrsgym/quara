@@ -81,7 +81,7 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm._is_identity()
+        actual = povm.is_identity()
 
         # Assert
         assert actual is True
@@ -132,7 +132,7 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm._is_positive_semidefinite()
+        actual = povm.is_positive_semidefinite()
 
         # Assert
         assert actual is True
@@ -161,7 +161,11 @@ class TestPovm:
 
         # Act & Assert
         # Test that no exceptions are raised.
-        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        actual = povm.is_positive_semidefinite()
+
+        # Assert
+        assert actual is False
 
     def test_calc_eigenvalues_all(self):
         # Arrange
