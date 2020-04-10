@@ -72,6 +72,29 @@ def test_tensor_product_Gate_Gate():
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
+    # assert associativity
+    # (A \otimes B) \otimes C = A \otimes (B \otimes C)
+    basis3 = matrix_basis.get_normalized_pauli_basis()
+    e_sys3 = ElementalSystem(3, basis3)
+    c_sys3 = CompositeSystem([e_sys3])
+
+    basis4 = matrix_basis.get_normalized_pauli_basis()
+    e_sys4 = ElementalSystem(4, basis4)
+    c_sys4 = CompositeSystem([e_sys4])
+
+    basis5 = matrix_basis.get_normalized_pauli_basis()
+    e_sys5 = ElementalSystem(5, basis5)
+    c_sys5 = CompositeSystem([e_sys5])
+
+    x = get_x(c_sys3)
+    z = get_z(c_sys4)
+    h = get_h(c_sys5)
+
+    gate_XZ_H = tensor_product(tensor_product(x, z), h)
+    gate_X_ZH = tensor_product(x, tensor_product(z, h))
+
+    assert np.all(gate_XZ_H.hs == gate_X_ZH.hs)
+
 
 def test_tensor_product_MatrixBasis_MatrixBasis():
     # tensor_product of computational basis (multi arguments)
@@ -222,6 +245,16 @@ def test_tensor_product_MatrixBasis_MatrixBasis():
     with pytest.raises(ValueError):
         actual = tensor_product(comp1)
 
+    # assert associativity
+    # (A \otimes B) \otimes C = A \otimes (B \otimes C)
+    comp3 = matrix_basis.get_comp_basis()
+    comp4 = matrix_basis.get_normalized_pauli_basis()
+    comp5 = matrix_basis.get_pauli_basis()
+
+    basis34_5 = tensor_product(tensor_product(comp3, comp4), comp5)
+    basis3_45 = tensor_product(comp3, tensor_product(comp4, comp5))
+    assert np.array_equal(basis34_5, basis3_45)
+
 
 def test_tensor_product_State_State():
     # tensor_product of computational basis and Pauli basis(multi arguments)
@@ -250,6 +283,29 @@ def test_tensor_product_State_State():
 
     assert e_sys1 is actual._composite_system._elemental_systems[0]
     assert e_sys2 is actual._composite_system._elemental_systems[1]
+
+    # assert associativity
+    # (A \otimes B) \otimes C = A \otimes (B \otimes C)
+    basis3 = matrix_basis.get_normalized_pauli_basis()
+    e_sys3 = ElementalSystem(3, basis3)
+    c_sys3 = CompositeSystem([e_sys3])
+
+    basis4 = matrix_basis.get_normalized_pauli_basis()
+    e_sys4 = ElementalSystem(4, basis4)
+    c_sys4 = CompositeSystem([e_sys4])
+
+    basis5 = matrix_basis.get_normalized_pauli_basis()
+    e_sys5 = ElementalSystem(5, basis5)
+    c_sys5 = CompositeSystem([e_sys5])
+
+    state0 = get_z0_1q(c_sys3)
+    state1 = get_z1_1q(c_sys4)
+    stateP = get_x0_1q(c_sys5)
+
+    state01_P = tensor_product(tensor_product(state0, state1), stateP)
+    state0_1P = tensor_product(state0, tensor_product(state1, stateP))
+
+    assert np.all(state01_P.get_density_matrix() == state0_1P.get_density_matrix())
 
 
 def test_tensor_product_povm_povm_is_physical_true():
@@ -379,6 +435,12 @@ def test_composite_Gate_Gate():
     expected = x_gate.hs
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
+    # assert associativity
+    # (X \circ Y) \circ Z = X \circ (Y \circ Z)
+    xy_z = composite(composite(x_gate, y_gate), z_gate)
+    x_yz = composite(x_gate, composite(y_gate, z_gate))
+    npt.assert_almost_equal(xy_z.hs, x_yz.hs, decimal=15)
+
 
 def test_composite_Gate_State():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -430,6 +492,13 @@ def test_composite_Gate_State():
     expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
+    # assert associativity
+    # (H \circ Z) \circ |1> = H \circ (Z \circ |1>)
+    state = get_z1_1q(c_sys)
+    hz_1 = composite(composite(h_gate, z_gate), state)
+    h_z1 = composite(h_gate, composite(z_gate, state))
+    npt.assert_almost_equal(hz_1.vec, h_z1.vec, decimal=15)
+
 
 # @pytest.mark.skip(reasons="It only fails at CircleCI.")
 def test_composite_Povm_Gate():
@@ -442,13 +511,21 @@ def test_composite_Povm_Gate():
     povm = Povm(c_sys, vecs)
 
     # composite Z-measurement and X gate
-    gate = get_x(c_sys)
-    actual = composite(povm, gate)
+    x_gate = get_x(c_sys)
+    actual = composite(povm, x_gate)
     expected = [
         np.array([0, 0, 0, 1], dtype=np.complex128),
         np.array([1, 0, 0, 0], dtype=np.complex128),
     ]
     npt.assert_almost_equal(actual.vecs, expected, decimal=15)
+
+    # assert associativity
+    # (POVM \circ X) \circ Z = POVM \circ (X \circ Z)
+    z_gate = get_z(c_sys)
+    px_z = composite(composite(povm, x_gate), z_gate)
+    p_xz = composite(povm, composite(x_gate, z_gate))
+    npt.assert_almost_equal(px_z.vecs[0], p_xz.vecs[0], decimal=15)
+    npt.assert_almost_equal(px_z.vecs[1], p_xz.vecs[1], decimal=15)
 
 
 def test_composite_Povm_State():
@@ -477,6 +554,14 @@ def test_composite_Povm_State():
     actual = composite(povm, state)
     expected = [0.5, 0.5]
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # assert associativity
+    # (POVM \circ X) \circ |1> = POVM \circ (X \circ |1>)
+    state = get_z1_1q(c_sys)
+    x_gate = get_x(c_sys)
+    px_z = composite(composite(povm, x_gate), state)
+    p_xz = composite(povm, composite(x_gate, state))
+    assert px_z == p_xz
 
 
 def test_to_list():
