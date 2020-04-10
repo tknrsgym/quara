@@ -38,13 +38,13 @@ class Povm:
             if not self.is_hermitian():
                 raise ValueError("POVM must be a set of Hermitian matrices")
 
-            if not self.is_identity(vecs):
+            if not self.is_identity():
                 # whether the sum of the elements is an identity matrix or not
                 raise ValueError(
                     "The sum of the elements of POVM must be an identity matrix."
                 )
 
-            if not self.is_positive_semidefinite(vecs):
+            if not self.is_positive_semidefinite():
                 raise ValueError("Eigenvalues of POVM elements must be non-negative.")
 
         # Whether dim of CompositeSystem equals dim of vec
@@ -87,17 +87,12 @@ class Povm:
         return self._is_physical
 
     def is_hermitian(self) -> bool:
-        size = (self.dim, self.dim)
-        for v in self.vecs:
-            matrix = np.zeros(size, dtype=np.complex128)
-            for coefficient, basis in zip(v, self._composite_system.basis()):
-                matrix += coefficient * basis
-
-            if not mutil.is_hermitian(matrix):
+        for m in self.matrixes():
+            if not mutil.is_hermitian(m):
                 return False
         return True
 
-    def is_positive_semidefinite(self, vecs=None, atol: float = None) -> bool:
+    def is_positive_semidefinite(self, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.
 
         Returns
@@ -107,15 +102,14 @@ class Povm:
         """
         atol = atol if atol else Settings.get_atol()
 
-        vecs = vecs if vecs else self._vecs
         size = [self.dim, self.dim]
-        for v in vecs:
-            if not mutil.is_positive_semidefinite(np.reshape(v, size), atol):
+        for m in self.matrixes():
+            if not mutil.is_positive_semidefinite(m, atol):
                 return False
 
         return True
 
-    def is_identity(self, vecs=None) -> bool:
+    def is_identity(self) -> bool:
         """Returns whether the sum of the elements ``_vecs`` is an identity matrix.
 
         Returns
@@ -124,15 +118,28 @@ class Povm:
             If the sum of the elements ``_vecs`` is an identity matrix,
             otherwise it returns False.
         """
-
-        vecs = vecs if vecs else self._vecs
-        size = [self._dim, self._dim]
-        sum_matrix = np.zeros(size, dtype=np.complex128)
-        for v in vecs:
-            sum_matrix += np.reshape(v, size)
-
-        identity = np.identity(self._dim, dtype=np.complex128)
+        sum_matrix = self._sum_matrix()
+        identity = np.identity(self.dim, dtype=np.complex128)
         return np.allclose(sum_matrix, identity)
+
+    def _sum_matrix(self):
+        size = [self.dim, self.dim]
+        sum_matrix = np.zeros(size, dtype=np.complex128)
+        for m in self.matrixes():
+            sum_matrix += np.reshape(m, size)
+
+        return sum_matrix
+
+    # TODO: あとで良い名前に変える
+    def matrixes(self):
+        matrix_list = []
+        size = (self.dim, self.dim)
+        for v in self.vecs:
+            matrix = np.zeros(size, dtype=np.complex128)
+            for coefficient, basis in zip(v, self.composite_system.basis()):
+                matrix += coefficient * basis
+            matrix_list.append(matrix)
+        return matrix_list
 
     def calc_eigenvalues(
         self, index: int = None
@@ -152,13 +159,13 @@ class Povm:
 
         size = [self._dim, self._dim]
         if index is not None:
-            v = self._vecs[index]
+            v = self.matrixes()[index]
             matrix = np.reshape(v, size)
             w = np.linalg.eigvals(matrix)
             return w
         else:
             w_list = []
-            for v in self._vecs:
+            for v in self.matrixes():
                 matrix = np.reshape(v, size)
                 w = np.linalg.eigvals(matrix)
                 w_list.append(w)
@@ -179,7 +186,7 @@ class Povm:
         """
 
         converted_vecs = []
-        for vec in self._vecs:
+        for vec in self.vecs:
             converted_vecs.append(
                 convert_vec(vec, self._composite_system.basis(), other_basis)
             )
