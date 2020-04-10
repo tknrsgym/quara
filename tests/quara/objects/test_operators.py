@@ -303,7 +303,7 @@ def test_tensor_product_povm_povm_is_physical_true():
     assert actual_povm.is_physical is expected
 
     # TODO
-    # # Act
+    # Act
     # actual_povm = tensor_product(povm_1, povm_2)
 
     # # Assert
