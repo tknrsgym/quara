@@ -80,6 +80,32 @@ class TestGate:
         with pytest.raises(ValueError):
             Gate(c_sys, hs)
 
+    def test_init_is_physical(self):
+        e_sys = ElementalSystem(1, matrix_basis.get_comp_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # gate is not TP
+        hs_not_tp = np.array(
+            [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
+        )
+        with pytest.raises(ValueError):
+            Gate(c_sys, hs_not_tp)
+        with pytest.raises(ValueError):
+            Gate(c_sys, hs_not_tp, is_physical=True)
+
+        # gate is not CP
+        hs_not_cp = np.array(
+            [[-1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
+        with pytest.raises(ValueError):
+            Gate(c_sys, hs_not_cp)
+        with pytest.raises(ValueError):
+            Gate(c_sys, hs_not_cp, is_physical=True)
+
+        # case: when is_physical is False, it is not happened ValueError
+        Gate(c_sys, hs_not_tp, is_physical=False)
+        Gate(c_sys, hs_not_cp, is_physical=False)
+
     def test_access_dim(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -113,6 +139,20 @@ class TestGate:
         # Test that "hs" cannot be updated
         with pytest.raises(AttributeError):
             gate.hs = hs
+
+    def test_access_is_physical(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs = np.array(
+            [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
+        gate = Gate(c_sys, hs)
+        assert gate.is_physical == True
+
+        # Test that "is_physical" cannot be updated
+        with pytest.raises(AttributeError):
+            gate.is_physical = False
 
     def test_get_basis(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
