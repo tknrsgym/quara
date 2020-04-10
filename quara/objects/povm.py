@@ -134,7 +134,7 @@ class Povm:
         size = (self.dim, self.dim)
         for v in self.vecs:
             matrix = np.zeros(size, dtype=np.complex128)
-            for coefficient, basis in zip(v, self._composite_system.basis()):
+            for coefficient, basis in zip(v, self.composite_system.basis()):
                 matrix += coefficient * basis
             matrix_list.append(matrix)
         return matrix_list
