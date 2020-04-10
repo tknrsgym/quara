@@ -70,6 +70,10 @@ class Povm:
         return self._vecs
 
     @property
+    def dim(self) -> int:
+        return self._dim
+
+    @property
     def composite_system(self) -> CompositeSystem:
         """Property to get composite system.
 
