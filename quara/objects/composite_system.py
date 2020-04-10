@@ -14,12 +14,12 @@ class CompositeSystem:
 
     def __init__(self, systems: List[ElementalSystem]):
         """Constructor
-        
+
         Parameters
         ----------
         systems : List[ElementalSystem]
             list of ElementalSystem of this CompositeSystem.
-        
+
         Raises
         ------
         ValueError
@@ -57,7 +57,7 @@ class CompositeSystem:
 
     def comp_basis(self) -> MatrixBasis:
         """returns computational basis of CompositeSystem.
-        
+
         Returns
         -------
         MatrixBasis
@@ -82,7 +82,7 @@ class CompositeSystem:
 
     def basis(self) -> MatrixBasis:
         """returns MatrixBasis of CompositeSystem.
-        
+
         Returns
         -------
         MatrixBasis
@@ -118,14 +118,14 @@ class CompositeSystem:
 
     def get_basis(self, index: Union[int, tuple]) -> MatrixBasis:
         """returns basis specified by index.
-        
+
         Parameters
         ----------
         index : Union[int, tuple]
             index of basis.
             if type is int, then regardes it as the index after calculating the basis of CompositeSystem.
             if tyep is tuple, then regardes it as the indices of the basis of ElementalSystems.
-        
+
         Returns
         -------
         MatrixBasis
@@ -154,7 +154,7 @@ class CompositeSystem:
     @property
     def elemental_systems(self) -> Tuple[ElementalSystem]:
         """returns list of ElementalSystem of this CompositeSystem.
-        
+
         Returns
         -------
         Tuple[ElementalSystem]
