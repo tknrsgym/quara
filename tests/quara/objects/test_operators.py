@@ -313,7 +313,7 @@ def test_tensor_product_povm_povm_is_physical_true():
     # Physical POVM
     physical_povm_list = []
     for i in range(2):
-        e_sys = ElementalSystem(i, matrix_basis.get_pauli_basis())
+        e_sys = ElementalSystem(i, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
         ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
         ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
@@ -358,13 +358,12 @@ def test_tensor_product_povm_povm_is_physical_true():
     expected = False
     assert actual_povm.is_physical is expected
 
-    # TODO
     # Act
-    # actual_povm = tensor_product(povm_1, povm_2)
+    actual_povm = tensor_product(povm_1, povm_2)
 
-    # # Assert
-    # expected = True
-    # assert actual_povm.is_physical is expected
+    # Assert
+    expected = True
+    assert actual_povm.is_physical is expected
 
 
 def test_tensor_product_unexpected_type():
