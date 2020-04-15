@@ -1,10 +1,13 @@
 import copy
+from functools import reduce
+from operator import add
 import itertools
 from typing import List, Union
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import Povm
@@ -58,6 +61,21 @@ def _K(dim1: int, dim2: int) -> np.array:
     return matrix
 
 
+def _check_cross_elemental_system_position(e_sys_list: List[ElementalSystem]) -> int:
+    # check cross ElementalSystem position
+    # let [0, 10, 5] be a list of names of ElementalSystem, this functions returns 2(position of value 1)
+    former_name = None
+    for current_position, e_sys in enumerate(e_sys_list):
+        current_name = e_sys.name
+        if not former_name is None and former_name > current_name:
+            return current_position
+        else:
+            former_name = current_name
+
+    # if cross ElementalSystem position does not exist, returns None
+    return None
+
+
 def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     # create CompositeSystem
     e_sys_list = list(gate1._composite_system._elemental_systems)
@@ -89,6 +107,57 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     return gate
 
 
+def _permutation_matrix(position: int, e_sys_list: List[ElementalSystem]) -> np.array:
+    dim_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
+
+    # identity matrix for head of permutation matrix
+    if position < 2:
+        I_head = np.eye(1)
+    else:
+        size = reduce(add, dim_list[: position - 1])
+        I_head = np.eye(size)
+
+    # create matrix K
+    k_matrix = _K(dim_list[position], dim_list[position - 1])
+
+    # identity matrix for tail of permutation matrix
+    if position < len(dim_list) - 1:
+        size = reduce(add, dim_list[position + 1 :])
+        I_tail = np.eye(size)
+    else:
+        I_tail = np.eye(1)
+
+    # calculate permutation matrix
+    perm_matrix = np.kron(np.kron(I_head, k_matrix), I_tail)
+    return perm_matrix
+
+
+def _tensor_product_State_State(state1: State, state2: State) -> State:
+    e_sys_list = list(state1._composite_system.elemental_systems)
+    e_sys_list.extend(state2._composite_system.elemental_systems)
+
+    tensor_vec = np.kron(state1.vec, state2.vec)
+    position = _check_cross_elemental_system_position(e_sys_list)
+
+    # permutation the tensor product matrix according to the position of the sorted ElementalSystem
+    # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
+    while not position is None:
+        perm_matrix = _permutation_matrix(position, e_sys_list)
+        # B \otimes A = perm_matrix @ (A \otimes B)
+        tensor_vec = perm_matrix @ tensor_vec
+        # swap e_sys_list
+        e_sys_list[position - 1], e_sys_list[position] = (
+            e_sys_list[position],
+            e_sys_list[position - 1],
+        )
+        position = _check_cross_elemental_system_position(e_sys_list)
+
+    # create State
+    c_sys = CompositeSystem(e_sys_list)
+    is_physical = state1.is_physical and state2.is_physical
+    return State(c_sys, tensor_vec, is_physical=is_physical)
+
+
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # Povm (x) Povm -> Povm
     e_sys_list = list(povm1.composite_system.elemental_systems)
@@ -117,17 +186,8 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         m_basis = MatrixBasis(new_basis)
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
-        # create CompositeSystem
-        e_sys_list = list(elem1._composite_system._elemental_systems)
-        e_sys_list.extend(elem2._composite_system._elemental_systems)
-        c_sys = CompositeSystem(e_sys_list)
-        # calculate vecs of stetes
-        tensor_vec = np.kron(elem1.vec, elem2.vec)
+        return _tensor_product_State_State(elem1, elem2)
 
-        # create State
-        is_physical = elem1.is_physical and elem2.is_physical
-        tensor_state = State(c_sys, tensor_vec, is_physical=is_physical)
-        return tensor_state
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
