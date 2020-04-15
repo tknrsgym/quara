@@ -1,6 +1,6 @@
 import copy
 from functools import reduce
-from operator import add
+from operator import add, mul
 import itertools
 from typing import List, Union
 
@@ -76,7 +76,33 @@ def _check_cross_elemental_system_position(e_sys_list: List[ElementalSystem]) ->
     return None
 
 
-def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
+def _permutation_matrix(
+    position: int, e_sys_list: List[ElementalSystem], dim_list: List[int]
+) -> np.array:
+    # identity matrix for head of permutation matrix
+    if position < 2:
+        I_head = np.eye(1)
+    else:
+        size = reduce(add, dim_list[: position - 1])
+        I_head = np.eye(size)
+
+    # create matrix K
+    K_matrix = _K(dim_list[position], dim_list[position - 1])
+
+    # identity matrix for tail of permutation matrix
+    if position < len(dim_list) - 1:
+        size = reduce(add, dim_list[position + 1 :])
+        I_tail = np.eye(size)
+    else:
+        I_tail = np.eye(1)
+
+    # calculate permutation matrix
+    perm_matrix = np.kron(np.kron(I_head, K_matrix), I_tail)
+    return perm_matrix
+
+
+"""
+def _tensor_product_Gate_Gate_old(gate1: Gate, gate2: Gate) -> Gate:
     # create CompositeSystem
     e_sys_list = list(gate1._composite_system._elemental_systems)
     e_sys_list.extend(gate2._composite_system._elemental_systems)
@@ -105,31 +131,75 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     is_physical = gate1.is_physical and gate2.is_physical
     gate = Gate(c_sys, to_hs, is_physical=is_physical)
     return gate
+"""
 
 
-def _permutation_matrix(position: int, e_sys_list: List[ElementalSystem]) -> np.array:
+def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
+    print("===tensor===")
+    # create CompositeSystem
+    e_sys_list = list(gate1._composite_system._elemental_systems)
+    e_sys_list.extend(gate2._composite_system._elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
+
+    # How to calculate HS(g1 \otimes g2)
+    #
+    # notice:
+    #   HS(g1 \otimes g2) != HS(g1) \otimes HS(g2).
+    #   so, we convert "|HS(g1)>> \otimes |HS(g2)>>" to "|HS(g1 \otimes g2)>>".
+    #
+    # method:
+    #   use vec-permutation matrix.
+    #   see "Matrix Algebra From a Statistician's Perspective" section 16.3.
+
+    # calculate |HS(g1)>> \otimes |HS(g2)>>
+    tensor_vec = np.kron(gate1.hs.flatten(), gate2.hs.flatten())
+    position = _check_cross_elemental_system_position(e_sys_list)
+
+    while not position is None:
+        dim_list = [e_sys.dim ** 4 for e_sys in e_sys_list]
+        perm_matrix = _permutation_matrix(position, e_sys_list, dim_list)
+        # B \otimes A = perm_matrix @ (A \otimes B)
+        tensor_vec = perm_matrix @ tensor_vec
+        # swap e_sys_list
+        e_sys_list[position - 1], e_sys_list[position] = (
+            e_sys_list[position],
+            e_sys_list[position - 1],
+        )
+        position = _check_cross_elemental_system_position(e_sys_list)
+
+    # convert |HS(g1)>> \otimes |HS(g2)>> to |HS(g1 \otimes g2)>>
     dim_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
+    dim_list2 = [e_sys.dim ** 4 for e_sys in e_sys_list]
+    dim_hs = reduce(mul, dim_list)
+    print(f"dim_hs={dim_hs}")
+    for position in range(1, len(e_sys_list)):
+        # calculate vec(A \otimes B) \otimes C = (I_A \otimes K_{B, A} \otimes I_B \otimes I_{CC}) (vecA \otimes B \otimes C)
+        size_A = reduce(mul, dim_list[:position])
+        size_B = dim_list[position]
+        size_CC = (
+            reduce(mul, dim_list2[position + 1 :])
+            if position + 1 < len(dim_list2)
+            else 1
+        )
 
-    # identity matrix for head of permutation matrix
-    if position < 2:
-        I_head = np.eye(1)
-    else:
-        size = reduce(add, dim_list[: position - 1])
-        I_head = np.eye(size)
+        I_A = np.eye(size_A)
+        I_B = np.eye(size_B)
+        I_CC = np.eye(size_CC)
+        print(size_A, size_B, size_CC)
+        K_matrix = _K(size_B, size_A)
+        print(f"K_matrix.shape={K_matrix.shape}")
+        perm_matrix = np.kron(np.kron(np.kron(I_A, K_matrix), I_B), I_CC)
 
-    # create matrix K
-    k_matrix = _K(dim_list[position], dim_list[position - 1])
+        tensor_vec = perm_matrix @ tensor_vec
+        print(tensor_vec.reshape((dim_hs, dim_hs)))
 
-    # identity matrix for tail of permutation matrix
-    if position < len(dim_list) - 1:
-        size = reduce(add, dim_list[position + 1 :])
-        I_tail = np.eye(size)
-    else:
-        I_tail = np.eye(1)
+    to_hs = tensor_vec.reshape((dim_hs, dim_hs))
+    print(to_hs)
 
-    # calculate permutation matrix
-    perm_matrix = np.kron(np.kron(I_head, k_matrix), I_tail)
-    return perm_matrix
+    # create Gate
+    is_physical = gate1.is_physical and gate2.is_physical
+    gate = Gate(c_sys, to_hs, is_physical=is_physical)
+    return gate
 
 
 def _tensor_product_State_State(state1: State, state2: State) -> State:
@@ -142,7 +212,8 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     # permutation the tensor product matrix according to the position of the sorted ElementalSystem
     # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
     while not position is None:
-        perm_matrix = _permutation_matrix(position, e_sys_list)
+        dim_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
+        perm_matrix = _permutation_matrix(position, e_sys_list, dim_list)
         # B \otimes A = perm_matrix @ (A \otimes B)
         tensor_vec = perm_matrix @ tensor_vec
         # swap e_sys_list
