@@ -261,23 +261,24 @@ def test_tensor_product_State_State():
     basis1 = matrix_basis.get_comp_basis()
     e_sys1 = ElementalSystem(1, basis1)
     c_sys1 = CompositeSystem([e_sys1])
-    state1 = State(c_sys1, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False)
+    state1 = State(c_sys1, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False)
 
-    basis2 = matrix_basis.get_pauli_basis()
+    basis2 = matrix_basis.get_comp_basis()
     e_sys2 = ElementalSystem(2, basis2)
     c_sys2 = CompositeSystem([e_sys2])
-    state2 = State(c_sys2, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False)
+    state2 = State(c_sys2, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False)
 
     # actual
-    actual = tensor_product(state1, state2)
+    # actual = tensor_product(state1, state2)
+    actual = tensor_product(state2, state1)
 
     # expected
-    expected_vec = np.kron(np.array([1, 0, 0, 0]), np.array([0, 1, 0, 0]),)
+    print(actual.vec)
+    expected_vec = np.kron(np.array([0, 1, 0, 0]), np.array([1, 0, 0, 0]),)
     expected_density_matrix = np.kron(
+        np.array([[0, 1], [0, 0]], dtype=np.complex128),
         np.array([[1, 0], [0, 0]], dtype=np.complex128),
-        np.array([[0, 1], [1, 0]], dtype=np.complex128),
     )
-
     assert np.all(actual.vec == expected_vec)
     assert np.all(actual.get_density_matrix() == expected_density_matrix)
 
@@ -306,6 +307,58 @@ def test_tensor_product_State_State():
     state0_1P = tensor_product(state0, tensor_product(state1, stateP))
 
     assert np.all(state01_P.get_density_matrix() == state0_1P.get_density_matrix())
+
+
+def test_tensor_product_State_State_sort_ElementalSystem():
+    basis1 = matrix_basis.get_comp_basis()
+    e_sys1 = ElementalSystem(1, basis1)
+    c_sys1 = CompositeSystem([e_sys1])
+    state1 = State(c_sys1, np.array([2, 3, 5, 7], dtype=np.float64), is_physical=False)
+
+    basis2 = matrix_basis.get_comp_basis()
+    e_sys2 = ElementalSystem(2, basis2)
+    c_sys2 = CompositeSystem([e_sys2])
+    state2 = State(
+        c_sys2, np.array([11, 13, 17, 19], dtype=np.float64), is_physical=False
+    )
+
+    basis3 = matrix_basis.get_comp_basis()
+    e_sys3 = ElementalSystem(3, basis3)
+    c_sys3 = CompositeSystem([e_sys3])
+    state3 = State(
+        c_sys3, np.array([23, 29, 31, 37], dtype=np.float64), is_physical=False
+    )
+
+    state12 = tensor_product(state1, state2)
+    expected12 = np.kron(state1.vec, state2.vec)
+    assert np.all(state12.vec == expected12)
+    assert state12._composite_system.elemental_systems[0] == e_sys1
+    assert state12._composite_system.elemental_systems[1] == e_sys2
+
+    state12_3 = tensor_product(state12, state3)
+    expected12_3 = np.kron(np.kron(state1.vec, state2.vec), state3.vec)
+    assert np.all(state12_3.vec == expected12_3)
+    assert state12_3._composite_system.elemental_systems[0] == e_sys1
+    assert state12_3._composite_system.elemental_systems[1] == e_sys2
+    assert state12_3._composite_system.elemental_systems[2] == e_sys3
+
+    state13 = tensor_product(state1, state3)
+    expected13 = np.kron(state1.vec, state3.vec)
+    assert np.all(state13.vec == expected13)
+    assert state13._composite_system.elemental_systems[0] == e_sys1
+    assert state13._composite_system.elemental_systems[1] == e_sys3
+
+    state13_2 = tensor_product(state13, state2)
+    assert np.all(state13_2.vec == expected12_3)
+    assert state13_2._composite_system.elemental_systems[0] == e_sys1
+    assert state13_2._composite_system.elemental_systems[1] == e_sys2
+    assert state13_2._composite_system.elemental_systems[2] == e_sys3
+
+    state3_12 = tensor_product(state3, state12)
+    assert np.all(state3_12.vec == expected12_3)
+    assert state3_12._composite_system.elemental_systems[0] == e_sys1
+    assert state3_12._composite_system.elemental_systems[1] == e_sys2
+    assert state3_12._composite_system.elemental_systems[2] == e_sys3
 
 
 def test_tensor_product_povm_povm_is_physical_true():
