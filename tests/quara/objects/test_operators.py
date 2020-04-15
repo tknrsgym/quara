@@ -96,6 +96,31 @@ def test_tensor_product_Gate_Gate():
     assert np.all(gate_XZ_H.hs == gate_X_ZH.hs)
 
 
+def test_tensor_product_Gate_Gate_sort_ElementalSystem():
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+    e_sys3 = ElementalSystem(3, matrix_basis.get_normalized_pauli_basis())
+    c_sys3 = CompositeSystem([e_sys3])
+
+    x = get_x(c_sys1)
+    y = get_x(c_sys2)
+    z = get_x(c_sys3)
+
+    xy = tensor_product(x, y)
+    expected_xy = np.diag([1, -1, 1, -1, 1, -1, 1, -1, -1, 1, -1, 1, -1, 1, -1, 1])
+    # npt.assert_almost_equal(xy.hs, expected_xy, decimal=15)
+
+    yx = tensor_product(y, x)
+    print(np.diag(xy.hs))
+    print(np.diag(yx.hs))
+    xy_z = tensor_product(xy, z)
+    # print(xy_z.hs)
+
+    assert False
+
+
 def test_tensor_product_MatrixBasis_MatrixBasis():
     # tensor_product of computational basis (multi arguments)
     comp1 = matrix_basis.get_comp_basis()
