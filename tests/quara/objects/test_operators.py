@@ -105,20 +105,19 @@ def test_tensor_product_Gate_Gate_sort_ElementalSystem():
     c_sys3 = CompositeSystem([e_sys3])
 
     x = get_x(c_sys1)
-    y = get_x(c_sys2)
-    z = get_x(c_sys3)
+    y = get_y(c_sys2)
+    z = get_z(c_sys3)
 
     xy = tensor_product(x, y)
-    expected_xy = np.diag([1, -1, 1, -1, 1, -1, 1, -1, -1, 1, -1, 1, -1, 1, -1, 1])
-    # npt.assert_almost_equal(xy.hs, expected_xy, decimal=15)
-
-    yx = tensor_product(y, x)
-    print(np.diag(xy.hs))
-    print(np.diag(yx.hs))
     xy_z = tensor_product(xy, z)
-    # print(xy_z.hs)
 
-    assert False
+    xz = tensor_product(x, z)
+    xz_y = tensor_product(xz, y)
+    npt.assert_almost_equal(xy_z.hs, xz_y.hs, decimal=15)
+
+    zx = tensor_product(z, x)
+    zx_y = tensor_product(zx, y)
+    npt.assert_almost_equal(xy_z.hs, zx_y.hs, decimal=15)
 
 
 def test_tensor_product_MatrixBasis_MatrixBasis():
@@ -298,7 +297,6 @@ def test_tensor_product_State_State():
     actual = tensor_product(state2, state1)
 
     # expected
-    print(actual.vec)
     expected_vec = np.kron(np.array([0, 1, 0, 0]), np.array([1, 0, 0, 0]),)
     expected_density_matrix = np.kron(
         np.array([[0, 1], [0, 0]], dtype=np.complex128),
