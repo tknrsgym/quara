@@ -76,32 +76,7 @@ def _check_cross_elemental_system_position(e_sys_list: List[ElementalSystem]) ->
     return None
 
 
-def _permutation_matrix_for_vec(
-    position: int, e_sys_list: List[ElementalSystem], dim_list: List[int]
-) -> np.array:
-    # identity matrix for head of permutation matrix
-    if position < 2:
-        I_head = np.eye(1)
-    else:
-        size = reduce(add, dim_list[: position - 1])
-        I_head = np.eye(size)
-
-    # create matrix K
-    K_matrix = _K(dim_list[position], dim_list[position - 1])
-
-    # identity matrix for tail of permutation matrix
-    if position < len(dim_list) - 1:
-        size = reduce(add, dim_list[position + 1 :])
-        I_tail = np.eye(size)
-    else:
-        I_tail = np.eye(1)
-
-    # calculate permutation matrix
-    perm_matrix = np.kron(np.kron(I_head, K_matrix), I_tail)
-    return perm_matrix
-
-
-def _permutation_matrix_for_matrix(
+def _permutation_matrix(
     position: int, e_sys_list: List[ElementalSystem], dim_list: List[int]
 ) -> Tuple[np.array, np.array]:
     # identity matrix for head of permutation matrix
@@ -159,10 +134,8 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     position = _check_cross_elemental_system_position(e_sys_list)
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
-        left_perm, right_perm = _permutation_matrix_for_matrix(
-            position, e_sys_list, dim_list
-        )
-        # B \otimes A = perm_matrix @ (A \otimes B)
+        left_perm, right_perm = _permutation_matrix(position, e_sys_list, dim_list)
+        # B \otimes A = left_perm @ (A \otimes B) @ right_perm
         to_hs = left_perm @ to_hs @ right_perm
         # swap e_sys_list
         e_sys_list[position - 1], e_sys_list[position] = (
@@ -188,9 +161,10 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     position = _check_cross_elemental_system_position(e_sys_list)
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
-        perm_matrix = _permutation_matrix_for_vec(position, e_sys_list, dim_list)
-        # B \otimes A = perm_matrix @ (A \otimes B)
-        tensor_vec = perm_matrix @ tensor_vec
+        # in case of vec, only left permutation matrix should be used.
+        left_perm, _ = _permutation_matrix(position, e_sys_list, dim_list)
+        # B \otimes A = left_perm @ (A \otimes B)
+        tensor_vec = left_perm @ tensor_vec
         # swap e_sys_list
         e_sys_list[position - 1], e_sys_list[position] = (
             e_sys_list[position],
