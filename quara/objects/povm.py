@@ -275,17 +275,17 @@ def _get_z_measurement_vecs() -> List[np.array]:
 
 def get_x_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of X measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         X measurement.
-    
+
     Raises
     ------
     ValueError
@@ -299,17 +299,17 @@ def get_x_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_y_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of Y measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         Y measurement.
-    
+
     Raises
     ------
     ValueError
@@ -323,17 +323,17 @@ def get_y_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_z_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of Z measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         Z measurement.
-    
+
     Raises
     ------
     ValueError
@@ -373,17 +373,17 @@ def _get_2q_povm_from_vecs_on_pauli_basis(
 
 def get_xx_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XX measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         XX measurement.
-    
+
     Raises
     ------
     ValueError
@@ -399,17 +399,17 @@ def get_xx_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_xy_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XY measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         XY measurement.
-    
+
     Raises
     ------
     ValueError
@@ -425,17 +425,17 @@ def get_xy_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_xz_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XZ measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         XZ measurement.
-    
+
     Raises
     ------
     ValueError
@@ -451,17 +451,17 @@ def get_xz_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_yx_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YX measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         YX measurement.
-    
+
     Raises
     ------
     ValueError
@@ -477,17 +477,17 @@ def get_yx_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_yy_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YY measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         YY measurement.
-    
+
     Raises
     ------
     ValueError
@@ -503,17 +503,17 @@ def get_yy_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_yz_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YZ measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         YZ measurement.
-    
+
     Raises
     ------
     ValueError
@@ -529,17 +529,17 @@ def get_yz_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_zx_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZX measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         ZX measurement.
-    
+
     Raises
     ------
     ValueError
@@ -555,17 +555,17 @@ def get_zx_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_zy_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZY measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         ZY measurement.
-    
+
     Raises
     ------
     ValueError
@@ -581,17 +581,17 @@ def get_zy_measurement(c_sys: CompositeSystem) -> Povm:
 
 def get_zz_measurement(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZZ measurement.
-    
+
     Parameters
     ----------
     c_sys : CompositeSystem
         CompositeSystem containing POVM.
-    
+
     Returns
     -------
     Povm
         ZZ measurement.
-    
+
     Raises
     ------
     ValueError
