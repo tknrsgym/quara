@@ -1,6 +1,8 @@
 import copy
+import itertools
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from quara.objects import matrix_basis
@@ -450,6 +452,7 @@ def test_get_pauli_basis():
 
 
 def test_get_normalized_pauli_basis():
+    # 1 qubit(use default value)
     basis = matrix_basis.get_normalized_pauli_basis()
     assert basis.dim == 2
     assert basis._is_squares() == True
@@ -474,6 +477,43 @@ def test_get_normalized_pauli_basis():
     )
     assert basis.size() == (2, 2)
     assert len(basis) == 4
+
+    # 1 qubit(use spacific value)
+    basis = matrix_basis.get_normalized_pauli_basis(n_qubit=1)
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+    assert np.all(
+        basis[0] == 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[1] == 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[2] == 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+    )
+    assert np.all(
+        basis[3] == 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
+    )
+    assert basis.size() == (2, 2)
+
+    # 2 qubits
+    actual = matrix_basis.get_normalized_pauli_basis(n_qubit=2)
+    assert actual.dim == 4
+    assert actual.size() == (4, 4)
+    assert len(actual) == 16
+
+    basis_1q = [
+        1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128),
+    ]
+    expected = [
+        np.kron(val1, val2) for val1, val2 in itertools.product(basis_1q, basis_1q)
+    ]
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_gell_mann_basis():
