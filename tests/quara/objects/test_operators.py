@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -6,15 +8,11 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_s, get_x, get_y, get_z
-from quara.objects.operators import (
-    _composite,
-    _tensor_product,
-    _to_list,
-    composite,
-    tensor_product,
-)
+from quara.objects.operators import (_composite, _tensor_product, _to_list,
+                                     composite, tensor_product)
 from quara.objects.povm import Povm
-from quara.objects.state import State, get_x0_1q, get_x1_1q, get_z0_1q, get_z1_1q
+from quara.objects.state import (State, get_x0_1q, get_x1_1q, get_z0_1q,
+                                 get_z1_1q)
 
 
 def test_tensor_product_Gate_Gate():
@@ -469,9 +467,68 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
         np.array([59, 61, 67, 71], dtype=np.float64),
         np.array([73, 79, 83, 89], dtype=np.float64),
     ]
-    state3 = Povm(c_sys3, vecs3, is_physical=False)
+    povm3 = Povm(c_sys3, vecs3, is_physical=False)
 
-    # TODO
+    # Case 1
+    # Act
+    povm12 = tensor_product(povm1, povm2)
+
+    # Assert
+    expected12 = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(povm12.vecs) == len(expected12)
+    for actual, expected in zip(povm12, expected12):
+        assert np.all(actual == expected)
+    assert povm12.composite_system.elemental_systems[0] == e_sys1
+    assert povm12.composite_system.elemental_systems[1] == e_sys2
+
+    # Case 2
+    # Act
+    povm12_3 = tensor_product(povm12, povm3)
+
+    # Assert
+    expected12_3 = [
+        np.kron(vec12, vec3) for vec12, vec3 in itertools.product(expected12, vecs3)
+    ]
+    assert len(povm12_3.vecs) == len(expected12_3)
+    for actual, expected in zip(povm12_3, expected12_3):
+        assert np.all(actual == expected)
+
+    assert povm12_3.composite_system.elemental_systems[0] == e_sys1
+    assert povm12_3.composite_system.elemental_systems[1] == e_sys2
+    assert povm12_3.composite_system.elemental_systems[2] == e_sys3
+
+    # Case 3
+    # Act
+    povm13 = tensor_product(povm1, povm3)
+    # Assert
+    expected13 = [np.kron(vec1, vec3) for vec1, vec3 in itertools.product(vecs1, vecs3)]
+    assert len(povm13.vecs) == len(expected13)
+    for actual, expected in zip(povm13, expected13):
+        assert np.all(actual == expected)
+    assert povm13.composite_system.elemental_systems[0] == e_sys1
+    assert povm13.composite_system.elemental_systems[1] == e_sys3
+
+    # Case 4
+    # Act
+    povm13_2 = tensor_product(povm13, povm2)
+    # Assert
+    assert len(povm12_3.vecs) == len(expected12_3)
+    for actual, expected in zip(povm13_2, expected12_3):
+        assert np.all(actual == expected)
+    assert povm13_2._composite_system.elemental_systems[0] == e_sys1
+    assert povm13_2._composite_system.elemental_systems[1] == e_sys2
+    assert povm13_2._composite_system.elemental_systems[2] == e_sys3
+
+    # Case 5
+    # Act
+    povm3_12 = tensor_product(povm3, povm12)
+    # Assert
+    assert len(povm3_12.vecs) == len(expected12_3)
+    for actual, expected in zip(povm3_12, expected12_3):
+        assert np.all(actual == expected)
+    assert povm3_12.composite_system.elemental_systems[0] == e_sys1
+    assert povm3_12.composite_system.elemental_systems[1] == e_sys2
+    assert povm3_12.composite_system.elemental_systems[2] == e_sys3
 
 
 def test_tensor_product_unexpected_type():
