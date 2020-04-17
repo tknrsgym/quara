@@ -1,3 +1,4 @@
+import itertools
 import os
 from pathlib import Path
 
@@ -9,10 +10,25 @@ import quara.objects.composite_system as csys
 import quara.objects.elemental_system as esys
 from quara.objects.matrix_basis import (
     get_comp_basis,
+    get_gell_mann_basis,
     get_normalized_pauli_basis,
     get_pauli_basis,
 )
-from quara.objects.povm import Povm
+from quara.objects.povm import (
+    Povm,
+    get_x_measurement,
+    get_xx_measurement,
+    get_xy_measurement,
+    get_xz_measurement,
+    get_y_measurement,
+    get_yx_measurement,
+    get_yy_measurement,
+    get_yz_measurement,
+    get_z_measurement,
+    get_zx_measurement,
+    get_zy_measurement,
+    get_zz_measurement,
+)
 from quara.protocol import simple_io as s_io
 
 
@@ -249,3 +265,309 @@ class TestPovm:
         assert len(actual) == len(expected)
         for i, a in enumerate(actual):
             assert np.all(a == expected[i])
+
+
+def test_get_x_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    c_sys1 = csys.CompositeSystem([e_sys1])
+
+    # Act
+    actual = get_x_measurement(c_sys1)
+
+    # Assert
+    expected = [
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys2 = csys.CompositeSystem([e_sys1, e_sys2])
+    with pytest.raises(ValueError):
+        get_x_measurement(c_sys2)
+
+    # Test that not 2-dim CompositeSystem
+    e_sys3 = esys.ElementalSystem(3, get_gell_mann_basis())
+    c_sys3 = csys.CompositeSystem([e_sys3])
+    with pytest.raises(ValueError):
+        get_x_measurement(c_sys3)
+
+
+def test_get_y_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    c_sys1 = csys.CompositeSystem([e_sys1])
+
+    # Act
+    actual = get_y_measurement(c_sys1)
+
+    # Assert
+    expected = [
+        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys2 = csys.CompositeSystem([e_sys1, e_sys2])
+    with pytest.raises(ValueError):
+        get_y_measurement(c_sys2)
+
+    # Test that not 2-dim CompositeSystem
+    e_sys3 = esys.ElementalSystem(3, get_gell_mann_basis())
+    c_sys3 = csys.CompositeSystem([e_sys3])
+    with pytest.raises(ValueError):
+        get_y_measurement(c_sys3)
+
+
+def test_get_z_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    c_sys1 = csys.CompositeSystem([e_sys1])
+
+    # Act
+    actual = get_z_measurement(c_sys1)
+
+    # Assert
+    expected = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys2 = csys.CompositeSystem([e_sys1, e_sys2])
+    with pytest.raises(ValueError):
+        get_z_measurement(c_sys2)
+
+    # Test that not 2-dim CompositeSystem
+    e_sys3 = esys.ElementalSystem(3, get_gell_mann_basis())
+    c_sys3 = csys.CompositeSystem([e_sys3])
+    with pytest.raises(ValueError):
+        get_z_measurement(c_sys3)
+
+
+def test_get_xx_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_xx_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_xy_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_xy_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_xz_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_xz_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_yx_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_yx_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_yy_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_yy_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_yz_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_yz_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_zx_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_zx_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_zy_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_zy_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_zz_measurement():
+    # Arrange
+    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    c_sys = csys.CompositeSystem([e_sys1, e_sys2])
+
+    # Act
+    actual = get_zz_measurement(c_sys)
+
+    # Assert
+    vecs1 = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    vecs2 = [
+        np.array([1, 0, 0, 0], dtype=np.complex128),
+        np.array([0, 0, 0, 1], dtype=np.complex128),
+    ]
+    expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
+    assert len(actual.vecs) == len(expected)
+    for i, a in enumerate(actual):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
