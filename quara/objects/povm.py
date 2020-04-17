@@ -16,6 +16,35 @@ class Povm:
     def __init__(
         self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True
     ):
+        """Constructor
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this povm.
+        vecs : List[np.ndarray]
+
+        is_physical : bool, optional
+            Check whether the povm is physically correct, by default True.
+            If ``True``, the following requirements are met.
+
+            - It is a set of Hermitian matrices.
+            - The sum is the identity matrix.
+            - positive semidefinite.
+
+            If you want to ignore the above requirements and create a POVM object, set ``is_physical`` to ``False``.
+
+        Raises
+        ------
+        ValueError
+            If ``is_physical`` is ``True`` and it is not a set of Hermitian matrices
+        ValueError
+            If ``is_physical`` is ``True`` and the sum is not an identity matrix
+        ValueError
+            If ``is_physical`` is ``True`` and is not a positive semidefinite
+        ValueError
+            If the dim in the ``c_sys`` does not match the dim in the ``vecs``
+        """
         # Set
         # TODO: consider make it tuple of np.ndarray
         self._vecs: List[np.ndarray] = vecs
