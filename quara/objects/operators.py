@@ -61,21 +61,6 @@ def _K(dim1: int, dim2: int) -> np.array:
     return matrix
 
 
-def _check_cross_elemental_system_position(e_sys_list: List[ElementalSystem]) -> int:
-    # check cross ElementalSystem position
-    # let [0, 10, 5] be a list of names of ElementalSystem, this functions returns 2(position of value 1)
-    former_name = None
-    for current_position, e_sys in enumerate(e_sys_list):
-        current_name = e_sys.name
-        if not former_name is None and former_name > current_name:
-            return current_position
-        else:
-            former_name = current_name
-
-    # if cross ElementalSystem position does not exist, returns None
-    return None
-
-
 def _permutation_matrix(
     position: int, e_sys_list: List[ElementalSystem], dim_list: List[int]
 ) -> Tuple[np.array, np.array]:
@@ -101,6 +86,21 @@ def _permutation_matrix(
     left_perm_matrix = np.kron(np.kron(I_head, left_K_matrix), I_tail)
     right_perm_matrix = np.kron(np.kron(I_head, right_K_matrix), I_tail)
     return left_perm_matrix, right_perm_matrix
+
+
+def _check_cross_elemental_system_position(e_sys_list: List[ElementalSystem]) -> int:
+    # check cross ElementalSystem position
+    # let [0, 10, 5] be a list of names of ElementalSystem, this functions returns 2(position of value 1)
+    former_name = None
+    for current_position, e_sys in enumerate(e_sys_list):
+        current_name = e_sys.name
+        if not former_name is None and former_name > current_name:
+            return current_position
+        else:
+            former_name = current_name
+
+    # if cross ElementalSystem position does not exist, returns None
+    return None
 
 
 def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
@@ -131,18 +131,19 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
 
     # permutation the tensor product matrix according to the position of the sorted ElementalSystem
     # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
-    position = _check_cross_elemental_system_position(e_sys_list)
+    tmp_e_sys_list = copy.copy(e_sys_list)
+    position = _check_cross_elemental_system_position(tmp_e_sys_list)
     while not position is None:
-        dim_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
-        left_perm, right_perm = _permutation_matrix(position, e_sys_list, dim_list)
+        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
+        left_perm, right_perm = _permutation_matrix(position, tmp_e_sys_list, dim_list)
         # B \otimes A = left_perm @ (A \otimes B) @ right_perm
         to_hs = left_perm @ to_hs @ right_perm
-        # swap e_sys_list
-        e_sys_list[position - 1], e_sys_list[position] = (
-            e_sys_list[position],
-            e_sys_list[position - 1],
+        # swap tmp_e_sys_list
+        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
+            tmp_e_sys_list[position],
+            tmp_e_sys_list[position - 1],
         )
-        position = _check_cross_elemental_system_position(e_sys_list)
+        position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
     # create Gate
     is_physical = gate1.is_physical and gate2.is_physical
@@ -151,29 +152,31 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
 
 
 def _tensor_product_State_State(state1: State, state2: State) -> State:
+    # create CompositeSystem
     e_sys_list = list(state1._composite_system.elemental_systems)
     e_sys_list.extend(state2._composite_system.elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
 
     tensor_vec = np.kron(state1.vec, state2.vec)
 
     # permutation the tensor product matrix according to the position of the sorted ElementalSystem
     # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
-    position = _check_cross_elemental_system_position(e_sys_list)
+    tmp_e_sys_list = copy.copy(e_sys_list)
+    position = _check_cross_elemental_system_position(tmp_e_sys_list)
     while not position is None:
-        dim_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
+        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
         # in case of vec, only left permutation matrix should be used.
-        left_perm, _ = _permutation_matrix(position, e_sys_list, dim_list)
+        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
         # B \otimes A = left_perm @ (A \otimes B)
         tensor_vec = left_perm @ tensor_vec
-        # swap e_sys_list
-        e_sys_list[position - 1], e_sys_list[position] = (
-            e_sys_list[position],
-            e_sys_list[position - 1],
+        # swap tmp_e_sys_list
+        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
+            tmp_e_sys_list[position],
+            tmp_e_sys_list[position - 1],
         )
-        position = _check_cross_elemental_system_position(e_sys_list)
+        position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
     # create State
-    c_sys = CompositeSystem(e_sys_list)
     is_physical = state1.is_physical and state2.is_physical
     return State(c_sys, tensor_vec, is_physical=is_physical)
 
