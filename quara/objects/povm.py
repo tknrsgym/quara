@@ -1,10 +1,15 @@
+import itertools
 from typing import List, Union
 
 import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.matrix_basis import MatrixBasis, convert_vec
+from quara.objects.matrix_basis import (
+    MatrixBasis,
+    convert_vec,
+    get_normalized_pauli_basis,
+)
 from quara.settings import Settings
 
 
@@ -220,3 +225,381 @@ class Povm:
                 convert_vec(vec, self._composite_system.basis(), other_basis)
             )
         return converted_vecs
+
+
+def _get_1q_povm_from_vecs_on_pauli_basis(
+    c_sys: CompositeSystem, vecs: np.array
+) -> Povm:
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    # convert "vecs in Pauli basis" to "vecs in basis of CompositeSystem"
+    to_vecs = [
+        convert_vec(vec, get_normalized_pauli_basis(), c_sys.basis()) for vec in vecs
+    ]
+    povm = Povm(c_sys, to_vecs)
+    return povm
+
+
+def _get_x_measurement_vecs() -> List[np.array]:
+    vecs = [
+        1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64),
+    ]
+    return vecs
+
+
+def _get_y_measurement_vecs() -> List[np.array]:
+    vecs = [
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
+    ]
+    return vecs
+
+
+def _get_z_measurement_vecs() -> List[np.array]:
+    vecs = [
+        1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
+    ]
+    return vecs
+
+
+def get_x_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of X measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        X measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_x_measurement_vecs())
+    return povm
+
+
+def get_y_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of Y measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        Y measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_y_measurement_vecs())
+    return povm
+
+
+def get_z_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of Z measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        Z measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_z_measurement_vecs())
+    return povm
+
+
+def _get_2q_povm_from_vecs_on_pauli_basis(
+    c_sys: CompositeSystem, vecs1: np.array, vecs2: np.array
+) -> Povm:
+    # whether CompositeSystem is 2 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 2:
+        raise ValueError(f"CompositeSystem must be 2 qubit. it is {size} qubits")
+
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    # calculate tensor products of vecs
+    vecs = [np.kron(val1, val2) for val1, val2 in itertools.product(vecs1, vecs2)]
+
+    # convert "vecs in Pauli basis" to "vecs in basis of CompositeSystem"
+    to_vecs = [
+        convert_vec(vec, get_normalized_pauli_basis(n_qubit=2), c_sys.basis())
+        for vec in vecs
+    ]
+    povm = Povm(c_sys, to_vecs)
+    return povm
+
+
+def get_xx_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of XX measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        XX measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_x_measurement_vecs(), _get_x_measurement_vecs()
+    )
+    return povm
+
+
+def get_xy_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of XY measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        XY measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_x_measurement_vecs(), _get_y_measurement_vecs()
+    )
+    return povm
+
+
+def get_xz_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of XZ measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        XZ measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_x_measurement_vecs(), _get_z_measurement_vecs()
+    )
+    return povm
+
+
+def get_yx_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of YX measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        YX measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_y_measurement_vecs(), _get_x_measurement_vecs()
+    )
+    return povm
+
+
+def get_yy_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of YY measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        YY measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_y_measurement_vecs(), _get_y_measurement_vecs()
+    )
+    return povm
+
+
+def get_yz_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of YZ measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        YZ measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_y_measurement_vecs(), _get_z_measurement_vecs()
+    )
+    return povm
+
+
+def get_zx_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of ZX measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        ZX measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_z_measurement_vecs(), _get_x_measurement_vecs()
+    )
+    return povm
+
+
+def get_zy_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of ZY measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        ZY measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_z_measurement_vecs(), _get_y_measurement_vecs()
+    )
+    return povm
+
+
+def get_zz_measurement(c_sys: CompositeSystem) -> Povm:
+    """returns POVM of ZZ measurement.
+    
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+    
+    Returns
+    -------
+    Povm
+        ZZ measurement.
+    
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quit.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    povm = _get_2q_povm_from_vecs_on_pauli_basis(
+        c_sys, _get_z_measurement_vecs(), _get_z_measurement_vecs()
+    )
+    return povm
