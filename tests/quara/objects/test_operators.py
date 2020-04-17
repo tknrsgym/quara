@@ -13,8 +13,20 @@ from quara.objects.operators import (
     composite,
     tensor_product,
 )
-from quara.objects.povm import Povm
-from quara.objects.state import State, get_x0_1q, get_x1_1q, get_z0_1q, get_z1_1q
+from quara.objects.povm import (
+    Povm,
+    get_x_measurement,
+    get_y_measurement,
+    get_z_measurement,
+)
+from quara.objects.state import (
+    State,
+    get_x0_1q,
+    get_x1_1q,
+    get_y0_1q,
+    get_z0_1q,
+    get_z1_1q,
+)
 
 
 def test_tensor_product_Gate_Gate():
@@ -660,3 +672,36 @@ def test_to_list_unexpected_value():
     with pytest.raises(ValueError):
         # ValueError: arguments must be at least two! arguments=0)
         _ = _to_list([], [])
+
+
+@pytest.mark.parametrize(
+    ("state", "gate", "povm", "expected"),
+    [
+        (get_x0_1q, get_i, get_x_measurement, [1, 0]),
+        (get_y0_1q, get_i, get_x_measurement, [0.5, 0.5]),
+        (get_z0_1q, get_i, get_x_measurement, [0.5, 0.5]),
+        (get_z1_1q, get_i, get_x_measurement, [0.5, 0.5]),
+        (get_x0_1q, get_i, get_y_measurement, [0.5, 0.5]),
+        (get_y0_1q, get_i, get_y_measurement, [1, 0]),
+        (get_z0_1q, get_i, get_y_measurement, [0.5, 0.5]),
+        (get_z1_1q, get_i, get_y_measurement, [0.5, 0.5]),
+        (get_x0_1q, get_i, get_z_measurement, [0.5, 0.5]),
+        (get_y0_1q, get_i, get_z_measurement, [0.5, 0.5]),
+        (get_z0_1q, get_i, get_z_measurement, [1, 0]),
+        (get_z1_1q, get_i, get_z_measurement, [0, 1]),
+    ],
+)
+def test_scenario_1qubit(state, gate, povm, expected):
+    # Prepare
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+
+    state_obj = state(c_sys1)
+    gate_obj = gate(c_sys1)
+    povm_obj = povm(c_sys1)
+
+    # Act
+    actual = composite(povm_obj, gate_obj, state_obj)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected, decimal=15)
