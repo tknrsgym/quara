@@ -345,20 +345,33 @@ def get_pauli_basis() -> MatrixBasis:
     return pauli_basis
 
 
-def get_normalized_pauli_basis() -> MatrixBasis:
+def get_normalized_pauli_basis(n_qubit: int = 1) -> MatrixBasis:
     """Returns normalized Pauli basis.
+
+    Parameters
+    ----------
+    n_qubit : int, optional
+        number of qubit for normalized Pauli basis, by default 1.
 
     Returns
     -------
     MatrixBasis
-        Pauli basis ``\\frac{1}{\\sqrt{2}}[I, X, Y, Z]``
+        ``n_qubit`` of Pauli basis ``\\frac{1}{\\sqrt{2}}[I, X, Y, Z]``
     """
     identity = 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
     pauli_x = 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
     pauli_y = 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
     pauli_z = 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
-    pauli_basis = MatrixBasis([identity, pauli_x, pauli_y, pauli_z])
+    pauli_basis_1q = [identity, pauli_x, pauli_y, pauli_z]
 
+    basis = pauli_basis_1q
+    for _ in range(1, n_qubit):
+        basis = [
+            np.kron(val1, val2)
+            for val1, val2 in itertools.product(basis, pauli_basis_1q)
+        ]
+
+    pauli_basis = MatrixBasis(basis)
     return pauli_basis
 
 
