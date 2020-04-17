@@ -7,11 +7,8 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.matrix_basis import (
-    MatrixBasis,
-    get_comp_basis,
-    get_normalized_pauli_basis,
-)
+from quara.objects.matrix_basis import (MatrixBasis, get_comp_basis,
+                                        get_normalized_pauli_basis)
 from quara.settings import Settings
 
 
@@ -30,6 +27,7 @@ class Gate:
         is_physical : bool, optional
             checks whether the state is physically wrong, by default True.
             if at least one of the following conditions is ``False``, the state is physically wrong:
+
             - gate is TP(trace-preserving map).
             - gate is CP(Complete-Positivity-Preserving).
 

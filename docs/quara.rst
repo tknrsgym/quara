@@ -15,3 +15,10 @@ Subpackages
    quara.objects
    quara.protocol
    quara.utils
+
+Submodules
+----------
+
+.. toctree::
+
+   quara.settings
