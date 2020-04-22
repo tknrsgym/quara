@@ -88,7 +88,9 @@ def _permutation_matrix(
     return left_perm_matrix, right_perm_matrix
 
 
-def _check_cross_elemental_system_position(e_sys_list: List[ElementalSystem]) -> Union[int, None]:
+def _check_cross_elemental_system_position(
+    e_sys_list: List[ElementalSystem],
+) -> Union[int, None]:
     # check cross ElementalSystem position
     # let [0, 10, 5] be a list of names of ElementalSystem, this functions returns 2(position of value 1)
     former_name = None
