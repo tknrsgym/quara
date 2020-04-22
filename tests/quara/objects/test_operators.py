@@ -17,6 +17,9 @@ from quara.objects.gate import (
     get_s,
     get_sdg,
     get_t,
+    get_cnot,
+    get_cz,
+    get_swap,
 )
 from quara.objects.operators import (
     _composite,
@@ -30,6 +33,15 @@ from quara.objects.povm import (
     get_x_measurement,
     get_y_measurement,
     get_z_measurement,
+    get_xx_measurement,
+    get_xy_measurement,
+    get_xz_measurement,
+    get_yx_measurement,
+    get_yy_measurement,
+    get_yz_measurement,
+    get_zx_measurement,
+    get_zy_measurement,
+    get_zz_measurement,
 )
 from quara.objects.state import (
     State,
@@ -855,3 +867,77 @@ def test_scenario_1qubit(state, gate, povm, expected):
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+@pytest.mark.parametrize(
+    ("povm", "expected"),
+    [
+        (get_xx_measurement, [0.5, 0, 0, 0.5]),
+        (get_xy_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_xz_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_yx_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_yy_measurement, [0, 0.5, 0.5, 0]),
+        (get_yz_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_zx_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_zy_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_zz_measurement, [0.5, 0, 0, 0.5]),
+    ],
+)
+def test_scenario_2qubits_cnot(povm, expected):
+    # Prepare
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+    c_sys12 = CompositeSystem([e_sys1, e_sys2])
+
+    state1 = get_z0_1q(c_sys1)
+    state2 = get_z0_1q(c_sys2)
+    h = get_h(c_sys1)
+    cnot = get_cnot(c_sys12, e_sys1)
+    povm_obj = povm(c_sys12)
+
+    # Act
+    state1 = composite(h, state1)
+    state12 = tensor_product(state1, state2)
+    actual = composite(povm_obj, cnot, state12)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+@pytest.mark.parametrize(
+    ("povm", "expected"),
+    [
+        (get_xx_measurement, [0.5, 0, 0.5, 0]),
+        (get_xy_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_xz_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_yx_measurement, [0.5, 0, 0.5, 0]),
+        (get_yy_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_yz_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_zx_measurement, [1, 0, 0, 0]),
+        (get_zy_measurement, [0.5, 0.5, 0, 0]),
+        (get_zz_measurement, [0.5, 0.5, 0, 0]),
+    ],
+)
+def test_scenario_2qubits_swap(povm, expected):
+    # Prepare
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+    c_sys12 = CompositeSystem([e_sys1, e_sys2])
+
+    state1 = get_z0_1q(c_sys1)
+    state2 = get_z0_1q(c_sys2)
+    h = get_h(c_sys1)
+    swap = get_swap(c_sys12)
+    povm_obj = povm(c_sys12)
+
+    # Act
+    state1 = composite(h, state1)
+    state12 = tensor_product(state1, state2)
+    actual = composite(povm_obj, swap, state12)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected, decimal=14)

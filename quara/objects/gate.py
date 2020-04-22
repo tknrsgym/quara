@@ -7,8 +7,11 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.matrix_basis import (MatrixBasis, get_comp_basis,
-                                        get_normalized_pauli_basis)
+from quara.objects.matrix_basis import (
+    MatrixBasis,
+    get_comp_basis,
+    get_normalized_pauli_basis,
+)
 from quara.settings import Settings
 
 
@@ -783,7 +786,7 @@ def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
             f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
         )
 
-    if control == c_sys.elemental_systems[0]:
+    if control.name == c_sys.elemental_systems[0].name:
         # control bit is 1st qubit
         hs_comp_basis = np.array(
             [
