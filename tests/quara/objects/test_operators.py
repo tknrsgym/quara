@@ -19,6 +19,9 @@ from quara.objects.gate import (
     get_sdg,
     get_swap,
     get_t,
+    get_x,
+    get_y,
+    get_z,
 )
 from quara.objects.operators import (
     _composite,
