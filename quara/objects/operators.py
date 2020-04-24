@@ -180,26 +180,8 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
 
     # create State
     is_physical = state1.is_physical and state2.is_physical
-    return State(c_sys, tensor_vec, is_physical=is_physical)
-
-
-def _sorted_tensor_vec(e_sys_list, tensor_vec):
-    tmp_e_sys_list = copy.copy(e_sys_list)
-    position = _check_cross_elemental_system_position(tmp_e_sys_list)
-
-    while not position is None:
-        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
-        # in case of vec, only left permutation matrix should be used.
-        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
-        # B \otimes A = left_perm @ (A \otimes B)
-        tensor_vec = left_perm @ tensor_vec
-        # swap tmp_e_sys_list
-        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
-            tmp_e_sys_list[position],
-            tmp_e_sys_list[position - 1],
-        )
-        position = _check_cross_elemental_system_position(tmp_e_sys_list)
-    return tensor_vec
+    state = State(c_sys, tensor_vec, is_physical=is_physical)
+    return state
 
 
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
@@ -212,12 +194,26 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
         np.kron(vec1, vec2) for vec1, vec2 in itertools.product(povm1.vecs, povm2.vecs)
     ]
 
-    tensor_vecs = [
-        _sorted_tensor_vec(e_sys_list, tensor_vec) for tensor_vec in tensor_vecs
-    ]
+    # permutation the tensor product matrix according to the position of the sorted ElementalSystem
+    # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
+    tmp_e_sys_list = copy.copy(e_sys_list)
+    position = _check_cross_elemental_system_position(tmp_e_sys_list)
+    while not position is None:
+        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
+        # in case of vec, only left permutation matrix should be used.
+        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
+        # B \otimes A = left_perm @ (A \otimes B)
+        tensor_vecs = [left_perm @ tensor_vec for tensor_vec in tensor_vecs]
+        # TODO ここで、tensor_vecsの要素の順序も入れ替える必要あり
+        # swap tmp_e_sys_list
+        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
+            tmp_e_sys_list[position],
+            tmp_e_sys_list[position - 1],
+        )
+        position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
+    # create Povm
     is_physical = povm1.is_physical and povm2.is_physical
-
     tensor_povm = Povm(c_sys, tensor_vecs, is_physical=is_physical)
     return tensor_povm
 
@@ -226,7 +222,6 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         return _tensor_product_Gate_Gate(elem1, elem2)
-
     elif type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         new_basis = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
@@ -235,7 +230,6 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
         return _tensor_product_State_State(elem1, elem2)
-
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
