@@ -549,6 +549,52 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
     assert povm13.composite_system.elemental_systems[0] == e_sys1
     assert povm13.composite_system.elemental_systems[1] == e_sys3
 
+    # Case4 povm12_3 == povm1_23
+    povm12_3 = tensor_product(povm12, povm3)
+    povm23 = tensor_product(povm2, povm3)
+    povm1_23 = tensor_product(povm1, povm23)
+
+    assert len(povm12_3.vecs) == len(povm1_23.vecs)
+    for a, b in zip(povm12_3.vecs, povm1_23.vecs):
+        assert np.all(a == b)
+
+    assert (
+        povm12_3.composite_system.elemental_systems[0]
+        == povm1_23.composite_system.elemental_systems[0]
+    )
+    assert (
+        povm12_3.composite_system.elemental_systems[1]
+        == povm1_23.composite_system.elemental_systems[1]
+    )
+    assert (
+        povm12_3.composite_system.elemental_systems[2]
+        == povm1_23.composite_system.elemental_systems[2]
+    )
+
+    # Case 4
+    # povm3_1 = tensor_product(povm1, povm3)
+    # povm3_1 = tensor_product(povm3, povm1)
+    # povm1_3 = tensor_product(povm1, povm3)
+
+    # expected1_3 = [
+    #     np.kron(vec1, vec3) for vec1, vec3 in itertools.product(vecs1, vecs3)
+    # ]
+
+    # print("-------povm3_1--------")
+    # print(povm3_1.vecs)
+    # print("-------povm1_3--------")
+    # print(povm1_3.vecs)
+    # print("-------expected-------")
+    # print(expected1_3)
+
+    # # Assert
+    # assert len(povm3_1.vecs) == len(expected1_3)
+    # for actual, expected in zip(povm3_1, expected1_3):
+    #     assert np.all(actual == expected)
+    # # assert povm3_1.composite_system.elemental_systems[0] == e_sys1
+    # assert povm3_1.composite_system.elemental_systems[1] == e_sys2
+    # assert povm3_1.composite_system.elemental_systems[2] == e_sys3
+
     # TODO: 一時的にコメントアウト。あとで元に戻す
     # Case 4
     # Act
