@@ -983,6 +983,7 @@ def test_scenario_1qubit(state, gate, povm, expected):
     ],
 )
 def test_scenario_2qubits_cnot(povm, expected):
+    ### case 1
     # Prepare
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys1 = CompositeSystem([e_sys1])
@@ -1004,6 +1005,90 @@ def test_scenario_2qubits_cnot(povm, expected):
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=15)
 
+    ### case 2 (reverse cnot of case 1)
+    # Prepare
+    e_sys3 = ElementalSystem(3, matrix_basis.get_normalized_pauli_basis())
+    c_sys3 = CompositeSystem([e_sys3])
+    e_sys4 = ElementalSystem(4, matrix_basis.get_normalized_pauli_basis())
+    c_sys4 = CompositeSystem([e_sys4])
+    c_sys34 = CompositeSystem([e_sys3, e_sys4])
+
+    state3 = get_z0_1q(c_sys3)
+    state4 = get_z0_1q(c_sys4)
+    h = get_h(c_sys4)
+    cnot = get_cnot(c_sys34, e_sys4)
+    swap = get_swap(c_sys34)
+    povm_obj = povm(c_sys34)
+
+    # Act
+    state4 = composite(h, state4)
+    state34 = tensor_product(state3, state4)
+    actual = composite(povm_obj, swap, cnot, state34)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected, decimal=14)
+
+
+@pytest.mark.parametrize(
+    ("povm", "expected"),
+    [
+        (get_xx_measurement, [0, 0.5, 0, 0.5]),
+        (get_xy_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_xz_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_yx_measurement, [0, 0.5, 0, 0.5]),
+        (get_yy_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_yz_measurement, [0.25, 0.25, 0.25, 0.25]),
+        (get_zx_measurement, [0, 0, 0, 1]),
+        (get_zy_measurement, [0, 0, 0.5, 0.5]),
+        (get_zz_measurement, [0, 0, 0.5, 0.5]),
+    ],
+)
+def test_scenario_2qubits_cz(povm, expected):
+    ### case 1
+    # Prepare
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+    c_sys12 = CompositeSystem([e_sys1, e_sys2])
+
+    state1 = get_z1_1q(c_sys1)
+    state2 = get_z0_1q(c_sys2)
+    h = get_h(c_sys2)
+    swap = get_cz(c_sys12)
+    povm_obj = povm(c_sys12)
+
+    # Act
+    state2 = composite(h, state2)
+    state12 = tensor_product(state1, state2)
+    actual = composite(povm_obj, swap, state12)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected, decimal=14)
+
+    ### case 2 (reverse cz of case 1)
+    # Prepare
+    e_sys3 = ElementalSystem(3, matrix_basis.get_normalized_pauli_basis())
+    c_sys3 = CompositeSystem([e_sys3])
+    e_sys4 = ElementalSystem(4, matrix_basis.get_normalized_pauli_basis())
+    c_sys4 = CompositeSystem([e_sys4])
+    c_sys34 = CompositeSystem([e_sys3, e_sys4])
+
+    state3 = get_z0_1q(c_sys3)
+    state4 = get_z1_1q(c_sys4)
+    h = get_h(c_sys3)
+    cz = get_cz(c_sys34)
+    swap = get_swap(c_sys34)
+    povm_obj = povm(c_sys34)
+
+    # Act
+    state3 = composite(h, state3)
+    state34 = tensor_product(state3, state4)
+    actual = composite(povm_obj, swap, cz, state34)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected, decimal=14)
+
 
 @pytest.mark.parametrize(
     ("povm", "expected"),
@@ -1020,6 +1105,7 @@ def test_scenario_2qubits_cnot(povm, expected):
     ],
 )
 def test_scenario_2qubits_swap(povm, expected):
+    ### case 1
     # Prepare
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys1 = CompositeSystem([e_sys1])
@@ -1031,12 +1117,38 @@ def test_scenario_2qubits_swap(povm, expected):
     state2 = get_z0_1q(c_sys2)
     h = get_h(c_sys1)
     swap = get_swap(c_sys12)
+    cnot12 = get_cnot(c_sys12, e_sys1)
+    cnot21 = get_cnot(c_sys12, e_sys2)
     povm_obj = povm(c_sys12)
 
     # Act
     state1 = composite(h, state1)
     state12 = tensor_product(state1, state2)
     actual = composite(povm_obj, swap, state12)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected, decimal=14)
+
+    ### case 2 (use cnot instead of swap)
+    # Prepare
+    e_sys3 = ElementalSystem(3, matrix_basis.get_normalized_pauli_basis())
+    c_sys3 = CompositeSystem([e_sys3])
+    e_sys4 = ElementalSystem(4, matrix_basis.get_normalized_pauli_basis())
+    c_sys4 = CompositeSystem([e_sys4])
+    c_sys34 = CompositeSystem([e_sys3, e_sys4])
+
+    state3 = get_z0_1q(c_sys3)
+    state4 = get_z0_1q(c_sys4)
+    h = get_h(c_sys3)
+    swap = get_swap(c_sys34)
+    cnot12 = get_cnot(c_sys34, e_sys3)
+    cnot21 = get_cnot(c_sys34, e_sys4)
+    povm_obj = povm(c_sys34)
+
+    # Act
+    state3 = composite(h, state3)
+    state34 = tensor_product(state3, state4)
+    actual = composite(povm_obj, cnot12, cnot21, cnot12, state34)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=14)
