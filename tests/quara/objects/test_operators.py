@@ -549,6 +549,7 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
     assert povm13.composite_system.elemental_systems[0] == e_sys1
     assert povm13.composite_system.elemental_systems[1] == e_sys3
 
+    # TODO: 一時的にコメントアウト。あとで元に戻す
     # Case 4
     # Act
     # povm13_2 = tensor_product(povm13, povm2)
@@ -575,29 +576,6 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
     # assert povm3_12.composite_system.elemental_systems[0] == e_sys1
     # assert povm3_12.composite_system.elemental_systems[1] == e_sys2
     # assert povm3_12.composite_system.elemental_systems[2] == e_sys3
-
-    # povm3_1 = tensor_product(povm1, povm3)
-    povm3_1 = tensor_product(povm3, povm1)
-    povm1_3 = tensor_product(povm1, povm3)
-
-    expected1_3 = [
-        np.kron(vec1, vec3) for vec1, vec3 in itertools.product(vecs1, vecs3)
-    ]
-
-    print("-------povm3_1--------")
-    print(povm3_1.vecs)
-    print("-------povm1_3--------")
-    print(povm1_3.vecs)
-    print("-------expected-------")
-    print(expected1_3)
-
-    # Assert
-    assert len(povm3_1.vecs) == len(expected1_3)
-    for actual, expected in zip(povm3_1, expected1_3):
-        assert np.all(actual == expected)
-    # assert povm3_1.composite_system.elemental_systems[0] == e_sys1
-    # assert povm3_1.composite_system.elemental_systems[1] == e_sys2
-    # assert povm3_1.composite_system.elemental_systems[2] == e_sys3
 
 
 def test_tensor_product_unexpected_type():
