@@ -8,3 +8,4 @@ API Reference
    quara.engine
    quara.protocol
    quara.utils
+   quara.settings
