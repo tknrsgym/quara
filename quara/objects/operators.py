@@ -1,7 +1,7 @@
 import copy
+import itertools
 from functools import reduce
 from operator import add, mul
-import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -88,7 +88,9 @@ def _permutation_matrix(
     return left_perm_matrix, right_perm_matrix
 
 
-def _check_cross_elemental_system_position(e_sys_list: List[ElementalSystem]) -> int:
+def _check_cross_elemental_system_position(
+    e_sys_list: List[ElementalSystem],
+) -> Union[int, None]:
     # check cross ElementalSystem position
     # let [0, 10, 5] be a list of names of ElementalSystem, this functions returns 2(position of value 1)
     former_name = None
@@ -181,6 +183,25 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     return State(c_sys, tensor_vec, is_physical=is_physical)
 
 
+def _sorted_tensor_vec(e_sys_list, tensor_vec):
+    tmp_e_sys_list = copy.copy(e_sys_list)
+    position = _check_cross_elemental_system_position(tmp_e_sys_list)
+
+    while not position is None:
+        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
+        # in case of vec, only left permutation matrix should be used.
+        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
+        # B \otimes A = left_perm @ (A \otimes B)
+        tensor_vec = left_perm @ tensor_vec
+        # swap tmp_e_sys_list
+        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
+            tmp_e_sys_list[position],
+            tmp_e_sys_list[position - 1],
+        )
+        position = _check_cross_elemental_system_position(tmp_e_sys_list)
+    return tensor_vec
+
+
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # Povm (x) Povm -> Povm
     e_sys_list = list(povm1.composite_system.elemental_systems)
@@ -189,6 +210,10 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
 
     tensor_vecs = [
         np.kron(vec1, vec2) for vec1, vec2 in itertools.product(povm1.vecs, povm2.vecs)
+    ]
+
+    tensor_vecs = [
+        _sorted_tensor_vec(e_sys_list, tensor_vec) for tensor_vec in tensor_vecs
     ]
 
     is_physical = povm1.is_physical and povm2.is_physical
