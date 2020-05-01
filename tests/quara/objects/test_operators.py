@@ -1159,3 +1159,204 @@ def test_scenario_2qubits_swap(povm, expected):
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=14)
+
+
+def _calculate_vecs(dim: int, density_matrix: np.array):
+    # calculate vec of State and vecs of POVM
+    comp_basis = matrix_basis.get_comp_basis(dim)
+    herm_basis = matrix_basis.get_normalized_hermitian_basis(dim)
+
+    state_vec = matrix_basis.convert_vec(
+        density_matrix.flatten(), comp_basis, herm_basis
+    ).real.astype(np.float64)
+
+    state_vec_complement = matrix_basis.convert_vec(
+        (np.eye(dim) - density_matrix).flatten(), comp_basis, herm_basis
+    ).real.astype(np.float64)
+
+    povm_vecs = [
+        state_vec,
+        state_vec_complement,
+    ]
+
+    return state_vec, povm_vecs
+
+
+def _calculate_probability_of_povm_k(dim: int, beta: int):
+    # probability distribution
+    prob_per_povm = []
+    for alpha in range(dim):
+        if beta == alpha:
+            prob_per_povm.append([1, 0])
+        else:
+            prob_per_povm.append([0, 1])
+
+    for alpha_ket_k in range(dim):
+        for alpha_ket_l in range(alpha_ket_k + 1, dim):
+            if beta == alpha_ket_k or beta == alpha_ket_l:
+                prob_per_povm.append([0.5, 0.5])
+            else:
+                prob_per_povm.append([0, 1])
+
+    for alpha_ket_k in range(dim):
+        for alpha_ket_l in range(alpha_ket_k + 1, dim):
+            if beta == alpha_ket_k or beta == alpha_ket_l:
+                prob_per_povm.append([0.5, 0.5])
+            else:
+                prob_per_povm.append([0, 1])
+
+    return prob_per_povm
+
+
+def _calculate_probability_of_povm_k_plus_l(dim: int, beta_ket_k: int, beta_ket_l: int):
+    prob_per_povm = []
+    for alpha in range(dim):
+        if beta_ket_k == alpha or beta_ket_l == alpha:
+            prob_per_povm.append([0.5, 0.5])
+        else:
+            prob_per_povm.append([0, 1])
+
+    for alpha_ket_k in range(dim):
+        for alpha_ket_l in range(alpha_ket_k + 1, dim):
+            if beta_ket_k == alpha_ket_k and beta_ket_l == alpha_ket_l:
+                prob_per_povm.append([1, 0])
+            elif (
+                beta_ket_k == alpha_ket_k
+                or beta_ket_k == alpha_ket_l
+                or beta_ket_l == alpha_ket_k
+                or beta_ket_l == alpha_ket_l
+            ):
+                prob_per_povm.append([0.25, 0.75])
+            else:
+                prob_per_povm.append([0, 1])
+
+    for alpha_ket_k in range(dim):
+        for alpha_ket_l in range(alpha_ket_k + 1, dim):
+            if beta_ket_k == alpha_ket_k and beta_ket_l == alpha_ket_l:
+                prob_per_povm.append([0.5, 0.5])
+            elif (
+                beta_ket_k == alpha_ket_k
+                or beta_ket_k == alpha_ket_l
+                or beta_ket_l == alpha_ket_k
+                or beta_ket_l == alpha_ket_l
+            ):
+                prob_per_povm.append([0.25, 0.75])
+            else:
+                prob_per_povm.append([0, 1])
+
+    return prob_per_povm
+
+
+def _calculate_probability_of_povm_k_plus_il(
+    dim: int, beta_ket_k: int, beta_ket_l: int
+):
+    prob_per_povm = []
+    for alpha in range(dim):
+        if beta_ket_k == alpha or beta_ket_l == alpha:
+            prob_per_povm.append([0.5, 0.5])
+        else:
+            prob_per_povm.append([0, 1])
+
+    for alpha_ket_k in range(dim):
+        for alpha_ket_l in range(alpha_ket_k + 1, dim):
+            if beta_ket_k == alpha_ket_k and beta_ket_l == alpha_ket_l:
+                prob_per_povm.append([0.5, 0.5])
+            elif (
+                beta_ket_k == alpha_ket_k
+                or beta_ket_k == alpha_ket_l
+                or beta_ket_l == alpha_ket_k
+                or beta_ket_l == alpha_ket_l
+            ):
+                prob_per_povm.append([0.25, 0.75])
+            else:
+                prob_per_povm.append([0, 1])
+
+    for alpha_ket_k in range(dim):
+        for alpha_ket_l in range(alpha_ket_k + 1, dim):
+            if beta_ket_k == alpha_ket_k and beta_ket_l == alpha_ket_l:
+                prob_per_povm.append([1, 0])
+            elif (
+                beta_ket_k == alpha_ket_k
+                or beta_ket_k == alpha_ket_l
+                or beta_ket_l == alpha_ket_k
+                or beta_ket_l == alpha_ket_l
+            ):
+                prob_per_povm.append([0.25, 0.75])
+            else:
+                prob_per_povm.append([0, 1])
+
+    return prob_per_povm
+
+
+@pytest.mark.parametrize(
+    ("d"), [(2), (3), (4),],
+)
+def test_scenario_tomographically_complete_sets(d):
+    # see G. C. Knee et al., \Quantum process tomography via completely positive and trace-preserving projection", Phys Rev. A 98, 062336 (2018).
+
+    # Prepare
+    e_sys = ElementalSystem(1, matrix_basis.get_normalized_hermitian_basis(d))
+    c_sys = CompositeSystem([e_sys])
+    gate = get_i(c_sys)
+
+    list_of_state_vec = []
+    list_of_povm_vecs = []
+    list_of_prob = []
+
+    for ket_k in range(d):
+        # calculate state_vec and povm_vecs
+        density_matrix = np.zeros((d, d), dtype=np.complex128)
+        density_matrix[ket_k, ket_k] = 1
+        state_vec, povm_vecs = _calculate_vecs(d, density_matrix)
+        list_of_state_vec.append(state_vec)
+        list_of_povm_vecs.append(povm_vecs)
+
+        # probability distribution (=expected)
+        prob_per_povm = _calculate_probability_of_povm_k(d, ket_k)
+        list_of_prob.append(prob_per_povm)
+
+    for ket_k in range(d):
+        for ket_l in range(ket_k + 1, d):
+            # calculate state_vec and povm_vecs
+            density_matrix = np.zeros((d, d), dtype=np.complex128)
+            density_matrix[ket_k, ket_k] = 1 / 2
+            density_matrix[ket_k, ket_l] = 1 / 2
+            density_matrix[ket_l, ket_k] = 1 / 2
+            density_matrix[ket_l, ket_l] = 1 / 2
+
+            state_vec, povm_vecs = _calculate_vecs(d, density_matrix)
+            list_of_state_vec.append(state_vec)
+            list_of_povm_vecs.append(povm_vecs)
+
+            # probability distribution (=expected)
+            prob_per_povm = _calculate_probability_of_povm_k_plus_l(d, ket_k, ket_l)
+            list_of_prob.append(prob_per_povm)
+
+    for ket_k in range(d):
+        for ket_l in range(ket_k + 1, d):
+            # calculate state_vec and povm_vecs
+            density_matrix = np.zeros((d, d), dtype=np.complex128)
+            density_matrix[ket_k, ket_k] = 1 / 2
+            density_matrix[ket_k, ket_l] = -1j / 2
+            density_matrix[ket_l, ket_k] = 1j / 2
+            density_matrix[ket_l, ket_l] = 1 / 2
+
+            state_vec, povm_vecs = _calculate_vecs(d, density_matrix)
+            list_of_state_vec.append(state_vec)
+            list_of_povm_vecs.append(povm_vecs)
+
+            # probability distribution (=expected)
+            prob_per_povm = _calculate_probability_of_povm_k_plus_il(d, ket_k, ket_l)
+            list_of_prob.append(prob_per_povm)
+
+    # Act
+    for beta, povm_vecs in enumerate(list_of_povm_vecs):
+        prob_per_povm = list_of_prob[beta]
+        for alpha, state_vec in enumerate(list_of_state_vec):
+            state = State(c_sys, state_vec)
+            povm = Povm(c_sys, povm_vecs)
+            actual = composite(povm, gate, state)
+
+            # Assert
+            expected = prob_per_povm[alpha]
+            npt.assert_almost_equal(actual, expected, decimal=14)
