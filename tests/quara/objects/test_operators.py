@@ -571,7 +571,6 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
         == povm1_23.composite_system.elemental_systems[2]
     )
 
-    """
     # Case 5 povm13_2 == povm12_3
     # Act
     povm13_2 = tensor_product(povm13, povm2)
@@ -584,7 +583,6 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
     assert povm13_2.composite_system.elemental_systems[0] == e_sys1
     assert povm13_2.composite_system.elemental_systems[1] == e_sys2
     assert povm13_2.composite_system.elemental_systems[2] == e_sys3
-    """
 
 
 def test_tensor_product_unexpected_type():
