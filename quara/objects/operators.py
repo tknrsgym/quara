@@ -62,7 +62,7 @@ def _K(dim1: int, dim2: int) -> np.array:
 
 
 def _permutation_matrix(
-    position: int, e_sys_list: List[ElementalSystem], dim_list: List[int]
+    position: int, dim_list: List[int]
 ) -> Tuple[np.array, np.array]:
     # identity matrix for head of permutation matrix
     if position < 2:
@@ -92,7 +92,7 @@ def _check_cross_elemental_system_position(
     e_sys_list: List[ElementalSystem],
 ) -> Union[int, None]:
     # check cross ElementalSystem position
-    # let [0, 10, 5] be a list of names of ElementalSystem, this functions returns 2(position of value 1)
+    # for example, if [0, 10, 5] is a list of names of ElementalSystem, then this functions returns 2(position of value 5)
     former_name = None
     for current_position, e_sys in enumerate(e_sys_list):
         current_name = e_sys.name
@@ -137,7 +137,7 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     position = _check_cross_elemental_system_position(tmp_e_sys_list)
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
-        left_perm, right_perm = _permutation_matrix(position, tmp_e_sys_list, dim_list)
+        left_perm, right_perm = _permutation_matrix(position, dim_list)
         # B \otimes A = left_perm @ (A \otimes B) @ right_perm
         to_hs = left_perm @ to_hs @ right_perm
         # swap tmp_e_sys_list
@@ -168,7 +168,7 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
         # in case of vec, only left permutation matrix should be used.
-        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
+        left_perm, _ = _permutation_matrix(position, dim_list)
         # B \otimes A = left_perm @ (A \otimes B)
         tensor_vec = left_perm @ tensor_vec
         # swap tmp_e_sys_list
@@ -182,6 +182,20 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     is_physical = state1.is_physical and state2.is_physical
     state = State(c_sys, tensor_vec, is_physical=is_physical)
     return state
+
+
+def _convert_list_by_permutation_matrix(old_list: List, perm: np.array) -> List:
+    # this function executes "perm @ old_list"-like operation.
+    # for example, if old_list = [a, b] and perm = np.array([[0, 1], [1, 0]]), then this function returns [b, a].
+    row_size, col_size = perm.shape
+    new_list = [True] * row_size
+    for row in range(row_size):
+        # find new_list[row]
+        for col in range(col_size):
+            if perm[row, col] == 1:
+                new_list[row] = old_list[col]
+                break
+    return new_list
 
 
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
@@ -200,11 +214,17 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     position = _check_cross_elemental_system_position(tmp_e_sys_list)
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
+        # TODO Povmに属するElemantalSystem毎のvecsのサイズが分かる関数が実装されたら、置き換えること
+        num_of_vecs_list = [2] * len(tmp_e_sys_list)
         # in case of vec, only left permutation matrix should be used.
-        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
+        left_perm, _ = _permutation_matrix(position, dim_list)
         # B \otimes A = left_perm @ (A \otimes B)
         tensor_vecs = [left_perm @ tensor_vec for tensor_vec in tensor_vecs]
-        # TODO ここで、tensor_vecsの要素の順序も入れ替える必要あり
+        # permutation the order of elements in tensor_vecs according to the position of the sorted ElementalSystem
+        left_perm_for_vecs, _ = _permutation_matrix(position, num_of_vecs_list)
+        tensor_vecs = _convert_list_by_permutation_matrix(
+            tensor_vecs, left_perm_for_vecs
+        )
         # swap tmp_e_sys_list
         tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
             tmp_e_sys_list[position],
