@@ -62,7 +62,7 @@ def _K(dim1: int, dim2: int) -> np.array:
 
 
 def _permutation_matrix(
-    position: int, e_sys_list: List[ElementalSystem], dim_list: List[int]
+    position: int, dim_list: List[int]
 ) -> Tuple[np.array, np.array]:
     # identity matrix for head of permutation matrix
     if position < 2:
@@ -92,7 +92,7 @@ def _check_cross_elemental_system_position(
     e_sys_list: List[ElementalSystem],
 ) -> Union[int, None]:
     # check cross ElementalSystem position
-    # let [0, 10, 5] be a list of names of ElementalSystem, this functions returns 2(position of value 1)
+    # for example, if [0, 10, 5] is a list of names of ElementalSystem, then this functions returns 2(position of value 5)
     former_name = None
     for current_position, e_sys in enumerate(e_sys_list):
         current_name = e_sys.name
@@ -137,7 +137,7 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     position = _check_cross_elemental_system_position(tmp_e_sys_list)
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
-        left_perm, right_perm = _permutation_matrix(position, tmp_e_sys_list, dim_list)
+        left_perm, right_perm = _permutation_matrix(position, dim_list)
         # B \otimes A = left_perm @ (A \otimes B) @ right_perm
         to_hs = left_perm @ to_hs @ right_perm
         # swap tmp_e_sys_list
@@ -168,7 +168,7 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
         # in case of vec, only left permutation matrix should be used.
-        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
+        left_perm, _ = _permutation_matrix(position, dim_list)
         # B \otimes A = left_perm @ (A \otimes B)
         tensor_vec = left_perm @ tensor_vec
         # swap tmp_e_sys_list
@@ -180,26 +180,22 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
 
     # create State
     is_physical = state1.is_physical and state2.is_physical
-    return State(c_sys, tensor_vec, is_physical=is_physical)
+    state = State(c_sys, tensor_vec, is_physical=is_physical)
+    return state
 
 
-def _sorted_tensor_vec(e_sys_list, tensor_vec):
-    tmp_e_sys_list = copy.copy(e_sys_list)
-    position = _check_cross_elemental_system_position(tmp_e_sys_list)
-
-    while not position is None:
-        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
-        # in case of vec, only left permutation matrix should be used.
-        left_perm, _ = _permutation_matrix(position, tmp_e_sys_list, dim_list)
-        # B \otimes A = left_perm @ (A \otimes B)
-        tensor_vec = left_perm @ tensor_vec
-        # swap tmp_e_sys_list
-        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
-            tmp_e_sys_list[position],
-            tmp_e_sys_list[position - 1],
-        )
-        position = _check_cross_elemental_system_position(tmp_e_sys_list)
-    return tensor_vec
+def _convert_list_by_permutation_matrix(old_list: List, perm: np.array) -> List:
+    # this function executes "perm @ old_list"-like operation.
+    # for example, if old_list = [a, b] and perm = np.array([[0, 1], [1, 0]]), then this function returns [b, a].
+    row_size, col_size = perm.shape
+    new_list = [True] * row_size
+    for row in range(row_size):
+        # find new_list[row]
+        for col in range(col_size):
+            if perm[row, col] == 1:
+                new_list[row] = old_list[col]
+                break
+    return new_list
 
 
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
@@ -212,12 +208,32 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
         np.kron(vec1, vec2) for vec1, vec2 in itertools.product(povm1.vecs, povm2.vecs)
     ]
 
-    tensor_vecs = [
-        _sorted_tensor_vec(e_sys_list, tensor_vec) for tensor_vec in tensor_vecs
-    ]
+    # permutation the tensor product matrix according to the position of the sorted ElementalSystem
+    # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
+    tmp_e_sys_list = copy.copy(e_sys_list)
+    position = _check_cross_elemental_system_position(tmp_e_sys_list)
+    while not position is None:
+        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
+        # TODO Povmに属するElemantalSystem毎のvecsのサイズが分かる関数が実装されたら、置き換えること
+        num_of_vecs_list = [2] * len(tmp_e_sys_list)
+        # in case of vec, only left permutation matrix should be used.
+        left_perm, _ = _permutation_matrix(position, dim_list)
+        # B \otimes A = left_perm @ (A \otimes B)
+        tensor_vecs = [left_perm @ tensor_vec for tensor_vec in tensor_vecs]
+        # permutation the order of elements in tensor_vecs according to the position of the sorted ElementalSystem
+        left_perm_for_vecs, _ = _permutation_matrix(position, num_of_vecs_list)
+        tensor_vecs = _convert_list_by_permutation_matrix(
+            tensor_vecs, left_perm_for_vecs
+        )
+        # swap tmp_e_sys_list
+        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
+            tmp_e_sys_list[position],
+            tmp_e_sys_list[position - 1],
+        )
+        position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
+    # create Povm
     is_physical = povm1.is_physical and povm2.is_physical
-
     tensor_povm = Povm(c_sys, tensor_vecs, is_physical=is_physical)
     return tensor_povm
 
@@ -226,7 +242,6 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         return _tensor_product_Gate_Gate(elem1, elem2)
-
     elif type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         new_basis = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
@@ -235,7 +250,6 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
         return _tensor_product_State_State(elem1, elem2)
-
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
