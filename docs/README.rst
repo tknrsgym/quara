@@ -10,7 +10,7 @@ Requirements
 
 First, you neeed to have a environment for developing quara (see the `docs on creating a development environment <https://github.com/tknrsgym/quara#devlopment>`_
 
-Next, install Pandoc (see the `Pandoc documents <https://pandoc.org/installing.html>`_ .
+Next, install Pandoc (see the `Pandoc documents <https://pandoc.org/installing.html>`_ ).
 
 Building the docs
 ------------------
