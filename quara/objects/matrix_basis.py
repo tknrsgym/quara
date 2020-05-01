@@ -375,6 +375,78 @@ def get_normalized_pauli_basis(n_qubit: int = 1) -> MatrixBasis:
     return pauli_basis
 
 
+def get_hermitian_basis(dim: int = 2) -> MatrixBasis:
+    """Returns Hermitian basis.
+
+    Parameters
+    ----------
+    dim : int, optional
+        dim of Hermitian basis, by default 2.
+
+    Returns
+    -------
+    MatrixBasis
+        Hermitian basis.
+    """
+    basis = []
+    for row in range(dim):
+        # diagonal
+        matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
+        matrix_diag[row, row] = 1
+        basis.append(matrix_diag)
+
+        # not diagonal
+        for col in range(row + 1, dim):
+            matrix_real = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_real[row, col] = 1
+            matrix_real[col, row] = 1
+            basis.append(matrix_real)
+
+            matrix_imag = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_imag[row, col] = -1j
+            matrix_imag[col, row] = 1j
+            basis.append(matrix_imag)
+
+    pauli_basis = MatrixBasis(basis)
+    return pauli_basis
+
+
+def get_normalized_hermitian_basis(dim: int = 2) -> MatrixBasis:
+    """Returns normalized Hermitian basis.
+
+    Parameters
+    ----------
+    dim : int, optional
+        dim of normalized Hermitian basis, by default 2.
+
+    Returns
+    -------
+    MatrixBasis
+        normalized Hermitian basis.
+    """
+    basis = []
+    for row in range(dim):
+        # diagonal
+        matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
+        matrix_diag[row, row] = 1
+        basis.append(matrix_diag)
+
+        # not diagonal
+        for col in range(row + 1, dim):
+            matrix_real = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_real[row, col] = 1 / np.sqrt(2)
+            matrix_real[col, row] = 1 / np.sqrt(2)
+            basis.append(matrix_real)
+
+            matrix_imag = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_imag[row, col] = -1j / np.sqrt(2)
+            matrix_imag[col, row] = 1j / np.sqrt(2)
+            basis.append(matrix_imag)
+
+    pauli_basis = MatrixBasis(basis)
+    return pauli_basis
+
+
 def get_gell_mann_basis() -> MatrixBasis:
     """Returns Gell-Mann matrices basis.
 
