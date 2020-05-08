@@ -389,14 +389,9 @@ def get_hermitian_basis(dim: int = 2) -> MatrixBasis:
         Hermitian basis.
     """
     basis = []
-    for row in range(dim):
-        # diagonal
-        matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
-        matrix_diag[row, row] = 1
-        basis.append(matrix_diag)
-
+    for col in range(dim):
         # not diagonal
-        for col in range(row + 1, dim):
+        for row in range(col):
             matrix_real = np.zeros((dim, dim), dtype=np.complex128)
             matrix_real[row, col] = 1
             matrix_real[col, row] = 1
@@ -406,6 +401,11 @@ def get_hermitian_basis(dim: int = 2) -> MatrixBasis:
             matrix_imag[row, col] = -1j
             matrix_imag[col, row] = 1j
             basis.append(matrix_imag)
+
+        # diagonal
+        matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
+        matrix_diag[col, col] = 1
+        basis.append(matrix_diag)
 
     pauli_basis = MatrixBasis(basis)
     return pauli_basis
@@ -425,14 +425,9 @@ def get_normalized_hermitian_basis(dim: int = 2) -> MatrixBasis:
         normalized Hermitian basis.
     """
     basis = []
-    for row in range(dim):
-        # diagonal
-        matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
-        matrix_diag[row, row] = 1
-        basis.append(matrix_diag)
-
+    for col in range(dim):
         # not diagonal
-        for col in range(row + 1, dim):
+        for row in range(col):
             matrix_real = np.zeros((dim, dim), dtype=np.complex128)
             matrix_real[row, col] = 1 / np.sqrt(2)
             matrix_real[col, row] = 1 / np.sqrt(2)
@@ -442,6 +437,11 @@ def get_normalized_hermitian_basis(dim: int = 2) -> MatrixBasis:
             matrix_imag[row, col] = -1j / np.sqrt(2)
             matrix_imag[col, row] = 1j / np.sqrt(2)
             basis.append(matrix_imag)
+
+        # diagonal
+        matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
+        matrix_diag[col, col] = 1
+        basis.append(matrix_diag)
 
     pauli_basis = MatrixBasis(basis)
     return pauli_basis
@@ -499,6 +499,94 @@ def get_normalized_gell_mann_basis() -> MatrixBasis:
     ]
     gell_mann_basis = MatrixBasis(source)
     return gell_mann_basis
+
+
+def get_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
+    """Returns Generalized Gell-Mann matrices basis.
+
+    Parameters
+    ----------
+    dim : int, optional
+        dim of Generalized Gell-Mann matrices basis, by default 2.
+
+    Returns
+    -------
+    MatrixBasis
+        Generalized Gell-Mann matrices basis.
+        see https://mathworld.wolfram.com/GeneralizedGell-MannMatrix.html
+    """
+    basis = []
+    for col in range(dim):
+        for row in range(col):
+            # symmetric matrix
+            matrix_real = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_real[row, col] = 1
+            matrix_real[col, row] = 1
+            basis.append(matrix_real)
+
+            # antisymmetric matrix
+            matrix_imag = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_imag[row, col] = -1j
+            matrix_imag[col, row] = 1j
+            basis.append(matrix_imag)
+
+        # diagonal matrix
+        if col == 0:
+            matrix_diag = np.sqrt(2 / dim) * np.eye(dim, dtype=np.complex128)
+        else:
+            matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
+            for diag in range(col):
+                matrix_diag[diag, diag] = 1
+            matrix_diag[col, col] = -col
+            matrix_diag = np.sqrt(2 / (col * (col + 1))) * matrix_diag
+        basis.append(matrix_diag)
+
+    matrix_basis = MatrixBasis(basis)
+    return matrix_basis
+
+
+def get_normalized_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
+    """Returns Normalized Generalized Gell-Mann matrices basis.
+
+    Parameters
+    ----------
+    dim : int, optional
+        dim of Normalized Generalized Gell-Mann matrices basis, by default 2.
+
+    Returns
+    -------
+    MatrixBasis
+        Normalized Generalized Gell-Mann matrices basis.
+        see https://mathworld.wolfram.com/GeneralizedGell-MannMatrix.html
+    """
+    basis = []
+    for col in range(dim):
+        for row in range(col):
+            # symmetric matrix
+            matrix_real = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_real[row, col] = 1 / np.sqrt(2)
+            matrix_real[col, row] = 1 / np.sqrt(2)
+            basis.append(matrix_real)
+
+            # antisymmetric matrix
+            matrix_imag = np.zeros((dim, dim), dtype=np.complex128)
+            matrix_imag[row, col] = -1j / np.sqrt(2)
+            matrix_imag[col, row] = 1j / np.sqrt(2)
+            basis.append(matrix_imag)
+
+        # diagonal matrix
+        if col == 0:
+            matrix_diag = np.sqrt(1 / dim) * np.eye(dim, dtype=np.complex128)
+        else:
+            matrix_diag = np.zeros((dim, dim), dtype=np.complex128)
+            for diag in range(col):
+                matrix_diag[diag, diag] = 1
+            matrix_diag[col, col] = -col
+            matrix_diag = np.sqrt(1 / (col * (col + 1))) * matrix_diag
+        basis.append(matrix_diag)
+
+    matrix_basis = MatrixBasis(basis)
+    return matrix_basis
 
 
 def convert_vec(
