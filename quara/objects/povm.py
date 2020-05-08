@@ -188,11 +188,6 @@ class Povm:
         """
         return self._is_physical
 
-    def e_sys_dims(self) -> List[int]:
-        # vecs_size = [len(vec) for vec in self._vecs]
-        e_sys_dims = [e_sys.dim ** 2 for e_sys in self._composite_system]
-        return e_sys_dims
-
     def is_hermitian(self) -> bool:
         for m in self.matrixes():
             if not mutil.is_hermitian(m):
