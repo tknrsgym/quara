@@ -1,3 +1,4 @@
+import copy
 import itertools
 from typing import List, Tuple, Union
 
@@ -51,8 +52,10 @@ class Povm:
             If the dim in the ``c_sys`` does not match the dim in the ``vecs``
         """
         # Set
-        # TODO: consider make it tuple of np.ndarray
-        self._vecs: List[np.ndarray] = vecs
+        self._vecs: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(vecs))
+        for b in self._vecs:
+            b.setflags(write=False)
+
         self._composite_system: CompositeSystem = c_sys
 
         # Set of measurements that can be observed.
