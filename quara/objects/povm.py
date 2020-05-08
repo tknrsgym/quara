@@ -5,11 +5,8 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.matrix_basis import (
-    MatrixBasis,
-    convert_vec,
-    get_normalized_pauli_basis,
-)
+from quara.objects.matrix_basis import (MatrixBasis, convert_vec,
+                                        get_normalized_pauli_basis)
 from quara.settings import Settings
 
 
@@ -87,7 +84,21 @@ class Povm:
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
 
-    def __getitem__(self, key: int):
+    def measurement(self, key: str) -> np.ndarray:
+        # |0> -> 0
+        # |1> -> 1
+        # |00> -> 0
+        # |01> -> 1
+        # |10> -> 2
+        # |11> -> 3
+        # TODO: _measurements(観測しうる値)のリストを実装したら、バリデーション処理を入れる
+        # if key not in self._measurements:
+        #    raise ValueError()
+
+        return self._vecs[int(key, 2)]
+
+    def __getitem__(self, key) -> np.ndarray:
+        # 通し番号でvecsをとる
         return self._vecs[key]
 
     @property
@@ -119,6 +130,11 @@ class Povm:
     @property
     def is_physical(self) -> bool:  # read only
         return self._is_physical
+
+    def e_sys_dims(self) -> List[int]:
+        # vecs_size = [len(vec) for vec in self._vecs]
+        e_sys_dims = [e_sys.dim ** 2 for e_sys in self._composite_system]
+        return e_sys_dims
 
     def is_hermitian(self) -> bool:
         for m in self.matrixes():
