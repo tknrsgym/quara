@@ -19,7 +19,11 @@ class Povm:
     """
 
     def __init__(
-        self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True
+        self,
+        c_sys: CompositeSystem,
+        vecs: List[np.ndarray],
+        measurements: Tuple[int] = None,
+        is_physical: bool = True,
     ):
         """Constructor
 
@@ -56,15 +60,20 @@ class Povm:
         self._composite_system: CompositeSystem = c_sys
 
         # 観測されうる測定値の集合
-        m_length = len(bin(len(vecs) - 1).replace("0b", ""))
-        m_format = "0" + str(m_length) + "b"
-        measurements = [format(i, m_format) for i in range(len(vecs))]
-        self._measurements: Tuple = tuple(measurements)
+        # TODO measurementsはソートされている前提
+        # CompositeSystemのElementalSystemはソートされていない。ソートをユーザ側に共有するのは難しいのでは
+        # コンストラクタではmeasurementsを渡さずに、テンソル積を計算した所で渡すのかよいかもしれない
+        if measurements == None:
+            self._measurements = [len(self._vecs)]
+        else:
+            self._measurements = measurements
 
+        """
         # TODO: 今のところ未使用。なくても済むなら削除する
         self._measurements_map: dict = {
             i: format(i, m_format) for i in range(len(vecs))
         }
+        """
 
         self._is_physical = is_physical
 
