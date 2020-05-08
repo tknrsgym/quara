@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -53,7 +53,10 @@ class Povm:
         self._composite_system: CompositeSystem = c_sys
 
         # 観測されうる測定値の集合
-        self._measurements: list
+        m_length = len(bin(len(vecs) - 1).replace("0b", ""))
+        m_format = "0" + str(m_length) + "b"
+        measurements = [format(i, m_format) for i in range(len(vecs))]
+        self._measurements: Tuple = tuple(measurements)
 
         self._is_physical = is_physical
 
@@ -91,15 +94,20 @@ class Povm:
         # |01> -> 1
         # |10> -> 2
         # |11> -> 3
-        # TODO: _measurements(観測しうる値)のリストを実装したら、バリデーション処理を入れる
-        # if key not in self._measurements:
-        #    raise ValueError()
+        if key not in self._measurements:
+            raise ValueError(
+                "That measurement does not exist. See the list of measurements by 'measurement' property."
+            )
 
         return self._vecs[int(key, 2)]
 
     def __getitem__(self, key) -> np.ndarray:
         # 通し番号でvecsをとる
         return self._vecs[key]
+
+    @property
+    def measurements(self) -> List[str]:
+        return list(self._measurements)
 
     @property
     def vecs(self) -> List[np.ndarray]:  # read only
