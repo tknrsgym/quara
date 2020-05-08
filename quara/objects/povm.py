@@ -96,6 +96,7 @@ class Povm:
             )
 
     def measurement(self, key: str) -> np.ndarray:
+        # get vec with measurement
         # |0> -> 0
         # |1> -> 1
         # |00> -> 0
@@ -110,10 +111,10 @@ class Povm:
         return self._vecs[int(key, 2)]
 
     def __getitem__(self, key) -> np.ndarray:
-        # 通し番号でvecsをとる
+        # Get vec with a serial number.
         return self._vecs[key]
 
-    # TODO: 他に良い名前があったらそちらに変える
+    # TODO: [WANT] Replace the method name with a better name
     def matrixes(self) -> List[np.ndarray]:
         matrix_list = []
         size = (self.dim, self.dim)
@@ -126,14 +127,13 @@ class Povm:
 
     def matrix(self, key: Union[int, str]) -> np.ndarray:
         if type(key) == int:
-            # 通し番号
+            # get vec with serial number (0, 1, 2, 4...)
             vec = self.vecs[key]
         elif type(key) == str:
-            # '00', '01', '10', '11'など
+            # get vec with measurement ('00', '01', '10', '11' ...)
             vec = self.measurement(key)
         else:
-            # TODO: message
-            raise ValueError("")
+            raise TypeError("The type of `key` must be int or str.")
 
         size = (self.dim, self.dim)
         matrix = np.zeros(size, dtype=np.complex128)

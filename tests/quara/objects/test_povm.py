@@ -372,7 +372,6 @@ class TestPovm:
         assert np.all(actual == expected)
 
     def test_measurement_unexpected(self):
-        # Case 1:
         # Arrange
         basis1 = get_comp_basis()
         e_sys1 = esys.ElementalSystem(1, basis1)
@@ -444,6 +443,23 @@ class TestPovm:
         actual = povm12.matrix("11")
         # Assert
         npt.assert_almost_equal(actual, expected[3], decimal=15)
+
+    def test_matrix_unexpected(self):
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+        # Act & Assert
+        unexpected_type = [0]
+        with pytest.raises(TypeError):
+            # TypeError: The type of `key` must be int or str.
+            _ = povm1.matrix(unexpected_type)
 
     # def test_vecs_size(self):
     #     # Arange
