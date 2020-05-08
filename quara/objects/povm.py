@@ -61,6 +61,11 @@ class Povm:
         measurements = [format(i, m_format) for i in range(len(vecs))]
         self._measurements: Tuple = tuple(measurements)
 
+        # TODO: 今のところ未使用。なくても済むなら削除する
+        self._measurements_map: dict = {
+            i: format(i, m_format) for i in range(len(vecs))
+        }
+
         self._is_physical = is_physical
 
         # Validation
@@ -108,8 +113,8 @@ class Povm:
         # 通し番号でvecsをとる
         return self._vecs[key]
 
-    # TODO: あとで良い名前に変える
-    def matrixes(self):
+    # TODO: 他に良い名前があったらそちらに変える
+    def matrixes(self) -> List[np.ndarray]:
         matrix_list = []
         size = (self.dim, self.dim)
         for v in self.vecs:
@@ -119,14 +124,16 @@ class Povm:
             matrix_list.append(matrix)
         return matrix_list
 
-    def matrix(self, key) -> np.ndarray:
+    def matrix(self, key: Union[int, str]) -> np.ndarray:
         if type(key) == int:
+            # 通し番号
             vec = self.vecs[key]
         elif type(key) == str:
+            # '00', '01', '10', '11'など
             vec = self.measurement(key)
         else:
             # TODO: message
-            raise ValueError()
+            raise ValueError("")
 
         size = (self.dim, self.dim)
         matrix = np.zeros(size, dtype=np.complex128)
