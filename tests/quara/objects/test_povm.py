@@ -372,7 +372,6 @@ class TestPovm:
         assert np.all(actual == expected)
 
     def test_measurement_unexpected(self):
-        # Case 1:
         # Arrange
         basis1 = get_comp_basis()
         e_sys1 = esys.ElementalSystem(1, basis1)
@@ -445,41 +444,22 @@ class TestPovm:
         # Assert
         npt.assert_almost_equal(actual, expected[3], decimal=15)
 
-    # def test_vecs_size(self):
-    #     # Arange
-    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
-    #     vec_1 = np.array([1, 0], dtype=np.complex128)
-    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
-    #     vecs = [vec_1, vec_2]
-    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+    def test_matrix_unexpected(self):
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
 
-    #     # Act
-    #     vec_sizes = povm.vec_sizes()
-
-    #     # Assert
-    #     expected = [2, 4]
-    #     assert len(vec_sizes) == len(expected)
-    #     for a, b in (vec_sizes, expected):
-    #         assert a == b
-
-    # def test_e_sys_dims(self):
-    #     # Arange
-    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
-    #     vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
-    #     vecs = [vec_1, vec_2]
-    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
-
-    #     # Act
-    #     vec_sizes = povm.e_sys_dims()
-
-    #     # Assert
-    #     expected = [4]
-    #     assert len(vec_sizes) == len(expected)
-    #     for a, b in zip(vec_sizes, expected):
-    #         assert a == b
+        # Act & Assert
+        unexpected_type = [0]
+        with pytest.raises(TypeError):
+            # TypeError: The type of `key` must be int or str.
+            _ = povm1.matrix(unexpected_type)
 
 
 def test_get_x_measurement():

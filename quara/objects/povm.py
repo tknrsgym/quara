@@ -5,11 +5,8 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.matrix_basis import (
-    MatrixBasis,
-    convert_vec,
-    get_normalized_pauli_basis,
-)
+from quara.objects.matrix_basis import (MatrixBasis, convert_vec,
+                                        get_normalized_pauli_basis)
 from quara.settings import Settings
 
 
@@ -96,6 +93,7 @@ class Povm:
             )
 
     def measurement(self, key: str) -> np.ndarray:
+        # get vec with measurement
         # |0> -> 0
         # |1> -> 1
         # |00> -> 0
@@ -110,10 +108,10 @@ class Povm:
         return self._vecs[int(key, 2)]
 
     def __getitem__(self, key) -> np.ndarray:
-        # 通し番号でvecsをとる
+        # Get vec with a serial number.
         return self._vecs[key]
 
-    # TODO: 他に良い名前があったらそちらに変える
+    # TODO: [WANT] Replace the method name with a better name
     def matrixes(self) -> List[np.ndarray]:
         matrix_list = []
         size = (self.dim, self.dim)
@@ -126,14 +124,13 @@ class Povm:
 
     def matrix(self, key: Union[int, str]) -> np.ndarray:
         if type(key) == int:
-            # 通し番号
+            # get vec with serial number (0, 1, 2, 4...)
             vec = self.vecs[key]
         elif type(key) == str:
-            # '00', '01', '10', '11'など
+            # get vec with measurement ('00', '01', '10', '11' ...)
             vec = self.measurement(key)
         else:
-            # TODO: message
-            raise ValueError("")
+            raise TypeError("The type of `key` must be int or str.")
 
         size = (self.dim, self.dim)
         matrix = np.zeros(size, dtype=np.complex128)
@@ -174,12 +171,19 @@ class Povm:
 
     @property
     def is_physical(self) -> bool:  # read only
-        return self._is_physical
+        """Property to check whether the povm is physically correct.
+           If ``True``, the following requirements are met.
 
-    def e_sys_dims(self) -> List[int]:
-        # vecs_size = [len(vec) for vec in self._vecs]
-        e_sys_dims = [e_sys.dim ** 2 for e_sys in self._composite_system]
-        return e_sys_dims
+           - It is a set of Hermitian matrices.
+           - The sum is the identity matrix.
+           - positive semidefinite.
+
+        Returns
+        -------
+        bool
+            If ``True``, the povm is physically correct.
+        """
+        return self._is_physical
 
     def is_hermitian(self) -> bool:
         for m in self.matrixes():
