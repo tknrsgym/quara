@@ -174,6 +174,18 @@ class Povm:
 
     @property
     def is_physical(self) -> bool:  # read only
+        """Check whether the povm is physically correct.
+           If ``True``, the following requirements are met.
+
+           - It is a set of Hermitian matrices.
+           - The sum is the identity matrix.
+           - positive semidefinite.
+
+        Returns
+        -------
+        bool
+            If ``True``, the povm is physically correct.
+        """
         return self._is_physical
 
     def e_sys_dims(self) -> List[int]:
