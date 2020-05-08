@@ -559,9 +559,9 @@ def test_get_hermitian_basis():
         np.array([[1, 0, 0], [0, 0, 0], [0, 0, 0]], dtype=np.complex128),
         np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128),
         np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128),
+        np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=np.complex128),
         np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=np.complex128),
         np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128),
-        np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=np.complex128),
         np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.complex128),
         np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128),
         np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=np.complex128),
@@ -614,10 +614,10 @@ def test_get_normalized_hermitian_basis():
         np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128) / np.sqrt(2),
         np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
         / np.sqrt(2),
+        np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=np.complex128),
         np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=np.complex128) / np.sqrt(2),
         np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
         / np.sqrt(2),
-        np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=np.complex128),
         np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.complex128) / np.sqrt(2),
         np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128)
         / np.sqrt(2),
@@ -653,6 +653,139 @@ def test_get_normalized_gell_mann_basis():
     assert basis.is_hermitian() == True
     assert basis.is_scalar_mult_of_identity() == True
     assert basis.is_trace_less() == True
+
+
+def test_get_generalized_gell_mann_basis():
+    # case: dim = default value(2)
+    basis = matrix_basis.get_generalized_gell_mann_basis()
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # case: dim = 2
+    basis = matrix_basis.get_generalized_gell_mann_basis(2)
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # if dim = 2, Generalized Gell-Mann matrices basis and Pauli basis are same
+    other = matrix_basis.get_pauli_basis()
+    for actual, expected in zip(basis, other):
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # case: dim = 3
+    basis = matrix_basis.get_generalized_gell_mann_basis(3)
+    assert basis.dim == 3
+    assert basis.size() == (3, 3)
+    assert len(basis) == 9
+
+    expected = [
+        np.sqrt(2 / 3)
+        * np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.complex128),
+        np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128),
+        np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128),
+        np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128),
+        np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=np.complex128),
+        np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128),
+        np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.complex128),
+        np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128),
+        np.sqrt(1 / 3)
+        * np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # if dim = 3, Generalized Gell-Mann matrices basis and Gell-Mann matrices basis are same
+    other = matrix_basis.get_gell_mann_basis()
+    for actual, expected in zip(basis, other):
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_get_normalized_generalized_gell_mann_basis():
+    # case: dim = default value(2)
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis()
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # case: dim = 2
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(2)
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # if dim = 2, normalized Generalized Gell-Mann matrices basis and normalized Pauli basis are same
+    other = matrix_basis.get_normalized_pauli_basis()
+    for actual, expected in zip(basis, other):
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # case: dim = 3
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(3)
+    assert basis.dim == 3
+    assert basis.size() == (3, 3)
+    assert len(basis) == 9
+
+    expected = [
+        np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.complex128) / np.sqrt(3),
+        np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, -1j, 0], [1j, 0, 0], [0, 0, 0]], dtype=np.complex128)
+        / np.sqrt(2),
+        np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
+        / np.sqrt(2),
+        np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128)
+        / np.sqrt(2),
+        np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128) / np.sqrt(6),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # if dim = 3, normalized Generalized Gell-Mann matrices basis and normalized Gell-Mann matrices basis are same
+    other = matrix_basis.get_normalized_gell_mann_basis()
+    for actual, expected in zip(basis, other):
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_convert_vec_raise_exception_invalid_length():
