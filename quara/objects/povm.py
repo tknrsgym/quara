@@ -5,8 +5,11 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.matrix_basis import (MatrixBasis, convert_vec,
-                                        get_normalized_pauli_basis)
+from quara.objects.matrix_basis import (
+    MatrixBasis,
+    convert_vec,
+    get_normalized_pauli_basis,
+)
 from quara.settings import Settings
 
 
@@ -52,7 +55,7 @@ class Povm:
         self._vecs: List[np.ndarray] = vecs
         self._composite_system: CompositeSystem = c_sys
 
-        # 観測されうる測定値の集合
+        # Set of measurements that can be observed.
         m_length = len(bin(len(vecs) - 1).replace("0b", ""))
         m_format = "0" + str(m_length) + "b"
         measurements = [format(i, m_format) for i in range(len(vecs))]
@@ -155,11 +158,11 @@ class Povm:
         return self._vecs
 
     @property
-    def dim(self) -> int:
+    def dim(self) -> int:  # read only
         return self._dim
 
     @property
-    def composite_system(self) -> CompositeSystem:
+    def composite_system(self) -> CompositeSystem:  # read only
         """Property to get composite system.
 
         Returns
@@ -186,6 +189,13 @@ class Povm:
         return self._is_physical
 
     def is_hermitian(self) -> bool:
+        """Returns whether the povm is a set of Hermit matrices.
+
+        Returns
+        -------
+        bool
+            If `True`, the povm is a set of Hermit matrices.
+        """
         for m in self.matrixes():
             if not mutil.is_hermitian(m):
                 return False
