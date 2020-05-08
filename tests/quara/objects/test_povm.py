@@ -267,6 +267,50 @@ class TestPovm:
         for i, a in enumerate(actual):
             assert np.all(a == expected[i])
 
+    def test_measurements(self):
+        # Case 1:
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+        # Act
+        actual = povm1.measurements
+
+        # Assert
+        expected = ["0", "1"]
+        assert len(actual) == len(expected)
+
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        # Case2:
+        # Arrange
+        basis2 = get_comp_basis()
+        e_sys2 = esys.ElementalSystem(2, basis2)
+        c_sys2 = csys.CompositeSystem([e_sys2])
+        vecs2 = [
+            np.array([23, 29, 31, 37], dtype=np.float64),
+            np.array([41, 43, 47, 53], dtype=np.float64),
+        ]
+        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm12 = tensor_product(povm1, povm2)
+
+        # Act
+        actual = povm12.measurements
+
+        # Assert
+        expected = ["00", "01", "10", "11"]
+        assert len(actual) == len(expected)
+
+        for a, e in zip(actual, expected):
+            assert a == e
+
     def test_measurement(self):
         # Case 1:
         # Arrange
@@ -326,6 +370,24 @@ class TestPovm:
         # Assert
         expected = povm12[3]
         assert np.all(actual == expected)
+
+    def test_measurement_unexpected(self):
+        # Case 1:
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            # ValueError: That measurement does not exist.
+            # See the list of measurements by 'measurement' property.
+            _ = povm1.measurement("10")
 
     # def test_vecs_size(self):
     #     # Arange
