@@ -5,11 +5,8 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.matrix_basis import (
-    MatrixBasis,
-    convert_vec,
-    get_normalized_pauli_basis,
-)
+from quara.objects.matrix_basis import (MatrixBasis, convert_vec,
+                                        get_normalized_pauli_basis)
 from quara.settings import Settings
 
 
@@ -174,7 +171,7 @@ class Povm:
 
     @property
     def is_physical(self) -> bool:  # read only
-        """Check whether the povm is physically correct.
+        """Property to check whether the povm is physically correct.
            If ``True``, the following requirements are met.
 
            - It is a set of Hermitian matrices.
