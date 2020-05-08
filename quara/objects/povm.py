@@ -1,15 +1,12 @@
 import itertools
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.matrix_basis import (
-    MatrixBasis,
-    convert_vec,
-    get_normalized_pauli_basis,
-)
+from quara.objects.matrix_basis import (MatrixBasis, convert_vec,
+                                        get_normalized_pauli_basis)
 from quara.settings import Settings
 
 
@@ -56,7 +53,10 @@ class Povm:
         self._composite_system: CompositeSystem = c_sys
 
         # 観測されうる測定値の集合
-        self._measurements: list
+        m_length = len(bin(len(vecs) - 1).replace("0b", ""))
+        m_format = "0" + str(m_length) + "b"
+        measurements = [format(i, m_format) for i in range(len(vecs))]
+        self._measurements: Tuple = tuple(measurements)
 
         self._is_physical = is_physical
 
@@ -87,8 +87,27 @@ class Povm:
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
 
-    def __getitem__(self, key: int):
+    def measurement(self, key: str) -> np.ndarray:
+        # |0> -> 0
+        # |1> -> 1
+        # |00> -> 0
+        # |01> -> 1
+        # |10> -> 2
+        # |11> -> 3
+        if key not in self._measurements:
+            raise ValueError(
+                "That measurement does not exist. See the list of measurements by 'measurement' property."
+            )
+
+        return self._vecs[int(key, 2)]
+
+    def __getitem__(self, key) -> np.ndarray:
+        # 通し番号でvecsをとる
         return self._vecs[key]
+
+    @property
+    def measurements(self) -> List[str]:
+        return list(self._measurements)
 
     @property
     def vecs(self) -> List[np.ndarray]:  # read only
@@ -119,6 +138,11 @@ class Povm:
     @property
     def is_physical(self) -> bool:  # read only
         return self._is_physical
+
+    def e_sys_dims(self) -> List[int]:
+        # vecs_size = [len(vec) for vec in self._vecs]
+        e_sys_dims = [e_sys.dim ** 2 for e_sys in self._composite_system]
+        return e_sys_dims
 
     def is_hermitian(self) -> bool:
         for m in self.matrixes():

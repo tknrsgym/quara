@@ -14,6 +14,7 @@ from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
     get_pauli_basis,
 )
+from quara.objects.operators import tensor_product
 from quara.objects.povm import (
     Povm,
     get_x_measurement,
@@ -265,6 +266,164 @@ class TestPovm:
         assert len(actual) == len(expected)
         for i, a in enumerate(actual):
             assert np.all(a == expected[i])
+
+    def test_measurements(self):
+        # Case 1:
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+        # Act
+        actual = povm1.measurements
+
+        # Assert
+        expected = ["0", "1"]
+        assert len(actual) == len(expected)
+
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        # Case2:
+        # Arrange
+        basis2 = get_comp_basis()
+        e_sys2 = esys.ElementalSystem(2, basis2)
+        c_sys2 = csys.CompositeSystem([e_sys2])
+        vecs2 = [
+            np.array([23, 29, 31, 37], dtype=np.float64),
+            np.array([41, 43, 47, 53], dtype=np.float64),
+        ]
+        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm12 = tensor_product(povm1, povm2)
+
+        # Act
+        actual = povm12.measurements
+
+        # Assert
+        expected = ["00", "01", "10", "11"]
+        assert len(actual) == len(expected)
+
+        for a, e in zip(actual, expected):
+            assert a == e
+
+    def test_measurement(self):
+        # Case 1:
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+        # Act
+        actual = povm1.measurement("0")
+        # Assert
+        expected = povm1[0]
+        assert np.all(actual == expected)
+
+        # Act
+        actual = povm1.measurement("1")
+        # Assert
+        expected = povm1[1]
+        assert np.all(actual == expected)
+
+        # Case2:
+        # Arrange
+        basis2 = get_comp_basis()
+        e_sys2 = esys.ElementalSystem(2, basis2)
+        c_sys2 = csys.CompositeSystem([e_sys2])
+        vecs2 = [
+            np.array([23, 29, 31, 37], dtype=np.float64),
+            np.array([41, 43, 47, 53], dtype=np.float64),
+        ]
+        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm12 = tensor_product(povm1, povm2)
+
+        # Act
+        actual = povm12.measurement("00")
+        # Assert
+        expected = povm12[0]
+        assert np.all(actual == expected)
+
+        # Act
+        actual = povm12.measurement("01")
+        # Assert
+        expected = povm12[1]
+        assert np.all(actual == expected)
+
+        # Act
+        actual = povm12.measurement("10")
+        # Assert
+        expected = povm12[2]
+        assert np.all(actual == expected)
+
+        # Act
+        actual = povm12.measurement("11")
+        # Assert
+        expected = povm12[3]
+        assert np.all(actual == expected)
+
+    def test_measurement_unexpected(self):
+        # Case 1:
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            # ValueError: That measurement does not exist.
+            # See the list of measurements by 'measurement' property.
+            _ = povm1.measurement("10")
+
+    # def test_vecs_size(self):
+    #     # Arange
+    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
+    #     c_sys = csys.CompositeSystem([e_sys])
+    #     vec_1 = np.array([1, 0], dtype=np.complex128)
+    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+    #     vecs = [vec_1, vec_2]
+    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+
+    #     # Act
+    #     vec_sizes = povm.vec_sizes()
+
+    #     # Assert
+    #     expected = [2, 4]
+    #     assert len(vec_sizes) == len(expected)
+    #     for a, b in (vec_sizes, expected):
+    #         assert a == b
+
+    # def test_e_sys_dims(self):
+    #     # Arange
+    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
+    #     c_sys = csys.CompositeSystem([e_sys])
+    #     vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+    #     vecs = [vec_1, vec_2]
+    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+
+    #     # Act
+    #     vec_sizes = povm.e_sys_dims()
+
+    #     # Assert
+    #     expected = [4]
+    #     assert len(vec_sizes) == len(expected)
+    #     for a, b in zip(vec_sizes, expected):
+    #         assert a == b
 
 
 def test_get_x_measurement():
