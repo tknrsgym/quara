@@ -461,42 +461,6 @@ class TestPovm:
             # TypeError: The type of `key` must be int or str.
             _ = povm1.matrix(unexpected_type)
 
-    # def test_vecs_size(self):
-    #     # Arange
-    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
-    #     vec_1 = np.array([1, 0], dtype=np.complex128)
-    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
-    #     vecs = [vec_1, vec_2]
-    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
-
-    #     # Act
-    #     vec_sizes = povm.vec_sizes()
-
-    #     # Assert
-    #     expected = [2, 4]
-    #     assert len(vec_sizes) == len(expected)
-    #     for a, b in (vec_sizes, expected):
-    #         assert a == b
-
-    # def test_e_sys_dims(self):
-    #     # Arange
-    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
-    #     vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
-    #     vecs = [vec_1, vec_2]
-    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
-
-    #     # Act
-    #     vec_sizes = povm.e_sys_dims()
-
-    #     # Assert
-    #     expected = [4]
-    #     assert len(vec_sizes) == len(expected)
-    #     for a, b in zip(vec_sizes, expected):
-    #         assert a == b
-
 
 def test_get_x_measurement():
     # Arrange
