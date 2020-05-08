@@ -389,6 +389,62 @@ class TestPovm:
             # See the list of measurements by 'measurement' property.
             _ = povm1.measurement("10")
 
+    def test_matrix(self):
+        # Case 1:
+        # Arrange
+        basis1 = get_comp_basis()
+        e_sys1 = esys.ElementalSystem(1, basis1)
+        c_sys1 = csys.CompositeSystem([e_sys1])
+        vecs1 = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+        # Act
+        actual = povm1.matrix("0")
+        # Assert
+        expected = povm1.matrixes()
+        npt.assert_almost_equal(actual, expected[0], decimal=15)
+
+        # Act
+        actual = povm1.matrix("1")
+        # Assert
+        npt.assert_almost_equal(actual, expected[1], decimal=15)
+
+        # Case2:
+        # Arrange
+        basis2 = get_comp_basis()
+        e_sys2 = esys.ElementalSystem(2, basis2)
+        c_sys2 = csys.CompositeSystem([e_sys2])
+        vecs2 = [
+            np.array([23, 29, 31, 37], dtype=np.float64),
+            np.array([41, 43, 47, 53], dtype=np.float64),
+        ]
+        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm12 = tensor_product(povm1, povm2)
+
+        # Act
+        actual = povm12.matrix("00")
+        # Assert
+        expected = povm12.matrixes()
+        npt.assert_almost_equal(actual, expected[0], decimal=15)
+
+        # Act
+        actual = povm12.matrix("01")
+        # Assert
+        npt.assert_almost_equal(actual, expected[1], decimal=15)
+
+        # Act
+        actual = povm12.matrix("10")
+        # Assert
+        npt.assert_almost_equal(actual, expected[2], decimal=15)
+
+        # Act
+        actual = povm12.matrix("11")
+        # Assert
+        npt.assert_almost_equal(actual, expected[3], decimal=15)
+
     # def test_vecs_size(self):
     #     # Arange
     #     e_sys = esys.ElementalSystem(1, get_comp_basis())

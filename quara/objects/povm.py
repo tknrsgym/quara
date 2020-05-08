@@ -5,8 +5,11 @@ import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.matrix_basis import (MatrixBasis, convert_vec,
-                                        get_normalized_pauli_basis)
+from quara.objects.matrix_basis import (
+    MatrixBasis,
+    convert_vec,
+    get_normalized_pauli_basis,
+)
 from quara.settings import Settings
 
 
@@ -105,6 +108,33 @@ class Povm:
         # 通し番号でvecsをとる
         return self._vecs[key]
 
+    # TODO: あとで良い名前に変える
+    def matrixes(self):
+        matrix_list = []
+        size = (self.dim, self.dim)
+        for v in self.vecs:
+            matrix = np.zeros(size, dtype=np.complex128)
+            for coefficient, basis in zip(v, self.composite_system.basis()):
+                matrix += coefficient * basis
+            matrix_list.append(matrix)
+        return matrix_list
+
+    def matrix(self, key) -> np.ndarray:
+        if type(key) == int:
+            vec = self.vecs[key]
+        elif type(key) == str:
+            vec = self.measurement(key)
+        else:
+            # TODO: message
+            raise ValueError()
+
+        size = (self.dim, self.dim)
+        matrix = np.zeros(size, dtype=np.complex128)
+        for coefficient, basis in zip(vec, self.composite_system.basis()):
+            matrix += coefficient * basis
+
+        return matrix
+
     @property
     def measurements(self) -> List[str]:
         return list(self._measurements)
@@ -187,17 +217,6 @@ class Povm:
             sum_matrix += np.reshape(m, size)
 
         return sum_matrix
-
-    # TODO: あとで良い名前に変える
-    def matrixes(self):
-        matrix_list = []
-        size = (self.dim, self.dim)
-        for v in self.vecs:
-            matrix = np.zeros(size, dtype=np.complex128)
-            for coefficient, basis in zip(v, self.composite_system.basis()):
-                matrix += coefficient * basis
-            matrix_list.append(matrix)
-        return matrix_list
 
     def calc_eigenvalues(
         self, index: int = None
