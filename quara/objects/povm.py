@@ -52,7 +52,10 @@ class Povm:
             If the dim in the ``c_sys`` does not match the dim in the ``vecs``
         """
         # Set
-        self._vecs: List[np.ndarray] = vecs
+        self._vecs: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(vecs))
+        for b in self._vecs:
+            b.setflags(write=False)
+
         self._composite_system: CompositeSystem = c_sys
         self._measurements = [len(self._vecs)]
         self._is_physical = is_physical
