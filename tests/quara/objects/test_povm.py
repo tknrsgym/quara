@@ -766,3 +766,79 @@ def test_get_zz_measurement():
     assert len(actual.vecs) == len(expected)
     for i, a in enumerate(actual):
         npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+class TestPovmImmutable:
+    def test_deney_update_vecs(self):
+        # Arrange
+        basis = get_comp_basis()
+        e_sys = esys.ElementalSystem(1, basis)
+        c_sys = csys.CompositeSystem([e_sys])
+        vec_0 = np.array([2, 3, 5, 7], dtype=np.float64)
+        vec_1 = np.array([11, 13, 17, 19], dtype=np.float64)
+        source_vecs = [vec_0, vec_1]
+        povm = Povm(c_sys, source_vecs, is_physical=False)
+        assert id(source_vecs) != id(povm.vecs)
+
+        # Case 1
+        # If "source_vec" is updated, the data in POVM is not updated
+        # Act
+        source_vecs[0] = np.zeros([2, 2], dtype=np.complex128)
+
+        # Assert
+        expected = np.array([2, 3, 5, 7], dtype=np.float64)
+        assert np.array_equal(povm.vecs[0], expected)
+        assert np.array_equal(povm[0], expected)
+
+        # Case 2
+        # If "vec_0" is updated, the data in POVM is not updated
+        # Act
+        vec_0[0] = 100
+
+        # Assert
+        assert np.array_equal(povm.vecs[0], expected)
+        assert np.array_equal(povm[0], expected)
+
+    def test_deney_update_povm_item(self):
+        # Arrange
+        basis = get_comp_basis()
+        e_sys = esys.ElementalSystem(1, basis)
+        c_sys = csys.CompositeSystem([e_sys])
+        vec_0 = np.array([2, 3, 5, 7], dtype=np.float64)
+        vec_1 = np.array([11, 13, 17, 19], dtype=np.float64)
+        source_vecs = [vec_0, vec_1]
+        povm = Povm(c_sys, source_vecs, is_physical=False)
+
+        expected = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            # TypeError: 'Povm' object does not support item assignment
+            povm[0] = np.array([100, 100, 100, 100], dtype=np.complex128)
+        assert len(povm.vecs) == len(expected)
+        for actual, e in zip(povm.vecs, expected):
+            assert np.array_equal(actual, e)
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            # TypeError: 'tuple' object does not support item assignment
+            povm.vecs[0] = np.array([100, 100, 100, 100], dtype=np.complex128)
+        assert len(povm.vecs) == len(expected)
+        for actual, e in zip(povm.vecs, expected):
+            assert np.array_equal(actual, e)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            # ValueError: assignment destination is read-only
+            povm.vecs[0][0] = 100
+        assert len(povm.vecs) == len(expected)
+        for actual, e in zip(povm.vecs, expected):
+            assert np.array_equal(actual, e)
+
+        # Test to ensure that no copies are made on each access
+        first_access = id(povm[0])
+        second_access = id(povm[0])
+        assert first_access == second_access
