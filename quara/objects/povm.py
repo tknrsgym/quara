@@ -1,3 +1,4 @@
+import copy
 import itertools
 from typing import List, Tuple, Union
 
@@ -204,7 +205,7 @@ class Povm:
         return self._dim
 
     @property
-    def composite_system(self) -> CompositeSystem:
+    def composite_system(self) -> CompositeSystem:  # read only
         """Property to get composite system.
 
         Returns
@@ -216,22 +217,27 @@ class Povm:
 
     @property
     def is_physical(self) -> bool:  # read only
-        """returns argument ``is_physical`` specified in the constructor.
+        """Property to check whether the povm is physically correct.
+           If ``True``, the following requirements are met.
 
-        Returns
-        -------
-        int
-            argument ``is_physical`` specified in the constructor.
-        """
-        return self._is_physical
-
-    def is_hermitian(self) -> bool:
-        """returns whether all matrices of Povm are Hermitian.
+           - It is a set of Hermitian matrices.
+           - The sum is the identity matrix.
+           - positive semidefinite.
 
         Returns
         -------
         bool
-        True where all matrices of Povm are Hermitian, False otherwise.
+            If ``True``, the povm is physically correct.
+        """
+        return self._is_physical
+
+    def is_hermitian(self) -> bool:
+        """Returns whether the povm is a set of Hermit matrices.
+
+        Returns
+        -------
+        bool
+            If `True`, the povm is a set of Hermit matrices.
         """
         for m in self.matrices():
             if not mutil.is_hermitian(m):

@@ -10,6 +10,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    quara.protocol.simple_io
    quara.protocol.simple_lsqpt
