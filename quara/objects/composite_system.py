@@ -116,15 +116,15 @@ class CompositeSystem:
         """
         return self.basis()[0].shape[0]
 
-    def get_basis(self, index: Union[int, tuple]) -> MatrixBasis:
+    def get_basis(self, index: Union[int, Tuple]) -> MatrixBasis:
         """returns basis specified by index.
 
         Parameters
         ----------
-        index : Union[int, tuple]
+        index : Union[int, Tuple]
             index of basis.
             if type is int, then regardes it as the index after calculating the basis of CompositeSystem.
-            if tyep is tuple, then regardes it as the indices of the basis of ElementalSystems.
+            if type is Tuple, then regardes it as the indices of the basis of ElementalSystems.
 
         Returns
         -------
