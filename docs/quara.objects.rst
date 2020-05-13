@@ -10,6 +10,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    quara.objects.composite_system
    quara.objects.elemental_system
