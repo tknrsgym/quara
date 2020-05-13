@@ -20,7 +20,7 @@ class Povm:
     """
 
     def __init__(
-        self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True
+        self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True,
     ):
         """Constructor
 
@@ -57,23 +57,10 @@ class Povm:
             b.setflags(write=False)
 
         self._composite_system: CompositeSystem = c_sys
-
-        # Set of measurements that can be observed.
-        m_length = len(bin(len(vecs) - 1).replace("0b", ""))
-        m_format = "0" + str(m_length) + "b"
-        measurements = [format(i, m_format) for i in range(len(vecs))]
-        self._measurements: Tuple = tuple(measurements)
-
-        # TODO: 今のところ未使用。なくても済むなら削除する
-        self._measurements_map: dict = {
-            i: format(i, m_format) for i in range(len(vecs))
-        }
-
+        self._measurements = [len(self._vecs)]
         self._is_physical = is_physical
 
         # Validation
-        ## Validate whether `vecs` is a set of Hermitian matrices
-        # TODO: Consider using VectorizedMatrixBasis
         size = vecs[0].shape
         self._dim = int(np.sqrt(size[0]))
         size = [self._dim, self._dim]
@@ -81,6 +68,7 @@ class Povm:
         if is_physical:
             # Validate to meet requirements as Povm
             if not self.is_hermitian():
+                # whether `vecs` is a set of Hermitian matrices
                 raise ValueError("POVM must be a set of Hermitian matrices")
 
             if not self.is_identity():
@@ -98,27 +86,73 @@ class Povm:
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
 
-    def measurement(self, key: str) -> np.ndarray:
-        # get vec with measurement
-        # |0> -> 0
-        # |1> -> 1
-        # |00> -> 0
-        # |01> -> 1
-        # |10> -> 2
-        # |11> -> 3
-        if key not in self._measurements:
-            raise ValueError(
-                "That measurement does not exist. See the list of measurements by 'measurement' property."
-            )
+    @property
+    def measurements(self) -> List[int]:
+        """Property to get numbers of measurements for each ElementalSystem.
 
-        return self._vecs[int(key, 2)]
+        Returns
+        -------
+        List[int]
+            numbers of measurements for each ElementalSystem.
+        """
+        return self._measurements
+
+    def _set_measurements(self, measurements: List[int]):
+        self._measurements = measurements
+
+    def get_measurement(self, index: Union[int, Tuple]) -> np.ndarray:
+        """returns vec of measurement by index.
+
+        Parameters
+        ----------
+        index : Union[int, Tuple]
+            index of vec of measurement.
+            if type is int, then regardes it as the index for CompositeSystem.
+            if type is Tuple, then regardes it as the indices for earch ElementalSystems.
+        Returns
+        -------
+        np.ndarray
+            vec of measurement by index.
+
+        Raises
+        ------
+        ValueError
+            length of tuple does not equal length of the list of measurements.
+        IndexError
+            specified index does not exist in the list of measurements.
+        """
+        if type(index) == tuple:
+            # whether size of tuple equals length of the list of measurements
+            if len(index) != len(self._measurements):
+                raise ValueError(
+                    f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self._measurements)}"
+                )
+
+            # calculate index in _vecs by traversing the tuple from the back.
+            # for example, if length of _measurements is 3 and each numbers are len1, len2, len3,
+            # then index in _basis of tuple(x1, x2, x3) can be calculated the following expression:
+            #   x1 * (len2 * len3) + x2 * len3 + x3
+            temp_grobal_index = 0
+            temp_len = 1
+            for position, local_index in enumerate(reversed(index)):
+                temp_grobal_index += local_index * temp_len
+                temp_len = temp_len * (self._measurements[position])
+            return self._vecs[temp_grobal_index]
+        else:
+            return self._vecs[index]
 
     def __getitem__(self, key) -> np.ndarray:
-        # Get vec with a serial number.
+        # get vec with a serial number.
         return self._vecs[key]
 
-    # TODO: [WANT] Replace the method name with a better name
-    def matrixes(self) -> List[np.ndarray]:
+    def matrices(self) -> List[np.ndarray]:
+        """returns matrices of measurements.
+
+        Returns
+        -------
+        List[np.ndarray]
+            matrices of measurements.
+        """
         matrix_list = []
         size = (self.dim, self.dim)
         for v in self.vecs:
@@ -128,15 +162,21 @@ class Povm:
             matrix_list.append(matrix)
         return matrix_list
 
-    def matrix(self, key: Union[int, str]) -> np.ndarray:
-        if type(key) == int:
-            # get vec with serial number (0, 1, 2, 4...)
-            vec = self.vecs[key]
-        elif type(key) == str:
-            # get vec with measurement ('00', '01', '10', '11' ...)
-            vec = self.measurement(key)
-        else:
-            raise TypeError("The type of `key` must be int or str.")
+    def matrix(self, index: Union[int, Tuple]) -> np.ndarray:
+        """returns matrix of measurement.
+
+        Parameters
+        ----------
+        index : Union[int, Tuple]
+            index of vec of measurement.
+            if type is int, then regardes it as the index for CompositeSystem.
+            if type is Tuple, then regardes it as the indices for earch ElementalSystems.
+        Returns
+        -------
+        np.ndarray
+            matrix of measurement.
+        """
+        vec = self.get_measurement(index)
 
         size = (self.dim, self.dim)
         matrix = np.zeros(size, dtype=np.complex128)
@@ -144,10 +184,6 @@ class Povm:
             matrix += coefficient * basis
 
         return matrix
-
-    @property
-    def measurements(self) -> List[str]:
-        return list(self._measurements)
 
     @property
     def vecs(self) -> List[np.ndarray]:  # read only
@@ -161,7 +197,14 @@ class Povm:
         return self._vecs
 
     @property
-    def dim(self) -> int:  # read only
+    def dim(self) -> int:
+        """returns dim of Povm.
+
+        Returns
+        -------
+        int
+            dim of Povm.
+        """
         return self._dim
 
     @property
@@ -199,7 +242,7 @@ class Povm:
         bool
             If `True`, the povm is a set of Hermit matrices.
         """
-        for m in self.matrixes():
+        for m in self.matrices():
             if not mutil.is_hermitian(m):
                 return False
         return True
@@ -215,7 +258,7 @@ class Povm:
         atol = atol if atol else Settings.get_atol()
 
         size = [self.dim, self.dim]
-        for m in self.matrixes():
+        for m in self.matrices():
             if not mutil.is_positive_semidefinite(m, atol):
                 return False
 
@@ -237,7 +280,7 @@ class Povm:
     def _sum_matrix(self):
         size = [self.dim, self.dim]
         sum_matrix = np.zeros(size, dtype=np.complex128)
-        for m in self.matrixes():
+        for m in self.matrices():
             sum_matrix += np.reshape(m, size)
 
         return sum_matrix
@@ -260,13 +303,13 @@ class Povm:
 
         size = [self._dim, self._dim]
         if index is not None:
-            v = self.matrixes()[index]
+            v = self.matrices()[index]
             matrix = np.reshape(v, size)
             w = np.linalg.eigvals(matrix)
             return w
         else:
             w_list = []
-            for v in self.matrixes():
+            for v in self.matrices():
                 matrix = np.reshape(v, size)
                 w = np.linalg.eigvals(matrix)
                 w_list.append(w)
