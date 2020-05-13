@@ -211,17 +211,17 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # permutation the tensor product matrix according to the position of the sorted ElementalSystem
     # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
     tmp_e_sys_list = copy.copy(e_sys_list)
+    tmp_num_of_vecs_list = copy.copy(povm1.measurements)
+    tmp_num_of_vecs_list.extend(povm2.measurements)
     position = _check_cross_elemental_system_position(tmp_e_sys_list)
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
-        # TODO Povmに属するElemantalSystem毎のvecsのサイズが分かる関数が実装されたら、置き換えること
-        num_of_vecs_list = [2] * len(tmp_e_sys_list)
         # in case of vec, only left permutation matrix should be used.
         left_perm, _ = _permutation_matrix(position, dim_list)
         # B \otimes A = left_perm @ (A \otimes B)
         tensor_vecs = [left_perm @ tensor_vec for tensor_vec in tensor_vecs]
         # permutation the order of elements in tensor_vecs according to the position of the sorted ElementalSystem
-        left_perm_for_vecs, _ = _permutation_matrix(position, num_of_vecs_list)
+        left_perm_for_vecs, _ = _permutation_matrix(position, tmp_num_of_vecs_list)
         tensor_vecs = _convert_list_by_permutation_matrix(
             tensor_vecs, left_perm_for_vecs
         )
@@ -230,11 +230,17 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
             tmp_e_sys_list[position],
             tmp_e_sys_list[position - 1],
         )
+        # swap tmp_num_of_vecs_list
+        tmp_num_of_vecs_list[position - 1], tmp_num_of_vecs_list[position] = (
+            tmp_num_of_vecs_list[position],
+            tmp_num_of_vecs_list[position - 1],
+        )
         position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
     # create Povm
     is_physical = povm1.is_physical and povm2.is_physical
     tensor_povm = Povm(c_sys, tensor_vecs, is_physical=is_physical)
+    tensor_povm._set_measurements(tmp_num_of_vecs_list)
     return tensor_povm
 
 

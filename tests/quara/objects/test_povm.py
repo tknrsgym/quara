@@ -283,35 +283,22 @@ class TestPovm:
         actual = povm1.measurements
 
         # Assert
-        expected = ["0", "1"]
+        expected = [2]
         assert len(actual) == len(expected)
-
         for a, e in zip(actual, expected):
             assert a == e
 
-        # Case2:
-        # Arrange
-        basis2 = get_comp_basis()
-        e_sys2 = esys.ElementalSystem(2, basis2)
-        c_sys2 = csys.CompositeSystem([e_sys2])
-        vecs2 = [
-            np.array([23, 29, 31, 37], dtype=np.float64),
-            np.array([41, 43, 47, 53], dtype=np.float64),
-        ]
-        povm2 = Povm(c_sys2, vecs2, is_physical=False)
-        povm12 = tensor_product(povm1, povm2)
-
+        # Case 2:
         # Act
-        actual = povm12.measurements
-
+        povm1._set_measurements([1, 2])
+        actual = povm1.measurements
         # Assert
-        expected = ["00", "01", "10", "11"]
+        expected = [1, 2]
         assert len(actual) == len(expected)
-
         for a, e in zip(actual, expected):
             assert a == e
 
-    def test_measurement(self):
+    def test_get_measurement(self):
         # Case 1:
         # Arrange
         basis1 = get_comp_basis()
@@ -324,18 +311,18 @@ class TestPovm:
         povm1 = Povm(c_sys1, vecs1, is_physical=False)
 
         # Act
-        actual = povm1.measurement("0")
-        # Assert
-        expected = povm1[0]
-        assert np.all(actual == expected)
+        actual0 = povm1.get_measurement(0)
+        actual1 = povm1.get_measurement(1)
+        actual2 = povm1.get_measurement((0))
+        actual3 = povm1.get_measurement((1))
 
-        # Act
-        actual = povm1.measurement("1")
         # Assert
-        expected = povm1[1]
-        assert np.all(actual == expected)
+        assert np.all(actual0 == vecs1[0])
+        assert np.all(actual1 == vecs1[1])
+        assert np.all(actual2 == vecs1[0])
+        assert np.all(actual3 == vecs1[1])
 
-        # Case2:
+        # Case2: argument of get_measurement is type tuple
         # Arrange
         basis2 = get_comp_basis()
         e_sys2 = esys.ElementalSystem(2, basis2)
@@ -348,31 +335,41 @@ class TestPovm:
         povm12 = tensor_product(povm1, povm2)
 
         # Act
-        actual = povm12.measurement("00")
-        # Assert
-        expected = povm12[0]
-        assert np.all(actual == expected)
+        actual = [
+            povm12.get_measurement((0, 0)),
+            povm12.get_measurement((0, 1)),
+            povm12.get_measurement((1, 0)),
+            povm12.get_measurement((1, 1)),
+        ]
 
+        # Assert
+        expected = [
+            np.kron(vec1, vec2)
+            for vec1, vec2 in itertools.product(povm1.vecs, povm2.vecs)
+        ]
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert np.all(a == e)
+
+        # Case3: argument of get_measurement is type int
         # Act
-        actual = povm12.measurement("01")
-        # Assert
-        expected = povm12[1]
-        assert np.all(actual == expected)
+        actual = [
+            povm12.get_measurement(0),
+            povm12.get_measurement(1),
+            povm12.get_measurement(2),
+            povm12.get_measurement(3),
+        ]
 
-        # Act
-        actual = povm12.measurement("10")
         # Assert
-        expected = povm12[2]
-        assert np.all(actual == expected)
+        expected = [
+            np.kron(vec1, vec2)
+            for vec1, vec2 in itertools.product(povm1.vecs, povm2.vecs)
+        ]
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert np.all(a == e)
 
-        # Act
-        actual = povm12.measurement("11")
-        # Assert
-        expected = povm12[3]
-        assert np.all(actual == expected)
-
-    def test_measurement_unexpected(self):
-        # Case 1:
+    def test_get_measurement_unexpected(self):
         # Arrange
         basis1 = get_comp_basis()
         e_sys1 = esys.ElementalSystem(1, basis1)
@@ -383,11 +380,17 @@ class TestPovm:
         ]
         povm1 = Povm(c_sys1, vecs1, is_physical=False)
 
+        # Case 1:
         # Act & Assert
         with pytest.raises(ValueError):
-            # ValueError: That measurement does not exist.
-            # See the list of measurements by 'measurement' property.
-            _ = povm1.measurement("10")
+            # ValueError: length of tuple does not equal length of the list of measurements.
+            _ = povm1.get_measurement((0, 0))
+
+        # Case 2:
+        # Act & Assert
+        with pytest.raises(IndexError):
+            # IndexError: specified index does not exist in the list of measurements.
+            _ = povm1.get_measurement(2)
 
     def test_matrix(self):
         # Case 1:
@@ -402,13 +405,13 @@ class TestPovm:
         povm1 = Povm(c_sys1, vecs1, is_physical=False)
 
         # Act
-        actual = povm1.matrix("0")
+        actual = povm1.matrix(0)
         # Assert
-        expected = povm1.matrixes()
+        expected = povm1.matrices()
         npt.assert_almost_equal(actual, expected[0], decimal=15)
 
         # Act
-        actual = povm1.matrix("1")
+        actual = povm1.matrix(1)
         # Assert
         npt.assert_almost_equal(actual, expected[1], decimal=15)
 
@@ -425,61 +428,25 @@ class TestPovm:
         povm12 = tensor_product(povm1, povm2)
 
         # Act
-        actual = povm12.matrix("00")
+        actual = povm12.matrix((0, 0))
         # Assert
-        expected = povm12.matrixes()
+        expected = povm12.matrices()
         npt.assert_almost_equal(actual, expected[0], decimal=15)
 
         # Act
-        actual = povm12.matrix("01")
+        actual = povm12.matrix((0, 1))
         # Assert
         npt.assert_almost_equal(actual, expected[1], decimal=15)
 
         # Act
-        actual = povm12.matrix("10")
+        actual = povm12.matrix((1, 0))
         # Assert
         npt.assert_almost_equal(actual, expected[2], decimal=15)
 
         # Act
-        actual = povm12.matrix("11")
+        actual = povm12.matrix((1, 1))
         # Assert
         npt.assert_almost_equal(actual, expected[3], decimal=15)
-
-    # def test_vecs_size(self):
-    #     # Arange
-    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
-    #     vec_1 = np.array([1, 0], dtype=np.complex128)
-    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
-    #     vecs = [vec_1, vec_2]
-    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
-
-    #     # Act
-    #     vec_sizes = povm.vec_sizes()
-
-    #     # Assert
-    #     expected = [2, 4]
-    #     assert len(vec_sizes) == len(expected)
-    #     for a, b in (vec_sizes, expected):
-    #         assert a == b
-
-    # def test_e_sys_dims(self):
-    #     # Arange
-    #     e_sys = esys.ElementalSystem(1, get_comp_basis())
-    #     c_sys = csys.CompositeSystem([e_sys])
-    #     vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-    #     vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
-    #     vecs = [vec_1, vec_2]
-    #     povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
-
-    #     # Act
-    #     vec_sizes = povm.e_sys_dims()
-
-    #     # Assert
-    #     expected = [4]
-    #     assert len(vec_sizes) == len(expected)
-    #     for a, b in zip(vec_sizes, expected):
-    #         assert a == b
 
 
 def test_get_x_measurement():
