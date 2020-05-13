@@ -10,6 +10,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    quara.utils.file_util
    quara.utils.matrix_util

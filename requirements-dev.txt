@@ -2,7 +2,7 @@ numpy
 black
 pytest
 pytest-cov
-sphinx>=2.3
+sphinx>=3.0
 sphinx_rtd_theme
 ipykernel
 recommonmark
