@@ -585,6 +585,36 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
     assert povm13_2.composite_system.elemental_systems[2] == e_sys3
 
 
+def test_tensor_product_Povm_Povm_3vecs():
+    # Arange
+    basis1 = matrix_basis.get_comp_basis()
+    e_sys1 = ElementalSystem(1, basis1)
+    c_sys1 = CompositeSystem([e_sys1])
+    vecs1 = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    povm1 = Povm(c_sys1, vecs1, is_physical=False)
+
+    basis2 = matrix_basis.get_comp_basis()
+    e_sys2 = ElementalSystem(2, basis2)
+    c_sys2 = CompositeSystem([e_sys2])
+    vecs2 = [
+        np.array([23, 29, 31, 37], dtype=np.float64),
+        np.array([41, 43, 47, 53], dtype=np.float64),
+        np.array([59, 61, 67, 71], dtype=np.float64),
+    ]
+    povm2 = Povm(c_sys2, vecs2, is_physical=False)
+
+    # Act
+    povm21 = tensor_product(povm2, povm1)
+    actual = povm21.measurements
+
+    # Assert
+    expected = [len(vecs1), len(vecs2)]
+    assert actual == expected
+
+
 def test_tensor_product_unexpected_type():
     # Arrange
     basis1 = matrix_basis.get_comp_basis()
