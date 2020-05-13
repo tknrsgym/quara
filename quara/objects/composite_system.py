@@ -130,6 +130,13 @@ class CompositeSystem:
         -------
         MatrixBasis
             basis specified by index.
+
+        Raises
+        ------
+        ValueError
+            length of tuple does not equal length of the list of the basis.
+        IndexError
+            specified index does not exist in the list of the basis.
         """
         if type(index) == tuple:
             # whether size of tuple equals length of the list of ElementalSystems
