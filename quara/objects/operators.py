@@ -273,7 +273,7 @@ def composite(*elements) -> Union[Gate, Povm, State, List[float]]:
     - (Gate, Gate) -> Gate
     - (Gate, State) -> State
     - (Povm, Gate) -> Povm
-    - (Povm, State) -> List[float] (probability distribution)
+    - (Povm, State) -> List[np.array] dtype=np.float64(probability distribution)
     - list conststs of these combinations
 
     Returns
@@ -319,7 +319,8 @@ def _composite(elem1, elem2):
         return povm
     elif type(elem1) == Povm and type(elem2) == State:
         # calculate probability distribution
-        prob = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
+        prob_list = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
+        prob = np.array(prob_list, dtype=np.float64)
         return prob
     else:
         raise TypeError(

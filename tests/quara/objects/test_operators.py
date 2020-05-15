@@ -808,7 +808,7 @@ def test_composite_Povm_State():
     x_gate = get_x(c_sys)
     px_z = composite(composite(povm, x_gate), state)
     p_xz = composite(povm, composite(x_gate, state))
-    assert px_z == p_xz
+    npt.assert_almost_equal(px_z, p_xz, decimal=15)
 
 
 def test_to_list():
