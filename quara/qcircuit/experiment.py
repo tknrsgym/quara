@@ -23,22 +23,24 @@ class Experiment:
         schedules: List[List[Tuple[str, int]]],
     ) -> None:
 
-        # TODO: error message
-        if not self._validate_type(states, State):
+        # Validation
+        if not self._is_valid_type(states, State):
             raise TypeError("'states' must be a list of State.")
 
-        if not self._validate_type(povms, Povm):
+        if not self._is_valid_type(povms, Povm):
             raise TypeError("'povms' must be a list of Povm.")
 
-        if not self._validate_type(gates, Gate):
+        if not self._is_valid_type(gates, Gate):
             raise TypeError("'gates' must be a list of Gate.")
-
-        # TODO: validate schedules
 
         # Set
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
+
+        # Validate
+        self._validate_schedules(schedules)
+        # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
 
         # TODO:
@@ -62,13 +64,13 @@ class Experiment:
 
     # TODO: setter
 
-    def _validate_type(self, targets, expected_type) -> bool:
+    def _is_valid_type(self, targets, expected_type) -> bool:
         for target in targets:
             if target and not isinstance(target, expected_type):
                 return False
         return True
 
-    def _validate_schedules(self, schedules: List[List[Tuple[str, int]]]) -> bool:
+    def _validate_schedules(self, schedules: List[List[Tuple[str, int]]]) -> None:
         """
         - The schedule always starts with the state.
         - There must be one state.
@@ -92,14 +94,19 @@ class Experiment:
             try:
                 for item in schedule:
                     self._validate_schedule_item(item)
-            except (ValueError, IndexError, TypeError):
+            except (ValueError, IndexError, TypeError) as e:
                 # TODO: error message
-                raise QuaraScheduleItemError
+                message = "{}番目のスケジュールのitemが不正です. {})".format(i, str(item))
+                message += "\nDetail: {}".format(e.args[0])
+                raise QuaraScheduleItemError(message)
+
             try:
                 self._validate_schedule_order(schedule)
-            except ValueError:
+            except ValueError as e:
                 # TODO: error message
-                raise QuaraScheduleOrderError
+                message = "{}番目のスケジュールの並び順が不正です. {})".format(i, str(schedule))
+                message += "\nDetail: {}".format(e.args[0])
+                raise QuaraScheduleOrderError(message)
 
     def _validate_schedule_order(self, schedule: List[Tuple[str, int]]):
         """
@@ -118,9 +125,9 @@ class Experiment:
         TYPE_INDEX = 0
         INDEX_INDEX = 1
 
-        if schedule[0][TYPE_INDEX] == "state":
+        if schedule[0][TYPE_INDEX] != "state":
             raise ValueError("scheduleの最初の要素はstateである必要があります")
-        if schedule[-1][TYPE_INDEX] in ["povm", "mprocess"]:
+        if schedule[-1][TYPE_INDEX] not in ["povm", "mprocess"]:
             raise ValueError("scheduleの最後の要素はpovmかmprocessである必要があります")
 
         counter = collections.Counter([s[TYPE_INDEX] for s in schedule])
