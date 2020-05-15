@@ -7,10 +7,24 @@ from quara.objects.state import State
 
 
 class QuaraScheduleItemError(Exception):
+    """スケジュールの要素が不正だった時に送出する例外
+
+    Parameters
+    ----------
+    Exception : [type]
+        [description]
+    """
     pass
 
 
 class QuaraScheduleOrderError(Exception):
+    """スケジュールの並び順が不正だった時に送出する例外
+
+    Parameters
+    ----------
+    Exception : [type]
+        [description]
+    """
     pass
 
 
