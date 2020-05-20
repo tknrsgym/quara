@@ -207,7 +207,13 @@ class Experiment:
             raise IndexError(error_message)
 
     def calc_prob_dist(self):
+        # probDist
+        # - 入力：scheduleのインデックス
+        # - 出力：対応する確率分布
         pass
 
     def calc_prob_dists(self):
+        # - list_probDist
+        # - 入力：なし
+        # - 出力：全scheduleに対する確率分布のリスト
         pass
