@@ -40,14 +40,9 @@ class Experiment:
     ) -> None:
 
         # Validation
-        if not self._is_valid_type(states, State):
-            raise TypeError("'states' must be a list of State.")
-
-        if not self._is_valid_type(povms, Povm):
-            raise TypeError("'povms' must be a list of Povm.")
-
-        if not self._is_valid_type(gates, Gate):
-            raise TypeError("'gates' must be a list of Gate.")
+        self._validate_type(states, State)
+        self._validate_type(povms, Povm)
+        self._validate_type(gates, Gate)
 
         # Set
         self._states: List[State] = states
@@ -65,25 +60,83 @@ class Experiment:
     def states(self) -> List[State]:
         return self._states
 
+    @states.setter
+    def states(self, value):
+        # TODO: povm, gateとあわせて実装が冗長なので、あとで共通化する
+        self._validate_type(value, State)
+        old_value = self._states
+
+        try:
+            self._states = value
+            self._validate_schedules(self._schedules)
+        except QuaraScheduleItemError as e:
+            self._states = old_value
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'states' does not match schedules."
+            )
+        except Exception as e:
+            self._states = old_value
+            raise e
+
     @property
     def povms(self) -> List[Povm]:
         return self._povms
+
+    @povms.setter
+    def povms(self, value):
+        self._validate_type(value, Povm)
+        old_value = self._povms
+
+        try:
+            self._povms = value
+            self._validate_schedules(self._schedules)
+        except QuaraScheduleItemError as e:
+            self._povms = old_value
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'povms' does not match schedules."
+            )
+        except Exception as e:
+            self._povms = old_value
+            raise e
 
     @property
     def gates(self) -> List[Gate]:
         return self._gates
 
+    @gates.setter
+    def gates(self, value):
+        self._validate_type(value, Gate)
+        old_value = self._gates
+
+        try:
+            self._gates = value
+            self._validate_schedules(self._schedules)
+        except QuaraScheduleItemError as e:
+            self._gates = old_value
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'gates' does not match schedules."
+            )
+        except Exception as e:
+            self._gates = old_value
+            raise e
+
     @property
     def schedules(self) -> List[List[Tuple[str, int]]]:
         return self._schedules
 
-    # TODO: setter
+    @schedules.setter
+    def schedules(self, value):
+        self._validate_schedules(value)
+        self._schedules = value
 
-    def _is_valid_type(self, targets, expected_type) -> bool:
+    def _validate_type(self, targets, expected_type) -> None:
         for target in targets:
             if target and not isinstance(target, expected_type):
-                return False
-        return True
+                arg_name = expected_type.__name__.lower() + "s"
+                error_message = "'{}' must be a list of {}.".format(
+                    arg_name, expected_type.__name__
+                )
+                raise TypeError(error_message)
 
     def _validate_schedules(self, schedules: List[List[Tuple[str, int]]]) -> None:
         """
