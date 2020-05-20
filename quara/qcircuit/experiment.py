@@ -14,6 +14,7 @@ class QuaraScheduleItemError(Exception):
     Exception : [type]
         [description]
     """
+
     pass
 
 
@@ -25,6 +26,7 @@ class QuaraScheduleOrderError(Exception):
     Exception : [type]
         [description]
     """
+
     pass
 
 
@@ -51,14 +53,13 @@ class Experiment:
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
+        # TODO: List[MProcess]
+        self._mprocesses: list = []
 
         # Validate
         self._validate_schedules(schedules)
         # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
-
-        # TODO:
-        # mprocesses : List[MProcess]
 
     @property
     def states(self) -> List[State]:
@@ -106,20 +107,22 @@ class Experiment:
         for i, schedule in enumerate(schedules):
             # 何番目のscheduleで何のエラーが発生したのかわかるようにする
             try:
-                for item in schedule:
+                for j, item in enumerate(schedule):
                     self._validate_schedule_item(item)
             except (ValueError, IndexError, TypeError) as e:
                 # TODO: error message
-                message = "{}番目のスケジュールのitemが不正です. {})".format(i, str(item))
+                message = "The item in the schedules[{}] is invalid.\n".format(i)
+                message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
+                message += "{}: {}\n".format(j, item)
                 message += "\nDetail: {}".format(e.args[0])
                 raise QuaraScheduleItemError(message)
 
             try:
                 self._validate_schedule_order(schedule)
             except ValueError as e:
-                # TODO: error message
-                message = "{}番目のスケジュールの並び順が不正です. {})".format(i, str(schedule))
-                message += "\nDetail: {}".format(e.args[0])
+                message = "There is a schedule with an invalid order.\n"
+                message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
+                message += "Detail: {}".format(e.args[0])
                 raise QuaraScheduleOrderError(message)
 
     def _validate_schedule_order(self, schedule: List[Tuple[str, int]]):
@@ -134,47 +137,74 @@ class Experiment:
         """
 
         if len(schedule) < 2:
-            raise ValueError
+            raise ValueError(
+                "The schedule is too short. The schedule should start with state and end with povm or mprocess."
+            )
 
         TYPE_INDEX = 0
         INDEX_INDEX = 1
 
         if schedule[0][TYPE_INDEX] != "state":
-            raise ValueError("scheduleの最初の要素はstateである必要があります")
+            raise ValueError("The first element of the schedule must be a 'state'.")
         if schedule[-1][TYPE_INDEX] not in ["povm", "mprocess"]:
-            raise ValueError("scheduleの最後の要素はpovmかmprocessである必要があります")
+            raise ValueError(
+                "The last element of the schedule must be either 'povm' or 'mprocess'."
+            )
 
         counter = collections.Counter([s[TYPE_INDEX] for s in schedule])
         if counter["state"] >= 2:
-            raise ValueError("1つのスケジュールでStateは1つである必要があります")
+            raise ValueError(
+                "There are too many States; one schedule can only contain one State."
+            )
         if counter["povm"] >= 2:
-            raise ValueError("1つのスケジュールでPovmは1つである必要があります")
+            raise ValueError(
+                "There are too many POVMs; one schedule can only contain one POVM."
+            )
 
     def _validate_schedule_item(self, item: Tuple[str, int]) -> None:
         # scheduleのtuple単体の中身に問題がないか検証する
-        if len(item) != 2:
-            raise ValueError("Scheduleのitemは、strとintのタプルで表現してください")
+        if type(item) != tuple:
+            raise TypeError("A schedule item must be a tuple of str and int.")
 
-        item_name = item[0]
-        item_index = item[1]
+        if len(item) != 2:
+            raise ValueError("A schedule item must be a tuple of str and int.")
+
+        item_name, item_index = item[0], item[1]
         if type(item_name) != str:
-            raise TypeError("Scheduleのitemは、strとintのタプルで表現してください")
+            raise TypeError("A schedule item must be a tuple of str and int.")
 
         if type(item_index) != int:
-            raise TypeError("Scheduleのitemは、strとintのタプルで表現してください")
+            raise TypeError("A schedule item must be a tuple of str and int.")
 
         # TODO: 大文字・小文字の考慮。現状は小文字だけを想定する
         if item_name not in ["state", "povm", "gate", "mprocess"]:
             # TODO: error message
             raise ValueError(
-                "Scheduleのitemではstate, povm, gate, mprocessのいずれかで指定してください。"
+                "The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'."
             )
 
-        # TODO: mprocessへの対応
-        name2list = dict(state=self._states, povm=self._povms, gate=self._gates)
+        if item_name == "povm" and not self._povms:
+            raise IndexError(
+                "'povm' is used in the schedule, but no povm is given. Give a list of Povm to parameter 'povms' in the constructor."
+            )
+
+        if item_name == "mprocess" and not self._mprocesses:
+            raise IndexError(
+                "'mprocess' is used in the schedule, but no mprocess is given. Give a list of Mprocess to parameter 'mprocesses' in the constructor."
+            )
+
+        name2list = dict(
+            state=self._states,
+            povm=self._povms,
+            gate=self._gates,
+            mprocess=self._mprocesses,
+        )
         if not (0 <= item_index < len(name2list[item_name])):
-            # TODO: error message
-            raise IndexError()
+            error_message = "The index out of range."
+            error_message += "'{}s' is {} in length, but an index out of range was referenced in the schedule.".format(
+                item_name, item_index
+            )
+            raise IndexError(error_message)
 
     def calc_prob_dist(self):
         pass
