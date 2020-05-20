@@ -147,13 +147,13 @@ class Experiment:
         if schedule[0][TYPE_INDEX] != "state":
             raise ValueError("The first element of the schedule must be a 'state'.")
         if schedule[-1][TYPE_INDEX] not in ["povm", "mprocess"]:
-            raise ValueError("scheduleの最後の要素はpovmかmprocessである必要があります")
+            raise ValueError("The last element of the schedule must be either 'povm' or 'mprocess'.")
 
         counter = collections.Counter([s[TYPE_INDEX] for s in schedule])
         if counter["state"] >= 2:
-            raise ValueError("1つのスケジュールでStateは1つである必要があります")
+            raise ValueError("There are too many States; one schedule can only contain one State.")
         if counter["povm"] >= 2:
-            raise ValueError("1つのスケジュールでPovmは1つである必要があります")
+            raise ValueError("There are too many POVMs; one schedule can only contain one POVM.")
 
     def _validate_schedule_item(self, item: Tuple[str, int]) -> None:
         # scheduleのtuple単体の中身に問題がないか検証する
