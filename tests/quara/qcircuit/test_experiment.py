@@ -40,7 +40,7 @@ class TestExperiment:
         gate_list = [gate_0, gate_1]
         return state_list, povm_list, gate_list
 
-    def test_property(self):
+    def test_getter(self):
         # Array
         states, povms, gates = self.array_states_povms_gates()
         schedule_list = [
@@ -84,6 +84,82 @@ class TestExperiment:
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
             assert a == e
+
+    def test_setter_validation(self):
+        # Array
+        states, povms, gates = self.array_states_povms_gates()
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 1), ("gate", 1), ("povm", 1)],
+        ]
+
+        exp = Experiment(
+            states=states, povms=povms, gates=gates, schedules=schedule_list
+        )
+
+        # Act & Assert
+        ng_new_states = [states[0], povms[0]]
+        with pytest.raises(TypeError):
+            # TypeError: 'states' must be a list of State.
+            exp.states = ng_new_states
+
+        # Act & Assert
+        ng_new_states = [states[0]]
+        with pytest.raises(QuaraScheduleItemError):
+            # New State does not match schedules.
+            exp.states = ng_new_states
+        # Assert
+        actual, expected = exp.states, states
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        # Act & Assert
+        ng_new_povms = [states[0], povms[0]]
+
+        with pytest.raises(TypeError):
+            # TypeError: 'povms' must be a list of Povm.
+            exp.povms = ng_new_povms
+
+        # Act & Assert
+        ng_new_povms = [povms[0]]
+        with pytest.raises(QuaraScheduleItemError):
+            # New 'povms' does not match schedules.
+            exp.povms = ng_new_povms
+        # Assert
+        actual, expected = exp.povms, povms
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        # Act & Assert
+        ng_new_gates = [states[0], gates[0]]
+        with pytest.raises(TypeError):
+            # TypeError: 'gates' must be a list of Gate.
+            exp.gates = ng_new_gates
+
+        # Act & Assert
+        ng_new_gates = [gates[0]]
+        with pytest.raises(QuaraScheduleItemError):
+            # New 'gates' does not match schedules.
+            exp.gates = ng_new_gates
+        # Assert
+        actual, expected = exp.gates, gates
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        # Act & Assert
+        ng_new_schedules = [[("povm"), ("gate", 1), ("povm", 1)]]
+        with pytest.raises(QuaraScheduleItemError):
+            # A schedule item must be a tuple of str and int.
+            exp.schedules = ng_new_schedules
+
+        # Act & Assert
+        ng_new_schedules = [[("povm", 1), ("gate", 1), ("povm", 1)]]
+        with pytest.raises(QuaraScheduleOrderError):
+            # he first element of the schedule must be a 'state'.
+            exp.schedules = ng_new_schedules
 
     def test_init_unexpected_type(self):
         # Array
