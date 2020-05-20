@@ -127,3 +127,156 @@ def generate_dataset_from_list_probdist(
         dataset.append(data)
 
     return dataset
+
+
+def calc_empidist(
+    measurement_num: int, data: List[int], list_num_sum: List[int]
+) -> List[np.array]:
+    """calculates empirical distributions.
+
+    uses ``data`` from 0-th to ``list_num_sum[index]``-th to calculate empirical distributions.
+
+    Parameters
+    ----------
+    measurement_num : int
+        number of measurements.
+    data : List[int]
+        data of measurement outcomes.
+    list_num_sum : List[int]
+        a list of the range of ``data`` to calculate empirical distributions.
+
+    Returns
+    -------
+    List[np.array]
+        empirical distributions.
+        the dtype of each element is np.float64.
+
+    Raises
+    ------
+    ValueError
+        ``measurement_num`` is not non-negative integer.
+    ValueError
+        there is an element of ``list_num_sum`` that is not less than or equal to length of ``data``.
+    ValueError
+        there is an element of ``data`` that is not non-negative and less than ``measurement_num``.
+    ValueError
+        ``list_num_sum`` is not an increasing sequence.
+
+    Examples
+    --------
+    >>> measurement_num = 2
+    >>> data = [1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1]
+    >>> list_num_sum = [5, 10, 20]
+    >>> empidist = calc_empidist(measurement_num, data, list_num_sum)
+    >>> empidist
+    [array([0.4, 0.6]), array([0.3, 0.7]), array([0.3, 0.7])]
+
+    """
+    # whether measurement_num is non-negative integer.
+    if measurement_num < 0:
+        raise ValueError(
+            f"measurement_num must be non-negative integer. measurement_num is {measurement_num}"
+        )
+
+    empidist_list = []
+    cumulative_frequency = np.zeros((measurement_num), dtype=np.int)
+
+    # take next num_sum from 'list_num_sum'
+    if len(list_num_sum) == 0:
+        return empidist_list
+    next_num_sum = list_num_sum[0]
+    next_num_sum_position = 0
+    former_num_sum = 0
+
+    # whether each number of list_num_sum is less than or equal to length of data.
+    if next_num_sum > len(data):
+        raise ValueError(
+            f"each number of list_num_sum must be less than or equal to length of data. list_num_sum of index {next_num_sum_position} is {next_num_sum}"
+        )
+
+    for index, d in enumerate(data):
+        # whether 0 <= d < 'measurement_num'.
+        if not 0 <= d < measurement_num:
+            raise ValueError(
+                f"for each data d, it must be 0 <= d < 'measurement_num'. data of index {index} is {d}"
+            )
+
+        cumulative_frequency[d] += 1
+
+        # calculate empirical distribution
+        if index + 1 == next_num_sum:
+            empidist = cumulative_frequency / (index + 1)
+            empidist_list.append(empidist)
+
+            # take next num_sum from 'list_num_sum'
+            if next_num_sum_position + 1 == len(list_num_sum):
+                # end of 'list_num_sum'
+                return empidist_list
+            else:
+                former_num_sum = next_num_sum
+                next_num_sum_position += 1
+                next_num_sum = list_num_sum[next_num_sum_position]
+
+                # whether each number of list_num_sum is less than or equal to length of data.
+                if next_num_sum > len(data):
+                    raise ValueError(
+                        f"each number of list_num_sum must be less than or equal to length of data. list_num_sum of index {next_num_sum_position} is {next_num_sum}"
+                    )
+
+                # whether list_num_sum must be an increasing sequence.
+                if former_num_sum >= next_num_sum:
+                    raise ValueError(
+                        f"list_num_sum must be an increasing sequence. list_num_sum contains the following subsequence: {former_num_sum}, {next_num_sum}"
+                    )
+
+    return empidist_list
+
+
+def calc_list_empidist(
+    list_measurement_num: List[int],
+    list_data: List[List[int]],
+    list_list_num_sum: List[List[int]],
+) -> List[List[np.array]]:
+    """calculates a list of empirical distributions by :func:`~quara.qcircuit.data_generator.calc_empidist`.
+
+    Parameters
+    ----------
+    list_measurement_num : List[int]
+        a list of measurement_num
+    list_data : List[List[int]]
+        a list of data
+    list_list_num_sum : List[List[int]]
+        a list of list_num_sum
+
+    Returns
+    -------
+    List[List[np.array]]
+        a list of list_num_sum
+
+    Raises
+    ------
+    ValueError
+        the length of ``list_measurement_num`` does not equal the length of ``list_data``.
+    ValueError
+        the length of ``list_measurement_num`` does not equal the length of ``list_list_num_sum``.
+    """
+    # whether the length of list_measurement_num equals the length of list_data.
+    if len(list_measurement_num) != len(list_data):
+        raise ValueError(
+            f"the length of list_measurement_num must equal the length of list_data. the length of list_measurement_num is {len(list_measurement_num)}. the length of list_data is {len(list_data)}"
+        )
+
+    # whether the length of list_measurement_num equals the length of list_list_num_sum.
+    if len(list_measurement_num) != len(list_list_num_sum):
+        raise ValueError(
+            f"the length of list_measurement_num must equal the length of list_list_num_sum. the length of list_measurement_num is {len(list_measurement_num)}. the length of list_list_num_sum is {len(list_list_num_sum)}"
+        )
+
+    list_empidists = []
+    for measurement_num, data, list_num_sum in zip(
+        list_measurement_num, list_data, list_list_num_sum
+    ):
+        empidists = calc_empidist(measurement_num, data, list_num_sum)
+        list_empidists.append(empidists)
+
+    return list_empidists
