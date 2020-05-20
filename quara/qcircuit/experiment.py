@@ -53,14 +53,13 @@ class Experiment:
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
+        # TODO: List[MProcess]
+        self._mprocesses: list = []
 
         # Validate
         self._validate_schedules(schedules)
         # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
-
-        # TODO:
-        # mprocesses : List[MProcess]
 
     @property
     def states(self) -> List[State]:
@@ -108,11 +107,13 @@ class Experiment:
         for i, schedule in enumerate(schedules):
             # 何番目のscheduleで何のエラーが発生したのかわかるようにする
             try:
-                for item in schedule:
+                for j, item in enumerate(schedule):
                     self._validate_schedule_item(item)
             except (ValueError, IndexError, TypeError) as e:
                 # TODO: error message
-                message = "{}番目のスケジュールのitemが不正です. {})".format(i, str(item))
+                message = "The item in the schedules[{}] is invalid.\n".format(i)
+                message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
+                message += "{}: {}\n".format(j, item)
                 message += "\nDetail: {}".format(e.args[0])
                 raise QuaraScheduleItemError(message)
 
@@ -174,8 +175,22 @@ class Experiment:
                 "Scheduleのitemではstate, povm, gate, mprocessのいずれかで指定してください。"
             )
 
-        # TODO: mprocessへの対応
-        name2list = dict(state=self._states, povm=self._povms, gate=self._gates)
+        if item_name == "povm" and not self._povms:
+            raise IndexError(
+                "'povm' is used in the schedule, but no povm is given. Give a list of Povm to parameter 'povms' in the constructor."
+            )
+
+        if item_name == "mprocess" and not self._mprocesses:
+            raise IndexError(
+                "'mprocess' is used in the schedule, but no mprocess is given. Give a list of Mprocess to parameter 'mprocesses' in the constructor."
+            )
+
+        name2list = dict(
+            state=self._states,
+            povm=self._povms,
+            gate=self._gates,
+            mprocess=self._mprocesses,
+        )
         if not (0 <= item_index < len(name2list[item_name])):
             # TODO: error message
             raise IndexError()
