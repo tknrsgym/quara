@@ -6,10 +6,18 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i
-from quara.objects.povm import (Povm, get_x_measurement, get_y_measurement,
-                                get_z_measurement)
+from quara.objects.povm import (
+    Povm,
+    get_x_measurement,
+    get_y_measurement,
+    get_z_measurement,
+)
 from quara.objects.state import State, get_x0_1q, get_y0_1q
-from quara.qcircuit.experiment import Experiment, QuaraScheduleOrderError
+from quara.qcircuit.experiment import (
+    Experiment,
+    QuaraScheduleItemError,
+    QuaraScheduleOrderError,
+)
 
 
 class TestExperiment:
@@ -119,7 +127,7 @@ class TestExperiment:
                 schedules=schedule_list,
             )
 
-    def test_expeption_too_short_schedule(self):
+    def test_expeption_order_too_short_schedule(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -137,7 +145,7 @@ class TestExperiment:
                 schedules=ng_schedule_list,
             )
 
-    def test_expeption_not_start_with_state(self):
+    def test_expeption_order_not_start_with_state(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -157,12 +165,11 @@ class TestExperiment:
                 schedules=ng_schedule_list,
             )
 
-    def test_expeption_not_end_with_povm_mprocess(self):
+    def test_expeption_order_not_end_with_povm_mprocess(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state", 0), ("gate", 0), ("mprocess", 0)],  # OK
             [("state", 0), ("gate", 1), ("state", 1)],  # NG
             [("state", 1), ("gate", 1), ("povm", 1)],  # OK
         ]
@@ -170,7 +177,49 @@ class TestExperiment:
         # Act & Assert
         with pytest.raises(QuaraScheduleOrderError):
             # There is a schedule with an invalid order.
-            # Detail: The first element of the schedule must be a 'state'.
+            # Detail: The last element of the schedule must be either 'povm' or 'mprocess'.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+        # TODO: mprocessを実装後、mprocessで終わるスケジュールを含めたテストを追加する
+
+    def test_expeption_order_too_many_state(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 0)],  # OK
+            [("state", 0), ("state", 1), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleOrderError):
+            # There is a schedule with an invalid order.
+            # Detail: There are too many States; one schedule can only contain one State.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_order_too_many_povm(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state", 0), ("gate", 1), ("povm", 0), ("povm", 1)],  # NG
+            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleOrderError):
+            # There is a schedule with an invalid order.
+            # Detail: There are too many POVMs; one schedule can only contain one POVM.
             _ = Experiment(
                 states=ok_states,
                 povms=ok_povms,
@@ -188,7 +237,7 @@ class TestExperiment:
         ]
 
         # Act & Assert
-        with pytest.raises(QuaraScheduleOrderError):
+        with pytest.raises(QuaraScheduleItemError):
             # There is a schedule with an invalid order.
             # Detail: The first element of the schedule must be a 'state'.
             _ = Experiment(
