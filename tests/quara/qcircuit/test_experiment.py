@@ -17,7 +17,7 @@ from quara.qcircuit.experiment import Experiment
 
 
 class TestExperiment:
-    def test_init_ok(self):
+    def test_property(self):
         # Array
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
@@ -50,10 +50,30 @@ class TestExperiment:
         gate_list = [gate_0, None]
 
         # Act & Assert
-        # Noneが含まれていてもOK
-        _ = Experiment(
+        exp = Experiment(
             states=state_list, povms=povm_list, gates=gate_list, schedules=schedule_list
         )
+
+        # Assert
+        actual, expected = exp.states, state_list
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        actual, expected = exp.povms, povm_list
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        actual, expected = exp.gates, gate_list
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
+
+        actual, expected = exp.schedules, schedule_list
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
 
     def test_init_unexpected_type(self):
         # Array
