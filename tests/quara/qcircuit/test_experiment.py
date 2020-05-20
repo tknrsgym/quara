@@ -150,7 +150,7 @@ class TestExperiment:
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("povm", 0), ("gate", 1), ("povm", 1)],  # NG
+            [("povm", 1), ("gate", 1), ("povm", 1)],  # NG
             [("state", 1), ("gate", 1), ("povm", 1)],  # OK
         ]
 
@@ -170,12 +170,12 @@ class TestExperiment:
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state", 0), ("gate", 1), ("state", 1)],  # NG
-            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
+            [("state"), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
 
         # Act & Assert
-        with pytest.raises(QuaraScheduleOrderError):
+        with pytest.raises(QuaraScheduleItemError):
             # There is a schedule with an invalid order.
             # Detail: The last element of the schedule must be either 'povm' or 'mprocess'.
             _ = Experiment(
@@ -240,6 +240,146 @@ class TestExperiment:
         with pytest.raises(QuaraScheduleItemError):
             # There is a schedule with an invalid order.
             # Detail: The first element of the schedule must be a 'state'.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_not_tuple(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [1, ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleItemError):
+            # The item in the schedules[1] is invalid.
+            # Detail: A schedule item must be a tuple of str and int.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_too_short(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state"), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleItemError):
+            # The item in the schedules[1] is invalid.
+            # Detail: A schedule item must be a tuple of str and int.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_too_long(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state", 1, 1), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleItemError):
+            # The item in the schedules[1] is invalid.
+            # Detail: A schedule item must be a tuple of str and int.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_invalid_name_type(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [(1, 1), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleItemError):
+            # The item in the schedules[1] is invalid.
+            # Detail: A schedule item must be a tuple of str and int.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_invalid_index_type(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state", "1"), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleItemError):
+            # The item in the schedules[1] is invalid.
+            # Detail: A schedule item must be a tuple of str and int.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_unknown_name(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state?", 1), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleItemError):
+            # The item in the schedules[1] is invalid.
+            # Detail: The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_out_of_range(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state", 3), ("gate", 1), ("povm", 1)],  # NG
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleItemError):
+            # The item in the schedules[1] is invalid.
+            # Detail: The index out of range.'states' is 3 in length, but an index out of range was referenced in the schedule.
             _ = Experiment(
                 states=ok_states,
                 povms=ok_povms,

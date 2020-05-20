@@ -147,32 +147,40 @@ class Experiment:
         if schedule[0][TYPE_INDEX] != "state":
             raise ValueError("The first element of the schedule must be a 'state'.")
         if schedule[-1][TYPE_INDEX] not in ["povm", "mprocess"]:
-            raise ValueError("The last element of the schedule must be either 'povm' or 'mprocess'.")
+            raise ValueError(
+                "The last element of the schedule must be either 'povm' or 'mprocess'."
+            )
 
         counter = collections.Counter([s[TYPE_INDEX] for s in schedule])
         if counter["state"] >= 2:
-            raise ValueError("There are too many States; one schedule can only contain one State.")
+            raise ValueError(
+                "There are too many States; one schedule can only contain one State."
+            )
         if counter["povm"] >= 2:
-            raise ValueError("There are too many POVMs; one schedule can only contain one POVM.")
+            raise ValueError(
+                "There are too many POVMs; one schedule can only contain one POVM."
+            )
 
     def _validate_schedule_item(self, item: Tuple[str, int]) -> None:
         # scheduleのtuple単体の中身に問題がないか検証する
-        if len(item) != 2:
-            raise ValueError("Scheduleのitemは、strとintのタプルで表現してください")
+        if type(item) != tuple:
+            raise TypeError("A schedule item must be a tuple of str and int.")
 
-        item_name = item[0]
-        item_index = item[1]
+        if len(item) != 2:
+            raise ValueError("A schedule item must be a tuple of str and int.")
+
+        item_name, item_index = item[0], item[1]
         if type(item_name) != str:
-            raise TypeError("Scheduleのitemは、strとintのタプルで表現してください")
+            raise TypeError("A schedule item must be a tuple of str and int.")
 
         if type(item_index) != int:
-            raise TypeError("Scheduleのitemは、strとintのタプルで表現してください")
+            raise TypeError("A schedule item must be a tuple of str and int.")
 
         # TODO: 大文字・小文字の考慮。現状は小文字だけを想定する
         if item_name not in ["state", "povm", "gate", "mprocess"]:
             # TODO: error message
             raise ValueError(
-                "Scheduleのitemではstate, povm, gate, mprocessのいずれかで指定してください。"
+                "The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'."
             )
 
         if item_name == "povm" and not self._povms:
@@ -192,8 +200,11 @@ class Experiment:
             mprocess=self._mprocesses,
         )
         if not (0 <= item_index < len(name2list[item_name])):
-            # TODO: error message
-            raise IndexError()
+            error_message = "The index out of range."
+            error_message += "'{}s' is {} in length, but an index out of range was referenced in the schedule.".format(
+                item_name, item_index
+            )
+            raise IndexError(error_message)
 
     def calc_prob_dist(self):
         pass
