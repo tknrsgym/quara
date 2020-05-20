@@ -14,6 +14,7 @@ class QuaraScheduleItemError(Exception):
     Exception : [type]
         [description]
     """
+
     pass
 
 
@@ -25,6 +26,7 @@ class QuaraScheduleOrderError(Exception):
     Exception : [type]
         [description]
     """
+
     pass
 
 
@@ -117,9 +119,9 @@ class Experiment:
             try:
                 self._validate_schedule_order(schedule)
             except ValueError as e:
-                # TODO: error message
-                message = "{}番目のスケジュールの並び順が不正です. {})".format(i, str(schedule))
-                message += "\nDetail: {}".format(e.args[0])
+                message = "There is a schedule with an invalid order.\n"
+                message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
+                message += "Detail: {}".format(e.args[0])
                 raise QuaraScheduleOrderError(message)
 
     def _validate_schedule_order(self, schedule: List[Tuple[str, int]]):
@@ -134,13 +136,15 @@ class Experiment:
         """
 
         if len(schedule) < 2:
-            raise ValueError
+            raise ValueError(
+                "The schedule is too short. The schedule should start with state and end with povm or mprocess."
+            )
 
         TYPE_INDEX = 0
         INDEX_INDEX = 1
 
         if schedule[0][TYPE_INDEX] != "state":
-            raise ValueError("scheduleの最初の要素はstateである必要があります")
+            raise ValueError("The first element of the schedule must be a 'state'.")
         if schedule[-1][TYPE_INDEX] not in ["povm", "mprocess"]:
             raise ValueError("scheduleの最後の要素はpovmかmprocessである必要があります")
 
