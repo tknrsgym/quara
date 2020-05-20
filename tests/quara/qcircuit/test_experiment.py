@@ -156,3 +156,44 @@ class TestExperiment:
                 gates=ok_gates,
                 schedules=ng_schedule_list,
             )
+
+    def test_expeption_not_end_with_povm_mprocess(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state", 0), ("gate", 0), ("mprocess", 0)],  # OK
+            [("state", 0), ("gate", 1), ("state", 1)],  # NG
+            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleOrderError):
+            # There is a schedule with an invalid order.
+            # Detail: The first element of the schedule must be a 'state'.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
+
+    def test_expeption_item_no_mprocess(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ng_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
+            [("state", 0), ("gate", 0), ("mprocess", 0)],  # NG
+            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
+        ]
+
+        # Act & Assert
+        with pytest.raises(QuaraScheduleOrderError):
+            # There is a schedule with an invalid order.
+            # Detail: The first element of the schedule must be a 'state'.
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ng_schedule_list,
+            )
