@@ -93,6 +93,11 @@ class TestExperiment:
         for a, e in zip(actual, expected):
             assert a == e
 
+        actual, expected = exp.trial_nums, trial_nums
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert a == e
+
     def test_setter_validation(self):
         # Array
         states, povms, gates = self.array_states_povms_gates()
@@ -505,4 +510,3 @@ class TestExperiment:
                 schedules=ng_schedule_list,
                 trial_nums=trial_nums,
             )
-
