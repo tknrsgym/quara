@@ -47,9 +47,16 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 1), ("gate", 1), ("povm", 1)],
         ]
+        trial_nums = [1] * len(schedule_list)
 
         # Act & Assert
-        _ = Experiment(states=states, povms=povms, gates=gates, schedules=schedule_list)
+        _ = Experiment(
+            states=states,
+            povms=povms,
+            gates=gates,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
 
         # Arrange
         source_states = [states[0], None]
@@ -62,6 +69,7 @@ class TestExperiment:
             povms=source_povms,
             gates=source_gates,
             schedules=schedule_list,
+            trial_nums=trial_nums,
         )
 
         # Assert
@@ -92,9 +100,14 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 1), ("gate", 1), ("povm", 1)],
         ]
+        trial_nums = [1] * len(schedule_list)
 
         exp = Experiment(
-            states=states, povms=povms, gates=gates, schedules=schedule_list
+            states=states,
+            povms=povms,
+            gates=gates,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
         )
 
         # Act & Assert
@@ -168,6 +181,7 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 1), ("gate", 1), ("povm", 1)],
         ]
+        trial_nums = [1] * len(schedule_list)
 
         # Act & Assert
         # Case1: Invalid states
@@ -179,6 +193,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=schedule_list,
+                trial_nums=trial_nums,
             )
 
         # Case2: Invalid povms
@@ -190,6 +205,7 @@ class TestExperiment:
                 povms=ng_povms,
                 gates=ok_gates,
                 schedules=schedule_list,
+                trial_nums=trial_nums,
             )
 
         # Case3: Invalid gates
@@ -201,6 +217,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ng_gates,
                 schedules=schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_order_too_short_schedule(self):
@@ -210,6 +227,7 @@ class TestExperiment:
             [("state", 0)],
             [("state", 1), ("gate", 1), ("povm", 1)],
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleOrderError):
@@ -219,6 +237,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_order_not_start_with_state(self):
@@ -229,6 +248,7 @@ class TestExperiment:
             [("povm", 1), ("gate", 1), ("povm", 1)],  # NG
             [("state", 1), ("gate", 1), ("povm", 1)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleOrderError):
@@ -239,6 +259,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_order_not_end_with_povm_mprocess(self):
@@ -249,6 +270,7 @@ class TestExperiment:
             [("state"), ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -259,6 +281,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
         # TODO: mprocessを実装後、mprocessで終わるスケジュールを含めたテストを追加する
@@ -271,6 +294,7 @@ class TestExperiment:
             [("state", 0), ("state", 1), ("gate", 1), ("povm", 1)],  # NG
             [("state", 1), ("gate", 1), ("povm", 1)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleOrderError):
@@ -281,6 +305,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_order_too_many_povm(self):
@@ -291,6 +316,7 @@ class TestExperiment:
             [("state", 0), ("gate", 1), ("povm", 0), ("povm", 1)],  # NG
             [("state", 1), ("gate", 1), ("povm", 1)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleOrderError):
@@ -301,6 +327,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_no_mprocess(self):
@@ -311,6 +338,7 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("mprocess", 0)],  # NG
             [("state", 1), ("gate", 1), ("povm", 1)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -321,6 +349,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_not_tuple(self):
@@ -331,6 +360,7 @@ class TestExperiment:
             [1, ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -341,6 +371,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_too_short(self):
@@ -351,6 +382,7 @@ class TestExperiment:
             [("state"), ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -361,6 +393,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_too_long(self):
@@ -371,6 +404,7 @@ class TestExperiment:
             [("state", 1, 1), ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -381,6 +415,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_invalid_name_type(self):
@@ -391,6 +426,7 @@ class TestExperiment:
             [(1, 1), ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -401,6 +437,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_invalid_index_type(self):
@@ -411,6 +448,7 @@ class TestExperiment:
             [("state", "1"), ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -421,6 +459,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_unknown_name(self):
@@ -431,6 +470,7 @@ class TestExperiment:
             [("state?", 1), ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -441,6 +481,7 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
 
     def test_expeption_item_out_of_range(self):
@@ -451,6 +492,7 @@ class TestExperiment:
             [("state", 3), ("gate", 1), ("povm", 1)],  # NG
             [("state", 0), ("gate", 0), ("povm", 0)],  # OK
         ]
+        trial_nums = [1] * len(ng_schedule_list)
 
         # Act & Assert
         with pytest.raises(QuaraScheduleItemError):
@@ -461,4 +503,6 @@ class TestExperiment:
                 povms=ok_povms,
                 gates=ok_gates,
                 schedules=ng_schedule_list,
+                trial_nums=trial_nums,
             )
+
