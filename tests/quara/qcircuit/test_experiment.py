@@ -225,6 +225,17 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
+        # Case4: Invalid trial_nums
+        ng_trial_nums = [1, 1, 1]
+        with pytest.raises(ValueError):
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=schedule_list,
+                trial_nums=ng_trial_nums,
+            )
+
     def test_expeption_order_too_short_schedule(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
