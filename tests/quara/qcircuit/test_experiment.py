@@ -510,3 +510,50 @@ class TestExperiment:
                 schedules=ng_schedule_list,
                 trial_nums=trial_nums,
             )
+
+    def test_init_unexpected_trial_nums(self):
+        # Array
+        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
+        ok_schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 1), ("gate", 1), ("povm", 1)],
+        ]
+
+        # Act & Assert
+        # Case1: Invalid Type
+        ng_trial_nums = 1
+        with pytest.raises(TypeError):
+            # TypeError: 'trial_nums' must be a list with int elements
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ok_schedule_list,
+                trial_nums=ng_trial_nums,
+            )
+
+        # Act & Assert
+        # Case2: Invalid Type
+        ng_trial_nums = [1, "1"]
+        with pytest.raises(TypeError):
+            # TypeError: 'trial_nums' must be a list with int elements
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ok_schedule_list,
+                trial_nums=ng_trial_nums,
+            )
+
+        # Act & Assert
+        # Case3: Invalid Length; The length of the schedule is 2.
+        ng_trial_nums = [1, 1, 1]
+        with pytest.raises(ValueError):
+            # TypeError: 'trial_nums' must be a list with int elements
+            _ = Experiment(
+                states=ok_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=ok_schedule_list,
+                trial_nums=ng_trial_nums,
+            )
