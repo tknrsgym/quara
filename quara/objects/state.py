@@ -241,8 +241,8 @@ def convert_state_index_to_var_index(
 
 def convert_var_to_state(
     c_sys: CompositeSystem, var: np.ndarray, is_eq_constraints: bool = True
-) -> np.array:
-    """converts vec of variables to vec of state.
+) -> State:
+    """converts vec of variables to state.
 
     Parameters
     ----------
@@ -255,11 +255,12 @@ def convert_var_to_state(
 
     Returns
     -------
-    np.array
-        vec of state.
+    State
+        converted state.
     """
     vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if is_eq_constraints else var
-    return vec
+    state = State(c_sys, vec, is_physical=False)
+    return state
 
 
 def convert_state_to_var(
@@ -290,8 +291,8 @@ def calc_gradient_from_state(
     vec: np.ndarray,
     var_index: int,
     is_eq_constraints: bool = True,
-) -> np.array:
-    """calculates vec of gradient from vec of state and variable index.
+) -> State:
+    """calculates gradient from State.
 
     Parameters
     ----------
@@ -306,8 +307,8 @@ def calc_gradient_from_state(
 
     Returns
     -------
-    np.array
-        vec of gradient.
+    State
+        State with gradient as vec.
     """
     gradient = np.zeros((c_sys.dim ** 2), dtype=np.float64)
     if is_eq_constraints:
@@ -315,7 +316,8 @@ def calc_gradient_from_state(
     else:
         gradient[var_index] = 1
 
-    return gradient
+    state = State(c_sys, gradient, is_physical=False)
+    return state
 
 
 def get_x0_1q(c_sys: CompositeSystem) -> np.array:
