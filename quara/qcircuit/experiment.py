@@ -4,6 +4,10 @@ from typing import List, Tuple
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm
 from quara.objects.state import State
+from quara.qcircuit.data_generator import (
+    generate_data_from_probdist,
+    generate_dataset_from_list_probdist,
+)
 
 
 class QuaraScheduleItemError(Exception):
@@ -31,12 +35,18 @@ class QuaraScheduleOrderError(Exception):
 
 
 class Experiment:
+    """
+    実験設定のクラス
+    トモグラフィーに限らず一般の量子回路を扱う
+    """
+
     def __init__(
         self,
         states: List[State],
         povms: List[Povm],
         gates: List[Gate],
         schedules: List[List[Tuple[str, int]]],
+        trial_nums: List[List[int]],
     ) -> None:
 
         # Validation
@@ -55,6 +65,23 @@ class Experiment:
         self._validate_schedules(schedules)
         # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
+
+        # Validate
+        self._validate_trial_nums(trial_nums, self._schedules)
+
+        # Set
+        # 各スケジュールを試行する回数
+        self._trial_nums: List[int] = trial_nums
+
+    def _validate_trial_nums(self, trial_nums, schedules):
+        if type(trial_nums) != list:
+            raise TypeError("'trial_nums' must be a list with int elements.")
+        for n in trial_nums:
+            if type(n) != int:
+                raise TypeError("'trial_nums' must be a list with int elements.")
+
+        if len(trial_nums) != len(schedules):
+            raise ValueError("'trial_nums' and 'schedules' must be equal in length.")
 
     @property
     def states(self) -> List[State]:
@@ -127,7 +154,18 @@ class Experiment:
     @schedules.setter
     def schedules(self, value):
         self._validate_schedules(value)
+        # TODO: 変更後のスケジュールがtrial_numsと整合性が取れているかチェック
+        self._validate_trial_nums(self._trial_nums, value)
         self._schedules = value
+
+    @property
+    def trial_nums(self) -> List[int]:
+        return self._trial_nums
+
+    @trial_nums.setter
+    def trial_nums(self, value):
+        self._validate_trial_nums(value, self._schedules)
+        self._trial_nums = value
 
     def _validate_type(self, targets, expected_type) -> None:
         for target in targets:
@@ -259,10 +297,12 @@ class Experiment:
             )
             raise IndexError(error_message)
 
-    def calc_prob_dist(self):
+    def calc_probdist(self, index: int):
         # probDist
+        # 確率分布を計算する
         # - 入力：scheduleのインデックス
         # - 出力：対応する確率分布
+
         pass
 
     def calc_prob_dists(self):
