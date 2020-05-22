@@ -8,6 +8,11 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.state import (
     State,
+    convert_var_index_to_state_index,
+    convert_state_index_to_var_index,
+    convert_var_to_state,
+    convert_state_to_var,
+    calc_gradient_from_state,
     get_bell_2q,
     get_x0_1q,
     get_x1_1q,
@@ -443,6 +448,112 @@ class TestState:
         actual = state.convert_basis(comp_basis)
         expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128)
         assert np.all(actual == expected)
+
+
+def test_convert_var_index_to_state_index():
+    # default
+    actual = convert_var_index_to_state_index(1)
+    assert actual == 2
+
+    # is_eq_constraints=True
+    actual = convert_var_index_to_state_index(1, is_eq_constraints=True)
+    assert actual == 2
+
+    # is_eq_constraints=False
+    actual = convert_var_index_to_state_index(1, is_eq_constraints=False)
+    assert actual == 1
+
+
+def test_convert_state_index_to_var_index():
+    # default
+    actual = convert_state_index_to_var_index(1)
+    assert actual == 0
+
+    # is_eq_constraints=True
+    actual = convert_state_index_to_var_index(1, is_eq_constraints=True)
+    assert actual == 0
+
+    # is_eq_constraints=False
+    actual = convert_state_index_to_var_index(1, is_eq_constraints=False)
+    assert actual == 1
+
+
+def test_convert_var_to_state():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    actual = convert_var_to_state(c_sys, np.array([1, 2, 3], dtype=np.float64))
+    expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
+    assert np.all(actual == expected)
+
+    # is_eq_constraints=True
+    actual = convert_var_to_state(
+        c_sys, np.array([1, 2, 3], dtype=np.float64), is_eq_constraints=True
+    )
+    expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
+    assert np.all(actual == expected)
+
+    # is_eq_constraints=False
+    actual = convert_var_to_state(
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), is_eq_constraints=False
+    )
+    expected = np.array([1, 2, 3, 4], dtype=np.float64)
+    assert np.all(actual == expected)
+
+
+def test_convert_state_to_var():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    actual = convert_state_to_var(
+        c_sys, np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
+    )
+    expected = np.array([1, 2, 3], dtype=np.float64)
+    assert np.all(actual == expected)
+
+    # is_eq_constraints=True
+    actual = convert_state_to_var(
+        c_sys,
+        np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64),
+        is_eq_constraints=True,
+    )
+    expected = np.array([1, 2, 3], dtype=np.float64)
+    assert np.all(actual == expected)
+
+    # is_eq_constraints=False
+    actual = convert_state_to_var(
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), is_eq_constraints=False
+    )
+    expected = np.array([1, 2, 3, 4], dtype=np.float64)
+    assert np.all(actual == expected)
+
+
+def test_calc_gradient_from_state():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    actual = calc_gradient_from_state(
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1
+    )
+    expected = np.array([0, 0, 1, 0], dtype=np.float64)
+    assert np.all(actual == expected)
+
+    # is_eq_constraints=True
+    actual = calc_gradient_from_state(
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, is_eq_constraints=True
+    )
+    expected = np.array([0, 0, 1, 0], dtype=np.float64)
+    assert np.all(actual == expected)
+
+    # is_eq_constraints=False
+    actual = calc_gradient_from_state(
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, is_eq_constraints=False
+    )
+    expected = np.array([0, 1, 0, 0], dtype=np.float64)
+    assert np.all(actual == expected)
 
 
 def test_get_x0_1q():
