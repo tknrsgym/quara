@@ -74,13 +74,14 @@ class Experiment:
         self._trial_nums: List[int] = trial_nums
 
     def _validate_trial_nums(self, trial_nums, schedules):
-        if len(trial_nums) != len(schedules):
-            # TODO: make message English
-            raise ValueError("trial_numsはスケジュールの長さと等しい必要があります。")
+        if type(trial_nums) != list:
+            raise TypeError("'trial_nums' must be a list with int elements.")
         for n in trial_nums:
             if type(n) != int:
-                # TODO: make message English
-                raise TypeError("trial_numsはintの要素を持つリストである必要があります")
+                raise TypeError("'trial_nums' must be a list with int elements.")
+
+        if len(trial_nums) != len(schedules):
+            raise ValueError("'trial_nums' and 'schedules' must be equal in length.")
 
     @property
     def states(self) -> List[State]:
@@ -159,7 +160,7 @@ class Experiment:
 
     @property
     def trial_nums(self) -> List[int]:
-        return self._validate_trial_nums
+        return self._trial_nums
 
     @trial_nums.setter
     def trial_nums(self, value):
