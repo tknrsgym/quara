@@ -168,16 +168,40 @@ class TestExperiment:
             assert a == e
 
         # Act & Assert
-        ng_new_schedules = [[("povm"), ("gate", 1), ("povm", 1)]]
+        ng_new_schedules = [
+            [("povm"), ("gate", 1), ("povm", 1)],
+            [("state", 1), ("gate", 1), ("povm", 1)],
+        ]
         with pytest.raises(QuaraScheduleItemError):
             # A schedule item must be a tuple of str and int.
             exp.schedules = ng_new_schedules
 
         # Act & Assert
-        ng_new_schedules = [[("povm", 1), ("gate", 1), ("povm", 1)]]
+        ng_new_schedules = [
+            [("povm", 1), ("gate", 1), ("povm", 1)],
+            [("state", 1), ("gate", 1), ("povm", 1)],
+        ]
         with pytest.raises(QuaraScheduleOrderError):
             # he first element of the schedule must be a 'state'.
             exp.schedules = ng_new_schedules
+
+        # Act & Assert
+        ng_new_schedules = [[("state", 1), ("gate", 1), ("povm", 1)]]
+        with pytest.raises(ValueError):
+            # ValueError: 'trial_nums' and 'schedules' must be equal in length.
+            exp.schedules = ng_new_schedules
+
+        # Act & Assert
+        ng_new_trial_nums = [1]
+        with pytest.raises(ValueError):
+            # ValueError: 'trial_nums' and 'schedules' must be equal in length.
+            exp.trial_nums = ng_new_trial_nums
+
+        # Act & Assert
+        ng_new_trial_nums = 1
+        with pytest.raises(TypeError):
+            # TypeError: 'trial_nums' must be a list with int elements.
+            exp.trial_nums = ng_new_trial_nums
 
     def test_init_unexpected_type(self):
         # Array
