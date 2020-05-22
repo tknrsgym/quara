@@ -485,21 +485,24 @@ def test_convert_var_to_state():
     # default
     actual = convert_var_to_state(c_sys, np.array([1, 2, 3], dtype=np.float64))
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
-    assert np.all(actual == expected)
+    assert actual.is_physical == False
+    assert np.all(actual.vec == expected)
 
     # is_eq_constraints=True
     actual = convert_var_to_state(
         c_sys, np.array([1, 2, 3], dtype=np.float64), is_eq_constraints=True
     )
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
-    assert np.all(actual == expected)
+    assert actual.is_physical == False
+    assert np.all(actual.vec == expected)
 
     # is_eq_constraints=False
     actual = convert_var_to_state(
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), is_eq_constraints=False
     )
     expected = np.array([1, 2, 3, 4], dtype=np.float64)
-    assert np.all(actual == expected)
+    assert actual.is_physical == False
+    assert np.all(actual.vec == expected)
 
 
 def test_convert_state_to_var():
@@ -539,21 +542,24 @@ def test_calc_gradient_from_state():
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1
     )
     expected = np.array([0, 0, 1, 0], dtype=np.float64)
-    assert np.all(actual == expected)
+    assert actual.is_physical == False
+    assert np.all(actual.vec == expected)
 
     # is_eq_constraints=True
     actual = calc_gradient_from_state(
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, is_eq_constraints=True
     )
     expected = np.array([0, 0, 1, 0], dtype=np.float64)
-    assert np.all(actual == expected)
+    assert actual.is_physical == False
+    assert np.all(actual.vec == expected)
 
     # is_eq_constraints=False
     actual = calc_gradient_from_state(
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, is_eq_constraints=False
     )
     expected = np.array([0, 1, 0, 0], dtype=np.float64)
-    assert np.all(actual == expected)
+    assert actual.is_physical == False
+    assert np.all(actual.vec == expected)
 
 
 def test_get_x0_1q():
