@@ -29,7 +29,7 @@ class Povm:
         c_sys : CompositeSystem
             CompositeSystem of this povm.
         vecs : List[np.ndarray]
-
+            list of vec of povm elements.
         is_physical : bool, optional
             Check whether the povm is physically correct, by default True.
             If ``True``, the following requirements are met.
@@ -335,6 +335,103 @@ class Povm:
                 convert_vec(vec, self._composite_system.basis(), other_basis)
             )
         return converted_vecs
+
+
+def convert_var_index_to_povm_index(
+    c_sys: CompositeSystem,
+    vecs: List[np.ndarray],
+    var_index: int,
+    is_eq_constraints: bool = True,
+) -> Tuple[int, int]:
+    """converts variable index to povm index.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    vecs : List[np.ndarray]
+        list of vec of povm elements.
+    var_index : int
+        variable index.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Tuple[int, int]
+        povm index.
+        first value of tuple is an index of the number of measurements.
+        second value of tuple is an index in specific measurement.
+    """
+    size = vecs[0].shape[0]
+    (num_measurement, measurement_index) = divmod(var_index, size)
+    return (num_measurement, measurement_index)
+
+
+def convert_povm_index_to_var_index(
+    c_sys: CompositeSystem,
+    vecs: List[np.ndarray],
+    povm_index: Tuple[int, int],
+    is_eq_constraints: bool = True,
+) -> int:
+    """converts povm index to variable index.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    vecs : List[np.ndarray]
+        list of vec of povm elements.
+    povm_index : Tuple[int, int]
+        povm index.
+        first value of tuple is an index of the number of measurements.
+        second value of tuple is an index in specific measurement.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    int
+        variable index.
+    """
+    size = vecs[0].shape[0]
+    (num_measurement, measurement_index) = povm_index
+    var_index = size * num_measurement + measurement_index
+    return var_index
+
+
+def convert_var_to_povm(
+    c_sys: CompositeSystem, var: List[np.ndarray], is_eq_constraints: bool = True,
+) -> Povm:
+    """converts vec of variables to povm.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+    var : List[np.ndarray]
+        list of vec of povm elements.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Povm
+        converted povm.
+    """
+    if is_eq_constraints:
+        dim = int(np.sqrt(var[0].shape[0]))
+        last_vec = np.eye(dim).flatten()
+
+        vecs = copy.copy(var)
+        for vec in var:
+            last_vec -= vec.flatten()
+        vecs.append(last_vec)
+    else:
+        vecs = var
+
+    povm = Povm(c_sys, vecs, is_physical=False)
+    return povm
 
 
 def _get_1q_povm_from_vecs_on_pauli_basis(
