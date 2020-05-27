@@ -311,10 +311,8 @@ def calc_gradient_from_state(
         State with gradient as vec.
     """
     gradient = np.zeros((c_sys.dim ** 2), dtype=np.float64)
-    if is_eq_constraints:
-        gradient[var_index + 1] = 1
-    else:
-        gradient[var_index] = 1
+    state_index = convert_var_index_to_state_index(var_index, is_eq_constraints)
+    gradient[state_index] = 1
 
     state = State(c_sys, gradient, is_physical=False)
     return state
