@@ -313,6 +313,8 @@ def convert_var_index_to_gate_index(
     -------
     Tuple[int, int]
         gate index.
+        first value of tuple is row number of HS representation of this gate.
+        second value of tuple is column number of HS representation of this gate.
     """
     dim = c_sys.dim
     (row, col) = divmod(var_index, dim ** 2)
@@ -330,8 +332,10 @@ def convert_gate_index_to_var_index(
     ----------
     c_sys : CompositeSystem
         CompositeSystem of this gate.
-    gate_index : int
+    gate_index : Tuple[int, int]
         gate index.
+        first value of tuple is row number of HS representation of this gate.
+        second value of tuple is column number of HS representation of this gate.
     is_eq_constraints : bool, optional
         uses equal constraints, by default True.
 
@@ -380,10 +384,10 @@ def convert_gate_to_var(
 
     Parameters
     ----------
-    hs : CompositeSystem
+    c_sys : CompositeSystem
         CompositeSystem of this state.
-    vec : np.ndarray
-        hs of gate.
+    hs : np.ndarray
+        HS representation of this gate.
     is_eq_constraints : bool, optional
         uses equal constraints, by default True.
 
@@ -409,7 +413,7 @@ def calc_gradient_from_gate(
     c_sys : CompositeSystem
         CompositeSystem of this gate.
     hs : np.ndarray
-        hs of gate.
+        HS representation of this gate.
     var_index : int
         variable index.
     is_eq_constraints : bool, optional
