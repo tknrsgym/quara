@@ -21,6 +21,23 @@ from quara.qcircuit.experiment import (
 
 
 class TestExperiment:
+    def test_probdist(self):
+        states, povms, gates = self.array_states_povms_gates()
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 1), ("gate", 1), ("povm", 1)],
+        ]
+        trial_nums = [1] * len(schedule_list)
+
+        exp = Experiment(
+            states=states,
+            povms=povms,
+            gates=gates,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+        actual = exp.calc_probdist(0)
+
     def array_states_povms_gates(self):
         # Array
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
