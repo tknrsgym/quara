@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 from quara.settings import Settings
 
@@ -131,7 +131,7 @@ def generate_dataset_from_list_probdist(
 
 def calc_empidist(
     measurement_num: int, data: List[int], list_num_sum: List[int]
-) -> List[np.array]:
+) -> List[Tuple[int, np.array]]:
     """calculates empirical distributions.
 
     uses ``data`` from 0-th to ``list_num_sum[index]``-th to calculate empirical distributions.
@@ -147,9 +147,9 @@ def calc_empidist(
 
     Returns
     -------
-    List[np.array]
-        empirical distributions.
-        the dtype of each element is np.float64.
+    List[Tuple[int, np.array]]
+        a list of (the range of ``data``, empirical distribution).
+        the dtype of each empirical distribution is np.float64.
 
     Raises
     ------
@@ -169,7 +169,7 @@ def calc_empidist(
     >>> list_num_sum = [5, 10, 20]
     >>> empidist = calc_empidist(measurement_num, data, list_num_sum)
     >>> empidist
-    [array([0.4, 0.6]), array([0.3, 0.7]), array([0.3, 0.7])]
+    [(5, array([0.4, 0.6])), (10, array([0.3, 0.7])), (20, array([0.3, 0.7]))]
 
     """
     # whether measurement_num is non-negative integer.
@@ -206,7 +206,7 @@ def calc_empidist(
         # calculate empirical distribution
         if index + 1 == next_num_sum:
             empidist = cumulative_frequency / (index + 1)
-            empidist_list.append(empidist)
+            empidist_list.append((next_num_sum, empidist))
 
             # take next num_sum from 'list_num_sum'
             if next_num_sum_position + 1 == len(list_num_sum):
@@ -236,7 +236,7 @@ def calc_list_empidist(
     list_measurement_num: List[int],
     list_data: List[List[int]],
     list_list_num_sum: List[List[int]],
-) -> List[List[np.array]]:
+) -> List[List[Tuple[int, np.array]]]:
     """calculates a list of empirical distributions by :func:`~quara.qcircuit.data_generator.calc_empidist`.
 
     Parameters
@@ -251,7 +251,7 @@ def calc_list_empidist(
     Returns
     -------
     List[List[np.array]]
-        a list of list_num_sum
+        a list of a list of (the range of ``data``, empirical distribution).
 
     Raises
     ------
