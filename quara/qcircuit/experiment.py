@@ -8,6 +8,7 @@ from quara.qcircuit.data_generator import (
     generate_data_from_probdist,
     generate_dataset_from_list_probdist,
 )
+import quara.objects.operators as op
 
 
 class QuaraScheduleItemError(Exception):
@@ -303,10 +304,92 @@ class Experiment:
         # - 入力：scheduleのインデックス
         # - 出力：対応する確率分布
 
-        pass
+        schedule = self.schedules[index]
+        key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
+        target_list = []
+        for item in schedule:
+            k, i = item
+            target_list.append(key_map[k][i])
 
-    def calc_prob_dists(self):
+        result = op.composite(target_list)
+        return result
+
+    def calc_probdists(self):
         # - list_probDist
         # - 入力：なし
         # - 出力：全scheduleに対する確率分布のリスト
+        result_list = []
+        for i in range(len(self.schedules)):
+            r = cals_probdist(i)
+            result_list.append(r)
+        return result_list
+
+    def generate_data(self, index:int, data_n: int, seed: int) -> List[np.array]:
+        """
+        - 入力
+        - index_schedule (list_schedule内のscheduleを指定する整数)
+        - データ数 $N$. 非負の整数（0は許すことにする）
+        - 擬似乱数シードの値. 整数
+        - 出力
+        - $N$個の測定値（0 ~ $M$-1の間の整数）のリスト
+        - 備考
+        - メンバ関数probDistを使って確率分布を計算し、その確率分布と関数generate_data_from_probDistを使って擬似データを生成する.
+        """
+        # TODO: バリデーションが過剰なら共通化するなり簡潔な方法を考える
+        if type(data_n) != int:
+            # TODO: error message
+            raise TypeError
+
+        if data_n < 0:
+            # TODO: error message
+            raise ValueError
+
+        if type(index_schedule) != int:
+            # TODO: error message
+            raise TypeError
+
+        if not (0 <= index_schedule < len(self.schedules):
+            # TODO: error message
+            raise IndexError
+
+        pass
+
+    def generate_dataset(self, data_n_list: List[int], seed: int) -> List[List[np.array]]:
+        """
+        - 入力
+        - データ数のリスト $\{ N_j \}_{j=0}^{N_p -1}$. 非負の整数のリスト.
+        - 擬似乱数シードのリスト. 整数のリスト.
+        - 出力
+        - 「$N_j$個の測定値(0 ~ $M_j$ -1の間の整数)のリスト」のリスト
+        - 備考
+        - メンバ関数list_probDistを使って確率分布のリストを計算し、その確率分布のリストと関数generate_dataSet_from_list_probDistを使って擬似データセットを計算する.
+        """
+        if len(data_n_list) != len(self.schedules):
+            # TODO: error message
+            raise ValueError
+        pass
+
+    def generate_empidist(self, index: int, list_num_sum: List[int], seed: int):
+        """
+        - 入力
+        - index_schedule (list_schedule内のscheduleを指定する整数)
+        - 経験分布を計算するために和を取る数のリスト
+        - 擬似乱数シードの値. 整数
+        - 出力
+        - データ数と経験分布のペアのリスト
+        - 備考
+        - メンバ関数generate_dataと関数calc_empiDistを組み合わせる. generate_dataに渡すデータ数は「和を取る数のリスト」中の最大値。
+        """
+        pass
+
+    def generate_list_empidist(self, list_num_sum: List[List[int]], seed: int):
+        """
+        - 入力：
+        - 和を取る数のリストのリスト.
+        - 擬似乱数シードのリスト. 整数のリスト.
+        - 出力：
+        - 「データ数と経験分布のペアのリスト」のリスト.
+        - 備考
+        - メンバ関数generate_dataSetと関数calc_list_empiDistを組み合わせる. generate_dataSetに渡す「データ数のリスト」は「「和を取る数のリスト」中の最大値のリスト」。 
+        """
         pass
