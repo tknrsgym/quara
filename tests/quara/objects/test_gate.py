@@ -7,6 +7,11 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import (
     Gate,
+    convert_var_index_to_gate_index,
+    convert_gate_index_to_var_index,
+    convert_var_to_gate,
+    convert_gate_to_var,
+    calc_gradient_from_gate,
     calc_agf,
     convert_hs,
     get_cnot,
@@ -389,6 +394,131 @@ class TestGate:
         actual = z.calc_process_matrix()
         expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_convert_var_index_to_gate_index():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    actual = convert_var_index_to_gate_index(c_sys, 11)
+    assert actual == (3, 3)
+
+    # is_eq_constraints=True
+    actual = convert_var_index_to_gate_index(c_sys, 11, is_eq_constraints=True)
+    assert actual == (3, 3)
+
+    # is_eq_constraints=False
+    actual = convert_var_index_to_gate_index(c_sys, 15, is_eq_constraints=False)
+    assert actual == (3, 3)
+
+
+def test_convert_gate_index_to_var_index():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    actual = convert_gate_index_to_var_index(c_sys, (3, 3))
+    assert actual == 11
+
+    # is_eq_constraints=True
+    actual = convert_gate_index_to_var_index(c_sys, (3, 3), is_eq_constraints=True)
+    assert actual == 11
+
+    # is_eq_constraints=False
+    actual = convert_gate_index_to_var_index(c_sys, (3, 3), is_eq_constraints=False)
+    assert actual == 15
+
+
+def test_convert_var_to_gate():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    hs = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
+    actual = convert_var_to_gate(c_sys, hs)
+    expected = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+    # is_eq_constraints=True
+    hs = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
+    actual = convert_var_to_gate(c_sys, hs, is_eq_constraints=True)
+    expected = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+    # is_eq_constraints=False
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    actual = convert_var_to_gate(c_sys, hs, is_eq_constraints=False)
+    npt.assert_almost_equal(actual.hs, hs, decimal=15)
+
+
+def test_convert_gate_to_var():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    actual = convert_gate_to_var(c_sys, hs)
+    expected = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
+
+    # is_eq_constraints=True
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    actual = convert_gate_to_var(c_sys, hs, is_eq_constraints=True)
+    expected = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
+
+    # is_eq_constraints=False
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    actual = convert_gate_to_var(c_sys, hs, is_eq_constraints=False)
+    npt.assert_almost_equal(actual, hs.flatten(), decimal=15)
+
+
+def test_calc_gradient_from_gate():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # default
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    actual = calc_gradient_from_gate(c_sys, hs, 1)
+    expected = np.array(
+        [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+    # is_eq_constraints=True
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    actual = calc_gradient_from_gate(c_sys, hs, 1, is_eq_constraints=True)
+    expected = np.array(
+        [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+    # is_eq_constraints=False
+    hs = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    actual = calc_gradient_from_gate(c_sys, hs, 1, is_eq_constraints=False)
+    expected = np.array(
+        [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
 
 def test_calc_agf():
