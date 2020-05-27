@@ -1,11 +1,12 @@
 from typing import Dict, List
 
+import numpy.testing as npt
 import pytest
 
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, get_h, get_i
+from quara.objects.gate import Gate, get_h, get_i, get_x
 from quara.objects.povm import (
     Povm,
     get_x_measurement,
@@ -21,22 +22,70 @@ from quara.qcircuit.experiment import (
 
 
 class TestExperiment:
-    def test_probdist(self):
-        states, povms, gates = self.array_states_povms_gates()
+    def test_calc_probdist(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
         schedule_list = [
             [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 1), ("gate", 1), ("povm", 1)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
         ]
-        trial_nums = [1] * len(schedule_list)
-
+        trial_nums = [1, 1]
         exp = Experiment(
-            states=states,
-            povms=povms,
-            gates=gates,
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
             schedules=schedule_list,
             trial_nums=trial_nums,
         )
-        actual = exp.calc_probdist(0)
+
+        # Act
+        actual = exp.calc_probdist(index=0)
+
+        # Assert
+        expected = [1, 0]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Act
+        actual = exp.calc_probdist(index=1)
+
+        # Assert
+        expected = [0.5, 0.5]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_probdists(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
+        ]
+        trial_nums = [1, 1]
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+
+        # Act
+        actual = exp.calc_probdists()
+
+        # Assert
+        expected = [[1, 0], [0.5, 0.5]]
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
 
     def array_states_povms_gates(self):
         # Array

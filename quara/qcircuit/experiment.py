@@ -1,6 +1,8 @@
 import collections
 from typing import List, Tuple
 
+import numpy as np
+
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm
 from quara.objects.state import State
@@ -306,12 +308,12 @@ class Experiment:
 
         schedule = self.schedules[index]
         key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
-        target_list = []
+        target_list = collections.deque()
         for item in schedule:
             k, i = item
-            target_list.append(key_map[k][i])
+            target_list.appendleft(key_map[k][i])
 
-        result = op.composite(target_list)
+        result = op.composite(*target_list)
         return result
 
     def calc_probdists(self):
@@ -320,11 +322,11 @@ class Experiment:
         # - 出力：全scheduleに対する確率分布のリスト
         result_list = []
         for i in range(len(self.schedules)):
-            r = cals_probdist(i)
+            r = self.calc_probdist(i)
             result_list.append(r)
         return result_list
 
-    def generate_data(self, index:int, data_n: int, seed: int) -> List[np.array]:
+    def generate_data(self, index: int, data_n: int, seed: int) -> List[np.array]:
         """
         - 入力
         - index_schedule (list_schedule内のscheduleを指定する整数)
@@ -344,17 +346,19 @@ class Experiment:
             # TODO: error message
             raise ValueError
 
-        if type(index_schedule) != int:
+        if type(index) != int:
             # TODO: error message
             raise TypeError
 
-        if not (0 <= index_schedule < len(self.schedules):
+        if not (0 <= index < len(self.schedules)):
             # TODO: error message
             raise IndexError
 
         pass
 
-    def generate_dataset(self, data_n_list: List[int], seed: int) -> List[List[np.array]]:
+    def generate_dataset(
+        self, data_n_list: List[int], seed: int
+    ) -> List[List[np.array]]:
         """
         - 入力
         - データ数のリスト $\{ N_j \}_{j=0}^{N_p -1}$. 非負の整数のリスト.
