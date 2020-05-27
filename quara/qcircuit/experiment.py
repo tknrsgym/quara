@@ -311,20 +311,24 @@ class Experiment:
         target_list = collections.deque()
         for item in schedule:
             k, i = item
-            target_list.appendleft(key_map[k][i])
+            target = key_map[k][i]
+            if not target:
+                # TODO: error message
+                raise ValueError("{}s[{}] is None.".format(k, i))
+            target_list.appendleft(target)
 
         result = op.composite(*target_list)
         return result
 
-    def calc_probdists(self):
+    def calc_probdists(self) -> List[np.array]:
         # - list_probDist
         # - 入力：なし
         # - 出力：全scheduleに対する確率分布のリスト
-        result_list = []
+        probdist_list = []
         for i in range(len(self.schedules)):
             r = self.calc_probdist(i)
-            result_list.append(r)
-        return result_list
+            probdist_list.append(r)
+        return probdist_list
 
     def generate_data(self, index: int, data_n: int, seed: int) -> List[np.array]:
         """

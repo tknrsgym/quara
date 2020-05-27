@@ -87,6 +87,32 @@ class TestExperiment:
         for a, e in zip(actual, expected):
             npt.assert_almost_equal(a, e, decimal=15)
 
+    def test_calc_probdist_exist_none(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [None, get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
+        ]
+        trial_nums = [1, 1]
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+
+        # Act
+        with pytest.raises(ValueError):
+            # ValueError: states[0] is None.
+            _ = exp.calc_probdist(index=0)
+
     def array_states_povms_gates(self):
         # Array
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
