@@ -1,7 +1,7 @@
 import itertools
 from functools import reduce
 from operator import add
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -293,6 +293,143 @@ class Gate:
             for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
         ]
         return np.array(process_matrix).reshape((4, 4))
+
+
+def convert_var_index_to_gate_index(
+    c_sys: CompositeSystem, var_index: int, is_eq_constraints: bool = True
+) -> Tuple[int, int]:
+    """converts variable index to gate index.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    var_index : int
+        variable index.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Tuple[int, int]
+        gate index.
+        first value of tuple is row number of HS representation of this gate.
+        second value of tuple is column number of HS representation of this gate.
+    """
+    dim = c_sys.dim
+    (row, col) = divmod(var_index, dim ** 2)
+    if is_eq_constraints:
+        row += 1
+    return (row, col)
+
+
+def convert_gate_index_to_var_index(
+    c_sys: CompositeSystem, gate_index: Tuple[int, int], is_eq_constraints: bool = True
+) -> int:
+    """converts gate index to variable index.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    gate_index : Tuple[int, int]
+        gate index.
+        first value of tuple is row number of HS representation of this gate.
+        second value of tuple is column number of HS representation of this gate.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    int
+        variable index.
+    """
+    dim = c_sys.dim
+    (row, col) = gate_index
+    var_index = (
+        (dim ** 2) * (row - 1) + col if is_eq_constraints else (dim ** 2) * row + col
+    )
+    return var_index
+
+
+def convert_var_to_gate(
+    c_sys: CompositeSystem, var: np.ndarray, is_eq_constraints: bool = True
+) -> Gate:
+    """converts vec of variables to gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    var : np.ndarray
+        vec of variables.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Gate
+        converted gate.
+    """
+    dim = c_sys.dim
+    hs = np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if is_eq_constraints else var
+    gate = Gate(c_sys, hs, is_physical=False)
+    return gate
+
+
+def convert_gate_to_var(
+    c_sys: CompositeSystem, hs: np.ndarray, is_eq_constraints: bool = True
+) -> np.array:
+    """converts hs of gate to vec of variables.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this state.
+    hs : np.ndarray
+        HS representation of this gate.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    np.array
+        vec of variables.
+    """
+    var = np.delete(hs, 0, axis=0).flatten() if is_eq_constraints else hs.flatten()
+    return var
+
+
+def calc_gradient_from_gate(
+    c_sys: CompositeSystem,
+    hs: np.ndarray,
+    var_index: int,
+    is_eq_constraints: bool = True,
+) -> Gate:
+    """calculates gradient from gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    hs : np.ndarray
+        HS representation of this gate.
+    var_index : int
+        variable index.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Gate
+        Gate with gradient as hs.
+    """
+    gradient = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.float64)
+    gate_index = convert_var_index_to_gate_index(c_sys, var_index, is_eq_constraints)
+    gradient[gate_index] = 1
+
+    gate = Gate(c_sys, gradient, is_physical=False)
+    return gate
 
 
 def is_ep(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:

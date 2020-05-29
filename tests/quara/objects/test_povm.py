@@ -17,6 +17,11 @@ from quara.objects.matrix_basis import (
 from quara.objects.operators import tensor_product
 from quara.objects.povm import (
     Povm,
+    convert_var_index_to_povm_index,
+    convert_povm_index_to_var_index,
+    convert_var_to_povm,
+    convert_povm_to_var,
+    calc_gradient_from_povm,
     get_x_measurement,
     get_xx_measurement,
     get_xy_measurement,
@@ -464,6 +469,186 @@ class TestPovm:
         with pytest.raises(TypeError):
             # TypeError: The type of `key` must be int or str.
             _ = povm1.matrix(unexpected_type)
+
+
+def test_convert_var_index_to_povm_index():
+    # Arrange
+    e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = csys.CompositeSystem([e_sys])
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+
+    # default
+    actual = convert_var_index_to_povm_index(c_sys, vecs, 3)
+    assert actual == (0, 3)
+
+    # is_eq_constraints=True
+    actual = convert_var_index_to_povm_index(c_sys, vecs, 3, is_eq_constraints=True)
+    assert actual == (0, 3)
+
+    # is_eq_constraints=False
+    actual = convert_var_index_to_povm_index(c_sys, vecs, 7, is_eq_constraints=False)
+    assert actual == (1, 3)
+
+
+def test_convert_povm_index_to_var_index():
+    # Arrange
+    e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = csys.CompositeSystem([e_sys])
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+
+    # default
+    actual = convert_povm_index_to_var_index(c_sys, vecs, (0, 3))
+    assert actual == 3
+
+    # is_eq_constraints=True
+    actual = convert_povm_index_to_var_index(
+        c_sys, vecs, (0, 3), is_eq_constraints=True
+    )
+    assert actual == 3
+
+    # is_eq_constraints=False
+    actual = convert_povm_index_to_var_index(
+        c_sys, vecs, (1, 3), is_eq_constraints=False
+    )
+    assert actual == 7
+
+
+def test_convert_var_to_povm():
+    # Arrange
+    e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = csys.CompositeSystem([e_sys])
+
+    # default
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+    ]
+    actual = convert_var_to_povm(c_sys, vecs)
+    expected = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([-1, -3, -5, -6], dtype=np.float64),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # is_eq_constraints=True
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+    ]
+    actual = convert_var_to_povm(c_sys, vecs, is_eq_constraints=True)
+    expected = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([-1, -3, -5, -6], dtype=np.float64),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # is_eq_constraints=False
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    actual = convert_var_to_povm(c_sys, vecs, is_eq_constraints=False)
+    assert len(actual.vecs) == len(vecs)
+    for a, e in zip(actual.vecs, vecs):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_povm_to_var():
+    # Arrange
+    e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = csys.CompositeSystem([e_sys])
+
+    # default
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    actual = convert_povm_to_var(c_sys, vecs)
+    expected = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+    ]
+    assert len(actual) == len(expected)
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # is_eq_constraints=True
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    actual = convert_povm_to_var(c_sys, vecs, is_eq_constraints=True)
+    expected = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+    ]
+    assert len(actual) == len(expected)
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # is_eq_constraints=False
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    actual = convert_povm_to_var(c_sys, vecs, is_eq_constraints=False)
+    assert len(actual) == len(vecs)
+    for a, e in zip(actual, vecs):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_calc_gradient_from_povm():
+    # Arrange
+    e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = csys.CompositeSystem([e_sys])
+
+    # default
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    actual = calc_gradient_from_povm(c_sys, vecs, 3)
+    expected = [
+        np.array([0, 0, 0, 1], dtype=np.float64),
+        np.array([0, 0, 0, 0], dtype=np.float64),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # is_eq_constraints=True
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    actual = calc_gradient_from_povm(c_sys, vecs, 3, is_eq_constraints=True)
+    expected = [
+        np.array([0, 0, 0, 1], dtype=np.float64),
+        np.array([0, 0, 0, 0], dtype=np.float64),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # is_eq_constraints=False
+    vecs = [
+        np.array([2, 3, 5, 7], dtype=np.float64),
+        np.array([11, 13, 17, 19], dtype=np.float64),
+    ]
+    actual = calc_gradient_from_povm(c_sys, vecs, 7, is_eq_constraints=False)
+    expected = [
+        np.array([0, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
+    ]
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
 
 
 def test_get_x_measurement():

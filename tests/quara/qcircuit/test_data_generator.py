@@ -84,16 +84,18 @@ def test_calc_empidist():
 
     # Act
     actual = data_generator.calc_empidist(measurement_num, data, list_num_sum)
+    print(actual)
 
     # Assert
     expected = [
-        np.array([0.4, 0.6], dtype=np.float64),
-        np.array([0.3, 0.7], dtype=np.float64),
-        np.array([0.3, 0.7], dtype=np.float64),
+        (5, np.array([0.4, 0.6], dtype=np.float64)),
+        (10, np.array([0.3, 0.7], dtype=np.float64)),
+        (20, np.array([0.3, 0.7], dtype=np.float64)),
     ]
     assert len(actual) == len(expected)
     for a, e in zip(actual, expected):
-        assert np.all(a == e)
+        assert a[0] == e[0]
+        assert np.all(a[1] == e[1])
 
     ### error cases
     # ``measurement_num`` is not non-negative integer.
@@ -137,20 +139,21 @@ def test_calc_list_empidist():
     # Assert
     list_expected = [
         [
-            np.array([0.5, 0.0, 0.5], dtype=np.float64),
-            np.array([0.2, 0.3, 0.5], dtype=np.float64),
+            (2, np.array([0.5, 0.0, 0.5], dtype=np.float64)),
+            (10, np.array([0.2, 0.3, 0.5], dtype=np.float64)),
         ],
         [
-            np.array([0.4, 0.6], dtype=np.float64),
-            np.array([0.3, 0.7], dtype=np.float64),
-            np.array([0.3, 0.7], dtype=np.float64),
+            (5, np.array([0.4, 0.6], dtype=np.float64)),
+            (10, np.array([0.3, 0.7], dtype=np.float64)),
+            (20, np.array([0.3, 0.7], dtype=np.float64)),
         ],
     ]
     assert len(list_actual) == len(list_expected)
     for actual, expected in zip(list_actual, list_expected):
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
-            assert all(a == e)
+            assert a[0] == e[0]
+            assert np.all(a[1] == e[1])
 
     ### error cases
     # the length of ``list_measurement_num`` does not equal the length of ``list_data``.
