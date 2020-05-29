@@ -27,7 +27,7 @@ from quara.objects.gate import (
     get_x,
     get_y,
     get_z,
-    is_ep,
+    is_hp,
 )
 from quara.objects.operators import composite, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
@@ -351,21 +351,21 @@ class TestGate:
         actual = Gate(c_sys, hs, is_physical=False).calc_kraus_matrices()
         assert len(actual) == 0
 
-    def test_is_ep(self):
+    def test_is_hp(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
-        # case: EP
+        # case: HP
         x = get_x(c_sys)
-        assert is_ep(x.hs, x.get_basis()) == True
+        assert is_hp(x.hs, x.get_basis()) == True
         y = get_y(c_sys)
-        assert is_ep(y.hs, y.get_basis()) == True
+        assert is_hp(y.hs, y.get_basis()) == True
         z = get_z(c_sys)
-        assert is_ep(z.hs, z.get_basis()) == True
+        assert is_hp(z.hs, z.get_basis()) == True
 
-        # case: not EP
+        # case: not HP
         hs = np.array([[1j, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
-        assert is_ep(hs, matrix_basis.get_comp_basis()) == False
+        assert is_hp(hs, matrix_basis.get_comp_basis()) == False
 
     def test_calc_process_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
