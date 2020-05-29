@@ -113,6 +113,100 @@ class TestExperiment:
             # ValueError: states[0] is None.
             _ = exp.calc_probdist(index=0)
 
+    def test_generate_data(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
+        ]
+        trial_nums = [1, 1]
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+
+        # Act
+        # Case 1:
+        actual = exp.generate_data(index=0, data_num=1)
+
+        # Assert
+        # TODO
+
+        # Case 2:
+        actual = exp.generate_data(index=1, data_num=2)
+
+        # Assert
+        # TODO
+
+        # Act
+
+    def test_generate_empidist(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
+        ]
+        trial_nums = [1, 1]
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+
+        # Act
+        # Case 1:
+        list_num_sum = [1]
+        actual = exp.generate_empidist(index=0, list_num_sum=list_num_sum)
+
+        # Assert
+        # TODO
+
+    def test_generate_empidist(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
+        ]
+        trial_nums = [1, 1]
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+
+        # Act
+        # Case 1:
+        list_num_sums = [[1], [1]]
+        actual = exp.generate_empidists(list_num_sums=list_num_sums)
+
+        # Assert
+        # TODO
+
     def array_states_povms_gates(self):
         # Array
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())

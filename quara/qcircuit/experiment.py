@@ -6,11 +6,9 @@ import numpy as np
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm
 from quara.objects.state import State
-from quara.qcircuit.data_generator import (
-    generate_data_from_probdist,
-    generate_dataset_from_list_probdist,
-)
+
 import quara.objects.operators as op
+from quara.qcircuit import data_generator
 
 
 class QuaraScheduleItemError(Exception):
@@ -330,7 +328,7 @@ class Experiment:
             probdist_list.append(r)
         return probdist_list
 
-    def generate_data(self, index: int, data_n: int, seed: int) -> List[np.array]:
+    def generate_data(self, index: int, data_num: int, seed: int = None) -> List[int]:
         """
         - 入力
         - index_schedule (list_schedule内のscheduleを指定する整数)
@@ -342,11 +340,12 @@ class Experiment:
         - メンバ関数probDistを使って確率分布を計算し、その確率分布と関数generate_data_from_probDistを使って擬似データを生成する.
         """
         # TODO: バリデーションが過剰なら共通化するなり簡潔な方法を考える
-        if type(data_n) != int:
+        # data_generatorの方でチェックをしているなら、ここではしなくてよい
+        if type(data_num) != int:
             # TODO: error message
             raise TypeError
 
-        if data_n < 0:
+        if data_num < 0:
             # TODO: error message
             raise ValueError
 
@@ -358,10 +357,12 @@ class Experiment:
             # TODO: error message
             raise IndexError
 
-        pass
+        probdist = self.calc_probdist(index)
+        data = data_generator.generate_data_from_probdist(probdist, data_num)
+        return data
 
     def generate_dataset(
-        self, data_n_list: List[int], seed: int
+        self, data_num_list: List[int], seed: int = None,
     ) -> List[List[np.array]]:
         """
         - 入力
@@ -372,12 +373,16 @@ class Experiment:
         - 備考
         - メンバ関数list_probDistを使って確率分布のリストを計算し、その確率分布のリストと関数generate_dataSet_from_list_probDistを使って擬似データセットを計算する.
         """
-        if len(data_n_list) != len(self.schedules):
+        if len(data_num_list) != len(self.schedules):
             # TODO: error message
             raise ValueError
-        pass
+        dataset = []
+        for i, data_num in enumerate(data_num_list):
+            data = self.generate_data(index=i, data_num=data_num, seed=seed)
+            dataset.append(data)
+        return dataset
 
-    def generate_empidist(self, index: int, list_num_sum: List[int], seed: int):
+    def generate_empidist(self, index: int, list_num_sum: List[int], seed: int = None):
         """
         - 入力
         - index_schedule (list_schedule内のscheduleを指定する整数)
@@ -388,9 +393,17 @@ class Experiment:
         - 備考
         - メンバ関数generate_dataと関数calc_empiDistを組み合わせる. generate_dataに渡すデータ数は「和を取る数のリスト」中の最大値。
         """
-        pass
+        test_n = 1  # TODO
+        data = self.generate_data(index=index, data_num=test_n, seed=seed)
+        num = len(data)  # TODO
+        empidist = data_generator.calc_empidist(
+            measurement_num=num, data=data, list_num_sum=list_num_sum
+        )
+        return empidist
 
-    def generate_list_empidist(self, list_num_sum: List[List[int]], seed: int):
+    def generate_empidists(
+        self, list_num_sums: List[List[int]], seeds: List[int] = None
+    ):
         """
         - 入力：
         - 和を取る数のリストのリスト.
@@ -400,4 +413,20 @@ class Experiment:
         - 備考
         - メンバ関数generate_dataSetと関数calc_list_empiDistを組み合わせる. generate_dataSetに渡す「データ数のリスト」は「「和を取る数のリスト」中の最大値のリスト」。 
         """
-        pass
+        if len(list_num_sums) != len(self.schedules):
+            # TODO: error message
+            raise ValueError
+        if seeds:
+            if len(seeds) != len(self.schedules):
+                # TODO: error message
+                raise ValueError
+        empidists = []
+        # TODO: list_num_sumsの名前
+        for i, list_num_sum in enumerate(list_num_sums):
+            seed = seeds[i] if seeds else None
+            empidist = self.generate_empidist(
+                index=i, list_num_sum=list_num_sum, seed=seed
+            )
+            empidists.append(empidist)
+
+        return empidists
