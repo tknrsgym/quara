@@ -5,8 +5,8 @@ from quara.objects.gate import Gate
 from quara.objects.povm import Povm
 from quara.objects.state import State
 from quara.qcircuit.data_generator import (
-    generate_data_from_probdist,
-    generate_dataset_from_list_probdist,
+    generate_data_from_prob_dist,
+    generate_dataset_from_prob_dists,
 )
 
 
