@@ -51,11 +51,11 @@ class TestElementalSystem:
         with pytest.raises(AttributeError):
             e1.dim = 100
 
-    def test_access_computational_basis(self):
+    def test_access_comp_basis(self):
         # case: dim = 2
         m_basis = get_pauli_basis()
         e1 = esys.ElementalSystem(1, m_basis)
-        actual = e1.computational_basis
+        actual = e1.comp_basis
         expected = get_comp_basis()
         assert len(actual) == 4
         assert np.all(actual[0] == expected[0])
@@ -66,7 +66,7 @@ class TestElementalSystem:
         # case: dim = 3
         m_basis = get_gell_mann_basis()
         e1 = esys.ElementalSystem(2, m_basis)
-        actual = e1.computational_basis
+        actual = e1.comp_basis
         expected = get_comp_basis(3)
         assert len(actual) == 9
         assert np.all(actual[0] == expected[0])
