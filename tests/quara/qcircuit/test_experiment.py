@@ -136,18 +136,23 @@ class TestExperiment:
 
         # Act
         # Case 1:
-        actual = exp.generate_data(index=0, data_num=1)
+        actual = exp.generate_data(index=0, data_num=10, seed=7)
 
         # Assert
-        # TODO
+        expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert actual == expected
 
         # Case 2:
-        actual = exp.generate_data(index=1, data_num=2)
+        actual = exp.generate_data(index=1, data_num=10, seed=7)
 
         # Assert
-        # TODO
+        expected = [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]
+        assert actual == expected
 
-        # Act
+        # Case 3:
+        actual = exp.generate_dataset(data_num_list=[10, 10], seed=7)
+        expected = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]]
+        assert actual == expected
 
     def test_generate_empidist(self):
         # Array
