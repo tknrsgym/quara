@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+import numpy as np
 import numpy.testing as npt
 import pytest
 
@@ -177,11 +178,20 @@ class TestExperiment:
 
         # Act
         # Case 1:
-        list_num_sum = [1]
-        actual = exp.generate_empidist(index=0, list_num_sum=list_num_sum)
+        list_num_sum = [10]
+        actual = exp.generate_empidist(index=0, list_num_sum=list_num_sum, seed=7)
 
         # Assert
-        # TODO
+        expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert actual == expected
+
+        # Case 2:
+        list_num_sum = [20]
+        actual = exp.generate_empidist(index=1, list_num_sum=list_num_sum, seed=77)
+
+        # Assert
+        expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
+        assert actual == expected
 
     def test_generate_empidist(self):
         # Array
@@ -206,11 +216,38 @@ class TestExperiment:
 
         # Act
         # Case 1:
-        list_num_sums = [[1], [1]]
-        actual = exp.generate_empidists(list_num_sums=list_num_sums)
+        # list_num_sums = [[10], [20]]
+        # seed_list = [7, 77]
+        # actual = exp.generate_empidists(list_num_sums=list_num_sums, seeds=seed_list)
+
+        # # Assert
+        # expected = [
+        #     (10, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        #     (20, [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]),
+        # ]
+        # assert actual == expected
+
+        list_num_sums = [[10], [20]]
+        seed_list = [7, 77]
+        actual = exp.generate_empidists(list_num_sums=list_num_sums, seeds=seed_list)
 
         # Assert
-        # TODO
+        # expected = [
+        #     (10, np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64)),
+        #     (20, np.array([1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1], dtype=np.float64)),
+        # ]
+        expected = [
+            (10, np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64)),
+            (
+                20,
+                np.array(
+                    [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1],
+                    dtype=np.float64,
+                ),
+            ),
+        ]
+
+        assert actual == expected
 
     def array_states_povms_gates(self):
         # Array
