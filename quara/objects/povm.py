@@ -419,18 +419,78 @@ def convert_var_to_povm(
     Povm
         converted povm.
     """
+    vecs = copy.copy(var)
     if is_eq_constraints:
         dim = int(np.sqrt(var[0].shape[0]))
         last_vec = np.eye(dim).flatten()
 
-        vecs = copy.copy(var)
         for vec in var:
             last_vec -= vec.flatten()
         vecs.append(last_vec)
-    else:
-        vecs = var
 
     povm = Povm(c_sys, vecs, is_physical=False)
+    return povm
+
+
+def convert_povm_to_var(
+    c_sys: CompositeSystem, vecs: List[np.ndarray], is_eq_constraints: bool = True
+) -> np.array:
+    """converts hs of povm to vec of variables.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this state.
+    vecs : List[np.ndarray]
+        list of vec of povm elements.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    np.array
+        list of vec of variables.
+    """
+    var = copy.copy(vecs)
+    if is_eq_constraints:
+        del var[-1]
+    return var
+
+
+def calc_gradient_from_povm(
+    c_sys: CompositeSystem,
+    vecs: List[np.ndarray],
+    var_index: int,
+    is_eq_constraints: bool = True,
+) -> Povm:
+    """calculates gradient from gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    vecs : List[np.ndarray]
+        list of vec of povm elements.
+    var_index : int
+        variable index.
+    is_eq_constraints : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Povm
+        Povm with gradient as vecs.
+    """
+    gradient = []
+    for _ in vecs:
+        gradient.append(np.zeros(c_sys.dim ** 2, dtype=np.float64))
+
+    (num_measurement, measurement_index) = convert_var_index_to_povm_index(
+        c_sys, vecs, var_index, is_eq_constraints
+    )
+    gradient[num_measurement][measurement_index] = 1
+
+    povm = Povm(c_sys, gradient, is_physical=False)
     return povm
 
 

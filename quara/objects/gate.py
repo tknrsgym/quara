@@ -402,7 +402,7 @@ def convert_gate_to_var(
 
 def calc_gradient_from_gate(
     c_sys: CompositeSystem,
-    vec: np.ndarray,
+    hs: np.ndarray,
     var_index: int,
     is_eq_constraints: bool = True,
 ) -> Gate:
