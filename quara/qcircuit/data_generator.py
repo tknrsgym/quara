@@ -13,8 +13,8 @@ def _random_number_to_data(probdist: np.array, random_number: np.float64) -> int
     return len(probdist) - 1
 
 
-def generate_data_from_probdist(
-    probdist: np.array, data_num: int, seed: int = None, atol: float = None
+def generate_data_from_prob_dist(
+    prob_dist: np.array, data_num: int, seed: int = None, atol: float = None
 ) -> List[int]:
     """generates random data from a probability distribution.
     
@@ -25,7 +25,7 @@ def generate_data_from_probdist(
 
     Parameters
     ----------
-    probdist : np.array
+    prob_dist : np.array
         a probability distribution used to generate random data.
     data_num : int
         length of the data.
@@ -48,18 +48,18 @@ def generate_data_from_probdist(
         the sum of probabilities does not equal 1.
     """
     # whether each probability is a positive number.
-    for prob in probdist:
+    for prob in prob_dist:
         if prob < 0:
             raise ValueError(
                 f"each probability must be a positive number. there is {prob} in a probability distribution"
             )
 
     # whether the sum of probabilities equals 1.
-    sum_probdist = np.sum(probdist)
+    sum_prob_dist = np.sum(prob_dist)
     atol = atol if atol else Settings.get_atol()
-    if not np.isclose(sum_probdist, 1, atol=atol, rtol=0.0):
+    if not np.isclose(sum_prob_dist, 1, atol=atol, rtol=0.0):
         raise ValueError(
-            f"the sum of probabilities must equal 1. the sum of probabilities is {np.sum(probdist)}"
+            f"the sum of probabilities must equal 1. the sum of probabilities is {np.sum(prob_dist)}"
         )
 
     if seed is not None:
@@ -70,17 +70,15 @@ def generate_data_from_probdist(
 
     # use np.frompyfunc to apply the function '_random_number_to_data' to np.array
     def curried_random_number_to_data(random_number):
-        return _random_number_to_data(probdist, random_number)
+        return _random_number_to_data(prob_dist, random_number)
 
     _random_number_to_data_func = np.frompyfunc(curried_random_number_to_data, 1, 1)
 
     return _random_number_to_data_func(rand_val).tolist()
 
 
-def generate_dataset_from_list_probdist(
-    probdist_list: List[np.array],
-    data_num_list: List[int],
-    seed_list: List[int] = None,
+def generate_dataset_from_prob_dists(
+    prob_dists: List[np.array], data_nums: List[int], seeds: List[int] = None,
 ) -> List[List[int]]:
     """generates random dataset from probability distributions.
 
@@ -88,11 +86,11 @@ def generate_dataset_from_list_probdist(
 
     Parameters
     ----------
-    probdist_list : List[np.array]
+    prob_dists : List[np.array]
         a list of probdist.
-    data_num_list : List[int]
+    data_nums : List[int]
         a list of data_num.
-    seed_list : List[int], optional
+    seeds : List[int], optional
         a list of seed, by default None
 
     Returns
@@ -103,38 +101,38 @@ def generate_dataset_from_list_probdist(
     Raises
     ------
     ValueError
-        the length of ``probdist_list`` does not equal the length of ``data_num_list``.
+        the length of ``prob_dists`` does not equal the length of ``data_nums``.
     ValueError
-        ``seed_list`` is not None and the length of ``probdist_list`` does not equal the length of ``seed_list``.
+        ``seeds`` is not None and the length of ``prob_dists`` does not equal the length of ``seeds``.
     """
-    # whether the length of probdist_list equals the length of data_num_list.
-    if len(probdist_list) != len(data_num_list):
+    # whether the length of prob_dists equals the length of data_nums.
+    if len(prob_dists) != len(data_nums):
         raise ValueError(
-            f"the length of probdist_list must equal the length of data_num_list. the length of probdist_list is {len(probdist_list)}. the length of data_num_list is {len(data_num_list)}"
+            f"the length of prob_dists must equal the length of data_nums. the length of prob_dists is {len(prob_dists)}. the length of data_nums is {len(data_nums)}"
         )
 
-    # whether the length of probdist_list equals the length of seed_list.
-    if seed_list is not None:
-        if len(probdist_list) != len(seed_list):
+    # whether the length of prob_dists equals the length of seeds.
+    if seeds is not None:
+        if len(prob_dists) != len(seeds):
             raise ValueError(
-                f"the length of probdist_list must equal the length of seed_list. the length of probdist_list is {len(probdist_list)}. the length of data_num_list is {len(seed_list)}"
+                f"the length of prob_dists must equal the length of seeds. the length of prob_dists is {len(prob_dists)}. the length of seeds is {len(seeds)}"
             )
 
     dataset = []
-    for index, (probdist, data_num) in enumerate(zip(probdist_list, data_num_list)):
-        seed = None if seed_list is None else seed_list[index]
-        data = generate_data_from_probdist(probdist, data_num, seed)
+    for index, (prob_dist, data_num) in enumerate(zip(prob_dists, data_nums)):
+        seed = None if seeds is None else seeds[index]
+        data = generate_data_from_prob_dist(prob_dist, data_num, seed)
         dataset.append(data)
 
     return dataset
 
 
-def calc_empidist(
-    measurement_num: int, data: List[int], list_num_sum: List[int]
+def calc_empi_dist(
+    measurement_num: int, data: List[int], num_sums: List[int]
 ) -> List[Tuple[int, np.array]]:
     """calculates empirical distributions.
 
-    uses ``data`` from 0-th to ``list_num_sum[index]``-th to calculate empirical distributions.
+    uses ``data`` from 0-th to ``num_sums[index]``-th to calculate empirical distributions.
 
     Parameters
     ----------
@@ -142,7 +140,7 @@ def calc_empidist(
         number of measurements.
     data : List[int]
         data of measurement outcomes.
-    list_num_sum : List[int]
+    num_sums : List[int]
         a list of the range of ``data`` to calculate empirical distributions.
 
     Returns
@@ -156,18 +154,18 @@ def calc_empidist(
     ValueError
         ``measurement_num`` is not non-negative integer.
     ValueError
-        there is an element of ``list_num_sum`` that is not less than or equal to length of ``data``.
+        there is an element of ``num_sums`` that is not less than or equal to length of ``data``.
     ValueError
         there is an element of ``data`` that is not non-negative and less than ``measurement_num``.
     ValueError
-        ``list_num_sum`` is not an increasing sequence.
+        ``num_sums`` is not an increasing sequence.
 
     Examples
     --------
     >>> measurement_num = 2
     >>> data = [1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1]
-    >>> list_num_sum = [5, 10, 20]
-    >>> empidist = calc_empidist(measurement_num, data, list_num_sum)
+    >>> num_sums = [5, 10, 20]
+    >>> empidist = calc_empidist(measurement_num, data, num_sums)
     >>> empidist
     [(5, array([0.4, 0.6])), (10, array([0.3, 0.7])), (20, array([0.3, 0.7]))]
 
@@ -178,20 +176,20 @@ def calc_empidist(
             f"measurement_num must be non-negative integer. measurement_num is {measurement_num}"
         )
 
-    empidist_list = []
+    empi_dists = []
     cumulative_frequency = np.zeros((measurement_num), dtype=np.int)
 
-    # take next num_sum from 'list_num_sum'
-    if len(list_num_sum) == 0:
-        return empidist_list
-    next_num_sum = list_num_sum[0]
+    # take next num_sum from 'num_sums'
+    if len(num_sums) == 0:
+        return empi_dists
+    next_num_sum = num_sums[0]
     next_num_sum_position = 0
     former_num_sum = 0
 
-    # whether each number of list_num_sum is less than or equal to length of data.
+    # whether each number of num_sums is less than or equal to length of data.
     if next_num_sum > len(data):
         raise ValueError(
-            f"each number of list_num_sum must be less than or equal to length of data. list_num_sum of index {next_num_sum_position} is {next_num_sum}"
+            f"each number of num_sums must be less than or equal to length of data. num_sums of index {next_num_sum_position} is {next_num_sum}"
         )
 
     for index, d in enumerate(data):
@@ -206,44 +204,44 @@ def calc_empidist(
         # calculate empirical distribution
         if index + 1 == next_num_sum:
             empidist = cumulative_frequency / (index + 1)
-            empidist_list.append((next_num_sum, empidist))
+            empi_dists.append((next_num_sum, empidist))
 
-            # take next num_sum from 'list_num_sum'
-            if next_num_sum_position + 1 == len(list_num_sum):
-                # end of 'list_num_sum'
-                return empidist_list
+            # take next num_sum from 'num_sums'
+            if next_num_sum_position + 1 == len(num_sums):
+                # end of 'num_sums'
+                return empi_dists
             else:
                 former_num_sum = next_num_sum
                 next_num_sum_position += 1
-                next_num_sum = list_num_sum[next_num_sum_position]
+                next_num_sum = num_sums[next_num_sum_position]
 
-                # whether each number of list_num_sum is less than or equal to length of data.
+                # whether each number of num_sums is less than or equal to length of data.
                 if next_num_sum > len(data):
                     raise ValueError(
-                        f"each number of list_num_sum must be less than or equal to length of data. list_num_sum of index {next_num_sum_position} is {next_num_sum}"
+                        f"each number of num_sums must be less than or equal to length of data. num_sums of index {next_num_sum_position} is {next_num_sum}"
                     )
 
-                # whether list_num_sum must be an increasing sequence.
+                # whether num_sums must be an increasing sequence.
                 if former_num_sum >= next_num_sum:
                     raise ValueError(
-                        f"list_num_sum must be an increasing sequence. list_num_sum contains the following subsequence: {former_num_sum}, {next_num_sum}"
+                        f"num_sums must be an increasing sequence. num_sums contains the following subsequence: {former_num_sum}, {next_num_sum}"
                     )
 
-    return empidist_list
+    return empi_dists
 
 
-def calc_list_empidist(
-    list_measurement_num: List[int],
-    list_data: List[List[int]],
+def calc_empi_dists(
+    measurement_nums: List[int],
+    dataset: List[List[int]],
     list_list_num_sum: List[List[int]],
 ) -> List[List[Tuple[int, np.array]]]:
     """calculates a list of empirical distributions by :func:`~quara.qcircuit.data_generator.calc_empidist`.
 
     Parameters
     ----------
-    list_measurement_num : List[int]
+    measurement_nums : List[int]
         a list of measurement_num
-    list_data : List[List[int]]
+    dataset : List[List[int]]
         a list of data
     list_list_num_sum : List[List[int]]
         a list of list_num_sum
@@ -256,27 +254,27 @@ def calc_list_empidist(
     Raises
     ------
     ValueError
-        the length of ``list_measurement_num`` does not equal the length of ``list_data``.
+        the length of ``measurement_nums`` does not equal the length of ``dataset``.
     ValueError
-        the length of ``list_measurement_num`` does not equal the length of ``list_list_num_sum``.
+        the length of ``measurement_nums`` does not equal the length of ``list_list_num_sum``.
     """
-    # whether the length of list_measurement_num equals the length of list_data.
-    if len(list_measurement_num) != len(list_data):
+    # whether the length of measurement_nums equals the length of dataset.
+    if len(measurement_nums) != len(dataset):
         raise ValueError(
-            f"the length of list_measurement_num must equal the length of list_data. the length of list_measurement_num is {len(list_measurement_num)}. the length of list_data is {len(list_data)}"
+            f"the length of measurement_nums must equal the length of dataset. the length of measurement_nums is {len(measurement_nums)}. the length of dataset is {len(dataset)}"
         )
 
-    # whether the length of list_measurement_num equals the length of list_list_num_sum.
-    if len(list_measurement_num) != len(list_list_num_sum):
+    # whether the length of measurement_nums equals the length of list_list_num_sum.
+    if len(measurement_nums) != len(list_list_num_sum):
         raise ValueError(
-            f"the length of list_measurement_num must equal the length of list_list_num_sum. the length of list_measurement_num is {len(list_measurement_num)}. the length of list_list_num_sum is {len(list_list_num_sum)}"
+            f"the length of measurement_nums must equal the length of list_list_num_sum. the length of measurement_nums is {len(measurement_nums)}. the length of list_list_num_sum is {len(list_list_num_sum)}"
         )
 
-    list_empidists = []
-    for measurement_num, data, list_num_sum in zip(
-        list_measurement_num, list_data, list_list_num_sum
+    empi_dists = []
+    for measurement_num, data, num_sums in zip(
+        measurement_nums, dataset, list_list_num_sum
     ):
-        empidists = calc_empidist(measurement_num, data, list_num_sum)
-        list_empidists.append(empidists)
+        empi_dist = calc_empi_dist(measurement_num, data, num_sums)
+        empi_dists.append(empi_dist)
 
-    return list_empidists
+    return empi_dists
