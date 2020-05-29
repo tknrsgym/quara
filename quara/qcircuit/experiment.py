@@ -358,7 +358,7 @@ class Experiment:
             raise IndexError
 
         probdist = self.calc_probdist(index)
-        data = data_generator.generate_data_from_probdist(probdist, data_num)
+        data = data_generator.generate_data_from_probdist(probdist, data_num, seed)
         return data
 
     def generate_dataset(
@@ -382,7 +382,9 @@ class Experiment:
             dataset.append(data)
         return dataset
 
-    def generate_empidist(self, index: int, list_num_sum: List[int], seed: int = None) -> List[Tuple[int, np.array]]:
+    def generate_empidist(
+        self, index: int, list_num_sum: List[int], seed: int = None
+    ) -> List[Tuple[int, np.array]]:
         """
         - 入力
         - index_schedule (list_schedule内のscheduleを指定する整数)
