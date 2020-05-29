@@ -382,7 +382,7 @@ class Experiment:
             dataset.append(data)
         return dataset
 
-    def generate_empidist(self, index: int, list_num_sum: List[int], seed: int = None):
+    def generate_empidist(self, index: int, list_num_sum: List[int], seed: int = None) -> List[Tuple[int, np.array]]:
         """
         - 入力
         - index_schedule (list_schedule内のscheduleを指定する整数)
@@ -393,17 +393,16 @@ class Experiment:
         - 備考
         - メンバ関数generate_dataと関数calc_empiDistを組み合わせる. generate_dataに渡すデータ数は「和を取る数のリスト」中の最大値。
         """
-        test_n = 1  # TODO
-        data = self.generate_data(index=index, data_num=test_n, seed=seed)
-        num = len(data)  # TODO
+        data_n = max(list_num_sum)
+        data = self.generate_data(index=index, data_num=data_n, seed=seed)
         empidist = data_generator.calc_empidist(
-            measurement_num=num, data=data, list_num_sum=list_num_sum
+            measurement_num=len(data), data=data, list_num_sum=list_num_sum
         )
         return empidist
 
     def generate_empidists(
         self, list_num_sums: List[List[int]], seeds: List[int] = None
-    ):
+    ) -> List[List[Tuple[int, np.array]]]:
         """
         - 入力：
         - 和を取る数のリストのリスト.
@@ -411,7 +410,7 @@ class Experiment:
         - 出力：
         - 「データ数と経験分布のペアのリスト」のリスト.
         - 備考
-        - メンバ関数generate_dataSetと関数calc_list_empiDistを組み合わせる. generate_dataSetに渡す「データ数のリスト」は「「和を取る数のリスト」中の最大値のリスト」。 
+        - メンバ関数generate_dataSetと関数calc_list_empiDistを組み合わせる. generate_dataSetに渡す「データ数のリスト」は「「和を取る数のリスト」中の最大値のリスト」。
         """
         if len(list_num_sums) != len(self.schedules):
             # TODO: error message
