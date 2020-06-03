@@ -150,7 +150,6 @@ class Experiment:
     @schedules.setter
     def schedules(self, value):
         self._validate_schedules(value)
-        # TODO: 変更後のスケジュールがtrial_numsと整合性が取れているかチェック
         self._validate_trial_nums(self._trial_nums, value)
         self._schedules = value
 
@@ -345,47 +344,79 @@ class Experiment:
             )
             raise ValueError(error_message)
 
-    def calc_probdist(self, schedule_index: int):
-        # probDist
-        # 確率分布を計算する
-        # - 入力：scheduleのインデックス
-        # - 出力：対応する確率分布
+    def calc_prob_dist(self, schedule_index: int) -> List[float]:
+        """Calculate the probability distributionthe by running the specified schedule.
+
+        Parameters
+        ----------
+        schedule_index : int
+            Index of the schedule
+
+        Returns
+        -------
+        list
+            Probability distribution
+
+        Raises
+        ------
+        ValueError
+            If the object referenced in the schedule, such as State, POVM, Gate, or Mprocess, is None.
+        """
         self._validate_schedule_index(schedule_index)
         schedule = self.schedules[schedule_index]
         key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
-        target_list = collections.deque()
+        targets = collections.deque()
         for item in schedule:
             k, i = item
             target = key_map[k][i]
             if not target:
                 raise ValueError("{}s[{}] is None.".format(k, i))
-            target_list.appendleft(target)
+            targets.appendleft(target)
 
-        result = op.composite(*target_list)
-        return result
+        prob_dist = op.composite(*targets)
+        return prob_dist
 
-    def calc_probdists(self) -> List[np.array]:
-        # - list_probDist
-        # - 入力：なし
-        # - 出力：全scheduleに対する確率分布のリスト
-        probdist_list = []
+    def calc_prob_dists(self) -> List[List[float]]:
+        """Caluclate probability distributions for all schedules.
+
+        Returns
+        -------
+        List[List[float]]
+            Probability distributions for all schedules
+        """
+        prob_dists = []
         for i in range(len(self.schedules)):
-            r = self.calc_probdist(i)
-            probdist_list.append(r)
-        return probdist_list
+            r = self.calc_prob_dist(i)
+            prob_dists.append(r)
+        return prob_dists
 
     def generate_data(
         self, schedule_index: int, data_num: int, seed: int = None
     ) -> List[int]:
-        """
-        - 入力
-        - index_schedule (list_schedule内のscheduleを指定する整数)
-        - データ数 $N$. 非負の整数（0は許すことにする）
-        - 擬似乱数シードの値. 整数
-        - 出力
-        - $N$個の測定値（0 ~ $M$-1の間の整数）のリスト
-        - 備考
-        - メンバ関数probDistを使って確率分布を計算し、その確率分布と関数generate_data_from_prob_distを使って擬似データを生成する.
+        """Runs the specified schedule to caluclate the probability distribution and generate random data.
+
+        Parameters
+        ----------
+        schedule_index : int
+            Index of the schedule.
+        data_num : int
+            Length of the data.
+        seed : int, optional
+            A seed used to generate random data, by default None
+
+        Returns
+        -------
+        List[int]
+            Generated data.
+
+        Raises
+        ------
+        TypeError
+            [description]
+        ValueError
+            [description]
+        IndexError
+            [description]
         """
         if type(data_num) != int:
             raise TypeError("The type of 'data_num' must be int.")
@@ -395,84 +426,100 @@ class Experiment:
 
         self._validate_schedule_index(schedule_index)
 
-        probdist = self.calc_probdist(schedule_index)
-        data = data_generator.generate_data_from_prob_dist(probdist, data_num, seed)
+        prob_dist = self.calc_prob_dist(schedule_index)
+        data = data_generator.generate_data_from_prob_dist(prob_dist, data_num, seed)
         return data
 
     def generate_dataset(
-        self, data_num_list: List[int], seeds: List[int] = None,
+        self, data_nums: List[int], seeds: List[int] = None,
     ) -> List[List[np.array]]:
-        """
-        - 入力
-        - データ数のリスト $\{ N_j \}_{j=0}^{N_p -1}$. 非負の整数のリスト.
-        - 擬似乱数シードのリスト. 整数のリスト.
-        - 出力
-        - 「$N_j$個の測定値(0 ~ $M_j$ -1の間の整数)のリスト」のリスト
-        - 備考
-        - メンバ関数list_probDistを使って確率分布のリストを計算し、その確率分布のリストと関数generate_dataSet_from_list_probDistを使って擬似データセットを計算する.
+        """Run all the schedules to caluclate the probability distribution and generate random data.
+
+        Parameters
+        ----------
+        data_nums : List[int]
+            A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
+        seeds : List[int], optional
+            A list of the seeds to be used in each schedule, by default None
+
+        Returns
+        -------
+        List[List[np.array]]
+            Generated dataset.
         """
 
-        self._validate_eq_schedule_len(data_num_list, "data_num_list")
+        self._validate_eq_schedule_len(data_nums, "data_nums")
         self._validate_eq_schedule_len(seeds, "seeds")
 
         dataset = []
-        for i, data_num in enumerate(data_num_list):
+        for i, data_num in enumerate(data_nums):
             data = self.generate_data(
                 schedule_index=i, data_num=data_num, seed=seeds[i]
             )
             dataset.append(data)
         return dataset
 
-    def generate_empidist(
-        self, schedule_index: int, list_num_sum: List[int], seed: int = None
+    def generate_empi_dist(
+        self, schedule_index: int, num_sums: List[int], seed: int = None
     ) -> List[Tuple[int, np.array]]:
+        """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
+
+        Uses generated data from 0-th to ``num_sums[index]``-th to calculate empirical distributions.
+
+        Parameters
+        ----------
+        schedule_index : int
+            Index of schedule.
+        num_sums : List[int]
+            List of the number of data to caluclate the experience distribution
+        seed : int, optional
+            A seed used to generate random data, by default None.
+
+        Returns
+        -------
+        List[Tuple[int, np.array]]
+            A list of the numbers of data and empirical distribution.
         """
-        - 入力
-        - index_schedule (list_schedule内のscheduleを指定する整数)
-        - 経験分布を計算するために和を取る数のリスト
-        - 擬似乱数シードの値. 整数
-        - 出力
-        - データ数と経験分布のペアのリスト
-        - 備考
-        - メンバ関数generate_dataと関数calc_empiDistを組み合わせる. generate_dataに渡すデータ数は「和を取る数のリスト」中の最大値。
-        """
-        data_n = max(list_num_sum)
+        data_n = max(num_sums)
         # TODO: measurement_numを得るために計算している
         # 確率分布をこの関数内とgenerate_dataメソッドの2回計算しているので、改善すること
-        probdist = self.calc_probdist(schedule_index)
-        measurement_num = len(probdist)
-        # _, povm_index = self.schedules[schedule_index][-1]
-        # povm = self.povms[povm_index]
-        # measurement_num = povm.measurements[0]
+        prob_dist = self.calc_prob_dist(schedule_index)
+        measurement_num = len(prob_dist)
 
         data = self.generate_data(
             schedule_index=schedule_index, data_num=data_n, seed=seed
         )
-        empidist = data_generator.calc_empi_dist(
-            measurement_num=measurement_num, data=data, num_sums=list_num_sum
+        empi_dist = data_generator.calc_empi_dist(
+            measurement_num=measurement_num, data=data, num_sums=num_sums
         )
-        return empidist
+        return empi_dist
 
-    def generate_empidists(
+    def generate_empi_dists(
         self, list_num_sums: List[List[int]], seeds: List[int] = None
     ) -> List[List[Tuple[int, np.array]]]:
+        """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
+
+        Parameters
+        ----------
+        list_num_sums : List[List[int]]
+            A list of the number of data to use to calculate the experience distribution for each schedule.
+        seeds : List[int], optional
+            A List of seeds, by default None
+
+        Returns
+        -------
+        List[List[Tuple[int, np.array]]]
+            A list of tuples for the number of data and experience distribution for each schedules.
         """
-        - 入力：
-        - 和を取る数のリストのリスト.
-        - 擬似乱数シードのリスト. 整数のリスト.
-        - 出力：
-        - 「データ数と経験分布のペアのリスト」のリスト.
-        - 備考
-        - メンバ関数generate_dataSetと関数calc_list_empiDistを組み合わせる. generate_dataSetに渡す「データ数のリスト」は「「和を取る数のリスト」中の最大値のリスト」。
-        """
+
         self._validate_eq_schedule_len(list_num_sums, "list_num_sums")
         self._validate_eq_schedule_len(seeds, "seeds")
-        empidists = []
-        for i, list_num_sum in enumerate(list_num_sums):
+        empi_dists = []
+        for i, num_sums in enumerate(list_num_sums):
             seed = seeds[i] if seeds else None
-            empidist = self.generate_empidist(
-                schedule_index=i, list_num_sum=list_num_sum, seed=seed
+            empi_dist = self.generate_empi_dist(
+                schedule_index=i, num_sums=num_sums, seed=seed
             )
-            empidists.append(empidist)
+            empi_dists.append(empi_dist)
 
-        return empidists
+        return empi_dists
