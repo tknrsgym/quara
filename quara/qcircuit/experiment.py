@@ -193,12 +193,10 @@ class Experiment:
         """
 
         for i, schedule in enumerate(schedules):
-            # 何番目のscheduleで何のエラーが発生したのかわかるようにする
             try:
                 for j, item in enumerate(schedule):
                     self._validate_schedule_item(item, objdict=objdict)
             except (ValueError, IndexError, TypeError) as e:
-                # TODO: error message
                 message = "The item in the schedules[{}] is invalid.\n".format(i)
                 message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
                 message += "{}: {}\n".format(j, item)
