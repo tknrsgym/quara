@@ -160,24 +160,7 @@ class TestExperiment:
 
     def test_calc_prob_dist(self):
         # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
-
-        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
-        gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-        ]
-        trial_nums = [1, 1]
-        exp = Experiment(
-            states=state_list,
-            povms=povm_list,
-            gates=gate_list,
-            schedules=schedules,
-            trial_nums=trial_nums,
-        )
+        exp = self.array_experiment_data()
 
         # Case 1:
         # Act
@@ -196,7 +179,7 @@ class TestExperiment:
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Case 3: Exception
-        ng_schedule_index = len(schedules)
+        ng_schedule_index = len(exp.schedules)
         with pytest.raises(IndexError):
             # IndexError: The value of 'schedule_index' must be an integer between 0 and 1.
             _ = exp.calc_prob_dist(schedule_index=ng_schedule_index)
@@ -340,10 +323,10 @@ class TestExperiment:
         assert actual == expected
 
         # Case 2:
-        actual = exp.generate_data(schedule_index=1, data_num=10, seed=7)
+        actual = exp.generate_data(schedule_index=1, data_num=20, seed=77)
 
         # Assert
-        expected = [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]
+        expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
         assert actual == expected
 
         # Case 3:
@@ -388,14 +371,16 @@ class TestExperiment:
         exp = self.array_experiment_data()
 
         # Case 1:
-        # TODO: [7, 7] -> [7, 77]
-        actual = exp.generate_dataset(data_nums=[10, 10], seeds=[7, 7])
-        expected = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]]
+        actual = exp.generate_dataset(data_nums=[10, 20], seeds=[7, 77])
+        expected = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1],
+        ]
         assert actual == expected
 
         # Case 2:
-        actual = exp.generate_dataset(data_nums=[0, 10], seeds=[7, 7])
-        expected = [[], [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]]
+        actual = exp.generate_dataset(data_nums=[0, 5], seeds=[7, 77])
+        expected = [[], [1, 1, 1, 0, 0]]
         assert actual == expected
 
     def test_generate_dataset_exception(self):
@@ -457,9 +442,7 @@ class TestExperiment:
         # probdist: [0.5, 0.5]
         # data: [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
         num_sums = [5, 10, 15, 20]
-        actual = exp.generate_empi_dist(
-            schedule_index=1, num_sums=num_sums, seed=77
-        )
+        actual = exp.generate_empi_dist(schedule_index=1, num_sums=num_sums, seed=77)
 
         # Assert
         expected_2 = [
