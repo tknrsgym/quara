@@ -296,7 +296,7 @@ class Gate:
 
 
 def convert_var_index_to_gate_index(
-    c_sys: CompositeSystem, var_index: int, is_eq_constraints: bool = True
+    c_sys: CompositeSystem, var_index: int, on_eq_constraint: bool = True
 ) -> Tuple[int, int]:
     """converts variable index to gate index.
 
@@ -306,7 +306,7 @@ def convert_var_index_to_gate_index(
         CompositeSystem of this gate.
     var_index : int
         variable index.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -318,13 +318,13 @@ def convert_var_index_to_gate_index(
     """
     dim = c_sys.dim
     (row, col) = divmod(var_index, dim ** 2)
-    if is_eq_constraints:
+    if on_eq_constraint:
         row += 1
     return (row, col)
 
 
 def convert_gate_index_to_var_index(
-    c_sys: CompositeSystem, gate_index: Tuple[int, int], is_eq_constraints: bool = True
+    c_sys: CompositeSystem, gate_index: Tuple[int, int], on_eq_constraint: bool = True
 ) -> int:
     """converts gate index to variable index.
 
@@ -336,7 +336,7 @@ def convert_gate_index_to_var_index(
         gate index.
         first value of tuple is row number of HS representation of this gate.
         second value of tuple is column number of HS representation of this gate.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -347,13 +347,13 @@ def convert_gate_index_to_var_index(
     dim = c_sys.dim
     (row, col) = gate_index
     var_index = (
-        (dim ** 2) * (row - 1) + col if is_eq_constraints else (dim ** 2) * row + col
+        (dim ** 2) * (row - 1) + col if on_eq_constraint else (dim ** 2) * row + col
     )
     return var_index
 
 
 def convert_var_to_gate(
-    c_sys: CompositeSystem, var: np.ndarray, is_eq_constraints: bool = True
+    c_sys: CompositeSystem, var: np.ndarray, on_eq_constraint: bool = True
 ) -> Gate:
     """converts vec of variables to gate.
 
@@ -363,7 +363,7 @@ def convert_var_to_gate(
         CompositeSystem of this gate.
     var : np.ndarray
         vec of variables.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -372,13 +372,13 @@ def convert_var_to_gate(
         converted gate.
     """
     dim = c_sys.dim
-    hs = np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if is_eq_constraints else var
+    hs = np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if on_eq_constraint else var
     gate = Gate(c_sys, hs, is_physical=False)
     return gate
 
 
 def convert_gate_to_var(
-    c_sys: CompositeSystem, hs: np.ndarray, is_eq_constraints: bool = True
+    c_sys: CompositeSystem, hs: np.ndarray, on_eq_constraint: bool = True
 ) -> np.array:
     """converts hs of gate to vec of variables.
 
@@ -388,7 +388,7 @@ def convert_gate_to_var(
         CompositeSystem of this state.
     hs : np.ndarray
         HS representation of this gate.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -396,7 +396,7 @@ def convert_gate_to_var(
     np.array
         vec of variables.
     """
-    var = np.delete(hs, 0, axis=0).flatten() if is_eq_constraints else hs.flatten()
+    var = np.delete(hs, 0, axis=0).flatten() if on_eq_constraint else hs.flatten()
     return var
 
 
@@ -404,7 +404,7 @@ def calc_gradient_from_gate(
     c_sys: CompositeSystem,
     hs: np.ndarray,
     var_index: int,
-    is_eq_constraints: bool = True,
+    on_eq_constraint: bool = True,
 ) -> Gate:
     """calculates gradient from gate.
 
@@ -416,7 +416,7 @@ def calc_gradient_from_gate(
         HS representation of this gate.
     var_index : int
         variable index.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -425,7 +425,7 @@ def calc_gradient_from_gate(
         Gate with gradient as hs.
     """
     gradient = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.float64)
-    gate_index = convert_var_index_to_gate_index(c_sys, var_index, is_eq_constraints)
+    gate_index = convert_var_index_to_gate_index(c_sys, var_index, on_eq_constraint)
     gradient[gate_index] = 1
 
     gate = Gate(c_sys, gradient, is_physical=False)
