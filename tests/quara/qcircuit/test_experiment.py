@@ -7,22 +7,157 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, get_h, get_i, get_x
+from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
 from quara.objects.povm import (
     Povm,
     get_x_measurement,
     get_y_measurement,
     get_z_measurement,
+    get_xx_measurement,
+    get_xy_measurement,
+    get_yy_measurement,
+    get_zz_measurement,
 )
-from quara.objects.state import State, get_x0_1q, get_y0_1q
+from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q
 from quara.qcircuit.experiment import (
     Experiment,
     QuaraScheduleItemError,
     QuaraScheduleOrderError,
 )
+from quara.objects.operators import composite, tensor_product
 
 
 class TestExperiment:
+    def array_states_povms_gates(self):
+        # Array
+        e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+        c_sys = CompositeSystem([e_sys])
+        # State
+        state_0 = get_x0_1q(c_sys)
+        state_1 = get_y0_1q(c_sys)
+        state_list = [state_0, state_1]
+
+        # POVM
+        povm_0 = get_x_measurement(c_sys)
+        povm_1 = get_x_measurement(c_sys)
+        povm_list = [povm_0, povm_1]
+        # Gate
+        gate_0 = get_i(c_sys)
+        gate_1 = get_h(c_sys)
+        gate_list = [gate_0, gate_1]
+        return state_list, povm_list, gate_list
+
+    def array_experiment_data(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
+        ]
+        trial_nums = [1, 1]
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+        return exp
+
+    def array_experiment_data_2qubit(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+        e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+        c_sys2 = CompositeSystem([e_sys2])
+        c_sys12 = CompositeSystem([e_sys1, e_sys2])
+
+        # Gate
+        cnot = get_cnot(c_sys12, e_sys1)
+        swap = get_swap(c_sys12)
+        cz = get_cz(c_sys12)
+
+        # POVM
+        povm_xx = get_xx_measurement(c_sys12)
+        povm_xy = get_xy_measurement(c_sys12)
+        povm_yy = get_yy_measurement(c_sys12)
+        povm_zz = get_zz_measurement(c_sys12)
+
+        # State
+        state1 = get_z0_1q(c_sys1)
+        state2 = get_z0_1q(c_sys2)
+        h1 = get_h(c_sys1)
+        state1 = composite(h1, state1)
+        state12 = tensor_product(state1, state2)
+
+        state_list = [state12]
+        povm_list = [povm_xx, povm_xy, povm_yy, povm_zz]
+        gate_list = [cnot, swap, cz]
+
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("povm", 1)],
+            [("state", 0), ("gate", 0), ("povm", 2)],
+            [("state", 0), ("gate", 1), ("povm", 0)],
+        ]
+        trial_nums = [1] * len(schedule_list)
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+        return exp
+
+    def array_experiment_data_2qubit_2gate(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+        e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+        c_sys2 = CompositeSystem([e_sys2])
+        c_sys12 = CompositeSystem([e_sys1, e_sys2])
+
+        # Gate
+        cnot = get_cnot(c_sys12, e_sys2)
+        swap = get_swap(c_sys12)
+
+        # State
+        state1 = get_z0_1q(c_sys1)
+        state2 = get_z0_1q(c_sys2)
+        h = get_h(c_sys2)
+        state2 = composite(h, state2)
+        state12 = tensor_product(state1, state2)
+
+        # POVM
+        povm_xx = get_xx_measurement(c_sys12)
+        povm_xy = get_xy_measurement(c_sys12)
+        povm_yy = get_yy_measurement(c_sys12)
+
+        state_list = [state12]
+        povm_list = [povm_xx, povm_xy, povm_yy]
+        gate_list = [cnot, swap]
+
+        schedule_list = [
+            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 1)],
+            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 2)],
+        ]
+        trial_nums = [1] * len(schedule_list)
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedule_list,
+            trial_nums=trial_nums,
+        )
+        return exp
+
     def test_calc_probdist(self):
         # Array
         e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
@@ -44,19 +179,33 @@ class TestExperiment:
             trial_nums=trial_nums,
         )
 
+        # Case 1:
         # Act
-        actual = exp.calc_probdist(index=0)
+        actual = exp.calc_probdist(schedule_index=0)
 
         # Assert
         expected = [1, 0]
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+        # Case 2:
         # Act
-        actual = exp.calc_probdist(index=1)
+        actual = exp.calc_probdist(schedule_index=1)
 
         # Assert
         expected = [0.5, 0.5]
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: Exception
+        ng_schedule_index = len(schedule_list)
+        with pytest.raises(IndexError):
+            # IndexError: The value of 'schedule_index' must be an integer between 0 and 1.
+            _ = exp.calc_probdist(schedule_index=ng_schedule_index)
+
+        # Case 4:
+        ng_schedule_index = 0.1
+        with pytest.raises(TypeError):
+            # TypeError: The type of 'schedule_index' must be int.
+            _ = exp.calc_probdist(schedule_index=ng_schedule_index)
 
     def test_calc_probdists(self):
         # Array
@@ -112,161 +261,301 @@ class TestExperiment:
         # Act
         with pytest.raises(ValueError):
             # ValueError: states[0] is None.
-            _ = exp.calc_probdist(index=0)
+            _ = exp.calc_probdist(schedule_index=0)
+
+    def test_calc_probdist_2qubit(self):
+        # Array
+        exp = self.array_experiment_data_2qubit()
+
+        # Case 1:
+        # Act
+        actual = exp.calc_probdist(schedule_index=0)
+
+        # Assert
+        expected = [0.5, 0, 0, 0.5]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2:
+        # Act
+        actual = exp.calc_probdist(schedule_index=1)
+
+        # Assert
+        expected = [0.25, 0.25, 0.25, 0.25]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3:
+        # Act
+        actual = exp.calc_probdist(schedule_index=2)
+
+        # Assert
+        expected = [0, 0.5, 0.5, 0]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 4:
+        # Act
+        actual = exp.calc_probdist(schedule_index=3)
+
+        # Assert
+        expected = [0.5, 0, 0.5, 0]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_probdist_2qubit_2gate(self):
+        # Array
+        exp = self.array_experiment_data_2qubit_2gate()
+
+        # Case 1:
+        # Act
+        actual = exp.calc_probdist(schedule_index=0)
+
+        # Assert
+        expected = [0.5, 0, 0, 0.5]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2:
+        # Act
+        actual = exp.calc_probdist(schedule_index=1)
+
+        # Assert
+        expected = [0.25, 0.25, 0.25, 0.25]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3:
+        # Act
+        actual = exp.calc_probdist(schedule_index=2)
+
+        # Assert
+        expected = [0, 0.5, 0.5, 0]
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_generate_data(self):
         # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
-
-        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
-        gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
-        schedule_list = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-        ]
-        trial_nums = [1, 1]
-        exp = Experiment(
-            states=state_list,
-            povms=povm_list,
-            gates=gate_list,
-            schedules=schedule_list,
-            trial_nums=trial_nums,
-        )
+        exp = self.array_experiment_data()
 
         # Act
         # Case 1:
-        actual = exp.generate_data(index=0, data_num=10, seed=7)
+        actual = exp.generate_data(schedule_index=0, data_num=10, seed=7)
 
         # Assert
         expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         assert actual == expected
 
         # Case 2:
-        actual = exp.generate_data(index=1, data_num=10, seed=7)
+        actual = exp.generate_data(schedule_index=1, data_num=10, seed=7)
 
         # Assert
         expected = [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]
         assert actual == expected
 
         # Case 3:
-        actual = exp.generate_dataset(data_num_list=[10, 10], seed=7)
+        actual = exp.generate_data(schedule_index=1, data_num=0, seed=7)
+
+        # Assert
+        expected = []
+        assert actual == expected
+
+    def test_generate_data_exception(self):
+        # Array
+        exp = self.array_experiment_data()
+
+        # Act
+        # Case 1:
+        ng_data_num = -1
+        with pytest.raises(ValueError):
+            # ValueError: The value of 'data_num' must be a non-negative integer.
+            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num, seed=7)
+
+        # Case 2:
+        ng_data_num = 0.1
+        with pytest.raises(TypeError):
+            # TypeError: The type of 'data_num' must be int.
+            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num, seed=7)
+
+        # Case 3:
+        ng_schedule_index = len(exp.schedules)
+
+        with pytest.raises(IndexError):
+            # IndexError: The value of 'schedule_index' must be an integer between 0 and 1.
+            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10, seed=7)
+
+        # Case 4:
+        ng_schedule_index = 0.1
+        with pytest.raises(TypeError):
+            # TypeError: The type of 'schedule_index' must be int.
+            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10, seed=7)
+
+    def test_generate_dataset(self):
+        # Array
+        exp = self.array_experiment_data()
+
+        # Case 1:
+        # TODO: [7, 7] -> [7, 77]
+        actual = exp.generate_dataset(data_num_list=[10, 10], seeds=[7, 7])
         expected = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]]
         assert actual == expected
 
-    def test_generate_empidist(self):
-        # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
-
-        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
-        gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
-        schedule_list = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-        ]
-        trial_nums = [1, 1]
-        exp = Experiment(
-            states=state_list,
-            povms=povm_list,
-            gates=gate_list,
-            schedules=schedule_list,
-            trial_nums=trial_nums,
-        )
-
-        # Act
-        # Case 1:
-        list_num_sum = [10]
-        actual = exp.generate_empidist(index=0, list_num_sum=list_num_sum, seed=7)
-
-        # Assert
-        expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        # Case 2:
+        actual = exp.generate_dataset(data_num_list=[0, 10], seeds=[7, 7])
+        expected = [[], [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]]
         assert actual == expected
+
+    def test_generate_dataset_exception(self):
+        # Array
+        exp = self.array_experiment_data()
+        ok_data_num_list = [10, 20]
+        ok_seed_list = [7, 77]
+
+        # Case 1:
+        ng_data_num_list = [1, 1, 1]
+
+        with pytest.raises(ValueError):
+            # ValueError: The number of elements in 'data_num_list' must be the same as the number of 'schedules';
+            _ = exp.generate_dataset(data_num_list=ng_data_num_list, seeds=ok_seed_list)
 
         # Case 2:
-        list_num_sum = [20]
-        actual = exp.generate_empidist(index=1, list_num_sum=list_num_sum, seed=77)
+        ng_data_num_list = 1
+        with pytest.raises(TypeError):
+            # TypeError: The type of 'data_num_list' must be list.
+            _ = exp.generate_dataset(data_num_list=ng_data_num_list, seeds=ok_seed_list)
 
-        # Assert
-        expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
-        assert actual == expected
+        # Case 3:
+        ng_seed_list = [1]
+        with pytest.raises(ValueError):
+            # ValueError: The number of elements in 'seeds' must be the same as the number of 'schedules';
+            _ = exp.generate_dataset(
+                data_num_list=ok_data_num_list, seeds=[ng_seed_list]
+            )
+
+        # Case 4:
+        ng_seed_list = 1
+        with pytest.raises(TypeError):
+            # TypeError: The type of 'seeds' must be list.
+            _ = exp.generate_dataset(data_num_list=ok_data_num_list, seeds=ng_seed_list)
 
     def test_generate_empidist(self):
         # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
-
-        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
-        gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
-        schedule_list = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-        ]
-        trial_nums = [1, 1]
-        exp = Experiment(
-            states=state_list,
-            povms=povm_list,
-            gates=gate_list,
-            schedules=schedule_list,
-            trial_nums=trial_nums,
-        )
+        exp = self.array_experiment_data()
 
         # Act
         # Case 1:
-        # list_num_sums = [[10], [20]]
+        # probdist: [1, 0]
+        # data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        list_num_sum = [5, 10, 20]
         # seed_list = [7, 77]
-        # actual = exp.generate_empidists(list_num_sums=list_num_sums, seeds=seed_list)
-
-        # # Assert
-        # expected = [
-        #     (10, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        #     (20, [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]),
-        # ]
-        # assert actual == expected
-
-        list_num_sums = [[10], [20]]
-        seed_list = [7, 77]
-        actual = exp.generate_empidists(list_num_sums=list_num_sums, seeds=seed_list)
+        actual = exp.generate_empidist(schedule_index=0, list_num_sum=list_num_sum)
 
         # Assert
-        # expected = [
-        #     (10, np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64)),
-        #     (20, np.array([1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1], dtype=np.float64)),
-        # ]
-        expected = [
-            (10, np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64)),
-            (
-                20,
-                np.array(
-                    [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1],
-                    dtype=np.float64,
-                ),
-            ),
+        expected_1 = [
+            (5, np.array([1, 0])),
+            (10, np.array([1, 0])),
+            (20, np.array([1, 0])),
         ]
+        assert len(actual) == len(expected_1)
+        for a, e in zip(actual, expected_1):
+            assert a[0] == e[0]
+            assert np.all(a[1] == e[1])
 
-        assert actual == expected
+        # Act
+        # Case 2:
+        # probdist: [0.5, 0.5]
+        # data: [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
+        list_num_sum = [5, 10, 15, 20]
+        actual = exp.generate_empidist(
+            schedule_index=1, list_num_sum=list_num_sum, seed=77
+        )
 
-    def array_states_povms_gates(self):
+        # Assert
+        expected_2 = [
+            (5, np.array([0.4, 0.6])),
+            (10, np.array([0.4, 0.6])),
+            (15, np.array([6 / 15, 9 / 15])),
+            (20, np.array([0.45, 0.55])),
+        ]
+        assert len(actual) == len(expected_2)
+        for a, e in zip(actual, expected_2):
+            assert a[0] == e[0]
+            assert np.all(a[1] == e[1])
+
+    def test_generate_empidist_exception(self):
         # Array
-        e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
-        c_sys = CompositeSystem([e_sys])
-        # State
-        state_0 = get_x0_1q(c_sys)
-        state_1 = get_y0_1q(c_sys)
-        state_list = [state_0, state_1]
+        exp = self.array_experiment_data()
+        ok_list_num_sum = [7]
 
-        # POVM
-        povm_0 = get_x_measurement(c_sys)
-        povm_1 = get_x_measurement(c_sys)
-        povm_list = [povm_0, povm_1]
-        # Gate
-        gate_0 = get_i(c_sys)
-        gate_1 = get_h(c_sys)
-        gate_list = [gate_0, gate_1]
-        return state_list, povm_list, gate_list
+        # Act & Assert
+        # Case 1:
+        ng_schedule_index = 0.1
+        with pytest.raises(TypeError):
+            actual = exp.generate_empidist(
+                schedule_index=ng_schedule_index, list_num_sum=ok_list_num_sum, seed=7
+            )
+
+        # Act & Assert
+        # Case 2:
+        ng_schedule_index = len(exp.schedules)
+        with pytest.raises(IndexError):
+            actual = exp.generate_empidist(
+                schedule_index=ng_schedule_index, list_num_sum=ok_list_num_sum, seed=7
+            )
+
+    def test_generate_empidists(self):
+        # Array
+        exp = self.array_experiment_data()
+        list_num_sums = [[5, 10, 20], [5, 10, 15, 20]]
+        seeds = [7, 77]
+
+        # Act
+        actual = exp.generate_empidists(list_num_sums=list_num_sums, seeds=seeds)
+
+        # Assert
+        expected = [
+            [(5, np.array([1, 0])), (10, np.array([1, 0])), (20, np.array([1, 0])),],
+            [
+                (5, np.array([0.4, 0.6])),
+                (10, np.array([0.4, 0.6])),
+                (15, np.array([6 / 15, 9 / 15])),
+                (20, np.array([0.45, 0.55])),
+            ],
+        ]
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            assert len(a) == len(e)
+            for a_item, e_item in zip(a, e):
+                assert a_item[0] == e_item[0]
+                assert np.all(a_item[1] == e_item[1])
+
+    def test_generate_empidists_exception(self):
+        # Array
+        exp = self.array_experiment_data()
+        ok_list_num_sums = [[5, 10, 20], [5, 10, 15, 20]]
+        ok_seeds = [7, 77]
+
+        # Act
+        # Case 1:
+        ng_list_num_sums = [[5, 10, 20]]
+        with pytest.raises(ValueError):
+            actual = exp.generate_empidists(
+                list_num_sums=ng_list_num_sums, seeds=ok_seeds
+            )
+
+        # Case 2:
+        ng_list_num_sums = [[5, 10, 20], [5, 10, 20], [5, 10, 20]]
+        with pytest.raises(ValueError):
+            actual = exp.generate_empidists(
+                list_num_sums=ng_list_num_sums, seeds=ok_seeds
+            )
+
+        # Case 3:
+        ng_seeds = [7]
+        with pytest.raises(ValueError):
+            actual = exp.generate_empidists(
+                list_num_sums=ok_list_num_sums, seeds=ng_seeds
+            )
+
+        # Case 4:
+        ng_seeds = [7, 77, 777]
+        with pytest.raises(ValueError):
+            actual = exp.generate_empidists(
+                list_num_sums=ok_list_num_sums, seeds=ng_seeds
+            )
 
     def test_getter(self):
         # Array
@@ -329,25 +618,32 @@ class TestExperiment:
     def test_setter_validation(self):
         # Array
         states, povms, gates = self.array_states_povms_gates()
-        schedule_list = [
+        schedules = [
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 1), ("gate", 1), ("povm", 1)],
         ]
-        trial_nums = [1] * len(schedule_list)
+        trial_nums = [1] * len(schedules)
+        ok_new_states = [states[1], states[0]]
+        ok_new_povms = [povms[1], povms[0]]
+        ok_new_gates = [gates[1], gates[0]]
+        ok_new_schedules = [schedules[1], schedules[0]]
+        ok_new_trial_nums = [2] * len(schedules)
 
         exp = Experiment(
             states=states,
             povms=povms,
             gates=gates,
-            schedules=schedule_list,
+            schedules=schedules,
             trial_nums=trial_nums,
         )
 
+        # State
         # Act & Assert
         ng_new_states = [states[0], povms[0]]
         with pytest.raises(TypeError):
             # TypeError: 'states' must be a list of State.
             exp.states = ng_new_states
+        assert exp.states == states
 
         # Act & Assert
         ng_new_states = [states[0]]
@@ -355,46 +651,51 @@ class TestExperiment:
             # New State does not match schedules.
             exp.states = ng_new_states
         # Assert
-        actual, expected = exp.states, states
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert a == e
+        assert exp.states == states
 
         # Act & Assert
-        ng_new_povms = [states[0], povms[0]]
+        exp.states = ok_new_states
+        assert exp.states == ok_new_states
 
+        # POVM
+        # Act & Assert
+        ng_new_povms = [states[0], povms[0]]
         with pytest.raises(TypeError):
             # TypeError: 'povms' must be a list of Povm.
             exp.povms = ng_new_povms
+        assert exp.povms == povms
 
         # Act & Assert
         ng_new_povms = [povms[0]]
         with pytest.raises(QuaraScheduleItemError):
             # New 'povms' does not match schedules.
             exp.povms = ng_new_povms
-        # Assert
-        actual, expected = exp.povms, povms
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert a == e
+        assert exp.povms == povms
 
+        # Act & Assert
+        exp.povms = ok_new_povms
+        assert exp.povms == ok_new_povms
+
+        # Gate
         # Act & Assert
         ng_new_gates = [states[0], gates[0]]
         with pytest.raises(TypeError):
             # TypeError: 'gates' must be a list of Gate.
             exp.gates = ng_new_gates
+        assert exp.gates == gates
 
         # Act & Assert
         ng_new_gates = [gates[0]]
         with pytest.raises(QuaraScheduleItemError):
             # New 'gates' does not match schedules.
             exp.gates = ng_new_gates
-        # Assert
-        actual, expected = exp.gates, gates
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert a == e
+        assert exp.gates == gates
 
+        # Act & Assert
+        exp.gates = ok_new_gates
+        assert exp.gates == ok_new_gates
+
+        # Schedule
         # Act & Assert
         ng_new_schedules = [
             [("povm"), ("gate", 1), ("povm", 1)],
@@ -403,6 +704,7 @@ class TestExperiment:
         with pytest.raises(QuaraScheduleItemError):
             # A schedule item must be a tuple of str and int.
             exp.schedules = ng_new_schedules
+        assert exp.schedules == schedules
 
         # Act & Assert
         ng_new_schedules = [
@@ -412,24 +714,36 @@ class TestExperiment:
         with pytest.raises(QuaraScheduleOrderError):
             # he first element of the schedule must be a 'state'.
             exp.schedules = ng_new_schedules
+        assert exp.schedules == schedules
 
         # Act & Assert
         ng_new_schedules = [[("state", 1), ("gate", 1), ("povm", 1)]]
         with pytest.raises(ValueError):
             # ValueError: 'trial_nums' and 'schedules' must be equal in length.
             exp.schedules = ng_new_schedules
+        assert exp.schedules == schedules
+
+        # Act & Assert
+        exp.schedules = ok_new_schedules
+        assert exp.schedules == ok_new_schedules
 
         # Act & Assert
         ng_new_trial_nums = [1]
         with pytest.raises(ValueError):
             # ValueError: 'trial_nums' and 'schedules' must be equal in length.
             exp.trial_nums = ng_new_trial_nums
+        assert exp.trial_nums == trial_nums
 
         # Act & Assert
         ng_new_trial_nums = 1
         with pytest.raises(TypeError):
             # TypeError: 'trial_nums' must be a list with int elements.
             exp.trial_nums = ng_new_trial_nums
+        assert exp.trial_nums == trial_nums
+
+        # Act & Assert
+        exp.trial_nums = ok_new_trial_nums
+        assert exp.trial_nums == ok_new_trial_nums
 
     def test_init_unexpected_type(self):
         # Array
@@ -598,7 +912,7 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
-    def test_expeption_item_no_mprocess(self):
+    def test_exception_item_no_mprocess(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -620,7 +934,7 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
-    def test_expeption_item_not_tuple(self):
+    def test_exception_item_not_tuple(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -642,7 +956,7 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
-    def test_expeption_item_too_short(self):
+    def test_exception_item_too_short(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -664,7 +978,7 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
-    def test_expeption_item_too_long(self):
+    def test_exception_item_too_long(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -686,7 +1000,7 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
-    def test_expeption_item_invalid_name_type(self):
+    def test_exception_item_invalid_name_type(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -708,7 +1022,7 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
-    def test_expeption_item_invalid_index_type(self):
+    def test_exception_item_invalid_index_type(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [
@@ -730,7 +1044,7 @@ class TestExperiment:
                 trial_nums=trial_nums,
             )
 
-    def test_expeption_item_unknown_name(self):
+    def test_exception_item_unknown_name(self):
         # Array
         ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
         ng_schedule_list = [

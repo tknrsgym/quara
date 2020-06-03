@@ -12,7 +12,7 @@ from quara.qcircuit import data_generator
 
 
 class QuaraScheduleItemError(Exception):
-    """スケジュールの要素が不正だった時に送出する例外
+    """Raised when an element of the schedule is incorrect.
 
     Parameters
     ----------
@@ -24,7 +24,7 @@ class QuaraScheduleItemError(Exception):
 
 
 class QuaraScheduleOrderError(Exception):
-    """スケジュールの並び順が不正だった時に送出する例外
+    """Raised when the order of the schedule is incorrect.
 
     Parameters
     ----------
@@ -37,8 +37,8 @@ class QuaraScheduleOrderError(Exception):
 
 class Experiment:
     """
-    実験設定のクラス
-    トモグラフィーに限らず一般の量子回路を扱う
+    Class to manage experiment settings
+    This class is not limited to tomography, but deals with general quantum circuits.
     """
 
     def __init__(
@@ -92,19 +92,18 @@ class Experiment:
     def states(self, value):
         # TODO: povm, gateとあわせて実装が冗長なので、あとで共通化する
         self._validate_type(value, State)
-        old_value = self._states
+        objdict = dict(
+            state=value, povm=self._povms, gate=self._gates, mprocess=self._mprocesses,
+        )
 
         try:
-            self._states = value
-            self._validate_schedules(self._schedules)
+            self._validate_schedules(self._schedules, objdict=objdict)
         except QuaraScheduleItemError as e:
-            self._states = old_value
             raise QuaraScheduleItemError(
                 e.args[0] + "\nNew 'states' does not match schedules."
             )
-        except Exception as e:
-            self._states = old_value
-            raise e
+        else:
+            self._states = value
 
     @property
     def povms(self) -> List[Povm]:
@@ -113,19 +112,18 @@ class Experiment:
     @povms.setter
     def povms(self, value):
         self._validate_type(value, Povm)
-        old_value = self._povms
+        objdict = dict(
+            state=self._states, povm=value, gate=self._gates, mprocess=self._mprocesses,
+        )
 
         try:
-            self._povms = value
-            self._validate_schedules(self._schedules)
+            self._validate_schedules(self._schedules, objdict=objdict)
         except QuaraScheduleItemError as e:
-            self._povms = old_value
             raise QuaraScheduleItemError(
                 e.args[0] + "\nNew 'povms' does not match schedules."
             )
-        except Exception as e:
-            self._povms = old_value
-            raise e
+        else:
+            self._povms = value
 
     @property
     def gates(self) -> List[Gate]:
@@ -134,19 +132,18 @@ class Experiment:
     @gates.setter
     def gates(self, value):
         self._validate_type(value, Gate)
-        old_value = self._gates
 
+        objdict = dict(
+            state=self._states, povm=self._povms, gate=value, mprocess=self._mprocesses,
+        )
         try:
-            self._gates = value
-            self._validate_schedules(self._schedules)
+            self._validate_schedules(self._schedules, objdict=objdict)
         except QuaraScheduleItemError as e:
-            self._gates = old_value
             raise QuaraScheduleItemError(
                 e.args[0] + "\nNew 'gates' does not match schedules."
             )
-        except Exception as e:
-            self._gates = old_value
-            raise e
+        else:
+            self._gates = value
 
     @property
     def schedules(self) -> List[List[Tuple[str, int]]]:
@@ -177,7 +174,9 @@ class Experiment:
                 )
                 raise TypeError(error_message)
 
-    def _validate_schedules(self, schedules: List[List[Tuple[str, int]]]) -> None:
+    def _validate_schedules(
+        self, schedules: List[List[Tuple[str, int]]], objdict: dict = None
+    ) -> None:
         """
         - The schedule always starts with the state.
         - There must be one state.
@@ -200,7 +199,7 @@ class Experiment:
             # 何番目のscheduleで何のエラーが発生したのかわかるようにする
             try:
                 for j, item in enumerate(schedule):
-                    self._validate_schedule_item(item)
+                    self._validate_schedule_item(item, objdict=objdict)
             except (ValueError, IndexError, TypeError) as e:
                 # TODO: error message
                 message = "The item in the schedules[{}] is invalid.\n".format(i)
@@ -217,15 +216,14 @@ class Experiment:
                 message += "Detail: {}".format(e.args[0])
                 raise QuaraScheduleOrderError(message)
 
-    def _validate_schedule_order(self, schedule: List[Tuple[str, int]]):
-        """
-        - schedule単体の並び順に問題がないか検証する
-        - scheduleの最初はstate, 最後はpovmで終わっている。
+    def _validate_schedule_order(self, schedule: List[Tuple[str, int]]) -> None:
+        """ Validate that the order of the schedule is correct.
+        For example, check to see if the schedule starts with 'state' and ends with 'povm'.
 
         Parameters
         ----------
         schedule : List[Tuple[str, int]]
-            [description]
+            Schedule to be validated
         """
 
         if len(schedule) < 2:
@@ -253,8 +251,33 @@ class Experiment:
                 "There are too many POVMs; one schedule can only contain one POVM."
             )
 
-    def _validate_schedule_item(self, item: Tuple[str, int]) -> None:
-        # scheduleのtuple単体の中身に問題がないか検証する
+    def _validate_schedule_item(self, item: Tuple[str, int], objdict=None) -> None:
+        """Validate that the item in the schedule is correct
+
+        Parameters
+        ----------
+        item : Tuple[str, int]
+            Schedule item to be validated.
+
+        Raises
+        ------
+        TypeError
+            [description]
+        ValueError
+            [description]
+        TypeError
+            [description]
+        TypeError
+            [description]
+        ValueError
+            [description]
+        IndexError
+            [description]
+        IndexError
+            [description]
+        IndexError
+            [description]
+        """
         if type(item) != tuple:
             raise TypeError("A schedule item must be a tuple of str and int.")
 
@@ -270,48 +293,73 @@ class Experiment:
 
         # TODO: 大文字・小文字の考慮。現状は小文字だけを想定する
         if item_name not in ["state", "povm", "gate", "mprocess"]:
-            # TODO: error message
             raise ValueError(
                 "The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'."
             )
 
-        if item_name == "povm" and not self._povms:
+        now_povms = objdict["povm"] if objdict else self._povms
+        if item_name == "povm" and not now_povms:
             raise IndexError(
                 "'povm' is used in the schedule, but no povm is given. Give a list of Povm to parameter 'povms' in the constructor."
             )
-
-        if item_name == "mprocess" and not self._mprocesses:
+        now_mprocesses = objdict["mprocess"] if objdict else self._mprocesses
+        if item_name == "mprocess" and not now_mprocesses:
             raise IndexError(
                 "'mprocess' is used in the schedule, but no mprocess is given. Give a list of Mprocess to parameter 'mprocesses' in the constructor."
             )
 
-        name2list = dict(
-            state=self._states,
-            povm=self._povms,
-            gate=self._gates,
-            mprocess=self._mprocesses,
-        )
-        if not (0 <= item_index < len(name2list[item_name])):
+        if not objdict:
+            objdict = dict(
+                state=self._states,
+                povm=self._povms,
+                gate=self._gates,
+                mprocess=self._mprocesses,
+            )
+        if not (0 <= item_index < len(objdict[item_name])):
             error_message = "The index out of range."
             error_message += "'{}s' is {} in length, but an index out of range was referenced in the schedule.".format(
                 item_name, item_index
             )
             raise IndexError(error_message)
 
-    def calc_probdist(self, index: int):
+    def _validate_schedule_index(self, schedule_index: int) -> None:
+        if type(schedule_index) != int:
+            raise TypeError("The type of 'schedule_index' must be int.")
+
+        if not (0 <= schedule_index < len(self.schedules)):
+            error_message = "The value of 'schedule_index' must be an integer between 0 and {}.".format(
+                len(self.schedules) - 1
+            )
+            raise IndexError(error_message)
+
+    def _validate_eq_schedule_len(self, target: list, var_name: str) -> None:
+        if type(target) != list:
+            error_message = "The type of '{}' must be list.".format(var_name)
+            raise TypeError(error_message)
+
+        if len(target) != len(self.schedules):
+            error_message = "The number of elements in '{}' must be the same as the number of 'schedules';\n".format(
+                var_name
+            )
+            error_message += "The length of '{}': {}\n".format(var_name, len(target))
+            error_message += "The length of 'schedules': {}\n".format(
+                len(self.schedules)
+            )
+            raise ValueError(error_message)
+
+    def calc_probdist(self, schedule_index: int):
         # probDist
         # 確率分布を計算する
         # - 入力：scheduleのインデックス
         # - 出力：対応する確率分布
-
-        schedule = self.schedules[index]
+        self._validate_schedule_index(schedule_index)
+        schedule = self.schedules[schedule_index]
         key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
         target_list = collections.deque()
         for item in schedule:
             k, i = item
             target = key_map[k][i]
             if not target:
-                # TODO: error message
                 raise ValueError("{}s[{}] is None.".format(k, i))
             target_list.appendleft(target)
 
@@ -328,7 +376,9 @@ class Experiment:
             probdist_list.append(r)
         return probdist_list
 
-    def generate_data(self, index: int, data_num: int, seed: int = None) -> List[int]:
+    def generate_data(
+        self, schedule_index: int, data_num: int, seed: int = None
+    ) -> List[int]:
         """
         - 入力
         - index_schedule (list_schedule内のscheduleを指定する整数)
@@ -339,30 +389,20 @@ class Experiment:
         - 備考
         - メンバ関数probDistを使って確率分布を計算し、その確率分布と関数generate_data_from_probDistを使って擬似データを生成する.
         """
-        # TODO: バリデーションが過剰なら共通化するなり簡潔な方法を考える
-        # data_generatorの方でチェックをしているなら、ここではしなくてよい
         if type(data_num) != int:
-            # TODO: error message
-            raise TypeError
+            raise TypeError("The type of 'data_num' must be int.")
 
         if data_num < 0:
-            # TODO: error message
-            raise ValueError
+            raise ValueError("The value of 'data_num' must be a non-negative integer.")
 
-        if type(index) != int:
-            # TODO: error message
-            raise TypeError
+        self._validate_schedule_index(schedule_index)
 
-        if not (0 <= index < len(self.schedules)):
-            # TODO: error message
-            raise IndexError
-
-        probdist = self.calc_probdist(index)
+        probdist = self.calc_probdist(schedule_index)
         data = data_generator.generate_data_from_probdist(probdist, data_num, seed)
         return data
 
     def generate_dataset(
-        self, data_num_list: List[int], seed: int = None,
+        self, data_num_list: List[int], seeds: List[int] = None,
     ) -> List[List[np.array]]:
         """
         - 入力
@@ -373,17 +413,20 @@ class Experiment:
         - 備考
         - メンバ関数list_probDistを使って確率分布のリストを計算し、その確率分布のリストと関数generate_dataSet_from_list_probDistを使って擬似データセットを計算する.
         """
-        if len(data_num_list) != len(self.schedules):
-            # TODO: error message
-            raise ValueError
+
+        self._validate_eq_schedule_len(data_num_list, "data_num_list")
+        self._validate_eq_schedule_len(seeds, "seeds")
+
         dataset = []
         for i, data_num in enumerate(data_num_list):
-            data = self.generate_data(index=i, data_num=data_num, seed=seed)
+            data = self.generate_data(
+                schedule_index=i, data_num=data_num, seed=seeds[i]
+            )
             dataset.append(data)
         return dataset
 
     def generate_empidist(
-        self, index: int, list_num_sum: List[int], seed: int = None
+        self, schedule_index: int, list_num_sum: List[int], seed: int = None
     ) -> List[Tuple[int, np.array]]:
         """
         - 入力
@@ -396,9 +439,19 @@ class Experiment:
         - メンバ関数generate_dataと関数calc_empiDistを組み合わせる. generate_dataに渡すデータ数は「和を取る数のリスト」中の最大値。
         """
         data_n = max(list_num_sum)
-        data = self.generate_data(index=index, data_num=data_n, seed=seed)
+        # TODO: measurement_numを得るために計算している
+        # 確率分布をこの関数内とgenerate_dataメソッドの2回計算しているので、改善すること
+        probdist = self.calc_probdist(schedule_index)
+        measurement_num = len(probdist)
+        # _, povm_index = self.schedules[schedule_index][-1]
+        # povm = self.povms[povm_index]
+        # measurement_num = povm.measurements[0]
+
+        data = self.generate_data(
+            schedule_index=schedule_index, data_num=data_n, seed=seed
+        )
         empidist = data_generator.calc_empidist(
-            measurement_num=len(data), data=data, list_num_sum=list_num_sum
+            measurement_num=measurement_num, data=data, list_num_sum=list_num_sum
         )
         return empidist
 
@@ -414,19 +467,13 @@ class Experiment:
         - 備考
         - メンバ関数generate_dataSetと関数calc_list_empiDistを組み合わせる. generate_dataSetに渡す「データ数のリスト」は「「和を取る数のリスト」中の最大値のリスト」。
         """
-        if len(list_num_sums) != len(self.schedules):
-            # TODO: error message
-            raise ValueError
-        if seeds:
-            if len(seeds) != len(self.schedules):
-                # TODO: error message
-                raise ValueError
+        self._validate_eq_schedule_len(list_num_sums, "list_num_sums")
+        self._validate_eq_schedule_len(seeds, "seeds")
         empidists = []
-        # TODO: list_num_sumsの名前
         for i, list_num_sum in enumerate(list_num_sums):
             seed = seeds[i] if seeds else None
             empidist = self.generate_empidist(
-                index=i, list_num_sum=list_num_sum, seed=seed
+                schedule_index=i, list_num_sum=list_num_sum, seed=seed
             )
             empidists.append(empidist)
 
