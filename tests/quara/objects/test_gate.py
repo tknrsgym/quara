@@ -404,12 +404,12 @@ def test_convert_var_index_to_gate_index():
     actual = convert_var_index_to_gate_index(c_sys, 11)
     assert actual == (3, 3)
 
-    # is_eq_constraints=True
-    actual = convert_var_index_to_gate_index(c_sys, 11, is_eq_constraints=True)
+    # on_eq_constraint=True
+    actual = convert_var_index_to_gate_index(c_sys, 11, on_eq_constraint=True)
     assert actual == (3, 3)
 
-    # is_eq_constraints=False
-    actual = convert_var_index_to_gate_index(c_sys, 15, is_eq_constraints=False)
+    # on_eq_constraint=False
+    actual = convert_var_index_to_gate_index(c_sys, 15, on_eq_constraint=False)
     assert actual == (3, 3)
 
 
@@ -421,12 +421,12 @@ def test_convert_gate_index_to_var_index():
     actual = convert_gate_index_to_var_index(c_sys, (3, 3))
     assert actual == 11
 
-    # is_eq_constraints=True
-    actual = convert_gate_index_to_var_index(c_sys, (3, 3), is_eq_constraints=True)
+    # on_eq_constraint=True
+    actual = convert_gate_index_to_var_index(c_sys, (3, 3), on_eq_constraint=True)
     assert actual == 11
 
-    # is_eq_constraints=False
-    actual = convert_gate_index_to_var_index(c_sys, (3, 3), is_eq_constraints=False)
+    # on_eq_constraint=False
+    actual = convert_gate_index_to_var_index(c_sys, (3, 3), on_eq_constraint=False)
     assert actual == 15
 
 
@@ -442,19 +442,19 @@ def test_convert_var_to_gate():
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # is_eq_constraints=True
+    # on_eq_constraint=True
     hs = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
-    actual = convert_var_to_gate(c_sys, hs, is_eq_constraints=True)
+    actual = convert_var_to_gate(c_sys, hs, on_eq_constraint=True)
     expected = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # is_eq_constraints=False
+    # on_eq_constraint=False
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = convert_var_to_gate(c_sys, hs, is_eq_constraints=False)
+    actual = convert_var_to_gate(c_sys, hs, on_eq_constraint=False)
     npt.assert_almost_equal(actual.hs, hs, decimal=15)
 
 
@@ -470,19 +470,19 @@ def test_convert_gate_to_var():
     expected = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
     npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
 
-    # is_eq_constraints=True
+    # on_eq_constraint=True
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = convert_gate_to_var(c_sys, hs, is_eq_constraints=True)
+    actual = convert_gate_to_var(c_sys, hs, on_eq_constraint=True)
     expected = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
     npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
 
-    # is_eq_constraints=False
+    # on_eq_constraint=False
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = convert_gate_to_var(c_sys, hs, is_eq_constraints=False)
+    actual = convert_gate_to_var(c_sys, hs, on_eq_constraint=False)
     npt.assert_almost_equal(actual, hs.flatten(), decimal=15)
 
 
@@ -500,21 +500,21 @@ def test_calc_gradient_from_gate():
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # is_eq_constraints=True
+    # on_eq_constraint=True
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = calc_gradient_from_gate(c_sys, hs, 1, is_eq_constraints=True)
+    actual = calc_gradient_from_gate(c_sys, hs, 1, on_eq_constraint=True)
     expected = np.array(
         [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # is_eq_constraints=False
+    # on_eq_constraint=False
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = calc_gradient_from_gate(c_sys, hs, 1, is_eq_constraints=False)
+    actual = calc_gradient_from_gate(c_sys, hs, 1, on_eq_constraint=False)
     expected = np.array(
         [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
     )
