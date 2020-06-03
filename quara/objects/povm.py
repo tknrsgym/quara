@@ -341,7 +341,7 @@ def convert_var_index_to_povm_index(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     var_index: int,
-    is_eq_constraints: bool = True,
+    on_eq_constraint: bool = True,
 ) -> Tuple[int, int]:
     """converts variable index to povm index.
 
@@ -353,7 +353,7 @@ def convert_var_index_to_povm_index(
         list of vec of povm elements.
     var_index : int
         variable index.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -372,7 +372,7 @@ def convert_povm_index_to_var_index(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     povm_index: Tuple[int, int],
-    is_eq_constraints: bool = True,
+    on_eq_constraint: bool = True,
 ) -> int:
     """converts povm index to variable index.
 
@@ -386,7 +386,7 @@ def convert_povm_index_to_var_index(
         povm index.
         first value of tuple is an index of the number of measurements.
         second value of tuple is an index in specific measurement.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -401,7 +401,7 @@ def convert_povm_index_to_var_index(
 
 
 def convert_var_to_povm(
-    c_sys: CompositeSystem, var: List[np.ndarray], is_eq_constraints: bool = True,
+    c_sys: CompositeSystem, var: List[np.ndarray], on_eq_constraint: bool = True,
 ) -> Povm:
     """converts vec of variables to povm.
 
@@ -411,7 +411,7 @@ def convert_var_to_povm(
         CompositeSystem of this povm.
     var : List[np.ndarray]
         list of vec of povm elements.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -420,7 +420,7 @@ def convert_var_to_povm(
         converted povm.
     """
     vecs = copy.copy(var)
-    if is_eq_constraints:
+    if on_eq_constraint:
         dim = int(np.sqrt(var[0].shape[0]))
         last_vec = np.eye(dim).flatten()
 
@@ -433,7 +433,7 @@ def convert_var_to_povm(
 
 
 def convert_povm_to_var(
-    c_sys: CompositeSystem, vecs: List[np.ndarray], is_eq_constraints: bool = True
+    c_sys: CompositeSystem, vecs: List[np.ndarray], on_eq_constraint: bool = True
 ) -> np.array:
     """converts hs of povm to vec of variables.
 
@@ -443,7 +443,7 @@ def convert_povm_to_var(
         CompositeSystem of this state.
     vecs : List[np.ndarray]
         list of vec of povm elements.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -452,7 +452,7 @@ def convert_povm_to_var(
         list of vec of variables.
     """
     var = copy.copy(vecs)
-    if is_eq_constraints:
+    if on_eq_constraint:
         del var[-1]
     return var
 
@@ -461,7 +461,7 @@ def calc_gradient_from_povm(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     var_index: int,
-    is_eq_constraints: bool = True,
+    on_eq_constraint: bool = True,
 ) -> Povm:
     """calculates gradient from gate.
 
@@ -473,7 +473,7 @@ def calc_gradient_from_povm(
         list of vec of povm elements.
     var_index : int
         variable index.
-    is_eq_constraints : bool, optional
+    on_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -486,7 +486,7 @@ def calc_gradient_from_povm(
         gradient.append(np.zeros(c_sys.dim ** 2, dtype=np.float64))
 
     (num_measurement, measurement_index) = convert_var_index_to_povm_index(
-        c_sys, vecs, var_index, is_eq_constraints
+        c_sys, vecs, var_index, on_eq_constraint
     )
     gradient[num_measurement][measurement_index] = 1
 
