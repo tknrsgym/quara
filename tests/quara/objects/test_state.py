@@ -455,12 +455,12 @@ def test_convert_var_index_to_state_index():
     actual = convert_var_index_to_state_index(1)
     assert actual == 2
 
-    # is_eq_constraints=True
-    actual = convert_var_index_to_state_index(1, is_eq_constraints=True)
+    # on_eq_constraint=True
+    actual = convert_var_index_to_state_index(1, on_eq_constraint=True)
     assert actual == 2
 
-    # is_eq_constraints=False
-    actual = convert_var_index_to_state_index(1, is_eq_constraints=False)
+    # on_eq_constraint=False
+    actual = convert_var_index_to_state_index(1, on_eq_constraint=False)
     assert actual == 1
 
 
@@ -469,12 +469,12 @@ def test_convert_state_index_to_var_index():
     actual = convert_state_index_to_var_index(1)
     assert actual == 0
 
-    # is_eq_constraints=True
-    actual = convert_state_index_to_var_index(1, is_eq_constraints=True)
+    # on_eq_constraint=True
+    actual = convert_state_index_to_var_index(1, on_eq_constraint=True)
     assert actual == 0
 
-    # is_eq_constraints=False
-    actual = convert_state_index_to_var_index(1, is_eq_constraints=False)
+    # on_eq_constraint=False
+    actual = convert_state_index_to_var_index(1, on_eq_constraint=False)
     assert actual == 1
 
 
@@ -488,17 +488,17 @@ def test_convert_var_to_state():
     assert actual.is_physical == False
     assert np.all(actual.vec == expected)
 
-    # is_eq_constraints=True
+    # on_eq_constraint=True
     actual = convert_var_to_state(
-        c_sys, np.array([1, 2, 3], dtype=np.float64), is_eq_constraints=True
+        c_sys, np.array([1, 2, 3], dtype=np.float64), on_eq_constraint=True
     )
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
     assert actual.is_physical == False
     assert np.all(actual.vec == expected)
 
-    # is_eq_constraints=False
+    # on_eq_constraint=False
     actual = convert_var_to_state(
-        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), is_eq_constraints=False
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_eq_constraint=False
     )
     expected = np.array([1, 2, 3, 4], dtype=np.float64)
     assert actual.is_physical == False
@@ -516,18 +516,18 @@ def test_convert_state_to_var():
     expected = np.array([1, 2, 3], dtype=np.float64)
     assert np.all(actual == expected)
 
-    # is_eq_constraints=True
+    # on_eq_constraint=True
     actual = convert_state_to_var(
         c_sys,
         np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64),
-        is_eq_constraints=True,
+        on_eq_constraint=True,
     )
     expected = np.array([1, 2, 3], dtype=np.float64)
     assert np.all(actual == expected)
 
-    # is_eq_constraints=False
+    # on_eq_constraint=False
     actual = convert_state_to_var(
-        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), is_eq_constraints=False
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_eq_constraint=False
     )
     expected = np.array([1, 2, 3, 4], dtype=np.float64)
     assert np.all(actual == expected)
@@ -545,17 +545,17 @@ def test_calc_gradient_from_state():
     assert actual.is_physical == False
     assert np.all(actual.vec == expected)
 
-    # is_eq_constraints=True
+    # on_eq_constraint=True
     actual = calc_gradient_from_state(
-        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, is_eq_constraints=True
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, on_eq_constraint=True
     )
     expected = np.array([0, 0, 1, 0], dtype=np.float64)
     assert actual.is_physical == False
     assert np.all(actual.vec == expected)
 
-    # is_eq_constraints=False
+    # on_eq_constraint=False
     actual = calc_gradient_from_state(
-        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, is_eq_constraints=False
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, on_eq_constraint=False
     )
     expected = np.array([0, 1, 0, 0], dtype=np.float64)
     assert actual.is_physical == False
