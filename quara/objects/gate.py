@@ -432,10 +432,10 @@ def calc_gradient_from_gate(
     return gate
 
 
-def is_ep(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
-    """returns whether gate is EP(Hermiticity-Preserving).
+def is_hp(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
+    """returns whether gate is HP(Hermiticity-Preserving).
 
-    EP <=> HS on Hermitian basis is real matrix.
+    HP <=> HS on Hermitian basis is real matrix.
     therefore converts input basis to Pauli basis, and checks whetever converted HS is real matrix.
 
     Parameters

@@ -71,7 +71,6 @@ class Experiment:
         self._validate_trial_nums(trial_nums, self._schedules)
 
         # Set
-        # 各スケジュールを試行する回数
         self._trial_nums: List[int] = trial_nums
 
     def _validate_trial_nums(self, trial_nums, schedules):
@@ -90,7 +89,6 @@ class Experiment:
 
     @states.setter
     def states(self, value):
-        # TODO: povm, gateとあわせて実装が冗長なので、あとで共通化する
         self._validate_type(value, State)
         objdict = dict(
             state=value, povm=self._povms, gate=self._gates, mprocess=self._mprocesses,
@@ -387,7 +385,7 @@ class Experiment:
         - 出力
         - $N$個の測定値（0 ~ $M$-1の間の整数）のリスト
         - 備考
-        - メンバ関数probDistを使って確率分布を計算し、その確率分布と関数generate_data_from_probDistを使って擬似データを生成する.
+        - メンバ関数probDistを使って確率分布を計算し、その確率分布と関数generate_data_from_prob_distを使って擬似データを生成する.
         """
         if type(data_num) != int:
             raise TypeError("The type of 'data_num' must be int.")
@@ -398,7 +396,7 @@ class Experiment:
         self._validate_schedule_index(schedule_index)
 
         probdist = self.calc_probdist(schedule_index)
-        data = data_generator.generate_data_from_probdist(probdist, data_num, seed)
+        data = data_generator.generate_data_from_prob_dist(probdist, data_num, seed)
         return data
 
     def generate_dataset(
@@ -450,8 +448,8 @@ class Experiment:
         data = self.generate_data(
             schedule_index=schedule_index, data_num=data_n, seed=seed
         )
-        empidist = data_generator.calc_empidist(
-            measurement_num=measurement_num, data=data, list_num_sum=list_num_sum
+        empidist = data_generator.calc_empi_dist(
+            measurement_num=measurement_num, data=data, num_sums=list_num_sum
         )
         return empidist
 
