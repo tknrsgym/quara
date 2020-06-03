@@ -1,17 +1,18 @@
 import collections
 from typing import List, Tuple
 
+import numpy as np
+
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm
 from quara.objects.state import State
-from quara.qcircuit.data_generator import (
-    generate_data_from_prob_dist,
-    generate_dataset_from_prob_dists,
-)
+import quara.objects.operators as op
+from quara.qcircuit import data_generator
+
 
 
 class QuaraScheduleItemError(Exception):
-    """スケジュールの要素が不正だった時に送出する例外
+    """Raised when an element of the schedule is incorrect.
 
     Parameters
     ----------
@@ -23,7 +24,7 @@ class QuaraScheduleItemError(Exception):
 
 
 class QuaraScheduleOrderError(Exception):
-    """スケジュールの並び順が不正だった時に送出する例外
+    """Raised when the order of the schedule is incorrect.
 
     Parameters
     ----------
@@ -36,8 +37,8 @@ class QuaraScheduleOrderError(Exception):
 
 class Experiment:
     """
-    実験設定のクラス
-    トモグラフィーに限らず一般の量子回路を扱う
+    Class to manage experiment settings
+    This class is not limited to tomography, but deals with general quantum circuits.
     """
 
     def __init__(
@@ -70,7 +71,6 @@ class Experiment:
         self._validate_trial_nums(trial_nums, self._schedules)
 
         # Set
-        # 各スケジュールを試行する回数
         self._trial_nums: List[int] = trial_nums
 
     def _validate_trial_nums(self, trial_nums, schedules):
@@ -89,21 +89,19 @@ class Experiment:
 
     @states.setter
     def states(self, value):
-        # TODO: povm, gateとあわせて実装が冗長なので、あとで共通化する
         self._validate_type(value, State)
-        old_value = self._states
+        objdict = dict(
+            state=value, povm=self._povms, gate=self._gates, mprocess=self._mprocesses,
+        )
 
         try:
-            self._states = value
-            self._validate_schedules(self._schedules)
+            self._validate_schedules(self._schedules, objdict=objdict)
         except QuaraScheduleItemError as e:
-            self._states = old_value
             raise QuaraScheduleItemError(
                 e.args[0] + "\nNew 'states' does not match schedules."
             )
-        except Exception as e:
-            self._states = old_value
-            raise e
+        else:
+            self._states = value
 
     @property
     def povms(self) -> List[Povm]:
@@ -112,19 +110,18 @@ class Experiment:
     @povms.setter
     def povms(self, value):
         self._validate_type(value, Povm)
-        old_value = self._povms
+        objdict = dict(
+            state=self._states, povm=value, gate=self._gates, mprocess=self._mprocesses,
+        )
 
         try:
-            self._povms = value
-            self._validate_schedules(self._schedules)
+            self._validate_schedules(self._schedules, objdict=objdict)
         except QuaraScheduleItemError as e:
-            self._povms = old_value
             raise QuaraScheduleItemError(
                 e.args[0] + "\nNew 'povms' does not match schedules."
             )
-        except Exception as e:
-            self._povms = old_value
-            raise e
+        else:
+            self._povms = value
 
     @property
     def gates(self) -> List[Gate]:
@@ -133,19 +130,18 @@ class Experiment:
     @gates.setter
     def gates(self, value):
         self._validate_type(value, Gate)
-        old_value = self._gates
 
+        objdict = dict(
+            state=self._states, povm=self._povms, gate=value, mprocess=self._mprocesses,
+        )
         try:
-            self._gates = value
-            self._validate_schedules(self._schedules)
+            self._validate_schedules(self._schedules, objdict=objdict)
         except QuaraScheduleItemError as e:
-            self._gates = old_value
             raise QuaraScheduleItemError(
                 e.args[0] + "\nNew 'gates' does not match schedules."
             )
-        except Exception as e:
-            self._gates = old_value
-            raise e
+        else:
+            self._gates = value
 
     @property
     def schedules(self) -> List[List[Tuple[str, int]]]:
@@ -154,7 +150,6 @@ class Experiment:
     @schedules.setter
     def schedules(self, value):
         self._validate_schedules(value)
-        # TODO: 変更後のスケジュールがtrial_numsと整合性が取れているかチェック
         self._validate_trial_nums(self._trial_nums, value)
         self._schedules = value
 
@@ -176,7 +171,9 @@ class Experiment:
                 )
                 raise TypeError(error_message)
 
-    def _validate_schedules(self, schedules: List[List[Tuple[str, int]]]) -> None:
+    def _validate_schedules(
+        self, schedules: List[List[Tuple[str, int]]], objdict: dict = None
+    ) -> None:
         """
         - The schedule always starts with the state.
         - There must be one state.
@@ -196,12 +193,10 @@ class Experiment:
         """
 
         for i, schedule in enumerate(schedules):
-            # 何番目のscheduleで何のエラーが発生したのかわかるようにする
             try:
                 for j, item in enumerate(schedule):
-                    self._validate_schedule_item(item)
+                    self._validate_schedule_item(item, objdict=objdict)
             except (ValueError, IndexError, TypeError) as e:
-                # TODO: error message
                 message = "The item in the schedules[{}] is invalid.\n".format(i)
                 message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
                 message += "{}: {}\n".format(j, item)
@@ -216,15 +211,14 @@ class Experiment:
                 message += "Detail: {}".format(e.args[0])
                 raise QuaraScheduleOrderError(message)
 
-    def _validate_schedule_order(self, schedule: List[Tuple[str, int]]):
-        """
-        - schedule単体の並び順に問題がないか検証する
-        - scheduleの最初はstate, 最後はpovmで終わっている。
+    def _validate_schedule_order(self, schedule: List[Tuple[str, int]]) -> None:
+        """ Validate that the order of the schedule is correct.
+        For example, check to see if the schedule starts with 'state' and ends with 'povm'.
 
         Parameters
         ----------
         schedule : List[Tuple[str, int]]
-            [description]
+            Schedule to be validated
         """
 
         if len(schedule) < 2:
@@ -252,8 +246,33 @@ class Experiment:
                 "There are too many POVMs; one schedule can only contain one POVM."
             )
 
-    def _validate_schedule_item(self, item: Tuple[str, int]) -> None:
-        # scheduleのtuple単体の中身に問題がないか検証する
+    def _validate_schedule_item(self, item: Tuple[str, int], objdict=None) -> None:
+        """Validate that the item in the schedule is correct
+
+        Parameters
+        ----------
+        item : Tuple[str, int]
+            Schedule item to be validated.
+
+        Raises
+        ------
+        TypeError
+            [description]
+        ValueError
+            [description]
+        TypeError
+            [description]
+        TypeError
+            [description]
+        ValueError
+            [description]
+        IndexError
+            [description]
+        IndexError
+            [description]
+        IndexError
+            [description]
+        """
         if type(item) != tuple:
             raise TypeError("A schedule item must be a tuple of str and int.")
 
@@ -269,44 +288,236 @@ class Experiment:
 
         # TODO: 大文字・小文字の考慮。現状は小文字だけを想定する
         if item_name not in ["state", "povm", "gate", "mprocess"]:
-            # TODO: error message
             raise ValueError(
                 "The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'."
             )
 
-        if item_name == "povm" and not self._povms:
+        now_povms = objdict["povm"] if objdict else self._povms
+        if item_name == "povm" and not now_povms:
             raise IndexError(
                 "'povm' is used in the schedule, but no povm is given. Give a list of Povm to parameter 'povms' in the constructor."
             )
-
-        if item_name == "mprocess" and not self._mprocesses:
+        now_mprocesses = objdict["mprocess"] if objdict else self._mprocesses
+        if item_name == "mprocess" and not now_mprocesses:
             raise IndexError(
                 "'mprocess' is used in the schedule, but no mprocess is given. Give a list of Mprocess to parameter 'mprocesses' in the constructor."
             )
 
-        name2list = dict(
-            state=self._states,
-            povm=self._povms,
-            gate=self._gates,
-            mprocess=self._mprocesses,
-        )
-        if not (0 <= item_index < len(name2list[item_name])):
+        if not objdict:
+            objdict = dict(
+                state=self._states,
+                povm=self._povms,
+                gate=self._gates,
+                mprocess=self._mprocesses,
+            )
+        if not (0 <= item_index < len(objdict[item_name])):
             error_message = "The index out of range."
             error_message += "'{}s' is {} in length, but an index out of range was referenced in the schedule.".format(
                 item_name, item_index
             )
             raise IndexError(error_message)
 
-    def calc_probdist(self, index: int):
-        # probDist
-        # 確率分布を計算する
-        # - 入力：scheduleのインデックス
-        # - 出力：対応する確率分布
+    def _validate_schedule_index(self, schedule_index: int) -> None:
+        if type(schedule_index) != int:
+            raise TypeError("The type of 'schedule_index' must be int.")
 
-        pass
+        if not (0 <= schedule_index < len(self.schedules)):
+            error_message = "The value of 'schedule_index' must be an integer between 0 and {}.".format(
+                len(self.schedules) - 1
+            )
+            raise IndexError(error_message)
 
-    def calc_prob_dists(self):
-        # - list_probDist
-        # - 入力：なし
-        # - 出力：全scheduleに対する確率分布のリスト
-        pass
+    def _validate_eq_schedule_len(self, target: list, var_name: str) -> None:
+        if type(target) != list:
+            error_message = "The type of '{}' must be list.".format(var_name)
+            raise TypeError(error_message)
+
+        if len(target) != len(self.schedules):
+            error_message = "The number of elements in '{}' must be the same as the number of 'schedules';\n".format(
+                var_name
+            )
+            error_message += "The length of '{}': {}\n".format(var_name, len(target))
+            error_message += "The length of 'schedules': {}\n".format(
+                len(self.schedules)
+            )
+            raise ValueError(error_message)
+
+    def calc_prob_dist(self, schedule_index: int) -> List[float]:
+        """Calculate the probability distributionthe by running the specified schedule.
+
+        Parameters
+        ----------
+        schedule_index : int
+            Index of the schedule
+
+        Returns
+        -------
+        list
+            Probability distribution
+
+        Raises
+        ------
+        ValueError
+            If the object referenced in the schedule, such as State, POVM, Gate, or Mprocess, is None.
+        """
+        self._validate_schedule_index(schedule_index)
+        schedule = self.schedules[schedule_index]
+        key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
+        targets = collections.deque()
+        for item in schedule:
+            k, i = item
+            target = key_map[k][i]
+            if not target:
+                raise ValueError("{}s[{}] is None.".format(k, i))
+            targets.appendleft(target)
+
+        prob_dist = op.composite(*targets)
+        return prob_dist
+
+    def calc_prob_dists(self) -> List[List[float]]:
+        """Caluclate probability distributions for all schedules.
+
+        Returns
+        -------
+        List[List[float]]
+            Probability distributions for all schedules
+        """
+        prob_dists = []
+        for i in range(len(self.schedules)):
+            r = self.calc_prob_dist(i)
+            prob_dists.append(r)
+        return prob_dists
+
+    def generate_data(
+        self, schedule_index: int, data_num: int, seed: int = None
+    ) -> List[int]:
+        """Runs the specified schedule to caluclate the probability distribution and generate random data.
+
+        Parameters
+        ----------
+        schedule_index : int
+            Index of the schedule.
+        data_num : int
+            Length of the data.
+        seed : int, optional
+            A seed used to generate random data, by default None
+
+        Returns
+        -------
+        List[int]
+            Generated data.
+
+        Raises
+        ------
+        TypeError
+            [description]
+        ValueError
+            [description]
+        IndexError
+            [description]
+        """
+        if type(data_num) != int:
+            raise TypeError("The type of 'data_num' must be int.")
+
+        if data_num < 0:
+            raise ValueError("The value of 'data_num' must be a non-negative integer.")
+
+        self._validate_schedule_index(schedule_index)
+
+        prob_dist = self.calc_prob_dist(schedule_index)
+        data = data_generator.generate_data_from_prob_dist(prob_dist, data_num, seed)
+        return data
+
+    def generate_dataset(
+        self, data_nums: List[int], seeds: List[int] = None,
+    ) -> List[List[np.array]]:
+        """Run all the schedules to caluclate the probability distribution and generate random data.
+
+        Parameters
+        ----------
+        data_nums : List[int]
+            A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
+        seeds : List[int], optional
+            A list of the seeds to be used in each schedule, by default None
+
+        Returns
+        -------
+        List[List[np.array]]
+            Generated dataset.
+        """
+
+        self._validate_eq_schedule_len(data_nums, "data_nums")
+        self._validate_eq_schedule_len(seeds, "seeds")
+
+        dataset = []
+        for i, data_num in enumerate(data_nums):
+            data = self.generate_data(
+                schedule_index=i, data_num=data_num, seed=seeds[i]
+            )
+            dataset.append(data)
+        return dataset
+
+    def generate_empi_dist(
+        self, schedule_index: int, num_sums: List[int], seed: int = None
+    ) -> List[Tuple[int, np.array]]:
+        """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
+
+        Uses generated data from 0-th to ``num_sums[index]``-th to calculate empirical distributions.
+
+        Parameters
+        ----------
+        schedule_index : int
+            Index of schedule.
+        num_sums : List[int]
+            List of the number of data to caluclate the experience distribution
+        seed : int, optional
+            A seed used to generate random data, by default None.
+
+        Returns
+        -------
+        List[Tuple[int, np.array]]
+            A list of the numbers of data and empirical distribution.
+        """
+        data_n = max(num_sums)
+        # TODO: measurement_numを得るために計算している
+        # 確率分布をこの関数内とgenerate_dataメソッドの2回計算しているので、改善すること
+        prob_dist = self.calc_prob_dist(schedule_index)
+        measurement_num = len(prob_dist)
+
+        data = self.generate_data(
+            schedule_index=schedule_index, data_num=data_n, seed=seed
+        )
+        empi_dist = data_generator.calc_empi_dist(
+            measurement_num=measurement_num, data=data, num_sums=num_sums
+        )
+        return empi_dist
+
+    def generate_empi_dists(
+        self, list_num_sums: List[List[int]], seeds: List[int] = None
+    ) -> List[List[Tuple[int, np.array]]]:
+        """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
+
+        Parameters
+        ----------
+        list_num_sums : List[List[int]]
+            A list of the number of data to use to calculate the experience distribution for each schedule.
+        seeds : List[int], optional
+            A List of seeds, by default None
+
+        Returns
+        -------
+        List[List[Tuple[int, np.array]]]
+            A list of tuples for the number of data and experience distribution for each schedules.
+        """
+
+        self._validate_eq_schedule_len(list_num_sums, "list_num_sums")
+        self._validate_eq_schedule_len(seeds, "seeds")
+        empi_dists = []
+        for i, num_sums in enumerate(list_num_sums):
+            seed = seeds[i] if seeds else None
+            empi_dist = self.generate_empi_dist(
+                schedule_index=i, num_sums=num_sums, seed=seed
+            )
+            empi_dists.append(empi_dist)
+
+        return empi_dists
