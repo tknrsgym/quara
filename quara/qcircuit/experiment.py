@@ -6,9 +6,9 @@ import numpy as np
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm
 from quara.objects.state import State
-
 import quara.objects.operators as op
 from quara.qcircuit import data_generator
+
 
 
 class QuaraScheduleItemError(Exception):
