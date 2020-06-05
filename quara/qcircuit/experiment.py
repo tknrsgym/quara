@@ -10,7 +10,6 @@ import quara.objects.operators as op
 from quara.qcircuit import data_generator
 
 
-
 class QuaraScheduleItemError(Exception):
     """Raised when an element of the schedule is incorrect.
 
@@ -492,7 +491,7 @@ class Experiment:
         )
         return empi_dist
 
-    def generate_empi_dists(
+    def generate_empi_dists_sequence(
         self, list_num_sums: List[List[int]], seeds: List[int] = None
     ) -> List[List[Tuple[int, np.array]]]:
         """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
