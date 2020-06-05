@@ -131,13 +131,15 @@ class SetListQOperation:
         return len(self._mprocesses)
 
     def convert_state_to_var(self, index: int) -> np.array:
-        on_eq_const = (
-            self.states_on_eq_const if self.states_on_eq_const else [True] * len(states)
-        )
-        self._validate_length(self.povms, on_eq_const, "states", "states_on_eq_const")
+        return self.states[index].to_var(self.states_on_eq_const[index])
 
-        # TODO:
-        # call function
+    def convert_states_to_vars(self) -> np.array:
+        self._validate_length(self.states, self.states_on_eq_const, "state", "states_on_eq_const")
+
+        return [
+            state.to_var(self.states_on_eq_const[i])
+            for i, state in enumerate(self.states)
+        ]
 
     def convert_povm_to_var(self, index: int) -> np.array:
         pass

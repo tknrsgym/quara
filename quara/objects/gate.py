@@ -385,7 +385,7 @@ def convert_gate_to_var(
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this state.
+        CompositeSystem of this gate.
     hs : np.ndarray
         HS representation of this gate.
     on_eq_constraint : bool, optional

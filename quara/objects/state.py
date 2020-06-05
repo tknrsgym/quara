@@ -196,6 +196,9 @@ class State:
         )
         return converted_vec
 
+    def to_var(self, on_eq_constraint: bool=True) -> np.array:
+        return convert_state_to_var(self._composite_system, self.vec, on_eq_constraint=on_eq_constraint)
+
 
 def convert_var_index_to_state_index(
     var_index: int, on_eq_constraint: bool = True
