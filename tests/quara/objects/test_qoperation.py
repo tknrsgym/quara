@@ -367,12 +367,8 @@ class TestSetListQOperation:
         actual = sl_qope.var_states()
 
         # Assert
-        expected = [
-            np.array([1, 2, 3], dtype=np.float64),
-            np.array([2, 3, 4], dtype=np.float64),
-        ]
-        for a, e in zip(actual, expected):
-            assert np.all(a == e)
+        expected = np.array([1, 2, 3, 2, 3, 4], dtype=np.float64)
+        assert np.all(actual == expected)
 
         # Case 2:
         sl_qope = qope.SetListQOperation(
@@ -383,9 +379,5 @@ class TestSetListQOperation:
         actual = sl_qope.var_states()
 
         # Assert
-        expected = [
-            np.array([1, 2, 3], dtype=np.float64),
-            np.array([1, 2, 3, 4], dtype=np.float64),
-        ]
-        for a, e in zip(actual, expected):
-            assert np.all(a == e)
+        expected = np.array([1, 2, 3, 1, 2, 3, 4], dtype=np.float64)
+        assert np.all(actual == expected)

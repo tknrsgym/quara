@@ -140,13 +140,18 @@ class SetListQOperation:
     def var_state(self, index: int) -> np.array:
         return self.states[index].to_var(self.states_on_eq_const[index])
 
-    def var_states(self) -> np.array:
-        self._validate_length(self.states, self.states_on_eq_const, "state", "states_on_eq_const")
+    def var_states(self) -> List[float]:
+        self._validate_length(
+            self.states, self.states_on_eq_const, "state", "states_on_eq_const"
+        )
 
-        return [
-            state.to_var(self.states_on_eq_const[i])
-            for i, state in enumerate(self.states)
-        ]
+        for i, state in enumerate(self.states):
+            if i == 0:
+                vars = state.to_var(self.states_on_eq_const[i])
+                continue
+
+            vars = np.hstack((vars, state.to_var(self.states_on_eq_const[i])))
+        return vars
 
     def convert_povm_to_var(self, index: int) -> np.array:
         pass
