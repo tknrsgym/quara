@@ -381,3 +381,21 @@ class TestSetListQOperation:
         # Assert
         expected = np.array([1, 2, 3, 1, 2, 3, 4], dtype=np.float64)
         assert np.all(actual == expected)
+
+    def test_var_povms(self):
+        # Array
+        states, povms, gates = self.array_states_povms_gates()
+        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        actual = sl_qope.var_povm(1)
+        actual = sl_qope.var_povms()
+
+        # TODO
+
+    def test_var_gates(self):
+        # Array
+        states, povms, gates = self.array_states_povms_gates()
+        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        actual = sl_qope.var_gate(1)
+        actual = sl_qope.var_gates()
+
+        # TODO
