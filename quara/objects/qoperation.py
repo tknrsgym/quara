@@ -137,6 +137,43 @@ class SetListQOperation:
     def num_mprocesses(self):
         return len(self._mprocesses)
 
+    def size_var_states(self) -> int:
+        return len(self.var_states())
+
+    def size_var_gates(self) -> int:
+        return len(self.var_gates())
+
+    def size_var_povms(self) -> int:
+        return len(self.var_povms())
+
+    def size_var_mprocesses(self) -> int:
+        # TODO
+        return 0
+
+    def size_var_state(self, index: int) -> int:
+        return len(self.var_state(index=index))
+
+    def size_var_gate(self, index: int) -> int:
+        return len(self.var_gate(index=index))
+
+    def size_var_povm(self, index: int) -> int:
+        return len(self.var_povm(index=index))
+
+    def ize_var_mprocess(self) -> int:
+        # TODO
+        pass
+
+    def size_var_total(self, index: int) -> int:
+        total = sum(
+            [
+                self.size_var_states(),
+                self.size_var_gates(),
+                self.size_var_povms(),
+                self.size_var_mprocesses(),
+            ]
+        )
+        return total
+
     def var_state(self, index: int) -> np.array:
         return self.states[index].to_var(self.states_on_eq_const[index])
 
@@ -177,4 +214,8 @@ class SetListQOperation:
             gate.to_var(self.gates_on_eq_const[i]) for i, gate in enumerate(self.gates)
         ]
         vars = np.hstack(vars)
+        return vars
+
+    def var_total(self) -> np.array:
+        vars = np.stack([self.var_states(), self.var_gates(), self.var_povms()])
         return vars
