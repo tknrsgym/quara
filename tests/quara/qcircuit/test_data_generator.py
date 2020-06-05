@@ -117,7 +117,7 @@ def test_calc_empi_dist():
         data_generator.calc_empi_dist(measurement_num, data, [5, 10, 10])
 
 
-def test_calc_empi_dists():
+def test_calc_empi_dists_sequence():
     # Arrange
     measurement_nums = [3, 2]
     dataset = [
@@ -130,7 +130,7 @@ def test_calc_empi_dists():
     ]
 
     # Act
-    list_actual = data_generator.calc_empi_dists(
+    list_actual = data_generator.calc_empi_dists_sequence(
         measurement_nums, dataset, list_list_num_sum
     )
 
@@ -161,7 +161,7 @@ def test_calc_empi_dists():
         [1, 1, 1, 0, 0],
     ]
     with pytest.raises(ValueError):
-        data_generator.calc_empi_dists(
+        data_generator.calc_empi_dists_sequence(
             measurement_nums, wrong_dataset, list_list_num_sum
         )
 
@@ -172,6 +172,6 @@ def test_calc_empi_dists():
         [1, 2, 3],
     ]
     with pytest.raises(ValueError):
-        data_generator.calc_empi_dists(
+        data_generator.calc_empi_dists_sequence(
             measurement_nums, dataset, wrong_list_list_num_sum
         )
