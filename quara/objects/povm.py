@@ -339,7 +339,7 @@ class Povm:
     def to_var(self, on_eq_constraint: bool = True) -> np.array:
         return convert_povm_to_var(
             c_sys=self._composite_system,
-            vecs=self.vecs,
+            vecs=list(self.vecs),
             on_eq_constraint=on_eq_constraint,
         )
 

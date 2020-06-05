@@ -294,6 +294,12 @@ class Gate:
         ]
         return np.array(process_matrix).reshape((4, 4))
 
+    def to_var(self, on_eq_constraint: bool = True) -> np.array:
+        return convert_gate_to_var(
+            c_sys=self._composite_system,
+            hs=self.hs,
+            on_eq_constraint=on_eq_constraint,
+        )
 
 def convert_var_index_to_gate_index(
     c_sys: CompositeSystem, var_index: int, on_eq_constraint: bool = True
