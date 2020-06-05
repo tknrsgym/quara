@@ -27,12 +27,19 @@ class SetListQOperation:
             self._validate_length(
                 states, states_on_eq_const, "states", "state_on_eq_const"
             )
+        else:
+            states_on_eq_const = [True] * len(states)
         if povms_on_eq_const:
             self._validate_type(povms_on_eq_const, bool, arg_name="povms_on_eq_const")
             self._validate_length(povms, povms_on_eq_const, "povms", "povm_on_eq_const")
+        else:
+            povms_on_eq_const = [True] * len(povms)
+
         if gates_on_eq_const:
             self._validate_type(gates_on_eq_const, bool, arg_name="gates_on_eq_const")
             self._validate_length(gates, gates_on_eq_const, "gates", "gate_on_eq_const")
+        else:
+            gates_on_eq_const = [True] * len(gates)
 
         # Set
         self._states: List[State] = states
@@ -130,10 +137,10 @@ class SetListQOperation:
     def num_mprocesses(self):
         return len(self._mprocesses)
 
-    def convert_state_to_var(self, index: int) -> np.array:
+    def var_state(self, index: int) -> np.array:
         return self.states[index].to_var(self.states_on_eq_const[index])
 
-    def convert_states_to_vars(self) -> np.array:
+    def var_states(self) -> np.array:
         self._validate_length(self.states, self.states_on_eq_const, "state", "states_on_eq_const")
 
         return [

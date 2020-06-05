@@ -283,3 +283,109 @@ class TestSetListQOperation:
         # Act & Assert
         expected = len(gates)
         assert sl_qope.num_gates() == expected
+
+    def test_var_state(self):
+        # Array
+        _, povms, gates = self.array_states_povms_gates()
+
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        vec_1 = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
+        vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
+
+        state_1 = State(c_sys=c_sys, vec=vec_1, is_physical=False)
+        state_2 = State(c_sys=c_sys, vec=vec_2, is_physical=False)
+
+        states = [state_1, state_2]
+
+        # Case 1:
+        sl_qope = qope.SetListQOperation(
+            states=states,
+            povms=povms,
+            gates=gates,
+            gates_on_eq_const=[False] * len(gates),
+            povms_on_eq_const=[False] * len(povms),
+        )
+        # Act
+        actual = sl_qope.var_state(0)
+
+        # Assert
+        expected = np.array([1, 2, 3], dtype=np.float64)
+        assert np.all(actual == expected)
+
+        # Act
+        actual = sl_qope.var_state(1)
+
+        # Assert
+        expected = np.array([2, 3, 4], dtype=np.float64)
+        assert np.all(actual == expected)
+
+        # Case 2:
+        sl_qope = qope.SetListQOperation(
+            states=states, povms=povms, gates=gates, states_on_eq_const=[True, False]
+        )
+
+        # Act
+        actual = sl_qope.var_state(0)
+
+        # Assert
+        expected = np.array([1, 2, 3], dtype=np.float64)
+        assert np.all(actual == expected)
+
+        # Act
+        actual = sl_qope.var_state(1)
+
+        # Assert
+        expected = np.array([1, 2, 3, 4], dtype=np.float64)
+        assert np.all(actual == expected)
+
+    def test_var_states(self):
+        # Array
+        _, povms, gates = self.array_states_povms_gates()
+
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        vec_1 = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
+        vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
+
+        state_1 = State(c_sys=c_sys, vec=vec_1, is_physical=False)
+        state_2 = State(c_sys=c_sys, vec=vec_2, is_physical=False)
+
+        states = [state_1, state_2]
+
+        # Case 1:
+        sl_qope = qope.SetListQOperation(
+            states=states,
+            povms=povms,
+            gates=gates,
+            gates_on_eq_const=[False] * len(gates),
+            povms_on_eq_const=[False] * len(povms),
+        )
+        # Act
+        actual = sl_qope.var_states()
+
+        # Assert
+        expected = [
+            np.array([1, 2, 3], dtype=np.float64),
+            np.array([2, 3, 4], dtype=np.float64),
+        ]
+        for a, e in zip(actual, expected):
+            assert np.all(a == e)
+
+        # Case 2:
+        sl_qope = qope.SetListQOperation(
+            states=states, povms=povms, gates=gates, states_on_eq_const=[True, False]
+        )
+
+        # Act
+        actual = sl_qope.var_states()
+
+        # Assert
+        expected = [
+            np.array([1, 2, 3], dtype=np.float64),
+            np.array([1, 2, 3, 4], dtype=np.float64),
+        ]
+        for a, e in zip(actual, expected):
+            assert np.all(a == e)
