@@ -336,6 +336,13 @@ class Povm:
             )
         return converted_vecs
 
+    def to_var(self, on_eq_constraint: bool = True) -> np.array:
+        return convert_povm_to_var(
+            c_sys=self._composite_system,
+            vecs=self.vecs,
+            on_eq_constraint=on_eq_constraint,
+        )
+
 
 def convert_var_index_to_povm_index(
     c_sys: CompositeSystem,
