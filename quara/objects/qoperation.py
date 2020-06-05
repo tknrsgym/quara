@@ -159,7 +159,7 @@ class SetListQOperation:
     def size_var_povm(self, index: int) -> int:
         return len(self.var_povm(index=index))
 
-    def ize_var_mprocess(self) -> int:
+    def size_var_mprocess(self) -> int:
         # TODO
         pass
 
