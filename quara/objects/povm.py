@@ -12,15 +12,20 @@ from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
 )
 from quara.settings import Settings
+from quara.objects.qoperation import QOperation
 
 
-class Povm:
+class Povm(QOperation):
     """
     Positive Operator-Valued Measure
     """
 
     def __init__(
-        self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True,
+        self,
+        c_sys: CompositeSystem,
+        vecs: List[np.ndarray],
+        is_physical: bool = True,
+        **kwargs,
     ):
         """Constructor
 
@@ -51,6 +56,10 @@ class Povm:
         ValueError
             If the dim in the ``c_sys`` does not match the dim in the ``vecs``
         """
+        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
+        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
+        super().__init__(**kwargs)
+
         # Set
         self._vecs: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(vecs))
         for b in self._vecs:
@@ -336,11 +345,11 @@ class Povm:
             )
         return converted_vecs
 
-    def to_var(self, on_eq_constraint: bool = True) -> np.array:
+    def to_var(self) -> np.array:
         return convert_povm_to_var(
             c_sys=self._composite_system,
             vecs=list(self.vecs),
-            on_eq_constraint=on_eq_constraint,
+            on_eq_constraint=self.on_para_eq_constraint,
         )
 
 
