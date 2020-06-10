@@ -15,9 +15,9 @@ from quara.objects.matrix_basis import (
 from quara.settings import Settings
 from quara.objects.qoperation import QOperation
 
+
 class Gate(QOperation):
-    def __init__(
-        self, c_sys: CompositeSystem, hs: np.ndarray, is_physical: bool = True, **kwargs):
+    def __init__(self, c_sys: CompositeSystem, hs: np.ndarray, **kwargs):
         """Constructor
 
         Parameters
@@ -54,7 +54,6 @@ class Gate(QOperation):
 
         self._composite_system: CompositeSystem = c_sys
         self._hs: np.ndarray = hs
-        self._is_physical = is_physical
 
         # whether HS representation is square matrix
         size = self._hs.shape
@@ -77,7 +76,7 @@ class Gate(QOperation):
             )
 
         # whether the state is physically wrong
-        if self._is_physical:
+        if self.is_physical:
             if not self.is_tp():
                 raise ValueError("the state is physically wrong. gate is not TP.")
             elif not self.is_cp():
@@ -104,17 +103,6 @@ class Gate(QOperation):
             HS representation of gate.
         """
         return self._hs
-
-    @property
-    def is_physical(self):
-        """returns argument ``is_physical`` specified in the constructor.
-
-        Returns
-        -------
-        int
-            argument ``is_physical`` specified in the constructor.
-        """
-        return self._is_physical
 
     def get_basis(self) -> MatrixBasis:
         """returns MatrixBasis of gate.
@@ -298,10 +286,8 @@ class Gate(QOperation):
         return np.array(process_matrix).reshape((4, 4))
 
     def to_var(self) -> np.array:
-        return convert_gate_to_var(
-            c_sys=self._composite_system,
-            hs=self.hs
-        )
+        return convert_gate_to_var(c_sys=self._composite_system, hs=self.hs)
+
 
 def convert_var_index_to_gate_index(
     c_sys: CompositeSystem, var_index: int, on_eq_constraint: bool = True
