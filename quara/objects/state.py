@@ -120,7 +120,7 @@ class State:
         """
         return self._is_physical
 
-    def get_density_matrix(self) -> np.ndarray:
+    def to_density_matrix(self) -> np.ndarray:
         """returns density matrix.
 
         Returns
@@ -141,7 +141,7 @@ class State:
         bool
             True where trace of density matrix is one, False otherwise.
         """
-        tr = np.trace(self.get_density_matrix())
+        tr = np.trace(self.to_density_matrix())
         return np.isclose(tr, 1, atol=Settings.get_atol())
 
     def is_hermitian(self) -> bool:
@@ -152,7 +152,7 @@ class State:
         bool
         True where density matrix, False otherwise.
         """
-        return mutil.is_hermitian(self.get_density_matrix())
+        return mutil.is_hermitian(self.to_density_matrix())
 
     def is_positive_semidefinite(self) -> bool:
         """returns whether density matrix is positive semidifinite.
@@ -162,7 +162,7 @@ class State:
         bool
             True where density matrix is positive semidifinite, False otherwise.
         """
-        return mutil.is_positive_semidefinite(self.get_density_matrix())
+        return mutil.is_positive_semidefinite(self.to_density_matrix())
 
     def calc_eigenvalues(self) -> List:
         """calculates eigen values of density matrix.
@@ -176,7 +176,7 @@ class State:
         List
             eigen values of density matrix.
         """
-        return np.linalg.eigvals(self.get_density_matrix())
+        return np.linalg.eigvals(self.to_density_matrix())
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns vector representation for ``other_basis``.

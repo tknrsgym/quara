@@ -341,7 +341,7 @@ def test_tensor_product_State_State():
         np.array([[1, 0], [0, 0]], dtype=np.complex128),
     )
     assert np.all(actual.vec == expected_vec)
-    assert np.all(actual.get_density_matrix() == expected_density_matrix)
+    assert np.all(actual.to_density_matrix() == expected_density_matrix)
 
     assert e_sys1 is actual._composite_system._elemental_systems[0]
     assert e_sys2 is actual._composite_system._elemental_systems[1]
@@ -367,7 +367,7 @@ def test_tensor_product_State_State():
     state01_P = tensor_product(tensor_product(state0, state1), stateP)
     state0_1P = tensor_product(state0, tensor_product(state1, stateP))
 
-    assert np.all(state01_P.get_density_matrix() == state0_1P.get_density_matrix())
+    assert np.all(state01_P.to_density_matrix() == state0_1P.to_density_matrix())
 
 
 def test_tensor_product_State_State_sort_ElementalSystem():

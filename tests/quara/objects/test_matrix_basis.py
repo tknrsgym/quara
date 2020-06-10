@@ -111,16 +111,16 @@ class TestMatrixBasis:
         non_hermitian_basis = MatrixBasis(non_hermitian_source)
         assert non_hermitian_basis.is_hermitian() == False
 
-    def test_is_scalar_mult_of_identity(self):
+    def test_is_0thpropI(self):
         # Case1: B_0 = C*I
         source = matrix_basis.get_pauli_basis().basis
         basis = MatrixBasis(source)
-        assert basis.is_scalar_mult_of_identity() == True
+        assert basis.is_0thpropI() == True
 
         # Case2: B_0 != C*I
         source = matrix_basis.get_comp_basis().basis
         basis = MatrixBasis(source)
-        assert basis.is_scalar_mult_of_identity() == False
+        assert basis.is_0thpropI() == False
 
     def test_is_trace_less(self):
         # Case1: Tr[B_alpha] = 0, alpha >= 1
@@ -389,7 +389,7 @@ def test_get_comp_basis():
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == True
     assert basis.is_hermitian() == False  # computational basis: False
-    assert basis.is_scalar_mult_of_identity() == False  # computational basis: False
+    assert basis.is_0thpropI() == False  # computational basis: False
     assert basis.is_trace_less() == False  # computational basis: False
     assert basis.size() == (2, 2)
     assert len(basis) == 4
@@ -441,7 +441,7 @@ def test_get_pauli_basis():
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == False  # Pauli basis: False
     assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_0thpropI() == True
     assert basis.is_trace_less() == True
     assert np.all(basis[0] == np.array([[1, 0], [0, 1]], dtype=np.complex128))
     assert np.all(basis[1] == np.array([[0, 1], [1, 0]], dtype=np.complex128))
@@ -461,7 +461,7 @@ def test_get_normalized_pauli_basis():
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == True
     assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_0thpropI() == True
     assert basis.is_trace_less() == True
     assert np.all(
         basis[0] == 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
@@ -637,7 +637,7 @@ def test_get_gell_mann_basis():
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == False
     assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_0thpropI() == True
     assert basis.is_trace_less() == True
 
 
@@ -651,7 +651,7 @@ def test_get_normalized_gell_mann_basis():
     assert basis.is_orthogonal() == True
     assert basis.is_normal() == True
     assert basis.is_hermitian() == True
-    assert basis.is_scalar_mult_of_identity() == True
+    assert basis.is_0thpropI() == True
     assert basis.is_trace_less() == True
 
 

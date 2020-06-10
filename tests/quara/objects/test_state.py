@@ -98,11 +98,11 @@ class TestState:
         with pytest.raises(AttributeError):
             state.is_physical = False
 
-    def test_get_density_matrix(self):
+    def test_to_density_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
-        actual = state.get_density_matrix()
+        actual = state.to_density_matrix()
         expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -171,8 +171,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
-            == np.array([[1, 0], [0, 0]], dtype=np.complex128)
+            state.to_density_matrix() == np.array([[1, 0], [0, 0]], dtype=np.complex128)
         )
         assert state.is_trace_one() == True
         assert state.is_hermitian() == True
@@ -185,8 +184,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
-            == np.array([[0, 1], [0, 0]], dtype=np.complex128)
+            state.to_density_matrix() == np.array([[0, 1], [0, 0]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
         assert state.is_hermitian() == False
@@ -199,8 +197,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
-            == np.array([[0, 0], [1, 0]], dtype=np.complex128)
+            state.to_density_matrix() == np.array([[0, 0], [1, 0]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
         assert state.is_hermitian() == False
@@ -213,8 +210,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
-            == np.array([[0, 0], [0, 1]], dtype=np.complex128)
+            state.to_density_matrix() == np.array([[0, 0], [0, 1]], dtype=np.complex128)
         )
         assert state.is_trace_one() == True
         assert state.is_hermitian() == True
@@ -231,8 +227,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
-            == np.array([[1, 0], [0, 1]], dtype=np.complex128)
+            state.to_density_matrix() == np.array([[1, 0], [0, 1]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
         assert state.is_hermitian() == True
@@ -247,8 +242,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
-            == np.array([[0, 1], [1, 0]], dtype=np.complex128)
+            state.to_density_matrix() == np.array([[0, 1], [1, 0]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
         assert state.is_hermitian() == True
@@ -265,7 +259,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
+            state.to_density_matrix()
             == np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
@@ -283,7 +277,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
+            state.to_density_matrix()
             == np.array([[1, 0], [0, -1]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
@@ -305,7 +299,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
+            state.to_density_matrix()
             == 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
@@ -323,7 +317,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
+            state.to_density_matrix()
             == 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
@@ -341,7 +335,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
+            state.to_density_matrix()
             == 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
@@ -359,7 +353,7 @@ class TestState:
         )
         assert state.dim == 2
         assert np.all(
-            state.get_density_matrix()
+            state.to_density_matrix()
             == 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
         )
         assert state.is_trace_one() == False
@@ -566,7 +560,7 @@ def test_get_x0_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_x0_1q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     expected = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -582,7 +576,7 @@ def test_get_x1_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_x1_1q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     expected = np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -598,7 +592,7 @@ def test_get_y0_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_y0_1q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     expected = np.array([[0.5, -0.5j], [0.5j, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -614,7 +608,7 @@ def test_get_y1_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_y1_1q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     expected = np.array([[0.5, 0.5j], [-0.5j, 0.5]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -630,7 +624,7 @@ def test_get_z0_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_z0_1q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -646,7 +640,7 @@ def test_get_z1_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     state = get_z1_1q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     expected = np.array([[0, 0], [0, 1]], dtype=np.complex128)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -672,7 +666,7 @@ def test_get_bell_2q():
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
     state = get_bell_2q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # test for comp basis
@@ -680,7 +674,7 @@ def test_get_bell_2q():
     e_sys3 = ElementalSystem(3, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys2, e_sys3])
     state = get_bell_2q(c_sys)
-    actual = state.get_density_matrix()
+    actual = state.to_density_matrix()
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # Test that not 2qubit CompositeSystem
