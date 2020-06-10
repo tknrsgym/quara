@@ -470,6 +470,62 @@ class TestPovm:
             # TypeError: The type of `key` must be int or str.
             _ = povm1.matrix(unexpected_type)
 
+    def test_to_var(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+
+        # default
+        povm = Povm(c_sys, vecs, is_physical=False)
+
+        # Act
+        actual = povm.to_var()
+
+        # Assert
+        expected = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+        ]
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # Arrange
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
+
+        # Actual
+        actual = povm.to_var()
+
+        # Assert
+        expected = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+        ]
+        assert len(actual) == len(expected)
+        for a, e in zip(actual, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # Arrange
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+
+        # Actual
+        actual = povm.to_var()
+
+        # Assert
+        assert len(actual) == len(vecs)
+        for a, e in zip(actual, vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
@@ -507,9 +563,7 @@ def test_convert_povm_index_to_var_index():
     assert actual == 3
 
     # on_eq_constraint=True
-    actual = convert_povm_index_to_var_index(
-        c_sys, vecs, (0, 3), on_eq_constraint=True
-    )
+    actual = convert_povm_index_to_var_index(c_sys, vecs, (0, 3), on_eq_constraint=True)
     assert actual == 3
 
     # on_eq_constraint=False
