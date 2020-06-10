@@ -114,17 +114,6 @@ class State(QOperation):
         """
         return self._dim
 
-    @property
-    def is_physical(self):
-        """returns argument ``is_physical`` specified in the constructor.
-
-        Returns
-        -------
-        int
-            argument ``is_physical`` specified in the constructor.
-        """
-        return self._is_physical
-
     def get_density_matrix(self) -> np.ndarray:
         """returns density matrix.
 

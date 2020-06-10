@@ -21,10 +21,7 @@ class Povm(QOperation):
     """
 
     def __init__(
-        self,
-        c_sys: CompositeSystem,
-        vecs: List[np.ndarray],
-        **kwargs,
+        self, c_sys: CompositeSystem, vecs: List[np.ndarray], **kwargs,
     ):
         """Constructor
 
@@ -224,22 +221,6 @@ class Povm(QOperation):
             composite system.
         """
         return self._composite_system
-
-    @property
-    def is_physical(self) -> bool:  # read only
-        """Property to check whether the povm is physically correct.
-           If ``True``, the following requirements are met.
-
-           - It is a set of Hermitian matrices.
-           - The sum is the identity matrix.
-           - positive semidefinite.
-
-        Returns
-        -------
-        bool
-            If ``True``, the povm is physically correct.
-        """
-        return self._is_physical
 
     def is_hermitian(self) -> bool:
         """Returns whether the povm is a set of Hermit matrices.
