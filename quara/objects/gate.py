@@ -174,7 +174,7 @@ class Gate(QOperation):
         atol = atol if atol else Settings.get_atol()
 
         # "A is CP"  <=> "C(A) >= 0"
-        return mutil.is_positive_semidefinite(self.calc_choi_matrix(), atol=atol)
+        return mutil.is_positive_semidefinite(self.to_choi_matrix(), atol=atol)
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns HS representation for ``other_basis``.
@@ -205,8 +205,8 @@ class Gate(QOperation):
         )
         return converted_hs
 
-    def calc_choi_matrix(self) -> np.array:
-        """calculates Choi matrix of gate.
+    def to_choi_matrix(self) -> np.array:
+        """returns Choi matrix of gate.
 
         Returns
         -------
@@ -227,8 +227,8 @@ class Gate(QOperation):
         choi = reduce(add, tmp_list)
         return choi
 
-    def calc_kraus_matrices(self) -> List[np.array]:
-        """calculates Kraus matrices of gate.
+    def to_kraus_matrices(self) -> List[np.array]:
+        """returns Kraus matrices of gate.
 
         this function returns Kraus matrices as list of ``np.array`` with ``dtype=np.complex128``.
         the list is sorted large eigenvalue order.
@@ -244,7 +244,7 @@ class Gate(QOperation):
 
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
-        choi = self.calc_choi_matrix()
+        choi = self.to_choi_matrix()
         eigen_vals, eigen_vecs = np.linalg.eig(choi)
         eigens = [
             (eigen_vals[index], eigen_vecs[:, index])
@@ -268,8 +268,8 @@ class Gate(QOperation):
 
         return kraus
 
-    def calc_process_matrix(self) -> np.array:
-        """calculates process matrix of gate.
+    def to_process_matrix(self) -> np.array:
+        """returns process matrix of gate.
 
         Returns
         -------
