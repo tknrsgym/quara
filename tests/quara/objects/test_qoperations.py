@@ -21,7 +21,7 @@ from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q
 from quara.objects import qoperations as qope
 
 
-class TestSetListQOperation:
+class TestSetQOperations:
     def array_states_povms_gates(self):
         # Array
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -50,7 +50,7 @@ class TestSetListQOperation:
         states, povms, gates = self.array_states_povms_gates()
 
         # Act
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
         # Assert
         assert sl_qope.states == states
@@ -65,19 +65,19 @@ class TestSetListQOperation:
         ng_states = [states[0], 1]
         with pytest.raises(TypeError):
             # TypeError: 'states' must be a list of State.
-            _ = qope.SetListQOperation(states=ng_states, povms=povms, gates=gates)
+            _ = qope.SetQOperations(states=ng_states, povms=povms, gates=gates)
 
         # Act & Assert
         ng_povms = [states[0], povms[0], povms[1]]
         with pytest.raises(TypeError):
             # TypeError: 'povms' must be a list of Povm.
-            _ = qope.SetListQOperation(states=states, povms=ng_povms, gates=gates)
+            _ = qope.SetQOperations(states=states, povms=ng_povms, gates=gates)
 
         # Act & Assert
         ng_gates = [gates[0], states[0], gates[2], gates[3]]
         with pytest.raises(TypeError):
             # TypeError: 'gates' must be a list of Gate.
-            _ = qope.SetListQOperation(states=states, povms=povms, gates=ng_gates)
+            _ = qope.SetQOperations(states=states, povms=povms, gates=ng_gates)
 
     def test_setter(self):
         # Array
@@ -85,7 +85,7 @@ class TestSetListQOperation:
 
         new_states, new_povms, new_gates = self.array_states_povms_gates()
 
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
         # Act & Assert
         ng_states = [states[0], 1]
@@ -123,7 +123,7 @@ class TestSetListQOperation:
     def test_num(self):
         states, povms, gates = self.array_states_povms_gates()
 
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
         # Act & Assert
         expected = len(states)
@@ -153,7 +153,7 @@ class TestSetListQOperation:
         states = [state_1, state_2]
 
         # Case 1:
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates,)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates,)
         # Act
         actual = sl_qope.var_state(0)
 
@@ -178,7 +178,7 @@ class TestSetListQOperation:
         )
         states = [state_1, state_2]
 
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
         # Act
         actual = sl_qope.var_state(0)
@@ -210,7 +210,7 @@ class TestSetListQOperation:
         states = [state_1, state_2]
 
         # Case 1:
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
         # Act
         actual = sl_qope.var_states()
 
@@ -227,7 +227,7 @@ class TestSetListQOperation:
         )
 
         states = [state_1, state_2]
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
         # Act
         actual = sl_qope.var_states()
@@ -239,7 +239,7 @@ class TestSetListQOperation:
     def test_var_povms(self):
         # Array
         states, povms, gates = self.array_states_povms_gates()
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
         actual = sl_qope.var_povm(1)
         actual = sl_qope.var_povms()
 
@@ -248,7 +248,7 @@ class TestSetListQOperation:
     def test_var_gates(self):
         # Array
         states, povms, gates = self.array_states_povms_gates()
-        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
         actual = sl_qope.var_gate(1)
         actual = sl_qope.var_gates()
 
