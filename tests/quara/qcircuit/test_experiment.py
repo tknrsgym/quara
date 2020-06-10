@@ -35,17 +35,17 @@ class TestExperiment:
         # State
         state_0 = get_x0_1q(c_sys)
         state_1 = get_y0_1q(c_sys)
-        state_list = [state_0, state_1]
+        states = [state_0, state_1]
 
         # POVM
         povm_0 = get_x_measurement(c_sys)
         povm_1 = get_x_measurement(c_sys)
-        povm_list = [povm_0, povm_1]
+        povms = [povm_0, povm_1]
         # Gate
         gate_0 = get_i(c_sys)
         gate_1 = get_h(c_sys)
-        gate_list = [gate_0, gate_1]
-        return state_list, povm_list, gate_list
+        gates = [gate_0, gate_1]
+        return states, povms, gates
 
     def array_experiment_data(self):
         # Array

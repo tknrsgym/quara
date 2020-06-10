@@ -13,12 +13,11 @@ from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
 )
 from quara.settings import Settings
+from quara.objects.qoperation import QOperation
 
 
-class Gate:
-    def __init__(
-        self, c_sys: CompositeSystem, hs: np.ndarray, is_physical: bool = True
-    ):
+class Gate(QOperation):
+    def __init__(self, c_sys: CompositeSystem, hs: np.ndarray, **kwargs):
         """Constructor
 
         Parameters
@@ -49,9 +48,12 @@ class Gate:
         ValueError
             ``is_physical`` is ``True`` and gate is not CP.
         """
+        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
+        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
+        super().__init__(**kwargs)
+
         self._composite_system: CompositeSystem = c_sys
         self._hs: np.ndarray = hs
-        self._is_physical = is_physical
 
         # whether HS representation is square matrix
         size = self._hs.shape
@@ -74,7 +76,7 @@ class Gate:
             )
 
         # whether the state is physically wrong
-        if self._is_physical:
+        if self.is_physical:
             if not self.is_tp():
                 raise ValueError("the state is physically wrong. gate is not TP.")
             elif not self.is_cp():
@@ -101,17 +103,6 @@ class Gate:
             HS representation of gate.
         """
         return self._hs
-
-    @property
-    def is_physical(self):
-        """returns argument ``is_physical`` specified in the constructor.
-
-        Returns
-        -------
-        int
-            argument ``is_physical`` specified in the constructor.
-        """
-        return self._is_physical
 
     def get_basis(self) -> MatrixBasis:
         """returns MatrixBasis of gate.
@@ -294,6 +285,9 @@ class Gate:
         ]
         return np.array(process_matrix).reshape((4, 4))
 
+    def to_var(self) -> np.array:
+        return convert_gate_to_var(c_sys=self._composite_system, hs=self.hs)
+
 
 def convert_var_index_to_gate_index(
     c_sys: CompositeSystem, var_index: int, on_eq_constraint: bool = True
@@ -385,7 +379,7 @@ def convert_gate_to_var(
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this state.
+        CompositeSystem of this gate.
     hs : np.ndarray
         HS representation of this gate.
     on_eq_constraint : bool, optional
