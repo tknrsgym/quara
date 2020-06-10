@@ -159,7 +159,7 @@ class MatrixBasis(Basis):
                 return False
         return True
 
-    def is_scalar_mult_of_identity(self) -> bool:
+    def is_0thpropI(self) -> bool:
         """Returns whether first matrix is constant multiple of identity matrix.
 
         Returns
