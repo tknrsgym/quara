@@ -14,7 +14,6 @@ class SetListQOperation:
         gates: List[Gate],
         povms: List[Povm],
         gates_on_eq_const: List[bool] = None,
-        povms_on_eq_const: List[bool] = None,
     ) -> None:
         # Validation
         self._validate_type(states, State)
@@ -22,12 +21,6 @@ class SetListQOperation:
         self._validate_type(gates, Gate)
 
         # TODO: add validation to check length
-        if povms_on_eq_const:
-            self._validate_type(povms_on_eq_const, bool, arg_name="povms_on_eq_const")
-            self._validate_length(povms, povms_on_eq_const, "povms", "povm_on_eq_const")
-        else:
-            povms_on_eq_const = [True] * len(povms)
-
         if gates_on_eq_const:
             self._validate_type(gates_on_eq_const, bool, arg_name="gates_on_eq_const")
             self._validate_length(gates, gates_on_eq_const, "gates", "gate_on_eq_const")
@@ -41,7 +34,6 @@ class SetListQOperation:
         # TODO: List[MProcess]
         self._mprocesses: list = []
 
-        self._povms_on_eq_const: List[bool] = povms_on_eq_const
         self._gates_on_eq_const: List[bool] = gates_on_eq_const
 
     def _validate_type(self, targets, expected_type, arg_name: str = None) -> None:
@@ -99,15 +91,6 @@ class SetListQOperation:
         self._validate_type(value, bool, "gates_on_eq_const")
         self._gates_on_eq_const = value
 
-    @property
-    def povms_on_eq_const(self) -> List[bool]:
-        return self._povms_on_eq_const
-
-    @povms_on_eq_const.setter
-    def povms_on_eq_const(self, value):
-        self._validate_type(value, bool, "povms_on_eq_const")
-        self._povms_on_eq_const = value
-
     def num_states(self):
         return len(self._states)
 
@@ -164,7 +147,7 @@ class SetListQOperation:
         return self.gates[index].to_var(self.gates_on_eq_const[index])
 
     def var_povm(self, index: int) -> np.array:
-        return self.povms[index].to_var(self.povms_on_eq_const[index])
+        return self.povms[index].to_var()
 
     def var_states(self) -> List[float]:
         vars = [state.to_var() for i, state in enumerate(self.states)]
@@ -172,13 +155,7 @@ class SetListQOperation:
         return vars
 
     def var_povms(self) -> np.array:
-        self._validate_length(
-            self.povms, self.povms_on_eq_const, "povm", "povms_on_eq_const"
-        )
-
-        vars = [
-            povm.to_var(self.povms_on_eq_const[i]) for i, povm in enumerate(self.povms)
-        ]
+        vars = [povm.to_var() for povm in self.povms]
         vars = np.hstack(vars)
         return vars
 
