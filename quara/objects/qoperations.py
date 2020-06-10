@@ -7,7 +7,7 @@ from quara.objects.gate import Gate, convert_gate_to_var
 from quara.objects.povm import Povm, convert_povm_to_var
 
 
-class SetListQOperation:
+class SetQOperations:
     def __init__(
         self, states: List[State], gates: List[Gate], povms: List[Povm]
     ) -> None:
