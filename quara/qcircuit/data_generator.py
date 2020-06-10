@@ -165,8 +165,8 @@ def calc_empi_dist(
     >>> measurement_num = 2
     >>> data = [1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1]
     >>> num_sums = [5, 10, 20]
-    >>> empidist = calc_empidist(measurement_num, data, num_sums)
-    >>> empidist
+    >>> empi_dist = calc_empi_dist(measurement_num, data, num_sums)
+    >>> empi_dist
     [(5, array([0.4, 0.6])), (10, array([0.3, 0.7])), (20, array([0.3, 0.7]))]
 
     """
@@ -230,26 +230,26 @@ def calc_empi_dist(
     return empi_dists
 
 
-def calc_empi_dists(
+def calc_empi_dists_sequence(
     measurement_nums: List[int],
     dataset: List[List[int]],
     list_list_num_sum: List[List[int]],
 ) -> List[List[Tuple[int, np.array]]]:
-    """calculates a list of empirical distributions by :func:`~quara.qcircuit.data_generator.calc_empidist`.
+    """calculates a sequence of empirical distributions by :func:`~quara.qcircuit.data_generator.calc_empidist`.
 
     Parameters
     ----------
     measurement_nums : List[int]
         a list of measurement_num
     dataset : List[List[int]]
-        a list of data
+        a dataset
     list_list_num_sum : List[List[int]]
         a list of list_num_sum
 
     Returns
     -------
     List[List[np.array]]
-        a list of a list of (the range of ``data``, empirical distribution).
+        a sequence of empirical distributions.
 
     Raises
     ------
@@ -270,11 +270,11 @@ def calc_empi_dists(
             f"the length of measurement_nums must equal the length of list_list_num_sum. the length of measurement_nums is {len(measurement_nums)}. the length of list_list_num_sum is {len(list_list_num_sum)}"
         )
 
-    empi_dists = []
+    empi_dists_sequence = []
     for measurement_num, data, num_sums in zip(
         measurement_nums, dataset, list_list_num_sum
     ):
-        empi_dist = calc_empi_dist(measurement_num, data, num_sums)
-        empi_dists.append(empi_dist)
+        empi_dists = calc_empi_dist(measurement_num, data, num_sums)
+        empi_dists_sequence.append(empi_dists)
 
-    return empi_dists
+    return empi_dists_sequence
