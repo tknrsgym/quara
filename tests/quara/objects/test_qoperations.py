@@ -18,7 +18,7 @@ from quara.objects.povm import (
     get_zz_measurement,
 )
 from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q
-from quara.objects import qoperation as qope
+from quara.objects import qoperations as qope
 
 
 class TestSetListQOperation:
@@ -60,7 +60,6 @@ class TestSetListQOperation:
         # TODO: test *_on_eq_const
 
         # Array
-        states_on_eq_const = [True, False]
         povms_on_eq_const = [False, False, False]
         gates_on_eq_const = [True, True, True, True]
 
@@ -69,13 +68,11 @@ class TestSetListQOperation:
             states=states,
             povms=povms,
             gates=gates,
-            states_on_eq_const=states_on_eq_const,
             povms_on_eq_const=povms_on_eq_const,
             gates_on_eq_const=gates_on_eq_const,
         )
 
         # Assert
-        assert sl_qope.states_on_eq_const == states_on_eq_const
         assert sl_qope.povms_on_eq_const == povms_on_eq_const
         assert sl_qope.gates_on_eq_const == gates_on_eq_const
 
@@ -102,17 +99,6 @@ class TestSetListQOperation:
             _ = qope.SetListQOperation(states=states, povms=povms, gates=ng_gates)
 
         # Act & Assert
-        ng_states_on_eq_const = [1, True]
-        with pytest.raises(TypeError):
-            # 'states_on_eq_const' must be a list of bool.
-            _ = qope.SetListQOperation(
-                states=states,
-                povms=povms,
-                gates=gates,
-                states_on_eq_const=ng_states_on_eq_const,
-            )
-
-        # Act & Assert
         ng_povms_on_eq_const = [True, 1, True]
         with pytest.raises(TypeError):
             # TypeError: 'povms_on_eq_const' must be a list of bool.
@@ -137,22 +123,8 @@ class TestSetListQOperation:
     def test_init_exception_length(self):
         # Array
         states, povms, gates = self.array_states_povms_gates()
-        states_on_eq_const = [True] * len(states)
         povms_on_eq_const = [True] * len(povms)
         gates_on_eq_const = [True] * len(gates)
-
-        # Act & Assert
-        ng_states_on_eq_const = [True] * (len(states) + 1)
-        with pytest.raises(ValueError):
-            # ValueError: 'states' and 'state_on_eq_const' must be the same length.
-            _ = qope.SetListQOperation(
-                states=states,
-                povms=povms,
-                gates=gates,
-                states_on_eq_const=ng_states_on_eq_const,
-                povms_on_eq_const=povms_on_eq_const,
-                gates_on_eq_const=gates_on_eq_const,
-            )
 
         # Act & Assert
         ng_povms_on_eq_const = [True] * (len(povms) + 1)
@@ -162,7 +134,6 @@ class TestSetListQOperation:
                 states=states,
                 povms=povms,
                 gates=gates,
-                states_on_eq_const=states_on_eq_const,
                 povms_on_eq_const=ng_povms_on_eq_const,
                 gates_on_eq_const=gates_on_eq_const,
             )
@@ -175,7 +146,6 @@ class TestSetListQOperation:
                 states=states,
                 povms=povms,
                 gates=gates,
-                states_on_eq_const=states_on_eq_const,
                 povms_on_eq_const=povms_on_eq_const,
                 gates_on_eq_const=ng_gates_on_eq_const,
             )
@@ -183,12 +153,10 @@ class TestSetListQOperation:
     def test_setter(self):
         # Array
         states, povms, gates = self.array_states_povms_gates()
-        states_on_eq_const = [True, False]
         povms_on_eq_const = [False, False, False]
         gates_on_eq_const = [True, True, True, True]
 
         new_states, new_povms, new_gates = self.array_states_povms_gates()
-        new_states_on_eq_const = [False, True]
         new_povms_on_eq_const = [True, True, True]
         new_gates_on_eq_const = [False, False, False, False]
 
@@ -196,7 +164,6 @@ class TestSetListQOperation:
             states=states,
             povms=povms,
             gates=gates,
-            states_on_eq_const=states_on_eq_const,
             povms_on_eq_const=povms_on_eq_const,
             gates_on_eq_const=gates_on_eq_const,
         )
@@ -233,17 +200,6 @@ class TestSetListQOperation:
         # Act & Assert
         sl_qope.gates = new_gates
         assert sl_qope.gates == new_gates
-
-        # Act & Assert
-        ng_states_on_eq_const = [1, True]
-        with pytest.raises(TypeError):
-            # TypeError: 'states_on_eq_const' must be a list of bool.
-            sl_qope.states_on_eq_const = ng_states_on_eq_const
-        assert sl_qope.states_on_eq_const == states_on_eq_const
-
-        # Act & Assert
-        sl_qope.states_on_eq_const = new_states_on_eq_const
-        assert sl_qope.states_on_eq_const == new_states_on_eq_const
 
         # Act & Assert
         ng_povms_on_eq_const = [True, 1, True]
@@ -321,9 +277,22 @@ class TestSetListQOperation:
         expected = np.array([2, 3, 4], dtype=np.float64)
         assert np.all(actual == expected)
 
-        # Case 2:
+        # # Case 2:
+        # Array
+        state_1 = State(
+            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
+        )
+        state_2 = State(
+            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+        )
+        states = [state_1, state_2]
+
         sl_qope = qope.SetListQOperation(
-            states=states, povms=povms, gates=gates, states_on_eq_const=[True, False]
+            states=states,
+            povms=povms,
+            gates=gates,
+            gates_on_eq_const=[False] * len(gates),
+            povms_on_eq_const=[False] * len(povms),
         )
 
         # Act
@@ -371,9 +340,15 @@ class TestSetListQOperation:
         assert np.all(actual == expected)
 
         # Case 2:
-        sl_qope = qope.SetListQOperation(
-            states=states, povms=povms, gates=gates, states_on_eq_const=[True, False]
+        state_1 = State(
+            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
         )
+        state_2 = State(
+            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+        )
+
+        states = [state_1, state_2]
+        sl_qope = qope.SetListQOperation(states=states, povms=povms, gates=gates)
 
         # Act
         actual = sl_qope.var_states()
