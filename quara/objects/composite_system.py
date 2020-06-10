@@ -55,6 +55,13 @@ class CompositeSystem:
         # Set
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(sored_e_syses)
 
+        is_orthonormal_hermitian_0thpropIs = [
+            e_sys.is_orthonormal_hermitian_0thpropI for e_sys in self._elemental_systems
+        ]
+        self._is_orthonormal_hermitian_0thpropI = all(
+            is_orthonormal_hermitian_0thpropIs
+        )
+
     def comp_basis(self) -> MatrixBasis:
         """returns computational basis of CompositeSystem.
 
@@ -166,6 +173,17 @@ class CompositeSystem:
             list of ElementalSystem of this CompositeSystem.
         """
         return self._elemental_systems
+
+    @property
+    def is_orthonormal_hermitian_0thpropI(self) -> bool:
+        """returns whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop I.
+
+        Returns
+        -------
+        bool
+            whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop I.
+        """
+        return self._is_orthonormal_hermitian_0thpropI
 
     def __len__(self) -> int:
         return len(self._elemental_systems)

@@ -3,7 +3,11 @@ import pytest
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import get_comp_basis, get_pauli_basis
+from quara.objects.matrix_basis import (
+    get_comp_basis,
+    get_pauli_basis,
+    get_normalized_pauli_basis,
+)
 from quara.objects.operators import tensor_product
 
 
@@ -132,6 +136,22 @@ class TestCompositeSystem:
         assert actual[0] is e1
         assert actual[1] is e2
 
+    def test_is_orthonormal_hermitian_0thpropI(self):
+        e1 = ElementalSystem(1, get_normalized_pauli_basis())
+        e2 = ElementalSystem(2, get_normalized_pauli_basis())
+        source = [e1, e2]
+        assert CompositeSystem(source).is_orthonormal_hermitian_0thpropI == True
+
+        e1 = ElementalSystem(1, get_comp_basis())
+        e2 = ElementalSystem(2, get_normalized_pauli_basis())
+        source = [e1, e2]
+        assert CompositeSystem(source).is_orthonormal_hermitian_0thpropI == False
+
+        e1 = ElementalSystem(1, get_normalized_pauli_basis())
+        e2 = ElementalSystem(2, get_comp_basis())
+        source = [e1, e2]
+        assert CompositeSystem(source).is_orthonormal_hermitian_0thpropI == False
+
     def test_len(self):
         e1 = ElementalSystem(1, get_pauli_basis())
         e2 = ElementalSystem(2, get_comp_basis())
@@ -217,3 +237,8 @@ class TestCompositeSystemImmutable:
             c_sys.elemental_systems[0] = e3
         assert c_sys[0] is e1
         assert c_sys[1] is e2
+
+        with pytest.raises(AttributeError):
+            # AttributeError: can't set 'is_orthonormal_hermitian_0thpropI'
+            c_sys.is_orthonormal_hermitian_0thpropI = True
+        assert c_sys.is_orthonormal_hermitian_0thpropI == False

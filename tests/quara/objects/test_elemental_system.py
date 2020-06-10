@@ -3,9 +3,11 @@ import pytest
 
 import quara.objects.elemental_system as esys
 from quara.objects.matrix_basis import (
+    MatrixBasis,
     get_comp_basis,
     get_gell_mann_basis,
     get_pauli_basis,
+    get_normalized_pauli_basis,
 )
 
 
@@ -91,3 +93,51 @@ class TestElementalSystem:
 
         with pytest.raises(AttributeError):
             e1.hemirtian_basis.basis = 1
+
+    def test_access_is_orthonormal_hermitian_0thpropI(self):
+        # case: True
+        m_basis = get_normalized_pauli_basis()
+        e1 = esys.ElementalSystem(1, m_basis)
+        assert e1.is_orthonormal_hermitian_0thpropI == True
+
+        # case: is_normal is False
+        m_basis = get_pauli_basis()
+        e1 = esys.ElementalSystem(1, m_basis)
+        assert e1.is_orthonormal_hermitian_0thpropI == False
+
+        # case: is_orthogonal is False
+        basis = [
+            np.array([[1, 0], [0, 1]], dtype=np.complex128) / np.sqrt(2),
+            np.array([[1, 1], [1, 1]], dtype=np.complex128) / 2,
+            np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
+            np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
+        ]
+        m_basis = MatrixBasis(basis)
+        e1 = esys.ElementalSystem(1, m_basis)
+        assert e1.is_orthonormal_hermitian_0thpropI == False
+
+        # case: is_hermitian is False
+        basis = [
+            np.array([[1, 0], [0, 1]], dtype=np.complex128) / np.sqrt(2),
+            np.array([[0, 1], [0, 0]], dtype=np.complex128),
+            np.array([[0, 0], [1, 0]], dtype=np.complex128),
+            np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
+        ]
+        m_basis = MatrixBasis(basis)
+        e1 = esys.ElementalSystem(1, m_basis)
+        assert e1.is_orthonormal_hermitian_0thpropI == False
+
+        # case: is_0thpropI is False
+        basis = [
+            np.array([[2, 0], [0, 1]], dtype=np.complex128) / np.sqrt(5),
+            np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2),
+            np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
+            np.array([[1, 0], [0, -2]], dtype=np.complex128) / np.sqrt(5),
+        ]
+        m_basis = MatrixBasis(basis)
+        e1 = esys.ElementalSystem(1, m_basis)
+        assert e1.is_orthonormal_hermitian_0thpropI == False
+
+        # Test that "is_orthonormal_hermitian_0thpropI" cannot be updated
+        with pytest.raises(AttributeError):
+            e1.is_orthonormal_hermitian_0thpropI = True
