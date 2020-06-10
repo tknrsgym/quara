@@ -9,23 +9,12 @@ from quara.objects.povm import Povm, convert_povm_to_var
 
 class SetListQOperation:
     def __init__(
-        self,
-        states: List[State],
-        gates: List[Gate],
-        povms: List[Povm],
-        gates_on_eq_const: List[bool] = None,
+        self, states: List[State], gates: List[Gate], povms: List[Povm]
     ) -> None:
         # Validation
         self._validate_type(states, State)
         self._validate_type(povms, Povm)
         self._validate_type(gates, Gate)
-
-        # TODO: add validation to check length
-        if gates_on_eq_const:
-            self._validate_type(gates_on_eq_const, bool, arg_name="gates_on_eq_const")
-            self._validate_length(gates, gates_on_eq_const, "gates", "gate_on_eq_const")
-        else:
-            gates_on_eq_const = [True] * len(gates)
 
         # Set
         self._states: List[State] = states
@@ -33,8 +22,6 @@ class SetListQOperation:
         self._gates: List[Gate] = gates
         # TODO: List[MProcess]
         self._mprocesses: list = []
-
-        self._gates_on_eq_const: List[bool] = gates_on_eq_const
 
     def _validate_type(self, targets, expected_type, arg_name: str = None) -> None:
         for target in targets:
@@ -46,13 +33,6 @@ class SetListQOperation:
                     arg_name, expected_type.__name__
                 )
                 raise TypeError(error_message)
-
-    def _validate_length(self, targets, compared, target_name, compared_name):
-        if len(targets) != len(compared):
-            error_message = "'{}' and '{}' must be the same length.".format(
-                target_name, compared_name
-            )
-            raise ValueError(error_message)
 
     # Setter & Getter
     @property
@@ -81,15 +61,6 @@ class SetListQOperation:
     def gates(self, value):
         self._validate_type(value, Gate)
         self._gates = value
-
-    @property
-    def gates_on_eq_const(self) -> List[bool]:
-        return self._gates_on_eq_const
-
-    @gates_on_eq_const.setter
-    def gates_on_eq_const(self, value):
-        self._validate_type(value, bool, "gates_on_eq_const")
-        self._gates_on_eq_const = value
 
     def num_states(self):
         return len(self._states)
@@ -144,13 +115,13 @@ class SetListQOperation:
         return self.states[index].to_var()
 
     def var_gate(self, index: int) -> np.array:
-        return self.gates[index].to_var(self.gates_on_eq_const[index])
+        return self.gates[index].to_var()
 
     def var_povm(self, index: int) -> np.array:
         return self.povms[index].to_var()
 
     def var_states(self) -> List[float]:
-        vars = [state.to_var() for i, state in enumerate(self.states)]
+        vars = [state.to_var() for state in self.states]
         vars = np.hstack(vars)
         return vars
 
@@ -160,13 +131,7 @@ class SetListQOperation:
         return vars
 
     def var_gates(self) -> np.array:
-        self._validate_length(
-            self.gates, self.gates_on_eq_const, "gate", "gates_on_eq_const"
-        )
-
-        vars = [
-            gate.to_var(self.gates_on_eq_const[i]) for i, gate in enumerate(self.gates)
-        ]
+        vars = [gate.to_var() for gate in self.gates]
         vars = np.hstack(vars)
         return vars
 
