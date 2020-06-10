@@ -263,32 +263,32 @@ class TestGate:
         expected = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-    def test_calc_choi_matrix(self):
+    def test_to_choi_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
         # for I
-        actual = get_i(c_sys).calc_choi_matrix()
+        actual = get_i(c_sys).to_choi_matrix()
         expected = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for X
-        actual = get_x(c_sys).calc_choi_matrix()
+        actual = get_x(c_sys).to_choi_matrix()
         expected = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for Y
-        actual = get_y(c_sys).calc_choi_matrix()
+        actual = get_y(c_sys).to_choi_matrix()
         expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for Z
-        actual = get_z(c_sys).calc_choi_matrix()
+        actual = get_z(c_sys).to_choi_matrix()
         expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for H
-        actual = get_h(c_sys).calc_choi_matrix()
+        actual = get_h(c_sys).to_choi_matrix()
         expected = (
             1
             / 2
@@ -304,41 +304,41 @@ class TestGate:
             sum += matrix @ matrix.conj().T
         return sum
 
-    def test_calc_kraus_matrices(self):
+    def test_to_kraus_matrices(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         eye2 = np.eye(2, dtype=np.complex128)
 
         # for I
-        actual = get_i(c_sys).calc_kraus_matrices()
+        actual = get_i(c_sys).to_kraus_matrices()
         expected = [np.array([[1, 0], [0, 1]], dtype=np.complex128)]
         assert len(actual) == 1
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
         npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye2, decimal=14)
 
         # for X
-        actual = get_x(c_sys).calc_kraus_matrices()
+        actual = get_x(c_sys).to_kraus_matrices()
         expected = [np.array([[0, 1], [1, 0]], dtype=np.complex128)]
         assert len(actual) == 1
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
         npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye2, decimal=14)
 
         # for Y
-        actual = get_y(c_sys).calc_kraus_matrices()
+        actual = get_y(c_sys).to_kraus_matrices()
         expected = [np.array([[0, 1], [-1, 0]], dtype=np.complex128)]
         assert len(actual) == 1
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
         npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye2, decimal=14)
 
         # for Z
-        actual = get_z(c_sys).calc_kraus_matrices()
+        actual = get_z(c_sys).to_kraus_matrices()
         expected = [np.array([[-1, 0], [0, 1]], dtype=np.complex128)]
         assert len(actual) == 1
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
         npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye2, decimal=14)
 
         # for H
-        actual = get_h(c_sys).calc_kraus_matrices()
+        actual = get_h(c_sys).to_kraus_matrices()
         expected = [1 / np.sqrt(2) * np.array([[1, 1], [1, -1]], dtype=np.complex128)]
         assert len(actual) == 1
         npt.assert_almost_equal(actual[0], expected[0], decimal=15)
@@ -348,7 +348,7 @@ class TestGate:
         hs = np.array(
             [[-1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
         )
-        actual = Gate(c_sys, hs, is_physical=False).calc_kraus_matrices()
+        actual = Gate(c_sys, hs, is_physical=False).to_kraus_matrices()
         assert len(actual) == 0
 
     def test_is_hp(self):
@@ -367,7 +367,7 @@ class TestGate:
         hs = np.array([[1j, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
         assert is_hp(hs, matrix_basis.get_comp_basis()) == False
 
-    def test_calc_process_matrix(self):
+    def test_to_process_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         i = get_i(c_sys)
@@ -376,22 +376,22 @@ class TestGate:
         z = get_z(c_sys)
 
         # for I
-        actual = i.calc_process_matrix()
+        actual = i.to_process_matrix()
         expected = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for X
-        actual = x.calc_process_matrix()
+        actual = x.to_process_matrix()
         expected = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for Y
-        actual = y.calc_process_matrix()
+        actual = y.to_process_matrix()
         expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for Z
-        actual = z.calc_process_matrix()
+        actual = z.to_process_matrix()
         expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -754,25 +754,25 @@ def test_get_cnot():
     # |00> -> |00>
     state = composite(gate, z0_z0)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z0_z0.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z0_z0.to_density_matrix(), decimal=15
     )
 
     # |01> -> |01>
     state = composite(gate, z0_z1)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z0_z1.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z0_z1.to_density_matrix(), decimal=15
     )
 
     # |10> -> |11>
     state = composite(gate, z1_z0)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z1_z1.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z1_z1.to_density_matrix(), decimal=15
     )
 
     # |11> -> |10>
     state = composite(gate, z1_z1)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z1_z0.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z1_z0.to_density_matrix(), decimal=15
     )
 
     ### gete: control bit is 2st qubit
@@ -781,25 +781,25 @@ def test_get_cnot():
     # |00> -> |00>
     state = composite(gate, z0_z0)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z0_z0.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z0_z0.to_density_matrix(), decimal=15
     )
 
     # |01> -> |11>
     state = composite(gate, z0_z1)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z1_z1.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z1_z1.to_density_matrix(), decimal=15
     )
 
     # |10> -> |10>
     state = composite(gate, z1_z0)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z1_z0.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z1_z0.to_density_matrix(), decimal=15
     )
 
     # |11> -> |01>
     state = composite(gate, z1_z1)
     npt.assert_almost_equal(
-        state.get_density_matrix(), z0_z1.get_density_matrix(), decimal=15
+        state.to_density_matrix(), z0_z1.to_density_matrix(), decimal=15
     )
 
     # Test that not 2qubits ElementalSystem
@@ -838,19 +838,19 @@ def test_get_cz():
 
     # |i,i> -> |i,i>
     state = composite(gate, y0_y0)
-    assert np.all(state.get_density_matrix() == y0_y0.get_density_matrix())
+    assert np.all(state.to_density_matrix() == y0_y0.to_density_matrix())
 
     # |i,-i> -> |i,-i>
     state = composite(gate, y0_y1)
-    assert np.all(state.get_density_matrix() == y0_y1.get_density_matrix())
+    assert np.all(state.to_density_matrix() == y0_y1.to_density_matrix())
 
     # |-i,i> -> |-i,-i>
     state = composite(gate, y1_y0)
-    assert np.all(state.get_density_matrix() == y1_y1.get_density_matrix())
+    assert np.all(state.to_density_matrix() == y1_y1.to_density_matrix())
 
     # |-i,-i> -> |-i,i>
     state = composite(gate, y1_y1)
-    assert np.all(state.get_density_matrix() == y1_y0.get_density_matrix())
+    assert np.all(state.to_density_matrix() == y1_y0.to_density_matrix())
 
     # Test that not 2qubits ElementalSystem
     with pytest.raises(ValueError):
@@ -888,19 +888,19 @@ def test_get_swap():
 
     # |00> -> |00>
     state = composite(gate, z0_z0)
-    assert np.all(state.get_density_matrix() == z0_z0.get_density_matrix())
+    assert np.all(state.to_density_matrix() == z0_z0.to_density_matrix())
 
     # |01> -> |10>
     state = composite(gate, z0_z1)
-    assert np.all(state.get_density_matrix() == z1_z0.get_density_matrix())
+    assert np.all(state.to_density_matrix() == z1_z0.to_density_matrix())
 
     # |10> -> |01>
     state = composite(gate, z1_z0)
-    assert np.all(state.get_density_matrix() == z0_z1.get_density_matrix())
+    assert np.all(state.to_density_matrix() == z0_z1.to_density_matrix())
 
     # |11> -> |11>
     state = composite(gate, z1_z1)
-    assert np.all(state.get_density_matrix() == z1_z1.get_density_matrix())
+    assert np.all(state.to_density_matrix() == z1_z1.to_density_matrix())
 
     # Test that not 2qubits ElementalSystem
     with pytest.raises(ValueError):
