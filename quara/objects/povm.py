@@ -24,7 +24,6 @@ class Povm(QOperation):
         self,
         c_sys: CompositeSystem,
         vecs: List[np.ndarray],
-        is_physical: bool = True,
         **kwargs,
     ):
         """Constructor
@@ -67,14 +66,13 @@ class Povm(QOperation):
 
         self._composite_system: CompositeSystem = c_sys
         self._measurements = [len(self._vecs)]
-        self._is_physical = is_physical
 
         # Validation
         size = vecs[0].shape
         self._dim = int(np.sqrt(size[0]))
         size = [self._dim, self._dim]
 
-        if is_physical:
+        if self.is_physical:
             # Validate to meet requirements as Povm
             if not self.is_hermitian():
                 # whether `vecs` is a set of Hermitian matrices

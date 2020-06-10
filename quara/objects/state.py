@@ -18,11 +18,7 @@ from quara.objects.qoperation import QOperation
 
 class State(QOperation):
     def __init__(
-        self,
-        c_sys: CompositeSystem,
-        vec: np.ndarray,
-        is_physical: bool = True,
-        **kwargs,
+        self, c_sys: CompositeSystem, vec: np.ndarray, **kwargs,
     ):
         """Constructor
 
@@ -61,7 +57,6 @@ class State(QOperation):
         self._composite_system: CompositeSystem = c_sys
         self._vec: np.ndarray = vec
         size = self._vec.shape
-        self._is_physical = is_physical
 
         # whether vec is one-dimensional array
         if len(size) != 1:
@@ -87,7 +82,7 @@ class State(QOperation):
             )
 
         # whether the state is physically wrong
-        if self._is_physical:
+        if self.is_physical:
             if not self.is_positive_semidefinite():
                 raise ValueError(
                     "the state is physically wrong. density matrix is not positive semidefinite."

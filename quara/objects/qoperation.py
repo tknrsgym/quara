@@ -4,6 +4,7 @@ from abc import abstractmethod
 class QOperation:
     def __init__(
         self,
+        is_physical: bool = True,
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
@@ -14,10 +15,15 @@ class QOperation:
             raise ValueError("'eps_proj_physical' must be non-negative.")
 
         # Set
+        self._is_physical = is_physical
         self._on_para_eq_constraint: bool = on_para_eq_constraint
         self._on_algo_eq_constraint: bool = on_algo_eq_constraint
         self._on_algo_ineq_constraint: bool = on_algo_ineq_constraint
         self._eps_proj_physical = eps_proj_physical
+
+    @property
+    def is_physical(self):
+        return self._is_physical
 
     @property
     def on_para_eq_constraint(self) -> bool:  # read only
