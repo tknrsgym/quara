@@ -13,10 +13,16 @@ from quara.objects.matrix_basis import (
 )
 from quara.settings import Settings
 
+from quara.objects.qoperation import QOperation
 
-class State:
+
+class State(QOperation):
     def __init__(
-        self, c_sys: CompositeSystem, vec: np.ndarray, is_physical: bool = True
+        self,
+        c_sys: CompositeSystem,
+        vec: np.ndarray,
+        is_physical: bool = True,
+        **kwargs,
     ):
         """Constructor
 
@@ -48,6 +54,10 @@ class State:
         ValueError
             ``is_physical`` is ``True`` and trace of density matrix does not equal 1.
         """
+        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
+        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
+        super().__init__(**kwargs)
+
         self._composite_system: CompositeSystem = c_sys
         self._vec: np.ndarray = vec
         size = self._vec.shape
@@ -196,8 +206,10 @@ class State:
         )
         return converted_vec
 
-    def to_var(self, on_eq_constraint: bool=True) -> np.array:
-        return convert_state_to_var(self._composite_system, self.vec, on_eq_constraint=on_eq_constraint)
+    def to_var(self) -> np.array:
+        return convert_state_to_var(
+            self._composite_system, self.vec, self.on_para_eq_constraint
+        )
 
 
 def convert_var_index_to_state_index(
