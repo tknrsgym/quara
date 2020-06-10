@@ -13,10 +13,12 @@ from quara.objects.matrix_basis import (
 )
 from quara.settings import Settings
 
+from quara.objects.qoperation import QOperation
 
-class State:
+
+class State(QOperation):
     def __init__(
-        self, c_sys: CompositeSystem, vec: np.ndarray, is_physical: bool = True
+        self, c_sys: CompositeSystem, vec: np.ndarray, **kwargs,
     ):
         """Constructor
 
@@ -48,10 +50,13 @@ class State:
         ValueError
             ``is_physical`` is ``True`` and trace of density matrix does not equal 1.
         """
+        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
+        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
+        super().__init__(**kwargs)
+
         self._composite_system: CompositeSystem = c_sys
         self._vec: np.ndarray = vec
         size = self._vec.shape
-        self._is_physical = is_physical
 
         # whether vec is one-dimensional array
         if len(size) != 1:
@@ -77,7 +82,7 @@ class State:
             )
 
         # whether the state is physically wrong
-        if self._is_physical:
+        if self.is_physical:
             if not self.is_positive_semidefinite():
                 raise ValueError(
                     "the state is physically wrong. density matrix is not positive semidefinite."
@@ -108,17 +113,6 @@ class State:
             dim of this state.
         """
         return self._dim
-
-    @property
-    def is_physical(self):
-        """returns argument ``is_physical`` specified in the constructor.
-
-        Returns
-        -------
-        int
-            argument ``is_physical`` specified in the constructor.
-        """
-        return self._is_physical
 
     def to_density_matrix(self) -> np.ndarray:
         """returns density matrix.
@@ -195,6 +189,11 @@ class State:
             self._vec, self._composite_system.basis(), other_basis
         )
         return converted_vec
+
+    def to_var(self) -> np.array:
+        return convert_state_to_var(
+            self._composite_system, self.vec, self.on_para_eq_constraint
+        )
 
 
 def convert_var_index_to_state_index(

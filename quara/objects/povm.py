@@ -12,15 +12,16 @@ from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
 )
 from quara.settings import Settings
+from quara.objects.qoperation import QOperation
 
 
-class Povm:
+class Povm(QOperation):
     """
     Positive Operator-Valued Measure
     """
 
     def __init__(
-        self, c_sys: CompositeSystem, vecs: List[np.ndarray], is_physical: bool = True,
+        self, c_sys: CompositeSystem, vecs: List[np.ndarray], **kwargs,
     ):
         """Constructor
 
@@ -51,6 +52,10 @@ class Povm:
         ValueError
             If the dim in the ``c_sys`` does not match the dim in the ``vecs``
         """
+        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
+        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
+        super().__init__(**kwargs)
+
         # Set
         self._vecs: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(vecs))
         for b in self._vecs:
@@ -58,14 +63,13 @@ class Povm:
 
         self._composite_system: CompositeSystem = c_sys
         self._measurements = [len(self._vecs)]
-        self._is_physical = is_physical
 
         # Validation
         size = vecs[0].shape
         self._dim = int(np.sqrt(size[0]))
         size = [self._dim, self._dim]
 
-        if is_physical:
+        if self.is_physical:
             # Validate to meet requirements as Povm
             if not self.is_hermitian():
                 # whether `vecs` is a set of Hermitian matrices
@@ -218,22 +222,6 @@ class Povm:
         """
         return self._composite_system
 
-    @property
-    def is_physical(self) -> bool:  # read only
-        """Property to check whether the povm is physically correct.
-           If ``True``, the following requirements are met.
-
-           - It is a set of Hermitian matrices.
-           - The sum is the identity matrix.
-           - positive semidefinite.
-
-        Returns
-        -------
-        bool
-            If ``True``, the povm is physically correct.
-        """
-        return self._is_physical
-
     def is_hermitian(self) -> bool:
         """Returns whether the povm is a set of Hermit matrices.
 
@@ -335,6 +323,13 @@ class Povm:
                 convert_vec(vec, self._composite_system.basis(), other_basis)
             )
         return converted_vecs
+
+    def to_var(self) -> np.array:
+        return convert_povm_to_var(
+            c_sys=self._composite_system,
+            vecs=list(self.vecs),
+            on_eq_constraint=self.on_para_eq_constraint,
+        )
 
 
 def convert_var_index_to_povm_index(
