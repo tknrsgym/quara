@@ -148,8 +148,10 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
         position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
     # create Gate
-    is_physical = gate1.is_physical and gate2.is_physical
-    gate = Gate(c_sys, to_hs, is_physical=is_physical)
+    is_physicality_required = (
+        gate1.is_physicality_required and gate2.is_physicality_required
+    )
+    gate = Gate(c_sys, to_hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -179,8 +181,10 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
         position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
     # create State
-    is_physical = state1.is_physical and state2.is_physical
-    state = State(c_sys, tensor_vec, is_physical=is_physical)
+    is_physicality_required = (
+        state1.is_physicality_required and state2.is_physicality_required
+    )
+    state = State(c_sys, tensor_vec, is_physicality_required=is_physicality_required)
     return state
 
 
@@ -238,8 +242,12 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
         position = _check_cross_elemental_system_position(tmp_e_sys_list)
 
     # create Povm
-    is_physical = povm1.is_physical and povm2.is_physical
-    tensor_povm = Povm(c_sys, tensor_vecs, is_physical=is_physical)
+    is_physicality_required = (
+        povm1.is_physicality_required and povm2.is_physicality_required
+    )
+    tensor_povm = Povm(
+        c_sys, tensor_vecs, is_physicality_required=is_physicality_required
+    )
     tensor_povm._set_measurements(tmp_num_of_vecs_list)
     return tensor_povm
 
