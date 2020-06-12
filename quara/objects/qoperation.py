@@ -44,3 +44,7 @@ class QOperation:
     @abstractmethod
     def to_var(self):
         raise NotImplementedError()
+
+    @abstractmethod
+    def to_stacked_vector(self):
+        raise NotImplementedError()
