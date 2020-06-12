@@ -79,12 +79,12 @@ def test_tensor_product_Gate_Gate():
     hs1 = np.array(
         [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
     )
-    gate1 = Gate(c_sys1, hs1, is_physical=False)
+    gate1 = Gate(c_sys1, hs1, is_physicality_required=False)
 
     hs2 = np.array(
         [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
     )
-    gate2 = Gate(c_sys2, hs2, is_physical=False)
+    gate2 = Gate(c_sys2, hs2, is_physicality_required=False)
 
     actual = tensor_product(gate1, gate2)
 
@@ -323,12 +323,16 @@ def test_tensor_product_State_State():
     basis1 = matrix_basis.get_comp_basis()
     e_sys1 = ElementalSystem(1, basis1)
     c_sys1 = CompositeSystem([e_sys1])
-    state1 = State(c_sys1, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False)
+    state1 = State(
+        c_sys1, np.array([0, 1, 0, 0], dtype=np.float64), is_physicality_required=False
+    )
 
     basis2 = matrix_basis.get_comp_basis()
     e_sys2 = ElementalSystem(2, basis2)
     c_sys2 = CompositeSystem([e_sys2])
-    state2 = State(c_sys2, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False)
+    state2 = State(
+        c_sys2, np.array([1, 0, 0, 0], dtype=np.float64), is_physicality_required=False
+    )
 
     # actual
     # actual = tensor_product(state1, state2)
@@ -374,20 +378,26 @@ def test_tensor_product_State_State_sort_ElementalSystem():
     basis1 = matrix_basis.get_comp_basis()
     e_sys1 = ElementalSystem(1, basis1)
     c_sys1 = CompositeSystem([e_sys1])
-    state1 = State(c_sys1, np.array([2, 3, 5, 7], dtype=np.float64), is_physical=False)
+    state1 = State(
+        c_sys1, np.array([2, 3, 5, 7], dtype=np.float64), is_physicality_required=False
+    )
 
     basis2 = matrix_basis.get_comp_basis()
     e_sys2 = ElementalSystem(2, basis2)
     c_sys2 = CompositeSystem([e_sys2])
     state2 = State(
-        c_sys2, np.array([11, 13, 17, 19], dtype=np.float64), is_physical=False
+        c_sys2,
+        np.array([11, 13, 17, 19], dtype=np.float64),
+        is_physicality_required=False,
     )
 
     basis3 = matrix_basis.get_comp_basis()
     e_sys3 = ElementalSystem(3, basis3)
     c_sys3 = CompositeSystem([e_sys3])
     state3 = State(
-        c_sys3, np.array([23, 29, 31, 37], dtype=np.float64), is_physical=False
+        c_sys3,
+        np.array([23, 29, 31, 37], dtype=np.float64),
+        is_physicality_required=False,
     )
 
     state12 = tensor_product(state1, state2)
@@ -422,7 +432,7 @@ def test_tensor_product_State_State_sort_ElementalSystem():
     assert state3_12._composite_system.elemental_systems[2] == e_sys3
 
 
-def test_tensor_product_povm_povm_is_physical_true():
+def test_tensor_product_povm_povm_is_physicality_required_true():
     # Arrange
     # Physical POVM
     physical_povm_list = []
@@ -445,7 +455,7 @@ def test_tensor_product_povm_povm_is_physical_true():
 
         e_sys = ElementalSystem(i, matrix_basis.get_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
         not_physical_povm_list.append(povm)
 
     povm_1, povm_2 = physical_povm_list
@@ -456,28 +466,28 @@ def test_tensor_product_povm_povm_is_physical_true():
 
     # Assert
     expected = False
-    assert actual_povm.is_physical is expected
+    assert actual_povm.is_physicality_required is expected
 
     # Act
     actual_povm = tensor_product(not_povm_1, povm_1)
 
     # Assert
     expected = False
-    assert actual_povm.is_physical is expected
+    assert actual_povm.is_physicality_required is expected
 
     # Act
     actual_povm = tensor_product(not_povm_1, not_povm_2)
 
     # Assert
     expected = False
-    assert actual_povm.is_physical is expected
+    assert actual_povm.is_physicality_required is expected
 
     # Act
     actual_povm = tensor_product(povm_1, povm_2)
 
     # Assert
     expected = True
-    assert actual_povm.is_physical is expected
+    assert actual_povm.is_physicality_required is expected
 
 
 def test_tensor_product_Povm_Povm_sort_ElementalSystem():
@@ -489,7 +499,7 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
-    povm1 = Povm(c_sys1, vecs1, is_physical=False)
+    povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
     basis2 = matrix_basis.get_comp_basis()
     e_sys2 = ElementalSystem(2, basis2)
@@ -498,7 +508,7 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
         np.array([23, 29, 31, 37], dtype=np.float64),
         np.array([41, 43, 47, 53], dtype=np.float64),
     ]
-    povm2 = Povm(c_sys2, vecs2, is_physical=False)
+    povm2 = Povm(c_sys2, vecs2, is_physicality_required=False)
 
     basis3 = matrix_basis.get_comp_basis()
     e_sys3 = ElementalSystem(3, basis3)
@@ -507,7 +517,7 @@ def test_tensor_product_Povm_Povm_sort_ElementalSystem():
         np.array([59, 61, 67, 71], dtype=np.float64),
         np.array([73, 79, 83, 89], dtype=np.float64),
     ]
-    povm3 = Povm(c_sys3, vecs3, is_physical=False)
+    povm3 = Povm(c_sys3, vecs3, is_physicality_required=False)
 
     # Case 1
     # Act
@@ -594,7 +604,7 @@ def test_tensor_product_Povm_Povm_3vecs():
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
-    povm1 = Povm(c_sys1, vecs1, is_physical=False)
+    povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
     basis2 = matrix_basis.get_comp_basis()
     e_sys2 = ElementalSystem(2, basis2)
@@ -604,7 +614,7 @@ def test_tensor_product_Povm_Povm_3vecs():
         np.array([41, 43, 47, 53], dtype=np.float64),
         np.array([59, 61, 67, 71], dtype=np.float64),
     ]
-    povm2 = Povm(c_sys2, vecs2, is_physical=False)
+    povm2 = Povm(c_sys2, vecs2, is_physicality_required=False)
 
     # Act
     povm21 = tensor_product(povm2, povm1)
