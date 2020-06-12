@@ -18,7 +18,7 @@ from quara.objects.povm import (
     get_yy_measurement,
     get_zz_measurement,
 )
-from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q
+from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q, get_bell_2q
 from quara.objects import qoperations as qope
 
 
@@ -540,4 +540,71 @@ class TestSetQOperations:
 
         # Assert
         expected = 3 + 4 + 12 + 16 + 4 + 8
+        assert actual == expected
+
+    def test_dim(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys_1q = CompositeSystem([e_sys])
+
+        e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys_2q = CompositeSystem([e_sys0, e_sys1])
+
+        # State
+        state_1q = get_x0_1q(c_sys_1q)
+        state_2q = get_bell_2q(c_sys_2q)
+        states = [state_1q, state_2q]
+
+        # Gate
+        gate_1q = get_x(c_sys_1q)
+        gate_2q = get_cnot(c_sys_2q, e_sys0)
+
+        gates = [gate_2q, gate_1q]
+
+        # POVM
+        povm_1q = get_x_measurement(c_sys_1q)
+        povm_2q = get_xx_measurement(c_sys_2q)
+
+        povms = [povm_2q, povm_2q, povm_1q]
+
+        sl_qope = qope.SetQOperations(states=states, gates=gates, povms=povms)
+
+        # Case 1: State
+        # Act
+        actual = sl_qope.dim_state(0)
+        # Assert
+        expected = 2
+        assert actual == expected
+
+        # Act
+        actual = sl_qope.dim_state(1)
+        # Assert
+        expected = 4
+        assert actual == expected
+
+        # Case 2: Gate
+        # Act
+        actual = sl_qope.dim_gate(0)
+        # Assert
+        expected = 4
+        assert actual == expected
+
+        # Act
+        actual = sl_qope.dim_gate(1)
+        # Assert
+        expected = 2
+        assert actual == expected
+
+        # Case 3: POVM
+        # Act
+        actual = sl_qope.dim_povm(1)
+        # Assert
+        expected = 4
+        assert actual == expected
+
+        # Act
+        actual = sl_qope.dim_povm(2)
+        # Assert
+        expected = 2
         assert actual == expected
