@@ -286,7 +286,7 @@ class Gate(QOperation):
         return np.array(process_matrix).reshape((4, 4))
 
     def to_var(self) -> np.array:
-        return convert_gate_to_var(c_sys=self._composite_system, hs=self.hs)
+        return convert_gate_to_var(c_sys=self._composite_system, hs=self.hs, on_eq_constraint=self.on_para_eq_constraint)
 
 
 def convert_var_index_to_gate_index(
