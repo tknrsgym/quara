@@ -427,3 +427,117 @@ class TestSetQOperations:
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_size_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # State
+        vec_1 = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
+        vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
+
+        state_1 = State(
+            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
+        )
+        state_2 = State(
+            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+        )
+        states = [state_1, state_2]
+
+        # Gate
+        hs = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        gate_1 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=True)
+        gate_2 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=False)
+        gates = [gate_1, gate_2]
+
+        # Povm
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm_1 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
+        povm_2 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povms = [povm_1, povm_2]
+
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+
+        # Case 1-1: State0
+        # Act
+        actual = sl_qope.size_var_state(0)
+
+        # Assert
+        expected = 3
+        assert actual == expected
+
+        # Case 1-2: State1
+        # Act
+        actual = sl_qope.size_var_state(1)
+
+        # Assert
+        expected = 4
+        assert actual == expected
+
+        # Case 1-3: State All
+        # Act
+        actual = sl_qope.size_var_states()
+
+        # Assert
+        expected = 3 + 4
+        assert actual == expected
+
+        # Case 2-1: Gate0
+        # Act
+        actual = sl_qope.size_var_gate(0)
+
+        # Assert
+        expected = 12
+        assert actual == expected
+
+        # Case 2-2: Gate1
+        # Act
+        actual = sl_qope.size_var_gate(1)
+
+        # Assert
+        expected = 16
+        assert actual == expected
+
+        # Case 1-3: Gate All
+        # Act
+        actual = sl_qope.size_var_gates()
+
+        # Assert
+        expected = 12 + 16
+        assert actual == expected
+
+        # Case 3-1: Povm0
+        # Act
+        actual = sl_qope.size_var_povm(0)
+
+        # Assert
+        expected = 4
+        assert actual == expected
+
+        # Case 3-2: Povm1
+        # Act
+        actual = sl_qope.size_var_povm(1)
+
+        # Assert
+        expected = 8
+        assert actual == expected
+
+        # Case 3-3: Povm All
+        # Act
+        actual = sl_qope.size_var_povms()
+
+        # Assert
+        expected = 4 + 8
+        assert actual == expected
+
+        # Case 4: Total
+        actual = sl_qope.size_var_total()
+
+        # Assert
+        expected = 3 + 4 + 12 + 16 + 4 + 8
+        assert actual == expected
