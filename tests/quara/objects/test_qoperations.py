@@ -149,8 +149,8 @@ class TestSetQOperations:
         vec_1 = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
         vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
 
-        state_1 = State(c_sys=c_sys, vec=vec_1, is_physical=False)
-        state_2 = State(c_sys=c_sys, vec=vec_2, is_physical=False)
+        state_1 = State(c_sys=c_sys, vec=vec_1, is_physicality_required=False)
+        state_2 = State(c_sys=c_sys, vec=vec_2, is_physicality_required=False)
 
         states = [state_1, state_2]
 
@@ -173,10 +173,16 @@ class TestSetQOperations:
         # # Case 2:
         # Arrange
         state_1 = State(
-            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
+            c_sys=c_sys,
+            vec=vec_1,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
         )
         state_2 = State(
-            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+            c_sys=c_sys,
+            vec=vec_2,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
         )
         states = [state_1, state_2]
 
@@ -206,8 +212,8 @@ class TestSetQOperations:
         vec_1 = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
         vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
 
-        state_1 = State(c_sys=c_sys, vec=vec_1, is_physical=False)
-        state_2 = State(c_sys=c_sys, vec=vec_2, is_physical=False)
+        state_1 = State(c_sys=c_sys, vec=vec_1, is_physicality_required=False)
+        state_2 = State(c_sys=c_sys, vec=vec_2, is_physicality_required=False)
 
         states = [state_1, state_2]
 
@@ -222,10 +228,16 @@ class TestSetQOperations:
 
         # Case 2:
         state_1 = State(
-            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
+            c_sys=c_sys,
+            vec=vec_1,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
         )
         state_2 = State(
-            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+            c_sys=c_sys,
+            vec=vec_2,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
         )
 
         states = [state_1, state_2]

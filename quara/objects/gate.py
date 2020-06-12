@@ -17,7 +17,16 @@ from quara.objects.qoperation import QOperation
 
 
 class Gate(QOperation):
-    def __init__(self, c_sys: CompositeSystem, hs: np.ndarray, **kwargs):
+    def __init__(
+        self,
+        c_sys: CompositeSystem,
+        hs: np.ndarray,
+        is_physicality_required: bool = True,
+        on_para_eq_constraint: bool = True,
+        on_algo_eq_constraint: bool = True,
+        on_algo_ineq_constraint: bool = True,
+        eps_proj_physical: float = 10 ** (-4),
+    ):
         """Constructor
 
         Parameters
@@ -26,12 +35,14 @@ class Gate(QOperation):
             CompositeSystem of this gate.
         hs : np.ndarray
             HS representation of this gate.
-        is_physical : bool, optional
+        is_physicality_required : bool, optional
             checks whether the state is physically wrong, by default True.
             if at least one of the following conditions is ``False``, the state is physically wrong:
 
             - gate is TP(trace-preserving map).
             - gate is CP(Complete-Positivity-Preserving).
+
+            If you want to ignore the above requirements and create a Gate object, set ``is_physicality_required`` to ``False``.
 
         Raises
         ------
@@ -44,15 +55,16 @@ class Gate(QOperation):
         ValueError
             dim of HS representation does not equal dim of CompositeSystem.
         ValueError
-            ``is_physical`` is ``True`` and gate is not TP.
-        ValueError
-            ``is_physical`` is ``True`` and gate is not CP.
+            ``is_physicality_required`` is ``True`` and the gate is not physically correct.
         """
-        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
-        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
-        super().__init__(**kwargs)
-
-        self._composite_system: CompositeSystem = c_sys
+        super().__init__(
+            c_sys=c_sys,
+            is_physicality_required=is_physicality_required,
+            on_para_eq_constraint=on_para_eq_constraint,
+            on_algo_eq_constraint=on_algo_eq_constraint,
+            on_algo_ineq_constraint=on_algo_ineq_constraint,
+            eps_proj_physical=eps_proj_physical,
+        )
         self._hs: np.ndarray = hs
 
         # whether HS representation is square matrix
@@ -75,12 +87,9 @@ class Gate(QOperation):
                 f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim}"
             )
 
-        # whether the state is physically wrong
-        if self.is_physical:
-            if not self.is_tp():
-                raise ValueError("the state is physically wrong. gate is not TP.")
-            elif not self.is_cp():
-                raise ValueError("the state is physically wrong. gate is not CP.")
+        # whether the gate is physically correct
+        if self.is_physicality_required and not self.is_physical():
+            raise ValueError("the gate is not physically correct.")
 
     @property
     def dim(self):
@@ -103,6 +112,21 @@ class Gate(QOperation):
             HS representation of gate.
         """
         return self._hs
+
+    def is_physical(self) -> bool:
+        """returns whether the gate is physically correct.
+
+        all of the following conditions are ``True``, the state is physically correct:
+
+        - gate is TP(trace-preserving map).
+        - gate is CP(Complete-Positivity-Preserving).
+
+        Returns
+        -------
+        bool
+            whether the gate is physically correct.
+        """
+        return self.is_tp() and self.is_cp()
 
     def get_basis(self) -> MatrixBasis:
         """returns MatrixBasis of gate.
@@ -367,7 +391,7 @@ def convert_var_to_gate(
     """
     dim = c_sys.dim
     hs = np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if on_eq_constraint else var
-    gate = Gate(c_sys, hs, is_physical=False)
+    gate = Gate(c_sys, hs, is_physicality_required=False)
     return gate
 
 
@@ -422,7 +446,7 @@ def calc_gradient_from_gate(
     gate_index = convert_var_index_to_gate_index(c_sys, var_index, on_eq_constraint)
     gradient[gate_index] = 1
 
-    gate = Gate(c_sys, gradient, is_physical=False)
+    gate = Gate(c_sys, gradient, is_physicality_required=False)
     return gate
 
 

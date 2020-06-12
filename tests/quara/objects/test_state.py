@@ -44,25 +44,51 @@ class TestState:
         with pytest.raises(ValueError):
             State(c_sys, np.array([1], dtype=np.float64))
 
-    def test_init_is_physical(self):
+    def test_init_is_physicality_required(self):
         e_sys = ElementalSystem(1, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
-
-        # density matrix is not positive semidefinite
-        with pytest.raises(ValueError):
-            State(c_sys, np.array([2, 0, 0, -1], dtype=np.float64))
-        with pytest.raises(ValueError):
-            State(c_sys, np.array([2, 0, 0, -1], dtype=np.float64), is_physical=True)
 
         # trace of density matrix does not equal 1
         with pytest.raises(ValueError):
             State(c_sys, np.array([0.5, 0, 0, 0], dtype=np.float64))
         with pytest.raises(ValueError):
-            State(c_sys, np.array([0.5, 0, 0, 0], dtype=np.float64), is_physical=True)
+            State(
+                c_sys,
+                np.array([0.5, 0, 0, 0], dtype=np.float64),
+                is_physicality_required=True,
+            )
 
-        # case: when is_physical is False, it is not happened ValueError
-        State(c_sys, np.array([2, 0, 0, -1], dtype=np.float64), is_physical=False)
-        State(c_sys, np.array([0.5, 0, 0, 0], dtype=np.float64), is_physical=False)
+        # density matrix is not positive semidefinite
+        with pytest.raises(ValueError):
+            State(c_sys, np.array([2, 0, 0, -1], dtype=np.float64))
+        with pytest.raises(ValueError):
+            State(
+                c_sys,
+                np.array([2, 0, 0, -1], dtype=np.float64),
+                is_physicality_required=True,
+            )
+
+        # case: when is_physicality_required is False, it is not happened ValueError
+        State(
+            c_sys,
+            np.array([2, 0, 0, -1], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        State(
+            c_sys,
+            np.array([0.5, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
+        )
+
+    def test_access_is_physicality_required(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = State(c_sys, np.array([1, 0, 0, 0], dtype=np.float64))
+        assert state.is_physicality_required == True
+
+        # Test that "is_physicality_required" cannot be updated
+        with pytest.raises(AttributeError):
+            state.is_physicality_required = False
 
     def test_access_vec(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -88,15 +114,32 @@ class TestState:
         with pytest.raises(AttributeError):
             state.dim = 2  # New dim
 
-    def test_access_is_physical(self):
-        e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    def test_is_physical(self):
+        e_sys = ElementalSystem(1, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
-        state = State(c_sys, np.array([1, 0, 0, 0], dtype=np.float64))
-        assert state.is_physical == True
 
-        # Test that "is_physical" cannot be updated
-        with pytest.raises(AttributeError):
-            state.is_physical = False
+        state = State(c_sys, np.array([1, 0, 0, 0], dtype=np.float64),)
+        assert state.is_physical() == True
+
+        state = State(
+            c_sys,
+            np.array([0.5, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        assert state.is_physical() == False
+
+        state = State(
+            c_sys,
+            np.array([2, 0, 0, -1], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        assert state.is_physical() == False
+
+    def test_set_zero(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        state.set_zero()
 
     def test_to_density_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -111,7 +154,9 @@ class TestState:
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
         state = State(
-            c_sys, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([1, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.is_trace_one() == True
 
@@ -119,7 +164,9 @@ class TestState:
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
         state = State(
-            c_sys, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 1, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.is_trace_one() == False
 
@@ -134,7 +181,9 @@ class TestState:
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
         state = State(
-            c_sys, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 1, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.is_hermitian() == False
 
@@ -149,7 +198,9 @@ class TestState:
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
         state = State(
-            c_sys, np.array([-1, 0, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([-1, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.is_positive_semidefinite() == False
 
@@ -167,7 +218,9 @@ class TestState:
 
         # test for vec[1, 0, 0, 0]
         state = State(
-            c_sys, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([1, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -180,7 +233,9 @@ class TestState:
 
         # test for vec[0, 1, 0, 0]
         state = State(
-            c_sys, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 1, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -193,7 +248,9 @@ class TestState:
 
         # test for vec[0, 0, 1, 0]
         state = State(
-            c_sys, np.array([0, 0, 1, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 0, 1, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -206,7 +263,9 @@ class TestState:
 
         # test for vec[0, 0, 0, 1]
         state = State(
-            c_sys, np.array([0, 0, 0, 1], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 0, 0, 1], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -223,7 +282,9 @@ class TestState:
 
         # test for vec[1, 0, 0, 0]
         state = State(
-            c_sys, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([1, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -238,7 +299,9 @@ class TestState:
 
         # test for vec [0, 1, 0, 0]
         state = State(
-            c_sys, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 1, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -255,7 +318,9 @@ class TestState:
 
         # test for vec [0, 0, 1, 0]
         state = State(
-            c_sys, np.array([0, 0, 1, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 0, 1, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -273,7 +338,9 @@ class TestState:
 
         # test for vec [0, 0, 0, 1]
         state = State(
-            c_sys, np.array([0, 0, 0, 1], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 0, 0, 1], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -295,7 +362,9 @@ class TestState:
 
         # test for vec[1, 0, 0, 0]
         state = State(
-            c_sys, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([1, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -313,7 +382,9 @@ class TestState:
 
         # test for vec [0, 1, 0, 0]
         state = State(
-            c_sys, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 1, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -331,7 +402,9 @@ class TestState:
 
         # test for vec [0, 0, 1, 0]
         state = State(
-            c_sys, np.array([0, 0, 1, 0], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 0, 1, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -349,7 +422,9 @@ class TestState:
 
         # test for vec [0, 0, 0, 1]
         state = State(
-            c_sys, np.array([0, 0, 0, 1], dtype=np.float64), is_physical=False
+            c_sys,
+            np.array([0, 0, 0, 1], dtype=np.float64),
+            is_physicality_required=False,
         )
         assert state.dim == 2
         assert np.all(
@@ -374,7 +449,9 @@ class TestState:
 
         # converts [1, 0, 0, 0] with comp basis to Pauli basis
         state = State(
-            c_sys1, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False
+            c_sys1,
+            np.array([1, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(pauli_basis)
         expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128)
@@ -382,7 +459,9 @@ class TestState:
 
         # converts [0, 1, 0, 0] with comp basis to Pauli basis
         state = State(
-            c_sys1, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False
+            c_sys1,
+            np.array([0, 1, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(pauli_basis)
         expected = 1 / np.sqrt(2) * np.array([0, 1, 1j, 0], dtype=np.complex128)
@@ -390,7 +469,9 @@ class TestState:
 
         # converts [0, 0, 1, 0] with comp basis to Pauli basis
         state = State(
-            c_sys1, np.array([0, 0, 1, 0], dtype=np.float64), is_physical=False
+            c_sys1,
+            np.array([0, 0, 1, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(pauli_basis)
         expected = 1 / np.sqrt(2) * np.array([0, 1, -1j, 0], dtype=np.complex128)
@@ -398,7 +479,9 @@ class TestState:
 
         # converts [0, 0, 0, 1] with comp basis to Pauli basis
         state = State(
-            c_sys1, np.array([0, 0, 0, 1], dtype=np.float64), is_physical=False
+            c_sys1,
+            np.array([0, 0, 0, 1], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(pauli_basis)
         expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128)
@@ -413,7 +496,9 @@ class TestState:
 
         # converts [1, 0, 0, 0] with Pauli basis to comp basis
         state = State(
-            c_sys2, np.array([1, 0, 0, 0], dtype=np.float64), is_physical=False
+            c_sys2,
+            np.array([1, 0, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(comp_basis)
         expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128)
@@ -421,7 +506,9 @@ class TestState:
 
         # converts [0, 1, 0, 0] with Pauli basis to comp basis
         state = State(
-            c_sys2, np.array([0, 1, 0, 0], dtype=np.float64), is_physical=False
+            c_sys2,
+            np.array([0, 1, 0, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(comp_basis)
         expected = 1 / np.sqrt(2) * np.array([0, 1, 1, 0], dtype=np.complex128)
@@ -429,7 +516,9 @@ class TestState:
 
         # converts [0, 0, 1, 0] with Pauli basis to comp basis
         state = State(
-            c_sys2, np.array([0, 0, 1, 0], dtype=np.float64), is_physical=False
+            c_sys2,
+            np.array([0, 0, 1, 0], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(comp_basis)
         expected = 1 / np.sqrt(2) * np.array([0, -1j, 1j, 0], dtype=np.complex128)
@@ -437,7 +526,9 @@ class TestState:
 
         # converts [0, 0, 0, 1] with Pauli basis to comp basis
         state = State(
-            c_sys2, np.array([0, 0, 0, 1], dtype=np.float64), is_physical=False
+            c_sys2,
+            np.array([0, 0, 0, 1], dtype=np.float64),
+            is_physicality_required=False,
         )
         actual = state.convert_basis(comp_basis)
         expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128)
@@ -479,7 +570,7 @@ def test_convert_var_to_state():
     # default
     actual = convert_var_to_state(c_sys, np.array([1, 2, 3], dtype=np.float64))
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
-    assert actual.is_physical == False
+    assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
     # on_eq_constraint=True
@@ -487,7 +578,7 @@ def test_convert_var_to_state():
         c_sys, np.array([1, 2, 3], dtype=np.float64), on_eq_constraint=True
     )
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
-    assert actual.is_physical == False
+    assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
     # on_eq_constraint=False
@@ -495,7 +586,7 @@ def test_convert_var_to_state():
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_eq_constraint=False
     )
     expected = np.array([1, 2, 3, 4], dtype=np.float64)
-    assert actual.is_physical == False
+    assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
 
@@ -536,7 +627,7 @@ def test_calc_gradient_from_state():
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1
     )
     expected = np.array([0, 0, 1, 0], dtype=np.float64)
-    assert actual.is_physical == False
+    assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
     # on_eq_constraint=True
@@ -544,7 +635,7 @@ def test_calc_gradient_from_state():
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, on_eq_constraint=True
     )
     expected = np.array([0, 0, 1, 0], dtype=np.float64)
-    assert actual.is_physical == False
+    assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
     # on_eq_constraint=False
@@ -552,7 +643,7 @@ def test_calc_gradient_from_state():
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), 1, on_eq_constraint=False
     )
     expected = np.array([0, 1, 0, 0], dtype=np.float64)
-    assert actual.is_physical == False
+    assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
 

@@ -82,7 +82,7 @@ class TestPovm:
 
         # Act & Assert
         # Test that no exceptions are raised.
-        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        _ = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
     def test_validate_sum_is_identity_ok(self):
         # Arrange
@@ -129,7 +129,7 @@ class TestPovm:
 
         # Act & Assert
         # Test that no exceptions are raised.
-        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        _ = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
     def test_validate_is_positive_semidefinite_ok(self):
         # Arrange
@@ -171,7 +171,7 @@ class TestPovm:
 
         # Act & Assert
         # Test that no exceptions are raised.
-        povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
         actual = povm.is_positive_semidefinite()
 
         # Assert
@@ -282,7 +282,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
         actual = povm1.measurements
@@ -313,7 +313,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
         actual0 = povm1.get_measurement(0)
@@ -336,7 +336,7 @@ class TestPovm:
             np.array([23, 29, 31, 37], dtype=np.float64),
             np.array([41, 43, 47, 53], dtype=np.float64),
         ]
-        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm2 = Povm(c_sys2, vecs2, is_physicality_required=False)
         povm12 = tensor_product(povm1, povm2)
 
         # Act
@@ -383,7 +383,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Case 1:
         # Act & Assert
@@ -397,6 +397,25 @@ class TestPovm:
             # IndexError: specified index does not exist in the list of measurements.
             _ = povm1.get_measurement(2)
 
+    def test_is_physical(self):
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
+        p2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        povm = Povm(c_sys=c_sys, vecs=[p1, p2])
+        assert povm.is_physical() == True
+
+        p1 = np.array([2, 0, 0, 0], dtype=np.complex128)
+        p2 = np.array([0, 0, 0, -1], dtype=np.complex128)
+        povm = Povm(c_sys=c_sys, vecs=[p1, p2], is_physicality_required=False)
+        assert povm.is_physical() == False
+
+        p1 = np.array([1, 0, 0, 1], dtype=np.complex128)
+        p2 = np.array([1, 0, 0, 1], dtype=np.complex128)
+        povm = Povm(c_sys=c_sys, vecs=[p1, p2], is_physicality_required=False)
+        assert povm.is_physical() == False
+
     def test_matrix(self):
         # Case 1:
         # Arrange
@@ -407,7 +426,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
         actual = povm1.matrix(0)
@@ -429,7 +448,7 @@ class TestPovm:
             np.array([23, 29, 31, 37], dtype=np.float64),
             np.array([41, 43, 47, 53], dtype=np.float64),
         ]
-        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm2 = Povm(c_sys2, vecs2, is_physicality_required=False)
         povm12 = tensor_product(povm1, povm2)
 
         # Act
@@ -462,7 +481,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act & Assert
         unexpected_type = [0]
@@ -480,7 +499,7 @@ class TestPovm:
         ]
 
         # default
-        povm = Povm(c_sys, vecs, is_physical=False)
+        povm = Povm(c_sys, vecs, is_physicality_required=False)
 
         # Act
         actual = povm.to_var()
@@ -494,7 +513,9 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
+        povm = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=True
+        )
 
         # Actual
         actual = povm.to_var()
@@ -508,7 +529,9 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povm = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=False
+        )
 
         # Actual
         actual = povm.to_var()
@@ -1014,7 +1037,7 @@ class TestPovmImmutable:
         vec_0 = np.array([2, 3, 5, 7], dtype=np.float64)
         vec_1 = np.array([11, 13, 17, 19], dtype=np.float64)
         source_vecs = [vec_0, vec_1]
-        povm = Povm(c_sys, source_vecs, is_physical=False)
+        povm = Povm(c_sys, source_vecs, is_physicality_required=False)
         assert id(source_vecs) != id(povm.vecs)
 
         # Case 1
@@ -1044,7 +1067,7 @@ class TestPovmImmutable:
         vec_0 = np.array([2, 3, 5, 7], dtype=np.float64)
         vec_1 = np.array([11, 13, 17, 19], dtype=np.float64)
         source_vecs = [vec_0, vec_1]
-        povm = Povm(c_sys, source_vecs, is_physical=False)
+        povm = Povm(c_sys, source_vecs, is_physicality_required=False)
 
         expected = [
             np.array([2, 3, 5, 7], dtype=np.float64),
