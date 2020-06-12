@@ -136,5 +136,5 @@ class SetQOperations:
         return vars
 
     def var_total(self) -> np.array:
-        vars = np.stack([self.var_states(), self.var_gates(), self.var_povms()])
+        vars = np.hstack([self.var_states(), self.var_gates(), self.var_povms()])
         return vars

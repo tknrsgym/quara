@@ -361,3 +361,69 @@ class TestSetQOperations:
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_var_total(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # State
+        vec_1 = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
+        vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
+
+        state_1 = State(
+            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
+        )
+        state_2 = State(
+            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+        )
+        states = [state_1, state_2]
+        expected_states_var = [1, 2, 3] + [1, 2, 3, 4]
+
+        # Gate
+        hs = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        gate_1 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=True)
+        gate_2 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=False)
+        gates = [gate_1, gate_2]
+
+        expected_gates_var = [0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1] + [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            -1,
+            0,
+            0,
+            0,
+            0,
+            -1,
+        ]
+
+        # Povm
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm_1 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
+        povm_2 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povms = [povm_1, povm_2]
+        expected_povms_var = [2, 3, 5, 7] + [2, 3, 5, 7, 11, 13, 17, 19]
+
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+
+        # Act
+        actual = sl_qope.var_total()
+
+        # Assert
+        expected = np.array(
+            expected_states_var + expected_gates_var + expected_povms_var,
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
