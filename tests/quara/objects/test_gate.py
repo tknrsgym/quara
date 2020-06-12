@@ -395,6 +395,47 @@ class TestGate:
         expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_to_var(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+
+        # Case 1: default
+        # Act
+        gate = Gate(c_sys=c_sys, hs=hs)
+        actual = gate.to_var()
+
+        # Assert
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2:
+        # Arrange
+        gate = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=True)
+
+        # Act
+        actual = gate.to_var()
+
+        # Assert
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3:
+        # Arrange
+        gate = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=False)
+
+        # Act
+        actual = gate.to_var()
+
+        # Assert
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 def test_convert_var_index_to_gate_index():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
