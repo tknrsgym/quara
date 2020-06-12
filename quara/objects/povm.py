@@ -449,6 +449,7 @@ def convert_povm_to_var(
     var = copy.copy(vecs)
     if on_eq_constraint:
         del var[-1]
+    var = np.hstack(var)
     return var
 
 
