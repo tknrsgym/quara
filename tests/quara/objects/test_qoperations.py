@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from quara.objects import matrix_basis
@@ -23,7 +24,7 @@ from quara.objects import qoperations as qope
 
 class TestSetQOperations:
     def array_states_povms_gates(self):
-        # Array
+        # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
         # State
@@ -46,7 +47,7 @@ class TestSetQOperations:
         return states, povms, gates
 
     def test_init(self):
-        # Array
+        # Arrange
         states, povms, gates = self.array_states_povms_gates()
 
         # Act
@@ -58,7 +59,7 @@ class TestSetQOperations:
         assert sl_qope.gates == gates
 
     def test_init_exception(self):
-        # Array
+        # Arrange
         states, povms, gates = self.array_states_povms_gates()
 
         # Act & Assert
@@ -80,7 +81,7 @@ class TestSetQOperations:
             _ = qope.SetQOperations(states=states, povms=povms, gates=ng_gates)
 
     def test_setter(self):
-        # Array
+        # Arrange
         states, povms, gates = self.array_states_povms_gates()
 
         new_states, new_povms, new_gates = self.array_states_povms_gates()
@@ -121,6 +122,7 @@ class TestSetQOperations:
         assert sl_qope.gates == new_gates
 
     def test_num(self):
+        # Arrange
         states, povms, gates = self.array_states_povms_gates()
 
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
@@ -138,7 +140,7 @@ class TestSetQOperations:
         assert sl_qope.num_gates() == expected
 
     def test_var_state(self):
-        # Array
+        # Arrange
         _, povms, gates = self.array_states_povms_gates()
 
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -169,7 +171,7 @@ class TestSetQOperations:
         assert np.all(actual == expected)
 
         # # Case 2:
-        # Array
+        # Arrange
         state_1 = State(
             c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
         )
@@ -195,7 +197,7 @@ class TestSetQOperations:
         assert np.all(actual == expected)
 
     def test_var_states(self):
-        # Array
+        # Arrange
         _, povms, gates = self.array_states_povms_gates()
 
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -237,7 +239,7 @@ class TestSetQOperations:
         assert np.all(actual == expected)
 
     def test_var_povms(self):
-        # Array
+        # Arrange
         states, povms, gates = self.array_states_povms_gates()
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
         actual = sl_qope.var_povm(1)
@@ -246,10 +248,71 @@ class TestSetQOperations:
         # TODO
 
     def test_var_gates(self):
-        # Array
-        states, povms, gates = self.array_states_povms_gates()
+        # Arrange
+        states, povms, _ = self.array_states_povms_gates()
+
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        gate_1 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=True)
+        gate_2 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=False)
+        gates = [gate_1, gate_2]
+
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+
+        # Act
+        actual = sl_qope.var_gate(0)
+
+        # Assert
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Act
         actual = sl_qope.var_gate(1)
+
+        # Assert
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Act
         actual = sl_qope.var_gates()
 
-        # TODO
+        # Assert
+        expected = np.array(
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                0,
+                0,
+                -1,
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
