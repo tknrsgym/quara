@@ -21,7 +21,14 @@ class Povm(QOperation):
     """
 
     def __init__(
-        self, c_sys: CompositeSystem, vecs: List[np.ndarray], **kwargs,
+        self,
+        c_sys: CompositeSystem,
+        vecs: List[np.ndarray],
+        is_physicality_required: bool = True,
+        on_para_eq_constraint: bool = True,
+        on_algo_eq_constraint: bool = True,
+        on_algo_ineq_constraint: bool = True,
+        eps_proj_physical: float = 10 ** (-4),
     ):
         """Constructor
 
@@ -31,30 +38,33 @@ class Povm(QOperation):
             CompositeSystem of this povm.
         vecs : List[np.ndarray]
             list of vec of povm elements.
-        is_physical : bool, optional
-            Check whether the povm is physically correct, by default True.
-            If ``True``, the following requirements are met.
+        is_physicality_required : bool, optional
+            checks whether the POVM is physically wrong, by default True.
+            all of the following conditions are ``True``, the POVM is physically correct:
 
             - It is a set of Hermitian matrices.
-            - The sum is the identity matrix.
-            - positive semidefinite.
+            - It is a set of positive semidefinite matrices.
+            - The sum the elements of is the identity matrix.
 
-            If you want to ignore the above requirements and create a POVM object, set ``is_physical`` to ``False``.
+            If you want to ignore the above requirements and create a POVM object, set ``is_physicality_required`` to ``False``.
 
         Raises
         ------
         ValueError
-            If ``is_physical`` is ``True`` and it is not a set of Hermitian matrices
-        ValueError
-            If ``is_physical`` is ``True`` and the sum is not an identity matrix
-        ValueError
-            If ``is_physical`` is ``True`` and is not a positive semidefinite
+            entries of all vecs are not real numbers.
         ValueError
             If the dim in the ``c_sys`` does not match the dim in the ``vecs``
+        ValueError
+            ``is_physicality_required`` is ``True`` and the gate is not physically correct.
         """
-        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
-        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
-        super().__init__(**kwargs)
+        super().__init__(
+            c_sys=c_sys,
+            is_physicality_required=is_physicality_required,
+            on_para_eq_constraint=on_para_eq_constraint,
+            on_algo_eq_constraint=on_algo_eq_constraint,
+            on_algo_ineq_constraint=on_algo_ineq_constraint,
+            eps_proj_physical=eps_proj_physical,
+        )
 
         # Set
         self._vecs: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(vecs))
@@ -69,26 +79,24 @@ class Povm(QOperation):
         self._dim = int(np.sqrt(size[0]))
         size = [self._dim, self._dim]
 
-        if self.is_physical:
-            # Validate to meet requirements as Povm
-            if not self.is_hermitian():
-                # whether `vecs` is a set of Hermitian matrices
-                raise ValueError("POVM must be a set of Hermitian matrices")
-
-            if not self.is_identity():
-                # whether the sum of the elements is an identity matrix or not
+        # whether entries of vec are real numbers
+        """
+        for vec in self._vecs:
+            if vec.dtype != np.float64:
                 raise ValueError(
-                    "The sum of the elements of POVM must be an identity matrix."
+                    f"entries of all vecs must be real numbers. some dtype of vecs are {vec.dtype}"
                 )
-
-            if not self.is_positive_semidefinite():
-                raise ValueError("Eigenvalues of POVM elements must be non-negative.")
+        """
 
         # Whether dim of CompositeSystem equals dim of vec
         if c_sys.dim != self._dim:
             raise ValueError(
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {c_sys.dim}. dim of vec is {self._dim}"
             )
+
+        # whether the POVM is physically correct
+        if self.is_physicality_required and not self.is_physical():
+            raise ValueError("the POVM is not physically correct.")
 
     @property
     def measurements(self) -> List[int]:
@@ -144,6 +152,24 @@ class Povm(QOperation):
             return self._vecs[temp_grobal_index]
         else:
             return self._vecs[index]
+
+    def is_physical(self) -> bool:
+        """returns whether the POVM is physically correct.
+
+        all of the following conditions are ``True``, the POVM is physically correct:
+
+        - It is a set of Hermitian matrices.
+        - It is a set of positive semidefinite matrices.
+        - The sum the elements of is the identity matrix.
+
+        Returns
+        -------
+        bool
+            whether the POVM is physically correct.
+        """
+        # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
+        # therefore, do not call the `is_hermitian` function explicitly.
+        return self.is_positive_semidefinite() and self.is_identity()
 
     def __getitem__(self, key) -> np.ndarray:
         # get vec with a serial number.
@@ -245,7 +271,6 @@ class Povm(QOperation):
         """
         atol = atol if atol else Settings.get_atol()
 
-        size = [self.dim, self.dim]
         for m in self.matrices():
             if not mutil.is_positive_semidefinite(m, atol):
                 return False
@@ -423,7 +448,7 @@ def convert_var_to_povm(
             last_vec -= vec.flatten()
         vecs.append(last_vec)
 
-    povm = Povm(c_sys, vecs, is_physical=False)
+    povm = Povm(c_sys, vecs, is_physicality_required=False)
     return povm
 
 
@@ -485,7 +510,7 @@ def calc_gradient_from_povm(
     )
     gradient[num_measurement][measurement_index] = 1
 
-    povm = Povm(c_sys, gradient, is_physical=False)
+    povm = Povm(c_sys, gradient, is_physicality_required=False)
     return povm
 
 

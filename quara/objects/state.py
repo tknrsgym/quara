@@ -18,7 +18,14 @@ from quara.objects.qoperation import QOperation
 
 class State(QOperation):
     def __init__(
-        self, c_sys: CompositeSystem, vec: np.ndarray, **kwargs,
+        self,
+        c_sys: CompositeSystem,
+        vec: np.ndarray,
+        is_physicality_required: bool = True,
+        on_para_eq_constraint: bool = True,
+        on_algo_eq_constraint: bool = True,
+        on_algo_ineq_constraint: bool = True,
+        eps_proj_physical: float = 10 ** (-4),
     ):
         """Constructor
 
@@ -28,12 +35,15 @@ class State(QOperation):
             CompositeSystem of this state.
         vec : np.ndarray
             vec of this state.
-        is_physical : bool, optional
-            checks whether the state is physically wrong, by default True.
-            if at least one of the following conditions is ``False``, the state is physically wrong:
+        is_physicality_required : bool, optional
+            checks whether the state is physically correct, by default True.
+            all of the following conditions are ``True``, the state is physically correct:
 
-            - density matrix is positive semidefinite.
             - trace of density matrix equals 1.
+            - density matrix is Hermitian.
+            - density matrix is positive semidefinite.
+
+            If you want to ignore the above requirements and create a State object, set ``is_physicality_required`` to ``False``.
 
         Raises
         ------
@@ -46,15 +56,16 @@ class State(QOperation):
         ValueError
             dim of CompositeSystem does not equal dim of vec.
         ValueError
-            ``is_physical`` is ``True`` and density matrix is not positive semidefinite.
-        ValueError
-            ``is_physical`` is ``True`` and trace of density matrix does not equal 1.
+            ``is_physicality_required`` is ``True`` and the state is not physically correct.
         """
-        # TODO: 暫定対応。とりあえず動作させることを優先して実装を簡略化するため可変長引数を使っているが、
-        # ユーザからするとStateのコンストラクタにon_para_eq_constraintなどが必要であることがわかりにくくなるので、冗長でも明示的に書いた方が良い。
-        super().__init__(**kwargs)
-
-        self._composite_system: CompositeSystem = c_sys
+        super().__init__(
+            c_sys=c_sys,
+            is_physicality_required=is_physicality_required,
+            on_para_eq_constraint=on_para_eq_constraint,
+            on_algo_eq_constraint=on_algo_eq_constraint,
+            on_algo_ineq_constraint=on_algo_ineq_constraint,
+            eps_proj_physical=eps_proj_physical,
+        )
         self._vec: np.ndarray = vec
         size = self._vec.shape
 
@@ -81,16 +92,9 @@ class State(QOperation):
                 f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim}. dim of vec is {self._dim}"
             )
 
-        # whether the state is physically wrong
-        if self.is_physical:
-            if not self.is_positive_semidefinite():
-                raise ValueError(
-                    "the state is physically wrong. density matrix is not positive semidefinite."
-                )
-            elif not self.is_trace_one():
-                raise ValueError(
-                    "the state is physically wrong. trace of density matrix does not equal 1."
-                )
+        # whether the state is physically correct
+        if self.is_physicality_required and not self.is_physical():
+            raise ValueError("the state is not physically correct.")
 
     @property
     def vec(self):
@@ -113,6 +117,65 @@ class State(QOperation):
             dim of this state.
         """
         return self._dim
+
+    def is_physical(self) -> bool:
+        """returns whether the state is physically correct.
+
+        all of the following conditions are ``True``, the state is physically correct:
+
+        - trace of density matrix equals 1.
+        - density matrix is Hermitian.
+        - density matrix is positive semidefinite.
+
+        Returns
+        -------
+        bool
+            whether the state is physically correct.
+        """
+        # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
+        # therefore, do not call the `is_hermitian` function explicitly.
+        return self.is_trace_one() and self.is_positive_semidefinite()
+
+    def set_zero(self):
+        self._vec = np.zeros(self._vec.shape, dtype=np.float64)
+        self._is_physical = False
+
+    def zero_obj(self):
+        raise NotImplementedError()
+
+    def to_var(self) -> np.array:
+        return convert_state_to_var(
+            self._composite_system, self.vec, self.on_para_eq_constraint
+        )
+
+    def to_stacked_vector(self) -> np.array:
+        return self._vec
+
+    def calc_gradient(self):
+        raise NotImplementedError()
+
+    def calc_proj_eq_constraint(self):
+        raise NotImplementedError()
+
+    def calc_proj_ineq_constraint(self):
+        raise NotImplementedError()
+
+    def calc_proj_physical(self):
+        raise NotImplementedError()
+
+    def __add__(self, other):
+        raise NotImplementedError()
+
+    def __sub__(self, other):
+        raise NotImplementedError()
+
+    def __mul__(self, other):
+        # self * other
+        raise NotImplementedError()
+
+    def __rmul__(self, other):
+        # other * self
+        raise NotImplementedError()
 
     def to_density_matrix(self) -> np.ndarray:
         """returns density matrix.
@@ -190,11 +253,6 @@ class State(QOperation):
         )
         return converted_vec
 
-    def to_var(self) -> np.array:
-        return convert_state_to_var(
-            self._composite_system, self.vec, self.on_para_eq_constraint
-        )
-
 
 def convert_var_index_to_state_index(
     var_index: int, on_eq_constraint: bool = True
@@ -258,7 +316,7 @@ def convert_var_to_state(
         converted state.
     """
     vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if on_eq_constraint else var
-    state = State(c_sys, vec, is_physical=False)
+    state = State(c_sys, vec, is_physicality_required=False)
     return state
 
 
@@ -313,7 +371,7 @@ def calc_gradient_from_state(
     state_index = convert_var_index_to_state_index(var_index, on_eq_constraint)
     gradient[state_index] = 1
 
-    state = State(c_sys, gradient, is_physical=False)
+    state = State(c_sys, gradient, is_physicality_required=False)
     return state
 
 
