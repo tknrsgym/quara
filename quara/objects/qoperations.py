@@ -74,6 +74,22 @@ class SetQOperations:
     def num_mprocesses(self):
         return len(self._mprocesses)
 
+    def dim_state(self, index: int) -> int:
+        # statesのi番目に対応するtotal systemの次元を返す.
+        return self.states[index].dim
+
+    def dim_gate(self, index: int) -> int:
+        # gatesのi番目に対応するtotal systemの次元を返す.
+        return self.gates[index].dim
+
+    def dim_povm(self, index: int) -> int:
+        # povmsのi番目に対応するtotal systemの次元を返す.
+        return self.povms[index].dim
+
+    def dim_mprosess(self, index: int) -> int:
+        # TODO
+        raise NotImplementedError()
+
     def size_var_states(self) -> int:
         return len(self.var_states())
 
@@ -100,7 +116,7 @@ class SetQOperations:
         # TODO
         pass
 
-    def size_var_total(self, index: int) -> int:
+    def size_var_total(self) -> int:
         total = sum(
             [
                 self.size_var_states(),
@@ -136,5 +152,5 @@ class SetQOperations:
         return vars
 
     def var_total(self) -> np.array:
-        vars = np.stack([self.var_states(), self.var_gates(), self.var_povms()])
+        vars = np.hstack([self.var_states(), self.var_gates(), self.var_povms()])
         return vars
