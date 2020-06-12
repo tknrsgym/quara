@@ -100,7 +100,7 @@ class SetQOperations:
         # TODO
         pass
 
-    def size_var_total(self, index: int) -> int:
+    def size_var_total(self) -> int:
         total = sum(
             [
                 self.size_var_states(),
