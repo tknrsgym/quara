@@ -240,12 +240,57 @@ class TestSetQOperations:
 
     def test_var_povms(self):
         # Arrange
-        states, povms, gates = self.array_states_povms_gates()
+        states, _, gates = self.array_states_povms_gates()
+
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # POVM 1
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+
+        povm_1 = Povm(c_sys, vecs, is_physical=False)
+        povm_2 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
+        povm_3 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povms = [povm_1, povm_2, povm_3]
+
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+
+        # Case 1:
+        # Act
+        actual = sl_qope.var_povm(0)
+
+        # Assert
+        expected = np.array([2, 3, 5, 7], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2:
+        # Act
         actual = sl_qope.var_povm(1)
+
+        # Assert
+        expected = np.array([2, 3, 5, 7], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3:
+        # Act
+        actual = sl_qope.var_povm(2)
+
+        # Assert
+        expected = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 4: All
+        # Act
         actual = sl_qope.var_povms()
 
-        # TODO
+        # Assert
+        expected = np.array(
+            [2, 3, 5, 7, 2, 3, 5, 7, 2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_var_gates(self):
         # Arrange
