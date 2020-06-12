@@ -437,10 +437,10 @@ def test_tensor_product_povm_povm_is_physicality_required_true():
     # Physical POVM
     physical_povm_list = []
     for i in range(2):
-        e_sys = ElementalSystem(i, matrix_basis.get_comp_basis())
+        e_sys = ElementalSystem(i, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        ps_1 = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
+        ps_2 = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
         vecs = [ps_1, ps_2]
 
         povm = Povm(c_sys=c_sys, vecs=vecs)
@@ -449,8 +449,8 @@ def test_tensor_product_povm_povm_is_physicality_required_true():
     # Not Physical POVM
     not_physical_povm_list = []
     for i in range(2, 4):
-        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
-        not_ps = np.array([0, -1j, 1j, 0], dtype=np.complex128)
+        ps = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
+        not_ps = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
         vecs = [ps, not_ps]
 
         e_sys = ElementalSystem(i, matrix_basis.get_pauli_basis())
@@ -759,11 +759,11 @@ def test_composite_Gate_State():
 
 
 def test_composite_Povm_Gate():
-    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     vecs = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
     ]
     povm = Povm(c_sys, vecs)
 
@@ -771,8 +771,8 @@ def test_composite_Povm_Gate():
     x_gate = get_x(c_sys)
     actual = composite(povm, x_gate)
     expected = [
-        np.array([0, 0, 0, 1], dtype=np.complex128),
-        np.array([1, 0, 0, 0], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
     ]
     npt.assert_almost_equal(actual.vecs, expected, decimal=15)
 
@@ -789,8 +789,8 @@ def test_composite_Povm_State():
     e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys])
     vecs = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
     ]
     povm = Povm(c_sys, vecs)
 

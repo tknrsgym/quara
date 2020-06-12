@@ -36,8 +36,8 @@ class Gate(QOperation):
         hs : np.ndarray
             HS representation of this gate.
         is_physicality_required : bool, optional
-            checks whether the state is physically wrong, by default True.
-            if at least one of the following conditions is ``False``, the state is physically wrong:
+            checks whether the gate is physically wrong, by default True.
+            if at least one of the following conditions is ``False``, the gate is physically wrong:
 
             - gate is TP(trace-preserving map).
             - gate is CP(Complete-Positivity-Preserving).
@@ -116,7 +116,7 @@ class Gate(QOperation):
     def is_physical(self) -> bool:
         """returns whether the gate is physically correct.
 
-        all of the following conditions are ``True``, the state is physically correct:
+        all of the following conditions are ``True``, the gate is physically correct:
 
         - gate is TP(trace-preserving map).
         - gate is CP(Complete-Positivity-Preserving).
@@ -310,7 +310,11 @@ class Gate(QOperation):
         return np.array(process_matrix).reshape((4, 4))
 
     def to_var(self) -> np.array:
-        return convert_gate_to_var(c_sys=self._composite_system, hs=self.hs, on_eq_constraint=self.on_para_eq_constraint)
+        return convert_gate_to_var(
+            c_sys=self._composite_system,
+            hs=self.hs,
+            on_eq_constraint=self.on_para_eq_constraint,
+        )
 
 
 def convert_var_index_to_gate_index(
