@@ -486,12 +486,8 @@ class TestPovm:
         actual = povm.to_var()
 
         # Assert
-        expected = [
-            np.array([2, 3, 5, 7], dtype=np.float64),
-        ]
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            npt.assert_almost_equal(a, e, decimal=15)
+        expected = np.array([2, 3, 5, 7], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Arrange
         vecs = [
@@ -504,12 +500,8 @@ class TestPovm:
         actual = povm.to_var()
 
         # Assert
-        expected = [
-            np.array([2, 3, 5, 7], dtype=np.float64),
-        ]
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            npt.assert_almost_equal(a, e, decimal=15)
+        expected = np.array([2, 3, 5, 7], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Arrange
         vecs = [
@@ -522,9 +514,8 @@ class TestPovm:
         actual = povm.to_var()
 
         # Assert
-        assert len(actual) == len(vecs)
-        for a, e in zip(actual, vecs):
-            npt.assert_almost_equal(a, e, decimal=15)
+        expected = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_convert_var_index_to_povm_index():
@@ -620,41 +611,44 @@ def test_convert_povm_to_var():
     e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys])
 
-    # default
+    # Case 1: default
     vecs = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
+
+    # Act
     actual = convert_povm_to_var(c_sys, vecs)
-    expected = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-    ]
-    assert len(actual) == len(expected)
-    for a, e in zip(actual, expected):
-        npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_eq_constraint=True
+    # Assert
+    expected = np.array([2, 3, 5, 7], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 2: on_eq_constraint=True
     vecs = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
+
+    # Act
     actual = convert_povm_to_var(c_sys, vecs, on_eq_constraint=True)
-    expected = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-    ]
-    assert len(actual) == len(expected)
-    for a, e in zip(actual, expected):
-        npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_eq_constraint=False
+    # Assert
+    expected = np.array([2, 3, 5, 7], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 3: on_eq_constraint=False
     vecs = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
+
+    # Act
     actual = convert_povm_to_var(c_sys, vecs, on_eq_constraint=False)
-    assert len(actual) == len(vecs)
-    for a, e in zip(actual, vecs):
-        npt.assert_almost_equal(a, e, decimal=15)
+
+    # Assert
+    expected = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_calc_gradient_from_povm():
