@@ -80,13 +80,11 @@ class Povm(QOperation):
         size = [self._dim, self._dim]
 
         # whether entries of vec are real numbers
-        """
         for vec in self._vecs:
             if vec.dtype != np.float64:
                 raise ValueError(
                     f"entries of all vecs must be real numbers. some dtype of vecs are {vec.dtype}"
                 )
-        """
 
         # Whether dim of CompositeSystem equals dim of vec
         if c_sys.dim != self._dim:
@@ -531,7 +529,10 @@ def _get_1q_povm_from_vecs_on_pauli_basis(
 
     # convert "vecs in Pauli basis" to "vecs in basis of CompositeSystem"
     to_vecs = [
-        convert_vec(vec, get_normalized_pauli_basis(), c_sys.basis()) for vec in vecs
+        convert_vec(vec, get_normalized_pauli_basis(), c_sys.basis()).real.astype(
+            np.float64
+        )
+        for vec in vecs
     ]
     povm = Povm(c_sys, to_vecs)
     return povm
@@ -652,7 +653,9 @@ def _get_2q_povm_from_vecs_on_pauli_basis(
 
     # convert "vecs in Pauli basis" to "vecs in basis of CompositeSystem"
     to_vecs = [
-        convert_vec(vec, get_normalized_pauli_basis(n_qubit=2), c_sys.basis())
+        convert_vec(
+            vec, get_normalized_pauli_basis(n_qubit=2), c_sys.basis()
+        ).real.astype(np.float64)
         for vec in vecs
     ]
     povm = Povm(c_sys, to_vecs)
