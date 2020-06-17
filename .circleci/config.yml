@@ -23,6 +23,7 @@ jobs:
       - run:
           name: Run tests
           command: |
+            . venv/bin/activate
             pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
@@ -42,6 +43,7 @@ jobs:
       - run:
           name: Run tests
           command: |
+            . venv/bin/activate
             pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
@@ -61,6 +63,7 @@ jobs:
       - run:
           name: Run tests
           command: |
+            . venv/bin/activate
             pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
