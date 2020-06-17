@@ -189,7 +189,7 @@ class SetQOperations:
             )
 
         target_item_first_index = 0
-        for i in range(index - 1):
+        for i in range(index):
             target_item_first_index += get_size_func(i)
         return target_item_first_index
 
@@ -269,6 +269,6 @@ class SetQOperations:
         )
         return local_info
 
-    def set_qoperations_from_var_total(self, var_total: np.array) -> SetQOperations:
+    def set_qoperations_from_var_total(self, var_total: np.array) -> "SetQOperations":
         # numpy array var_totalに対応するsetListQOperationを返す
         pass
