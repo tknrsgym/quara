@@ -138,8 +138,7 @@ class State(QOperation):
 
     def set_zero(self):
         self._vec = np.zeros(self._vec.shape, dtype=np.float64)
-        # TODO
-        # self.is_physicality_required = False
+        self._is_physicality_required = False
 
     def zero_obj(self):
         vec = np.zeros(self.vec.shape, dtype=np.float64)
