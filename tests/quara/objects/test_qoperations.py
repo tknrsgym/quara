@@ -797,6 +797,17 @@ class TestSetQOperations:
         set_qoperations = qope.SetQOperations(states=states, povms=povms, gates=gates)
         return set_qoperations
 
+    def test_size_var_total(self):
+        # Arrange
+        set_qoperations = self._arrange_setqoperations()
+
+        # Act
+        actual = set_qoperations.size_var_total()
+
+        # Assert
+        expected = 79
+        assert actual == expected
+
     def test_index_var_total_from_local_info(self):
         set_qoperations = self._arrange_setqoperations()
         var_total = set_qoperations.var_total()
