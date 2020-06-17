@@ -1,7 +1,8 @@
 from abc import abstractmethod
-from typing import List
+from typing import List, Dict
 
 import numpy as np
+from quara.objects.qoperation import QOperation
 from quara.objects.state import State, convert_state_to_var
 from quara.objects.gate import Gate, convert_gate_to_var
 from quara.objects.povm import Povm, convert_povm_to_var
@@ -154,3 +155,115 @@ class SetQOperations:
     def var_total(self) -> np.array:
         vars = np.hstack([self.var_states(), self.var_gates(), self.var_povms()])
         return vars
+
+    def _get_operation_type_to_total_index_map(self) -> Dict[str, int]:
+        states_first_index = 0
+        gates_first_index = self.size_var_states()
+        povms_first_index = gates_first_index + self.size_var_gates()
+        mprocesses_first_index = povms_first_index + self.size_var_gates()
+        return dict(
+            state=states_first_index,
+            gate=gates_first_index,
+            povm=povms_first_index,
+            mprocess=mprocesses_first_index,
+        )
+
+    def _get_operation_item_var_first_index(
+        self, type_operation: str, index: int
+    ) -> int:
+        # TODO: メソッド名をわかりやすくする
+        # statesに格納されているi番目のStateが、states全体をvarにした時に何番目のインデックスから始まるか
+        target_operations: List[QOperation]
+        if type_operation == "state":
+            target_operations = self.states
+            get_size_func = self.size_var_state
+        elif type_operation == "gate":
+            target_operations = self.gates
+            get_size_func = self.size_var_gate
+        elif type_operation == "povm":
+            target_operations = self.povms
+            get_size_func = self.size_var_povm
+        else:
+            raise ValueError(
+                "'{}' is an unsupported operation type.".format(type_operation)
+            )
+
+        target_item_first_index = 0
+        for i in range(index):
+            target_item_first_index += get_size_func(i)
+        return target_item_first_index
+
+    def index_var_total_from_local_info(
+        self, type_operation: str, index_operations: int, index_var_local: int
+    ):
+        # 演算の種類、その種類の演算リストの中での番号、その演算を特徴づける変数中のインデックス、
+        # から、最適化変数中のインデックスを返す
+        supported_types = ["state", "povm", "gate", "mprocess"]
+        if type_operation not in supported_types:
+            raise ValueError(
+                "'{}' is an unsupported operation type. Supported Operations: {}.".format(
+                    type_operation, ",".join(supported_types)
+                )
+            )
+        first_index_map = self._get_operation_type_to_total_index_map()
+        index_var_total = (
+            first_index_map[type_operation]
+            + self._get_operation_item_var_first_index(type_operation, index_operations)
+            + index_var_local
+        )
+        return index_var_total
+
+    def _get_type_operation_from_index_var_total(self, index_var_total: int) -> str:
+        first_index_map = self._get_operation_type_to_total_index_map()
+        type_operation: str
+        if 0 <= index_var_total < first_index_map["gate"]:
+            type_operation = "state"
+        elif first_index_map["gate"] <= index_var_total < first_index_map["povm"]:
+            type_operation = "gate"
+        elif first_index_map["povm"] <= index_var_total < first_index_map["mprocess"]:
+            type_operation = "povm"
+        else:
+            # TODO: error message
+            raise IndexError()
+        return type_operation
+
+    def local_info_from_index_var_total(self, index_var_total: int) -> dict:
+        # Type Operation
+        type_operation = self._get_type_operation_from_index_var_total(index_var_total)
+
+        # Index Operations
+        # テストしやすくするために関数分割しているが、このメソッド内と_get_type_operation_from_index_var_totalで
+        # 2回first_index_mapを求めているので、速度が問題になるならひとつのメソッド内におさめる
+        first_index_map = self._get_operation_type_to_total_index_map()
+        mid_level_index = index_var_total - first_index_map[type_operation]
+
+        # Index Var Total
+        target_operations: List[QOperation]
+        if type_operation == "state":
+            target_operations = self.states
+            get_size_func = self.size_var_state
+        elif type_operation == "gate":
+            target_operations = self.gates
+            get_size_func = self.size_var_gate
+        elif type_operation == "povm":
+            target_operations = self.povms
+            get_size_func = self.size_var_povm
+
+        first_index = 0
+        for i, target in enumerate(target_operations):
+            local_item_size = get_size_func(i)
+            if first_index <= mid_level_index < first_index + local_item_size:
+                index_operations = i
+                index_var_local = mid_level_index - first_index
+            first_index += local_item_size
+
+        local_info = dict(
+            type_operation=type_operation,
+            index_operations=index_operations,
+            index_var_local=index_var_local,
+        )
+        return local_info
+
+    def set_qoperations_from_var_total(self, var_total: np.array) -> "SetQOperations":
+        # numpy array var_totalに対応するsetListQOperationを返す
+        pass
