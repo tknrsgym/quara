@@ -160,9 +160,12 @@ class SetQOperations:
         states_first_index = 0
         gates_first_index = self.size_var_states()
         povms_first_index = gates_first_index + self.size_var_gates()
-        # TODO: MProcess
+        mprocesses_first_index = povms_first_index + self.size_var_gates()
         return dict(
-            state=states_first_index, gate=gates_first_index, povm=povms_first_index
+            state=states_first_index,
+            gate=gates_first_index,
+            povm=povms_first_index,
+            mprocess=mprocesses_first_index,
         )
 
     def _get_operation_item_var_first_index(
@@ -210,13 +213,61 @@ class SetQOperations:
         )
         return index_var_total
 
-    def index_var_total_from_local_info(self, index_var_total: int):
+    def _get_type_operation_from_index_var_total(self, index_var_total: int) -> str:
+        first_index_map = self._get_operation_type_to_total_index_map()
+        type_operation: str
+        if 0 <= index_var_total < first_index_map["gate"]:
+            type_operation = "state"
+        elif first_index_map["gate"] <= index_var_total < first_index_map["povm"]:
+            type_operation = "gate"
+        elif first_index_map["povm"] <= index_var_total < first_index_map["mprocess"]:
+            type_operation = "povm"
+        else:
+            # TODO: error message
+            raise IndexError()
+        return type_operation
+
+    def local_info_from_index_var_total(self, index_var_total: int) -> dict:
         # 最適化変数中のインデックスから
         # 演算の種類
         # その種類の演算リストの中での番号
         # その演算を特徴づける変数中のインデックス
         # を返す
-        pass
+
+        # Type Operation
+        type_operation = self._get_type_operation_from_index_var_total(index_var_total)
+
+        # Index Operations
+        # テストしやすくするために関数分割しているが、このメソッド内と_get_type_operation_from_index_var_totalで
+        # 2回first_index_mapを求めているので、速度が問題になるならひとつのメソッド内におさめる
+        first_index_map = self._get_operation_type_to_total_index_map()
+        index_operations = index_var_total - first_index_map[type_operation]
+
+        # Index Var Total
+        target_operations: List[QOperation]
+        if type_operation == "state":
+            target_operations = self.states
+            get_size_func = self.size_var_state
+        elif type_operation == "gate":
+            target_operations = self.gates
+            get_size_func = self.size_var_gate
+        elif type_operation == "povm":
+            target_operations = self.povms
+            get_size_func = self.size_var_povm
+
+        first_index = 0
+        for i, target in enumerate(target_operations):
+            local_item_size = get_size_func(i)
+            if first_index <= index_operations < local_item_size:
+                index_var_local = index_operations - first_index
+            first_index += local_item_size
+
+        local_info = dict(
+            type_operation=type_operation,
+            index_operations=index_operations,
+            index_var_local=index_var_local,
+        )
+        return local_info
 
     def set_qoperations_from_var_total(self, var_total: np.array) -> SetQOperations:
         # numpy array var_totalに対応するsetListQOperationを返す
