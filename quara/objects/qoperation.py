@@ -10,6 +10,7 @@ class QOperation:
         self,
         c_sys: CompositeSystem,
         is_physicality_required: bool = True,
+        is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
@@ -22,6 +23,7 @@ class QOperation:
         # Set
         self._composite_system: CompositeSystem = c_sys
         self._is_physicality_required = is_physicality_required
+        self._is_estimation_object = is_estimation_object
         self._on_para_eq_constraint: bool = on_para_eq_constraint
         self._on_algo_eq_constraint: bool = on_algo_eq_constraint
         self._on_algo_ineq_constraint: bool = on_algo_ineq_constraint
@@ -30,6 +32,10 @@ class QOperation:
     @property
     def is_physicality_required(self) -> bool:  # read only
         return self._is_physicality_required
+
+    @property
+    def is_estimation_object(self) -> bool:  # read only
+        return self._is_estimation_object
 
     @property
     def on_para_eq_constraint(self) -> bool:  # read only
