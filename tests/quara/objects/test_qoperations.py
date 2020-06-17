@@ -862,6 +862,94 @@ class TestSetQOperations:
         assert var_total[actual] == set_qoperations.povms[1].to_var()[1]
 
         # Povm[2]
-        actual = set_qoperations.index_var_total_from_local_info("povm", 2, 8)
-        assert actual == 82
-        assert var_total[actual] == set_qoperations.povms[2].to_var()[8]
+
+        actual = set_qoperations.index_var_total_from_local_info("povm", 2, 0)
+        assert actual == 75
+        assert var_total[actual] == set_qoperations.povms[2].to_var()[0]
+
+        actual = set_qoperations.index_var_total_from_local_info("povm", 2, 3)
+        assert actual == 78
+        assert var_total[actual] == set_qoperations.povms[2].to_var()[3]
+
+    def test_local_info_from_index_var_total(self):
+        set_qoperations = self._arrange_setqoperations()
+
+        actual = set_qoperations.local_info_from_index_var_total(0)
+        expected = dict(type_operation="state", index_operations=0, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(2)
+        expected = dict(type_operation="state", index_operations=0, index_var_local=2,)
+        assert actual == expected
+
+        # states[1]
+        actual = set_qoperations.local_info_from_index_var_total(3)
+        expected = dict(type_operation="state", index_operations=1, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(6)
+        expected = dict(type_operation="state", index_operations=1, index_var_local=3,)
+        assert actual == expected
+
+        # states[2]
+        actual = set_qoperations.local_info_from_index_var_total(7)
+        expected = dict(type_operation="state", index_operations=2, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(22)
+        expected = dict(type_operation="state", index_operations=2, index_var_local=15,)
+        assert actual == expected
+
+        # gates[0]
+        actual = set_qoperations.local_info_from_index_var_total(23)
+        expected = dict(type_operation="gate", index_operations=0, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(34)
+        expected = dict(type_operation="gate", index_operations=0, index_var_local=11,)
+        assert actual == expected
+
+        # gates[1]
+        actual = set_qoperations.local_info_from_index_var_total(35)
+        expected = dict(type_operation="gate", index_operations=1, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(50)
+        expected = dict(type_operation="gate", index_operations=1, index_var_local=15,)
+        assert actual == expected
+
+        # gates[2]
+        actual = set_qoperations.local_info_from_index_var_total(51)
+        expected = dict(type_operation="gate", index_operations=2, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(62)
+        expected = dict(type_operation="gate", index_operations=2, index_var_local=11,)
+        assert actual == expected
+
+        # povms[0]
+        actual = set_qoperations.local_info_from_index_var_total(63)
+        expected = dict(type_operation="povm", index_operations=0, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(66)
+        expected = dict(type_operation="povm", index_operations=0, index_var_local=3,)
+        assert actual == expected
+
+        # povms[1]
+        actual = set_qoperations.local_info_from_index_var_total(67)
+        expected = dict(type_operation="povm", index_operations=1, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(74)
+        expected = dict(type_operation="povm", index_operations=1, index_var_local=7,)
+        assert actual == expected
+
+        # povms[2]
+        actual = set_qoperations.local_info_from_index_var_total(75)
+        expected = dict(type_operation="povm", index_operations=2, index_var_local=0,)
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(78)
+        expected = dict(type_operation="povm", index_operations=2, index_var_local=3,)
+        assert actual == expected

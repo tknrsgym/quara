@@ -228,12 +228,6 @@ class SetQOperations:
         return type_operation
 
     def local_info_from_index_var_total(self, index_var_total: int) -> dict:
-        # 最適化変数中のインデックスから
-        # 演算の種類
-        # その種類の演算リストの中での番号
-        # その演算を特徴づける変数中のインデックス
-        # を返す
-
         # Type Operation
         type_operation = self._get_type_operation_from_index_var_total(index_var_total)
 
@@ -241,7 +235,7 @@ class SetQOperations:
         # テストしやすくするために関数分割しているが、このメソッド内と_get_type_operation_from_index_var_totalで
         # 2回first_index_mapを求めているので、速度が問題になるならひとつのメソッド内におさめる
         first_index_map = self._get_operation_type_to_total_index_map()
-        index_operations = index_var_total - first_index_map[type_operation]
+        mid_level_index = index_var_total - first_index_map[type_operation]
 
         # Index Var Total
         target_operations: List[QOperation]
@@ -258,8 +252,9 @@ class SetQOperations:
         first_index = 0
         for i, target in enumerate(target_operations):
             local_item_size = get_size_func(i)
-            if first_index <= index_operations < local_item_size:
-                index_var_local = index_operations - first_index
+            if first_index <= mid_level_index < first_index + local_item_size:
+                index_operations = i
+                index_var_local = mid_level_index - first_index
             first_index += local_item_size
 
         local_info = dict(
