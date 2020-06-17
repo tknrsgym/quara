@@ -22,6 +22,7 @@ class State(QOperation):
         c_sys: CompositeSystem,
         vec: np.ndarray,
         is_physicality_required: bool = True,
+        is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
@@ -61,6 +62,7 @@ class State(QOperation):
         super().__init__(
             c_sys=c_sys,
             is_physicality_required=is_physicality_required,
+            is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
@@ -141,10 +143,10 @@ class State(QOperation):
         self._is_physicality_required = False
 
     def zero_obj(self):
-        vec = np.zeros(self.vec.shape, dtype=np.float64)
+        new_vec = np.zeros(self.vec.shape, dtype=np.float64)
         state = State(
-            self._composite_system,
-            vec,
+            c_sys=self._composite_system,
+            vec=new_vec,
             is_physicality_required=False,
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
@@ -155,7 +157,9 @@ class State(QOperation):
 
     def to_var(self) -> np.array:
         return convert_state_to_var(
-            self._composite_system, self.vec, self.on_para_eq_constraint
+            c_sys=self._composite_system,
+            vec=self.vec,
+            on_para_eq_constraint=self.on_para_eq_constraint,
         )
 
     def to_stacked_vector(self) -> np.array:
@@ -265,7 +269,7 @@ class State(QOperation):
 
 
 def convert_var_index_to_state_index(
-    var_index: int, on_eq_constraint: bool = True
+    var_index: int, on_para_eq_constraint: bool = True
 ) -> int:
     """converts variable index to state index.
 
@@ -273,7 +277,7 @@ def convert_var_index_to_state_index(
     ----------
     var_index : int
         variable index.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -281,12 +285,12 @@ def convert_var_index_to_state_index(
     int
         state index.
     """
-    state_index = var_index + 1 if on_eq_constraint else var_index
+    state_index = var_index + 1 if on_para_eq_constraint else var_index
     return state_index
 
 
 def convert_state_index_to_var_index(
-    state_index: int, on_eq_constraint: bool = True
+    state_index: int, on_para_eq_constraint: bool = True
 ) -> int:
     """converts state index to variable index.
 
@@ -294,7 +298,7 @@ def convert_state_index_to_var_index(
     ----------
     state_index : int
         state index.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -302,12 +306,12 @@ def convert_state_index_to_var_index(
     int
         variable index.
     """
-    var_index = state_index - 1 if on_eq_constraint else state_index
+    var_index = state_index - 1 if on_para_eq_constraint else state_index
     return var_index
 
 
 def convert_var_to_state(
-    c_sys: CompositeSystem, var: np.ndarray, on_eq_constraint: bool = True
+    c_sys: CompositeSystem, var: np.ndarray, on_para_eq_constraint: bool = True
 ) -> State:
     """converts vec of variables to state.
 
@@ -317,7 +321,7 @@ def convert_var_to_state(
         CompositeSystem of this state.
     var : np.ndarray
         vec of variables.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -325,13 +329,13 @@ def convert_var_to_state(
     State
         converted state.
     """
-    vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if on_eq_constraint else var
+    vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if on_para_eq_constraint else var
     state = State(c_sys, vec, is_physicality_required=False)
     return state
 
 
 def convert_state_to_var(
-    c_sys: CompositeSystem, vec: np.ndarray, on_eq_constraint: bool = True
+    c_sys: CompositeSystem, vec: np.ndarray, on_para_eq_constraint: bool = True
 ) -> np.array:
     """converts vec of state to vec of variables.
 
@@ -341,7 +345,7 @@ def convert_state_to_var(
         CompositeSystem of this state.
     vec : np.ndarray
         vec of state.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -349,7 +353,7 @@ def convert_state_to_var(
     np.array
         vec of variables.
     """
-    var = np.delete(vec, 0) if on_eq_constraint else vec
+    var = np.delete(vec, 0) if on_para_eq_constraint else vec
     return var
 
 
@@ -357,7 +361,7 @@ def calc_gradient_from_state(
     c_sys: CompositeSystem,
     vec: np.ndarray,
     var_index: int,
-    on_eq_constraint: bool = True,
+    on_para_eq_constraint: bool = True,
 ) -> State:
     """calculates gradient from State.
 
@@ -369,7 +373,7 @@ def calc_gradient_from_state(
         vec of state.
     var_index : int
         variable index.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -378,7 +382,7 @@ def calc_gradient_from_state(
         State with gradient as vec.
     """
     gradient = np.zeros((c_sys.dim ** 2), dtype=np.float64)
-    state_index = convert_var_index_to_state_index(var_index, on_eq_constraint)
+    state_index = convert_var_index_to_state_index(var_index, on_para_eq_constraint)
     gradient[state_index] = 1
 
     state = State(c_sys, gradient, is_physicality_required=False)

@@ -22,6 +22,7 @@ class Gate(QOperation):
         c_sys: CompositeSystem,
         hs: np.ndarray,
         is_physicality_required: bool = True,
+        is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
@@ -60,6 +61,7 @@ class Gate(QOperation):
         super().__init__(
             c_sys=c_sys,
             is_physicality_required=is_physicality_required,
+            is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
@@ -127,6 +129,59 @@ class Gate(QOperation):
             whether the gate is physically correct.
         """
         return self.is_tp() and self.is_cp()
+
+    def set_zero(self):
+        self._hs = np.zeros(self._hs.shape, dtype=np.float64)
+        self._is_physicality_required = False
+
+    def zero_obj(self):
+        new_hs = np.zeros(self.hs.shape, dtype=np.float64)
+        gate = Gate(
+            self._composite_system,
+            new_hs,
+            is_physicality_required=False,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return gate
+
+    def to_var(self) -> np.array:
+        return convert_gate_to_var(
+            c_sys=self._composite_system,
+            hs=self.hs,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+        )
+
+    def to_stacked_vector(self) -> np.array:
+        return self.hs.flatten()
+
+    def calc_gradient(self):
+        raise NotImplementedError()
+
+    def calc_proj_eq_constraint(self):
+        raise NotImplementedError()
+
+    def calc_proj_ineq_constraint(self):
+        raise NotImplementedError()
+
+    def calc_proj_physical(self):
+        raise NotImplementedError()
+
+    def __add__(self, other):
+        raise NotImplementedError()
+
+    def __sub__(self, other):
+        raise NotImplementedError()
+
+    def __mul__(self, other):
+        # self * other
+        raise NotImplementedError()
+
+    def __rmul__(self, other):
+        # other * self
+        raise NotImplementedError()
 
     def get_basis(self) -> MatrixBasis:
         """returns MatrixBasis of gate.
@@ -309,16 +364,9 @@ class Gate(QOperation):
         ]
         return np.array(process_matrix).reshape((4, 4))
 
-    def to_var(self) -> np.array:
-        return convert_gate_to_var(
-            c_sys=self._composite_system,
-            hs=self.hs,
-            on_eq_constraint=self.on_para_eq_constraint,
-        )
-
 
 def convert_var_index_to_gate_index(
-    c_sys: CompositeSystem, var_index: int, on_eq_constraint: bool = True
+    c_sys: CompositeSystem, var_index: int, on_para_eq_constraint: bool = True
 ) -> Tuple[int, int]:
     """converts variable index to gate index.
 
@@ -328,7 +376,7 @@ def convert_var_index_to_gate_index(
         CompositeSystem of this gate.
     var_index : int
         variable index.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -340,13 +388,15 @@ def convert_var_index_to_gate_index(
     """
     dim = c_sys.dim
     (row, col) = divmod(var_index, dim ** 2)
-    if on_eq_constraint:
+    if on_para_eq_constraint:
         row += 1
     return (row, col)
 
 
 def convert_gate_index_to_var_index(
-    c_sys: CompositeSystem, gate_index: Tuple[int, int], on_eq_constraint: bool = True
+    c_sys: CompositeSystem,
+    gate_index: Tuple[int, int],
+    on_para_eq_constraint: bool = True,
 ) -> int:
     """converts gate index to variable index.
 
@@ -358,7 +408,7 @@ def convert_gate_index_to_var_index(
         gate index.
         first value of tuple is row number of HS representation of this gate.
         second value of tuple is column number of HS representation of this gate.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -369,13 +419,15 @@ def convert_gate_index_to_var_index(
     dim = c_sys.dim
     (row, col) = gate_index
     var_index = (
-        (dim ** 2) * (row - 1) + col if on_eq_constraint else (dim ** 2) * row + col
+        (dim ** 2) * (row - 1) + col
+        if on_para_eq_constraint
+        else (dim ** 2) * row + col
     )
     return var_index
 
 
 def convert_var_to_gate(
-    c_sys: CompositeSystem, var: np.ndarray, on_eq_constraint: bool = True
+    c_sys: CompositeSystem, var: np.ndarray, on_para_eq_constraint: bool = True
 ) -> Gate:
     """converts vec of variables to gate.
 
@@ -385,7 +437,7 @@ def convert_var_to_gate(
         CompositeSystem of this gate.
     var : np.ndarray
         vec of variables.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -394,13 +446,15 @@ def convert_var_to_gate(
         converted gate.
     """
     dim = c_sys.dim
-    hs = np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if on_eq_constraint else var
+    hs = (
+        np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if on_para_eq_constraint else var
+    )
     gate = Gate(c_sys, hs, is_physicality_required=False)
     return gate
 
 
 def convert_gate_to_var(
-    c_sys: CompositeSystem, hs: np.ndarray, on_eq_constraint: bool = True
+    c_sys: CompositeSystem, hs: np.ndarray, on_para_eq_constraint: bool = True
 ) -> np.array:
     """converts hs of gate to vec of variables.
 
@@ -410,7 +464,7 @@ def convert_gate_to_var(
         CompositeSystem of this gate.
     hs : np.ndarray
         HS representation of this gate.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -418,7 +472,7 @@ def convert_gate_to_var(
     np.array
         vec of variables.
     """
-    var = np.delete(hs, 0, axis=0).flatten() if on_eq_constraint else hs.flatten()
+    var = np.delete(hs, 0, axis=0).flatten() if on_para_eq_constraint else hs.flatten()
     return var
 
 
@@ -426,7 +480,7 @@ def calc_gradient_from_gate(
     c_sys: CompositeSystem,
     hs: np.ndarray,
     var_index: int,
-    on_eq_constraint: bool = True,
+    on_para_eq_constraint: bool = True,
 ) -> Gate:
     """calculates gradient from gate.
 
@@ -438,7 +492,7 @@ def calc_gradient_from_gate(
         HS representation of this gate.
     var_index : int
         variable index.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -447,7 +501,9 @@ def calc_gradient_from_gate(
         Gate with gradient as hs.
     """
     gradient = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.float64)
-    gate_index = convert_var_index_to_gate_index(c_sys, var_index, on_eq_constraint)
+    gate_index = convert_var_index_to_gate_index(
+        c_sys, var_index, on_para_eq_constraint
+    )
     gradient[gate_index] = 1
 
     gate = Gate(c_sys, gradient, is_physicality_required=False)
