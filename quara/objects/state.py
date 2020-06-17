@@ -138,10 +138,20 @@ class State(QOperation):
 
     def set_zero(self):
         self._vec = np.zeros(self._vec.shape, dtype=np.float64)
-        self._is_physical = False
+        self._is_physicality_required = False
 
     def zero_obj(self):
-        raise NotImplementedError()
+        vec = np.zeros(self.vec.shape, dtype=np.float64)
+        state = State(
+            self._composite_system,
+            vec,
+            is_physicality_required=False,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return state
 
     def to_var(self) -> np.array:
         return convert_state_to_var(
