@@ -13,13 +13,16 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run tests
+          name: Run installation
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements-dev.txt
             pip install --upgrade pip
             python setup.py install
+      - run:
+          name: Run tests
+          command: |
             pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
@@ -29,13 +32,16 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run tests
+          name: Run installation
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements-dev.txt
             pip install --upgrade pip
             python setup.py install
+      - run:
+          name: Run tests
+          command: |
             pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
@@ -45,13 +51,16 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Run tests
+          name: Run installation
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip install -r requirements-dev.txt
             pip install --upgrade pip
             python setup.py install
+      - run:
+          name: Run tests
+          command: |
             pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
