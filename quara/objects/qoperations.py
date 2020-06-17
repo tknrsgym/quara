@@ -1,7 +1,8 @@
 from abc import abstractmethod
-from typing import List
+from typing import List, Dict
 
 import numpy as np
+from quara.objects.qoperation import QOperation
 from quara.objects.state import State, convert_state_to_var
 from quara.objects.gate import Gate, convert_gate_to_var
 from quara.objects.povm import Povm, convert_povm_to_var
@@ -154,3 +155,69 @@ class SetQOperations:
     def var_total(self) -> np.array:
         vars = np.hstack([self.var_states(), self.var_gates(), self.var_povms()])
         return vars
+
+    def _get_operation_type_to_total_index_map(self) -> Dict[str, int]:
+        states_first_index = 0
+        gates_first_index = self.size_var_states()
+        povms_first_index = gates_first_index + self.size_var_gates()
+        # TODO: MProcess
+        return dict(
+            state=states_first_index, gate=gates_first_index, povm=povms_first_index
+        )
+
+    def _get_operation_item_var_first_index(
+        self, type_operation: str, index: int
+    ) -> int:
+        # TODO: メソッド名をわかりやすくする
+        # statesに格納されているi番目のStateが、states全体をvarにした時に何番目のインデックスから始まるか
+        target_operations: List[QOperation]
+        if type_operation == "state":
+            target_operations = self.states
+            get_size_func = self.size_var_state
+        elif type_operation == "gate":
+            target_operations = self.gates
+            get_size_func = self.size_var_gate
+        elif type_operation == "povm":
+            target_operations = self.povms
+            get_size_func = self.size_var_povm
+        else:
+            raise ValueError(
+                "'{}' is an unsupported operation type.".format(type_operation)
+            )
+
+        target_item_first_index = 0
+        for i in range(index - 1):
+            target_item_first_index += get_size_func(i)
+        return target_item_first_index
+
+    def index_var_total_from_local_info(
+        self, type_operation: str, index_operations: int, index_var_local: int
+    ):
+        # 演算の種類、その種類の演算リストの中での番号、その演算を特徴づける変数中のインデックス、
+        # から、最適化変数中のインデックスを返す
+        supported_types = ["state", "povm", "gate", "mprocess"]
+        if type_operation not in supported_types:
+            raise ValueError(
+                "'{}' is an unsupported operation type. Supported Operations: {}.".format(
+                    type_operation, ",".join(supported_types)
+                )
+            )
+        first_index_map = self._get_operation_type_to_total_index_map()
+        index_var_total = (
+            first_index_map[type_operation]
+            + self._get_operation_item_var_first_index(type_operation, index_operations)
+            + index_var_local
+        )
+        return index_var_total
+
+    def index_var_total_from_local_info(self, index_var_total: int):
+        # 最適化変数中のインデックスから
+        # 演算の種類
+        # その種類の演算リストの中での番号
+        # その演算を特徴づける変数中のインデックス
+        # を返す
+        pass
+
+    def set_qoperations_from_var_total(self, var_total: np.array) -> SetQOperations:
+        # numpy array var_totalに対応するsetListQOperationを返す
+        pass
