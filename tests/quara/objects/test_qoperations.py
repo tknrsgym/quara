@@ -263,9 +263,13 @@ class TestSetQOperations:
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
 
-        povm_1 = Povm(c_sys, vecs, is_physical=False)
-        povm_2 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
-        povm_3 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povm_1 = Povm(c_sys, vecs, is_physicality_required=False)
+        povm_2 = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=True
+        )
+        povm_3 = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=False
+        )
         povms = [povm_1, povm_2, povm_3]
 
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
@@ -383,10 +387,16 @@ class TestSetQOperations:
         vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
 
         state_1 = State(
-            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
+            c_sys=c_sys,
+            vec=vec_1,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
         )
         state_2 = State(
-            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+            c_sys=c_sys,
+            vec=vec_2,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
         )
         states = [state_1, state_2]
         expected_states_var = [1, 2, 3] + [1, 2, 3, 4]
@@ -423,8 +433,12 @@ class TestSetQOperations:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm_1 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
-        povm_2 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povm_1 = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=True
+        )
+        povm_2 = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=False
+        )
         povms = [povm_1, povm_2]
         expected_povms_var = [2, 3, 5, 7] + [2, 3, 5, 7, 11, 13, 17, 19]
 
@@ -449,10 +463,16 @@ class TestSetQOperations:
         vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
 
         state_1 = State(
-            c_sys=c_sys, vec=vec_1, is_physical=False, on_para_eq_constraint=True
+            c_sys=c_sys,
+            vec=vec_1,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
         )
         state_2 = State(
-            c_sys=c_sys, vec=vec_2, is_physical=False, on_para_eq_constraint=False
+            c_sys=c_sys,
+            vec=vec_2,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
         )
         states = [state_1, state_2]
 
@@ -469,8 +489,12 @@ class TestSetQOperations:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm_1 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
-        povm_2 = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povm_1 = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=True
+        )
+        povm_2 = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=False
+        )
         povms = [povm_1, povm_2]
 
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
