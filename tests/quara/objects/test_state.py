@@ -141,10 +141,11 @@ class TestState:
         state = get_z0_1q(c_sys)
         state.set_zero()
 
-        expected = np.array([0, 0, 0, 0], dtype=np.float64)
+        expected = np.zeros((4), dtype=np.float64)
         npt.assert_almost_equal(state.vec, expected, decimal=15)
         assert state.dim == 2
         assert state.is_physicality_required == False
+        assert state.is_estimation_object == True
         assert state.on_para_eq_constraint == True
         assert state.on_algo_eq_constraint == True
         assert state.on_algo_ineq_constraint == True
@@ -156,10 +157,11 @@ class TestState:
         state = get_z0_1q(c_sys)
         zero = state.zero_obj()
 
-        expected = np.array([0, 0, 0, 0], dtype=np.float64)
+        expected = np.zeros((4), dtype=np.float64)
         npt.assert_almost_equal(zero.vec, expected, decimal=15)
         assert zero.dim == state.dim
         assert zero.is_physicality_required == False
+        assert zero.is_estimation_object == True
         assert zero.on_para_eq_constraint == state.on_para_eq_constraint
         assert zero.on_algo_eq_constraint == state.on_algo_eq_constraint
         assert zero.on_algo_ineq_constraint == state.on_algo_ineq_constraint
@@ -171,18 +173,18 @@ class TestState:
 
         # case: on_para_eq_constraint = True
         state = get_z0_1q(c_sys)
-        vector = state.to_var()
+        var = state.to_var()
 
         expected = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        npt.assert_almost_equal(vector, expected, decimal=15)
+        npt.assert_almost_equal(var, expected, decimal=15)
 
         # case: on_para_eq_constraint = False
         vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
         state = State(c_sys, vec, on_para_eq_constraint=False)
-        vector = state.to_var()
+        var = state.to_var()
 
         expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        npt.assert_almost_equal(vector, expected, decimal=15)
+        npt.assert_almost_equal(var, expected, decimal=15)
 
     def test_to_stacked_vector(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
