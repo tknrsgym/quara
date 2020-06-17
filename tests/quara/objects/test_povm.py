@@ -39,10 +39,22 @@ from quara.protocol import simple_io as s_io
 
 
 class TestPovm:
-    def test_validate_set_of_hermitian_matrices_ok(self):
-        # Arrange
+    def test_validate_dtype_ng(self):
         p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
         p2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vecs = [p1, p2]
+
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # entries of vecs are not real numbers
+        with pytest.raises(ValueError):
+            Povm(c_sys=c_sys, vecs=vecs)
+
+    def test_validate_set_of_hermitian_matrices_ok(self):
+        # Arrange
+        p1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        p2 = np.array([0, 0, 0, 1], dtype=np.float64)
         vecs = [p1, p2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -59,8 +71,8 @@ class TestPovm:
 
     def test_validate_set_of_hermitian_matrices_ng(self):
         # Arrange
-        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        p2 = np.array([0, 1, 0, 0], dtype=np.complex128)
+        p1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        p2 = np.array([0, 1, 0, 0], dtype=np.float64)
         vecs = [p1, p2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -73,8 +85,8 @@ class TestPovm:
 
     def test_validate_set_of_hermitian_matrices_not_physical_ok(self):
         # Arrange
-        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        p2 = np.array([0, 1, 0, 0], dtype=np.complex128)
+        p1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        p2 = np.array([0, 1, 0, 0], dtype=np.float64)
         vecs = [p1, p2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -82,12 +94,12 @@ class TestPovm:
 
         # Act & Assert
         # Test that no exceptions are raised.
-        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        _ = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
     def test_validate_sum_is_identity_ok(self):
         # Arrange
-        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        p2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        p1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        p2 = np.array([0, 0, 0, 1], dtype=np.float64)
         vecs = [p1, p2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -102,8 +114,8 @@ class TestPovm:
 
     def test_validate_sum_is_identity_ng(self):
         # Arrange
-        p1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        p2 = np.array([0, 1, 0, 0], dtype=np.complex128)
+        p1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        p2 = np.array([0, 1, 0, 0], dtype=np.float64)
         vecs = [p1, p2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -116,25 +128,21 @@ class TestPovm:
 
     def test_validate_sum_is_identity_not_physical_ok(self):
         # Arrange
-        p1 = np.array(
-            [0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j, 0.5 + 0.0j], dtype=np.complex128
-        )
-        p2 = np.array(
-            [1.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j], dtype=np.complex128
-        )
+        p1 = np.array([1, 0, 0, 1], dtype=np.float64)
+        p2 = np.array([1, 0, 0, 1], dtype=np.float64)
         vecs = [p1, p2]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act & Assert
         # Test that no exceptions are raised.
-        _ = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        _ = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
     def test_validate_is_positive_semidefinite_ok(self):
         # Arrange
-        ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        ps_1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        ps_2 = np.array([0, 0, 0, 1], dtype=np.float64)
         vecs = [ps_1, ps_2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -149,11 +157,11 @@ class TestPovm:
 
     def test_validate_is_positive_semidefinite_ng(self):
         # Arrange
-        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
-        not_ps = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        ps = np.array([1, 0, 0, 2], dtype=np.float64)
+        not_ps = np.array([[0, 0, 0, -1]], dtype=np.float64)
         vecs = [ps, not_ps]
 
-        e_sys = esys.ElementalSystem(1, get_pauli_basis())
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
 
         # Act & Assert
@@ -162,8 +170,8 @@ class TestPovm:
 
     def test_validate_is_positive_semidefinite_not_physical_ok(self):
         # Arrange
-        ps = np.array([1, 0, 0, 0], dtype=np.complex128)
-        not_ps = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        ps = np.array([1, 0, 0, 2], dtype=np.float64)
+        not_ps = np.array([0, 0, 0, -1], dtype=np.float64)
         vecs = [ps, not_ps]
 
         e_sys = esys.ElementalSystem(1, get_pauli_basis())
@@ -171,7 +179,7 @@ class TestPovm:
 
         # Act & Assert
         # Test that no exceptions are raised.
-        povm = Povm(c_sys=c_sys, vecs=vecs, is_physical=False)
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
         actual = povm.is_positive_semidefinite()
 
         # Assert
@@ -179,8 +187,8 @@ class TestPovm:
 
     def test_calc_eigenvalues_all(self):
         # Arrange
-        vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vec_1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        vec_2 = np.array([0, 0, 0, 1], dtype=np.float64)
         vecs = [vec_1, vec_2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -192,8 +200,8 @@ class TestPovm:
 
         # Assert
         expected = [
-            np.array([1, 0], dtype=np.complex128),
-            np.array([0, 1], dtype=np.complex128),
+            np.array([1, 0], dtype=np.float64),
+            np.array([0, 1], dtype=np.float64),
         ]
 
         assert len(actual) == len(expected)
@@ -202,8 +210,8 @@ class TestPovm:
 
     def test_calc_eigenvalues_one(self):
         # Arrange
-        vec_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        vec_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        vec_1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        vec_2 = np.array([0, 0, 0, 1], dtype=np.float64)
         vecs = [vec_1, vec_2]
 
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -214,7 +222,7 @@ class TestPovm:
         actual = povm.calc_eigenvalues(0)
 
         # Assert
-        expected = np.array([1, 0], dtype=np.complex128)
+        expected = np.array([1, 0], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Act
@@ -222,7 +230,7 @@ class TestPovm:
         actual = povm.calc_eigenvalues(1)
 
         # Assert
-        expected = np.array([0, 1], dtype=np.complex128)
+        expected = np.array([0, 1], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_validate_dim_ng(self):
@@ -254,8 +262,8 @@ class TestPovm:
         # Arrange
         e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
-        ps_1 = np.array([1, 0, 0, 0], dtype=np.complex128)
-        ps_2 = np.array([0, 0, 0, 1], dtype=np.complex128)
+        ps_1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        ps_2 = np.array([0, 0, 0, 1], dtype=np.float64)
         vecs = [ps_1, ps_2]
         povm = Povm(c_sys=c_sys, vecs=vecs)
         to_basis = get_normalized_pauli_basis()
@@ -265,8 +273,8 @@ class TestPovm:
 
         # Assert
         expected = [
-            1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.complex128),
-            1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.complex128),
+            1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
+            1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
         ]
         assert len(actual) == len(expected)
         for i, a in enumerate(actual):
@@ -282,7 +290,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
         actual = povm1.measurements
@@ -313,7 +321,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
         actual0 = povm1.get_measurement(0)
@@ -336,7 +344,7 @@ class TestPovm:
             np.array([23, 29, 31, 37], dtype=np.float64),
             np.array([41, 43, 47, 53], dtype=np.float64),
         ]
-        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm2 = Povm(c_sys2, vecs2, is_physicality_required=False)
         povm12 = tensor_product(povm1, povm2)
 
         # Act
@@ -383,7 +391,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Case 1:
         # Act & Assert
@@ -397,6 +405,25 @@ class TestPovm:
             # IndexError: specified index does not exist in the list of measurements.
             _ = povm1.get_measurement(2)
 
+    def test_is_physical(self):
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        p1 = np.array([1, 0, 0, 0], dtype=np.float64)
+        p2 = np.array([0, 0, 0, 1], dtype=np.float64)
+        povm = Povm(c_sys=c_sys, vecs=[p1, p2])
+        assert povm.is_physical() == True
+
+        p1 = np.array([1, 0, 0, 2], dtype=np.float64)
+        p2 = np.array([0, 0, 0, -1], dtype=np.float64)
+        povm = Povm(c_sys=c_sys, vecs=[p1, p2], is_physicality_required=False)
+        assert povm.is_physical() == False
+
+        p1 = np.array([1, 0, 0, 1], dtype=np.float64)
+        p2 = np.array([1, 0, 0, 1], dtype=np.float64)
+        povm = Povm(c_sys=c_sys, vecs=[p1, p2], is_physicality_required=False)
+        assert povm.is_physical() == False
+
     def test_matrix(self):
         # Case 1:
         # Arrange
@@ -407,7 +434,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
         actual = povm1.matrix(0)
@@ -429,7 +456,7 @@ class TestPovm:
             np.array([23, 29, 31, 37], dtype=np.float64),
             np.array([41, 43, 47, 53], dtype=np.float64),
         ]
-        povm2 = Povm(c_sys2, vecs2, is_physical=False)
+        povm2 = Povm(c_sys2, vecs2, is_physicality_required=False)
         povm12 = tensor_product(povm1, povm2)
 
         # Act
@@ -462,7 +489,7 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm1 = Povm(c_sys1, vecs1, is_physical=False)
+        povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act & Assert
         unexpected_type = [0]
@@ -480,7 +507,7 @@ class TestPovm:
         ]
 
         # default
-        povm = Povm(c_sys, vecs, is_physical=False)
+        povm = Povm(c_sys, vecs, is_physicality_required=False)
 
         # Act
         actual = povm.to_var()
@@ -494,7 +521,9 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=True)
+        povm = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=True
+        )
 
         # Actual
         actual = povm.to_var()
@@ -508,7 +537,9 @@ class TestPovm:
             np.array([2, 3, 5, 7], dtype=np.float64),
             np.array([11, 13, 17, 19], dtype=np.float64),
         ]
-        povm = Povm(c_sys, vecs, is_physical=False, on_para_eq_constraint=False)
+        povm = Povm(
+            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=False
+        )
 
         # Actual
         actual = povm.to_var()
@@ -709,8 +740,8 @@ def test_get_x_measurement():
 
     # Assert
     expected = [
-        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.float64),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.float64),
     ]
     assert len(actual.vecs) == len(expected)
     for i, a in enumerate(actual):
@@ -731,7 +762,7 @@ def test_get_x_measurement():
 
 def test_get_y_measurement():
     # Arrange
-    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     c_sys1 = csys.CompositeSystem([e_sys1])
 
     # Act
@@ -739,8 +770,8 @@ def test_get_y_measurement():
 
     # Assert
     expected = [
-        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
     ]
     assert len(actual.vecs) == len(expected)
     for i, a in enumerate(actual):
@@ -769,8 +800,8 @@ def test_get_z_measurement():
 
     # Assert
     expected = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
     ]
     assert len(actual.vecs) == len(expected)
     for i, a in enumerate(actual):
@@ -800,12 +831,12 @@ def test_get_xx_measurement():
 
     # Assert
     vecs1 = [
-        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.float64),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.float64),
     ]
     vecs2 = [
-        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.float64),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -816,7 +847,7 @@ def test_get_xx_measurement():
 def test_get_xy_measurement():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
-    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    e_sys2 = esys.ElementalSystem(2, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
@@ -824,12 +855,12 @@ def test_get_xy_measurement():
 
     # Assert
     vecs1 = [
-        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.float64),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.float64),
     ]
     vecs2 = [
-        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -848,12 +879,12 @@ def test_get_xz_measurement():
 
     # Assert
     vecs1 = [
-        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.float64),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.float64),
     ]
     vecs2 = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -863,7 +894,7 @@ def test_get_xz_measurement():
 
 def test_get_yx_measurement():
     # Arrange
-    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
@@ -872,12 +903,12 @@ def test_get_yx_measurement():
 
     # Assert
     vecs1 = [
-        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
     ]
     vecs2 = [
-        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.float64),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -887,8 +918,8 @@ def test_get_yx_measurement():
 
 def test_get_yy_measurement():
     # Arrange
-    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
-    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
+    e_sys2 = esys.ElementalSystem(2, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
@@ -896,12 +927,12 @@ def test_get_yy_measurement():
 
     # Assert
     vecs1 = [
-        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
     ]
     vecs2 = [
-        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -911,7 +942,7 @@ def test_get_yy_measurement():
 
 def test_get_yz_measurement():
     # Arrange
-    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
+    e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
@@ -920,12 +951,12 @@ def test_get_yz_measurement():
 
     # Assert
     vecs1 = [
-        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
     ]
     vecs2 = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -944,12 +975,12 @@ def test_get_zx_measurement():
 
     # Assert
     vecs1 = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
     ]
     vecs2 = [
-        1 / 2 * np.array([1, 1, 1, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, -1, -1, 1], dtype=np.complex128),
+        1 / 2 * np.array([1, 1, 1, 1], dtype=np.float64),
+        1 / 2 * np.array([1, -1, -1, 1], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -959,8 +990,8 @@ def test_get_zx_measurement():
 
 def test_get_zy_measurement():
     # Arrange
-    e_sys1 = esys.ElementalSystem(1, get_comp_basis())
-    e_sys2 = esys.ElementalSystem(2, get_comp_basis())
+    e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
+    e_sys2 = esys.ElementalSystem(2, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
@@ -968,12 +999,12 @@ def test_get_zy_measurement():
 
     # Assert
     vecs1 = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
     ]
     vecs2 = [
-        1 / 2 * np.array([1, -1j, 1j, 1], dtype=np.complex128),
-        1 / 2 * np.array([1, 1j, -1j, 1], dtype=np.complex128),
+        1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
+        1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -992,12 +1023,12 @@ def test_get_zz_measurement():
 
     # Assert
     vecs1 = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
     ]
     vecs2 = [
-        np.array([1, 0, 0, 0], dtype=np.complex128),
-        np.array([0, 0, 0, 1], dtype=np.complex128),
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
     ]
     expected = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(vecs1, vecs2)]
     assert len(actual.vecs) == len(expected)
@@ -1014,13 +1045,13 @@ class TestPovmImmutable:
         vec_0 = np.array([2, 3, 5, 7], dtype=np.float64)
         vec_1 = np.array([11, 13, 17, 19], dtype=np.float64)
         source_vecs = [vec_0, vec_1]
-        povm = Povm(c_sys, source_vecs, is_physical=False)
+        povm = Povm(c_sys, source_vecs, is_physicality_required=False)
         assert id(source_vecs) != id(povm.vecs)
 
         # Case 1
         # If "source_vec" is updated, the data in POVM is not updated
         # Act
-        source_vecs[0] = np.zeros([2, 2], dtype=np.complex128)
+        source_vecs[0] = np.zeros([2, 2], dtype=np.float64)
 
         # Assert
         expected = np.array([2, 3, 5, 7], dtype=np.float64)
@@ -1044,7 +1075,7 @@ class TestPovmImmutable:
         vec_0 = np.array([2, 3, 5, 7], dtype=np.float64)
         vec_1 = np.array([11, 13, 17, 19], dtype=np.float64)
         source_vecs = [vec_0, vec_1]
-        povm = Povm(c_sys, source_vecs, is_physical=False)
+        povm = Povm(c_sys, source_vecs, is_physicality_required=False)
 
         expected = [
             np.array([2, 3, 5, 7], dtype=np.float64),
@@ -1054,7 +1085,7 @@ class TestPovmImmutable:
         # Act & Assert
         with pytest.raises(TypeError):
             # TypeError: 'Povm' object does not support item assignment
-            povm[0] = np.array([100, 100, 100, 100], dtype=np.complex128)
+            povm[0] = np.array([100, 100, 100, 100], dtype=np.float64)
         assert len(povm.vecs) == len(expected)
         for actual, e in zip(povm.vecs, expected):
             assert np.array_equal(actual, e)
@@ -1062,7 +1093,7 @@ class TestPovmImmutable:
         # Act & Assert
         with pytest.raises(TypeError):
             # TypeError: 'tuple' object does not support item assignment
-            povm.vecs[0] = np.array([100, 100, 100, 100], dtype=np.complex128)
+            povm.vecs[0] = np.array([100, 100, 100, 100], dtype=np.float64)
         assert len(povm.vecs) == len(expected)
         for actual, e in zip(povm.vecs, expected):
             assert np.array_equal(actual, e)
