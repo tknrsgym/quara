@@ -227,6 +227,7 @@ class TestSetQOperations:
         assert np.all(actual == expected)
 
         # Case 2:
+        # Arrange
         state_1 = State(
             c_sys=c_sys,
             vec=vec_1,
@@ -377,6 +378,61 @@ class TestSetQOperations:
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_var_empty(self):
+        # Arrange
+        states, povms, gates = self.arrange_states_povms_gates()
+
+        # Empty QOperations
+        # Arrange
+        sl_qope = qope.SetQOperations(states=[], povms=povms, gates=gates)
+        # Act
+        actual = sl_qope.var_states()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_states()
+        # Assert
+        assert actual == 0
+
+        # Arrange
+        sl_qope = qope.SetQOperations(states=states, povms=[], gates=gates)
+        # Act
+        actual = sl_qope.var_povms()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_povms()
+        # Assert
+        assert actual == 0
+
+        # Arrange
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=[])
+        # Act
+        actual = sl_qope.var_gates()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_gates()
+        # Assert
+        assert actual == 0
+
+        # Total
+        # Arrange
+        sl_qope = qope.SetQOperations(states=[], povms=[], gates=[])
+        # Act
+        actual = sl_qope.var_total()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_total()
+        # Assert
+        assert actual == 0
+
 
     def test_var_total(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
