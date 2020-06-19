@@ -1,0 +1,2 @@
+class TestStandardQst:
+    pass
