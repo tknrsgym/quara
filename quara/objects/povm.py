@@ -25,6 +25,7 @@ class Povm(QOperation):
         c_sys: CompositeSystem,
         vecs: List[np.ndarray],
         is_physicality_required: bool = True,
+        is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
@@ -354,6 +355,9 @@ class Povm(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
 
+    def _generate_from_var_func(self):
+        return convert_var_to_povm
+
 
 def convert_var_index_to_povm_index(
     c_sys: CompositeSystem,
@@ -419,7 +423,14 @@ def convert_povm_index_to_var_index(
 
 
 def convert_var_to_povm(
-    c_sys: CompositeSystem, var: List[np.ndarray], on_para_eq_constraint: bool = True,
+    c_sys: CompositeSystem,
+    var: List[np.ndarray],
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> Povm:
     """converts vec of variables to povm.
 
@@ -446,7 +457,16 @@ def convert_var_to_povm(
             last_vec -= vec.flatten()
         vecs.append(last_vec)
 
-    povm = Povm(c_sys, vecs, is_physicality_required=False)
+    povm = Povm(
+        c_sys,
+        vecs,
+        is_physicality_required=is_physicality_required,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return povm
 
 

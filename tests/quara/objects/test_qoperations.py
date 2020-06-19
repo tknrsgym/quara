@@ -433,7 +433,6 @@ class TestSetQOperations:
         # Assert
         assert actual == 0
 
-
     def test_var_total(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -1037,3 +1036,36 @@ class TestSetQOperations:
         # Act & Assert
         with pytest.raises(ValueError):
             set_qoperations.set_qoperations_from_var_total(ng_var_total)
+
+    def test_set_qoperations_from_var_total(self):
+        # Arrange
+        set_qoperations = self._arrange_setqoperations()
+        set_qoperations.povms = []
+        actual = set_qoperations.var_gates()
+        source_states = list(range(1000, 1023))
+        source_gates = list(range(2000, 2040))
+        # source_povms = list(range(3000, 3016))
+        # source_gates = []
+        source_povms = []
+        source_var_total = np.array(
+            source_states + source_gates + source_povms, np.float64
+        )
+
+        # actual = set_qoperations.set_qoperations_from_var_total(source_var_total)
+
+        # # Assert
+        # # State
+        # assert len(actual.states) == len(set_qoperations.states)
+        # expected_vecs = [
+        #     np.array([1000, 1001, 1002]),
+        #     np.array([1003, 1004, 1005, 1006]),
+        #     np.array(range(1007, 1023)),
+        # ]
+        # for i, item in enumerate(zip(actual.states, set_qoperations.states)):
+        #     actual_state, compared_state = item
+        #     assert actual_state._composite_system is compared_state._composite_system
+        #     assert (
+        #         actual_state.on_para_eq_constraint
+        #         == compared_state.on_para_eq_constraint
+        #     )
+        #     npt.assert_almost_equal(actual_state.to_var(), expected_vecs[i])
