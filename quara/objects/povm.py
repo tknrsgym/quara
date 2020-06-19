@@ -424,7 +424,7 @@ def convert_povm_index_to_var_index(
 
 def convert_var_to_povm(
     c_sys: CompositeSystem,
-    var: List[np.ndarray],
+    var: np.ndarray,
     is_physicality_required: bool = True,
     is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
@@ -449,17 +449,21 @@ def convert_var_to_povm(
         converted povm.
     """
     vecs = copy.copy(var)
+    dim = int(np.sqrt(var.shape[0]))
     if on_para_eq_constraint:
-        dim = int(np.sqrt(var[0].shape[0]))
         last_vec = np.eye(dim).flatten()
-
+        var = vecs.reshape(dim - 1, dim * dim)
         for vec in var:
             last_vec -= vec.flatten()
-        vecs.append(last_vec)
+        vecs = np.hstack([vecs, last_vec])
 
+    vec_list = []
+    reshaped_vecs = vecs.reshape(dim, dim ** dim)
+    for vec in reshaped_vecs:
+        vec_list.append(vec)
     povm = Povm(
         c_sys,
-        vecs,
+        vec_list,
         is_physicality_required=is_physicality_required,
         is_estimation_object=is_estimation_object,
         on_para_eq_constraint=on_para_eq_constraint,

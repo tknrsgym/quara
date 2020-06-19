@@ -605,10 +605,8 @@ def test_convert_var_to_povm():
     c_sys = csys.CompositeSystem([e_sys])
 
     # default
-    vecs = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-    ]
-    actual = convert_var_to_povm(c_sys, vecs)
+    vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    actual = convert_var_to_povm(c_sys, vecs, is_physicality_required=False)
     expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([-1, -3, -5, -6], dtype=np.float64),
@@ -618,10 +616,10 @@ def test_convert_var_to_povm():
         npt.assert_almost_equal(a, e, decimal=15)
 
     # on_para_eq_constraint=True
-    vecs = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-    ]
-    actual = convert_var_to_povm(c_sys, vecs, on_para_eq_constraint=True)
+    vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    actual = convert_var_to_povm(
+        c_sys, vecs, on_para_eq_constraint=True, is_physicality_required=False
+    )
     expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([-1, -3, -5, -6], dtype=np.float64),
@@ -631,13 +629,16 @@ def test_convert_var_to_povm():
         npt.assert_almost_equal(a, e, decimal=15)
 
     # on_para_eq_constraint=False
-    vecs = [
+    vecs = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
+    actual = convert_var_to_povm(
+        c_sys, vecs, on_para_eq_constraint=False, is_physicality_required=False
+    )
+    expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
-    actual = convert_var_to_povm(c_sys, vecs, on_para_eq_constraint=False)
-    assert len(actual.vecs) == len(vecs)
-    for a, e in zip(actual.vecs, vecs):
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
 
