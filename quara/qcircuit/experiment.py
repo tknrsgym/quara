@@ -46,7 +46,6 @@ class Experiment:
         povms: List[Povm],
         gates: List[Gate],
         schedules: List[List[Tuple[str, int]]],
-        trial_nums: List[List[int]],
     ) -> None:
 
         # Validation
@@ -65,22 +64,6 @@ class Experiment:
         self._validate_schedules(schedules)
         # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
-
-        # Validate
-        self._validate_trial_nums(trial_nums, self._schedules)
-
-        # Set
-        self._trial_nums: List[int] = trial_nums
-
-    def _validate_trial_nums(self, trial_nums, schedules):
-        if type(trial_nums) != list:
-            raise TypeError("'trial_nums' must be a list with int elements.")
-        for n in trial_nums:
-            if type(n) != int:
-                raise TypeError("'trial_nums' must be a list with int elements.")
-
-        if len(trial_nums) != len(schedules):
-            raise ValueError("'trial_nums' and 'schedules' must be equal in length.")
 
     @property
     def states(self) -> List[State]:
@@ -149,17 +132,7 @@ class Experiment:
     @schedules.setter
     def schedules(self, value):
         self._validate_schedules(value)
-        self._validate_trial_nums(self._trial_nums, value)
         self._schedules = value
-
-    @property
-    def trial_nums(self) -> List[int]:
-        return self._trial_nums
-
-    @trial_nums.setter
-    def trial_nums(self, value):
-        self._validate_trial_nums(value, self._schedules)
-        self._trial_nums = value
 
     def _validate_type(self, targets, expected_type) -> None:
         for target in targets:
