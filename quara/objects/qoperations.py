@@ -139,17 +139,17 @@ class SetQOperations:
 
     def var_states(self) -> List[float]:
         vars = [state.to_var() for state in self.states]
-        vars = np.hstack(vars)
+        vars = np.hstack(vars) if vars else np.array([])
         return vars
 
     def var_povms(self) -> np.array:
         vars = [povm.to_var() for povm in self.povms]
-        vars = np.hstack(vars)
+        vars = np.hstack(vars) if vars else np.array([])
         return vars
 
     def var_gates(self) -> np.array:
         vars = [gate.to_var() for gate in self.gates]
-        vars = np.hstack(vars)
+        vars = np.hstack(vars) if vars else np.array([])
         return vars
 
     def var_total(self) -> np.array:
