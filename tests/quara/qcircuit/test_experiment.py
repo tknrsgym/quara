@@ -143,6 +143,38 @@ class TestExperiment:
         )
         return exp
 
+    def test_copy(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        states = [get_z0_1q(c_sys)]
+        gates = [get_x(c_sys)]
+        povm_x = get_x_measurement(c_sys)
+        povm_y = get_y_measurement(c_sys)
+        povm_z = get_z_measurement(c_sys)
+        povms = [povm_x, povm_y, povm_z]
+        schedules = [
+            [("state", 0), ("povm", 0)],
+            [("state", 0), ("povm", 1)],
+            [("state", 0), ("povm", 2)],
+        ]
+        experiment = Experiment(
+            states=states, gates=gates, povms=povms, schedules=schedules,
+        )
+        experiment_copy = experiment.copy()
+
+        assert experiment_copy.states is not experiment.states
+        for actual, expected in zip(experiment_copy.states, experiment.states):
+            assert np.all(actual.vec == expected.vec)
+
+        assert experiment_copy.gates is not experiment.gates
+        for actual, expected in zip(experiment_copy.gates, experiment.gates):
+            assert np.all(actual.hs == expected.hs)
+
+        assert experiment_copy.povms is not experiment.povms
+        for actual, expected in zip(experiment_copy.povms, experiment.povms):
+            assert np.all(actual.vecs == expected.vecs)
+
     def test_calc_prob_dist(self):
         # Array
         exp = self.array_experiment_data()

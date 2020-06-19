@@ -1,4 +1,5 @@
 import collections
+import copy
 from typing import List, Tuple
 
 import numpy as np
@@ -313,6 +314,23 @@ class Experiment:
                 len(self.schedules)
             )
             raise ValueError(error_message)
+
+    def copy(self):
+        """returns copied Experiment.
+
+        Returns
+        -------
+        Experiment
+            copied Experiment.
+        """
+        states = copy.copy(self.states)
+        gates = copy.copy(self.gates)
+        povms = copy.copy(self.povms)
+        schedules = copy.copy(self.schedules)
+        experiment = Experiment(
+            states=states, gates=gates, povms=povms, schedules=schedules
+        )
+        return experiment
 
     def calc_prob_dist(self, schedule_index: int) -> List[float]:
         """Calculate the probability distributionthe by running the specified schedule.
