@@ -964,3 +964,20 @@ class TestSetQOperations:
         actual = set_qoperations.local_info_from_index_var_total(78)
         expected = dict(type_operation="povm", index_operations=2, index_var_local=3,)
         assert actual == expected
+
+    def test_set_qoperations_from_var_total_exception(self):
+        # Arrange
+        set_qoperations = self._arrange_setqoperations()
+        ok_var_total_size = len(set_qoperations.var_total())
+        ng_var_total = np.array(range(1000, 1000 + ok_var_total_size + 1))
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            set_qoperations.set_qoperations_from_var_total(ng_var_total)
+
+        # Arrange
+        ng_var_total = np.array(range(1000, 1000 + ok_var_total_size - 1))
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            set_qoperations.set_qoperations_from_var_total(ng_var_total)

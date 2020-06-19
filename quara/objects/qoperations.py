@@ -3,9 +3,9 @@ from typing import List, Dict
 
 import numpy as np
 from quara.objects.qoperation import QOperation
-from quara.objects.state import State, convert_state_to_var
-from quara.objects.gate import Gate, convert_gate_to_var
-from quara.objects.povm import Povm, convert_povm_to_var
+from quara.objects.state import State, convert_var_to_state
+from quara.objects.gate import Gate, convert_var_to_gate
+from quara.objects.povm import Povm, convert_var_to_povm
 
 
 class SetQOperations:
@@ -266,4 +266,45 @@ class SetQOperations:
 
     def set_qoperations_from_var_total(self, var_total: np.array) -> "SetQOperations":
         # numpy array var_totalに対応するsetListQOperationを返す
-        pass
+        actual, expected = len(var_total), self.size_var_total()
+        if actual != expected:
+            error_message = "var_totalの長さが不正です。expceted: {}, actual: {}".format(
+                expected, actual
+            )
+            raise ValueError(error_message)
+
+        q_operation2func_map = {
+            State: convert_var_to_state,
+            Gate: convert_var_to_gate,
+            Povm: convert_var_to_povm,
+        }
+
+        new_q_operation_dict = {State: [], Gate: [], Povm: []}
+
+        # この足す順番には変えないこと
+        # TODO: どこかで順序を規定するような仕組みを作った方が安全（優先度低）
+        # TODO: + self.mprocesses
+        all_q_operations = self.states + self.gates + self.povms
+        start_index = 0
+        for q_operation in all_q_operations:
+            end_index = start_index + len(q_operation.to_var())
+
+            var = var_total[start_index:end_index]
+            c_sys = q_operation._composite_system
+            on_para_eq_constraint = q_operation.on_para_eq_constraint
+
+            convert_var_to_qoperation_func = q_operation2func_map[type(q_operation)]
+            new_q_operation = convert_var_to_qoperation_func(
+                c_sys=c_sys, var=var, on_para_eq_constraint=on_para_eq_constraint
+            )
+            new_q_operation_dict[type(q_operation)].append(new_q_operation)
+
+            start_index = end_index
+
+        new_set_qoperations = SetQOperations(
+            states=new_q_operation_dict[State],
+            gates=new_q_operation_dict[Gate],
+            povms=new_q_operation_dict[Povm],
+        )
+        return new_set_qoperations
+
