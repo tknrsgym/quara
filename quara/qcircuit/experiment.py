@@ -504,9 +504,9 @@ class Experiment:
         data_nums = [max(x) for x in list_num_sums]
         measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
         dataset = self.generate_dataset(data_nums=data_nums, seeds=seeds)
-        empi_dists = data_generator.calc_empi_dists_sequence(
+        empi_dists_sequence = data_generator.calc_empi_dists_sequence(
             measurement_nums=measurement_nums,
             dataset=dataset,
             list_list_num_sum=list_num_sums,
         )
-        return empi_dists
+        return empi_dists_sequence
