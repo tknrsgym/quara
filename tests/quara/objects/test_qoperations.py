@@ -1047,6 +1047,7 @@ class TestSetQOperations:
             source_states + source_gates + source_povms, np.float64
         )
 
+        # Act
         actual = set_qoperations.set_qoperations_from_var_total(source_var_total)
 
         # Assert
