@@ -575,22 +575,25 @@ def test_convert_gate_to_var():
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
     actual = convert_gate_to_var(c_sys, hs)
-    expected = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
-    npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
+    expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
     # on_para_eq_constraint=True
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
     actual = convert_gate_to_var(c_sys, hs, on_para_eq_constraint=True)
-    expected = np.array([[0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64)
-    npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
+    expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
     # on_para_eq_constraint=False
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
     actual = convert_gate_to_var(c_sys, hs, on_para_eq_constraint=False)
+    expected = np.array(
+        [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+    )
     npt.assert_almost_equal(actual, hs.flatten(), decimal=15)
 
 
