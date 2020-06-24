@@ -539,6 +539,7 @@ def test_convert_gate_index_to_var_index():
 
 
 def test_convert_var_to_gate():
+    # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 

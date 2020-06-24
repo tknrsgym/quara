@@ -264,6 +264,10 @@ class SetQOperations:
         )
         return local_info
 
+    def _all_qoperations(self) -> List["QOperations"]:
+        # Do NOT change the order
+        return self.states + self.gates + self.povms
+
     def set_qoperations_from_var_total(self, var_total: np.array) -> "SetQOperations":
         # numpy array var_totalに対応するsetListQOperationを返す
         actual, expected = len(var_total), self.size_var_total()
@@ -281,19 +285,12 @@ class SetQOperations:
 
         new_q_operation_dict = {State: [], Gate: [], Povm: []}
 
-        # この足す順番には変えないこと
-        # TODO: どこかで順序を規定するような仕組みを作った方が安全（優先度低）
-        # TODO: + self.mprocesses
-        all_q_operations = self.states + self.gates + self.povms
+        all_q_operations = self._all_qoperations()
         start_index = 0
         for q_operation in all_q_operations:
             end_index = start_index + len(q_operation.to_var())
 
             var = var_total[start_index:end_index]
-            # c_sys = q_operation._composite_system
-            # on_para_eq_constraint = q_operation.on_para_eq_constraint
-
-            # convert_var_to_qoperation_func = q_operation2func_map[type(q_operation)]
             new_q_operation = q_operation.generate_from_var(var=var)
             new_q_operation_dict[type(q_operation)].append(new_q_operation)
 
