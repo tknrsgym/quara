@@ -12,9 +12,13 @@ class QTomography:
         self, experiment: Experiment, set_qoperations: SetQOperations,
     ):
         self._experiment = experiment
-        self._num_schedules = self._experiment.schedules
+        self._num_schedules = len(self._experiment.schedules)
         self._set_qoperations = set_qoperations
         # TODO num_variables
+
+    @property
+    def num_schedules(self) -> int:
+        return self._num_schedules
 
     @abstractmethod
     def calc_prob_dist(self) -> List[np.array]:
