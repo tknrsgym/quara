@@ -29,9 +29,9 @@ class TestLinearEstimator:
 
         # generate empi dists
         true_object = get_z0_1q(c_sys)
-        empi_dists_seq = qst.generate_empi_dists_sequence(
-            true_object, [100, 1000, 10000]
-        )
+        num_data = [100, 1000, 10000, 100000]
+        seeds = [7] * len(num_data)
+        empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data, seeds)
         print(f"empi_dists_seq={empi_dists_seq}")
 
         # estimate
