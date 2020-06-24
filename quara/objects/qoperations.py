@@ -290,13 +290,11 @@ class SetQOperations:
             end_index = start_index + len(q_operation.to_var())
 
             var = var_total[start_index:end_index]
-            c_sys = q_operation._composite_system
-            on_para_eq_constraint = q_operation.on_para_eq_constraint
+            # c_sys = q_operation._composite_system
+            # on_para_eq_constraint = q_operation.on_para_eq_constraint
 
-            convert_var_to_qoperation_func = q_operation2func_map[type(q_operation)]
-            new_q_operation = convert_var_to_qoperation_func(
-                c_sys=c_sys, var=var, on_para_eq_constraint=on_para_eq_constraint
-            )
+            # convert_var_to_qoperation_func = q_operation2func_map[type(q_operation)]
+            new_q_operation = q_operation.generate_from_var(var=var)
             new_q_operation_dict[type(q_operation)].append(new_q_operation)
 
             start_index = end_index
