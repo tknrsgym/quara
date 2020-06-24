@@ -1043,27 +1043,99 @@ class TestSetQOperations:
         source_states = list(range(1000, 1023))
         source_gates = list(range(2000, 2040))
         source_povms = list(range(3000, 3016))
-        # source_povms = []
         source_var_total = np.array(
             source_states + source_gates + source_povms, np.float64
         )
-        # state = set_qoperations.states[2]
-        # a = state.generate_from_var(np.array([1, 2, 3], np.float64))
+
         actual = set_qoperations.set_qoperations_from_var_total(source_var_total)
 
-        # # Assert
-        # # State
-        # assert len(actual.states) == len(set_qoperations.states)
-        # expected_vecs = [
-        #     np.array([1000, 1001, 1002]),
-        #     np.array([1003, 1004, 1005, 1006]),
-        #     np.array(range(1007, 1023)),
-        # ]
-        # for i, item in enumerate(zip(actual.states, set_qoperations.states)):
-        #     actual_state, compared_state = item
-        #     assert actual_state._composite_system is compared_state._composite_system
-        #     assert (
-        #         actual_state.on_para_eq_constraint
-        #         == compared_state.on_para_eq_constraint
-        #     )
-        #     npt.assert_almost_equal(actual_state.to_var(), expected_vecs[i])
+        # Assert
+        # State
+        assert len(actual.states) == len(set_qoperations.states)
+        expected_vecs = [
+            np.array([1000, 1001, 1002]),
+            np.array([1003, 1004, 1005, 1006]),
+            np.array(range(1007, 1023)),
+        ]
+        for i, item in enumerate(zip(actual.states, set_qoperations.states)):
+            actual_item, compared_item = item
+            assert actual_item._composite_system is compared_item._composite_system
+            assert (
+                actual_item.on_para_eq_constraint == compared_item.on_para_eq_constraint
+            )
+            assert (
+                actual_item.is_physicality_required
+                == compared_item.is_physicality_required
+            )
+            assert (
+                actual_item.is_estimation_object == compared_item.is_estimation_object
+            )
+            assert (
+                actual_item.on_algo_eq_constraint == compared_item.on_algo_eq_constraint
+            )
+            assert (
+                actual_item.on_algo_ineq_constraint
+                == compared_item.on_algo_ineq_constraint
+            )
+            assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
+            npt.assert_almost_equal(actual_item.to_var(), expected_vecs[i])
+
+        # Gate
+        assert len(actual.gates) == len(set_qoperations.gates)
+        expected_vecs = [
+            np.array(range(2000, 2012)),
+            np.array(range(2012, 2028)),
+            np.array(range(2028, 2040)),
+        ]
+        for i, item in enumerate(zip(actual.gates, set_qoperations.gates)):
+            actual_item, compared_item = item
+            assert actual_item._composite_system is compared_item._composite_system
+            assert (
+                actual_item.on_para_eq_constraint == compared_item.on_para_eq_constraint
+            )
+            assert (
+                actual_item.is_physicality_required
+                == compared_item.is_physicality_required
+            )
+            assert (
+                actual_item.is_estimation_object == compared_item.is_estimation_object
+            )
+            assert (
+                actual_item.on_algo_eq_constraint == compared_item.on_algo_eq_constraint
+            )
+            assert (
+                actual_item.on_algo_ineq_constraint
+                == compared_item.on_algo_ineq_constraint
+            )
+            assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
+            npt.assert_almost_equal(actual_item.to_var(), expected_vecs[i])
+
+        # POVM
+        assert len(actual.gates) == len(set_qoperations.gates)
+        expected_vecs = [
+            np.array(range(3000, 3004)),
+            np.array(range(3004, 3012)),
+            np.array(range(3012, 3016)),
+        ]
+        for i, item in enumerate(zip(actual.povms, set_qoperations.povms)):
+            actual_item, compared_item = item
+            assert actual_item._composite_system is compared_item._composite_system
+            assert (
+                actual_item.on_para_eq_constraint == compared_item.on_para_eq_constraint
+            )
+            assert (
+                actual_item.is_physicality_required
+                == compared_item.is_physicality_required
+            )
+            assert (
+                actual_item.is_estimation_object == compared_item.is_estimation_object
+            )
+            assert (
+                actual_item.on_algo_eq_constraint == compared_item.on_algo_eq_constraint
+            )
+            assert (
+                actual_item.on_algo_ineq_constraint
+                == compared_item.on_algo_ineq_constraint
+            )
+            assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
+            npt.assert_almost_equal(actual_item.to_var(), expected_vecs[i])
