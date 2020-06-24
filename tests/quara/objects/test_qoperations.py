@@ -1040,18 +1040,16 @@ class TestSetQOperations:
     def test_set_qoperations_from_var_total(self):
         # Arrange
         set_qoperations = self._arrange_setqoperations()
-        set_qoperations.povms = []
-        actual = set_qoperations.var_gates()
         source_states = list(range(1000, 1023))
         source_gates = list(range(2000, 2040))
-        # source_povms = list(range(3000, 3016))
-        # source_gates = []
-        source_povms = []
+        source_povms = list(range(3000, 3016))
+        # source_povms = []
         source_var_total = np.array(
             source_states + source_gates + source_povms, np.float64
         )
-
-        # actual = set_qoperations.set_qoperations_from_var_total(source_var_total)
+        # state = set_qoperations.states[2]
+        # a = state.generate_from_var(np.array([1, 2, 3], np.float64))
+        actual = set_qoperations.set_qoperations_from_var_total(source_var_total)
 
         # # Assert
         # # State
