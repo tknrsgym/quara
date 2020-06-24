@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List
 
 import numpy as np
@@ -9,23 +10,30 @@ class QTomography:
     def __init__(self, experiment: Experiment):
         self.experiment = experiment
 
+    @abstractmethod
     def calc_prob_dist(self) -> List[np.array]:
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def calc_prob_dists(self) -> List[List[np.array]]:
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def generate_dataset(self):
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def generate_datasets(self):
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def func_prob_dist(self):
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def func_prob_dists(self):
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def is_valid_experiment(self) -> bool:
-        pass
+        raise NotImplementedError()

@@ -13,3 +13,6 @@ class StandardQst(StandardQTomography):
 
     def calc_coeff1(self, i: int, x: int) -> np.array:
         pass
+
+    def is_standard(self) -> bool:
+        pass

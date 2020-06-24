@@ -1,7 +1,9 @@
+from abc import abstractmethod
 from typing import List
 
 import numpy as np
 
+from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.qtomography import QTomography
 from quara.qcircuit.experiment import Experiment
 
@@ -18,20 +20,32 @@ class StandardQTomography(QTomography):
     def _set_coeff1s(self):
         pass
 
+    @abstractmethod
     def calc_coeff0(self, i: int, x: int) -> np.array:
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def calc_coeff1(self, i: int, x: int) -> np.array:
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def calc_matA(self) -> np.array:
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def calc_vecB(self) -> np.array:
-        pass
+        raise NotImplementedError()
 
+    @abstractmethod
     def is_standard(self) -> bool:
-        pass
+        raise NotImplementedError()
 
-    def convert_var_to_qoperation(self, var: np.array):
-        pass
+    @abstractmethod
+    def convert_var_to_qoperation(self, var: np.array) -> QOperation:
+        raise NotImplementedError()
+
+    def is_fullrank_matA(self) -> bool:
+        matA = self.calc_matA()
+        row = matA.shape[0]
+        rank = np.linalg.matrix_rank(matA)
+        return row == rank
