@@ -1,5 +1,6 @@
 numpy
 black
+plotly
 pytest
 pytest-cov
 sphinx>=3.0
