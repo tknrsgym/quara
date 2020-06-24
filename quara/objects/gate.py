@@ -364,6 +364,9 @@ class Gate(QOperation):
         ]
         return np.array(process_matrix).reshape((4, 4))
 
+    def _generate_from_var_func(self):
+        return convert_var_to_gate
+
 
 def convert_var_index_to_gate_index(
     c_sys: CompositeSystem, var_index: int, on_para_eq_constraint: bool = True
@@ -427,7 +430,14 @@ def convert_gate_index_to_var_index(
 
 
 def convert_var_to_gate(
-    c_sys: CompositeSystem, var: np.ndarray, on_para_eq_constraint: bool = True
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> Gate:
     """converts vec of variables to gate.
 
@@ -446,10 +456,25 @@ def convert_var_to_gate(
         converted gate.
     """
     dim = c_sys.dim
+
+    size = (dim ** 2 - 1, dim ** 2) if on_para_eq_constraint else (dim ** 2, dim ** 2)
+    reshaped = var.reshape(size)
+
     hs = (
-        np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if on_para_eq_constraint else var
+        np.insert(reshaped, 0, np.eye(1, dim ** 2), axis=0)
+        if on_para_eq_constraint
+        else reshaped
     )
-    gate = Gate(c_sys, hs, is_physicality_required=False)
+    gate = Gate(
+        c_sys,
+        hs,
+        is_physicality_required=is_physicality_required,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return gate
 
 

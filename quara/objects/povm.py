@@ -25,6 +25,7 @@ class Povm(QOperation):
         c_sys: CompositeSystem,
         vecs: List[np.ndarray],
         is_physicality_required: bool = True,
+        is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
@@ -351,15 +352,18 @@ class Povm(QOperation):
         return convert_povm_to_var(
             c_sys=self._composite_system,
             vecs=list(self.vecs),
-            on_eq_constraint=self.on_para_eq_constraint,
+            on_para_eq_constraint=self.on_para_eq_constraint,
         )
+
+    def _generate_from_var_func(self):
+        return convert_var_to_povm
 
 
 def convert_var_index_to_povm_index(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     var_index: int,
-    on_eq_constraint: bool = True,
+    on_para_eq_constraint: bool = True,
 ) -> Tuple[int, int]:
     """converts variable index to povm index.
 
@@ -371,7 +375,7 @@ def convert_var_index_to_povm_index(
         list of vec of povm elements.
     var_index : int
         variable index.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -390,7 +394,7 @@ def convert_povm_index_to_var_index(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     povm_index: Tuple[int, int],
-    on_eq_constraint: bool = True,
+    on_para_eq_constraint: bool = True,
 ) -> int:
     """converts povm index to variable index.
 
@@ -404,7 +408,7 @@ def convert_povm_index_to_var_index(
         povm index.
         first value of tuple is an index of the number of measurements.
         second value of tuple is an index in specific measurement.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -419,7 +423,14 @@ def convert_povm_index_to_var_index(
 
 
 def convert_var_to_povm(
-    c_sys: CompositeSystem, var: List[np.ndarray], on_eq_constraint: bool = True,
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> Povm:
     """converts vec of variables to povm.
 
@@ -429,7 +440,7 @@ def convert_var_to_povm(
         CompositeSystem of this povm.
     var : List[np.ndarray]
         list of vec of povm elements.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -438,20 +449,33 @@ def convert_var_to_povm(
         converted povm.
     """
     vecs = copy.copy(var)
-    if on_eq_constraint:
-        dim = int(np.sqrt(var[0].shape[0]))
+    dim = int(np.sqrt(var.shape[0]))
+    if on_para_eq_constraint:
         last_vec = np.eye(dim).flatten()
-
+        var = vecs.reshape(dim - 1, dim * dim)
         for vec in var:
             last_vec -= vec.flatten()
-        vecs.append(last_vec)
+        vecs = np.hstack([vecs, last_vec])
 
-    povm = Povm(c_sys, vecs, is_physicality_required=False)
+    vec_list = []
+    reshaped_vecs = vecs.reshape(dim, dim ** dim)
+    for vec in reshaped_vecs:
+        vec_list.append(vec)
+    povm = Povm(
+        c_sys,
+        vec_list,
+        is_physicality_required=is_physicality_required,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return povm
 
 
 def convert_povm_to_var(
-    c_sys: CompositeSystem, vecs: List[np.ndarray], on_eq_constraint: bool = True
+    c_sys: CompositeSystem, vecs: List[np.ndarray], on_para_eq_constraint: bool = True
 ) -> np.array:
     """converts hs of povm to vec of variables.
 
@@ -461,7 +485,7 @@ def convert_povm_to_var(
         CompositeSystem of this state.
     vecs : List[np.ndarray]
         list of vec of povm elements.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -470,7 +494,7 @@ def convert_povm_to_var(
         list of vec of variables.
     """
     var = copy.copy(vecs)
-    if on_eq_constraint:
+    if on_para_eq_constraint:
         del var[-1]
     var = np.hstack(var)
     return var
@@ -480,7 +504,7 @@ def calc_gradient_from_povm(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     var_index: int,
-    on_eq_constraint: bool = True,
+    on_para_eq_constraint: bool = True,
 ) -> Povm:
     """calculates gradient from gate.
 
@@ -492,7 +516,7 @@ def calc_gradient_from_povm(
         list of vec of povm elements.
     var_index : int
         variable index.
-    on_eq_constraint : bool, optional
+    on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
@@ -505,7 +529,7 @@ def calc_gradient_from_povm(
         gradient.append(np.zeros(c_sys.dim ** 2, dtype=np.float64))
 
     (num_measurement, measurement_index) = convert_var_index_to_povm_index(
-        c_sys, vecs, var_index, on_eq_constraint
+        c_sys, vecs, var_index, on_para_eq_constraint
     )
     gradient[num_measurement][measurement_index] = 1
 

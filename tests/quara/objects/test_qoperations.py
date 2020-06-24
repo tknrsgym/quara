@@ -227,6 +227,7 @@ class TestSetQOperations:
         assert np.all(actual == expected)
 
         # Case 2:
+        # Arrange
         state_1 = State(
             c_sys=c_sys,
             vec=vec_1,
@@ -377,6 +378,60 @@ class TestSetQOperations:
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_var_empty(self):
+        # Arrange
+        states, povms, gates = self.arrange_states_povms_gates()
+
+        # Empty QOperations
+        # Arrange
+        sl_qope = qope.SetQOperations(states=[], povms=povms, gates=gates)
+        # Act
+        actual = sl_qope.var_states()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_states()
+        # Assert
+        assert actual == 0
+
+        # Arrange
+        sl_qope = qope.SetQOperations(states=states, povms=[], gates=gates)
+        # Act
+        actual = sl_qope.var_povms()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_povms()
+        # Assert
+        assert actual == 0
+
+        # Arrange
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=[])
+        # Act
+        actual = sl_qope.var_gates()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_gates()
+        # Assert
+        assert actual == 0
+
+        # Total
+        # Arrange
+        sl_qope = qope.SetQOperations(states=[], povms=[], gates=[])
+        # Act
+        actual = sl_qope.var_total()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_total()
+        # Assert
+        assert actual == 0
 
     def test_var_total(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -964,3 +1019,123 @@ class TestSetQOperations:
         actual = set_qoperations.local_info_from_index_var_total(78)
         expected = dict(type_operation="povm", index_operations=2, index_var_local=3,)
         assert actual == expected
+
+    def test_set_qoperations_from_var_total_exception(self):
+        # Arrange
+        set_qoperations = self._arrange_setqoperations()
+        ok_var_total_size = len(set_qoperations.var_total())
+        ng_var_total = np.array(range(1000, 1000 + ok_var_total_size + 1))
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            set_qoperations.set_qoperations_from_var_total(ng_var_total)
+
+        # Arrange
+        ng_var_total = np.array(range(1000, 1000 + ok_var_total_size - 1))
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            set_qoperations.set_qoperations_from_var_total(ng_var_total)
+
+    def test_set_qoperations_from_var_total(self):
+        # Arrange
+        set_qoperations = self._arrange_setqoperations()
+        source_states = list(range(1000, 1023))
+        source_gates = list(range(2000, 2040))
+        source_povms = list(range(3000, 3016))
+        source_var_total = np.array(
+            source_states + source_gates + source_povms, np.float64
+        )
+
+        actual = set_qoperations.set_qoperations_from_var_total(source_var_total)
+
+        # Assert
+        # State
+        assert len(actual.states) == len(set_qoperations.states)
+        expected_vecs = [
+            np.array([1000, 1001, 1002]),
+            np.array([1003, 1004, 1005, 1006]),
+            np.array(range(1007, 1023)),
+        ]
+        for i, item in enumerate(zip(actual.states, set_qoperations.states)):
+            actual_item, compared_item = item
+            assert actual_item._composite_system is compared_item._composite_system
+            assert (
+                actual_item.on_para_eq_constraint == compared_item.on_para_eq_constraint
+            )
+            assert (
+                actual_item.is_physicality_required
+                == compared_item.is_physicality_required
+            )
+            assert (
+                actual_item.is_estimation_object == compared_item.is_estimation_object
+            )
+            assert (
+                actual_item.on_algo_eq_constraint == compared_item.on_algo_eq_constraint
+            )
+            assert (
+                actual_item.on_algo_ineq_constraint
+                == compared_item.on_algo_ineq_constraint
+            )
+            assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
+            npt.assert_almost_equal(actual_item.to_var(), expected_vecs[i])
+
+        # Gate
+        assert len(actual.gates) == len(set_qoperations.gates)
+        expected_vecs = [
+            np.array(range(2000, 2012)),
+            np.array(range(2012, 2028)),
+            np.array(range(2028, 2040)),
+        ]
+        for i, item in enumerate(zip(actual.gates, set_qoperations.gates)):
+            actual_item, compared_item = item
+            assert actual_item._composite_system is compared_item._composite_system
+            assert (
+                actual_item.on_para_eq_constraint == compared_item.on_para_eq_constraint
+            )
+            assert (
+                actual_item.is_physicality_required
+                == compared_item.is_physicality_required
+            )
+            assert (
+                actual_item.is_estimation_object == compared_item.is_estimation_object
+            )
+            assert (
+                actual_item.on_algo_eq_constraint == compared_item.on_algo_eq_constraint
+            )
+            assert (
+                actual_item.on_algo_ineq_constraint
+                == compared_item.on_algo_ineq_constraint
+            )
+            assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
+            npt.assert_almost_equal(actual_item.to_var(), expected_vecs[i])
+
+        # POVM
+        assert len(actual.gates) == len(set_qoperations.gates)
+        expected_vecs = [
+            np.array(range(3000, 3004)),
+            np.array(range(3004, 3012)),
+            np.array(range(3012, 3016)),
+        ]
+        for i, item in enumerate(zip(actual.povms, set_qoperations.povms)):
+            actual_item, compared_item = item
+            assert actual_item._composite_system is compared_item._composite_system
+            assert (
+                actual_item.on_para_eq_constraint == compared_item.on_para_eq_constraint
+            )
+            assert (
+                actual_item.is_physicality_required
+                == compared_item.is_physicality_required
+            )
+            assert (
+                actual_item.is_estimation_object == compared_item.is_estimation_object
+            )
+            assert (
+                actual_item.on_algo_eq_constraint == compared_item.on_algo_eq_constraint
+            )
+            assert (
+                actual_item.on_algo_ineq_constraint
+                == compared_item.on_algo_ineq_constraint
+            )
+            assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
+            npt.assert_almost_equal(actual_item.to_var(), expected_vecs[i])

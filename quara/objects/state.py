@@ -267,6 +267,9 @@ class State(QOperation):
         )
         return converted_vec
 
+    def _generate_from_var_func(self):
+        return convert_var_to_state
+
 
 def convert_var_index_to_state_index(
     var_index: int, on_para_eq_constraint: bool = True
@@ -311,7 +314,14 @@ def convert_state_index_to_var_index(
 
 
 def convert_var_to_state(
-    c_sys: CompositeSystem, var: np.ndarray, on_para_eq_constraint: bool = True
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> State:
     """converts vec of variables to state.
 
@@ -330,7 +340,16 @@ def convert_var_to_state(
         converted state.
     """
     vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if on_para_eq_constraint else var
-    state = State(c_sys, vec, is_physicality_required=False)
+    state = State(
+        c_sys,
+        vec,
+        is_physicality_required=is_physicality_required,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return state
 
 
