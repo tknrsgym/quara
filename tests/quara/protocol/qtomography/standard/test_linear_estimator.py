@@ -40,6 +40,7 @@ class TestLinearEstimator:
         print(f"estimate var={var_sequence}")
         print(f"true var={true_object.vec}")
 
+        # calc mse
         mses = [calc_mse(var, true_object.vec) for var in var_sequence]
         print(f"mse={mses}")
 
