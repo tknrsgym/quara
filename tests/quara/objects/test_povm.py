@@ -604,9 +604,12 @@ def test_convert_var_to_povm():
     e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys])
 
-    # default
+    # Case 1: default
+    # Arrange
     vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    # Act
     actual = convert_var_to_povm(c_sys, vecs, is_physicality_required=False)
+    # Assert
     expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([-1, -3, -5, -6], dtype=np.float64),
@@ -615,11 +618,14 @@ def test_convert_var_to_povm():
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_para_eq_constraint=True
+    # Case 2: on_para_eq_constraint=True
+    # Arrange
     vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    # Act
     actual = convert_var_to_povm(
         c_sys, vecs, on_para_eq_constraint=True, is_physicality_required=False
     )
+    # Assert
     expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([-1, -3, -5, -6], dtype=np.float64),
@@ -628,11 +634,14 @@ def test_convert_var_to_povm():
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_para_eq_constraint=False
+    # Case 3: on_para_eq_constraint=False
+    # Arrange
     vecs = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
+    # Act
     actual = convert_var_to_povm(
         c_sys, vecs, on_para_eq_constraint=False, is_physicality_required=False
     )
+    # Assert
     expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),

@@ -618,56 +618,78 @@ def test_convert_state_index_to_var_index():
 
 
 def test_convert_var_to_state():
+    # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
-    # default
-    actual = convert_var_to_state(c_sys, np.array([1, 2, 3], dtype=np.float64), is_physicality_required=False)
+    # Case 1: default
+    # Act
+    actual = convert_var_to_state(
+        c_sys, np.array([1, 2, 3], dtype=np.float64), is_physicality_required=False
+    )
+    # Assert
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
     assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
-    # on_para_eq_constraint=True
+    # Case 2: on_para_eq_constraint=True
+    # Act
     actual = convert_var_to_state(
-        c_sys, np.array([1, 2, 3], dtype=np.float64), on_para_eq_constraint=True, is_physicality_required=False
+        c_sys,
+        np.array([1, 2, 3], dtype=np.float64),
+        on_para_eq_constraint=True,
+        is_physicality_required=False,
     )
+    # Assert
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
     assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
-    # on_para_eq_constraint=False
+    # Case 3: on_para_eq_constraint=False
+    # Act
     actual = convert_var_to_state(
-        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_para_eq_constraint=False, is_physicality_required=False
+        c_sys,
+        np.array([1, 2, 3, 4], dtype=np.float64),
+        on_para_eq_constraint=False,
+        is_physicality_required=False,
     )
+    # Assert
     expected = np.array([1, 2, 3, 4], dtype=np.float64)
     assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
 
 def test_convert_state_to_var():
+    # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
-    # default
+    # Case 1: default
+    # Act
     actual = convert_state_to_var(
         c_sys, np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
     )
+    # Assert
     expected = np.array([1, 2, 3], dtype=np.float64)
     assert np.all(actual == expected)
 
-    # on_para_eq_constraint=True
+    # Case 2: on_para_eq_constraint=True
+    # Act
     actual = convert_state_to_var(
         c_sys,
         np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64),
         on_para_eq_constraint=True,
     )
+    # Assert
     expected = np.array([1, 2, 3], dtype=np.float64)
     assert np.all(actual == expected)
 
-    # on_para_eq_constraint=False
+    # Case 3: on_para_eq_constraint=False
+    # Act
     actual = convert_state_to_var(
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_para_eq_constraint=False
     )
+    # Assert
     expected = np.array([1, 2, 3, 4], dtype=np.float64)
     assert np.all(actual == expected)
 
