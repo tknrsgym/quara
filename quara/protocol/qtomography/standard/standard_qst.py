@@ -115,12 +115,24 @@ class StandardQst(StandardQTomography):
         self, state: State, num_sum: int, seed: int = None
     ) -> List[Tuple[int, np.array]]:
         tmp_experiment = self._experiment.copy()
-
-        empi_dists = []
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_state_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
-            empi_dists.append(
-                tmp_experiment.generate_empi_dist(schedule_index, [num_sum], seed)[0]
-            )
+
+        empi_dists = tmp_experiment.generate_empi_dists(num_sum, seed)
         return empi_dists
+
+    def generate_empi_dists_sequence(
+        self, state: State, num_sums: List[int], seed: int = None
+    ) -> List[List[Tuple[int, np.array]]]:
+        tmp_experiment = self._experiment.copy()
+
+        empi_dists_sequence = []
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            state_index = self._get_state_index(tmp_experiment, schedule_index)
+            tmp_experiment.states[state_index] = state
+
+        empi_dists_sequence = tmp_experiment.generate_empi_dists_sequence(
+            num_sums, seed
+        )
+        return empi_dists_sequence

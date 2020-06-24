@@ -229,7 +229,7 @@ class TestExperiment:
         # Assert
         expected = [
             np.array([1, 0], dtype=np.float64),
-            np.array([0.5, 0.5], dtype=np.float64)
+            np.array([0.5, 0.5], dtype=np.float64),
         ]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
@@ -490,23 +490,17 @@ class TestExperiment:
     def test_generate_empi_dists_sequence(self):
         # Array
         exp = self.array_experiment_data()
-        list_num_sums = [[5, 10, 20], [5, 10, 15, 20]]
-        seeds = [7, 77]
+        num_sums = [5, 10, 20]
+        seeds = [7, 77, 777]
 
         # Act
-        actual = exp.generate_empi_dists_sequence(
-            list_num_sums=list_num_sums, seeds=seeds
-        )
+        actual = exp.generate_empi_dists_sequence(num_sums=num_sums, seeds=seeds)
 
         # Assert
         expected = [
-            [(5, np.array([1, 0])), (10, np.array([1, 0])), (20, np.array([1, 0])),],
-            [
-                (5, np.array([0.4, 0.6])),
-                (10, np.array([0.4, 0.6])),
-                (15, np.array([6 / 15, 9 / 15])),
-                (20, np.array([0.45, 0.55])),
-            ],
+            [(5, np.array([1, 0])), (5, np.array([0.4, 0.6]))],
+            [(10, np.array([1, 0])), (10, np.array([0.4, 0.6]))],
+            [(20, np.array([1, 0])), (20, np.array([0.5, 0.5]))],
         ]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
@@ -518,36 +512,29 @@ class TestExperiment:
     def test_generate_empi_dists_sequence_exception(self):
         # Array
         exp = self.array_experiment_data()
-        ok_list_num_sums = [[5, 10, 20], [5, 10, 15, 20]]
-        ok_seeds = [7, 77]
+        ok_num_sums = [5, 10, 20]
+        ok_seeds = [7, 77, 777]
 
         # Act
         # Case 1:
-        ng_list_num_sums = [[5, 10, 20]]
+        ng_num_sums = [[5, 10, 20]]
         with pytest.raises(ValueError):
             actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ng_list_num_sums, seeds=ok_seeds
+                num_sums=ng_num_sums, seeds=ok_seeds
             )
 
         # Case 2:
-        ng_list_num_sums = [[5, 10, 20], [5, 10, 20], [5, 10, 20]]
-        with pytest.raises(ValueError):
+        ng_num_sums = [[5, 10, 20], [5, 10, 20], [5, 10, 20]]
+        with pytest.raises(TypeError):
             actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ng_list_num_sums, seeds=ok_seeds
+                num_sums=ng_num_sums, seeds=ok_seeds
             )
 
         # Case 3:
         ng_seeds = [7]
         with pytest.raises(ValueError):
             actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ok_list_num_sums, seeds=ng_seeds
-            )
-
-        # Case 4:
-        ng_seeds = [7, 77, 777]
-        with pytest.raises(ValueError):
-            actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ok_list_num_sums, seeds=ng_seeds
+                num_sums=ok_num_sums, seeds=ng_seeds
             )
 
     def test_getter(self):
