@@ -20,8 +20,6 @@ class StandardQst(StandardQTomography):
         on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = 10 ** (-4),
     ):
-        # TODO validate
-
         # create Experiment
         schedules = []
         for index in range(len(povms)):
@@ -44,9 +42,16 @@ class StandardQst(StandardQTomography):
         )
         set_qoperations = SetQOperations(states=[state], gates=[], povms=[])
 
+        # create map
+        self._map_experiment_to_setqoperations = {("state", 0): ("state", 0)}
+        self._map_setqoperations_to_experiment = {("state", 0): ("state", 0)}
+
+        # initialize super class
         super().__init__(experiment, set_qoperations)
 
-        # TODO create map
+        # validate
+        if not self.is_valid_experiment():
+            raise Exception
 
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
@@ -72,6 +77,13 @@ class StandardQst(StandardQTomography):
                     tmp_coeffs_0th.append(0)
                     tmp_coeffs_1st.append(vec)
 
+    def is_valid_experiment(self) -> bool:
+        povms = self._experiment.povms
+        checks = [
+            povms[0]._composite_system == povm._composite_system for povm in povms[1:]
+        ]
+        return all(checks)
+
     def _get_state_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         state_index = schedule[0][1]
@@ -83,10 +95,32 @@ class StandardQst(StandardQTomography):
         tmp_experiment.states[state_index] = state
         return tmp_experiment.calc_prob_dist(schedule_index)
 
+    def calc_prob_dists(self, state: State) -> List[List[float]]:
+        tmp_experiment = self._experiment.copy()
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            state_index = self._get_state_index(tmp_experiment, schedule_index)
+            tmp_experiment.states[state_index] = state
+        prob_dists = tmp_experiment.calc_prob_dists()
+        return prob_dists
+
     def generate_empi_dist(
-        self, schedule_index: int, state: State, num_sums: List[int], seed: int = None
-    ) -> List[Tuple[int, np.array]]:
+        self, schedule_index: int, state: State, num_sum: int, seed: int = None
+    ) -> Tuple[int, np.array]:
         tmp_experiment = self._experiment.copy()
         state_index = self._get_state_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
-        return tmp_experiment.generate_empi_dist(schedule_index, num_sums, seed)
+        return tmp_experiment.generate_empi_dist(schedule_index, [num_sum], seed)
+
+    def generate_empi_dists(
+        self, state: State, num_sum: int, seed: int = None
+    ) -> List[Tuple[int, np.array]]:
+        tmp_experiment = self._experiment.copy()
+
+        empi_dists = []
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            state_index = self._get_state_index(tmp_experiment, schedule_index)
+            tmp_experiment.states[state_index] = state
+            empi_dists.append(
+                tmp_experiment.generate_empi_dist(schedule_index, [num_sum], seed)[0]
+            )
+        return empi_dists

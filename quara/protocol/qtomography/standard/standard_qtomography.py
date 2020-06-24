@@ -32,7 +32,7 @@ class StandardQTomography(QTomography):
     def calc_vecB(self) -> np.array:
         sorted_coeffs_0th = sorted(self._coeffs_0th.items())
         sorted_values = [k[1] for k in sorted_coeffs_0th]
-        vecB = np.vstack(sorted_values)
+        vecB = np.vstack(sorted_values).flatten()
         return vecB
 
     @abstractmethod
@@ -41,6 +41,6 @@ class StandardQTomography(QTomography):
 
     def is_fullrank_matA(self) -> bool:
         matA = self.calc_matA()
-        row = matA.shape[0]
         rank = np.linalg.matrix_rank(matA)
-        return row == rank
+        size = min(matA.shape)
+        return size == rank

@@ -1,5 +1,5 @@
 import itertools
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -14,21 +14,15 @@ class LinearEstimator(StandardQTomographyEstimator):
         super().__init__()
 
     def calc_estimate_var(
-        self,
-        qtomography: StandardQTomography,
-        empi_dists: List[List[float]],
-        on_para_eq_constraint: bool = True,
-    ) -> List[np.array]:
-        pass
+        self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
+    ) -> np.array:
+        if not qtomography.is_fullrank_matA():
+            raise Exception
 
-    def calc_estimates_sequence_var(
-        self,
-        qtomography: StandardQTomography,
-        empi_dists_sequence: List[List[float]],
-        on_para_eq_constraint: bool = True,
-    ) -> List[np.array]:
-        stacked_empi_dists_seq = list(
-            itertools.chain.from_iterable(empi_dists_sequence)
-        )
-        print(stacked_empi_dists_seq)
-
+        empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
+        f = np.vstack(empi_dists_tmp).flatten()
+        A = qtomography.calc_matA()
+        b = qtomography.calc_vecB()
+        A_ddag = np.linalg.pinv(A.T @ A) @ A.T
+        v = A_ddag @ (f - b)
+        return v
