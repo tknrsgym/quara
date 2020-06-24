@@ -439,12 +439,10 @@ class Experiment:
         self._validate_eq_schedule_len(data_nums, "data_nums")
         self._validate_eq_schedule_len(seeds, "seeds")
 
-        dataset = []
-        for i, data_num in enumerate(data_nums):
-            data = self.generate_data(
-                schedule_index=i, data_num=data_num, seed=seeds[i]
-            )
-            dataset.append(data)
+        prob_dists = self.calc_prob_dists()
+        dataset = data_generator.generate_dataset_from_prob_dists(
+            prob_dists=prob_dists, data_nums=data_nums, seeds=seeds
+        )
         return dataset
 
     def generate_empi_dist(
@@ -502,12 +500,13 @@ class Experiment:
 
         self._validate_eq_schedule_len(list_num_sums, "list_num_sums")
         self._validate_eq_schedule_len(seeds, "seeds")
-        empi_dists = []
-        for i, num_sums in enumerate(list_num_sums):
-            seed = seeds[i] if seeds else None
-            empi_dist = self.generate_empi_dist(
-                schedule_index=i, num_sums=num_sums, seed=seed
-            )
-            empi_dists.append(empi_dist)
 
+        data_nums = [max(x) for x in list_num_sums]
+        measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
+        dataset = self.generate_dataset(data_nums=data_nums, seeds=seeds)
+        empi_dists = data_generator.calc_empi_dists_sequence(
+            measurement_nums=measurement_nums,
+            dataset=dataset,
+            list_list_num_sum=list_num_sums,
+        )
         return empi_dists
