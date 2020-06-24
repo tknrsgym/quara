@@ -332,7 +332,7 @@ class Experiment:
         )
         return experiment
 
-    def calc_prob_dist(self, schedule_index: int) -> List[float]:
+    def calc_prob_dist(self, schedule_index: int) -> np.array:
         """Calculate the probability distributionthe by running the specified schedule.
 
         Parameters
@@ -342,7 +342,7 @@ class Experiment:
 
         Returns
         -------
-        list
+        np.array
             Probability distribution
 
         Raises
@@ -364,12 +364,12 @@ class Experiment:
         prob_dist = op.composite(*targets)
         return prob_dist
 
-    def calc_prob_dists(self) -> List[List[float]]:
+    def calc_prob_dists(self) -> List[np.array]:
         """Caluclate probability distributions for all schedules.
 
         Returns
         -------
-        List[List[float]]
+        List[np.array]
             Probability distributions for all schedules
         """
         prob_dists = []

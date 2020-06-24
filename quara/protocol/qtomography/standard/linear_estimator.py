@@ -1,3 +1,6 @@
+import itertools
+from typing import List, Tuple
+
 import numpy as np
 
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
@@ -11,6 +14,15 @@ class LinearEstimator(StandardQTomographyEstimator):
         super().__init__()
 
     def calc_estimate_var(
-        self, qtomography: StandardQTomography, empi_dists: List[List[float]]
+        self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
     ) -> np.array:
-        pass
+        if not qtomography.is_fullrank_matA():
+            raise Exception
+
+        empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
+        f = np.vstack(empi_dists_tmp).flatten()
+        A = qtomography.calc_matA()
+        b = qtomography.calc_vecB()
+        A_ddag = np.linalg.pinv(A.T @ A) @ A.T
+        v = A_ddag @ (f - b)
+        return v
