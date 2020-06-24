@@ -562,12 +562,14 @@ def test_convert_var_index_to_povm_index():
     actual = convert_var_index_to_povm_index(c_sys, vecs, 3)
     assert actual == (0, 3)
 
-    # on_eq_constraint=True
-    actual = convert_var_index_to_povm_index(c_sys, vecs, 3, on_eq_constraint=True)
+    # on_para_eq_constraint=True
+    actual = convert_var_index_to_povm_index(c_sys, vecs, 3, on_para_eq_constraint=True)
     assert actual == (0, 3)
 
-    # on_eq_constraint=False
-    actual = convert_var_index_to_povm_index(c_sys, vecs, 7, on_eq_constraint=False)
+    # on_para_eq_constraint=False
+    actual = convert_var_index_to_povm_index(
+        c_sys, vecs, 7, on_para_eq_constraint=False
+    )
     assert actual == (1, 3)
 
 
@@ -584,13 +586,15 @@ def test_convert_povm_index_to_var_index():
     actual = convert_povm_index_to_var_index(c_sys, vecs, (0, 3))
     assert actual == 3
 
-    # on_eq_constraint=True
-    actual = convert_povm_index_to_var_index(c_sys, vecs, (0, 3), on_eq_constraint=True)
+    # on_para_eq_constraint=True
+    actual = convert_povm_index_to_var_index(
+        c_sys, vecs, (0, 3), on_para_eq_constraint=True
+    )
     assert actual == 3
 
-    # on_eq_constraint=False
+    # on_para_eq_constraint=False
     actual = convert_povm_index_to_var_index(
-        c_sys, vecs, (1, 3), on_eq_constraint=False
+        c_sys, vecs, (1, 3), on_para_eq_constraint=False
     )
     assert actual == 7
 
@@ -601,10 +605,8 @@ def test_convert_var_to_povm():
     c_sys = csys.CompositeSystem([e_sys])
 
     # default
-    vecs = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-    ]
-    actual = convert_var_to_povm(c_sys, vecs)
+    vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    actual = convert_var_to_povm(c_sys, vecs, is_physicality_required=False)
     expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([-1, -3, -5, -6], dtype=np.float64),
@@ -613,11 +615,11 @@ def test_convert_var_to_povm():
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_eq_constraint=True
-    vecs = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-    ]
-    actual = convert_var_to_povm(c_sys, vecs, on_eq_constraint=True)
+    # on_para_eq_constraint=True
+    vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    actual = convert_var_to_povm(
+        c_sys, vecs, on_para_eq_constraint=True, is_physicality_required=False
+    )
     expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([-1, -3, -5, -6], dtype=np.float64),
@@ -626,14 +628,17 @@ def test_convert_var_to_povm():
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_eq_constraint=False
-    vecs = [
+    # on_para_eq_constraint=False
+    vecs = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
+    actual = convert_var_to_povm(
+        c_sys, vecs, on_para_eq_constraint=False, is_physicality_required=False
+    )
+    expected = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
-    actual = convert_var_to_povm(c_sys, vecs, on_eq_constraint=False)
-    assert len(actual.vecs) == len(vecs)
-    for a, e in zip(actual.vecs, vecs):
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
 
@@ -655,27 +660,27 @@ def test_convert_povm_to_var():
     expected = np.array([2, 3, 5, 7], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-    # Case 2: on_eq_constraint=True
+    # Case 2: on_para_eq_constraint=True
     vecs = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs, on_eq_constraint=True)
+    actual = convert_povm_to_var(c_sys, vecs, on_para_eq_constraint=True)
 
     # Assert
     expected = np.array([2, 3, 5, 7], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-    # Case 3: on_eq_constraint=False
+    # Case 3: on_para_eq_constraint=False
     vecs = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs, on_eq_constraint=False)
+    actual = convert_povm_to_var(c_sys, vecs, on_para_eq_constraint=False)
 
     # Assert
     expected = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
@@ -701,12 +706,12 @@ def test_calc_gradient_from_povm():
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_eq_constraint=True
+    # on_para_eq_constraint=True
     vecs = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
-    actual = calc_gradient_from_povm(c_sys, vecs, 3, on_eq_constraint=True)
+    actual = calc_gradient_from_povm(c_sys, vecs, 3, on_para_eq_constraint=True)
     expected = [
         np.array([0, 0, 0, 1], dtype=np.float64),
         np.array([0, 0, 0, 0], dtype=np.float64),
@@ -715,12 +720,12 @@ def test_calc_gradient_from_povm():
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
 
-    # on_eq_constraint=False
+    # on_para_eq_constraint=False
     vecs = [
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
-    actual = calc_gradient_from_povm(c_sys, vecs, 7, on_eq_constraint=False)
+    actual = calc_gradient_from_povm(c_sys, vecs, 7, on_para_eq_constraint=False)
     expected = [
         np.array([0, 0, 0, 0], dtype=np.float64),
         np.array([0, 0, 0, 1], dtype=np.float64),

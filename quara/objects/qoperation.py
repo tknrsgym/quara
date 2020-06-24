@@ -85,6 +85,62 @@ class QOperation:
     def calc_proj_ineq_constraint(self):
         raise NotImplementedError()
 
+    @abstractmethod
+    def _generate_from_var_func(self):
+        raise NotImplementedError()
+
+    def generate_from_var(
+        self,
+        var: np.array,
+        is_physicality_required: bool = None,
+        is_estimation_object: bool = None,
+        on_para_eq_constraint: bool = None,
+        on_algo_eq_constraint: bool = None,
+        on_algo_ineq_constraint: bool = None,
+        eps_proj_physical: float = None,
+    ) -> "QOperation":
+        # generate_from_var_func()
+        is_physicality_required = (
+            is_physicality_required
+            if is_physicality_required
+            else self.is_physicality_required
+        )
+        is_estimation_object = (
+            is_estimation_object if is_estimation_object else self.is_estimation_object
+        )
+        on_para_eq_constraint = (
+            on_para_eq_constraint
+            if on_para_eq_constraint
+            else self.on_para_eq_constraint
+        )
+        on_algo_eq_constraint = (
+            on_algo_eq_constraint
+            if on_algo_eq_constraint
+            else self.on_algo_eq_constraint
+        )
+        on_algo_ineq_constraint = (
+            on_algo_ineq_constraint
+            if on_algo_ineq_constraint
+            else self.on_algo_ineq_constraint
+        )
+        eps_proj_physical = (
+            eps_proj_physical if eps_proj_physical else self.eps_proj_physical
+        )
+
+        generate_from_var_func = self._generate_from_var_func()
+        c_sys = self._composite_system
+        new_qoperation = generate_from_var_func(
+            c_sys=c_sys,
+            var=var,
+            is_physicality_required=is_physicality_required,
+            is_estimation_object=is_estimation_object,
+            on_para_eq_constraint=on_para_eq_constraint,
+            on_algo_eq_constraint=on_algo_eq_constraint,
+            on_algo_ineq_constraint=on_algo_ineq_constraint,
+            eps_proj_physical=eps_proj_physical,
+        )
+        return new_qoperation
+
     def calc_proj_physical(self):
         raise NotImplementedError()
 
