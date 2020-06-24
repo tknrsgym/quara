@@ -482,14 +482,37 @@ class Experiment:
         )
         return empi_dist
 
-    def generate_empi_dists_sequence(
-        self, list_num_sums: List[List[int]], seeds: List[int] = None
-    ) -> List[List[Tuple[int, np.array]]]:
-        """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
+    def generate_empi_dists(
+        self, num_sum: int, seed: int = None
+    ) -> List[Tuple[int, np.array]]:
+        """Generate an empirical distributions using the data generated from the probability distributions of all schedules.
 
         Parameters
         ----------
-        list_num_sums : List[List[int]]
+        num_sum : int
+            the number of data to caluclate the experience distributions
+        seed : int, optional
+            A seed used to generate random data, by default None.
+
+        Returns
+        -------
+        List[Tuple[int, np.array]]
+            A list of the numbers of data and empirical distribution.
+        """
+        empi_dists = []
+        for i in range(len(self.schedules)):
+            r = self.generate_empi_dist(i, [num_sum], seed)[0]
+            empi_dists.append(r)
+        return empi_dists
+
+    def generate_empi_dists_sequence(
+        self, num_sums: List[int], seeds: List[int] = None
+    ) -> List[List[Tuple[int, np.array]]]:
+        """Generate empirical distributions using the data generated from probability distributions of all schedules.
+
+        Parameters
+        ----------
+        num_sums : List[int]
             A list of the number of data to use to calculate the experience distribution for each schedule.
         seeds : List[int], optional
             A List of seeds, by default None
@@ -499,15 +522,16 @@ class Experiment:
         List[List[Tuple[int, np.array]]]
             A list of tuples for the number of data and experience distribution for each schedules.
         """
+        if seeds is not None and len(num_sums) != len(seeds):
+            error_message = "The number of elements in 'num_sums' must be the same as the number of 'seeds';\n"
+            error_message += "The length of 'num_sums': {}\n".format(len(num_sums))
+            error_message += "The length of 'seeds': {}\n".format(len(seeds))
+            raise ValueError(error_message)
 
-        self._validate_eq_schedule_len(list_num_sums, "list_num_sums")
-        self._validate_eq_schedule_len(seeds, "seeds")
-        empi_dists = []
-        for i, num_sums in enumerate(list_num_sums):
+        empi_dists_sequence = []
+        for i, num_sum in enumerate(num_sums):
             seed = seeds[i] if seeds else None
-            empi_dist = self.generate_empi_dist(
-                schedule_index=i, num_sums=num_sums, seed=seed
-            )
-            empi_dists.append(empi_dist)
+            empi_dists = self.generate_empi_dists(num_sum, seed)
+            empi_dists_sequence.append(empi_dists)
 
-        return empi_dists
+        return empi_dists_sequence
