@@ -456,8 +456,14 @@ def convert_var_to_gate(
         converted gate.
     """
     dim = c_sys.dim
+
+    size = (dim ** 2 - 1, dim ** 2) if on_para_eq_constraint else (dim ** 2, dim ** 2)
+    reshaped = var.reshape(size)
+
     hs = (
-        np.insert(var, 0, np.eye(1, dim ** 2), axis=0) if on_para_eq_constraint else var
+        np.insert(reshaped, 0, np.eye(1, dim ** 2), axis=0)
+        if on_para_eq_constraint
+        else reshaped
     )
     gate = Gate(
         c_sys,
