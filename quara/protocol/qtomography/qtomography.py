@@ -3,12 +3,22 @@ from typing import List
 
 import numpy as np
 
+from quara.objects.qoperations import SetQOperations
 from quara.qcircuit.experiment import Experiment
 
 
 class QTomography:
-    def __init__(self, experiment: Experiment):
-        self.experiment = experiment
+    def __init__(
+        self, experiment: Experiment, set_qoperations: SetQOperations,
+    ):
+        self._experiment = experiment
+        self._num_schedules = len(self._experiment.schedules)
+        self._set_qoperations = set_qoperations
+        # TODO num_variables
+
+    @property
+    def num_schedules(self) -> int:
+        return self._num_schedules
 
     @abstractmethod
     def calc_prob_dist(self) -> List[np.array]:
