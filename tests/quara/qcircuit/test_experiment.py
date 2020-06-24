@@ -184,7 +184,7 @@ class TestExperiment:
         actual = exp.calc_prob_dist(schedule_index=0)
 
         # Assert
-        expected = [1, 0]
+        expected = np.array([1, 0], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Case 2:
@@ -192,7 +192,7 @@ class TestExperiment:
         actual = exp.calc_prob_dist(schedule_index=1)
 
         # Assert
-        expected = [0.5, 0.5]
+        expected = np.array([0.5, 0.5], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Case 3: Exception
@@ -227,7 +227,10 @@ class TestExperiment:
         actual = exp.calc_prob_dists()
 
         # Assert
-        expected = [[1, 0], [0.5, 0.5]]
+        expected = [
+            np.array([1, 0], dtype=np.float64),
+            np.array([0.5, 0.5], dtype=np.float64)
+        ]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
             npt.assert_almost_equal(a, e, decimal=15)
