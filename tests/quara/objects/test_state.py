@@ -622,14 +622,14 @@ def test_convert_var_to_state():
     c_sys = CompositeSystem([e_sys])
 
     # default
-    actual = convert_var_to_state(c_sys, np.array([1, 2, 3], dtype=np.float64))
+    actual = convert_var_to_state(c_sys, np.array([1, 2, 3], dtype=np.float64), is_physicality_required=False)
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
     assert actual.is_physicality_required == False
     assert np.all(actual.vec == expected)
 
     # on_para_eq_constraint=True
     actual = convert_var_to_state(
-        c_sys, np.array([1, 2, 3], dtype=np.float64), on_para_eq_constraint=True
+        c_sys, np.array([1, 2, 3], dtype=np.float64), on_para_eq_constraint=True, is_physicality_required=False
     )
     expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
     assert actual.is_physicality_required == False
@@ -637,7 +637,7 @@ def test_convert_var_to_state():
 
     # on_para_eq_constraint=False
     actual = convert_var_to_state(
-        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_para_eq_constraint=False
+        c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_para_eq_constraint=False, is_physicality_required=False
     )
     expected = np.array([1, 2, 3, 4], dtype=np.float64)
     assert actual.is_physicality_required == False
