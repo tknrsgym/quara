@@ -11,6 +11,15 @@ class QTomography:
     def __init__(
         self, experiment: Experiment, set_qoperations: SetQOperations,
     ):
+        """initialize quantum tomography class.
+
+        Parameters
+        ----------
+        experiment : Experiment
+            Experiment class used in quantum tomography.
+        set_qoperations : SetQOperations
+            SetQOperations class used in quantum tomography.
+        """
         self._experiment = experiment
         self._num_schedules = len(self._experiment.schedules)
         self._set_qoperations = set_qoperations

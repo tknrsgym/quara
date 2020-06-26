@@ -13,6 +13,23 @@ class StandardQTomography(QTomography):
     def __init__(
         self, experiment: Experiment, set_qoperations: SetQOperations,
     ):
+        """initialize standard quantum tomography class.
+
+        To inherit from this class, set the following instance variables in the constructor of the subclass.
+
+        - ``_coeffs_0th``: return value of ``get_coeffs_0th`` function.
+        - ``_coeffs_1st``: return value of ``get_coeffs_1st`` function.
+        - ``_map_experiment_to_setqoperations``: a map from indices of Experiment to indices of SetQOperations. 
+            if you map the 0th state to the 1st state, set ``{("state", 0): ("state", 1)}``.
+        - ``_map_setqoperations_to_experiment``: a map from indices of SetQOperations to indices of Experiment. 
+
+        Parameters
+        ----------
+        experiment : Experiment
+            Experiment class used in quantum tomography.
+        set_qoperations : SetQOperations
+            SetQOperations class used in quantum tomography.
+        """
         super().__init__(experiment, set_qoperations)
         self._coeffs_0th = None
         self._coeffs_1st = None
@@ -40,6 +57,13 @@ class StandardQTomography(QTomography):
         raise NotImplementedError()
 
     def is_fullrank_matA(self) -> bool:
+        """returns whether matrix A is full rank.
+
+        Returns
+        -------
+        bool
+            True where matrix A is full rank, False otherwise.
+        """
         matA = self.calc_matA()
         rank = np.linalg.matrix_rank(matA)
         size = min(matA.shape)
