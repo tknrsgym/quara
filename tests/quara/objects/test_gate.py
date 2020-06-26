@@ -503,6 +503,89 @@ class TestGate:
         expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_generate_from_var(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        matrix = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        hs = convert_hs(
+            matrix, matrix_basis.get_normalized_pauli_basis(), c_sys.basis()
+        )
+        hs = hs.real.astype(np.float64)
+        init_is_physicality_required = True
+        init_is_estimation_object = False
+        init_on_para_eq_constraint = True
+        init_on_algo_eq_constraint = False
+        init_on_algo_ineq_constraint = True
+        init_eps_proj_physical = 10 ** (-5)
+
+        source_gate = Gate(
+            c_sys,
+            hs=hs,
+            is_physicality_required=init_is_physicality_required,
+            is_estimation_object=init_is_estimation_object,
+            on_para_eq_constraint=init_on_para_eq_constraint,
+            on_algo_eq_constraint=init_on_algo_eq_constraint,
+            on_algo_ineq_constraint=init_on_algo_ineq_constraint,
+            eps_proj_physical=init_eps_proj_physical,
+        )
+
+        # Case 1: default
+        var = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        # Act
+        actual = source_gate.generate_from_var(var)
+        # Assert
+        expected = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual.hs, expected, decimal=15)
+        assert actual._composite_system is c_sys
+        assert actual.is_physicality_required is init_is_physicality_required
+        assert actual.is_estimation_object is init_is_estimation_object
+        assert actual.on_para_eq_constraint is init_on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is init_on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is init_on_algo_ineq_constraint
+        assert actual.eps_proj_physical is init_eps_proj_physical
+
+        # Case 2:
+        # Arrange
+        var = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+        source_is_physicality_required = False
+        source_is_estimation_object = True
+        source_on_para_eq_constraint = False
+        source_on_algo_eq_constraint = True
+        source_on_algo_ineq_constraint = False
+        source_eps_proj_physical = 10 ** (-2)
+
+        # Act
+        actual = source_gate.generate_from_var(
+            var,
+            is_physicality_required=source_is_physicality_required,
+            is_estimation_object=source_is_estimation_object,
+            on_para_eq_constraint=source_on_para_eq_constraint,
+            on_algo_eq_constraint=source_on_algo_eq_constraint,
+            on_algo_ineq_constraint=source_on_algo_ineq_constraint,
+            eps_proj_physical=source_eps_proj_physical,
+        )
+
+        # Assert
+        expected = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        assert np.all(actual.hs == expected)
+        assert actual._composite_system is c_sys
+        assert actual.is_physicality_required is source_is_physicality_required
+        assert actual.is_estimation_object is source_is_estimation_object
+        assert actual.on_para_eq_constraint is source_on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is source_on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
+        assert actual.eps_proj_physical == source_eps_proj_physical
+
 
 def test_convert_var_index_to_gate_index():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

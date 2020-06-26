@@ -61,6 +61,7 @@ class Povm(QOperation):
         super().__init__(
             c_sys=c_sys,
             is_physicality_required=is_physicality_required,
+            is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,

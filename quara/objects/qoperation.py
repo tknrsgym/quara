@@ -101,30 +101,32 @@ class QOperation:
     ) -> "QOperation":
         # generate_from_var_func()
         is_physicality_required = (
-            is_physicality_required
-            if is_physicality_required
-            else self.is_physicality_required
+            self.is_physicality_required
+            if is_physicality_required is None
+            else is_physicality_required
         )
         is_estimation_object = (
-            is_estimation_object if is_estimation_object else self.is_estimation_object
+            self.is_estimation_object
+            if is_estimation_object is None
+            else is_estimation_object
         )
         on_para_eq_constraint = (
-            on_para_eq_constraint
-            if on_para_eq_constraint
-            else self.on_para_eq_constraint
+            self.on_para_eq_constraint
+            if on_para_eq_constraint is None
+            else on_para_eq_constraint
         )
         on_algo_eq_constraint = (
-            on_algo_eq_constraint
-            if on_algo_eq_constraint
-            else self.on_algo_eq_constraint
+            self.on_algo_eq_constraint
+            if on_algo_eq_constraint is None
+            else on_algo_eq_constraint
         )
         on_algo_ineq_constraint = (
-            on_algo_ineq_constraint
-            if on_algo_ineq_constraint
-            else self.on_algo_ineq_constraint
+            self.on_algo_ineq_constraint
+            if on_algo_ineq_constraint is None
+            else on_algo_ineq_constraint
         )
         eps_proj_physical = (
-            eps_proj_physical if eps_proj_physical else self.eps_proj_physical
+            self.eps_proj_physical if eps_proj_physical is None else eps_proj_physical
         )
 
         generate_from_var_func = self._generate_from_var_func()
