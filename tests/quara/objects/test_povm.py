@@ -13,6 +13,7 @@ from quara.objects.matrix_basis import (
     get_gell_mann_basis,
     get_normalized_pauli_basis,
     get_pauli_basis,
+    convert_vec,
 )
 from quara.objects.operators import tensor_product
 from quara.objects.povm import (
@@ -547,6 +548,100 @@ class TestPovm:
         # Assert
         expected = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_generate_from_var(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        vecs = [
+            1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64),
+            1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64),
+        ]
+
+        to_vecs = [
+            convert_vec(vec, get_normalized_pauli_basis(), c_sys.basis()).real.astype(
+                np.float64
+            )
+            for vec in vecs
+        ]
+
+        init_is_physicality_required = False
+        init_is_estimation_object = True
+        init_on_para_eq_constraint = False
+        init_on_algo_eq_constraint = True
+        init_on_algo_ineq_constraint = False
+        init_eps_proj_physical = 10 ** (-3)
+        source_povm = Povm(
+            c_sys,
+            vecs=to_vecs,
+            is_physicality_required=init_is_physicality_required,
+            is_estimation_object=init_is_estimation_object,
+            on_para_eq_constraint=init_on_para_eq_constraint,
+            on_algo_eq_constraint=init_on_algo_eq_constraint,
+            on_algo_ineq_constraint=init_on_algo_ineq_constraint,
+            eps_proj_physical=init_eps_proj_physical,
+        )
+
+        # Case 1: default
+        var = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
+        # Act
+        actual = source_povm.generate_from_var(var)
+        # Assert
+        expected = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected)
+        for a, e in zip(actual.vecs, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert actual._composite_system is c_sys
+        assert actual.is_physicality_required is init_is_physicality_required
+        assert actual.is_estimation_object is init_is_estimation_object
+        assert actual.on_para_eq_constraint is init_on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is init_on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is init_on_algo_ineq_constraint
+        assert actual.eps_proj_physical is init_eps_proj_physical
+
+        # Case 2:
+        with pytest.raises(ValueError):
+            # ValueError: the POVM is not physically correct.
+            _ = source_povm.generate_from_var(var, is_physicality_required=True)
+
+        # Case 3:
+        # Arrange
+        var = np.array([2, 3, 5, 7], dtype=np.float64)
+        source_is_estimation_object = False
+        source_on_para_eq_constraint = True
+        source_on_algo_eq_constraint = False
+        source_on_algo_ineq_constraint = True
+        source_eps_proj_physical = 10 ** (-2)
+
+        # Act
+        actual = source_povm.generate_from_var(
+            var,
+            is_estimation_object=source_is_estimation_object,
+            on_para_eq_constraint=source_on_para_eq_constraint,
+            on_algo_eq_constraint=source_on_algo_eq_constraint,
+            on_algo_ineq_constraint=source_on_algo_ineq_constraint,
+            eps_proj_physical=source_eps_proj_physical,
+        )
+
+        # Assert
+        expected = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([-1, -3, -5, -6], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected)
+        for a, e in zip(actual.vecs, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert actual._composite_system is c_sys
+        assert actual.is_physicality_required is init_is_physicality_required
+        assert actual.is_estimation_object is source_is_estimation_object
+        assert actual.on_para_eq_constraint is source_on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is source_on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
+        assert actual.eps_proj_physical == source_eps_proj_physical
 
 
 def test_convert_var_index_to_povm_index():
