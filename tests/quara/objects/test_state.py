@@ -151,17 +151,17 @@ class TestState:
         assert state.on_algo_ineq_constraint == True
         assert state.eps_proj_physical == 10 ** (-4)
 
-    def test_zero_obj(self):
+    def test_generate_zero_obj(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
-        zero = state.zero_obj()
+        zero = state.generate_zero_obj()
 
         expected = np.zeros((4), dtype=np.float64)
         npt.assert_almost_equal(zero.vec, expected, decimal=15)
         assert zero.dim == state.dim
         assert zero.is_physicality_required == False
-        assert zero.is_estimation_object == True
+        assert zero.is_estimation_object == False
         assert zero.on_para_eq_constraint == state.on_para_eq_constraint
         assert zero.on_algo_eq_constraint == state.on_algo_eq_constraint
         assert zero.on_algo_ineq_constraint == state.on_algo_ineq_constraint

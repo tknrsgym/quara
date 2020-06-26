@@ -203,13 +203,13 @@ class TestGate:
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         gate = get_z(c_sys)
-        zero = gate.zero_obj()
+        zero = gate.generate_zero_obj()
 
         expected = np.zeros((4, 4), dtype=np.float64)
         npt.assert_almost_equal(zero.hs, expected, decimal=15)
         assert zero.dim == gate.dim
         assert zero.is_physicality_required == False
-        assert zero.is_estimation_object == True
+        assert zero.is_estimation_object == False
         assert zero.on_para_eq_constraint == gate.on_para_eq_constraint
         assert zero.on_algo_eq_constraint == gate.on_algo_eq_constraint
         assert zero.on_algo_ineq_constraint == gate.on_algo_ineq_constraint
