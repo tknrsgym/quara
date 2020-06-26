@@ -166,19 +166,10 @@ class Povm(QOperation):
         self._vecs = new_vecs
         self._is_physicality_required = False
 
-    def zero_obj(self):
+    def _generate_zero_obj(self):
         size = self.dim ** 2
         new_vecs = [np.zeros(size, dtype=np.float64) for _ in range(len(self.vecs))]
-        povm = Povm(
-            self.composite_system,
-            new_vecs,
-            is_physicality_required=False,
-            is_estimation_object=False,
-            on_para_eq_constraint=self.on_para_eq_constraint,
-            on_algo_eq_constraint=self.on_algo_eq_constraint,
-            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
-        )
-        raise povm
+        return new_vecs
 
     def to_var(self) -> np.array:
         return convert_povm_to_var(
