@@ -16,13 +16,26 @@ class LinearEstimator(StandardQTomographyEstimator):
     def calc_estimate_var(
         self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
     ) -> np.array:
+        estimate = self.calc_estimate_sequence_var(qtomography, [empi_dists])
+        return estimate
+
+    def calc_estimate_sequence_var(
+        self,
+        qtomography: StandardQTomography,
+        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+    ) -> np.array:
         if not qtomography.is_fullrank_matA():
             raise Exception
 
-        empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
-        f = np.vstack(empi_dists_tmp).flatten()
         A = qtomography.calc_matA()
         b = qtomography.calc_vecB()
         A_ddag = np.linalg.pinv(A.T @ A) @ A.T
-        v = A_ddag @ (f - b)
-        return v
+
+        estimate_sequence = []
+        for empi_dists in empi_dists_sequence:
+            empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
+            f = np.vstack(empi_dists_tmp).flatten()
+            v = A_ddag @ (f - b)
+            estimate_sequence.append(v)
+
+        return estimate_sequence
