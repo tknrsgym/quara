@@ -134,18 +134,9 @@ class Gate(QOperation):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)
         self._is_physicality_required = False
 
-    def zero_obj(self):
+    def _generate_zero_obj(self):
         new_hs = np.zeros(self.hs.shape, dtype=np.float64)
-        gate = Gate(
-            self._composite_system,
-            new_hs,
-            is_physicality_required=False,
-            on_para_eq_constraint=self.on_para_eq_constraint,
-            on_algo_eq_constraint=self.on_algo_eq_constraint,
-            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
-            eps_proj_physical=self.eps_proj_physical,
-        )
-        return gate
+        return new_hs
 
     def to_var(self) -> np.array:
         return convert_gate_to_var(
