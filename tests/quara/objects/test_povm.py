@@ -1,6 +1,7 @@
 import itertools
 import os
 from pathlib import Path
+import copy
 
 import numpy as np
 import numpy.testing as npt
@@ -642,6 +643,29 @@ class TestPovm:
         assert actual.on_algo_eq_constraint is source_on_algo_eq_constraint
         assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
         assert actual.eps_proj_physical == source_eps_proj_physical
+
+    def test_set_zero(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_x_measurement(c_sys)
+        old_povm = copy.copy(povm)
+        # Act
+        povm.set_zero()
+
+        assert len(povm.vecs) == len(old_povm.vecs)
+        for actual, old in zip(povm.vecs, old_povm.vecs):
+            assert actual.size == old.size
+            expected = np.zeros(old.size, dtype=np.float64)
+            npt.assert_almost_equal(actual, expected, decimal=15)
+
+        assert povm.dim == old_povm.dim
+        assert povm.is_physicality_required == False
+        assert povm.is_estimation_object == old_povm.is_estimation_object
+        assert povm.on_para_eq_constraint == old_povm.on_para_eq_constraint
+        assert povm.on_algo_eq_constraint == old_povm.on_algo_eq_constraint
+        assert povm.on_algo_ineq_constraint == old_povm.on_algo_ineq_constraint
+        assert povm.eps_proj_physical == old_povm.eps_proj_physical
 
 
 def test_convert_var_index_to_povm_index():
