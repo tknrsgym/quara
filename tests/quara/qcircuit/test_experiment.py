@@ -1,973 +1,512 @@
-from typing import Dict, List
+import collections
+import copy
+from typing import List, Tuple
 
 import numpy as np
-import numpy.testing as npt
-import pytest
 
-from quara.objects import matrix_basis
-from quara.objects.composite_system import CompositeSystem
-from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
-from quara.objects.povm import (
-    Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
-    get_xx_measurement,
-    get_xy_measurement,
-    get_yy_measurement,
-    get_zz_measurement,
-)
-from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q
-from quara.qcircuit.experiment import (
-    Experiment,
-    QuaraScheduleItemError,
-    QuaraScheduleOrderError,
-)
-from quara.objects.operators import composite, tensor_product
+from quara.objects.gate import Gate
+from quara.objects.povm import Povm
+from quara.objects.state import State
+import quara.objects.operators as op
+from quara.qcircuit import data_generator
 
 
-class TestExperiment:
-    def array_states_povms_gates(self):
-        # Array
-        e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
-        c_sys = CompositeSystem([e_sys])
-        # State
-        state_0 = get_x0_1q(c_sys)
-        state_1 = get_y0_1q(c_sys)
-        states = [state_0, state_1]
+class QuaraScheduleItemError(Exception):
+    """Raised when an element of the schedule is incorrect.
 
-        # POVM
-        povm_0 = get_x_measurement(c_sys)
-        povm_1 = get_x_measurement(c_sys)
-        povms = [povm_0, povm_1]
-        # Gate
-        gate_0 = get_i(c_sys)
-        gate_1 = get_h(c_sys)
-        gates = [gate_0, gate_1]
-        return states, povms, gates
+    Parameters
+    ----------
+    Exception : [type]
+        [description]
+    """
 
-    def array_experiment_data(self):
-        # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
+    pass
 
-        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
-        gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-        ]
-        exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+
+class QuaraScheduleOrderError(Exception):
+    """Raised when the order of the schedule is incorrect.
+
+    Parameters
+    ----------
+    Exception : [type]
+        [description]
+    """
+
+    pass
+
+
+class Experiment:
+    """
+    Class to manage experiment settings
+    This class is not limited to tomography, but deals with general quantum circuits.
+    """
+
+    def __init__(
+        self,
+        states: List[State],
+        povms: List[Povm],
+        gates: List[Gate],
+        schedules: List[List[Tuple[str, int]]],
+    ) -> None:
+
+        # Validation
+        self._validate_type(states, State)
+        self._validate_type(povms, Povm)
+        self._validate_type(gates, Gate)
+
+        # Set
+        self._states: List[State] = states
+        self._povms: List[Povm] = povms
+        self._gates: List[Gate] = gates
+        # TODO: List[MProcess]
+        self._mprocesses: list = []
+
+        # Validate
+        self._validate_schedules(schedules)
+        # Set
+        self._schedules: List[List[Tuple[str, int]]] = schedules
+
+    @property
+    def states(self) -> List[State]:
+        return self._states
+
+    @states.setter
+    def states(self, value):
+        self._validate_type(value, State)
+        objdict = dict(
+            state=value, povm=self._povms, gate=self._gates, mprocess=self._mprocesses,
         )
-        return exp
 
-    def array_experiment_data_2qubit(self):
-        # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
-        e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
-        c_sys2 = CompositeSystem([e_sys2])
-        c_sys12 = CompositeSystem([e_sys1, e_sys2])
+        try:
+            self._validate_schedules(self._schedules, objdict=objdict)
+        except QuaraScheduleItemError as e:
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'states' does not match schedules."
+            )
+        else:
+            self._states = value
 
-        # Gate
-        cnot = get_cnot(c_sys12, e_sys1)
-        swap = get_swap(c_sys12)
-        cz = get_cz(c_sys12)
+    @property
+    def povms(self) -> List[Povm]:
+        return self._povms
 
-        # POVM
-        povm_xx = get_xx_measurement(c_sys12)
-        povm_xy = get_xy_measurement(c_sys12)
-        povm_yy = get_yy_measurement(c_sys12)
-        povm_zz = get_zz_measurement(c_sys12)
-
-        # State
-        state1 = get_z0_1q(c_sys1)
-        state2 = get_z0_1q(c_sys2)
-        h1 = get_h(c_sys1)
-        state1 = composite(h1, state1)
-        state12 = tensor_product(state1, state2)
-
-        state_list = [state12]
-        povm_list = [povm_xx, povm_xy, povm_yy, povm_zz]
-        gate_list = [cnot, swap, cz]
-
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-            [("state", 0), ("gate", 0), ("povm", 2)],
-            [("state", 0), ("gate", 1), ("povm", 0)],
-        ]
-        exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+    @povms.setter
+    def povms(self, value):
+        self._validate_type(value, Povm)
+        objdict = dict(
+            state=self._states, povm=value, gate=self._gates, mprocess=self._mprocesses,
         )
-        return exp
 
-    def array_experiment_data_2qubit_2gate(self):
-        # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
-        e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
-        c_sys2 = CompositeSystem([e_sys2])
-        c_sys12 = CompositeSystem([e_sys1, e_sys2])
+        try:
+            self._validate_schedules(self._schedules, objdict=objdict)
+        except QuaraScheduleItemError as e:
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'povms' does not match schedules."
+            )
+        else:
+            self._povms = value
 
-        # Gate
-        cnot = get_cnot(c_sys12, e_sys2)
-        swap = get_swap(c_sys12)
+    @property
+    def gates(self) -> List[Gate]:
+        return self._gates
 
-        # State
-        state1 = get_z0_1q(c_sys1)
-        state2 = get_z0_1q(c_sys2)
-        h = get_h(c_sys2)
-        state2 = composite(h, state2)
-        state12 = tensor_product(state1, state2)
+    @gates.setter
+    def gates(self, value):
+        self._validate_type(value, Gate)
 
-        # POVM
-        povm_xx = get_xx_measurement(c_sys12)
-        povm_xy = get_xy_measurement(c_sys12)
-        povm_yy = get_yy_measurement(c_sys12)
-
-        state_list = [state12]
-        povm_list = [povm_xx, povm_xy, povm_yy]
-        gate_list = [cnot, swap]
-
-        schedules = [
-            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 1)],
-            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 2)],
-        ]
-        exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+        objdict = dict(
+            state=self._states, povm=self._povms, gate=value, mprocess=self._mprocesses,
         )
-        return exp
+        try:
+            self._validate_schedules(self._schedules, objdict=objdict)
+        except QuaraScheduleItemError as e:
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'gates' does not match schedules."
+            )
+        else:
+            self._gates = value
 
-    def test_copy(self):
-        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
-        c_sys = CompositeSystem([e_sys])
+    @property
+    def schedules(self) -> List[List[Tuple[str, int]]]:
+        return self._schedules
 
-        states = [get_z0_1q(c_sys)]
-        gates = [get_x(c_sys)]
-        povm_x = get_x_measurement(c_sys)
-        povm_y = get_y_measurement(c_sys)
-        povm_z = get_z_measurement(c_sys)
-        povms = [povm_x, povm_y, povm_z]
-        schedules = [
-            [("state", 0), ("povm", 0)],
-            [("state", 0), ("povm", 1)],
-            [("state", 0), ("povm", 2)],
-        ]
+    @schedules.setter
+    def schedules(self, value):
+        self._validate_schedules(value)
+        self._schedules = value
+
+    def _validate_type(self, targets, expected_type) -> None:
+        for target in targets:
+            if target and not isinstance(target, expected_type):
+                arg_name = expected_type.__name__.lower() + "s"
+                error_message = "'{}' must be a list of {}.".format(
+                    arg_name, expected_type.__name__
+                )
+                raise TypeError(error_message)
+
+    def _validate_schedules(
+        self, schedules: List[List[Tuple[str, int]]], objdict: dict = None
+    ) -> None:
+        """
+        - The schedule always starts with the state.
+        - There must be one state.
+        - The gate and mprocess are 0~N
+        - POVM is 0 or 1.
+        - The last one is povm or mprocess
+
+        Parameters
+        ----------
+        schedules : List[List[Tuple[str, int]]]
+            [description]
+
+        Returns
+        -------
+        bool
+            [description]
+        """
+
+        for i, schedule in enumerate(schedules):
+            try:
+                for j, item in enumerate(schedule):
+                    self._validate_schedule_item(item, objdict=objdict)
+            except (ValueError, IndexError, TypeError) as e:
+                message = "The item in the schedules[{}] is invalid.\n".format(i)
+                message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
+                message += "{}: {}\n".format(j, item)
+                message += "\nDetail: {}".format(e.args[0])
+                raise QuaraScheduleItemError(message)
+
+            try:
+                self._validate_schedule_order(schedule)
+            except ValueError as e:
+                message = "There is a schedule with an invalid order.\n"
+                message += "Invalid Schedule: [{}] {}\n".format(i, str(schedule))
+                message += "Detail: {}".format(e.args[0])
+                raise QuaraScheduleOrderError(message)
+
+    def _validate_schedule_order(self, schedule: List[Tuple[str, int]]) -> None:
+        """ Validate that the order of the schedule is correct.
+        For example, check to see if the schedule starts with 'state' and ends with 'povm'.
+
+        Parameters
+        ----------
+        schedule : List[Tuple[str, int]]
+            Schedule to be validated
+        """
+
+        if len(schedule) < 2:
+            raise ValueError(
+                "The schedule is too short. The schedule should start with state and end with povm or mprocess."
+            )
+
+        TYPE_INDEX = 0
+        INDEX_INDEX = 1
+
+        if schedule[0][TYPE_INDEX] != "state":
+            raise ValueError("The first element of the schedule must be a 'state'.")
+        if schedule[-1][TYPE_INDEX] not in ["povm", "mprocess"]:
+            raise ValueError(
+                "The last element of the schedule must be either 'povm' or 'mprocess'."
+            )
+
+        counter = collections.Counter([s[TYPE_INDEX] for s in schedule])
+        if counter["state"] >= 2:
+            raise ValueError(
+                "There are too many States; one schedule can only contain one State."
+            )
+        if counter["povm"] >= 2:
+            raise ValueError(
+                "There are too many POVMs; one schedule can only contain one POVM."
+            )
+
+    def _validate_schedule_item(self, item: Tuple[str, int], objdict=None) -> None:
+        """Validate that the item in the schedule is correct
+
+        Parameters
+        ----------
+        item : Tuple[str, int]
+            Schedule item to be validated.
+
+        Raises
+        ------
+        TypeError
+            [description]
+        ValueError
+            [description]
+        TypeError
+            [description]
+        TypeError
+            [description]
+        ValueError
+            [description]
+        IndexError
+            [description]
+        IndexError
+            [description]
+        IndexError
+            [description]
+        """
+        if type(item) != tuple:
+            raise TypeError("A schedule item must be a tuple of str and int.")
+
+        if len(item) != 2:
+            raise ValueError("A schedule item must be a tuple of str and int.")
+
+        item_name, item_index = item[0], item[1]
+        if type(item_name) != str:
+            raise TypeError("A schedule item must be a tuple of str and int.")
+
+        if type(item_index) != int:
+            raise TypeError("A schedule item must be a tuple of str and int.")
+
+        # TODO: 大文字・小文字の考慮。現状は小文字だけを想定する
+        if item_name not in ["state", "povm", "gate", "mprocess"]:
+            raise ValueError(
+                "The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'."
+            )
+
+        now_povms = objdict["povm"] if objdict else self._povms
+        if item_name == "povm" and not now_povms:
+            raise IndexError(
+                "'povm' is used in the schedule, but no povm is given. Give a list of Povm to parameter 'povms' in the constructor."
+            )
+        now_mprocesses = objdict["mprocess"] if objdict else self._mprocesses
+        if item_name == "mprocess" and not now_mprocesses:
+            raise IndexError(
+                "'mprocess' is used in the schedule, but no mprocess is given. Give a list of Mprocess to parameter 'mprocesses' in the constructor."
+            )
+
+        if not objdict:
+            objdict = dict(
+                state=self._states,
+                povm=self._povms,
+                gate=self._gates,
+                mprocess=self._mprocesses,
+            )
+        if not (0 <= item_index < len(objdict[item_name])):
+            error_message = "The index out of range."
+            error_message += "'{}s' is {} in length, but an index out of range was referenced in the schedule.".format(
+                item_name, item_index
+            )
+            raise IndexError(error_message)
+
+    def _validate_schedule_index(self, schedule_index: int) -> None:
+        if type(schedule_index) != int:
+            raise TypeError("The type of 'schedule_index' must be int.")
+
+        if not (0 <= schedule_index < len(self.schedules)):
+            error_message = "The value of 'schedule_index' must be an integer between 0 and {}.".format(
+                len(self.schedules) - 1
+            )
+            raise IndexError(error_message)
+
+    def _validate_eq_schedule_len(self, target: list, var_name: str) -> None:
+        if type(target) != list:
+            error_message = "The type of '{}' must be list.".format(var_name)
+            raise TypeError(error_message)
+
+        if len(target) != len(self.schedules):
+            error_message = "The number of elements in '{}' must be the same as the number of 'schedules';\n".format(
+                var_name
+            )
+            error_message += "The length of '{}': {}\n".format(var_name, len(target))
+            error_message += "The length of 'schedules': {}\n".format(
+                len(self.schedules)
+            )
+            raise ValueError(error_message)
+
+    def copy(self):
+        """returns copied Experiment.
+
+        Returns
+        -------
+        Experiment
+            copied Experiment.
+        """
+        states = copy.copy(self.states)
+        gates = copy.copy(self.gates)
+        povms = copy.copy(self.povms)
+        schedules = copy.copy(self.schedules)
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules,
+            states=states, gates=gates, povms=povms, schedules=schedules
         )
-        experiment_copy = experiment.copy()
+        return experiment
 
-        assert experiment_copy.states is not experiment.states
-        for actual, expected in zip(experiment_copy.states, experiment.states):
-            assert np.all(actual.vec == expected.vec)
+    def calc_prob_dist(self, schedule_index: int) -> np.array:
+        """Calculate the probability distributionthe by running the specified schedule.
 
-        assert experiment_copy.gates is not experiment.gates
-        for actual, expected in zip(experiment_copy.gates, experiment.gates):
-            assert np.all(actual.hs == expected.hs)
+        Parameters
+        ----------
+        schedule_index : int
+            Index of the schedule
 
-        assert experiment_copy.povms is not experiment.povms
-        for actual, expected in zip(experiment_copy.povms, experiment.povms):
-            assert np.all(actual.vecs == expected.vecs)
+        Returns
+        -------
+        np.array
+            Probability distribution
 
-    def test_calc_prob_dist(self):
-        # Array
-        exp = self.array_experiment_data()
+        Raises
+        ------
+        ValueError
+            If the object referenced in the schedule, such as State, POVM, Gate, or Mprocess, is None.
+        """
+        self._validate_schedule_index(schedule_index)
+        schedule = self.schedules[schedule_index]
+        key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
+        targets = collections.deque()
+        for item in schedule:
+            k, i = item
+            target = key_map[k][i]
+            if not target:
+                raise ValueError("{}s[{}] is None.".format(k, i))
+            targets.appendleft(target)
 
-        # Case 1:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=0)
+        prob_dist = op.composite(*targets)
+        return prob_dist
 
-        # Assert
-        expected = np.array([1, 0], dtype=np.float64)
-        npt.assert_almost_equal(actual, expected, decimal=15)
+    def calc_prob_dists(self) -> List[np.array]:
+        """Caluclate probability distributions for all schedules.
 
-        # Case 2:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=1)
+        Returns
+        -------
+        List[np.array]
+            Probability distributions for all schedules
+        """
+        prob_dists = []
+        for i in range(len(self.schedules)):
+            r = self.calc_prob_dist(i)
+            prob_dists.append(r)
+        return prob_dists
 
-        # Assert
-        expected = np.array([0.5, 0.5], dtype=np.float64)
-        npt.assert_almost_equal(actual, expected, decimal=15)
+    def generate_data(
+        self, schedule_index: int, data_num: int, seed: int = None
+    ) -> List[int]:
+        """Runs the specified schedule to caluclate the probability distribution and generate random data.
 
-        # Case 3: Exception
-        ng_schedule_index = len(exp.schedules)
-        with pytest.raises(IndexError):
-            # IndexError: The value of 'schedule_index' must be an integer between 0 and 1.
-            _ = exp.calc_prob_dist(schedule_index=ng_schedule_index)
+        Parameters
+        ----------
+        schedule_index : int
+            Index of the schedule.
+        data_num : int
+            Length of the data.
+        seed : int, optional
+            A seed used to generate random data, by default None
 
-        # Case 4:
-        ng_schedule_index = 0.1
-        with pytest.raises(TypeError):
-            # TypeError: The type of 'schedule_index' must be int.
-            _ = exp.calc_prob_dist(schedule_index=ng_schedule_index)
+        Returns
+        -------
+        List[int]
+            Generated data.
 
-    def test_calc_prob_dists(self):
-        # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
+        Raises
+        ------
+        TypeError
+            [description]
+        ValueError
+            [description]
+        IndexError
+            [description]
+        """
+        if type(data_num) != int:
+            raise TypeError("The type of 'data_num' must be int.")
 
-        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
-        gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-        ]
-        exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+        if data_num < 0:
+            raise ValueError("The value of 'data_num' must be a non-negative integer.")
+
+        self._validate_schedule_index(schedule_index)
+
+        prob_dist = self.calc_prob_dist(schedule_index)
+        data = data_generator.generate_data_from_prob_dist(prob_dist, data_num, seed)
+        return data
+
+    def generate_dataset(
+        self, data_nums: List[int], seeds: List[int] = None,
+    ) -> List[List[np.array]]:
+        """Run all the schedules to caluclate the probability distribution and generate random data.
+
+        Parameters
+        ----------
+        data_nums : List[int]
+            A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
+        seeds : List[int], optional
+            A list of the seeds to be used in each schedule, by default None
+
+        Returns
+        -------
+        List[List[np.array]]
+            Generated dataset.
+        """
+
+        self._validate_eq_schedule_len(data_nums, "data_nums")
+        self._validate_eq_schedule_len(seeds, "seeds")
+
+        prob_dists = self.calc_prob_dists()
+        dataset = data_generator.generate_dataset_from_prob_dists(
+            prob_dists=prob_dists, data_nums=data_nums, seeds=seeds
         )
+        return dataset
 
-        # Act
-        actual = exp.calc_prob_dists()
+    def generate_empi_dist(
+        self, schedule_index: int, num_sums: List[int], seed: int = None
+    ) -> List[Tuple[int, np.array]]:
+        """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
 
-        # Assert
-        expected = [
-            np.array([1, 0], dtype=np.float64),
-            np.array([0.5, 0.5], dtype=np.float64),
-        ]
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            npt.assert_almost_equal(a, e, decimal=15)
+        Uses generated data from 0-th to ``num_sums[index]``-th to calculate empirical distributions.
 
-    def test_calc_prob_dist_exist_none(self):
-        # Array
-        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
-        c_sys1 = CompositeSystem([e_sys1])
+        Parameters
+        ----------
+        schedule_index : int
+            Index of schedule.
+        num_sums : List[int]
+            List of the number of data to caluclate the experience distribution
+        seed : int, optional
+            A seed used to generate random data, by default None.
 
-        state_list = [None, get_y0_1q(c_sys1)]
-        gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 0), ("gate", 0), ("povm", 1)],
-        ]
-        exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+        Returns
+        -------
+        List[Tuple[int, np.array]]
+            A list of the numbers of data and empirical distribution.
+        """
+        data_n = max(num_sums)
+        # TODO: measurement_numを得るために計算している
+        # 確率分布をこの関数内とgenerate_dataメソッドの2回計算しているので、改善すること
+        prob_dist = self.calc_prob_dist(schedule_index)
+        measurement_num = len(prob_dist)
+
+        data = self.generate_data(
+            schedule_index=schedule_index, data_num=data_n, seed=seed
         )
-
-        # Act
-        with pytest.raises(ValueError):
-            # ValueError: states[0] is None.
-            _ = exp.calc_prob_dist(schedule_index=0)
-
-    def test_calc_prob_dist_2qubit(self):
-        # Array
-        exp = self.array_experiment_data_2qubit()
-
-        # Case 1:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=0)
-
-        # Assert
-        expected = [0.5, 0, 0, 0.5]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
-        # Case 2:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=1)
-
-        # Assert
-        expected = [0.25, 0.25, 0.25, 0.25]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
-        # Case 3:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=2)
-
-        # Assert
-        expected = [0, 0.5, 0.5, 0]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
-        # Case 4:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=3)
-
-        # Assert
-        expected = [0.5, 0, 0.5, 0]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
-    def test_calc_prob_dist_2qubit_2gate(self):
-        # Array
-        exp = self.array_experiment_data_2qubit_2gate()
-
-        # Case 1:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=0)
-
-        # Assert
-        expected = [0.5, 0, 0, 0.5]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
-        # Case 2:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=1)
-
-        # Assert
-        expected = [0.25, 0.25, 0.25, 0.25]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
-        # Case 3:
-        # Act
-        actual = exp.calc_prob_dist(schedule_index=2)
-
-        # Assert
-        expected = [0, 0.5, 0.5, 0]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
-    def test_generate_data(self):
-        # Array
-        exp = self.array_experiment_data()
-
-        # Act
-        # Case 1:
-        actual = exp.generate_data(schedule_index=0, data_num=10, seed=7)
-
-        # Assert
-        expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        assert actual == expected
-
-        # Case 2:
-        actual = exp.generate_data(schedule_index=1, data_num=20, seed=77)
-
-        # Assert
-        expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
-        assert actual == expected
-
-        # Case 3:
-        actual = exp.generate_data(schedule_index=1, data_num=0, seed=7)
-
-        # Assert
-        expected = []
-        assert actual == expected
-
-    def test_generate_data_exception(self):
-        # Array
-        exp = self.array_experiment_data()
-
-        # Act
-        # Case 1:
-        ng_data_num = -1
-        with pytest.raises(ValueError):
-            # ValueError: The value of 'data_num' must be a non-negative integer.
-            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num, seed=7)
-
-        # Case 2:
-        ng_data_num = 0.1
-        with pytest.raises(TypeError):
-            # TypeError: The type of 'data_num' must be int.
-            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num, seed=7)
-
-        # Case 3:
-        ng_schedule_index = len(exp.schedules)
-
-        with pytest.raises(IndexError):
-            # IndexError: The value of 'schedule_index' must be an integer between 0 and 1.
-            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10, seed=7)
-
-        # Case 4:
-        ng_schedule_index = 0.1
-        with pytest.raises(TypeError):
-            # TypeError: The type of 'schedule_index' must be int.
-            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10, seed=7)
-
-    def test_generate_dataset(self):
-        # Array
-        exp = self.array_experiment_data()
-
-        # Case 1:
-        actual = exp.generate_dataset(data_nums=[10, 20], seeds=[7, 77])
-        expected = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1],
-        ]
-        assert actual == expected
-
-        # Case 2:
-        actual = exp.generate_dataset(data_nums=[0, 5], seeds=[7, 77])
-        expected = [[], [1, 1, 1, 0, 0]]
-        assert actual == expected
-
-    def test_generate_dataset_exception(self):
-        # Array
-        exp = self.array_experiment_data()
-        ok_data_nums = [10, 20]
-        ok_seed_list = [7, 77]
-
-        # Case 1:
-        ng_data_nums = [1, 1, 1]
-
-        with pytest.raises(ValueError):
-            # ValueError: The number of elements in 'data_nums' must be the same as the number of 'schedules';
-            _ = exp.generate_dataset(data_nums=ng_data_nums, seeds=ok_seed_list)
-
-        # Case 2:
-        ng_data_nums = 1
-        with pytest.raises(TypeError):
-            # TypeError: The type of 'data_nums' must be list.
-            _ = exp.generate_dataset(data_nums=ng_data_nums, seeds=ok_seed_list)
-
-        # Case 3:
-        ng_seed_list = [1]
-        with pytest.raises(ValueError):
-            # ValueError: The number of elements in 'seeds' must be the same as the number of 'schedules';
-            _ = exp.generate_dataset(data_nums=ok_data_nums, seeds=[ng_seed_list])
-
-        # Case 4:
-        ng_seed_list = 1
-        with pytest.raises(TypeError):
-            # TypeError: The type of 'seeds' must be list.
-            _ = exp.generate_dataset(data_nums=ok_data_nums, seeds=ng_seed_list)
-
-    def test_generate_empi_dist(self):
-        # Array
-        exp = self.array_experiment_data()
-
-        # Act
-        # Case 1:
-        # probdist: [1, 0]
-        # data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        num_sums = [5, 10, 20]
-        # seed_list = [7, 77]
-        actual = exp.generate_empi_dist(schedule_index=0, num_sums=num_sums)
-
-        # Assert
-        expected_1 = [
-            (5, np.array([1, 0])),
-            (10, np.array([1, 0])),
-            (20, np.array([1, 0])),
-        ]
-        assert len(actual) == len(expected_1)
-        for a, e in zip(actual, expected_1):
-            assert a[0] == e[0]
-            assert np.all(a[1] == e[1])
-
-        # Act
-        # Case 2:
-        # probdist: [0.5, 0.5]
-        # data: [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
-        num_sums = [5, 10, 15, 20]
-        actual = exp.generate_empi_dist(schedule_index=1, num_sums=num_sums, seed=77)
-
-        # Assert
-        expected_2 = [
-            (5, np.array([0.4, 0.6])),
-            (10, np.array([0.4, 0.6])),
-            (15, np.array([6 / 15, 9 / 15])),
-            (20, np.array([0.45, 0.55])),
-        ]
-        assert len(actual) == len(expected_2)
-        for a, e in zip(actual, expected_2):
-            assert a[0] == e[0]
-            assert np.all(a[1] == e[1])
-
-    def test_generate_empi_dist_exception(self):
-        # Array
-        exp = self.array_experiment_data()
-        ok_num_sums = [7]
-
-        # Act & Assert
-        # Case 1:
-        ng_schedule_index = 0.1
-        with pytest.raises(TypeError):
-            actual = exp.generate_empi_dist(
-                schedule_index=ng_schedule_index, num_sums=ok_num_sums, seed=7
-            )
-
-        # Act & Assert
-        # Case 2:
-        ng_schedule_index = len(exp.schedules)
-        with pytest.raises(IndexError):
-            actual = exp.generate_empi_dist(
-                schedule_index=ng_schedule_index, num_sums=ok_num_sums, seed=7
-            )
-
-    def test_generate_empi_dists_sequence(self):
-        # Array
-        exp = self.array_experiment_data()
-        num_sums = [5, 10, 20]
-        seeds = [7, 77, 777]
-
-        # Act
-        actual = exp.generate_empi_dists_sequence(num_sums=num_sums, seeds=seeds)
-
-        # Assert
-        expected = [
-            [(5, np.array([1, 0])), (5, np.array([0.4, 0.6]))],
-            [(10, np.array([1, 0])), (10, np.array([0.4, 0.6]))],
-            [(20, np.array([1, 0])), (20, np.array([0.5, 0.5]))],
-        ]
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert len(a) == len(e)
-            for a_item, e_item in zip(a, e):
-                assert a_item[0] == e_item[0]
-                assert np.all(a_item[1] == e_item[1])
-
-    def test_generate_empi_dists_sequence_exception(self):
-        # Array
-        exp = self.array_experiment_data()
-        ok_num_sums = [5, 10, 20]
-        ok_seeds = [7, 77, 777]
-
-        # Act
-        # Case 1:
-        ng_num_sums = [[5, 10, 20]]
-        with pytest.raises(ValueError):
-            actual = exp.generate_empi_dists_sequence(
-                num_sums=ng_num_sums, seeds=ok_seeds
-            )
-
-        # Case 2:
-        ng_num_sums = [[5, 10, 20], [5, 10, 20], [5, 10, 20]]
-        with pytest.raises(TypeError):
-            actual = exp.generate_empi_dists_sequence(
-                num_sums=ng_num_sums, seeds=ok_seeds
-            )
-
-        # Case 3:
-        ng_seeds = [7]
-        with pytest.raises(ValueError):
-            actual = exp.generate_empi_dists_sequence(
-                num_sums=ok_num_sums, seeds=ng_seeds
-            )
-
-    def test_getter(self):
-        # Array
-        states, povms, gates = self.array_states_povms_gates()
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 1), ("gate", 1), ("povm", 1)],
-        ]
-
-        # Act & Assert
-        _ = Experiment(states=states, povms=povms, gates=gates, schedules=schedules,)
-
-        # Arrange
-        source_states = [states[0], None]
-        source_povms = [None, povms[0]]
-        source_gates = [gates[0], None]
-
-        # Act & Assert
-        exp = Experiment(
-            states=source_states,
-            povms=source_povms,
-            gates=source_gates,
-            schedules=schedules,
+        empi_dist = data_generator.calc_empi_dist(
+            measurement_num=measurement_num, data=data, num_sums=num_sums
         )
+        return empi_dist
 
-        # Assert
-        actual, expected = exp.states, source_states
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert a == e
+    def generate_empi_dists_sequence(
+        self, list_num_sums: List[List[int]], seeds: List[int] = None
+    ) -> List[List[Tuple[int, np.array]]]:
+        """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
 
-        actual, expected = exp.povms, source_povms
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert a == e
+        Parameters
+        ----------
+        list_num_sums : List[List[int]]
+            A list of the number of data to use to calculate the experience distribution for each schedule.
+        seeds : List[int], optional
+            A List of seeds, by default None
 
-        actual, expected = exp.gates, source_gates
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert a == e
+        Returns
+        -------
+        List[List[Tuple[int, np.array]]]
+            A list of tuples for the number of data and experience distribution for each schedules.
+        """
 
-        actual, expected = exp.schedules, schedules
-        assert len(actual) == len(expected)
-        for a, e in zip(actual, expected):
-            assert a == e
+        self._validate_eq_schedule_len(list_num_sums, "list_num_sums")
+        self._validate_eq_schedule_len(seeds, "seeds")
 
-    def test_setter_validation(self):
-        # Array
-        states, povms, gates = self.array_states_povms_gates()
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 1), ("gate", 1), ("povm", 1)],
-        ]
-        ok_new_states = [states[1], states[0]]
-        ok_new_povms = [povms[1], povms[0]]
-        ok_new_gates = [gates[1], gates[0]]
-        ok_new_schedules = [schedules[1], schedules[0]]
-
-        exp = Experiment(states=states, povms=povms, gates=gates, schedules=schedules,)
-
-        # State
-        # Act & Assert
-        ng_new_states = [states[0], povms[0]]
-        with pytest.raises(TypeError):
-            # TypeError: 'states' must be a list of State.
-            exp.states = ng_new_states
-        assert exp.states == states
-
-        # Act & Assert
-        ng_new_states = [states[0]]
-        with pytest.raises(QuaraScheduleItemError):
-            # New State does not match schedules.
-            exp.states = ng_new_states
-        # Assert
-        assert exp.states == states
-
-        # Act & Assert
-        exp.states = ok_new_states
-        assert exp.states == ok_new_states
-
-        # POVM
-        # Act & Assert
-        ng_new_povms = [states[0], povms[0]]
-        with pytest.raises(TypeError):
-            # TypeError: 'povms' must be a list of Povm.
-            exp.povms = ng_new_povms
-        assert exp.povms == povms
-
-        # Act & Assert
-        ng_new_povms = [povms[0]]
-        with pytest.raises(QuaraScheduleItemError):
-            # New 'povms' does not match schedules.
-            exp.povms = ng_new_povms
-        assert exp.povms == povms
-
-        # Act & Assert
-        exp.povms = ok_new_povms
-        assert exp.povms == ok_new_povms
-
-        # Gate
-        # Act & Assert
-        ng_new_gates = [states[0], gates[0]]
-        with pytest.raises(TypeError):
-            # TypeError: 'gates' must be a list of Gate.
-            exp.gates = ng_new_gates
-        assert exp.gates == gates
-
-        # Act & Assert
-        ng_new_gates = [gates[0]]
-        with pytest.raises(QuaraScheduleItemError):
-            # New 'gates' does not match schedules.
-            exp.gates = ng_new_gates
-        assert exp.gates == gates
-
-        # Act & Assert
-        exp.gates = ok_new_gates
-        assert exp.gates == ok_new_gates
-
-        # Schedule
-        # Act & Assert
-        ng_new_schedules = [
-            [("povm"), ("gate", 1), ("povm", 1)],
-            [("state", 1), ("gate", 1), ("povm", 1)],
-        ]
-        with pytest.raises(QuaraScheduleItemError):
-            # A schedule item must be a tuple of str and int.
-            exp.schedules = ng_new_schedules
-        assert exp.schedules == schedules
-
-        # Act & Assert
-        ng_new_schedules = [
-            [("povm", 1), ("gate", 1), ("povm", 1)],
-            [("state", 1), ("gate", 1), ("povm", 1)],
-        ]
-        with pytest.raises(QuaraScheduleOrderError):
-            # he first element of the schedule must be a 'state'.
-            exp.schedules = ng_new_schedules
-        assert exp.schedules == schedules
-
-        # Act & Assert
-        exp.schedules = ok_new_schedules
-        assert exp.schedules == ok_new_schedules
-
-    def test_init_unexpected_type(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],
-            [("state", 1), ("gate", 1), ("povm", 1)],
-        ]
-
-        # Act & Assert
-        # Case1: Invalid states
-        ng_states = [ok_states[0], ok_povms[0]]
-        with pytest.raises(TypeError):
-            # TypeError: 'states' must be a list of State.
-            _ = Experiment(
-                states=ng_states, povms=ok_povms, gates=ok_gates, schedules=schedules,
-            )
-
-        # Case2: Invalid povms
-        ng_povms = [ok_states[0], ok_povms[0]]
-        with pytest.raises(TypeError):
-            # TypeError: 'povms' must be a list of Povm.
-            _ = Experiment(
-                states=ok_states, povms=ng_povms, gates=ok_gates, schedules=schedules,
-            )
-
-        # Case3: Invalid gates
-        ng_gates = [ok_gates[0], ok_povms[0]]
-        with pytest.raises(TypeError):
-            # TypeError: 'povms' must be a list of Povm.
-            _ = Experiment(
-                states=ok_states, povms=ok_povms, gates=ng_gates, schedules=schedules,
-            )
-
-    def test_expeption_order_too_short_schedule(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0)],
-            [("state", 1), ("gate", 1), ("povm", 1)],
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleOrderError):
-            # There is a schedule with an invalid order.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_expeption_order_not_start_with_state(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("povm", 1), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleOrderError):
-            # There is a schedule with an invalid order.
-            # Detail: The first element of the schedule must be a 'state'.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_expeption_order_not_end_with_povm_mprocess(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state"), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # There is a schedule with an invalid order.
-            # Detail: The last element of the schedule must be either 'povm' or 'mprocess'.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-        # TODO: mprocessを実装後、mprocessで終わるスケジュールを含めたテストを追加する
-
-    def test_expeption_order_too_many_state(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("gate", 1), ("povm", 0)],  # OK
-            [("state", 0), ("state", 1), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleOrderError):
-            # There is a schedule with an invalid order.
-            # Detail: There are too many States; one schedule can only contain one State.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_expeption_order_too_many_povm(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state", 0), ("gate", 1), ("povm", 0), ("povm", 1)],  # NG
-            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleOrderError):
-            # There is a schedule with an invalid order.
-            # Detail: There are too many POVMs; one schedule can only contain one POVM.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_exception_item_no_mprocess(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state", 0), ("gate", 0), ("mprocess", 0)],  # NG
-            [("state", 1), ("gate", 1), ("povm", 1)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # There is a schedule with an invalid order.
-            # Detail: The first element of the schedule must be a 'state'.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_exception_item_not_tuple(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [1, ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # The item in the schedules[1] is invalid.
-            # Detail: A schedule item must be a tuple of str and int.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_exception_item_too_short(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state"), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # The item in the schedules[1] is invalid.
-            # Detail: A schedule item must be a tuple of str and int.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_exception_item_too_long(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state", 1, 1), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # The item in the schedules[1] is invalid.
-            # Detail: A schedule item must be a tuple of str and int.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_exception_item_invalid_name_type(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [(1, 1), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # The item in the schedules[1] is invalid.
-            # Detail: A schedule item must be a tuple of str and int.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_exception_item_invalid_index_type(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state", "1"), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # The item in the schedules[1] is invalid.
-            # Detail: A schedule item must be a tuple of str and int.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_exception_item_unknown_name(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state?", 1), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # The item in the schedules[1] is invalid.
-            # Detail: The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
-
-    def test_expeption_item_out_of_range(self):
-        # Array
-        ok_states, ok_povms, ok_gates = self.array_states_povms_gates()
-        ng_schedules = [
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-            [("state", 3), ("gate", 1), ("povm", 1)],  # NG
-            [("state", 0), ("gate", 0), ("povm", 0)],  # OK
-        ]
-
-        # Act & Assert
-        with pytest.raises(QuaraScheduleItemError):
-            # The item in the schedules[1] is invalid.
-            # Detail: The index out of range.'states' is 3 in length, but an index out of range was referenced in the schedule.
-            _ = Experiment(
-                states=ok_states,
-                povms=ok_povms,
-                gates=ok_gates,
-                schedules=ng_schedules,
-            )
+        data_nums = [max(x) for x in list_num_sums]
+        measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
+        dataset = self.generate_dataset(data_nums=data_nums, seeds=seeds)
+        empi_dists_sequence = data_generator.calc_empi_dists_sequence(
+            measurement_nums=measurement_nums,
+            dataset=dataset,
+            list_list_num_sum=list_num_sums,
+        )
+        return empi_dists_sequence

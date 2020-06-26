@@ -99,6 +99,28 @@ class Povm(QOperation):
             raise ValueError("the POVM is not physically correct.")
 
     @property
+    def vecs(self) -> List[np.ndarray]:  # read only
+        """Property to get vecs of povm.
+
+        Returns
+        -------
+        List[np.ndarray]
+            vecs of povm.
+        """
+        return self._vecs
+
+    @property
+    def dim(self) -> int:
+        """returns dim of Povm.
+
+        Returns
+        -------
+        int
+            dim of Povm.
+        """
+        return self._dim
+
+    @property
     def measurements(self) -> List[int]:
         """Property to get numbers of measurements for each ElementalSystem.
 
@@ -214,28 +236,6 @@ class Povm(QOperation):
             matrix += coefficient * basis
 
         return matrix
-
-    @property
-    def vecs(self) -> List[np.ndarray]:  # read only
-        """Property to get vecs of povm.
-
-        Returns
-        -------
-        List[np.ndarray]
-            vecs of povm.
-        """
-        return self._vecs
-
-    @property
-    def dim(self) -> int:
-        """returns dim of Povm.
-
-        Returns
-        -------
-        int
-            dim of Povm.
-        """
-        return self._dim
 
     @property
     def composite_system(self) -> CompositeSystem:  # read only
