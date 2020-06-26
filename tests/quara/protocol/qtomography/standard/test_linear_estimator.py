@@ -15,6 +15,7 @@ from quara.objects.povm import (
 from quara.objects.state import get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
+from quara.utils.matrix_util import calc_mse
 
 
 class TestLinearEstimator:
@@ -61,18 +62,8 @@ class TestLinearEstimator:
         # calc mse
         var_sequences_tmp = [list(var_sequence) for var_sequence in zip(*var_sequences)]
         mses = [
-            calc_mse(var_sequence, true_object.vec)
+            calc_mse(var_sequence, [true_object.vec] * len(var_sequence))
             for var_sequence in var_sequences_tmp
         ]
         print(f"mse={mses}")
         # assert False
-
-
-def calc_mse(estimates: List[np.array], true_object: np.array) -> np.float64:
-    points = []
-    for estimate in estimates:
-        point = np.dot(estimate - true_object, estimate - true_object)
-        points.append(point)
-
-    mse = np.mean(points, dtype=np.float64)
-    return mse
