@@ -1,3 +1,6 @@
+import time
+from typing import List
+
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
@@ -27,23 +30,49 @@ class TestLinearEstimator:
 
         qst = StandardQst(povms, on_para_eq_constraint=False)
 
-        # generate empi dists
+        # generate empi dists and calc estimate
         true_object = get_z0_1q(c_sys)
         num_data = [100, 1000, 10000, 100000]
-        seeds = [7] * len(num_data)
-        empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data, seeds)
-        print(f"empi_dists_seq={empi_dists_seq}")
+        iterations = 2
 
-        # estimate
-        estimator = LinearEstimator()
-        var_sequence = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
-        print(f"estimate var={var_sequence}")
-        print(f"true var={true_object.vec}")
+        var_sequences = []
+
+        start = time.time()
+        for iteration in range(iterations):
+            seeds = [iteration] * len(num_data)
+            empi_dists_seq = qst.generate_empi_dists_sequence(
+                true_object, num_data, seeds
+            )
+
+            estimator = LinearEstimator()
+            var_sequence = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
+
+            info = {
+                "iteration": iteration,
+                "empi_dists_seq": empi_dists_seq,
+                "var_sequence": var_sequence,
+            }
+            print(info)
+            var_sequences.append(var_sequence)
+
+        end = time.time()
+        print(f"time(s)={end - start}")
 
         # calc mse
-        mses = [calc_mse(var, true_object.vec) for var in var_sequence]
+        var_sequences_tmp = [list(var_sequence) for var_sequence in zip(*var_sequences)]
+        mses = [
+            calc_mse(var_sequence, true_object.vec)
+            for var_sequence in var_sequences_tmp
+        ]
         print(f"mse={mses}")
+        # assert False
 
 
-def calc_mse(a: np.array, b: np.array) -> np.float64:
-    return ((a - b) ** 2).mean(axis=0)
+def calc_mse(estimates: List[np.array], true_object: np.array) -> np.float64:
+    points = []
+    for estimate in estimates:
+        point = np.dot(estimate - true_object, estimate - true_object)
+        points.append(point)
+
+    mse = np.mean(points, dtype=np.float64)
+    return mse
