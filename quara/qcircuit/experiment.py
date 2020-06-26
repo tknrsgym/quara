@@ -480,46 +480,27 @@ class Experiment:
         )
         return empi_dist
 
-    def generate_empi_dists(
-        self, num_sum: int, seed: int = None
-    ) -> List[Tuple[int, np.array]]:
-        """Generate an empirical distributions using the data generated from the probability distributions of all schedules.
-
-        Parameters
-        ----------
-        num_sum : int
-            the number of data to caluclate the experience distributions
-        seed : int, optional
-            A seed used to generate random data, by default None.
-
-        Returns
-        -------
-        List[Tuple[int, np.array]]
-            A list of the numbers of data and empirical distribution.
-        """
-        empi_dists = []
-        for i in range(len(self.schedules)):
-            r = self.generate_empi_dist(i, [num_sum], seed)[0]
-            empi_dists.append(r)
-        return empi_dists
-
     def generate_empi_dists_sequence(
         self, list_num_sums: List[List[int]], seeds: List[int] = None
     ) -> List[List[Tuple[int, np.array]]]:
         """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
+
         Parameters
         ----------
         list_num_sums : List[List[int]]
             A list of the number of data to use to calculate the experience distribution for each schedule.
         seeds : List[int], optional
             A List of seeds, by default None
+
         Returns
         -------
         List[List[Tuple[int, np.array]]]
             A list of tuples for the number of data and experience distribution for each schedules.
         """
+
         self._validate_eq_schedule_len(list_num_sums, "list_num_sums")
         self._validate_eq_schedule_len(seeds, "seeds")
+
         data_nums = [max(x) for x in list_num_sums]
         measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
         dataset = self.generate_dataset(data_nums=data_nums, seeds=seeds)
