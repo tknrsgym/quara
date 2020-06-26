@@ -1,4 +1,5 @@
 """utility package about matrix."""
+from typing import List
 from functools import reduce
 from operator import add
 
@@ -114,3 +115,27 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     p_trace = partial_trace1(matrix, dim)
     identity = np.eye(dim, dtype=np.complex128).reshape(dim, dim)
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
+
+
+def calc_mse(xs: List[np.array], ys: List[np.array]) -> np.float64:
+    """calculates MSE(Mean Square Error) of ``xs`` and ``ys``.
+
+    Parameters
+    ----------
+    xs : List[np.array]
+        a list of estimete.
+    ys : List[np.array]
+        a list of true.
+
+    Returns
+    -------
+    np.float64
+        MSE of ``xs`` and ``ys``.
+    """
+    square_errors = []
+    for x, y in zip(xs, ys):
+        square_error = np.vdot(x - y, x - y)
+        square_errors.append(square_error)
+
+    mse = np.mean(square_errors, dtype=np.float64)
+    return mse
