@@ -20,6 +20,30 @@ class StandardQst(StandardQTomography):
         on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = 10 ** (-4),
     ):
+        """[summary]
+
+        Parameters
+        ----------
+        povms : List[Povm]
+            [description]
+        is_physicality_required : bool, optional
+            [description], by default False
+        is_estimation_object : bool, optional
+            [description], by default False
+        on_para_eq_constraint : bool, optional
+            [description], by default False
+        on_algo_eq_constraint : bool, optional
+            [description], by default False
+        on_algo_ineq_constraint : bool, optional
+            [description], by default False
+        eps_proj_physical : float, optional
+            [description], by default 10**(-4)
+
+        Raises
+        ------
+        ValueError
+            the experiment is not valid.
+        """
         # create Experiment
         schedules = []
         for index in range(len(povms)):
@@ -51,7 +75,9 @@ class StandardQst(StandardQTomography):
 
         # validate
         if not self.is_valid_experiment():
-            raise Exception
+            raise ValueError(
+                "the experiment is not valid. all povms must have same CompositeSystem."
+            )
 
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
