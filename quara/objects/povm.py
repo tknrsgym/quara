@@ -99,6 +99,17 @@ class Povm(QOperation):
             raise ValueError("the POVM is not physically correct.")
 
     @property
+    def composite_system(self) -> CompositeSystem:  # read only
+        """Property to get composite system.
+
+        Returns
+        -------
+        CompositeSystem
+            composite system.
+        """
+        return self._composite_system
+
+    @property
     def vecs(self) -> List[np.ndarray]:  # read only
         """Property to get vecs of povm.
 
@@ -130,6 +141,64 @@ class Povm(QOperation):
             numbers of measurements for each ElementalSystem.
         """
         return self._measurements
+
+    def is_physical(self) -> bool:
+        """returns whether the POVM is physically correct.
+
+        all of the following conditions are ``True``, the POVM is physically correct:
+
+        - It is a set of Hermitian matrices.
+        - It is a set of positive semidefinite matrices.
+        - The sum the elements of is the identity matrix.
+
+        Returns
+        -------
+        bool
+            whether the POVM is physically correct.
+        """
+        # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
+        # therefore, do not call the `is_hermitian` function explicitly.
+        return self.is_positive_semidefinite() and self.is_identity()
+
+    def set_zero(self):
+        raise NotImplementedError()
+
+    def zero_obj(self):
+        raise NotImplementedError()
+
+    def to_var(self) -> np.array:
+        return convert_povm_to_var(
+            c_sys=self._composite_system,
+            vecs=list(self.vecs),
+            on_para_eq_constraint=self.on_para_eq_constraint,
+        )
+
+    def to_stacked_vector(self) -> np.array:
+        raise NotImplementedError()
+
+    def calc_gradient(self):
+        raise NotImplementedError()
+
+    def calc_proj_eq_constraint(self):
+        raise NotImplementedError()
+
+    def calc_proj_ineq_constraint(self):
+        raise NotImplementedError()
+
+    def _generate_from_var_func(self):
+        return convert_var_to_povm
+
+    def calc_proj_physical(self):
+        raise NotImplementedError()
+
+    def calc_stopping_criterion_birgin_raydan_vectors(self):
+        raise NotImplementedError()
+
+    def is_satisfied_stopping_criterion_birgin_raydan_vectors(self):
+        raise NotImplementedError()
+
+    def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
+        raise NotImplementedError()
 
     def _set_measurements(self, measurements: List[int]):
         self._measurements = measurements
@@ -175,28 +244,6 @@ class Povm(QOperation):
         else:
             return self._vecs[index]
 
-    def is_physical(self) -> bool:
-        """returns whether the POVM is physically correct.
-
-        all of the following conditions are ``True``, the POVM is physically correct:
-
-        - It is a set of Hermitian matrices.
-        - It is a set of positive semidefinite matrices.
-        - The sum the elements of is the identity matrix.
-
-        Returns
-        -------
-        bool
-            whether the POVM is physically correct.
-        """
-        # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
-        # therefore, do not call the `is_hermitian` function explicitly.
-        return self.is_positive_semidefinite() and self.is_identity()
-
-    def __getitem__(self, key) -> np.ndarray:
-        # get vec with a serial number.
-        return self._vecs[key]
-
     def matrices(self) -> List[np.ndarray]:
         """returns matrices of measurements.
 
@@ -236,17 +283,6 @@ class Povm(QOperation):
             matrix += coefficient * basis
 
         return matrix
-
-    @property
-    def composite_system(self) -> CompositeSystem:  # read only
-        """Property to get composite system.
-
-        Returns
-        -------
-        CompositeSystem
-            composite system.
-        """
-        return self._composite_system
 
     def is_hermitian(self) -> bool:
         """Returns whether the povm is a set of Hermit matrices.
@@ -349,15 +385,15 @@ class Povm(QOperation):
             )
         return converted_vecs
 
-    def to_var(self) -> np.array:
-        return convert_povm_to_var(
-            c_sys=self._composite_system,
-            vecs=list(self.vecs),
-            on_para_eq_constraint=self.on_para_eq_constraint,
-        )
+    def __getitem__(self, key) -> np.ndarray:
+        # get vec with a serial number.
+        return self._vecs[key]
 
-    def _generate_from_var_func(self):
-        return convert_var_to_povm
+    def __add__(self, other):
+        raise NotImplementedError()
+
+    def __sub__(self, other):
+        raise NotImplementedError()
 
 
 def convert_var_index_to_povm_index(
