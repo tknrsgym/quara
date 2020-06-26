@@ -29,10 +29,20 @@ class TestLinearEstimator:
 
         # generate empi dists
         true_object = get_z0_1q(c_sys)
-        empi_dists = qst.generate_empi_dists(true_object, 100)
-        print(f"empi_dists={empi_dists}")
+        empi_dists_seq = qst.generate_empi_dists_sequence(
+            true_object, [100, 1000, 10000]
+        )
+        print(f"empi_dists_seq={empi_dists_seq}")
 
         # estimate
         estimator = LinearEstimator()
-        var = estimator.calc_estimate_var(qst, empi_dists)
-        print(f"var={var}")
+        var_sequence = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
+        print(f"estimate var={var_sequence}")
+        print(f"true var={true_object.vec}")
+
+        mses = [calc_mse(var, true_object.vec) for var in var_sequence]
+        print(f"mse={mses}")
+
+
+def calc_mse(a: np.array, b: np.array) -> np.float64:
+    return ((a - b) ** 2).mean(axis=0)
