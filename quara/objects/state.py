@@ -161,13 +161,9 @@ class State(QOperation):
         # self * other
         raise self.vec * other
 
-    def _rmul_vec(self, other):
-        # other * self
-        raise other * self.vec
-
     def _truediv_vec(self, other):
         # self / other
-        raise self.vec * other
+        raise self.vec / other
 
     def to_var(self) -> np.array:
         return convert_state_to_var(
