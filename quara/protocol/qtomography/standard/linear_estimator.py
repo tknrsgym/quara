@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 import numpy as np
 
+from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
@@ -16,6 +17,10 @@ class LinearEstimator(StandardQTomographyEstimator):
     def calc_estimate_var(
         self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
     ) -> np.array:
+        """calculates estimate variables.
+
+        see :func:`~quara.protocol.qtomography.standard.standard_qtomography_estimator.StandardQTomographyEstimator.calc_estimate_var`
+        """
         estimate = self.calc_estimate_sequence_var(qtomography, [empi_dists])
         return estimate[0]
 
@@ -24,6 +29,10 @@ class LinearEstimator(StandardQTomographyEstimator):
         qtomography: StandardQTomography,
         empi_dists_sequence: List[List[Tuple[int, np.array]]],
     ) -> np.array:
+        """calculates sequence of estimate variables.
+
+        see :func:`~quara.protocol.qtomography.standard.standard_qtomography_estimator.StandardQTomographyEstimator.calc_estimate_sequence_var`
+        """
         if not qtomography.is_fullrank_matA():
             raise Exception
 

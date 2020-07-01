@@ -82,7 +82,7 @@ class TestLinearEstimator:
 
         var_sequences = []
 
-        start = time.time()
+        # start = time.time()
         for iteration in range(iterations):
             seeds = [iteration] * len(num_data)
             empi_dists_seq = qst.generate_empi_dists_sequence(
@@ -93,12 +93,14 @@ class TestLinearEstimator:
             var_sequence = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
             print(f"var_sequence={var_sequence}")
 
+            """
             info = {
                 "iteration": iteration,
                 "empi_dists_seq": empi_dists_seq,
                 "var_sequence": var_sequence,
             }
-            # print(info)
+            print(info)
+            """
             var_sequences.append(var_sequence)
 
         end = time.time()
@@ -106,9 +108,10 @@ class TestLinearEstimator:
 
         # calc mse
         var_sequences_tmp = [list(var_sequence) for var_sequence in zip(*var_sequences)]
-        mses = [
+        actual = [
             calc_mse(var_sequence, [true_object.vec] * len(var_sequence))
             for var_sequence in var_sequences_tmp
         ]
-        print(f"mse={mses}")
-        # assert False
+        print(f"mse={actual}")
+        expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
+        npt.assert_almost_equal(actual, expected, decimal=15)
