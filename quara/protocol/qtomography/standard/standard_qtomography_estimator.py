@@ -33,6 +33,32 @@ class StandardQTomographyEstimator(Estimator):
         qope = qtomography.convert_var_to_qoperation(var)
         return qope
 
+    def calc_estimate_sequence_qoperation(
+        self,
+        qtomography: StandardQTomography,
+        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+    ) -> List[QOperation]:
+        """calculates estimate QOperations.
+
+        Parameters
+        ----------
+        qtomography : StandardQTomography
+            StandardQTomography to calculates estimate QOperation. 
+        empi_dists_sequence : List[List[Tuple[int, np.array]]]
+            sequence of empirical distributions to calculates estimate QOperations. 
+
+        Returns
+        -------
+        List[QOperation]
+            estimate QOperations.
+        """
+        vars = self.calc_estimate_sequence_var(qtomography, empi_dists_sequence)
+        qope_seq = []
+        for var in vars:
+            qope = qtomography.convert_var_to_qoperation(var)
+            qope_seq.append(qope)
+        return qope_seq
+
     @abstractmethod
     def calc_estimate_var(
         self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
