@@ -172,8 +172,10 @@ class QOperation:
     def __add__(self, other):
         # Validation
         if type(other) != type(self):
-            # TODO: error message
-            raise TypeError()
+            error_message = (
+                f"'+' not supported between instances of {type(self)} and {type(other)}"
+            )
+            raise TypeError(error_message)
 
         if other.composite_system is not self.composite_system:
             # TODO: error message
