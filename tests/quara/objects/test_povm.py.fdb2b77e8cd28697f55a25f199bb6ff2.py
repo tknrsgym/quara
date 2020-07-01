@@ -752,7 +752,7 @@ class TestPovm:
         with pytest.raises(ValueError):
             _ = povm_1 + povm_2
 
-        # Case 3:
+        # Case 4:
         # Arrange
         e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
