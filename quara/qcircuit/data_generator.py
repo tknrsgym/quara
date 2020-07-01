@@ -127,7 +127,7 @@ def generate_dataset_from_prob_dists(
     return dataset
 
 
-def calc_empi_dist(
+def calc_empi_dist_sequence(
     measurement_num: int, data: List[int], num_sums: List[int]
 ) -> List[Tuple[int, np.array]]:
     """calculates empirical distributions.
@@ -165,7 +165,7 @@ def calc_empi_dist(
     >>> measurement_num = 2
     >>> data = [1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1]
     >>> num_sums = [5, 10, 20]
-    >>> empi_dist = calc_empi_dist(measurement_num, data, num_sums)
+    >>> empi_dist = calc_empi_dist_sequence(measurement_num, data, num_sums)
     >>> empi_dist
     [(5, array([0.4, 0.6])), (10, array([0.3, 0.7])), (20, array([0.3, 0.7]))]
 
@@ -189,7 +189,7 @@ def calc_empi_dist(
     # whether each number of num_sums is less than or equal to length of data.
     if next_num_sum > len(data):
         raise ValueError(
-            f"each number of num_sums must be less than or equal to length of data. num_sums of index {next_num_sum_position} is {next_num_sum}"
+            f"each number of num_sums must be less than or equal to length of data. num_sums of index {next_num_sum_position} is {next_num_sum}. length of data is {len(data)}"
         )
 
     for index, d in enumerate(data):
@@ -233,7 +233,7 @@ def calc_empi_dist(
 def calc_empi_dists_sequence(
     measurement_nums: List[int],
     dataset: List[List[int]],
-    list_list_num_sum: List[List[int]],
+    list_num_sums: List[List[int]],
 ) -> List[List[Tuple[int, np.array]]]:
     """calculates a sequence of empirical distributions by :func:`~quara.qcircuit.data_generator.calc_empidist`.
 
@@ -243,8 +243,8 @@ def calc_empi_dists_sequence(
         a list of measurement_num
     dataset : List[List[int]]
         a dataset
-    list_list_num_sum : List[List[int]]
-        a list of list_num_sum
+    list_num_sums : List[List[int]]
+        a list of num_sums
 
     Returns
     -------
@@ -256,7 +256,7 @@ def calc_empi_dists_sequence(
     ValueError
         the length of ``measurement_nums`` does not equal the length of ``dataset``.
     ValueError
-        the length of ``measurement_nums`` does not equal the length of ``list_list_num_sum``.
+        the length of ``measurement_nums`` does not equal the length of ``list_llist_num_sumsist_num_sum``.
     """
     # whether the length of measurement_nums equals the length of dataset.
     if len(measurement_nums) != len(dataset):
@@ -264,17 +264,17 @@ def calc_empi_dists_sequence(
             f"the length of measurement_nums must equal the length of dataset. the length of measurement_nums is {len(measurement_nums)}. the length of dataset is {len(dataset)}"
         )
 
-    # whether the length of measurement_nums equals the length of list_list_num_sum.
-    if len(measurement_nums) != len(list_list_num_sum):
+    # whether the length of measurement_nums equals the length of list_num_sums.
+    if len(measurement_nums) != len(list_num_sums):
         raise ValueError(
-            f"the length of measurement_nums must equal the length of list_list_num_sum. the length of measurement_nums is {len(measurement_nums)}. the length of list_list_num_sum is {len(list_list_num_sum)}"
+            f"the length of measurement_nums must equal the length of list_num_sums. the length of measurement_nums is {len(measurement_nums)}. the length of list_num_sums is {len(list_num_sums)}"
         )
 
     empi_dists_sequence = []
     for measurement_num, data, num_sums in zip(
-        measurement_nums, dataset, list_list_num_sum
+        measurement_nums, dataset, list_num_sums
     ):
-        empi_dists = calc_empi_dist(measurement_num, data, num_sums)
+        empi_dists = calc_empi_dist_sequence(measurement_num, data, num_sums)
         empi_dists_sequence.append(empi_dists)
 
     return empi_dists_sequence
