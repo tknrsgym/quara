@@ -402,8 +402,13 @@ class Povm(QOperation):
         new_vecs = [s + o for s, o in zip(self, other)]
         return new_vecs
 
-    def __sub__(self, other):
-        raise NotImplementedError()
+    def _sub_vec(self, other):
+        if len(self.vecs) != len(other.vecs):
+            # TODO: error_message
+            raise ValueError()
+
+        new_vecs = [s - o for s, o in zip(self, other)]
+        return new_vecs
 
     def __mul__(self, other):
         # self * other
