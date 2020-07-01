@@ -247,3 +247,31 @@ class QOperation:
         )
         return new_qobject
 
+    def __mul__(self, other):
+        # Validation
+        if type(other) not in [int, float]:
+            error_message = (
+                f"'*' not supported between instances of {type(self)} and {type(other)}"
+            )
+            raise TypeError(error_message)
+
+        # Calculation
+        new_values = self._mul_vec(other)
+
+        # Ganerate new QObject
+        new_qobject = self.__class__(
+            self.composite_system,
+            new_values,
+            is_physicality_required=False,
+            is_estimation_object=False,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return new_qobject
+
+    def __rmul__(self, other):
+        # other * self
+        new_qobject = self.__mul__(other)
+        return new_qobject
