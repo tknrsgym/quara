@@ -167,6 +167,37 @@ class TestState:
         assert zero.on_algo_ineq_constraint == state.on_algo_ineq_constraint
         assert zero.eps_proj_physical == state.eps_proj_physical
 
+    def test_generate_origin_obj(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        origin = state.generate_origin_obj()
+
+        expected = np.zeros([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(origin.vec, expected, decimal=15)
+        assert origin.dim == state.dim
+        assert origin.is_physicality_required == False
+        assert origin.is_estimation_object == False
+        assert origin.on_para_eq_constraint == state.on_para_eq_constraint
+        assert origin.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert origin.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert origin.eps_proj_physical == state.eps_proj_physical
+
+    def test_add_vec(self):
+        pass
+
+    def test_sub_vec(self):
+        pass
+
+    def test_mul_vec(self):
+        pass
+
+    def test_rmul_vec(self):
+        pass
+
+    def test_truediv_vec(self):
+        pass
+
     def test_to_var(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])

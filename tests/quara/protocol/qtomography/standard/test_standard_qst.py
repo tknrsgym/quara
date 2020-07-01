@@ -30,8 +30,71 @@ def get_test_data():
 
 
 class TestStandardQst:
-    def test_init(self):
+    def test_init_on_para_eq_constraint_True(self):
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        povm_x = get_x_measurement(c_sys)
+        povm_y = get_y_measurement(c_sys)
+        povm_z = get_z_measurement(c_sys)
+        povms = [povm_x, povm_y, povm_z]
+
+        qst = StandardQst(povms, on_para_eq_constraint=True)
+
+        # num_variables
+        assert qst.num_variables == 3
+
+        # _map_experiment_to_setqoperations
+        assert qst._map_experiment_to_setqoperations == {("state", 0): ("state", 0)}
+        # _map_setqoperations_to_experiment
+        assert qst._map_setqoperations_to_experiment == {("state", 0): ("state", 0)}
+
+        arrayA = [
+            [1, 0, 0],
+            [-1, 0, 0],
+            [0, 1, 0],
+            [0, -1, 0],
+            [0, 0, 1],
+            [0, 0, -1],
+        ]
+        expectedA = np.array(arrayA, dtype=np.float64) / np.sqrt(2)
+        # get_coeffs_1st
+        npt.assert_almost_equal(qst.get_coeffs_1st(0, 0), expectedA[0], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_1st(0, 1), expectedA[1], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_1st(1, 0), expectedA[2], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_1st(1, 1), expectedA[3], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_1st(2, 0), expectedA[4], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_1st(2, 1), expectedA[5], decimal=15)
+        # calc_matA
+        npt.assert_almost_equal(qst.calc_matA(), expectedA, decimal=15)
+
+        arrayB = [
+            1 / np.sqrt(2),
+            1 / np.sqrt(2),
+            1 / np.sqrt(2),
+            1 / np.sqrt(2),
+            1 / np.sqrt(2),
+            1 / np.sqrt(2),
+        ]
+        expectedB = np.array(arrayB, dtype=np.float64)
+        # get_coeffs_0th
+        npt.assert_almost_equal(qst.get_coeffs_0th(0, 0), expectedB[0], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_0th(0, 1), expectedB[1], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_0th(1, 0), expectedB[2], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_0th(1, 1), expectedB[3], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_0th(2, 0), expectedB[4], decimal=15)
+        npt.assert_almost_equal(qst.get_coeffs_0th(2, 1), expectedB[5], decimal=15)
+        # calc_vecB
+        npt.assert_almost_equal(qst.calc_vecB(), expectedB, decimal=15)
+
+        # is_fullrank_matA
+        assert qst.is_fullrank_matA() == True
+
+    def test_init_on_para_eq_constraint_False(self):
         qst, _ = get_test_data()
+
+        # num_variables
+        assert qst.num_variables == 4
 
         # _map_experiment_to_setqoperations
         assert qst._map_experiment_to_setqoperations == {("state", 0): ("state", 0)}
