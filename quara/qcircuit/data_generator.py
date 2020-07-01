@@ -270,21 +270,11 @@ def calc_empi_dists_sequence(
             f"the length of measurement_nums must equal the length of list_num_sums. the length of measurement_nums is {len(measurement_nums)}. the length of list_num_sums is {len(list_num_sums)}"
         )
 
-    dataset_tmp = [list(data) for data in zip(*dataset)]
-    list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
-
-    empi_dists_sequence_tmp = []
+    empi_dists_sequence = []
     for measurement_num, data, num_sums in zip(
-        measurement_nums, dataset_tmp, list_num_sums_tmp
+        measurement_nums, dataset, list_num_sums
     ):
-        print(f"data={data}")
-        print(f"num_sums={num_sums}")
-        # TODO 処理が冗長
-        empi_dists = calc_empi_dist_sequence(measurement_num, data[-1], num_sums)
-        empi_dists_sequence_tmp.append(empi_dists)
+        empi_dists = calc_empi_dist_sequence(measurement_num, data, num_sums)
+        empi_dists_sequence.append(empi_dists)
 
-    empi_dists_sequence = [
-        list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
-    ]
-    print(f"empi_dists_sequence={empi_dists_sequence}")
     return empi_dists_sequence

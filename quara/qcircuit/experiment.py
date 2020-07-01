@@ -445,7 +445,7 @@ class Experiment:
         )
         return dataset
 
-    def generate_empi_dist(
+    def generate_empi_dist_sequence(
         self, schedule_index: int, num_sums: List[int], seed: int = None
     ) -> List[Tuple[int, np.array]]:
         """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
@@ -475,7 +475,7 @@ class Experiment:
         data = self.generate_data(
             schedule_index=schedule_index, data_num=data_n, seed=seed
         )
-        empi_dist = data_generator.calc_empi_dists_sequence(
+        empi_dist = data_generator.calc_empi_dist_sequence(
             measurement_num=measurement_num, data=data, num_sums=num_sums
         )
         return empi_dist
@@ -503,15 +503,16 @@ class Experiment:
             self._validate_eq_schedule_len(seeds, "list_seeds")
 
         measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
-        datasets = []
-        for data_nums, seeds in zip(list_num_sums, list_seeds):
-            dataset = self.generate_dataset(data_nums=data_nums, seeds=seeds)
-            datasets.append(dataset)
+        datasets = self.generate_dataset(
+            data_nums=list_num_sums[-1], seeds=list_seeds[-1]
+        )
+
+        list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
         empi_dists_sequence = data_generator.calc_empi_dists_sequence(
             measurement_nums=measurement_nums,
             dataset=datasets,
-            list_num_sums=list_num_sums,
+            list_num_sums=list_num_sums_tmp,
         )
 
         return empi_dists_sequence
