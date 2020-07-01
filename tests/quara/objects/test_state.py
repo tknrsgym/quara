@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -6,6 +8,7 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.povm import get_z_measurement
 from quara.objects.state import (
     State,
     convert_var_index_to_state_index,
@@ -166,6 +169,509 @@ class TestState:
         assert zero.on_algo_eq_constraint == state.on_algo_eq_constraint
         assert zero.on_algo_ineq_constraint == state.on_algo_ineq_constraint
         assert zero.eps_proj_physical == state.eps_proj_physical
+
+    def test_generate_origin_obj(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        origin = state.generate_origin_obj()
+
+        expected = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(origin.vec, expected, decimal=15)
+        assert origin.dim == state.dim
+        assert origin.is_physicality_required == False
+        assert origin.is_estimation_object == False
+        assert origin.on_para_eq_constraint == state.on_para_eq_constraint
+        assert origin.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert origin.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert origin.eps_proj_physical == state.eps_proj_physical
+
+    def test_add(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        vec1 = np.array([10, 20, 30, 40], dtype=np.float64)
+        state1 = State(c_sys, vec1, is_physicality_required=False)
+        vec2 = np.array([1, 2, 3, 4], dtype=np.float64)
+        state2 = State(c_sys, vec2, is_physicality_required=False)
+
+        # Act
+        actual = state1 + state2
+
+        # Assert
+        expected_vec = np.array([11, 22, 33, 44], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state1.eps_proj_physical
+
+    def test_add_is_physicality_required(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state1 = get_x0_1q(c_sys)
+        state2 = get_z0_1q(c_sys)
+
+        # Act
+        actual = state1 + state2
+
+        # Assert
+        expected_vec = np.array([2, 1, 0, 1], dtype=np.float64) / np.sqrt(2)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state1.eps_proj_physical
+
+    def test_add_exception(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state1 = get_x0_1q(c_sys)
+
+        # Case 1: different type
+        # Arrange
+        povm = get_z_measurement(c_sys)
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = state1 + povm
+
+        # Case 2: different on_para_eq_constraint
+        # Arrange
+        vec = np.array([10, 20, 30, 40], dtype=np.float64)
+        state2 = State(
+            c_sys=c_sys,
+            vec=vec,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = state1 + state2
+
+        # Case 3: different CompositeSystem
+        # Arrange
+        e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+        c_sys2 = CompositeSystem([e_sys])
+
+        state2 = get_x0_1q(c_sys2)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = state1 + state2
+
+    def test_sub(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        vec1 = np.array([10, 20, 30, 40], dtype=np.float64)
+        state1 = State(c_sys, vec1, is_physicality_required=False)
+        vec2 = np.array([1, 2, 3, 4], dtype=np.float64)
+        state2 = State(c_sys, vec2, is_physicality_required=False)
+
+        # Act
+        actual = state1 - state2
+
+        # Assert
+        expected_vec = np.array([9, 18, 27, 36], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state1.eps_proj_physical
+
+    def test_sub_is_physicality_required(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state1 = get_x0_1q(c_sys)
+        state2 = get_z0_1q(c_sys)
+
+        # Act
+        actual = state1 - state2
+
+        # Assert
+        expected_vec = np.array([0, 1, 0, -1], dtype=np.float64) / np.sqrt(2)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state1.eps_proj_physical
+
+    def test_sub_exception(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state1 = get_x0_1q(c_sys)
+
+        # Case 1: different type
+        # Arrange
+        povm = get_z_measurement(c_sys)
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = state1 - povm
+
+        # Case 2: different on_para_eq_constraint
+        # Arrange
+        vec = np.array([10, 20, 30, 40], dtype=np.float64)
+        state2 = State(
+            c_sys=c_sys,
+            vec=vec,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = state1 - state2
+
+        # Case 3: different CompositeSystem
+        # Arrange
+        e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+        c_sys2 = CompositeSystem([e_sys])
+
+        state2 = get_x0_1q(c_sys2)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = state1 - state2
+
+    def test_mul(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        vec1 = np.array([10, 20, 30, 40], dtype=np.float64)
+        state = State(c_sys, vec1, is_physicality_required=False)
+
+        # Case 1: type(int)
+        # Act
+        actual = state * 10
+
+        # Assert
+        expected_vec = np.array([100, 200, 300, 400], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 2: type(float)
+        # Act
+        actual = state * 0.1
+
+        # Assert
+        expected_vec = np.array([1, 2, 3, 4], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 3: type(np.int64)
+        # Act
+        actual = state * np.int64(10)
+
+        # Assert
+        expected_vec = np.array([100, 200, 300, 400], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 4: type(np.float64)
+        # Act
+        actual = state * np.float64(0.1)
+
+        # Assert
+        expected_vec = np.array([1, 2, 3, 4], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+    def test_mul_exception(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state = get_x0_1q(c_sys)
+
+        # Case 1: different type(POVM)
+        # Arrange
+        povm = get_z_measurement(c_sys)
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = state * povm
+
+        # Case 2: different type(complex)
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = state * 1j
+
+    def test_rmul(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        vec1 = np.array([10, 20, 30, 40], dtype=np.float64)
+        state = State(c_sys, vec1, is_physicality_required=False)
+
+        # Case 1: type(int)
+        # Act
+        actual = 10 * state
+
+        # Assert
+        expected_vec = np.array([100, 200, 300, 400], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 2: type(float)
+        # Act
+        actual = 0.1 * state
+
+        # Assert
+        expected_vec = np.array([1, 2, 3, 4], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 3: type(np.int64)
+        # Act
+        actual = np.int64(10) * state
+
+        # Assert
+        expected_vec = np.array([100, 200, 300, 400], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 4: type(np.float64)
+        # Act
+        actual = np.float64(0.1) * state
+
+        # Assert
+        expected_vec = np.array([1, 2, 3, 4], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+    def test_rmul_exception(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state = get_x0_1q(c_sys)
+
+        # Case 1: different type(POVM)
+        # Arrange
+        povm = get_z_measurement(c_sys)
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = povm * state
+
+        # Case 2: different type(complex)
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = 1j * state
+
+    def test_truediv(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        vec1 = np.array([10, 20, 30, 40], dtype=np.float64)
+        state = State(c_sys, vec1, is_physicality_required=False)
+
+        # Case 1: type(int)
+        # Act
+        actual = state / 10
+
+        # Assert
+        expected_vec = np.array([1, 2, 3, 4], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 2: type(float)
+        # Act
+        actual = state / 0.1
+
+        # Assert
+        expected_vec = np.array([100, 200, 300, 400], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 3: type(np.int64)
+        # Act
+        actual = state / np.int64(10)
+
+        # Assert
+        expected_vec = np.array([1, 2, 3, 4], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 4: type(np.float64)
+        # Act
+        actual = state / np.float64(0.1)
+
+        # Assert
+        expected_vec = np.array([100, 200, 300, 400], dtype=np.float64)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+        # Case 5: 0
+        # Act
+        actual = state / 0
+
+        # Assert
+        expected_vec = np.array(
+            [float("inf"), float("inf"), float("inf"), float("inf")], dtype=np.float64
+        )
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
+    def test_truediv_exception(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state = get_x0_1q(c_sys)
+
+        # Case 1: different type(POVM)
+        # Arrange
+        povm = get_z_measurement(c_sys)
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = state / povm
+
+        # Case 2: different type(complex)
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = state / 1j
 
     def test_to_var(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

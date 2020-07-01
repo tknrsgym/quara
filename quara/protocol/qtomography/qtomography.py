@@ -14,6 +14,10 @@ class QTomography:
     ):
         """initialize quantum tomography class.
 
+        To inherit from this class, set the following instance variables in the constructor of the subclass.
+
+        - ``_num_variables``: sum of the number of all variables.
+
         Parameters
         ----------
         experiment : Experiment
@@ -24,7 +28,6 @@ class QTomography:
         self._experiment = experiment
         self._num_schedules = len(self._experiment.schedules)
         self._set_qoperations = set_qoperations
-        # TODO num_variables
 
     @property
     def num_schedules(self) -> int:
@@ -36,6 +39,17 @@ class QTomography:
             number of schedules.
         """
         return self._num_schedules
+
+    @property
+    def num_variables(self) -> int:
+        """returns sum of the number of all variables.
+
+        Returns
+        -------
+        int
+            sum of the number of all variables.
+        """
+        return self._num_variables
 
     @abstractmethod
     def is_valid_experiment(self) -> bool:

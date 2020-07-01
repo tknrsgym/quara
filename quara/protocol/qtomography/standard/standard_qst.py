@@ -67,10 +67,6 @@ class StandardQst(StandardQTomography):
         )
         set_qoperations = SetQOperations(states=[state], gates=[], povms=[])
 
-        # create map
-        self._map_experiment_to_setqoperations = {("state", 0): ("state", 0)}
-        self._map_setqoperations_to_experiment = {("state", 0): ("state", 0)}
-
         # initialize super class
         super().__init__(experiment, set_qoperations)
 
@@ -79,6 +75,16 @@ class StandardQst(StandardQTomography):
             raise ValueError(
                 "the experiment is not valid. all povms must have same CompositeSystem."
             )
+
+        # calc num_variables
+        if on_para_eq_constraint:
+            self._num_variables = state.dim ** 2 - 1
+        else:
+            self._num_variables = state.dim ** 2
+
+        # create map
+        self._map_experiment_to_setqoperations = {("state", 0): ("state", 0)}
+        self._map_setqoperations_to_experiment = {("state", 0): ("state", 0)}
 
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
@@ -233,14 +239,5 @@ class StandardQst(StandardQTomography):
         see :func:`~quara.protocol.qtomography.standard.standard_qtomography.StandardQTomography.convert_var_to_qoperation`
         """
         template = self._set_qoperations.states[0]
-        state = convert_var_to_state(
-            c_sys=template._composite_system,
-            var=var,
-            is_physicality_required=template._is_physicality_required,
-            is_estimation_object=template._is_estimation_object,
-            on_para_eq_constraint=template._on_para_eq_constraint,
-            on_algo_eq_constraint=template._on_algo_eq_constraint,
-            on_algo_ineq_constraint=template._on_algo_ineq_constraint,
-            eps_proj_physical=template._eps_proj_physical,
-        )
+        state = template.generate_from_var(var=var)
         return state

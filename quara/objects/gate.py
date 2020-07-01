@@ -94,6 +94,17 @@ class Gate(QOperation):
             raise ValueError("the gate is not physically correct.")
 
     @property
+    def composite_system(self) -> CompositeSystem:  # read only
+        """Property to get composite system.
+
+        Returns
+        -------
+        CompositeSystem
+            composite system.
+        """
+        return self._composite_system
+
+    @property
     def dim(self):
         """returns dim of gate.
 
