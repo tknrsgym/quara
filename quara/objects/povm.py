@@ -394,8 +394,13 @@ class Povm(QOperation):
         # get vec with a serial number.
         return self._vecs[key]
 
-    def __add__(self, other):
-        raise NotImplementedError()
+    def _add_vec(self, other):
+        if len(self.vecs) != len(other.vecs):
+            # TODO: error_message
+            raise ValueError()
+
+        new_vecs = [s + o for s, o in zip(self, other)]
+        return new_vecs
 
     def __sub__(self, other):
         raise NotImplementedError()
