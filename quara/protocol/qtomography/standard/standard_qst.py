@@ -239,14 +239,5 @@ class StandardQst(StandardQTomography):
         see :func:`~quara.protocol.qtomography.standard.standard_qtomography.StandardQTomography.convert_var_to_qoperation`
         """
         template = self._set_qoperations.states[0]
-        state = convert_var_to_state(
-            c_sys=template._composite_system,
-            var=var,
-            is_physicality_required=template._is_physicality_required,
-            is_estimation_object=template._is_estimation_object,
-            on_para_eq_constraint=template._on_para_eq_constraint,
-            on_algo_eq_constraint=template._on_algo_eq_constraint,
-            on_algo_ineq_constraint=template._on_algo_ineq_constraint,
-            eps_proj_physical=template._eps_proj_physical,
-        )
+        state = template.generate_from_var(var=var)
         return state
