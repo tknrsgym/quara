@@ -402,16 +402,21 @@ class Povm(QOperation):
         new_vecs = [s + o for s, o in zip(self, other)]
         return new_vecs
 
-    def __sub__(self, other):
-        raise NotImplementedError()
+    def _sub_vec(self, other):
+        if len(self.vecs) != len(other.vecs):
+            # TODO: error_message
+            raise ValueError()
 
-    def __mul__(self, other):
-        # self * other
-        raise NotImplementedError()
+        new_vecs = [s - o for s, o in zip(self, other)]
+        return new_vecs
 
-    def __rmul__(self, other):
-        # other * self
-        raise NotImplementedError()
+    def _mul_vec(self, other):
+        new_vecs = [vec * other for vec in self.vecs]
+        return new_vecs
+
+    def _truediv_vec(self, other):
+        new_vecs = [vec / other for vec in self.vecs]
+        return new_vecs
 
 
 def convert_var_index_to_povm_index(
