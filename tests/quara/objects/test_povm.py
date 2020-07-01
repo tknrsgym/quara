@@ -667,6 +667,33 @@ class TestPovm:
         assert povm.on_algo_ineq_constraint == old_povm.on_algo_ineq_constraint
         assert povm.eps_proj_physical == old_povm.eps_proj_physical
 
+    def test_add(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        vec_11 = np.array([1, 2, 3, 4], dtype=np.float64)
+        vec_12 = np.array([5, 6, 7, 8], dtype=np.float64)
+        vecs = [vec_11, vec_12]
+        povm_1 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        vec_21 = np.array([10, 20, 30, 40], dtype=np.float64)
+        vec_22 = np.array([50, 60, 70, 80], dtype=np.float64)
+        vecs = [vec_21, vec_22]
+        povm_2 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act
+        actual = povm_1 + povm_2
+
+        # Assert
+        expected_vec = [
+            np.array([11, 22, 33, 44], dtype=np.float64),
+            np.array([55, 66, 77, 88], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected_vec)
+        for a, e in zip(actual.vecs, expected_vec):
+            npt.assert_almost_equal(a, e, decimal=15)
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
