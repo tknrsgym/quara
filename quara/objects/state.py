@@ -99,6 +99,17 @@ class State(QOperation):
             raise ValueError("the state is not physically correct.")
 
     @property
+    def composite_system(self) -> CompositeSystem:  # read only
+        """Property to get composite system.
+
+        Returns
+        -------
+        CompositeSystem
+            composite system.
+        """
+        return self._composite_system
+
+    @property
     def vec(self):
         """returns vec of this state.
 
@@ -159,11 +170,11 @@ class State(QOperation):
 
     def _mul_vec(self, other):
         # self * other
-        raise self.vec * other
+        return self.vec * other
 
     def _truediv_vec(self, other):
         # self / other
-        raise self.vec / other
+        return self.vec / other
 
     def to_var(self) -> np.array:
         return convert_state_to_var(
