@@ -966,6 +966,88 @@ class TestPovm:
         with pytest.raises(TypeError):
             _ = povm_1 * povm_1
 
+    def test_truediv(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        vec_11 = np.array([1, 2, 3, 4], dtype=np.float64)
+        vec_12 = np.array([5, 6, 7, 8], dtype=np.float64)
+        vecs = [vec_11, vec_12]
+        povm_1 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Case 1:
+        # Act
+        actual = povm_1 / 10
+
+        # Assert
+        expected_vecs = [
+            np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float64),
+            np.array([0.5, 0.6, 0.7, 0.8], dtype=np.float64),
+        ]
+        assert type(actual) == Povm
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == povm_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == povm_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == povm_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == povm_1.eps_proj_physical
+
+        # Case 2:
+        # Act
+        actual = povm_1 / 0.1
+
+        # Assert
+        expected_vecs = [
+            np.array([10, 20, 30, 40], dtype=np.float64),
+            np.array([50, 60, 70, 80], dtype=np.float64),
+        ]
+        assert type(actual) == Povm
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == povm_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == povm_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == povm_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == povm_1.eps_proj_physical
+
+        # Case 4:
+        # Act
+        actual = povm_1 / 0
+
+        # Assert
+        expected_vecs = [
+            np.array([float("inf"), float("inf"),float("inf"), float("inf")], dtype=np.float64),
+            np.array([float("inf"), float("inf"),float("inf"), float("inf")], dtype=np.float64),
+        ]
+        assert type(actual) == Povm
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == povm_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == povm_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == povm_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == povm_1.eps_proj_physical
+
+        # Case 3: Exception
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = povm_1 / povm_1
+
+        # Case 4: Exception
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = 1 / povm_1
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
