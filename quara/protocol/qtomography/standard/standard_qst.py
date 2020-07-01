@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from quara.objects.state import State
+from quara.objects.state import State, convert_var_to_state
 from quara.objects.povm import Povm
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
@@ -21,24 +21,24 @@ class StandardQst(StandardQTomography):
         on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = 10 ** (-4),
     ):
-        """[summary]
+        """Constructor
 
         Parameters
         ----------
         povms : List[Povm]
-            [description]
+            testers of QST.
         is_physicality_required : bool, optional
-            [description], by default False
+            whether the QOperation is physically required, by default False
         is_estimation_object : bool, optional
-            [description], by default False
+            whether the QOperation is estimation object, by default False
         on_para_eq_constraint : bool, optional
-            [description], by default False
+            whether the parameters of QOperation are on equal constraint, by default False
         on_algo_eq_constraint : bool, optional
-            [description], by default False
+            whether the algorithm of estimate is on equal constraint, by default False
         on_algo_ineq_constraint : bool, optional
-            [description], by default False
+            whether the algorithm of estimate is on inequal constraint, by default False
         eps_proj_physical : float, optional
-            [description], by default 10**(-4)
+            threshold epsilon where the algorithm repeats the projection in order to make estimate object is physical, by default 10**(-4)
 
         Raises
         ------
@@ -105,6 +105,17 @@ class StandardQst(StandardQTomography):
                     tmp_coeffs_1st.append(vec)
 
     def is_valid_experiment(self) -> bool:
+        """returns whether the experiment is valid.
+
+        all of the following conditions are ``True``, the state is physically correct:
+
+        - all povms have same CompositeSystem.
+
+        Returns
+        -------
+        bool
+            whether the experiment is valid.
+        """
         povms = self._experiment.povms
         checks = [
             povms[0]._composite_system == povm._composite_system for povm in povms[1:]
@@ -117,6 +128,10 @@ class StandardQst(StandardQTomography):
         return state_index
 
     def calc_prob_dist(self, schedule_index: int, state: State) -> List[float]:
+        """calculates a probability distribution.
+        
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dist`
+        """
         tmp_experiment = self._experiment.copy()
         state_index = self._get_state_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
@@ -124,6 +139,10 @@ class StandardQst(StandardQTomography):
         return tmp_experiment.calc_prob_dist(schedule_index)
 
     def calc_prob_dists(self, state: State) -> List[List[float]]:
+        """calculates probability distributions.
+        
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dists`
+        """
         tmp_experiment = self._experiment.copy()
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_state_index(tmp_experiment, schedule_index)
@@ -131,6 +150,12 @@ class StandardQst(StandardQTomography):
 
         prob_dists = tmp_experiment.calc_prob_dists()
         return prob_dists
+
+    def generate_dataset(
+        self, data_nums: List[int], seeds: List[int] = None,
+    ) -> List[List[np.array]]:
+        # TODO
+        pass
 
     def generate_empi_dist(
         self, schedule_index: int, state: State, num_sum: int, seed: int = None
@@ -147,6 +172,10 @@ class StandardQst(StandardQTomography):
     def generate_empi_dists(
         self, state: State, num_sum: int, seed: int = None
     ) -> List[Tuple[int, np.array]]:
+        """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
+
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_empi_dists`
+        """
         tmp_experiment = self._experiment.copy()
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_state_index(tmp_experiment, schedule_index)
@@ -163,6 +192,22 @@ class StandardQst(StandardQTomography):
     def generate_empi_dists_sequence(
         self, state: State, num_sums: List[int], seeds: List[int] = None
     ) -> List[List[Tuple[int, np.array]]]:
+        """Generate sequence of empirical distributions using the data generated from probability distributions of all schedules.
+
+        Parameters
+        ----------
+        state : State
+            true object.
+        num_sums : List[int]
+            list of the number of data to use to generate the experience distributions for each schedule.
+        seeds : List[int], optional
+            list of the seed, by default None
+
+        Returns
+        -------
+        List[List[Tuple[int, np.array]]]
+            sequence of list of tuples for the number of data and experience distributions for each schedules.
+        """
         tmp_experiment = self._experiment.copy()
 
         list_num_sums = [num_sums] * self._num_schedules
@@ -181,3 +226,21 @@ class StandardQst(StandardQTomography):
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
         ]
         return empi_dists_sequence
+
+    def convert_var_to_qoperation(self, var: np.array) -> State:
+        """converts variable to QOperation.
+
+        see :func:`~quara.protocol.qtomography.standard.standard_qtomography.StandardQTomography.convert_var_to_qoperation`
+        """
+        template = self._set_qoperations.states[0]
+        state = convert_var_to_state(
+            c_sys=template._composite_system,
+            var=var,
+            is_physicality_required=template._is_physicality_required,
+            is_estimation_object=template._is_estimation_object,
+            on_para_eq_constraint=template._on_para_eq_constraint,
+            on_algo_eq_constraint=template._on_algo_eq_constraint,
+            on_algo_ineq_constraint=template._on_algo_ineq_constraint,
+            eps_proj_physical=template._eps_proj_physical,
+        )
+        return state
