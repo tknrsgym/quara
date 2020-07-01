@@ -267,7 +267,7 @@ class QOperation:
 
     def __mul__(self, other):
         # Validation
-        if type(other) not in [int, float]:
+        if type(other) not in [int, float, np.int64, np.float64]:
             error_message = (
                 f"'*' not supported between instances of {type(self)} and {type(other)}"
             )
@@ -296,7 +296,7 @@ class QOperation:
 
     def __truediv__(self, other):
         # Validation
-        if type(other) not in [int, float]:
+        if type(other) not in [int, float, np.int64, np.float64]:
             error_message = (
                 f"'/' not supported between instances of {type(self)} and {type(other)}"
             )
