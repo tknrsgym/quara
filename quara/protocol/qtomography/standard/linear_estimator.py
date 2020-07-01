@@ -17,7 +17,7 @@ class LinearEstimator(StandardQTomographyEstimator):
         self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
     ) -> np.array:
         estimate = self.calc_estimate_sequence_var(qtomography, [empi_dists])
-        return estimate
+        return estimate[0]
 
     def calc_estimate_sequence_var(
         self,
