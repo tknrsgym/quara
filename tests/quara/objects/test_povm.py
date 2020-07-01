@@ -742,17 +742,13 @@ class TestPovm:
         vec_21 = np.array([10, 20, 30, 40], dtype=np.float64)
         vec_22 = np.array([50, 60, 70, 80], dtype=np.float64)
         vecs = [vec_21, vec_22, vec_21]
-        povm_2 = Povm(
-            c_sys=c_sys,
-            vecs=vecs,
-            is_physicality_required=False
-        )
+        povm_2 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
         # Act & Assert
         with pytest.raises(ValueError):
             _ = povm_1 + povm_2
 
-        # Case 3:
+        # Case 4:
         # Arrange
         e_sys = esys.ElementalSystem(1, get_comp_basis())
         c_sys = csys.CompositeSystem([e_sys])
@@ -764,6 +760,99 @@ class TestPovm:
         # Act & Assert
         with pytest.raises(ValueError):
             actual = povm_1 + povm_3
+
+    def test_sub(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        vec_11 = np.array([1, 2, 3, 4], dtype=np.float64)
+        vec_12 = np.array([5, 6, 7, 8], dtype=np.float64)
+        vecs = [vec_11, vec_12]
+        povm_1 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        vec_21 = np.array([10, 20, 30, 40], dtype=np.float64)
+        vec_22 = np.array([50, 60, 70, 80], dtype=np.float64)
+        vecs = [vec_21, vec_22]
+        povm_2 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act
+        actual = povm_1 - povm_2
+
+        # Assert
+        expected_vecs = [
+            np.array([-9, -18, -27, -36], dtype=np.float64),
+            np.array([-45, -54, -63, -72], dtype=np.float64),
+        ]
+        assert type(actual) == Povm
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == povm_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == povm_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == povm_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == povm_1.eps_proj_physical
+
+    def test_sub_exception(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        vec_11 = np.array([1, 2, 3, 4], dtype=np.float64)
+        vec_12 = np.array([5, 6, 7, 8], dtype=np.float64)
+        vecs = [vec_11, vec_12]
+        povm_1 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Case 1:
+        # Arrange
+        state = get_x0_1q(c_sys)
+
+        # Act & Assert
+        with pytest.raises(TypeError):
+            _ = povm_1 - state
+
+        # Case 2:
+        # Arrange
+        vec_21 = np.array([10, 20, 30, 40], dtype=np.float64)
+        vec_22 = np.array([50, 60, 70, 80], dtype=np.float64)
+        vecs = [vec_21, vec_22]
+        povm_2 = Povm(
+            c_sys=c_sys,
+            vecs=vecs,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = povm_1 - povm_2
+
+        # Case 3:
+        # Arrange
+        vec_21 = np.array([10, 20, 30, 40], dtype=np.float64)
+        vec_22 = np.array([50, 60, 70, 80], dtype=np.float64)
+        vecs = [vec_21, vec_22, vec_21]
+        povm_2 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = povm_1 - povm_2
+
+        # Case 4:
+        # Arrange
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        vec_31 = np.array([10, 20, 30, 40], dtype=np.float64)
+        vec_32 = np.array([50, 60, 70, 80], dtype=np.float64)
+        vecs = [vec_31, vec_32]
+        povm_3 = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            actual = povm_1 - povm_3
 
 
 def test_convert_var_index_to_povm_index():

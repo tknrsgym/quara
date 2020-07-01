@@ -207,3 +207,43 @@ class QOperation:
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qobject
+
+    def __sub__(self, other):
+        # Validation
+        if type(other) != type(self):
+            error_message = (
+                f"'-' not supported between instances of {type(self)} and {type(other)}"
+            )
+            raise TypeError(error_message)
+
+        if other.composite_system is not self.composite_system:
+            # TODO: error message
+            raise ValueError()
+
+        if (
+            (self.is_physicality_required != other.is_physicality_required)
+            or (self.is_estimation_object != other.is_estimation_object)
+            or (self.on_para_eq_constraint != other.on_para_eq_constraint)
+            or (self.on_algo_eq_constraint != other.on_algo_eq_constraint)
+            or (self.on_algo_ineq_constraint != other.on_algo_ineq_constraint)
+            or (self.eps_proj_physical != other.eps_proj_physical)
+        ):
+            # TODO: error message
+            raise ValueError()
+
+        # Calculation
+        new_values = self._sub_vec(other)
+
+        # Ganerate new QObject
+        new_qobject = self.__class__(
+            self.composite_system,
+            new_values,
+            is_physicality_required=False,
+            is_estimation_object=False,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return new_qobject
+
