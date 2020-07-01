@@ -35,26 +35,68 @@ class StandardQTomography(QTomography):
         self._coeffs_1st = None
 
     def get_coeffs_0th(self, schedule_index: int, x: int) -> np.float64:
+        """returns 0th coefficients specified by schedule index and povm vecs index
+
+        Parameters
+        ----------
+        schedule_index : int
+            schedule index.
+        x : int
+            povm vecs index.
+
+        Returns
+        -------
+        np.float64
+            0th coefficients.
+        """
         return self._coeffs_0th[(schedule_index, x)]
 
     def get_coeffs_1st(self, schedule_index: int, x: int) -> np.array:
+        """returns 1st coefficients specified by schedule index and povm vecs index
+
+        Parameters
+        ----------
+        schedule_index : int
+            schedule index.
+        x : int
+            povm vecs index.
+
+        Returns
+        -------
+        np.array
+            1st coefficients.
+        """
         return self._coeffs_1st[(schedule_index, x)]
 
     def calc_matA(self) -> np.array:
+        """returns the matrix A.
+
+        the matrix A is a stack of 1st coefficients.
+
+        Returns
+        -------
+        np.array
+            the matrix A.
+        """
         sorted_coeffs_1st = sorted(self._coeffs_1st.items())
         sorted_values = [k[1] for k in sorted_coeffs_1st]
         matA = np.vstack(sorted_values)
         return matA
 
     def calc_vecB(self) -> np.array:
+        """returns the vector B.
+
+        the vector B is a stack of 0th coefficients.
+
+        Returns
+        -------
+        np.array
+            the vector B.
+        """
         sorted_coeffs_0th = sorted(self._coeffs_0th.items())
         sorted_values = [k[1] for k in sorted_coeffs_0th]
         vecB = np.vstack(sorted_values).flatten()
         return vecB
-
-    @abstractmethod
-    def convert_var_to_qoperation(self, var: np.array) -> QOperation:
-        raise NotImplementedError()
 
     def is_fullrank_matA(self) -> bool:
         """returns whether matrix A is full rank.
@@ -68,3 +110,26 @@ class StandardQTomography(QTomography):
         rank = np.linalg.matrix_rank(matA)
         size = min(matA.shape)
         return size == rank
+
+    @abstractmethod
+    def convert_var_to_qoperation(self, var: np.array) -> QOperation:
+        """converts variable to QOperation.
+
+        this function must be implemented in the subclass.
+
+        Parameters
+        ----------
+        var : np.array
+            variables.
+
+        Returns
+        -------
+        QOperation
+            converted QOperation.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        raise NotImplementedError()
