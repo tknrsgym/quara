@@ -1,3 +1,4 @@
+import itertools
 from typing import List, Tuple
 
 import numpy as np
@@ -119,6 +120,7 @@ class StandardQst(StandardQTomography):
         tmp_experiment = self._experiment.copy()
         state_index = self._get_state_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
+
         return tmp_experiment.calc_prob_dist(schedule_index)
 
     def calc_prob_dists(self, state: State) -> List[List[float]]:
@@ -126,6 +128,7 @@ class StandardQst(StandardQTomography):
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_state_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
+
         prob_dists = tmp_experiment.calc_prob_dists()
         return prob_dists
 
@@ -135,7 +138,11 @@ class StandardQst(StandardQTomography):
         tmp_experiment = self._experiment.copy()
         state_index = self._get_state_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
-        return tmp_experiment.generate_empi_dist(schedule_index, [num_sum], seed)
+
+        empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
+            schedule_index, [num_sum], seed
+        )
+        return empi_dist_seq[0]
 
     def generate_empi_dists(
         self, state: State, num_sum: int, seed: int = None
@@ -145,20 +152,32 @@ class StandardQst(StandardQTomography):
             state_index = self._get_state_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
 
-        empi_dists = tmp_experiment.generate_empi_dists(num_sum, seed)
+        num_sums = [num_sum] * self._num_schedules
+        seeds = [seed] * self._num_schedules
+
+        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums], [seeds])
+
+        empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
         return empi_dists
 
     def generate_empi_dists_sequence(
-        self, state: State, num_sums: List[int], seed: int = None
+        self, state: State, num_sums: List[int], seeds: List[int] = None
     ) -> List[List[Tuple[int, np.array]]]:
         tmp_experiment = self._experiment.copy()
 
-        empi_dists_sequence = []
+        list_num_sums = [num_sums] * self._num_schedules
+        list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
+        list_seeds = [seeds] * self._num_schedules
+        list_seeds_tmp = [list(seeds) for seeds in zip(*list_seeds)]
+
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_state_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
 
-        empi_dists_sequence = tmp_experiment.generate_empi_dists_sequence(
-            num_sums, seed
+        empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
+            list_num_sums_tmp, list_seeds_tmp,
         )
+        empi_dists_sequence = [
+            list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
+        ]
         return empi_dists_sequence

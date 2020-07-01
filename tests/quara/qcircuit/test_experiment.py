@@ -424,7 +424,7 @@ class TestExperiment:
             # TypeError: The type of 'seeds' must be list.
             _ = exp.generate_dataset(data_nums=ok_data_nums, seeds=ng_seed_list)
 
-    def test_generate_empi_dist(self):
+    def test_generate_empi_dist_sequence(self):
         # Array
         exp = self.array_experiment_data()
 
@@ -434,7 +434,7 @@ class TestExperiment:
         # data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         num_sums = [5, 10, 20]
         # seed_list = [7, 77]
-        actual = exp.generate_empi_dist(schedule_index=0, num_sums=num_sums)
+        actual = exp.generate_empi_dist_sequence(schedule_index=0, num_sums=num_sums)
 
         # Assert
         expected_1 = [
@@ -452,7 +452,9 @@ class TestExperiment:
         # probdist: [0.5, 0.5]
         # data: [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
         num_sums = [5, 10, 15, 20]
-        actual = exp.generate_empi_dist(schedule_index=1, num_sums=num_sums, seed=77)
+        actual = exp.generate_empi_dist_sequence(
+            schedule_index=1, num_sums=num_sums, seed=77
+        )
 
         # Assert
         expected_2 = [
@@ -466,7 +468,7 @@ class TestExperiment:
             assert a[0] == e[0]
             assert np.all(a[1] == e[1])
 
-    def test_generate_empi_dist_exception(self):
+    def test_generate_empi_dist_sequence_exception(self):
         # Array
         exp = self.array_experiment_data()
         ok_num_sums = [7]
@@ -475,7 +477,7 @@ class TestExperiment:
         # Case 1:
         ng_schedule_index = 0.1
         with pytest.raises(TypeError):
-            actual = exp.generate_empi_dist(
+            actual = exp.generate_empi_dist_sequence(
                 schedule_index=ng_schedule_index, num_sums=ok_num_sums, seed=7
             )
 
@@ -483,7 +485,7 @@ class TestExperiment:
         # Case 2:
         ng_schedule_index = len(exp.schedules)
         with pytest.raises(IndexError):
-            actual = exp.generate_empi_dist(
+            actual = exp.generate_empi_dist_sequence(
                 schedule_index=ng_schedule_index, num_sums=ok_num_sums, seed=7
             )
 
@@ -500,8 +502,8 @@ class TestExperiment:
 
         # Assert
         expected = [
-            [(5, np.array([1, 0])), (10, np.array([0.4, 0.6]))],
-            [(15, np.array([1, 0])), (20, np.array([0.45, 0.55]))],
+            [(5, np.array([1, 0])), (15, np.array([1, 0]))],
+            [(10, np.array([0.4, 0.6])), (20, np.array([0.45, 0.55]))],
         ]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):

@@ -82,7 +82,6 @@ def test_calc_empi_dist_sequence():
 
     # Act
     actual = data_generator.calc_empi_dist_sequence(measurement_num, data, num_sums)
-    print(actual)
 
     # Assert
     expected = [
@@ -118,8 +117,6 @@ def test_calc_empi_dist_sequence():
 
 
 def test_calc_empi_dists_sequence():
-    # TODO 要修正
-    """
     # Arrange
     measurement_nums = [3, 2]
     dataset = [
@@ -130,7 +127,6 @@ def test_calc_empi_dists_sequence():
         [2, 10],
         [5, 10, 20],
     ]
-
     # Act
     list_actual = data_generator.calc_empi_dists_sequence(
         measurement_nums, dataset, list_list_num_sum
@@ -177,5 +173,4 @@ def test_calc_empi_dists_sequence():
         data_generator.calc_empi_dists_sequence(
             measurement_nums, dataset, wrong_list_list_num_sum
         )
-    """
     pass

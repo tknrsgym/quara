@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -13,7 +13,7 @@ class StandardQTomographyEstimator(Estimator):
         super().__init__()
 
     def calc_estimate_qoperation(
-        self, qtomography: StandardQTomography, empi_dists: List[List[float]]
+        self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
     ) -> QOperation:
         var = self.calc_estimate_var(qtomography, empi_dists)
         qope = qtomography.convert_var_to_qoperation(var)
@@ -21,6 +21,6 @@ class StandardQTomographyEstimator(Estimator):
 
     @abstractmethod
     def calc_estimate_var(
-        self, qtomography: StandardQTomography, empi_dists: List[List[float]]
+        self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
     ) -> np.array:
         raise NotImplementedError()
