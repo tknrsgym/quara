@@ -171,6 +171,21 @@ class Povm(QOperation):
         new_vecs = [np.zeros(size, dtype=np.float64) for _ in range(len(self.vecs))]
         return new_vecs
 
+    def _generate_origin_obj(self):
+        size = self.dim ** 2
+
+        def generate_vec() -> np.array:
+            return np.hstack(
+                [
+                    np.array([np.sqrt(self.dim) / len(self.vecs)], dtype=np.float64),
+                    np.zeros(size - 1, dtype=np.float64),
+                ]
+            )
+
+        new_vecs = [generate_vec() for _ in range(len(self.vecs))]
+
+        return new_vecs
+
     def to_var(self) -> np.array:
         return convert_povm_to_var(
             c_sys=self._composite_system,

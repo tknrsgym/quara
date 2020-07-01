@@ -668,6 +668,44 @@ class TestPovm:
         assert povm.on_algo_ineq_constraint == old_povm.on_algo_ineq_constraint
         assert povm.eps_proj_physical == old_povm.eps_proj_physical
 
+    def test_generate_origin_obj(self):
+        # generate_origin_obj()
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        vec_1 = np.array([1, 2, 3, 4], dtype=np.float64)
+        vec_2 = np.array([5, 6, 7, 8], dtype=np.float64)
+        vecs = [vec_1, vec_2]
+        povm = Povm(
+            c_sys=c_sys,
+            vecs=vecs,
+            is_physicality_required=False,
+            is_estimation_object=True,
+            on_para_eq_constraint=False,
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=False,
+            eps_proj_physical=0.2,
+        )
+
+        # Act
+        actual = povm.generate_origin_obj()
+
+        expected_vecs = [
+            np.array([np.sqrt(2) / 2, 0, 0, 0], dtype=np.float64),
+            np.array([np.sqrt(2) / 2, 0, 0, 0], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == povm.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == povm.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == povm.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == povm.eps_proj_physical
+
     def test_add(self):
         # Arrange
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -1023,8 +1061,14 @@ class TestPovm:
 
         # Assert
         expected_vecs = [
-            np.array([float("inf"), float("inf"),float("inf"), float("inf")], dtype=np.float64),
-            np.array([float("inf"), float("inf"),float("inf"), float("inf")], dtype=np.float64),
+            np.array(
+                [float("inf"), float("inf"), float("inf"), float("inf")],
+                dtype=np.float64,
+            ),
+            np.array(
+                [float("inf"), float("inf"), float("inf"), float("inf")],
+                dtype=np.float64,
+            ),
         ]
         assert type(actual) == Povm
         assert len(actual.vecs) == len(expected_vecs)
