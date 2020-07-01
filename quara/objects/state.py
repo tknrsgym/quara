@@ -99,6 +99,17 @@ class State(QOperation):
             raise ValueError("the state is not physically correct.")
 
     @property
+    def composite_system(self) -> CompositeSystem:  # read only
+        """Property to get composite system.
+
+        Returns
+        -------
+        CompositeSystem
+            composite system.
+        """
+        return self._composite_system
+
+    @property
     def vec(self):
         """returns vec of this state.
 
@@ -146,6 +157,25 @@ class State(QOperation):
         new_vec = np.zeros(self.vec.shape, dtype=np.float64)
         return new_vec
 
+    def _generate_origin_obj(self):
+        new_vec = np.zeros(self.vec.shape, dtype=np.float64)
+        new_vec[0] = 1 / np.sqrt(self.dim)
+        return new_vec
+
+    def _add_vec(self, other):
+        return self.vec + other.vec
+
+    def _sub_vec(self, other):
+        return self.vec - other.vec
+
+    def _mul_vec(self, other):
+        # self * other
+        return self.vec * other
+
+    def _truediv_vec(self, other):
+        # self / other
+        return self.vec / other
+
     def to_var(self) -> np.array:
         return convert_state_to_var(
             c_sys=self._composite_system,
@@ -166,20 +196,6 @@ class State(QOperation):
         raise NotImplementedError()
 
     def calc_proj_physical(self):
-        raise NotImplementedError()
-
-    def __add__(self, other):
-        raise NotImplementedError()
-
-    def __sub__(self, other):
-        raise NotImplementedError()
-
-    def __mul__(self, other):
-        # self * other
-        raise NotImplementedError()
-
-    def __rmul__(self, other):
-        # other * self
         raise NotImplementedError()
 
     def to_density_matrix(self) -> np.ndarray:
