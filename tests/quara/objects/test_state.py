@@ -192,9 +192,6 @@ class TestState:
     def test_mul_vec(self):
         pass
 
-    def test_rmul_vec(self):
-        pass
-
     def test_truediv_vec(self):
         pass
 
