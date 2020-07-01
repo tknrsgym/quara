@@ -414,6 +414,10 @@ class Povm(QOperation):
         new_vecs = [vec * other for vec in self.vecs]
         return new_vecs
 
+    def _truediv_vec(self, other):
+        new_vecs = [vec / other for vec in self.vecs]
+        return new_vecs
+
 
 def convert_var_index_to_povm_index(
     c_sys: CompositeSystem,
