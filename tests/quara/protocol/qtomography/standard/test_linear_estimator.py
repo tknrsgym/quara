@@ -19,7 +19,7 @@ from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.utils.matrix_util import calc_mse
 
 
-def get_test_data():
+def get_test_data(on_para_eq_constraint=False):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
@@ -28,7 +28,7 @@ def get_test_data():
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=False)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint)
 
     return qst, c_sys
 
@@ -72,8 +72,8 @@ class TestLinearEstimator:
         for a, e in zip(actual, expected):
             npt.assert_almost_equal(a, e, decimal=15)
 
-    def test_scenario(self):
-        qst, c_sys = get_test_data()
+    def test_scenario_on_para_eq_constraint_True(self):
+        qst, c_sys = get_test_data(on_para_eq_constraint=True)
 
         # generate empi dists and calc estimate
         true_object = get_z0_1q(c_sys)
@@ -82,7 +82,6 @@ class TestLinearEstimator:
 
         var_sequences = []
 
-        # start = time.time()
         for iteration in range(iterations):
             seeds = [iteration] * len(num_data)
             empi_dists_seq = qst.generate_empi_dists_sequence(
@@ -102,9 +101,50 @@ class TestLinearEstimator:
             print(info)
             """
             var_sequences.append(var_sequence)
+            for var in var_sequence:
+                assert len(var) == 3
 
-        end = time.time()
-        # print(f"time(s)={end - start}")
+        # calc mse
+        var_sequences_tmp = [list(var_sequence) for var_sequence in zip(*var_sequences)]
+        actual = [
+            calc_mse(var_sequence, [true_object.vec[1:]] * len(var_sequence))
+            for var_sequence in var_sequences_tmp
+        ]
+        print(f"mse={actual}")
+        expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_scenario_on_para_eq_constraint_False(self):
+        qst, c_sys = get_test_data()
+
+        # generate empi dists and calc estimate
+        true_object = get_z0_1q(c_sys)
+        num_data = [100, 1000, 10000, 100000]
+        iterations = 2
+
+        var_sequences = []
+
+        for iteration in range(iterations):
+            seeds = [iteration] * len(num_data)
+            empi_dists_seq = qst.generate_empi_dists_sequence(
+                true_object, num_data, seeds
+            )
+
+            estimator = LinearEstimator()
+            var_sequence = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
+            print(f"var_sequence={var_sequence}")
+
+            """
+            info = {
+                "iteration": iteration,
+                "empi_dists_seq": empi_dists_seq,
+                "var_sequence": var_sequence,
+            }
+            print(info)
+            """
+            var_sequences.append(var_sequence)
+            for var in var_sequence:
+                assert len(var) == 4
 
         # calc mse
         var_sequences_tmp = [list(var_sequence) for var_sequence in zip(*var_sequences)]
