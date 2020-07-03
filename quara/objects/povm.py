@@ -99,17 +99,6 @@ class Povm(QOperation):
             raise ValueError("the POVM is not physically correct.")
 
     @property
-    def composite_system(self) -> CompositeSystem:  # read only
-        """Property to get composite system.
-
-        Returns
-        -------
-        CompositeSystem
-            composite system.
-        """
-        return self._composite_system
-
-    @property
     def vecs(self) -> List[np.ndarray]:  # read only
         """Property to get vecs of povm.
 
