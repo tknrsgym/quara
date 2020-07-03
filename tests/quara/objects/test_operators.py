@@ -347,8 +347,8 @@ def test_tensor_product_State_State():
     assert np.all(actual.vec == expected_vec)
     assert np.all(actual.to_density_matrix() == expected_density_matrix)
 
-    assert e_sys1 is actual._composite_system._elemental_systems[0]
-    assert e_sys2 is actual._composite_system._elemental_systems[1]
+    assert e_sys1 is actual.composite_system._elemental_systems[0]
+    assert e_sys2 is actual.composite_system._elemental_systems[1]
 
     # assert associativity
     # (A \otimes B) \otimes C = A \otimes (B \otimes C)
@@ -403,33 +403,33 @@ def test_tensor_product_State_State_sort_ElementalSystem():
     state12 = tensor_product(state1, state2)
     expected12 = np.kron(state1.vec, state2.vec)
     assert np.all(state12.vec == expected12)
-    assert state12._composite_system.elemental_systems[0] == e_sys1
-    assert state12._composite_system.elemental_systems[1] == e_sys2
+    assert state12.composite_system.elemental_systems[0] == e_sys1
+    assert state12.composite_system.elemental_systems[1] == e_sys2
 
     state12_3 = tensor_product(state12, state3)
     expected12_3 = np.kron(np.kron(state1.vec, state2.vec), state3.vec)
     assert np.all(state12_3.vec == expected12_3)
-    assert state12_3._composite_system.elemental_systems[0] == e_sys1
-    assert state12_3._composite_system.elemental_systems[1] == e_sys2
-    assert state12_3._composite_system.elemental_systems[2] == e_sys3
+    assert state12_3.composite_system.elemental_systems[0] == e_sys1
+    assert state12_3.composite_system.elemental_systems[1] == e_sys2
+    assert state12_3.composite_system.elemental_systems[2] == e_sys3
 
     state13 = tensor_product(state1, state3)
     expected13 = np.kron(state1.vec, state3.vec)
     assert np.all(state13.vec == expected13)
-    assert state13._composite_system.elemental_systems[0] == e_sys1
-    assert state13._composite_system.elemental_systems[1] == e_sys3
+    assert state13.composite_system.elemental_systems[0] == e_sys1
+    assert state13.composite_system.elemental_systems[1] == e_sys3
 
     state13_2 = tensor_product(state13, state2)
     assert np.all(state13_2.vec == expected12_3)
-    assert state13_2._composite_system.elemental_systems[0] == e_sys1
-    assert state13_2._composite_system.elemental_systems[1] == e_sys2
-    assert state13_2._composite_system.elemental_systems[2] == e_sys3
+    assert state13_2.composite_system.elemental_systems[0] == e_sys1
+    assert state13_2.composite_system.elemental_systems[1] == e_sys2
+    assert state13_2.composite_system.elemental_systems[2] == e_sys3
 
     state3_12 = tensor_product(state3, state12)
     assert np.all(state3_12.vec == expected12_3)
-    assert state3_12._composite_system.elemental_systems[0] == e_sys1
-    assert state3_12._composite_system.elemental_systems[1] == e_sys2
-    assert state3_12._composite_system.elemental_systems[2] == e_sys3
+    assert state3_12.composite_system.elemental_systems[0] == e_sys1
+    assert state3_12.composite_system.elemental_systems[1] == e_sys2
+    assert state3_12.composite_system.elemental_systems[2] == e_sys3
 
 
 def test_tensor_product_povm_povm_is_physicality_required_true():
