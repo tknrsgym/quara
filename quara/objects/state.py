@@ -89,25 +89,14 @@ class State(QOperation):
             )
 
         # whether dim of CompositeSystem equals dim of vec
-        if self._composite_system.dim != self._dim:
+        if self.composite_system.dim != self._dim:
             raise ValueError(
-                f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self._composite_system.dim}. dim of vec is {self._dim}"
+                f"dim of CompositeSystem must equal dim of vec. dim of CompositeSystem is {self.composite_system.dim}. dim of vec is {self._dim}"
             )
 
         # whether the state is physically correct
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the state is not physically correct.")
-
-    @property
-    def composite_system(self) -> CompositeSystem:  # read only
-        """Property to get composite system.
-
-        Returns
-        -------
-        CompositeSystem
-            composite system.
-        """
-        return self._composite_system
 
     @property
     def vec(self):
@@ -178,7 +167,7 @@ class State(QOperation):
 
     def to_var(self) -> np.array:
         return convert_state_to_var(
-            c_sys=self._composite_system,
+            c_sys=self.composite_system,
             vec=self.vec,
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
@@ -207,7 +196,7 @@ class State(QOperation):
             density matrix.
         """
         density = np.zeros((self._dim, self._dim), dtype=np.complex128)
-        for coefficient, basis in zip(self._vec, self._composite_system.basis()):
+        for coefficient, basis in zip(self._vec, self.composite_system.basis()):
             density += coefficient * basis
         return density
 
@@ -270,7 +259,7 @@ class State(QOperation):
             vector representation for ``other_basis``.
         """
         converted_vec = convert_vec(
-            self._vec, self._composite_system.basis(), other_basis
+            self._vec, self.composite_system.basis(), other_basis
         )
         return converted_vec
 
