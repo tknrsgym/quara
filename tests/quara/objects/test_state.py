@@ -727,6 +727,63 @@ class TestState:
         expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
         npt.assert_almost_equal(vector, expected, decimal=15)
 
+    def test_calc_gradient(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # case: on_para_eq_constraint=True
+        state = get_z0_1q(c_sys)
+        actual = state.calc_gradient(0)
+
+        expected = np.array([0, 1, 0, 0], dtype=np.float64)
+        npt.assert_almost_equal(actual.vec, expected, decimal=15)
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == True
+        assert actual.on_para_eq_constraint == True
+        assert actual.on_algo_eq_constraint == True
+        assert actual.on_algo_ineq_constraint == True
+        assert actual.eps_proj_physical == 10 ** (-4)
+
+        # case: on_para_eq_constraint=False
+        vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        state = State(c_sys, vec, on_para_eq_constraint=False)
+        actual = state.calc_gradient(0)
+
+        expected = np.array([1, 0, 0, 0], dtype=np.float64)
+        npt.assert_almost_equal(actual.vec, expected, decimal=15)
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == True
+        assert actual.on_para_eq_constraint == False
+        assert actual.on_algo_eq_constraint == True
+        assert actual.on_algo_ineq_constraint == True
+        assert actual.eps_proj_physical == 10 ** (-4)
+
+    def test_calc_proj_eq_constraint(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        vec = np.array([1, 0, 0, 0], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_eq_constraint()
+
+        expected = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual.vec, expected, decimal=15)
+        assert actual.is_hermitian() == True
+        assert actual.is_trace_one() == True
+
+    def test_calc_proj_ineq_constraint(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        vec = np.array([1, 2, 0, 0], dtype=np.float64) / np.sqrt(2)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_ineq_constraint()
+
+        expected = np.array(
+            [3 * np.sqrt(2) / 4, 3 * np.sqrt(2) / 4, 0, 0], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual.vec, expected, decimal=15)
+        assert actual.is_hermitian() == True
+        assert actual.is_positive_semidefinite() == True
+
     def test_to_density_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -1305,6 +1362,7 @@ def test_convert_state_to_var():
 
 
 def test_calc_gradient_from_state():
+    # TODO add test cases
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 

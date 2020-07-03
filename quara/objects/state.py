@@ -175,17 +175,77 @@ class State(QOperation):
     def to_stacked_vector(self) -> np.array:
         return self._vec
 
-    def calc_gradient(self):
-        raise NotImplementedError()
+    def calc_gradient(self, var_index: int) -> "State":
+        state = calc_gradient_from_state(
+            self.composite_system,
+            self.vec,
+            var_index,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return state
 
-    def calc_proj_eq_constraint(self):
-        raise NotImplementedError()
+    def calc_proj_eq_constraint(self) -> "State":
+        """calculates the projection of State on equal constraint.
 
-    def calc_proj_ineq_constraint(self):
-        raise NotImplementedError()
+        Returns
+        -------
+        State
+            the projection of State on equal constraint.
+        """
+        vec = self.vec
+        vec[0] = 1 / np.sqrt(self.dim)
+        state = State(
+            self.composite_system,
+            vec,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return state
 
-    def calc_proj_physical(self):
-        raise NotImplementedError()
+    def calc_proj_ineq_constraint(self) -> "State":
+        """calculates the projection of State on inequal constraint.
+
+        Returns
+        -------
+        State
+            the projection of State on inequal constraint.
+        """
+        # calc engenvalues and engenvectors
+        density_matrix_orig = self.to_density_matrix()
+        eigenvals, eigenvecs = np.linalg.eig(density_matrix_orig)
+
+        # project
+        for index in range(len(eigenvals)):
+            if eigenvals[index] < 0:
+                eigenvals[index] = 0
+
+        # calc new vec
+        density_matrix_new = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
+        vec_new = [
+            np.vdot(basis, density_matrix_new)
+            for basis in self.composite_system.basis()
+        ]
+
+        # create new State
+        state = State(
+            self.composite_system,
+            np.array(vec_new, dtype=np.float64),
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return state
 
     def to_density_matrix(self) -> np.ndarray:
         """returns density matrix.
@@ -376,7 +436,11 @@ def calc_gradient_from_state(
     c_sys: CompositeSystem,
     vec: np.ndarray,
     var_index: int,
+    is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> State:
     """calculates gradient from State.
 
@@ -400,7 +464,16 @@ def calc_gradient_from_state(
     state_index = convert_var_index_to_state_index(var_index, on_para_eq_constraint)
     gradient[state_index] = 1
 
-    state = State(c_sys, gradient, is_physicality_required=False)
+    state = State(
+        c_sys,
+        gradient,
+        is_physicality_required=False,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return state
 
 
