@@ -248,7 +248,7 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     tensor_povm = Povm(
         c_sys, tensor_vecs, is_physicality_required=is_physicality_required
     )
-    tensor_povm._set_measurements(tmp_num_of_vecs_list)
+    tensor_povm._measurements = tmp_num_of_vecs_list
     return tensor_povm
 
 
