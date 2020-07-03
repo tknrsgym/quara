@@ -99,17 +99,6 @@ class Povm(QOperation):
             raise ValueError("the POVM is not physically correct.")
 
     @property
-    def composite_system(self) -> CompositeSystem:  # read only
-        """Property to get composite system.
-
-        Returns
-        -------
-        CompositeSystem
-            composite system.
-        """
-        return self._composite_system
-
-    @property
     def vecs(self) -> List[np.ndarray]:  # read only
         """Property to get vecs of povm.
 
@@ -200,10 +189,48 @@ class Povm(QOperation):
         raise NotImplementedError()
 
     def calc_proj_eq_constraint(self):
-        raise NotImplementedError()
+        size = self.dim ** 2
+        m = len(self.vecs)
+        c = np.hstack(
+            [
+                np.array([np.sqrt(self.dim) / m], dtype=np.float64),
+                np.zeros(size - 1, dtype=np.float64),
+            ]
+        )
+        a_bar = np.sum(np.array(self.vecs), axis=0) / m
 
-    def calc_proj_ineq_constraint(self):
-        raise NotImplementedError()
+        new_vecs = []
+        for vec in self.vecs:
+            new_vec = vec - a_bar + c
+            new_vecs.append(new_vec)
+        new_povm = Povm(
+            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
+        )
+        return new_povm
+
+    def calc_proj_ineq_constraint(self) -> "Povm":
+        size = (self._dim, self._dim)
+        eigenvalues = []
+        for vec in self.vecs:
+            eigh, _ = np.linalg.eigh(vec.reshape(size))
+            eigenvalues.append(eigh)
+        diags = [np.diag(e) for e in eigenvalues]
+        processed = []
+        for diag in diags:
+            diag[diag < 0] = 0
+            processed.append(diag.flatten())
+
+        # eigenvalues = self.calc_eigenvalues()
+        # diags = [np.diag(e) for e in eigenvalues]
+        # processed = []
+        # for diag in diags:
+        #     diag[diag < 0] = 0
+        #     processed.append(diag.flatten())
+
+        new_povm = Povm(
+            c_sys=self.composite_system, vecs=processed, is_physicality_required=False
+        )
+        return new_povm
 
     def _generate_from_var_func(self):
         return convert_var_to_povm
@@ -220,8 +247,8 @@ class Povm(QOperation):
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
 
-    def _set_measurements(self, measurements: List[int]):
-        self._measurements = measurements
+    # def _set_measurements(self, measurements: List[int]):
+    #     self._measurements = measurements
 
     def get_measurement(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns vec of measurement by index.
