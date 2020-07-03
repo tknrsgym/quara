@@ -84,25 +84,14 @@ class Gate(QOperation):
             raise ValueError(f"HS must be real matrix. dtype of HS is {self._hs.dtype}")
 
         # whether dim of HS equals dim of CompositeSystem
-        if self._dim != self._composite_system.dim:
+        if self._dim != self.composite_system.dim:
             raise ValueError(
-                f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self._composite_system.dim}"
+                f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self.composite_system.dim}"
             )
 
         # whether the gate is physically correct
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the gate is not physically correct.")
-
-    @property
-    def composite_system(self) -> CompositeSystem:  # read only
-        """Property to get composite system.
-
-        Returns
-        -------
-        CompositeSystem
-            composite system.
-        """
-        return self._composite_system
 
     @property
     def dim(self):
@@ -151,7 +140,7 @@ class Gate(QOperation):
 
     def to_var(self) -> np.array:
         return convert_gate_to_var(
-            c_sys=self._composite_system,
+            c_sys=self.composite_system,
             hs=self.hs,
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
@@ -193,7 +182,7 @@ class Gate(QOperation):
         MatrixBasis
             MatrixBasis of gate.
         """
-        return self._composite_system.basis()
+        return self.composite_system.basis()
 
     def is_tp(self, atol: float = None) -> bool:
         """returns whether the gate is TP(trace-preserving map).
@@ -212,7 +201,7 @@ class Gate(QOperation):
         atol = atol if atol else Settings.get_atol()
 
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
-        for index, basis in enumerate(self._composite_system.basis()):
+        for index, basis in enumerate(self.composite_system.basis()):
             # calculate Tr[B_\alpha]
             trace_before_mapped = np.trace(basis)
 
@@ -223,7 +212,7 @@ class Gate(QOperation):
 
             density = np.zeros((self._dim, self._dim), dtype=np.complex128)
             for coefficient, basis in zip(
-                vec_after_mapped, self._composite_system.basis()
+                vec_after_mapped, self.composite_system.basis()
             ):
                 density += coefficient * basis
 
@@ -270,7 +259,7 @@ class Gate(QOperation):
         np.array
             HS representation for ``other_basis``.
         """
-        converted_hs = convert_hs(self.hs, self._composite_system.basis(), other_basis)
+        converted_hs = convert_hs(self.hs, self.composite_system.basis(), other_basis)
         return converted_hs
 
     def convert_to_comp_basis(self) -> np.array:
@@ -282,7 +271,7 @@ class Gate(QOperation):
             HS representation for computational basis.
         """
         converted_hs = convert_hs(
-            self.hs, self._composite_system.basis(), self._composite_system.comp_basis()
+            self.hs, self.composite_system.basis(), self.composite_system.comp_basis()
         )
         return converted_hs
 
@@ -296,7 +285,7 @@ class Gate(QOperation):
         """
         # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
         tmp_list = []
-        basis = self._composite_system.basis()
+        basis = self.composite_system.basis()
         indexed_basis = list(zip(range(len(basis)), basis))
         for B_alpha, B_beta in itertools.product(indexed_basis, indexed_basis):
             tmp = self._hs[B_alpha[0]][B_beta[0]] * np.kron(
@@ -359,7 +348,7 @@ class Gate(QOperation):
         """
         # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
         hs_comp = self.convert_to_comp_basis()
-        comp_basis = self._composite_system.comp_basis()
+        comp_basis = self.composite_system.comp_basis()
         process_matrix = [
             np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
             for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)

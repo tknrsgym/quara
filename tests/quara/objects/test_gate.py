@@ -542,7 +542,7 @@ class TestGate:
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
         )
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
-        assert actual._composite_system is c_sys
+        assert actual.composite_system is c_sys
         assert actual.is_physicality_required is init_is_physicality_required
         assert actual.is_estimation_object is init_is_estimation_object
         assert actual.on_para_eq_constraint is init_on_para_eq_constraint
@@ -578,7 +578,7 @@ class TestGate:
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
         )
         assert np.all(actual.hs == expected)
-        assert actual._composite_system is c_sys
+        assert actual.composite_system is c_sys
         assert actual.is_physicality_required is source_is_physicality_required
         assert actual.is_estimation_object is source_is_estimation_object
         assert actual.on_para_eq_constraint is source_on_para_eq_constraint
@@ -683,7 +683,7 @@ def test_convert_var_to_gate_2q():
     )
     expected = expected.reshape(16, 16)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
-    assert actual._composite_system is c_sys_2q
+    assert actual.composite_system is c_sys_2q
 
     # Case 2:
     # Arrange
@@ -696,7 +696,7 @@ def test_convert_var_to_gate_2q():
     expected = np.array(range(16 * 16), dtype=np.float64)
     expected = expected.reshape(16, 16)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
-    assert actual._composite_system is c_sys_2q
+    assert actual.composite_system is c_sys_2q
 
 
 def test_convert_gate_to_var():

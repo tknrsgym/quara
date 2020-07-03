@@ -1155,7 +1155,7 @@ class TestState:
         # Assert
         expected = np.array([1, 2, 3, 4], dtype=np.float64)
         assert np.all(actual.vec == expected)
-        assert actual._composite_system is c_sys
+        assert actual.composite_system is c_sys
         assert actual.is_physicality_required is init_is_physicality_required
         assert actual.is_estimation_object is init_is_estimation_object
         assert actual.on_para_eq_constraint is init_on_para_eq_constraint
@@ -1190,7 +1190,7 @@ class TestState:
         # Assert
         expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
         assert np.all(actual.vec == expected)
-        assert actual._composite_system is c_sys
+        assert actual.composite_system is c_sys
         assert actual.is_physicality_required is init_is_physicality_required
         assert actual.is_estimation_object is source_is_estimation_object
         assert actual.on_para_eq_constraint is source_on_para_eq_constraint
