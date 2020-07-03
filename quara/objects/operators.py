@@ -107,8 +107,8 @@ def _check_cross_elemental_system_position(
 
 def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     # create CompositeSystem
-    e_sys_list = list(gate1._composite_system._elemental_systems)
-    e_sys_list.extend(gate2._composite_system._elemental_systems)
+    e_sys_list = list(gate1.composite_system._elemental_systems)
+    e_sys_list.extend(gate2.composite_system._elemental_systems)
     c_sys = CompositeSystem(e_sys_list)
 
     # How to calculate HS(g1 \otimes g2)
@@ -157,8 +157,8 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
 
 def _tensor_product_State_State(state1: State, state2: State) -> State:
     # create CompositeSystem
-    e_sys_list = list(state1._composite_system.elemental_systems)
-    e_sys_list.extend(state2._composite_system.elemental_systems)
+    e_sys_list = list(state1.composite_system.elemental_systems)
+    e_sys_list.extend(state2.composite_system.elemental_systems)
     c_sys = CompositeSystem(e_sys_list)
 
     tensor_vec = np.kron(state1.vec, state2.vec)
@@ -306,24 +306,24 @@ def composite(*elements) -> Union[Gate, Povm, State, List[float]]:
 
 def _composite(elem1, elem2):
     # check CompositeSystem
-    if elem1._composite_system != elem2._composite_system:
+    if elem1.composite_system != elem2.composite_system:
         raise ValueError(f"Cannot composite different composite systems.")
 
     # implement composite calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         # create Gate
         matrix = elem1.hs @ elem2.hs
-        gate = Gate(elem1._composite_system, matrix)
+        gate = Gate(elem1.composite_system, matrix)
         return gate
     elif type(elem1) == Gate and type(elem2) == State:
         # create State
         vec = elem1.hs @ elem2.vec
-        state = State(elem1._composite_system, vec.real.astype(np.float64))
+        state = State(elem1.composite_system, vec.real.astype(np.float64))
         return state
     elif type(elem1) == Povm and type(elem2) == Gate:
         # calculate Povm
         vecs = [povm_element.conjugate() @ elem2.hs for povm_element in elem1.vecs]
-        povm = Povm(elem1._composite_system, vecs)
+        povm = Povm(elem1.composite_system, vecs)
         return povm
     elif type(elem1) == Povm and type(elem2) == State:
         # calculate probability distribution
