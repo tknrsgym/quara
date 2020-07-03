@@ -1092,6 +1092,21 @@ class TestPovm:
         with pytest.raises(TypeError):
             _ = 1 / povm_1
 
+    def test_calc_proj_eq_constraint(sefl):
+        # Arrange
+        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        vec_11 = np.array([1, 2, 3, 4], dtype=np.float64)
+        vec_12 = np.array([5, 6, 7, 8], dtype=np.float64)
+        vecs = [vec_11, vec_12]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act
+        actual = povm.calc_proj_eq_constraint()
+
+        # TODO: Assert
+
     def test_calc_proj_ineq_constraint(self):
         # Arrange
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -1102,7 +1117,10 @@ class TestPovm:
         vecs = [vec_11, vec_12]
         povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
-        _ = povm.calc_proj_ineq_constraint()
+        # Act
+        actual = povm.calc_proj_ineq_constraint()
+
+        # TODO: Assert
 
 
 def test_convert_var_index_to_povm_index():

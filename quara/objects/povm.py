@@ -189,7 +189,24 @@ class Povm(QOperation):
         raise NotImplementedError()
 
     def calc_proj_eq_constraint(self):
-        raise NotImplementedError()
+        size = self.dim ** 2
+        m = len(self.vecs)
+        c = np.hstack(
+            [
+                np.array([np.sqrt(self.dim) / m], dtype=np.float64),
+                np.zeros(size - 1, dtype=np.float64),
+            ]
+        )
+        a_bar = np.sum(np.array(self.vecs), axis=0) / m
+
+        new_vecs = []
+        for vec in self.vecs:
+            new_vec = vec - a_bar + c
+            new_vecs.append(new_vec)
+        new_povm = Povm(
+            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
+        )
+        return new_povm
 
     def calc_proj_ineq_constraint(self) -> "Povm":
         size = (self._dim, self._dim)
