@@ -160,12 +160,34 @@ class StandardQst(StandardQTomography):
     def generate_dataset(
         self, data_nums: List[int], seeds: List[int] = None,
     ) -> List[List[np.array]]:
+        """calculates a probability distribution.
+        
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_dataset`
+        """
         # TODO
         pass
 
     def generate_empi_dist(
         self, schedule_index: int, state: State, num_sum: int, seed: int = None
     ) -> Tuple[int, np.array]:
+        """Generate empirical distribution using the data generated from probability distribution of specified schedules.
+
+        Parameters
+        ----------
+        schedule_index : int
+            schedule index.
+        state : State
+            true object.
+        num_sum : int
+            the number of data to use to generate the experience distributions for each schedule.
+        seed : int, optional
+            the seed, by default None
+
+        Returns
+        -------
+        Tuple[int, np.array]
+            Generated empirical distribution.
+        """
         tmp_experiment = self._experiment.copy()
         state_index = self._get_state_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
@@ -178,7 +200,7 @@ class StandardQst(StandardQTomography):
     def generate_empi_dists(
         self, state: State, num_sum: int, seed: int = None
     ) -> List[Tuple[int, np.array]]:
-        """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
+        """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_empi_dists`
         """
