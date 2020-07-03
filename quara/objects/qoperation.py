@@ -30,6 +30,17 @@ class QOperation:
         self._eps_proj_physical = eps_proj_physical
 
     @property
+    def composite_system(self) -> CompositeSystem:  # read only
+        """Property to get composite system.
+
+        Returns
+        -------
+        CompositeSystem
+            composite system.
+        """
+        return self._composite_system
+
+    @property
     def is_physicality_required(self) -> bool:  # read only
         return self._is_physicality_required
 
@@ -64,7 +75,7 @@ class QOperation:
     def generate_zero_obj(self) -> "QOperation":
         new_value = self._generate_zero_obj()
         new_qoperation = self.__class__(
-            self._composite_system,
+            self.composite_system,
             new_value,
             is_physicality_required=False,
             is_estimation_object=False,
@@ -82,7 +93,7 @@ class QOperation:
     def generate_origin_obj(self) -> "QOperation":
         new_value = self._generate_origin_obj()
         new_qoperation = self.__class__(
-            self._composite_system,
+            self.composite_system,
             new_value,
             is_physicality_required=False,
             is_estimation_object=False,
@@ -162,7 +173,7 @@ class QOperation:
         )
 
         generate_from_var_func = self._generate_from_var_func()
-        c_sys = self._composite_system
+        c_sys = self.composite_system
         new_qoperation = generate_from_var_func(
             c_sys=c_sys,
             var=var,

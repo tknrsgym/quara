@@ -442,6 +442,32 @@ class TestState:
         assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
         assert actual.eps_proj_physical == state.eps_proj_physical
 
+    def test_mul_convex_combination(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state1 = get_x0_1q(c_sys)
+        state2 = get_z0_1q(c_sys)
+
+        # Act
+        actual = 0.3 * state1 + 0.7 * state2
+
+        # Assert
+        expected_vec = np.array([1, 0.3, 0, 0.7], dtype=np.float64) / np.sqrt(2)
+        assert type(actual) == State
+        assert len(actual.vec) == len(expected_vec)
+        npt.assert_almost_equal(actual.vec, expected_vec, decimal=15)
+
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == state1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state1.eps_proj_physical
+        # check is_physical
+        assert actual.is_physical() == True
+
     def test_mul_exception(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1129,7 +1155,7 @@ class TestState:
         # Assert
         expected = np.array([1, 2, 3, 4], dtype=np.float64)
         assert np.all(actual.vec == expected)
-        assert actual._composite_system is c_sys
+        assert actual.composite_system is c_sys
         assert actual.is_physicality_required is init_is_physicality_required
         assert actual.is_estimation_object is init_is_estimation_object
         assert actual.on_para_eq_constraint is init_on_para_eq_constraint
@@ -1164,7 +1190,7 @@ class TestState:
         # Assert
         expected = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
         assert np.all(actual.vec == expected)
-        assert actual._composite_system is c_sys
+        assert actual.composite_system is c_sys
         assert actual.is_physicality_required is init_is_physicality_required
         assert actual.is_estimation_object is source_is_estimation_object
         assert actual.on_para_eq_constraint is source_on_para_eq_constraint
