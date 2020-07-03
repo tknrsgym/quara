@@ -202,8 +202,18 @@ class Povm(QOperation):
     def calc_proj_eq_constraint(self):
         raise NotImplementedError()
 
-    def calc_proj_ineq_constraint(self):
-        raise NotImplementedError()
+    def calc_proj_ineq_constraint(self) -> "Povm":
+        eigenvalues = self.calc_eigenvalues()
+        diags = [np.diag(e) for e in eigenvalues]
+        processed = []
+        for diag in diags:
+            diag[diag < 0] = 0
+            processed.append(diag.flatten())
+
+        new_povm = Povm(
+            c_sys=self.composite_system, vecs=processed, is_physicality_required=False
+        )
+        return new_povm
 
     def _generate_from_var_func(self):
         return convert_var_to_povm
