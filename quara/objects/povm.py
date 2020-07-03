@@ -192,12 +192,23 @@ class Povm(QOperation):
         raise NotImplementedError()
 
     def calc_proj_ineq_constraint(self) -> "Povm":
-        eigenvalues = self.calc_eigenvalues()
+        size = (self._dim, self._dim)
+        eigenvalues = []
+        for vec in self.vecs:
+            eigh, _ = np.linalg.eigh(vec.reshape(size))
+            eigenvalues.append(eigh)
         diags = [np.diag(e) for e in eigenvalues]
         processed = []
         for diag in diags:
             diag[diag < 0] = 0
             processed.append(diag.flatten())
+
+        # eigenvalues = self.calc_eigenvalues()
+        # diags = [np.diag(e) for e in eigenvalues]
+        # processed = []
+        # for diag in diags:
+        #     diag[diag < 0] = 0
+        #     processed.append(diag.flatten())
 
         new_povm = Povm(
             c_sys=self.composite_system, vecs=processed, is_physicality_required=False
