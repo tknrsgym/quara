@@ -219,8 +219,8 @@ class Povm(QOperation):
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
 
-    def _set_measurements(self, measurements: List[int]):
-        self._measurements = measurements
+    # def _set_measurements(self, measurements: List[int]):
+    #     self._measurements = measurements
 
     def get_measurement(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns vec of measurement by index.

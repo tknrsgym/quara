@@ -306,7 +306,7 @@ class TestPovm:
 
         # Case 2:
         # Act
-        povm1._set_measurements([1, 2])
+        povm1._measurements = [1, 2]
         actual = povm1.measurements
         # Assert
         expected = [1, 2]
