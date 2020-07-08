@@ -1271,6 +1271,127 @@ class TestState:
         assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
         assert actual.eps_proj_physical == source_eps_proj_physical
 
+    def test_calc_proj_physical(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # z0 -> z0
+        z0 = get_z0_1q(c_sys)
+        actual = z0.calc_proj_physical()
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual.vec, expected, decimal=15)
+
+        # [1, 0, 0, 1] -> z0
+        vec = np.array([1, 0, 0, 1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_physical()
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual.vec, expected, decimal=4)
+
+        # [1, 0, 0, -1] -> z1
+        vec = np.array([1, 0, 0, -1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_physical()
+        expected = np.array([1, 0, 0, -1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual.vec, expected, decimal=4)
+
+        # [1/sqrt(2), 1/sqrt(6), 1/sqrt(6), 1/sqrt(6)] -> [1/sqrt(2), 1/sqrt(6), 1/sqrt(6), 1/sqrt(6)]
+        vec = np.array(
+            [1 / np.sqrt(2), 1 / np.sqrt(6), 1 / np.sqrt(6), 1 / np.sqrt(6)],
+            dtype=np.float64,
+        )
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_physical()
+        expected = np.array(
+            [1 / np.sqrt(2), 1 / np.sqrt(6), 1 / np.sqrt(6), 1 / np.sqrt(6)],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual.vec, expected, decimal=4)
+
+        # [2/sqrt(2), 2/sqrt(6), 2/sqrt(6), 2/sqrt(6)] -> [1/sqrt(2), 1/sqrt(6), 1/sqrt(6), 1/sqrt(6)]
+        vec = np.array(
+            [2 / np.sqrt(2), 2 / np.sqrt(6), 2 / np.sqrt(6), 2 / np.sqrt(6)],
+            dtype=np.float64,
+        )
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_physical()
+        expected = np.array(
+            [1 / np.sqrt(2), 1 / np.sqrt(6), 1 / np.sqrt(6), 1 / np.sqrt(6)],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual.vec, expected, decimal=4)
+
+        # [1, 0, 0, 2] -> z0
+        vec = np.array([1, 0, 0, 2], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_physical()
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual.vec, expected, decimal=4)
+
+        # [1, 2, 3, 4] -> [1/sqrt(2), 2/sqrt(2*29), 3/sqrt(2*29), 4/sqrt(2*29)]
+        # 29 = 2^2 + 3^2 + 4^2
+        vec = np.array([1, 2, 3, 4], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = state.calc_proj_physical()
+        expected = np.array(
+            [1, 2 / np.sqrt(29), 3 / np.sqrt(29), 4 / np.sqrt(29)], dtype=np.float64,
+        ) / np.sqrt(2)
+        npt.assert_almost_equal(actual.vec, expected, decimal=4)
+        # TODO
+        # assert actual.is_physical() == True
+
+    def test_calc_stopping_criterion_birgin_raydan_vectors(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+
+        p_prev = State(
+            c_sys,
+            np.array([1, 2, 3, 4], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        p_next = State(
+            c_sys,
+            np.array([5, 6, 7, 8], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        q_prev = State(
+            c_sys,
+            np.array([11, 12, 13, 14], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        q_next = State(
+            c_sys,
+            np.array([15, 16, 17, 18], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        x_prev = State(
+            c_sys,
+            np.array([21, 22, 23, 24], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        x_next = State(
+            c_sys,
+            np.array([25, 26, 27, 28], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        y_prev = State(
+            c_sys,
+            np.array([31, 32, 33, 34], dtype=np.float64),
+            is_physicality_required=False,
+        )
+        y_next = State(
+            c_sys,
+            np.array([35, 36, 37, 38], dtype=np.float64),
+            is_physicality_required=False,
+        )
+
+        value = state.calc_stopping_criterion_birgin_raydan_vectors(
+            p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
+        )
+
+        assert value == np.float64(608)
+
 
 def test_convert_var_index_to_state_index():
     # default
