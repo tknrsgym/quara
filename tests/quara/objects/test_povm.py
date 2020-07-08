@@ -1122,6 +1122,64 @@ class TestPovm:
 
         # TODO: Assert
 
+    def test_calc_gradient(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Case 1: default
+        # Arrange
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act
+        actual = povm.calc_gradient(3)
+
+        # Assert
+        expected_vecs = [
+            np.array([0, 0, 0, 1], dtype=np.float64),
+            np.array([0, 0, 0, 0], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        assert actual.composite_system is povm.composite_system
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == True
+        assert actual.on_para_eq_constraint == True
+        assert actual.on_algo_eq_constraint == True
+        assert actual.on_algo_ineq_constraint == True
+        assert actual.eps_proj_physical == 10 ** (-4)
+
+        # Case 2:
+        # Arrange
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(
+            c_sys=c_sys,
+            vecs=vecs,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+
+        # Act
+        actual = povm.calc_gradient(7)
+        # Assert
+        expected_vecs = [
+            np.array([0, 0, 0, 0], dtype=np.float64),
+            np.array([0, 0, 0, 1], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert actual.composite_system is povm.composite_system
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
