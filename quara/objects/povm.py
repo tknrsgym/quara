@@ -186,8 +186,18 @@ class Povm(QOperation):
         stacked_vecs = [vec.flatten() for vec in self.vecs]
         return stacked_vecs
 
-    def calc_gradient(self):
-        raise NotImplementedError()
+    def calc_gradient(self, var_index: int) -> "Povm":
+        povm = calc_gradient_from_povm(
+            self.composite_system,
+            self.vecs,
+            var_index,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return povm
 
     def calc_proj_eq_constraint(self):
         size = self.dim ** 2
