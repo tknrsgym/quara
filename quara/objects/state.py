@@ -151,6 +151,9 @@ class State(QOperation):
         new_vec[0] = 1 / np.sqrt(self.dim)
         return new_vec
 
+    def _copy(self):
+        return self.vec
+
     def _add_vec(self, other):
         return self.vec + other.vec
 

@@ -108,6 +108,24 @@ class QOperation:
     def _generate_origin_obj(self):
         raise NotImplementedError()
 
+    def copy(self) -> "QOperation":
+        new_value = self._copy()
+        new_qoperation = self.__class__(
+            self.composite_system,
+            new_value,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return new_qoperation
+
+    @abstractmethod
+    def _copy(self):
+        raise NotImplementedError()
+
     @abstractmethod
     def to_var(self) -> np.array:
         raise NotImplementedError()

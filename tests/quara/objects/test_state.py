@@ -186,6 +186,22 @@ class TestState:
         assert origin.on_algo_ineq_constraint == state.on_algo_ineq_constraint
         assert origin.eps_proj_physical == state.eps_proj_physical
 
+    def test_copy(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        actual = state.copy()
+
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual.vec, expected, decimal=15)
+        assert actual.dim == state.dim
+        assert actual.is_physicality_required == state.is_physicality_required
+        assert actual.is_estimation_object == state.is_estimation_object
+        assert actual.on_para_eq_constraint == state.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint == state.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint == state.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == state.eps_proj_physical
+
     def test_add(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
