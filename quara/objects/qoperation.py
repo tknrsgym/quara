@@ -1,8 +1,11 @@
 from abc import abstractmethod
+import logging
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
+
+logger = logging.getLogger(__name__)
 
 
 class QOperation:
@@ -205,13 +208,123 @@ class QOperation:
         return new_qoperation
 
     def calc_proj_physical(self):
-        raise NotImplementedError()
+        p_prev = self.generate_zero_obj()
+        p_prev._is_physicality_required = False  # TODO
+        p_prev._is_estimation_object = False
+        q_prev = self.generate_zero_obj()
+        q_prev._is_physicality_required = False
+        q_prev._is_estimation_object = False
+        x_prev = self.copy()
+        x_prev._is_physicality_required = False
+        x_prev._is_estimation_object = False
+        y_prev = x_prev.calc_proj_ineq_constraint()
+        p_next = x_next = q_next = y_next = None
+        logger.debug(f"p_prev={p_prev.vec}")
+        logger.debug(f"q_prev={q_prev.vec}")
+        logger.debug(f"x_prev={x_prev.vec}")
+        logger.debug(f"y_prev={y_prev.vec}")
 
-    def calc_stopping_criterion_birgin_raydan_vectors(self):
-        raise NotImplementedError()
+        while self.is_satisfied_stopping_criterion_birgin_raydan_vectors(
+            p_prev,
+            p_next,
+            q_prev,
+            q_next,
+            x_prev,
+            x_next,
+            y_prev,
+            y_next,
+            self.eps_proj_physical,
+        ):
+            if (
+                p_next is not None
+                and q_next is not None
+                and x_next is not None
+                and y_next is not None
+            ):
+                p_prev = p_next
+                q_prev = q_next
+                x_prev = x_next
+                y_prev = y_next
 
-    def is_satisfied_stopping_criterion_birgin_raydan_vectors(self):
-        raise NotImplementedError()
+            p_next = x_prev + p_prev - y_prev
+            x_next = (y_prev + q_prev).calc_proj_eq_constraint()
+            q_next = y_prev + q_prev - x_next
+            y_next = (x_next + p_next).calc_proj_ineq_constraint()
+
+            logger.debug(f"p_prev={p_prev.vec}, p_next={p_next.vec}")
+            logger.debug(f"q_prev={q_prev.vec}, q_next={q_next.vec}")
+            logger.debug(f"x_prev={x_prev.vec}, x_next={x_next.vec}")
+            logger.debug(f"y_prev={y_prev.vec}, y_next={y_next.vec}")
+            logger.debug("-----")
+
+        return x_next
+
+    def calc_stopping_criterion_birgin_raydan_vectors(
+        self,
+        p_prev: "QOperation",
+        p_next: "QOperation",
+        q_prev: "QOperation",
+        q_next: "QOperation",
+        x_prev: "QOperation",
+        x_next: "QOperation",
+        y_prev: "QOperation",
+        y_next: "QOperation",
+    ) -> float:
+        val = (
+            np.sum(
+                (p_prev.to_stacked_vector() - p_next.to_stacked_vector()) ** 2
+                + (q_prev.to_stacked_vector() - q_next.to_stacked_vector()) ** 2
+            )
+            + 2
+            * np.abs(
+                np.dot(
+                    p_prev.to_stacked_vector(),
+                    x_prev.to_stacked_vector() - x_next.to_stacked_vector(),
+                )
+            )
+            + 2
+            * np.abs(
+                np.dot(
+                    q_prev.to_stacked_vector(),
+                    y_prev.to_stacked_vector() - y_next.to_stacked_vector(),
+                )
+            )
+        )
+
+        logger.debug(f"result of calc_stopping_criterion_birgin_raydan_vectors={val}")
+        return val
+
+    def is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        self,
+        p_prev: "QOperation",
+        p_next: "QOperation",
+        q_prev: "QOperation",
+        q_next: "QOperation",
+        x_prev: "QOperation",
+        x_next: "QOperation",
+        y_prev: "QOperation",
+        y_next: "QOperation",
+        eps_proj_physical: float,
+    ) -> bool:
+        if (
+            p_prev is None
+            or p_next is None
+            or q_prev is None
+            or q_next is None
+            or x_prev is None
+            or x_next is None
+            or y_prev is None
+            or y_next is None
+        ):
+            return True
+
+        val = self.calc_stopping_criterion_birgin_raydan_vectors(
+            p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
+        )
+        if val > eps_proj_physical:
+            return True
+        else:
+            return False
 
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
