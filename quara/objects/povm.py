@@ -607,7 +607,11 @@ def calc_gradient_from_povm(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     var_index: int,
+    is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> Povm:
     """calculates gradient from gate.
 
@@ -636,7 +640,16 @@ def calc_gradient_from_povm(
     )
     gradient[num_measurement][measurement_index] = 1
 
-    povm = Povm(c_sys, gradient, is_physicality_required=False)
+    povm = Povm(
+        c_sys,
+        gradient,
+        is_physicality_required=False,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return povm
 
 
