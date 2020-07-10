@@ -158,7 +158,7 @@ class State(QOperation):
         return new_vec
 
     def _copy(self):
-        return self.vec
+        return copy.deepcopy(self.vec)
 
     def _add_vec(self, other):
         return self.vec + other.vec

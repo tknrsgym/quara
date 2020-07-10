@@ -45,34 +45,100 @@ class QOperation:
 
     @property
     def is_physicality_required(self) -> bool:  # read only
+        """returns whether this QOperation is physicality required.
+
+        Returns
+        -------
+        bool
+            whether this QOperation is physicality required.
+        """
         return self._is_physicality_required
 
     @property
     def is_estimation_object(self) -> bool:  # read only
+        """returns whether this QOperation is estimation object.
+
+        Returns
+        -------
+        bool
+            whether this QOperation is estimation object.
+        """
         return self._is_estimation_object
 
     @property
     def on_para_eq_constraint(self) -> bool:  # read only
+        """returns whether this QOperation is on parameter equality constraint.
+
+        Returns
+        -------
+        bool
+            whether this QOperation is on parameter equality constraint.
+        """
         return self._on_para_eq_constraint
 
     @property
     def on_algo_eq_constraint(self) -> bool:  # read only
+        """returns whether this QOperation is on algorithm equality constraint.
+
+        Returns
+        -------
+        bool
+            whether this QOperation is on algorithm equality constraint.
+        """
         return self._on_algo_eq_constraint
 
     @property
     def on_algo_ineq_constraint(self) -> bool:  # read only
+        """returns whether this QOperation is on algorithm inequality constraint.
+
+        Returns
+        -------
+        bool
+            whether this QOperation is on algorithm inequality constraint.
+        """
         return self._on_algo_ineq_constraint
 
     @property
     def eps_proj_physical(self) -> float:  # read only
+        """returns epsiron that is projection algorithm error threshold for being physical.
+
+        Returns
+        -------
+        float
+            epsiron that is projection algorithm error threshold for being physical.
+        """
         return self._eps_proj_physical
 
     @abstractmethod
     def is_physical(self, atol: float = None) -> bool:
+        """returns whether the state is physically correct.
+
+        Parameters
+        ----------
+        atol : float, optional
+            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+
+        Returns
+        -------
+        bool
+            whether the state is physically correct.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def set_zero(self):
+        """sets parameters to zero.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     def generate_zero_obj(self) -> "QOperation":
@@ -217,7 +283,7 @@ class QOperation:
         p_next = x_next = q_next = y_next = None
 
         k = 0
-        while not self.is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+        while not self._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
             p_prev,
             p_next,
             q_prev,
@@ -264,7 +330,7 @@ class QOperation:
 
         return x_next
 
-    def calc_stopping_criterion_birgin_raydan_vectors(
+    def _calc_stopping_criterion_birgin_raydan_vectors(
         self,
         p_prev: np.array,
         p_next: np.array,
@@ -281,7 +347,7 @@ class QOperation:
             + 2 * np.abs(np.dot(q_prev, y_prev - y_next))
         )
 
-        logger.debug(f"result of calc_stopping_criterion_birgin_raydan_vectors={val}")
+        logger.debug(f"result of _calc_stopping_criterion_birgin_raydan_vectors={val}")
         return val
 
     def is_satisfied_stopping_criterion_birgin_raydan_vectors(
@@ -296,7 +362,7 @@ class QOperation:
         y_next: np.array,
         eps_proj_physical: float,
     ):
-        val = self.calc_stopping_criterion_birgin_raydan_vectors(
+        val = self._calc_stopping_criterion_birgin_raydan_vectors(
             p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
         )
         if val < eps_proj_physical:
@@ -304,7 +370,7 @@ class QOperation:
         else:
             return False
 
-    def is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+    def _is_satisfied_stopping_criterion_birgin_raydan_qoperations(
         self,
         p_prev: "QOperation",
         p_next: "QOperation",
