@@ -239,25 +239,6 @@ class Povm(QOperation):
             c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
         )
 
-        # for vec in self.vecs:
-        #     eigh, _ = np.linalg.eigh(vec.reshape(size))
-        #     eigenvalues.append(eigh)
-        # diags = [np.diag(e) for e in eigenvalues]
-        # processed = []
-        # for diag in diags:
-        #     diag[diag < 0] = 0
-        #     processed.append(diag.flatten())
-
-        # eigenvalues = self.calc_eigenvalues()
-        # diags = [np.diag(e) for e in eigenvalues]
-        # processed = []
-        # for diag in diags:
-        #     diag[diag < 0] = 0
-        #     processed.append(diag.flatten())
-
-        # new_povm = Povm(
-        #     c_sys=self.composite_system, vecs=processed, is_physicality_required=False
-        # )
         return new_povm
 
     def _generate_from_var_func(self):
