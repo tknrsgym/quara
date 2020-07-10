@@ -183,8 +183,8 @@ class Povm(QOperation):
         )
 
     def to_stacked_vector(self) -> np.array:
-        stacked_vecs = [vec.flatten() for vec in self.vecs]
-        return stacked_vecs
+        stacked_vec = np.hstack(self.vecs)
+        return stacked_vec
 
     def calc_gradient(self, var_index: int) -> "Povm":
         povm = calc_gradient_from_povm(
