@@ -1393,7 +1393,7 @@ class TestState:
         y_prev = np.array([31, 32, 33, 34], dtype=np.float64)
         y_next = np.array([35, 36, 37, 38], dtype=np.float64)
 
-        value = state.calc_stopping_criterion_birgin_raydan_vectors(
+        value = state._calc_stopping_criterion_birgin_raydan_vectors(
             p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
         )
 
@@ -1502,7 +1502,7 @@ class TestState:
         )
         eps_proj_physical = 10 ** (-4)
 
-        value = state.is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+        value = state._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
             p_prev,
             p_next,
             q_prev,
@@ -1558,7 +1558,7 @@ class TestState:
             is_physicality_required=False,
         )
 
-        value = state.is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+        value = state._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
             p_prev,
             p_next,
             q_prev,
