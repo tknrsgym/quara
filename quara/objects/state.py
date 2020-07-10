@@ -121,7 +121,7 @@ class State(QOperation):
         """
         return self._dim
 
-    def is_physical(self) -> bool:
+    def is_physical(self, atol: float = None) -> bool:
         """returns whether the state is physically correct.
 
         all of the following conditions are ``True``, the state is physically correct:
@@ -130,6 +130,11 @@ class State(QOperation):
         - density matrix is Hermitian.
         - density matrix is positive semidefinite.
 
+        Parameters
+        ----------
+        atol : float, optional
+            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+
         Returns
         -------
         bool
@@ -137,7 +142,7 @@ class State(QOperation):
         """
         # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
         # therefore, do not call the `is_hermitian` function explicitly.
-        return self.is_trace_one() and self.is_positive_semidefinite()
+        return self.is_trace_one(atol) and self.is_positive_semidefinite(atol)
 
     def set_zero(self):
         self._vec = np.zeros(self._vec.shape, dtype=np.float64)
@@ -153,7 +158,7 @@ class State(QOperation):
         return new_vec
 
     def _copy(self):
-        return self.vec
+        return copy.deepcopy(self.vec)
 
     def _add_vec(self, other):
         return self.vec + other.vec
@@ -264,36 +269,52 @@ class State(QOperation):
             density += coefficient * basis
         return density
 
-    def is_trace_one(self) -> bool:
+    def is_trace_one(self, atol: float = None) -> bool:
         """returns whether trace of density matrix is one.
+
+        Parameters
+        ----------
+        atol : float, optional
+            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
         Returns
         -------
         bool
             True where trace of density matrix is one, False otherwise.
         """
+        atol = atol if atol else Settings.get_atol()
         tr = np.trace(self.to_density_matrix())
-        return np.isclose(tr, 1, atol=Settings.get_atol())
+        return np.isclose(tr, 1, atol=atol)
 
-    def is_hermitian(self) -> bool:
+    def is_hermitian(self, atol: float = None) -> bool:
         """returns whether density matrix is Hermitian.
+
+        Parameters
+        ----------
+        atol : float, optional
+            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
         Returns
         -------
         bool
         True where density matrix, False otherwise.
         """
-        return mutil.is_hermitian(self.to_density_matrix())
+        return mutil.is_hermitian(self.to_density_matrix(), atol=atol)
 
-    def is_positive_semidefinite(self) -> bool:
+    def is_positive_semidefinite(self, atol: float = None) -> bool:
         """returns whether density matrix is positive semidifinite.
+
+        Parameters
+        ----------
+        atol : float, optional
+            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
         Returns
         -------
         bool
             True where density matrix is positive semidifinite, False otherwise.
         """
-        return mutil.is_positive_semidefinite(self.to_density_matrix())
+        return mutil.is_positive_semidefinite(self.to_density_matrix(), atol=atol)
 
     def calc_eigenvalues(self) -> List:
         """calculates eigen values of density matrix.
