@@ -183,10 +183,21 @@ class Povm(QOperation):
         )
 
     def to_stacked_vector(self) -> np.array:
-        raise NotImplementedError()
+        stacked_vec = np.hstack(self.vecs)
+        return stacked_vec
 
-    def calc_gradient(self):
-        raise NotImplementedError()
+    def calc_gradient(self, var_index: int) -> "Povm":
+        povm = calc_gradient_from_povm(
+            self.composite_system,
+            self.vecs,
+            var_index,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return povm
 
     def calc_proj_eq_constraint(self):
         size = self.dim ** 2
@@ -209,27 +220,25 @@ class Povm(QOperation):
         return new_povm
 
     def calc_proj_ineq_constraint(self) -> "Povm":
-        size = (self._dim, self._dim)
-        eigenvalues = []
-        for vec in self.vecs:
-            eigh, _ = np.linalg.eigh(vec.reshape(size))
-            eigenvalues.append(eigh)
-        diags = [np.diag(e) for e in eigenvalues]
-        processed = []
-        for diag in diags:
-            diag[diag < 0] = 0
-            processed.append(diag.flatten())
+        new_vecs = []
 
-        # eigenvalues = self.calc_eigenvalues()
-        # diags = [np.diag(e) for e in eigenvalues]
-        # processed = []
-        # for diag in diags:
-        #     diag[diag < 0] = 0
-        #     processed.append(diag.flatten())
+        for m in self.matrices():
+            eigh, eigenvec = np.linalg.eigh(m)
+
+            diag = np.diag(eigh)
+            diag[diag < 0] = 0
+
+            new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
+            new_vec = [
+                np.vdot(basis, new_matrix) for basis in self.composite_system.basis()
+            ]
+            new_vec = np.array(new_vec, dtype=np.float64)
+            new_vecs.append(new_vec)
 
         new_povm = Povm(
-            c_sys=self.composite_system, vecs=processed, is_physicality_required=False
+            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
         )
+
         return new_povm
 
     def _generate_from_var_func(self):
@@ -606,7 +615,11 @@ def calc_gradient_from_povm(
     c_sys: CompositeSystem,
     vecs: List[np.ndarray],
     var_index: int,
+    is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> Povm:
     """calculates gradient from gate.
 
@@ -635,7 +648,16 @@ def calc_gradient_from_povm(
     )
     gradient[num_measurement][measurement_index] = 1
 
-    povm = Povm(c_sys, gradient, is_physicality_required=False)
+    povm = Povm(
+        c_sys,
+        gradient,
+        is_physicality_required=False,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return povm
 
 
