@@ -148,8 +148,18 @@ class Gate(QOperation):
     def to_stacked_vector(self) -> np.array:
         return self.hs.flatten()
 
-    def calc_gradient(self):
-        raise NotImplementedError()
+    def calc_gradient(self, var_index: int) -> "Gate":
+        gate = calc_gradient_from_gate(
+            self.composite_system,
+            self.hs,
+            var_index,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return gate
 
     def calc_proj_eq_constraint(self):
         raise NotImplementedError()
@@ -498,7 +508,11 @@ def calc_gradient_from_gate(
     c_sys: CompositeSystem,
     hs: np.ndarray,
     var_index: int,
+    is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = 10 ** (-4),
 ) -> Gate:
     """calculates gradient from gate.
 
@@ -524,7 +538,16 @@ def calc_gradient_from_gate(
     )
     gradient[gate_index] = 1
 
-    gate = Gate(c_sys, gradient, is_physicality_required=False)
+    gate = Gate(
+        c_sys,
+        gradient,
+        is_physicality_required=False,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
     return gate
 
 
