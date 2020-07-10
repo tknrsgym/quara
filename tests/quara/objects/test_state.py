@@ -786,6 +786,10 @@ class TestState:
         assert actual.is_hermitian() == True
         assert actual.is_trace_one() == True
 
+        npt.assert_almost_equal(
+            state.vec, np.array([1, 0, 0, 0], dtype=np.float64), decimal=15
+        )
+
     def test_calc_proj_ineq_constraint(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
