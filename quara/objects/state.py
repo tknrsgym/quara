@@ -1,3 +1,4 @@
+import copy
 import itertools
 from typing import List
 
@@ -199,7 +200,7 @@ class State(QOperation):
         State
             the projection of State on equal constraint.
         """
-        vec = self.vec
+        vec = copy.deepcopy(self.vec)
         vec[0] = 1 / np.sqrt(self.dim)
         state = State(
             self.composite_system,
