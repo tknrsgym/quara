@@ -68,7 +68,7 @@ class QOperation:
         return self._eps_proj_physical
 
     @abstractmethod
-    def is_physical(self) -> bool:
+    def is_physical(self, atol: float = None) -> bool:
         raise NotImplementedError()
 
     @abstractmethod
@@ -207,24 +207,17 @@ class QOperation:
         )
         return new_qoperation
 
-    def calc_proj_physical(self):
+    def calc_proj_physical(self) -> "QOperation":
         p_prev = self.generate_zero_obj()
-        p_prev._is_physicality_required = False  # TODO
-        p_prev._is_estimation_object = False
         q_prev = self.generate_zero_obj()
-        q_prev._is_physicality_required = False
-        q_prev._is_estimation_object = False
         x_prev = self.copy()
         x_prev._is_physicality_required = False
         x_prev._is_estimation_object = False
         y_prev = x_prev.calc_proj_ineq_constraint()
         p_next = x_next = q_next = y_next = None
-        logger.debug(f"p_prev={p_prev.vec}")
-        logger.debug(f"q_prev={q_prev.vec}")
-        logger.debug(f"x_prev={x_prev.vec}")
-        logger.debug(f"y_prev={y_prev.vec}")
 
-        while self.is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        k = 0
+        while not self.is_satisfied_stopping_criterion_birgin_raydan_qoperations(
             p_prev,
             p_next,
             q_prev,
@@ -235,6 +228,7 @@ class QOperation:
             y_next,
             self.eps_proj_physical,
         ):
+            # shift variables
             if (
                 p_next is not None
                 and q_next is not None
@@ -251,50 +245,66 @@ class QOperation:
             q_next = y_prev + q_prev - x_next
             y_next = (x_next + p_next).calc_proj_ineq_constraint()
 
-            logger.debug(f"p_prev={p_prev.vec}, p_next={p_next.vec}")
-            logger.debug(f"q_prev={q_prev.vec}, q_next={q_next.vec}")
-            logger.debug(f"x_prev={x_prev.vec}, x_next={x_next.vec}")
-            logger.debug(f"y_prev={y_prev.vec}, y_next={y_next.vec}")
-            logger.debug("-----")
+            # logging
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"calc_proj_physical iteration={k}")
+                logger.debug(
+                    f"p_prev={p_prev.to_stacked_vector()}, p_next={p_next.to_stacked_vector()}"
+                )
+                logger.debug(
+                    f"q_prev={q_prev.to_stacked_vector()}, q_next={q_next.to_stacked_vector()}"
+                )
+                logger.debug(
+                    f"x_prev={x_prev.to_stacked_vector()}, x_next={x_next.to_stacked_vector()}"
+                )
+                logger.debug(
+                    f"y_prev={y_prev.to_stacked_vector()}, y_next={y_next.to_stacked_vector()}"
+                )
+            k += 1
 
         return x_next
 
     def calc_stopping_criterion_birgin_raydan_vectors(
         self,
-        p_prev: "QOperation",
-        p_next: "QOperation",
-        q_prev: "QOperation",
-        q_next: "QOperation",
-        x_prev: "QOperation",
-        x_next: "QOperation",
-        y_prev: "QOperation",
-        y_next: "QOperation",
+        p_prev: np.array,
+        p_next: np.array,
+        q_prev: np.array,
+        q_next: np.array,
+        x_prev: np.array,
+        x_next: np.array,
+        y_prev: np.array,
+        y_next: np.array,
     ) -> float:
         val = (
-            np.sum(
-                (p_prev.to_stacked_vector() - p_next.to_stacked_vector()) ** 2
-                + (q_prev.to_stacked_vector() - q_next.to_stacked_vector()) ** 2
-            )
-            + 2
-            * np.abs(
-                np.dot(
-                    p_prev.to_stacked_vector(),
-                    x_prev.to_stacked_vector() - x_next.to_stacked_vector(),
-                )
-            )
-            + 2
-            * np.abs(
-                np.dot(
-                    q_prev.to_stacked_vector(),
-                    y_prev.to_stacked_vector() - y_next.to_stacked_vector(),
-                )
-            )
+            np.sum((p_prev - p_next) ** 2 + (q_prev - q_next) ** 2)
+            + 2 * np.abs(np.dot(p_prev, x_prev - x_next))
+            + 2 * np.abs(np.dot(q_prev, y_prev - y_next))
         )
 
         logger.debug(f"result of calc_stopping_criterion_birgin_raydan_vectors={val}")
         return val
 
     def is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        self,
+        p_prev: np.array,
+        p_next: np.array,
+        q_prev: np.array,
+        q_next: np.array,
+        x_prev: np.array,
+        x_next: np.array,
+        y_prev: np.array,
+        y_next: np.array,
+        eps_proj_physical: float,
+    ):
+        val = self.calc_stopping_criterion_birgin_raydan_vectors(
+            p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
+        )
+        if val < eps_proj_physical:
+            return True
+        else:
+            return False
+
+    def is_satisfied_stopping_criterion_birgin_raydan_qoperations(
         self,
         p_prev: "QOperation",
         p_next: "QOperation",
@@ -316,18 +326,20 @@ class QOperation:
             or y_prev is None
             or y_next is None
         ):
-            return True
-
-        val = self.calc_stopping_criterion_birgin_raydan_vectors(
-            p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
-        )
-        if val > eps_proj_physical:
-            return True
-        else:
             return False
 
-    def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
-        raise NotImplementedError()
+        result = self.is_satisfied_stopping_criterion_birgin_raydan_vectors(
+            p_prev.to_stacked_vector(),
+            p_next.to_stacked_vector(),
+            q_prev.to_stacked_vector(),
+            q_next.to_stacked_vector(),
+            x_prev.to_stacked_vector(),
+            x_next.to_stacked_vector(),
+            y_prev.to_stacked_vector(),
+            y_next.to_stacked_vector(),
+            eps_proj_physical,
+        )
+        return result
 
     def __add__(self, other):
         # Validation
