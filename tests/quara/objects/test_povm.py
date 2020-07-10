@@ -1093,34 +1093,122 @@ class TestPovm:
             _ = 1 / povm_1
 
     def test_calc_proj_eq_constraint(sefl):
-        # Arrange
-        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        # Case 1:
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
-
-        vec_11 = np.array([1, 2, 3, 4], dtype=np.float64)
-        vec_12 = np.array([5, 6, 7, 8], dtype=np.float64)
-        vecs = [vec_11, vec_12]
-        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+        povm = get_x_measurement(c_sys)
 
         # Act
         actual = povm.calc_proj_eq_constraint()
 
-        # TODO: Assert
+        vec_1 = (
+            povm.vecs[0]
+            - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
+            + np.array([np.sqrt(2) / 2, 0, 0, 0])
+        )
+        vec_2 = (
+            povm.vecs[1]
+            - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
+            + np.array([np.sqrt(2) / 2, 0, 0, 0])
+        )
+        vecs = [vec_1, vec_2]
+        expected_vecs = [vec_1, vec_2]
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
 
     def test_calc_proj_ineq_constraint(self):
-        # Arrange
-        e_sys = esys.ElementalSystem(1, get_comp_basis())
+        # Case 1:
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
-
-        vec_11 = np.array([1, 2, 3, 4], dtype=np.float64)
-        vec_12 = np.array([5, 6, 7, 8], dtype=np.float64)
-        vecs = [vec_11, vec_12]
-        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+        povm = get_x_measurement(c_sys)
 
         # Act
         actual = povm.calc_proj_ineq_constraint()
 
-        # TODO: Assert
+        vec_1 = np.array([1 / np.sqrt(2), 1 / np.sqrt(2), 0, 0])
+        vec_2 = np.array([1 / np.sqrt(2), -1 / np.sqrt(2), 0, 0])
+
+        vecs = [vec_1, vec_2]
+        expected_vecs = [vec_1, vec_2]
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+    def test_calc_gradient(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Case 1: default
+        # Arrange
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act
+        actual = povm.calc_gradient(3)
+
+        # Assert
+        expected_vecs = [
+            np.array([0, 0, 0, 1], dtype=np.float64),
+            np.array([0, 0, 0, 0], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        assert actual.composite_system is povm.composite_system
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == True
+        assert actual.on_para_eq_constraint == True
+        assert actual.on_algo_eq_constraint == True
+        assert actual.on_algo_ineq_constraint == True
+        assert actual.eps_proj_physical == 10 ** (-4)
+
+        # Case 2:
+        # Arrange
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(
+            c_sys=c_sys,
+            vecs=vecs,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+
+        # Act
+        actual = povm.calc_gradient(7)
+        # Assert
+        expected_vecs = [
+            np.array([0, 0, 0, 0], dtype=np.float64),
+            np.array([0, 0, 0, 1], dtype=np.float64),
+        ]
+        assert len(actual.vecs) == len(expected_vecs)
+        for a, e in zip(actual.vecs, expected_vecs):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert actual.composite_system is povm.composite_system
+
+    def test_to_stacked_vector(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act
+        actual = povm.to_stacked_vector()
+
+        # Assert
+        expected = np.array([2, 3, 5, 7, 11, 13, 17, 19])
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_convert_var_index_to_povm_index():
