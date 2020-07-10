@@ -160,19 +160,21 @@ class Gate(QOperation):
     def calc_proj_physical(self):
         raise NotImplementedError()
 
-    def __add__(self, other):
-        raise NotImplementedError()
+    def _add_vec(self, other) -> np.array:
+        new_hs = self.hs + other.hs
+        return new_hs
 
-    def __sub__(self, other):
-        raise NotImplementedError()
+    def _sub_vec(self, other) -> np.array:
+        new_hs = self.hs - other.hs
+        return new_hs
 
-    def __mul__(self, other):
-        # self * other
-        raise NotImplementedError()
+    def _mul_vec(self, other):
+        new_hs = self.hs * other
+        return new_hs
 
-    def __rmul__(self, other):
-        # other * self
-        raise NotImplementedError()
+    def _truediv_vec(self, other):
+        new_hs = self.hs / other
+        return new_hs
 
     def get_basis(self) -> MatrixBasis:
         """returns MatrixBasis of gate.

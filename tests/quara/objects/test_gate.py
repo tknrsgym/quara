@@ -586,6 +586,156 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
         assert actual.eps_proj_physical == source_eps_proj_physical
 
+    def test_add(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        gate_1 = get_x(c_sys)
+        gate_2 = get_y(c_sys)
+
+        actual = gate_1 + gate_2
+
+        # Assert
+        expected_hs = np.array(
+            [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint is gate_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == gate_1.eps_proj_physical
+
+    def test_sub(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        gate_1 = get_x(c_sys)
+        gate_2 = get_y(c_sys)
+
+        actual = gate_1 - gate_2
+
+        # Assert
+        expected_hs = np.array(
+            [[0, 0, 0, 0], [0, 2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -0]], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint is gate_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == gate_1.eps_proj_physical
+
+    def test_mul_rmul(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate_1 = get_x(c_sys)
+
+        # Case 1: mul
+        # Act
+        actual = gate_1 * 2
+
+        # Assert
+        expected_hs = np.array(
+            [[2, 0, 0, 0], [0, 2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint is gate_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == gate_1.eps_proj_physical
+
+        # Case 2: rmul
+        # Act
+        actual = 0.3 * gate_1
+
+        # Assert
+        expected_hs = np.array(
+            [[0.3, 0, 0, 0], [0, 0.3, 0, 0], [0, 0, -0.3, 0], [0, 0, 0, -0.3]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint is gate_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == gate_1.eps_proj_physical
+
+    def test_true_div(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate_1 = get_x(c_sys)
+
+        # Case 1:
+        # Act
+        actual = gate_1 / 2
+
+        # Assert
+        expected_hs = np.array(
+            [[1 / 2, 0, 0, 0], [0, 1 / 2, 0, 0], [0, 0, -1 / 2, 0], [0, 0, 0, -1 / 2]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint is gate_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == gate_1.eps_proj_physical
+
+        # Case 2:
+        # Act
+        actual = gate_1 / 0.5
+
+        # Assert
+        expected_hs = np.array(
+            [[2, 0, 0, 0], [0, 2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint is gate_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == gate_1.eps_proj_physical
+
+        # Case 3: 0 division
+        # Act
+        actual = gate_1 / 0
+
+        # Assert
+        expected_hs = np.array(
+            [
+                [np.inf, np.nan, np.nan, np.nan],
+                [np.nan, np.inf, np.nan, np.nan],
+                [np.nan, np.nan, -np.inf, np.nan],
+                [np.nan, np.nan, np.nan, -np.inf],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint is gate_1.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate_1.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
+        assert actual.eps_proj_physical == gate_1.eps_proj_physical
+
 
 def test_convert_var_index_to_gate_index():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
