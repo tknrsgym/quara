@@ -1193,6 +1193,23 @@ class TestPovm:
             npt.assert_almost_equal(a, e, decimal=15)
         assert actual.composite_system is povm.composite_system
 
+    def test_to_stacked_vector(self):
+        # Arrange
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        vecs = [
+            np.array([2, 3, 5, 7], dtype=np.float64),
+            np.array([11, 13, 17, 19], dtype=np.float64),
+        ]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act
+        actual = povm.to_stacked_vector()
+
+        # Assert
+        expected = np.array([2, 3, 5, 7, 11, 13, 17, 19])
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
