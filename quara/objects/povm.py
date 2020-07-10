@@ -220,16 +220,33 @@ class Povm(QOperation):
         return new_povm
 
     def calc_proj_ineq_constraint(self) -> "Povm":
-        size = (self._dim, self._dim)
-        eigenvalues = []
-        for vec in self.vecs:
-            eigh, _ = np.linalg.eigh(vec.reshape(size))
-            eigenvalues.append(eigh)
-        diags = [np.diag(e) for e in eigenvalues]
-        processed = []
-        for diag in diags:
+        new_vecs = []
+
+        for m in self.matrices():
+            eigh, eigenvec = np.linalg.eigh(m)
+
+            diag = np.diag(eigh)
             diag[diag < 0] = 0
-            processed.append(diag.flatten())
+
+            new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
+            new_vec = [
+                np.vdot(basis, new_matrix) for basis in self.composite_system.basis()
+            ]
+            new_vec = np.array(new_vec, dtype=np.float64)
+            new_vecs.append(new_vec)
+
+        new_povm = Povm(
+            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
+        )
+
+        # for vec in self.vecs:
+        #     eigh, _ = np.linalg.eigh(vec.reshape(size))
+        #     eigenvalues.append(eigh)
+        # diags = [np.diag(e) for e in eigenvalues]
+        # processed = []
+        # for diag in diags:
+        #     diag[diag < 0] = 0
+        #     processed.append(diag.flatten())
 
         # eigenvalues = self.calc_eigenvalues()
         # diags = [np.diag(e) for e in eigenvalues]
@@ -238,9 +255,9 @@ class Povm(QOperation):
         #     diag[diag < 0] = 0
         #     processed.append(diag.flatten())
 
-        new_povm = Povm(
-            c_sys=self.composite_system, vecs=processed, is_physicality_required=False
-        )
+        # new_povm = Povm(
+        #     c_sys=self.composite_system, vecs=processed, is_physicality_required=False
+        # )
         return new_povm
 
     def _generate_from_var_func(self):
