@@ -1115,17 +1115,6 @@ class TestPovm:
         # Act
         actual = povm.calc_proj_eq_constraint()
 
-        # Assert
-        # vec_1 = (
-        #     np.array([1 / np.sqrt(2), 1 / np.sqrt(2), 0, 0])
-        #     - (1 / 2) * np.array([1 / np.sqrt(2), 0, 0, 0])
-        #     + np.array([np.sqrt(2) / 2, 0, 0, 0])
-        # )
-        # vec_2 = (
-        #     np.array([1 / np.sqrt(2), -1, 0, 0])
-        #     - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
-        #     + np.array([np.sqrt(2) / 2, 0, 0, 0])
-        # )
         vec_1 = (
             povm.vecs[0]
             - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
