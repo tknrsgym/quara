@@ -1372,12 +1372,17 @@ class TestState:
         # 29 = 2^2 + 3^2 + 4^2
         vec = np.array([1, 2, 3, 4], dtype=np.float64)
         state = State(c_sys, vec, is_physicality_required=False)
-        actual = state.calc_proj_physical()
+        actual, history = state.calc_proj_physical(is_iteration_history=True)
         expected = np.array(
             [1, 2 / np.sqrt(29), 3 / np.sqrt(29), 4 / np.sqrt(29)], dtype=np.float64,
         ) / np.sqrt(2)
         npt.assert_almost_equal(actual.vec, expected, decimal=4)
         assert actual.is_physical(actual.eps_proj_physical) == True
+        assert len(history["p"]) == 21
+        assert len(history["q"]) == 21
+        assert len(history["x"]) == 21
+        assert len(history["y"]) == 21
+        assert len(history["error_value"]) == 20
 
     def test_calc_stopping_criterion_birgin_raydan_vectors(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1415,7 +1420,10 @@ class TestState:
         y_next = np.array([35, 36, 37, 38], dtype=np.float64) * 10 ** (-7)
         eps_proj_physical = 10 ** (-4)
 
-        value = state._is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        (
+            is_stopping,
+            error_value,
+        ) = state._is_satisfied_stopping_criterion_birgin_raydan_vectors(
             p_prev,
             p_next,
             q_prev,
@@ -1427,7 +1435,7 @@ class TestState:
             eps_proj_physical,
         )
 
-        assert value == True
+        assert is_stopping == True
 
         # case: False
         p_prev = np.array([1, 2, 3, 4], dtype=np.float64)
@@ -1440,7 +1448,10 @@ class TestState:
         y_next = np.array([35, 36, 37, 38], dtype=np.float64)
         eps_proj_physical = 10 ** (-4)
 
-        value = state._is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        (
+            is_stopping,
+            error_value,
+        ) = state._is_satisfied_stopping_criterion_birgin_raydan_vectors(
             p_prev,
             p_next,
             q_prev,
@@ -1452,7 +1463,7 @@ class TestState:
             eps_proj_physical,
         )
 
-        assert value == False
+        assert is_stopping == False
 
     def test_is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1502,7 +1513,10 @@ class TestState:
         )
         eps_proj_physical = 10 ** (-4)
 
-        value = state._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+        (
+            is_stopping,
+            error_value,
+        ) = state._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
             p_prev,
             p_next,
             q_prev,
@@ -1514,7 +1528,7 @@ class TestState:
             eps_proj_physical,
         )
 
-        assert value == True
+        assert is_stopping == True
 
         # case: False
         p_prev = State(
@@ -1558,7 +1572,10 @@ class TestState:
             is_physicality_required=False,
         )
 
-        value = state._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+        (
+            is_stopping,
+            error_value,
+        ) = state._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
             p_prev,
             p_next,
             q_prev,
@@ -1570,7 +1587,7 @@ class TestState:
             eps_proj_physical,
         )
 
-        assert value == False
+        assert is_stopping == False
 
 
 def test_convert_var_index_to_state_index():

@@ -875,7 +875,6 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
         assert actual.eps_proj_physical is gate.eps_proj_physical
 
-
 def test_convert_var_index_to_gate_index():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
