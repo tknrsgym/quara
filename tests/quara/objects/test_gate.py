@@ -816,6 +816,33 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is init_on_algo_ineq_constraint
         assert actual.eps_proj_physical is init_eps_proj_physical
 
+    def test_calc_proj_eq_constraint(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs = np.array(
+            [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+            dtype=np.float64,
+        )
+        gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=False)
+
+        # Act
+        actual = gate.calc_proj_eq_constraint()
+
+        # Assert
+        expected_hs = np.array(
+            [[1, 0, 0, 0], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required is gate.is_physicality_required
+        assert actual.is_estimation_object is gate.is_estimation_object
+        assert actual.on_para_eq_constraint is gate.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
+        assert actual.eps_proj_physical is gate.eps_proj_physical
+
 
 def test_convert_var_index_to_gate_index():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

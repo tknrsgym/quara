@@ -1,3 +1,4 @@
+import copy
 import itertools
 from functools import reduce
 from operator import add
@@ -161,8 +162,22 @@ class Gate(QOperation):
         )
         return gate
 
-    def calc_proj_eq_constraint(self):
-        raise NotImplementedError()
+    def calc_proj_eq_constraint(self) -> "Gate":
+        hs = copy.deepcopy(self.hs)
+        hs[0][0] = 1
+        hs[0][1:] = 0
+        new_gate = Gate(
+            c_sys=self.composite_system,
+            hs=hs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical
+        )
+
+        return new_gate
 
     def calc_proj_ineq_constraint(self):
         raise NotImplementedError()
