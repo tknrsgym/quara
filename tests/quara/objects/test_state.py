@@ -1415,7 +1415,7 @@ class TestState:
         y_next = np.array([35, 36, 37, 38], dtype=np.float64) * 10 ** (-7)
         eps_proj_physical = 10 ** (-4)
 
-        value = state.is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        value = state._is_satisfied_stopping_criterion_birgin_raydan_vectors(
             p_prev,
             p_next,
             q_prev,
@@ -1440,7 +1440,7 @@ class TestState:
         y_next = np.array([35, 36, 37, 38], dtype=np.float64)
         eps_proj_physical = 10 ** (-4)
 
-        value = state.is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        value = state._is_satisfied_stopping_criterion_birgin_raydan_vectors(
             p_prev,
             p_next,
             q_prev,
