@@ -1,5 +1,6 @@
 from abc import abstractmethod
 import logging
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -319,7 +320,7 @@ class QOperation:
         Returns
         -------
         QOperation
-            gradient of QOperation..
+            gradient of QOperation.
 
         Raises
         ------
@@ -365,6 +366,28 @@ class QOperation:
         eps_proj_physical: float = None,
     ) -> "QOperation":
         """generates QOperation from variables.
+
+        Parameters
+        ----------
+        var : np.array
+        is_physicality_required : bool, optional
+            whether this QOperation is physicality required, by default None.
+            if this parameter is None, the value of this instance is set.
+        is_estimation_object : bool, optional
+            whether this QOperation is estimation object, by default None.
+            if this parameter is None, the value of this instance is set.
+        on_para_eq_constraint : bool, optional
+            whether this QOperation is on parameter equality constraint, by default None.
+            if this parameter is None, the value of this instance is set.
+        on_algo_eq_constraint : bool, optional
+            whether this QOperation is on algorithm equality constraint, by default None.
+            if this parameter is None, the value of this instance is set.
+        on_algo_ineq_constraint : bool, optional
+            whether this QOperation is on algorithm inequality constraint, by default None.
+            if this parameter is None, the value of this instance is set.
+        eps_proj_physical : float, optional
+            epsiron that is projection algorithm error threshold for being physical, by default None.
+            if this parameter is None, the value of this instance is set.
 
         Returns
         -------
@@ -415,13 +438,31 @@ class QOperation:
         )
         return new_qoperation
 
-    def calc_proj_physical(self) -> "QOperation":
+    def calc_proj_physical(
+        self, is_iteration_history: bool = False
+    ) -> Union["QOperation", Tuple["QOperation", Dict]]:
         """calculates the projection of QOperation with physically correctness.
  
+        Parameters
+        ----------
+        is_iteration_history : bool, optional
+            whether this funstion returns iteration history, by default False.
+
         Returns
         -------
-        QOperation
-            the projection of QOperation with physically correctness.
+        Union["QOperation", Tuple["QOperation", Dict]]
+            if ``is_iteration_history`` is True, returns the projection of QOperation with physically correctness and iteration history.
+            otherwise, returns only the projection of QOperation with physically correctness.
+
+            iteration history forms the following dict:
+            {
+                "p": list of opject ``p``,
+                "q": list of opject ``q``,
+                "x": list of opject ``x``,
+                "y": list of opject ``y``,
+                "error_value": list of opject ``error_value``,
+            }
+
         """
         p_prev = self.generate_zero_obj()
         q_prev = self.generate_zero_obj()
@@ -431,18 +472,17 @@ class QOperation:
         y_prev = x_prev.calc_proj_ineq_constraint()
         p_next = x_next = q_next = y_next = None
 
+        # variables for debug
+        if is_iteration_history:
+            ps = [p_prev]
+            qs = [q_prev]
+            xs = [x_prev]
+            ys = [y_prev]
+            error_values = []
+
         k = 0
-        while not self._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
-            p_prev,
-            p_next,
-            q_prev,
-            q_next,
-            x_prev,
-            x_next,
-            y_prev,
-            y_next,
-            self.eps_proj_physical,
-        ):
+        is_stopping = False
+        while not is_stopping:
             # shift variables
             if (
                 p_next is not None
@@ -477,7 +517,38 @@ class QOperation:
                 )
             k += 1
 
-        return x_next
+            (
+                is_stopping,
+                error_value,
+            ) = self._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+                p_prev,
+                p_next,
+                q_prev,
+                q_next,
+                x_prev,
+                x_next,
+                y_prev,
+                y_next,
+                self.eps_proj_physical,
+            )
+            if is_iteration_history:
+                ps.append(p_next)
+                qs.append(q_next)
+                xs.append(x_next)
+                ys.append(y_next)
+                error_values.append(error_value)
+
+        if is_iteration_history:
+            history = {
+                "p": ps,
+                "q": qs,
+                "x": xs,
+                "y": ys,
+                "error_value": error_values,
+            }
+            return x_next, history
+        else:
+            return x_next
 
     def _calc_stopping_criterion_birgin_raydan_vectors(
         self,
@@ -511,13 +582,13 @@ class QOperation:
         y_next: np.array,
         eps_proj_physical: float,
     ):
-        val = self._calc_stopping_criterion_birgin_raydan_vectors(
+        error_value = self._calc_stopping_criterion_birgin_raydan_vectors(
             p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
         )
-        if val < eps_proj_physical:
-            return True
+        if error_value < eps_proj_physical:
+            return True, error_value
         else:
-            return False
+            return False, error_value
 
     def _is_satisfied_stopping_criterion_birgin_raydan_qoperations(
         self,
@@ -543,7 +614,10 @@ class QOperation:
         ):
             return False
 
-        result = self._is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        (
+            result,
+            error_value,
+        ) = self._is_satisfied_stopping_criterion_birgin_raydan_vectors(
             p_prev.to_stacked_vector(),
             p_next.to_stacked_vector(),
             q_prev.to_stacked_vector(),
@@ -554,7 +628,7 @@ class QOperation:
             y_next.to_stacked_vector(),
             eps_proj_physical,
         )
-        return result
+        return result, error_value
 
     def __add__(self, other):
         # Validation
