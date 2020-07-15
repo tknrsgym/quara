@@ -586,6 +586,38 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
         assert actual.eps_proj_physical == source_eps_proj_physical
 
+    def test_generate_origin_obj(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+
+        gate = Gate(
+            c_sys=c_sys,
+            hs=hs,
+            is_physicality_required=False,
+            is_estimation_object=True,
+            on_para_eq_constraint=False,
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=False,
+            eps_proj_physical=0.2,
+        )
+
+        # Act
+        actual = gate.generate_origin_obj()
+        expected_hs = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64)
+        assert np.all(actual.hs == expected_hs)
+        # `is_physicality_required` and `is_estimation_object` are always False
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required is False
+        assert actual.is_estimation_object is False
+        assert actual.on_para_eq_constraint is False
+        assert actual.on_algo_eq_constraint is True
+        assert actual.on_algo_ineq_constraint is False
+        assert actual.eps_proj_physical == 0.2
+
     def test_add(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])

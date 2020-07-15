@@ -139,6 +139,12 @@ class Gate(QOperation):
         new_hs = np.zeros(self.hs.shape, dtype=np.float64)
         return new_hs
 
+    def _generate_origin_obj(self):
+        size = self.hs.shape
+        new_hs = np.zeros(size)
+        new_hs[0][0] = 1
+        return new_hs
+
     def to_var(self) -> np.array:
         return convert_gate_to_var(
             c_sys=self.composite_system,
@@ -189,9 +195,19 @@ class Gate(QOperation):
                 eigenvals[index] = 0
 
         new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
-        # TODO: Choi -> HS
+        new_hs = hs_from_choi(new_choi_matrix, self.composite_system)
+        new_gate = Gate(
+            c_sys=self.composite_system,
+            hs=new_hs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
+        )
 
-        raise NotImplementedError()
+        return new_gate
 
     def calc_proj_physical(self):
         raise NotImplementedError()
@@ -395,6 +411,24 @@ class Gate(QOperation):
 
     def _generate_from_var_func(self):
         return convert_var_to_gate
+
+
+def hs_from_choi(choi, c_sys: CompositeSystem) -> np.array:
+    # TODO: 作業中
+    # new_hs = 
+    size_1, size_2 = choi.size()
+
+    basis_no = len(c_sys.basis().basis)
+    hs = np.zeros(basis_no, basis_no)
+
+    for i in range(basis_no):
+        mat_1 = np.conjugate(c_sys.basis().basis[i].T)
+        for j in range(basis_no):
+            mat_2 = c_sys.basis().basis[j].T
+            mat_3 = np.kron(mat_1, mat_2)
+            new_hs[i, j] = np.trace(mat_3 @ choi)
+
+    raise NotImplementedError()
 
 
 def convert_var_index_to_gate_index(
