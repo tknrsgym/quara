@@ -19,6 +19,30 @@ class QOperation:
         on_algo_ineq_constraint: bool = True,
         eps_proj_physical: float = 10 ** (-4),
     ):
+        """Constructor
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this QOperation.
+        is_physicality_required : bool, optional
+            whether this QOperation is physicality required, by default True
+        is_estimation_object : bool, optional
+            whether this QOperation is estimation object, by default True
+        on_para_eq_constraint : bool, optional
+            whether this QOperation is on parameter equality constraint, by default True
+        on_algo_eq_constraint : bool, optional
+            whether this QOperation is on algorithm equality constraint, by default True
+        on_algo_ineq_constraint : bool, optional
+            whether this QOperation is on algorithm inequality constraint, by default True
+        eps_proj_physical : float, optional
+            epsiron that is projection algorithm error threshold for being physical, by default 10**(-4)
+
+        Raises
+        ------
+        ValueError
+            ``eps_proj_physical`` is negative.
+        """
         # Validation
         if eps_proj_physical < 0:
             raise ValueError("'eps_proj_physical' must be non-negative.")
@@ -134,6 +158,8 @@ class QOperation:
     def set_zero(self):
         """sets parameters to zero.
 
+        this function must be implemented in the subclass.
+
         Raises
         ------
         NotImplementedError
@@ -142,6 +168,13 @@ class QOperation:
         raise NotImplementedError()
 
     def generate_zero_obj(self) -> "QOperation":
+        """returns zero object of QOperation.
+
+        Returns
+        -------
+        QOperation
+            zero object of QOperation.
+        """
         new_value = self._generate_zero_obj()
         new_qoperation = self.__class__(
             self.composite_system,
@@ -157,9 +190,25 @@ class QOperation:
 
     @abstractmethod
     def _generate_zero_obj(self):
+        """returns ``np.array`` which zero object of QOperation has.
+
+        this function is called from :func:`~quara.objects.qoperation.QOperation.generate_zero_obj`.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     def generate_origin_obj(self) -> "QOperation":
+        """returns origin object of QOperation.
+
+        Returns
+        -------
+        QOperation
+            origin object of QOperation.
+        """
         new_value = self._generate_origin_obj()
         new_qoperation = self.__class__(
             self.composite_system,
@@ -175,9 +224,25 @@ class QOperation:
 
     @abstractmethod
     def _generate_origin_obj(self):
+        """returns ``np.array`` which origin object of QOperation has.
+
+        this function is called from :func:`~quara.objects.qoperation.QOperation.generate_origin_obj`.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     def copy(self) -> "QOperation":
+        """returns copy of QOperation.
+
+        Returns
+        -------
+        QOperation
+            copy of QOperation.
+        """
         new_value = self._copy()
         new_qoperation = self.__class__(
             self.composite_system,
@@ -193,26 +258,96 @@ class QOperation:
 
     @abstractmethod
     def _copy(self):
+        """returns ``np.array`` which copy of QOperation has.
+
+        this function is called from :func:`~quara.objects.qoperation.QOperation.copy`.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def to_var(self) -> np.array:
+        """converts QOperation to variables.
+
+        this function must be implemented in the subclass.
+
+        Returns
+        -------
+        np.array
+            variable representation of QOperation.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def to_stacked_vector(self) -> np.array:
+        """converts QOperation to stacked vector.
+
+        this function must be implemented in the subclass.
+
+        Returns
+        -------
+        np.array
+            stacked vector representation of QOperation.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     @abstractmethod
-    def calc_gradient(self):
+    def calc_gradient(self, var_index: int) -> "QOperation":
+        """calculates gradient of QOperation.
+
+        this function must be implemented in the subclass.
+
+        Parameters
+        ----------
+        var_index : int
+            index of variables to calculate gradient.
+
+        Returns
+        -------
+        QOperation
+            gradient of QOperation..
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     @abstractmethod
-    def calc_proj_eq_constraint(self):
+    def calc_proj_eq_constraint(self) -> "QOperation":
+        """calculates the projection of QOperation on equal constraint.
+
+        Returns
+        -------
+        QOperation
+            the projection of QOperation on equal constraint.
+        """
         raise NotImplementedError()
 
     @abstractmethod
-    def calc_proj_ineq_constraint(self):
+    def calc_proj_ineq_constraint(self) -> "QOperation":
+        """calculates the projection of QOperation on inequal constraint.
+
+        Returns
+        -------
+        QOperation
+            the projection of QOperation on inequal constraint.
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -229,6 +364,13 @@ class QOperation:
         on_algo_ineq_constraint: bool = None,
         eps_proj_physical: float = None,
     ) -> "QOperation":
+        """generates QOperation from variables.
+
+        Returns
+        -------
+        QOperation
+            generated QOperation.
+        """
         # generate_from_var_func()
         is_physicality_required = (
             self.is_physicality_required
@@ -274,6 +416,13 @@ class QOperation:
         return new_qoperation
 
     def calc_proj_physical(self) -> "QOperation":
+        """calculates the projection of QOperation with physically correctness.
+ 
+        Returns
+        -------
+        QOperation
+            the projection of QOperation with physically correctness.
+        """
         p_prev = self.generate_zero_obj()
         q_prev = self.generate_zero_obj()
         x_prev = self.copy()
@@ -350,7 +499,7 @@ class QOperation:
         logger.debug(f"result of _calc_stopping_criterion_birgin_raydan_vectors={val}")
         return val
 
-    def is_satisfied_stopping_criterion_birgin_raydan_vectors(
+    def _is_satisfied_stopping_criterion_birgin_raydan_vectors(
         self,
         p_prev: np.array,
         p_next: np.array,
@@ -394,7 +543,7 @@ class QOperation:
         ):
             return False
 
-        result = self.is_satisfied_stopping_criterion_birgin_raydan_vectors(
+        result = self._is_satisfied_stopping_criterion_birgin_raydan_vectors(
             p_prev.to_stacked_vector(),
             p_next.to_stacked_vector(),
             q_prev.to_stacked_vector(),
@@ -537,4 +686,3 @@ class QOperation:
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qobject
-

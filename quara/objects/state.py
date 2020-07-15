@@ -145,6 +145,8 @@ class State(QOperation):
         return self.is_trace_one(atol) and self.is_positive_semidefinite(atol)
 
     def set_zero(self):
+        """sets parameters to zero.
+        """
         self._vec = np.zeros(self._vec.shape, dtype=np.float64)
         self._is_physicality_required = False
 
@@ -175,6 +177,13 @@ class State(QOperation):
         return self.vec / other
 
     def to_var(self) -> np.array:
+        """converts State to variables.
+
+        Returns
+        -------
+        np.array
+            variable representation of State.
+        """
         return convert_state_to_var(
             c_sys=self.composite_system,
             vec=self.vec,
@@ -182,9 +191,28 @@ class State(QOperation):
         )
 
     def to_stacked_vector(self) -> np.array:
+        """converts State to stacked vector.
+
+        Returns
+        -------
+        np.array
+            stacked vector representation of State.
+        """
         return self._vec
 
     def calc_gradient(self, var_index: int) -> "State":
+        """calculates gradient of State.
+
+        Parameters
+        ----------
+        var_index : int
+            index of variables to calculate gradient.
+
+        Returns
+        -------
+        State
+            gradient of State.
+        """
         state = calc_gradient_from_state(
             self.composite_system,
             self.vec,
