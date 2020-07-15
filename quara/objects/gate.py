@@ -174,12 +174,23 @@ class Gate(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
-            eps_proj_physical=self.eps_proj_physical
+            eps_proj_physical=self.eps_proj_physical,
         )
 
         return new_gate
 
-    def calc_proj_ineq_constraint(self):
+    def calc_proj_ineq_constraint(self) -> "Gate":
+        choi_matrix = self.to_choi_matrix()
+        eigenvals, eigenvecs = np.linalg.eig(choi_matrix)
+
+        # project
+        for index in range(len(eigenvals)):
+            if eigenvals[index] < 0:
+                eigenvals[index] = 0
+
+        new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
+        # TODO: Choi -> HS
+
         raise NotImplementedError()
 
     def calc_proj_physical(self):
