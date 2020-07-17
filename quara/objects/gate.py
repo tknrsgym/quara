@@ -414,21 +414,17 @@ class Gate(QOperation):
 
 
 def hs_from_choi(choi, c_sys: CompositeSystem) -> np.array:
-    # TODO: 作業中
-    # new_hs = 
-    size_1, size_2 = choi.size()
-
     basis_no = len(c_sys.basis().basis)
-    hs = np.zeros(basis_no, basis_no)
+    hs = np.zeros((basis_no, basis_no))
+    basis = copy.deepcopy(c_sys.basis().basis)
 
-    for i in range(basis_no):
-        mat_1 = np.conjugate(c_sys.basis().basis[i].T)
-        for j in range(basis_no):
-            mat_2 = c_sys.basis().basis[j].T
-            mat_3 = np.kron(mat_1, mat_2)
-            new_hs[i, j] = np.trace(mat_3 @ choi)
+    for alpha in range(basis_no):
+        b_alpha = np.conjugate(basis[alpha].T)
+        for beta in range(basis_no):
+            b_beta = basis[beta].T
+            hs[alpha, beta] = np.trace(np.kron(b_alpha, b_beta) @ choi)
 
-    raise NotImplementedError()
+    return hs
 
 
 def convert_var_index_to_gate_index(

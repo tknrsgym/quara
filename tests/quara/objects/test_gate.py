@@ -28,6 +28,7 @@ from quara.objects.gate import (
     get_y,
     get_z,
     is_hp,
+    hs_from_choi,
 )
 from quara.objects.operators import composite, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
@@ -607,7 +608,9 @@ class TestGate:
 
         # Act
         actual = gate.generate_origin_obj()
-        expected_hs = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64)
+        expected_hs = np.array(
+            [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
         assert np.all(actual.hs == expected_hs)
         # `is_physicality_required` and `is_estimation_object` are always False
         assert actual.composite_system is c_sys
@@ -874,6 +877,20 @@ class TestGate:
         assert actual.on_algo_eq_constraint is gate.on_algo_eq_constraint
         assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
         assert actual.eps_proj_physical is gate.eps_proj_physical
+
+
+def test_hs_from_choi():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_x(c_sys)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = hs_from_choi(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 def test_convert_var_index_to_gate_index():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
