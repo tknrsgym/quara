@@ -28,6 +28,7 @@ from quara.objects.gate import (
     get_y,
     get_z,
     is_hp,
+    hs_from_choi,
 )
 from quara.objects.operators import composite, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
@@ -607,7 +608,9 @@ class TestGate:
 
         # Act
         actual = gate.generate_origin_obj()
-        expected_hs = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64)
+        expected_hs = np.array(
+            [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
         assert np.all(actual.hs == expected_hs)
         # `is_physicality_required` and `is_estimation_object` are always False
         assert actual.composite_system is c_sys
@@ -874,6 +877,85 @@ class TestGate:
         assert actual.on_algo_eq_constraint is gate.on_algo_eq_constraint
         assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
         assert actual.eps_proj_physical is gate.eps_proj_physical
+
+    def test_calc_proj_ineq_constraint(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate = get_x(c_sys)
+
+        # Act
+        actual = gate.calc_proj_ineq_constraint()
+
+        # Assert
+        expected_choi = np.array(
+            [[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]]
+        )
+        npt.assert_almost_equal(actual.to_choi_matrix(), expected_choi, decimal=14)
+        expected_hs = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]
+        )
+        npt.assert_almost_equal(actual.hs, expected_hs, decimal=15)
+        assert actual.composite_system is c_sys
+        assert actual.is_physicality_required is gate.is_physicality_required
+        assert actual.is_estimation_object is gate.is_estimation_object
+        assert actual.on_para_eq_constraint is gate.on_para_eq_constraint
+        assert actual.on_algo_eq_constraint is gate.on_algo_eq_constraint
+        assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
+        assert actual.eps_proj_physical is gate.eps_proj_physical
+
+
+def test_hs_from_choi():
+    # Case 1:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_x(c_sys)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = hs_from_choi(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 2:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_y(c_sys)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = hs_from_choi(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 3:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_z(c_sys)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = hs_from_choi(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 4:
+    # Arrange
+    hs = np.array(
+        [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+        dtype=np.float64,
+    )
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=False)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = hs_from_choi(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=14)
+
 
 def test_convert_var_index_to_gate_index():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
