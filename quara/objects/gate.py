@@ -415,14 +415,13 @@ class Gate(QOperation):
 
 def hs_from_choi(choi, c_sys: CompositeSystem) -> np.array:
     basis_no = len(c_sys.basis().basis)
-    hs = np.zeros((basis_no, basis_no))
+    hs = np.zeros((basis_no, basis_no), dtype=np.float64)
     basis = copy.deepcopy(c_sys.basis().basis)
 
-    for alpha in range(basis_no):
+    for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
         b_alpha = np.conjugate(basis[alpha].T)
-        for beta in range(basis_no):
-            b_beta = basis[beta].T
-            hs[alpha, beta] = np.trace(np.kron(b_alpha, b_beta) @ choi)
+        b_beta = basis[beta].T
+        hs[alpha, beta] = np.trace(np.kron(b_alpha, b_beta) @ choi)
 
     return hs
 
