@@ -43,9 +43,20 @@ class TestLinearEstimator:
         ]
 
         estimator = LinearEstimator()
+
+        # is_computation_time_required=True
+        actual = estimator.calc_estimate_var(
+            qst, empi_dists, is_computation_time_required=True
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        npt.assert_almost_equal(actual["estimate"], expected, decimal=15)
+        assert type(actual["computation_time"]) == float
+
+        # is_computation_time_required=False
         actual = estimator.calc_estimate_var(qst, empi_dists)
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual["estimate"], expected, decimal=15)
+        assert not "computation_time" in actual
 
     def test_calc_estimate_sequence_var(self):
         qst, _ = get_test_data()
@@ -63,14 +74,32 @@ class TestLinearEstimator:
         ]
 
         estimator = LinearEstimator()
+
+        # is_computation_time_required=True
+        actual = estimator.calc_estimate_sequence_var(
+            qst, empi_dists_seq, is_computation_time_required=True
+        )
+        print(actual)
+        expected = [
+            [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
+            [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
+        ]
+        for a, e in zip(actual["estimate"], expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert len(actual["computation_time"]) == 2
+        for a in actual["computation_time"]:
+            assert type(a) == float
+
+        # is_computation_time_required=False
         actual = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
         print(actual)
         expected = [
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
         ]
-        for a, e in zip(actual, expected):
+        for a, e in zip(actual["estimate"], expected):
             npt.assert_almost_equal(a, e, decimal=15)
+        assert not "computation_time" in actual
 
     def test_scenario_on_para_eq_constraint_True(self):
         qst, c_sys = get_test_data(on_para_eq_constraint=True)
@@ -100,8 +129,8 @@ class TestLinearEstimator:
             }
             print(info)
             """
-            var_sequences.append(var_sequence)
-            for var in var_sequence:
+            var_sequences.append(var_sequence["estimate"])
+            for var in var_sequence["estimate"]:
                 assert len(var) == 3
 
         # calc mse
@@ -142,8 +171,8 @@ class TestLinearEstimator:
             }
             print(info)
             """
-            var_sequences.append(var_sequence)
-            for var in var_sequence:
+            var_sequences.append(var_sequence["estimate"])
+            for var in var_sequence["estimate"]:
                 assert len(var) == 4
 
         # calc mse
