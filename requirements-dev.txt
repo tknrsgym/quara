@@ -10,3 +10,4 @@ recommonmark
 pytest-randomly
 mypy
 nbsphinx
+plotly
