@@ -33,9 +33,20 @@ class TestStandardQTomographyEstimator:
             (10, np.array([0.5, 0.5], dtype=np.float64)),
             (10, np.array([1, 0], dtype=np.float64)),
         ]
+
+        # is_computation_time_required=True
+        actual = est.calc_estimate_qoperation(
+            qst, empi_dists, is_computation_time_required=True
+        )
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual["estimate"].vec, expected, decimal=15)
+        assert type(actual["computation_time"]) == float
+
+        # is_computation_time_required=False
         actual = est.calc_estimate_qoperation(qst, empi_dists)
         expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        npt.assert_almost_equal(actual.vec, expected, decimal=15)
+        npt.assert_almost_equal(actual["estimate"].vec, expected, decimal=15)
+        assert not "computation_time" in actual
 
     def test_calc_estimate_sequence_qoperation(self):
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())
@@ -61,7 +72,21 @@ class TestStandardQTomographyEstimator:
                 (10, np.array([1, 0], dtype=np.float64)),
             ],
         ]
+
+        # is_computation_time_required=True
+        actual = est.calc_estimate_sequence_qoperation(
+            qst, empi_dists_sequence, is_computation_time_required=True
+        )
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        for a in actual["estimate"]:
+            npt.assert_almost_equal(a.vec, expected, decimal=15)
+        assert len(actual["computation_time"]) == 2
+        for a in actual["computation_time"]:
+            assert type(a) == float
+
+        # is_computation_time_required=False
         actual = est.calc_estimate_sequence_qoperation(qst, empi_dists_sequence)
         expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        for a in actual:
+        for a in actual["estimate"]:
             npt.assert_almost_equal(a.vec, expected, decimal=15)
+        assert not "computation_time" in actual
