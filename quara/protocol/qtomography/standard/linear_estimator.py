@@ -8,7 +8,12 @@ from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
+    StandardQTomographyEstimationResult,
 )
+
+
+class LinearEstimationResult(StandardQTomographyEstimationResult):
+    pass
 
 
 class LinearEstimator(StandardQTomographyEstimator):
