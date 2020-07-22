@@ -706,7 +706,7 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
         assert actual.eps_proj_physical == gate_1.eps_proj_physical
 
-    def test_true_div(self):
+    def test_truediv(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -748,7 +748,13 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
         assert actual.eps_proj_physical == gate_1.eps_proj_physical
 
-        # Case 3: 0 division
+    @pytest.mark.skip(reasone="The result depends on the Python version and OS.")
+    def test_truediv_zero_division(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate_1 = get_x(c_sys)
+
         # Act
         actual = gate_1 / 0
 
