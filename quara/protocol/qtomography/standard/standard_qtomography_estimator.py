@@ -1,11 +1,23 @@
 from abc import abstractmethod
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 
 from quara.objects.qoperation import QOperation
-from quara.protocol.qtomography.estimator import Estimator
+from quara.protocol.qtomography.estimator import Estimator, EstimationResult
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
+
+
+class StandardQTomographyEstimationResult(EstimationResult):
+    def __init__(
+        self,
+        qtomography: StandardQTomography,
+        data,
+        computation_times: List[float],
+        estimates: List,
+    ):
+        # TODO
+        pass
 
 
 class StandardQTomographyEstimator(Estimator):
@@ -13,8 +25,11 @@ class StandardQTomographyEstimator(Estimator):
         super().__init__()
 
     def calc_estimate_qoperation(
-        self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
-    ) -> QOperation:
+        self,
+        qtomography: StandardQTomography,
+        empi_dists: List[Tuple[int, np.array]],
+        is_computation_time_required: bool = False,
+    ) -> Dict:
         """calculates estimate QOperation.
 
         Parameters
@@ -23,21 +38,32 @@ class StandardQTomographyEstimator(Estimator):
             StandardQTomography to calculates estimate QOperation. 
         empi_dists : List[Tuple[int, np.array]]
             empirical distributions to calculates estimate QOperation. 
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
 
         Returns
         -------
-        QOperation
-            estimate QOperation.
+        Dict
+            the return value forms the following dict:
+            {
+                "estimate": estimate QOperation(type=QOperation),
+                "computation_time": computation time(seconds, type=float),
+            }
         """
-        var = self.calc_estimate_var(qtomography, empi_dists)
-        qope = qtomography.convert_var_to_qoperation(var)
-        return qope
+        value = self.calc_estimate_var(
+            qtomography,
+            empi_dists,
+            is_computation_time_required=is_computation_time_required,
+        )
+        value["estimate"] = qtomography.convert_var_to_qoperation(value["estimate"])
+        return value
 
     def calc_estimate_sequence_qoperation(
         self,
         qtomography: StandardQTomography,
         empi_dists_sequence: List[List[Tuple[int, np.array]]],
-    ) -> List[QOperation]:
+        is_computation_time_required: bool = False,
+    ) -> Dict:
         """calculates estimate QOperations.
 
         Parameters
@@ -46,23 +72,38 @@ class StandardQTomographyEstimator(Estimator):
             StandardQTomography to calculates estimate QOperation. 
         empi_dists_sequence : List[List[Tuple[int, np.array]]]
             sequence of empirical distributions to calculates estimate QOperations. 
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
 
         Returns
         -------
-        List[QOperation]
-            estimate QOperations.
+        Dict
+            the return value forms the following dict:
+            {
+                "estimate": sequence of estimate QOperations(type=List[QOperation]),
+                "computation_time": sequence of computation times(seconds, type=List[float]),
+            }
         """
-        vars = self.calc_estimate_sequence_var(qtomography, empi_dists_sequence)
+        value = self.calc_estimate_sequence_var(
+            qtomography,
+            empi_dists_sequence,
+            is_computation_time_required=is_computation_time_required,
+        )
         qope_seq = []
-        for var in vars:
+        for var in value["estimate"]:
             qope = qtomography.convert_var_to_qoperation(var)
             qope_seq.append(qope)
-        return qope_seq
+
+        value["estimate"] = qope_seq
+        return value
 
     @abstractmethod
     def calc_estimate_var(
-        self, qtomography: StandardQTomography, empi_dists: List[Tuple[int, np.array]],
-    ) -> np.array:
+        self,
+        qtomography: StandardQTomography,
+        empi_dists: List[Tuple[int, np.array]],
+        is_computation_time_required: bool = False,
+    ) -> Dict:
         """calculates estimate variables.
 
         this function must be implemented in the subclass.
@@ -73,11 +114,17 @@ class StandardQTomographyEstimator(Estimator):
             StandardQTomography to calculates estimate variables. 
         empi_dists : List[Tuple[int, np.array]]
             empirical distributions to calculates estimate variables. 
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
 
         Returns
         -------
-        np.array
-            estimate variables.
+        Dict
+            the return value forms the following dict:
+            {
+                "estimate": estimate variables(type=np.array),
+                "computation_time": computation time(seconds, type=float),
+            }
 
         Raises
         ------
@@ -91,7 +138,8 @@ class StandardQTomographyEstimator(Estimator):
         self,
         qtomography: StandardQTomography,
         empi_dists_sequence: List[List[Tuple[int, np.array]]],
-    ) -> np.array:
+        is_computation_time_required: bool = False,
+    ) -> Dict:
         """calculates sequence of estimate variables.
 
         this function must be implemented in the subclass.
@@ -102,9 +150,17 @@ class StandardQTomographyEstimator(Estimator):
             StandardQTomography to calculates estimate variables. 
         empi_dists_sequence : List[List[Tuple[int, np.array]]]
             sequence of empirical distributions to calculates estimate variables. 
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
 
         Returns
         -------
+        Dict
+            the return value forms the following dict:
+            {
+                "estimate": sequence of estimate variables(type=List[np.array]),
+                "computation_time": computation time(seconds, type=List[float]),
+            }
         np.array
             sequence of empirical distributions.
 
