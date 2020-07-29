@@ -8,7 +8,6 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects.povm import (
-    Povm,
     get_x_measurement,
     get_y_measurement,
     get_z_measurement,
@@ -34,7 +33,7 @@ def get_test_data(on_para_eq_constraint=False):
 
 
 class TestLinearEstimator:
-    def test_calc_estimate_var(self):
+    def test_calc_estimate(self):
         qst, _ = get_test_data()
         empi_dists = [
             (10000, np.array([0.5, 0.5], dtype=np.float64)),
@@ -45,20 +44,20 @@ class TestLinearEstimator:
         estimator = LinearEstimator()
 
         # is_computation_time_required=True
-        actual = estimator.calc_estimate_var(
+        actual = estimator.calc_estimate(
             qst, empi_dists, is_computation_time_required=True
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
-        npt.assert_almost_equal(actual["estimate"], expected, decimal=15)
-        assert type(actual["computation_time"]) == float
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        assert type(actual.computation_time) == float
 
         # is_computation_time_required=False
-        actual = estimator.calc_estimate_var(qst, empi_dists)
+        actual = estimator.calc_estimate(qst, empi_dists)
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
-        npt.assert_almost_equal(actual["estimate"], expected, decimal=15)
-        assert not "computation_time" in actual
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        assert actual.computation_time == None
 
-    def test_calc_estimate_sequence_var(self):
+    def test_calc_estimate_sequence(self):
         qst, _ = get_test_data()
         empi_dists_seq = [
             [
@@ -76,30 +75,28 @@ class TestLinearEstimator:
         estimator = LinearEstimator()
 
         # is_computation_time_required=True
-        actual = estimator.calc_estimate_sequence_var(
+        actual = estimator.calc_estimate_sequence(
             qst, empi_dists_seq, is_computation_time_required=True
         )
-        print(actual)
         expected = [
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
         ]
-        for a, e in zip(actual["estimate"], expected):
+        for a, e in zip(actual.estimated_var_sequence, expected):
             npt.assert_almost_equal(a, e, decimal=15)
-        assert len(actual["computation_time"]) == 2
-        for a in actual["computation_time"]:
+        assert len(actual.computation_times) == 2
+        for a in actual.computation_times:
             assert type(a) == float
 
         # is_computation_time_required=False
-        actual = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
-        print(actual)
+        actual = estimator.calc_estimate_sequence(qst, empi_dists_seq)
         expected = [
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
         ]
-        for a, e in zip(actual["estimate"], expected):
+        for a, e in zip(actual.estimated_var_sequence, expected):
             npt.assert_almost_equal(a, e, decimal=15)
-        assert not "computation_time" in actual
+        assert actual.computation_times == None
 
     def test_scenario_on_para_eq_constraint_True(self):
         qst, c_sys = get_test_data(on_para_eq_constraint=True)
@@ -109,7 +106,7 @@ class TestLinearEstimator:
         num_data = [100, 1000, 10000, 100000]
         iterations = 2
 
-        var_sequences = []
+        result_sequence = []
 
         for iteration in range(iterations):
             seeds = [iteration] * len(num_data)
@@ -118,26 +115,16 @@ class TestLinearEstimator:
             )
 
             estimator = LinearEstimator()
-            var_sequence = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
-            print(f"var_sequence={var_sequence}")
-
-            """
-            info = {
-                "iteration": iteration,
-                "empi_dists_seq": empi_dists_seq,
-                "var_sequence": var_sequence,
-            }
-            print(info)
-            """
-            var_sequences.append(var_sequence["estimate"])
-            for var in var_sequence["estimate"]:
+            result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
+            result_sequence.append(result.estimated_var_sequence)
+            for var in result.estimated_var_sequence:
                 assert len(var) == 3
 
         # calc mse
-        var_sequences_tmp = [list(var_sequence) for var_sequence in zip(*var_sequences)]
+        result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
         actual = [
-            calc_mse(var_sequence, [true_object.vec[1:]] * len(var_sequence))
-            for var_sequence in var_sequences_tmp
+            calc_mse(result, [true_object.vec[1:]] * len(result))
+            for result in result_sequences_tmp
         ]
         print(f"mse={actual}")
         expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
@@ -151,7 +138,7 @@ class TestLinearEstimator:
         num_data = [100, 1000, 10000, 100000]
         iterations = 2
 
-        var_sequences = []
+        result_sequence = []
 
         for iteration in range(iterations):
             seeds = [iteration] * len(num_data)
@@ -160,26 +147,16 @@ class TestLinearEstimator:
             )
 
             estimator = LinearEstimator()
-            var_sequence = estimator.calc_estimate_sequence_var(qst, empi_dists_seq)
-            print(f"var_sequence={var_sequence}")
-
-            """
-            info = {
-                "iteration": iteration,
-                "empi_dists_seq": empi_dists_seq,
-                "var_sequence": var_sequence,
-            }
-            print(info)
-            """
-            var_sequences.append(var_sequence["estimate"])
-            for var in var_sequence["estimate"]:
+            result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
+            result_sequence.append(result.estimated_var_sequence)
+            for var in result.estimated_var_sequence:
                 assert len(var) == 4
 
         # calc mse
-        var_sequences_tmp = [list(var_sequence) for var_sequence in zip(*var_sequences)]
+        result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
         actual = [
-            calc_mse(var_sequence, [true_object.vec] * len(var_sequence))
-            for var_sequence in var_sequences_tmp
+            calc_mse(result, [true_object.vec] * len(result))
+            for result in result_sequences_tmp
         ]
         print(f"mse={actual}")
         expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
