@@ -54,6 +54,7 @@ class StandardPovmt(StandardQTomography):
                 "the experiment is not valid. all povms must have same CompositeSystem."
             )
 
+        # TODO:
         if on_para_eq_constraint:
             self._num_variables = povm.dim ** 2 - 1
         else:
@@ -64,7 +65,7 @@ class StandardPovmt(StandardQTomography):
         self._map_setqoperations_to_experiment = {("povm", 0): ("povm", 0)}
 
         # calc and set coeff0s, coeff1s, matA and vecB
-        # self._set_coeffs(experiment, on_para_eq_constraint)
+        self._set_coeffs(experiment, on_para_eq_constraint)
 
         self.debug_set_qoperations = set_qoperations
         self.debug_experiment = experiment
@@ -108,6 +109,31 @@ class StandardPovmt(StandardQTomography):
 
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
-        ITEM_INDEX = 1
-        target_index = schedule[ITEM_INDEX][1]
+        POVM_ITEM_INDEX = 1
+        target_index = schedule[POVM_ITEM_INDEX][1]
         return target_index
+
+
+    def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
+        # coeff0s and coeff1s
+        self._coeffs_0th = dict()
+        self._coeffs_1st = dict()
+        tmp_coeffs_0th = []
+        tmp_coeffs_1st = []
+        STATE_ITEM_INDEX = 0
+        for schedule_index, schedule in enumerate(self._experiment.schedules):
+            state_index = schedule[STATE_ITEM_INDEX][1]
+            state = self._experiment.states[state_index]
+
+
+            # for element_index, vec in enumerate(povm.vecs):
+            #     if on_para_eq_constraint:
+            #         self._coeffs_0th[(schedule_index, element_index)] = vec[0]
+            #         self._coeffs_1st[(schedule_index, element_index)] = vec[1:]
+            #         tmp_coeffs_0th.append(vec[0])
+            #         tmp_coeffs_1st.append(vec[1:])
+            #     else:
+            #         self._coeffs_0th[(schedule_index, element_index)] = 0
+            #         self._coeffs_1st[(schedule_index, element_index)] = vec
+            #         tmp_coeffs_0th.append(0)
+            #         tmp_coeffs_1st.append(vec)
