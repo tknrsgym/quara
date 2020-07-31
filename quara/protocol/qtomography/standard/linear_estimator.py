@@ -81,3 +81,42 @@ class LinearEstimator(StandardQTomographyEstimator):
             qtomography, empi_dists_sequence, estimate_sequence, comp_time_sequence
         )
         return result
+
+    def debug_calc_estimate_sequence(
+        self,
+        qtomography: StandardQTomography,
+        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+        is_computation_time_required: bool = False,
+    ) -> LinearEstimationResult:
+        """calculates sequence of estimate variables.
+
+        see :func:`~quara.protocol.qtomography.standard.standard_qtomography_estimator.StandardQTomographyEstimator.calc_estimate_sequence`
+        """
+        if not qtomography.is_fullrank_matA():
+            raise Exception
+
+        A = qtomography.calc_matA()
+        b = qtomography.calc_vecB()
+        A_ddag = np.linalg.pinv(A.T @ A) @ A.T
+        print("Start:")
+        # return (A, b, A_ddag)
+
+        estimate_sequence = []
+        comp_time_sequence = [] if is_computation_time_required else None
+        for i, empi_dists in enumerate(empi_dists_sequence):
+            if is_computation_time_required:
+                start_time = time.time()
+
+            empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
+            print(f"{i}: -------------")
+            f = np.vstack(empi_dists_tmp).flatten()
+            print(f"f={f}")
+            print(f"f.shape={f.shape}")
+            print(f"f-b: {f - b}")
+            print(f"(f-b).shape: {(f - b).shape}")
+            v = A_ddag @ (f - b)
+            estimate_sequence.append(v)
+
+            if is_computation_time_required:
+                comp_time = time.time() - start_time
+                comp_time_sequence.append(comp_time)
