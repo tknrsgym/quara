@@ -120,14 +120,23 @@ class StandardPovmt(StandardQTomography):
 
     def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
         # coeff0s and coeff1s
-        self._coeffs_0th = dict()
-        self._coeffs_1st = dict()
+        self._coeffs_0th = dict()  # b
+        self._coeffs_1st = dict()  # α
         tmp_coeffs_0th = []
         tmp_coeffs_1st = []
         STATE_ITEM_INDEX = 0
+        c = []
         for schedule_index, schedule in enumerate(self._experiment.schedules):
+            # 当該のスケジュールで指定されているStateが何番目のStateなのか、states内におけるindexを取得する
             state_index = schedule[STATE_ITEM_INDEX][1]
+            # スケジュールで指定されているStateを取得する
             state = self._experiment.states[state_index]
+            if on_para_eq_constraint:
+                raise NotImplementedError()
+            else:
+                for x_index, c in enumerate(np.diag(state.vec)):
+                    self._coeffs_1st[(schedule_index, x_index)] = c
+                    self._coeffs_0th[(schedule_index, x_index)] = 0
 
             # for element_index, vec in enumerate(povm.vecs):
             #     if on_para_eq_constraint:
