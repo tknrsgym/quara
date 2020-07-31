@@ -14,7 +14,9 @@ from quara.objects.povm import (
 )
 from quara.objects.state import get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
-from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
+from quara.protocol.qtomography.standard.projected_linear_estimator import (
+    ProjectedLinearEstimator,
+)
 from quara.utils.matrix_util import calc_mse
 
 
@@ -32,7 +34,7 @@ def get_test_data(on_para_eq_constraint=False):
     return qst, c_sys
 
 
-class TestLinearEstimator:
+class TestProjectedLinearEstimator:
     def test_calc_estimate(self):
         qst, _ = get_test_data()
         empi_dists = [
@@ -41,7 +43,7 @@ class TestLinearEstimator:
             (10000, np.array([1, 0], dtype=np.float64)),
         ]
 
-        estimator = LinearEstimator()
+        estimator = ProjectedLinearEstimator()
 
         # is_computation_time_required=True
         actual = estimator.calc_estimate(
@@ -74,7 +76,7 @@ class TestLinearEstimator:
             ],
         ]
 
-        estimator = LinearEstimator()
+        estimator = ProjectedLinearEstimator()
 
         # is_computation_time_required=True
         actual = estimator.calc_estimate_sequence(
@@ -97,8 +99,9 @@ class TestLinearEstimator:
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
         ]
-        for a, e in zip(actual.estimated_var_sequence, expected):
-            npt.assert_almost_equal(a, e, decimal=15)
+        for a, e in zip(actual.estimated_qoperation_sequence, expected):
+            assert a.is_physical()
+            npt.assert_almost_equal(a.to_stacked_vector(), e, decimal=15)
         assert actual.computation_times == None
 
     def test_scenario_on_para_eq_constraint_True(self):
@@ -117,7 +120,7 @@ class TestLinearEstimator:
                 true_object, num_data, seeds
             )
 
-            estimator = LinearEstimator()
+            estimator = ProjectedLinearEstimator()
             result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
             result_sequence.append(result.estimated_var_sequence)
             for var in result.estimated_var_sequence:
@@ -133,7 +136,12 @@ class TestLinearEstimator:
             for result in result_sequences_tmp
         ]
         print(f"mse={actual}")
-        expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
+        expected = [
+            0.00039986008794004385,
+            0.0006494073430169502,
+            8.390825197165647e-05,
+            6.441993567683751e-07,
+        ]
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_scenario_on_para_eq_constraint_False(self):
@@ -152,7 +160,7 @@ class TestLinearEstimator:
                 true_object, num_data, seeds
             )
 
-            estimator = LinearEstimator()
+            estimator = ProjectedLinearEstimator()
             result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
             result_sequence.append(result.estimated_var_sequence)
             for var in result.estimated_var_sequence:
@@ -168,5 +176,10 @@ class TestLinearEstimator:
             for result in result_sequences_tmp
         ]
         print(f"mse={actual}")
-        expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
+        expected = [
+            0.0003998600879400441,
+            0.000649407343016949,
+            8.39082519716557e-05,
+            6.441993567683328e-07,
+        ]
         npt.assert_almost_equal(actual, expected, decimal=15)

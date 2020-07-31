@@ -14,10 +14,10 @@ from quara.objects.povm import (
     get_z_measurement,
 )
 from quara.objects.qoperation import QOperation
-from quara.objects.state import State, get_z0_1q
+from quara.objects.state import State
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
-from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
+    StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
 
@@ -49,16 +49,16 @@ def convert_to_series(
     return mses, comp_time
 
 
-# StandardQst, LinearEstimator
+# StandardQst, StandardQTomographyEstimator
 def calc_estimate(
-    name: str,
     tester_povms: List[Povm],
     true_object: State,
     num_data: List[int],
     iterations: int,
+    estimator=StandardQTomographyEstimator,
     on_para_eq_constraint: bool = True,
-):
-    qst = StandardQst(tester_povms, on_para_eq_constraint=False)
+) -> StandardQTomographyEstimationResult:
+    qst = StandardQst(tester_povms, on_para_eq_constraint=on_para_eq_constraint)
 
     # generate empi dists and calc estimate
     results = []
@@ -66,7 +66,6 @@ def calc_estimate(
         seeds = [iteration] * len(num_data)
         empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data, seeds)
 
-        estimator = LinearEstimator()
         reult = estimator.calc_estimate_sequence(
             qst, empi_dists_seq, is_computation_time_required=True
         )
@@ -120,7 +119,10 @@ def show_computation_times(
     histnorm_param = "" if histnorm == "count" else histnorm
     for index, computation_times in enumerate(computation_times_sequence):
         trace = go.Histogram(
-            x=computation_times, marker=dict(color="Blue"), histnorm=histnorm_param,
+            x=computation_times,
+            xbins=dict(start=0),
+            histnorm=histnorm_param,
+            marker=dict(color="Blue"),
         )
         fig.append_trace(trace, 1, index + 1)
 
@@ -128,8 +130,6 @@ def show_computation_times(
         title_text=title,
         xaxis_title_text="computation time(sec)",
         yaxis_title_text=histnorm,
-        bargap=0.2,
-        bargroupgap=0.1,
         showlegend=False,
         width=1200,
     )
