@@ -103,22 +103,31 @@ def show_computation_times(
     num_data: List[int],
     computation_times_sequence: List[List[float]],
     title: str = "computation times for each estimate",
+    histnorm: str = "count",
 ):
-    subplot_titles = [f"number of data = {num}" for num in num_data]
+    if not histnorm in ["count", "percent", "probability"]:
+        raise ValueError(
+            f"histnorm is in ['count', 'percent', 'probability']. histnorm of HS is {histnorm}"
+        )
+
+    subplot_titles = [
+        f"number of data = {num}<br>total count of number = {len(computation_times)}"
+        for num, computation_times in zip(num_data, computation_times_sequence)
+    ]
     fig = make_subplots(rows=1, cols=len(num_data), subplot_titles=subplot_titles)
 
+    # "count", "percent", "probability"
+    histnorm_param = "" if histnorm == "count" else histnorm
     for index, computation_times in enumerate(computation_times_sequence):
         trace = go.Histogram(
-            x=computation_times,
-            xbins=dict(start=0, end=1, size=0.1),
-            marker=dict(color="Blue"),
+            x=computation_times, marker=dict(color="Blue"), histnorm=histnorm_param,
         )
         fig.append_trace(trace, 1, index + 1)
 
     fig.update_layout(
         title_text=title,
         xaxis_title_text="computation time(sec)",
-        yaxis_title_text="count",
+        yaxis_title_text=histnorm,
         bargap=0.2,
         bargroupgap=0.1,
         showlegend=False,
