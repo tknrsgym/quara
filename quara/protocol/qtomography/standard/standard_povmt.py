@@ -22,15 +22,16 @@ class StandardPovmt(StandardQTomography):
         on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = 10 ** (-4),
     ):
-
-        schedules = []
-        for index in range(len(states)):
-            schedule = [("state", index), ("povm", 0)]
-            schedules.append(schedule)
+        # Make Experment with states
+        schedules = [[("state", i), ("povm", 0)] for i in range(len(states))]
         experiment = Experiment(
             states=states, gates=[], povms=[None], schedules=schedules
         )
 
+        # Make SetQOperation
+        # povmsはPovmを一つだけ持つ。
+        # そのPovmはStateと同じcomposite systemを持ち、vec以外の値は引数の設定を代入する。
+        # gates, states, mprocessesの長さは0.
         vec_n = states[0].vec.shape[0]  # TODO
         vecs = [np.zeros(states[0].vec.shape, dtype=np.float64) for _ in range(vec_n)]
         povm = Povm(
@@ -49,6 +50,8 @@ class StandardPovmt(StandardQTomography):
         super().__init__(experiment, set_qoperations)
 
         # validate
+        # 引数となるStateオブジェクトのリストに対する妥当性チェック
+        # リスト内のすべてのStateのcomposite systemが一致している。
         if not self.is_valid_experiment():
             raise ValueError(
                 "the experiment is not valid. all povms must have same CompositeSystem."
@@ -67,6 +70,8 @@ class StandardPovmt(StandardQTomography):
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
 
+        # For debug
+        # TODO: remove
         self.debug_set_qoperations = set_qoperations
         self.debug_experiment = experiment
 
@@ -113,7 +118,6 @@ class StandardPovmt(StandardQTomography):
         target_index = schedule[POVM_ITEM_INDEX][1]
         return target_index
 
-
     def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
         # coeff0s and coeff1s
         self._coeffs_0th = dict()
@@ -124,7 +128,6 @@ class StandardPovmt(StandardQTomography):
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             state_index = schedule[STATE_ITEM_INDEX][1]
             state = self._experiment.states[state_index]
-
 
             # for element_index, vec in enumerate(povm.vecs):
             #     if on_para_eq_constraint:
