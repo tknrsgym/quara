@@ -32,7 +32,7 @@ class StandardPovmt(StandardQTomography):
         # povmsはPovmを一つだけ持つ。
         # そのPovmはStateと同じcomposite systemを持ち、vec以外の値は引数の設定を代入する。
         # gates, states, mprocessesの長さは0.
-        vec_n = states[0].vec.shape[0]  # TODO
+        self._vec_n = np.sqrt(states[0].vec.shape[0])
         vecs = [np.zeros(states[0].vec.shape, dtype=np.float64) for _ in range(vec_n)]
         povm = Povm(
             c_sys=states[0]._composite_system,
@@ -126,26 +126,18 @@ class StandardPovmt(StandardQTomography):
         tmp_coeffs_1st = []
         STATE_ITEM_INDEX = 0
         c = []
+        x = self._vec_n
+
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             # 当該のスケジュールで指定されているStateが何番目のStateなのか、states内におけるindexを取得する
             state_index = schedule[STATE_ITEM_INDEX][1]
             # スケジュールで指定されているStateを取得する
             state = self._experiment.states[state_index]
+            s = np.conjugate(state.vec.T) @ np.conjugate(state.vec.T)
+            w = np.diag(np.array([s for _ in range(x)]))
             if on_para_eq_constraint:
                 raise NotImplementedError()
             else:
-                for x_index, c in enumerate(np.diag(state.vec)):
+                for x_index, c in enumerate(w):
                     self._coeffs_1st[(schedule_index, x_index)] = c
                     self._coeffs_0th[(schedule_index, x_index)] = 0
-
-            # for element_index, vec in enumerate(povm.vecs):
-            #     if on_para_eq_constraint:
-            #         self._coeffs_0th[(schedule_index, element_index)] = vec[0]
-            #         self._coeffs_1st[(schedule_index, element_index)] = vec[1:]
-            #         tmp_coeffs_0th.append(vec[0])
-            #         tmp_coeffs_1st.append(vec[1:])
-            #     else:
-            #         self._coeffs_0th[(schedule_index, element_index)] = 0
-            #         self._coeffs_1st[(schedule_index, element_index)] = vec
-            #         tmp_coeffs_0th.append(0)
-            #         tmp_coeffs_1st.append(vec)
