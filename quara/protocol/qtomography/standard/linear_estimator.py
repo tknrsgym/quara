@@ -97,20 +97,27 @@ class LinearEstimator(StandardQTomographyEstimator):
         A = qtomography.calc_matA()
         b = qtomography.calc_vecB()
         A_ddag = np.linalg.pinv(A.T @ A) @ A.T
+        print(f"A: {A}")
+        print(f"b: {b}")
+        print(f"A_ddag: {A_ddag}")
+        print(f"empi_dists_sequence: {empi_dists_sequence}")
         print("Start:")
         # return (A, b, A_ddag)
 
         estimate_sequence = []
         comp_time_sequence = [] if is_computation_time_required else None
         for i, empi_dists in enumerate(empi_dists_sequence):
+            print(f"i={i}: -------------")
+            print(f"empi_dists({len(empi_dists)}) = {empi_dists}")
             if is_computation_time_required:
                 start_time = time.time()
 
             empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
-            print(f"{i}: -------------")
             f = np.vstack(empi_dists_tmp).flatten()
+            print(f"A.shape={A.shape}")
             print(f"f={f}")
             print(f"f.shape={f.shape}")
+            print(f"b.shape={b.shape}")
             print(f"f-b: {f - b}")
             print(f"(f-b).shape: {(f - b).shape}")
             v = A_ddag @ (f - b)
