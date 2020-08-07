@@ -32,8 +32,10 @@ class StandardPovmt(StandardQTomography):
         # povmsはPovmを一つだけ持つ。
         # そのPovmはStateと同じcomposite systemを持ち、vec以外の値は引数の設定を代入する。
         # gates, states, mprocessesの長さは0.
-        self._vec_n = np.sqrt(states[0].vec.shape[0])
-        vecs = [np.zeros(states[0].vec.shape, dtype=np.float64) for _ in range(vec_n)]
+        self._vec_n = int(np.sqrt(states[0].vec.shape[0]))  # TODO
+        vecs = [
+            np.zeros(states[0].vec.shape, dtype=np.float64) for _ in range(self._vec_n)
+        ]
         povm = Povm(
             c_sys=states[0]._composite_system,
             vecs=vecs,
