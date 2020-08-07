@@ -24,14 +24,18 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
 
 
 # common
-def calc_mse(xs: List[np.array], ys: List[np.array]) -> np.float64:
+# statistical quantity
+def calc_statistical_quantity(xs: List[QOperation], ys: List[QOperation]) -> np.float64:
     points = []
     for x, y in zip(xs, ys):
-        point = np.dot(x - y, x - y)
+        x_vec = x.to_stacked_vector()
+        y_vec = y.to_stacked_vector()
+        point = np.vdot(x_vec - y_vec, x_vec - y_vec)
         points.append(point)
 
     mse = np.mean(points, dtype=np.float64)
-    return mse
+    std = np.std(points, dtype=np.float64, ddof=1)
+    return mse, std
 
 
 # common(StandardQTomography)
@@ -39,15 +43,24 @@ def convert_to_series(
     results: List[StandardQTomographyEstimationResult], true_object: QOperation
 ):
     # calc mse
-    var_tmp = [result.estimated_var_sequence for result in results]
-    var_tmp = [list(var) for var in zip(*var_tmp)]
-    mses = [calc_mse(var, true_object.to_stacked_vector()) for var in var_tmp]
+    results_tmp = [result.estimated_qoperation_sequence for result in results]
+    results_tmp = [
+        list(qoperation_sequence) for qoperation_sequence in zip(*results_tmp)
+    ]
+    mses = [
+        calc_statistical_quantity(
+            qoperation_sequence, [true_object] * len(qoperation_sequence)
+        )
+        for qoperation_sequence in results_tmp
+    ]
+    stds = [mse[1] for mse in mses]
+    mses = [mse[0] for mse in mses]
 
     # convert to computation time series
     comp_time_tmp = [result.computation_times for result in results]
     comp_time = [list(comp_time) for comp_time in zip(*comp_time_tmp)]
 
-    return mses, comp_time
+    return mses, stds, comp_time
 
 
 # StandardQst, StandardQTomographyEstimator
@@ -201,7 +214,6 @@ def show_average_computation_times(
         yaxis_title_text="average of computation times(sec)",
         # yaxis_min=0,
         xaxis_type="log",
-        # yaxis_type="log",
         yaxis_range=[0, max_value * 1.1],
     )
     fig = go.Figure(data=data, layout=layout)
