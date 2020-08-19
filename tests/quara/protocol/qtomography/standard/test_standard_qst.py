@@ -244,3 +244,44 @@ class TestStandardQst:
             for a, e in zip(a_dists, e_dists):
                 assert a[0] == e[0]
                 npt.assert_almost_equal(a[1], e[1], decimal=15)
+
+        assert False
+
+
+def calc_statistical_quantity(xs, y):
+    points = []
+    for x in xs:
+        point = (x - y) ** 2
+        points.append(point)
+
+    mse = np.mean(points, dtype=np.float64)
+    std = np.std(xs, dtype=np.float64, ddof=1)
+    return mse, std
+
+
+def test_xxx():
+    qst, c_sys = get_test_data()
+    state = get_z0_1q(c_sys)
+
+    num_data = [100, 1000, 10000]
+    results = {}
+    for num in num_data:
+        results[num] = []
+
+    iteration = 10
+
+    # generate empi dists and calc estimate
+    for ite in range(iteration):
+        seeds = [ite] * len(num_data)
+        empi_dists_seq = qst.generate_empi_dists_sequence(state, num_data, seeds)
+        for empi_dists in empi_dists_seq:
+            num, empi_dist = empi_dists[0]
+            results[num].append(empi_dist[0])
+
+    print("num, mse, std")
+    for (num, empi_dists) in results.items():
+        mse, std = calc_statistical_quantity(empi_dists, 0.5)
+        print(num, mse, std)
+
+
+test_xxx()
