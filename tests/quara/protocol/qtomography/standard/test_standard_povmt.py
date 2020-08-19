@@ -31,21 +31,14 @@ class TestStandardPovmt:
         c_sys = CompositeSystem([e_sys])
 
         # |+><+|
-        s_0 = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
-        state_0 = State(c_sys=c_sys, vec=s_0)
+        state_x0 = get_x0_1q(c_sys)
         # |+i><+i|
-        s_1 = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
-        state_1 = State(c_sys=c_sys, vec=s_1)
-
+        state_y0 = get_y0_1q(c_sys)
         # |0><0|
-        s_2 = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
-        state_2 = State(c_sys=c_sys, vec=s_2)
-
+        state_z0 = get_z0_1q(c_sys)
         # |1><1|
-        s_3 = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
-        state_3 = State(c_sys=c_sys, vec=s_3)
-
-        states = [state_0, state_1, state_2, state_3]
+        state_z1 = get_z1_1q(c_sys)
+        states = [state_x0, state_y0, state_z0, state_z1]
 
         # Act
         povmt = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
