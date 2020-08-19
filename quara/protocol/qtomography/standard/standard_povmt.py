@@ -128,19 +128,26 @@ class StandardPovmt(StandardQTomography):
         self._coeffs_1st = dict()  # α
         STATE_ITEM_INDEX = 0
         c = []
-        x = self._measurement_n
-
+        m = self._measurement_n
+        c_list = []
+        # Create C
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             # 当該のスケジュールで指定されているStateが何番目のStateなのか、states内におけるindexを取得する
             state_index = schedule[STATE_ITEM_INDEX][1]
             # スケジュールで指定されているStateを取得する
             state = self._experiment.states[state_index]
-            # TODO: modify
-            s = np.conjugate(state.vec.T) @ np.conjugate(state.vec.T)
-            w = np.diag(np.array([s for _ in range(x)]))
+
+            vec_size = state.vec.shape[0]
+            pre_zeros = np.zeros((0, schedule_index * vec_size)).flatten()
+            post_zeros = np.zeros((0, ((m - 1) - schedule_index) * vec_size)).flatten()
+            sub_c = np.vstack([pre_zeros, state.vec, post_zeros])
+            c_list.append(sub_c)
+
             if on_para_eq_constraint:
                 raise NotImplementedError()
             else:
-                for x_index, c in enumerate(w):
-                    self._coeffs_1st[(schedule_index, x_index)] = c
-                    self._coeffs_0th[(schedule_index, x_index)] = 0
+                # for x_index, c in enumerate(w):
+                #     self._coeffs_1st[(schedule_index, x_index)] = sub_c
+                #     self._coeffs_0th[(schedule_index, x_index)] = np.array()
+
+        c = np.vstack(c_list)
