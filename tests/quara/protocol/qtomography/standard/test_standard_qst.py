@@ -245,8 +245,6 @@ class TestStandardQst:
                 assert a[0] == e[0]
                 npt.assert_almost_equal(a[1], e[1], decimal=15)
 
-        assert False
-
 
 def calc_statistical_quantity(xs, y):
     points = []
