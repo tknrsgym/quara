@@ -30,13 +30,25 @@ class TestStandardPovmt:
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
-        state_x = get_x0_1q(c_sys)
-        state_y = get_y0_1q(c_sys)
-        state_z = get_z0_1q(c_sys)
-        states = [state_x, state_y, state_z]
+        # |+><+|
+        s_0 = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
+        state_0 = State(c_sys=c_sys, vec=s_0)
+        # |+i><+i|
+        s_1 = 1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64)
+        state_1 = State(c_sys=c_sys, vec=s_1)
+
+        # |0><0|
+        s_2 = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
+        state_2 = State(c_sys=c_sys, vec=s_2)
+
+        # |1><1|
+        s_3 = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
+        state_3 = State(c_sys=c_sys, vec=s_3)
+
+        states = [state_0, state_1, state_2, state_3]
 
         # Act
-        povmt = StandardPovmt(states, on_para_eq_constraint=False)
+        povmt = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
         assert povmt.num_variables == 4  # TODO
 
     @pytest.mark.skip("Working in Progress")
@@ -50,7 +62,7 @@ class TestStandardPovmt:
         state_z = get_z0_1q(c_sys)
         states = [state_x, state_y, state_z]
         # Act
-        povmt = StandardPovmt(states, on_para_eq_constraint=True)
+        povmt = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=True)
 
         # Assert
         assert povmt.num_variables == 3  # TODO
@@ -69,4 +81,4 @@ class TestStandardPovmt:
 
         # Act & Assert
         with pytest.raises(ValueError):
-            _ = StandardPovmt(states, on_para_eq_constraint=False)
+            _ = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)

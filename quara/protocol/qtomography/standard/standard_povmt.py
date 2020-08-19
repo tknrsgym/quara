@@ -15,6 +15,7 @@ class StandardPovmt(StandardQTomography):
     def __init__(
         self,
         states: List[State],
+        measurement_n: int,
         is_physicality_required: bool = False,
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
@@ -32,9 +33,10 @@ class StandardPovmt(StandardQTomography):
         # povmsはPovmを一つだけ持つ。
         # そのPovmはStateと同じcomposite systemを持ち、vec以外の値は引数の設定を代入する。
         # gates, states, mprocessesの長さは0.
-        self._vec_n = int(np.sqrt(states[0].vec.shape[0]))  # TODO
+        self._measurement_n = measurement_n
         vecs = [
-            np.zeros(states[0].vec.shape, dtype=np.float64) for _ in range(self._vec_n)
+            np.zeros(states[0].vec.shape, dtype=np.float64)
+            for _ in range(self._measurement_n)
         ]
         povm = Povm(
             c_sys=states[0]._composite_system,
@@ -124,17 +126,16 @@ class StandardPovmt(StandardQTomography):
         # coeff0s and coeff1s
         self._coeffs_0th = dict()  # b
         self._coeffs_1st = dict()  # α
-        tmp_coeffs_0th = []
-        tmp_coeffs_1st = []
         STATE_ITEM_INDEX = 0
         c = []
-        x = self._vec_n
+        x = self._measurement_n
 
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             # 当該のスケジュールで指定されているStateが何番目のStateなのか、states内におけるindexを取得する
             state_index = schedule[STATE_ITEM_INDEX][1]
             # スケジュールで指定されているStateを取得する
             state = self._experiment.states[state_index]
+            # TODO: modify
             s = np.conjugate(state.vec.T) @ np.conjugate(state.vec.T)
             w = np.diag(np.array([s for _ in range(x)]))
             if on_para_eq_constraint:
