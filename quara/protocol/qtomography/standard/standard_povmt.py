@@ -54,8 +54,6 @@ class StandardPovmt(StandardQTomography):
         super().__init__(experiment, set_qoperations)
 
         # validate
-        # 引数となるStateオブジェクトのリストに対する妥当性チェック
-        # リスト内のすべてのStateのcomposite systemが一致している。
         if not self.is_valid_experiment():
             raise ValueError(
                 "the experiment is not valid. all povms must have same CompositeSystem."
@@ -93,7 +91,6 @@ class StandardPovmt(StandardQTomography):
     def generate_empi_dists_sequence(
         self, povm: Povm, num_sums: List[int], seeds: List[int] = None
     ) -> List[List[Tuple[int, np.array]]]:
-        # TODO:
         tmp_experiment = self._experiment.copy()
 
         list_num_sums = [num_sums] * self._num_schedules
@@ -104,8 +101,6 @@ class StandardPovmt(StandardQTomography):
         for schedule_index in range(len(tmp_experiment.schedules)):
             # Trueに相当するインデックスを取得して置き換える
             target_index = self._get_target_index(tmp_experiment, schedule_index)
-            print(target_index)
-            print(f"len:{len(tmp_experiment.povms)}")
             tmp_experiment.povms[target_index] = povm
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
