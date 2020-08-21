@@ -257,6 +257,7 @@ def calc_statistical_quantity(xs, y):
     return mse, std
 
 
+"""
 def test_xxx():
     qst, c_sys = get_test_data()
     state = get_z0_1q(c_sys)
@@ -283,3 +284,4 @@ def test_xxx():
 
 
 test_xxx()
+"""
