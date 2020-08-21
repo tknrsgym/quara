@@ -130,24 +130,31 @@ class StandardPovmt(StandardQTomography):
         c = []
         m = self._measurement_n
         c_list = []
+
         # Create C
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             # 当該のスケジュールで指定されているStateが何番目のStateなのか、states内におけるindexを取得する
             state_index = schedule[STATE_ITEM_INDEX][1]
             # スケジュールで指定されているStateを取得する
             state = self._experiment.states[state_index]
+            for m_index in range(m):
+                vec_size = state.vec.shape[0]
+                pre_zeros = np.zeros((1, m_index * vec_size)).flatten()
+                post_zeros = np.zeros((1, ((m - 1) - m_index) * vec_size)).flatten()
 
-            vec_size = state.vec.shape[0]
-            pre_zeros = np.zeros((0, schedule_index * vec_size)).flatten()
-            post_zeros = np.zeros((0, ((m - 1) - schedule_index) * vec_size)).flatten()
-            sub_c = np.vstack([pre_zeros, state.vec, post_zeros])
-            c_list.append(sub_c)
+                stack_list = []
+                if pre_zeros.size != 0:
+                    stack_list.append(pre_zeros)
+                stack_list.append(state.vec)
+                if post_zeros.size != 0:
+                    stack_list.append(post_zeros)
+                sub_c = np.hstack(stack_list)
+                c_list.append(sub_c)
 
-            if on_para_eq_constraint:
-                raise NotImplementedError()
-            else:
-                # for x_index, c in enumerate(w):
-                #     self._coeffs_1st[(schedule_index, x_index)] = sub_c
-                #     self._coeffs_0th[(schedule_index, x_index)] = np.array()
+                if on_para_eq_constraint:
+                    raise NotImplementedError()
+                else:
+                    self._coeffs_1st[(schedule_index, m_index)] = sub_c
+                    self._coeffs_0th[(schedule_index, m_index)] = 0
 
         c = np.vstack(c_list)
