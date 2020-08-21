@@ -73,7 +73,6 @@ class Povm(QOperation):
         for b in self._vecs:
             b.setflags(write=False)
 
-        self._composite_system: CompositeSystem = c_sys
         self._measurements = [len(self._vecs)]
 
         # Validation
@@ -177,7 +176,7 @@ class Povm(QOperation):
 
     def to_var(self) -> np.array:
         return convert_povm_to_var(
-            c_sys=self._composite_system,
+            c_sys=self.composite_system,
             vecs=list(self.vecs),
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
@@ -255,9 +254,6 @@ class Povm(QOperation):
 
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
-
-    # def _set_measurements(self, measurements: List[int]):
-    #     self._measurements = measurements
 
     def get_measurement(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns vec of measurement by index.
@@ -437,7 +433,7 @@ class Povm(QOperation):
         converted_vecs = []
         for vec in self.vecs:
             converted_vecs.append(
-                convert_vec(vec, self._composite_system.basis(), other_basis)
+                convert_vec(vec, self.composite_system.basis(), other_basis)
             )
         return converted_vecs
 
