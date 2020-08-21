@@ -89,6 +89,9 @@ class StandardQst(StandardQTomography):
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
 
+        self.debug_set_qoperations = set_qoperations
+        self.debug_experiment = experiment
+
     def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
         # coeff0s and coeff1s
         self._coeffs_0th = dict()
