@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from quara.objects.composite_system import CompositeSystem
@@ -40,9 +41,55 @@ class TestStandardPovmt:
         state_z1 = get_z1_1q(c_sys)
         states = [state_x0, state_y0, state_z0, state_z1]
 
+        # Case 1: m = 2
         # Act
-        povmt = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
-        assert povmt.num_variables == 4  # TODO
+        actual = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
+        assert actual.num_variables == 4  # TODO
+
+        # Assert
+        expected_A = (1 / np.sqrt(2)) * np.array(
+            [
+                [1, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 0, 0],
+                [1, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 1, 0],
+                [1, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 1],
+                [1, 0, 0, -1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, -1],
+            ]
+        )
+        npt.assert_almost_equal(actual.calc_matA(), expected_A, decimal=15)
+
+        expected_b = np.array([0, 0, 0, 0, 0, 0, 0, 0,])
+        npt.assert_almost_equal(actual.calc_vecB(), expected_b, decimal=15)
+
+        # Case 1: m = 3
+        # Act
+        actual = StandardPovmt(states, measurement_n=3, on_para_eq_constraint=False)
+        assert actual.num_variables == 4  # TODO
+
+        # Assert
+        expected_A = (1 / np.sqrt(2)) * np.array(
+            [
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+                [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+                [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+                [1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -1],
+            ]
+        )
+        npt.assert_almost_equal(actual.calc_matA(), expected_A, decimal=15)
+
+        expected_b = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        npt.assert_almost_equal(actual.calc_vecB(), expected_b, decimal=15)
 
     @pytest.mark.skip("Working in Progress")
     def test_init_on_para_eq_constraint_true(self):
