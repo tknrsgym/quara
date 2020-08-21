@@ -153,3 +153,7 @@ class StandardPovmt(StandardQTomography):
                     self._coeffs_1st[(schedule_index, m_index)] = c
                     self._coeffs_0th[(schedule_index, m_index)] = 0
 
+    def convert_var_to_qoperation(self, var: np.array) -> Povm:
+        template = self._set_qoperations.povms[0]
+        povm = template.generate_from_var(var=var)
+        return povm
