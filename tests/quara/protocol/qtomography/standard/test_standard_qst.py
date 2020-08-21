@@ -253,10 +253,11 @@ def calc_statistical_quantity(xs, y):
         points.append(point)
 
     mse = np.mean(points, dtype=np.float64)
-    std = np.std(xs, dtype=np.float64, ddof=1)
+    std = np.std(points, dtype=np.float64, ddof=1)
     return mse, std
 
 
+"""
 def test_xxx():
     qst, c_sys = get_test_data()
     state = get_z0_1q(c_sys)
@@ -266,7 +267,7 @@ def test_xxx():
     for num in num_data:
         results[num] = []
 
-    iteration = 10
+    iteration = 10000
 
     # generate empi dists and calc estimate
     for ite in range(iteration):
@@ -283,3 +284,4 @@ def test_xxx():
 
 
 test_xxx()
+"""

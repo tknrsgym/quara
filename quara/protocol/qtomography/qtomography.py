@@ -29,6 +29,58 @@ class QTomography:
         self._num_schedules = len(self._experiment.schedules)
         self._set_qoperations = set_qoperations
 
+        # validate ElementalSystem of Experiment
+        for state in self._experiment.states:
+            if (
+                not state is None
+                and not state.composite_system.is_orthonormal_hermitian_0thpropI
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(state)} is not so."
+                )
+        for gate in self._experiment.gates:
+            if (
+                not gate is None
+                and not gate.composite_system.is_orthonormal_hermitian_0thpropI
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(gate)} is not so."
+                )
+        for povm in self._experiment.povms:
+            if (
+                not povm is None
+                and not povm.composite_system.is_orthonormal_hermitian_0thpropI
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(povm)} is not so."
+                )
+
+        # validate ElementalSystem of SetQOperations
+        for state in self._set_qoperations.states:
+            if (
+                not state is None
+                and not state.composite_system.is_orthonormal_hermitian_0thpropI
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of SetQOperations must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(state)} is not so."
+                )
+        for gate in self._set_qoperations.gates:
+            if (
+                not gate is None
+                and not gate.composite_system.is_orthonormal_hermitian_0thpropI
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of SetQOperations must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(gate)} is not so."
+                )
+        for povm in self._set_qoperations.povms:
+            if (
+                not povm is None
+                and not povm.composite_system.is_orthonormal_hermitian_0thpropI
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of SetQOperations must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(povm)} is not so."
+                )
+
     @property
     def num_schedules(self) -> int:
         """returns number of schedules.
