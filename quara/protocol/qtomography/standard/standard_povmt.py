@@ -72,11 +72,6 @@ class StandardPovmt(StandardQTomography):
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
 
-        # For debug
-        # TODO: remove
-        self.debug_set_qoperations = set_qoperations
-        self.debug_experiment = experiment
-
     def is_valid_experiment(self) -> bool:
         states = self._experiment.states
         if len(states) <= 1:
@@ -153,3 +148,7 @@ class StandardPovmt(StandardQTomography):
                     self._coeffs_1st[(schedule_index, m_index)] = c
                     self._coeffs_0th[(schedule_index, m_index)] = 0
 
+    def convert_var_to_qoperation(self, var: np.array) -> Povm:
+        template = self._set_qoperations.povms[0]
+        povm = template.generate_from_var(var=var)
+        return povm
