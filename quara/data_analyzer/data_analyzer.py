@@ -42,7 +42,7 @@ def calc_mse(
     Returns
     -------
     np.float64
-        mse: 1/len(x) \sum_i norm_function(x_i, y)^2
+        mse = 1/len(x) \sum_i norm_function(x_i, y)^2
     """
     norms = []
     for x in xs:
@@ -50,6 +50,71 @@ def calc_mse(
         norms.append(norm)
 
     mse = np.mean(norms, dtype=np.float64)
+    return mse
+
+
+def calc_covariance_matrix_of_prob_dist(prob_dist: np.array, data_num: int) -> np.array:
+    """calculates covariance matrix of probability distribution.
+
+    Parameters
+    ----------
+    prob_dist : np.array
+        probability distribution.
+    data_num : int
+        number of data.
+
+    Returns
+    -------
+    np.array
+        covariance matrix = 1/N (diag(p) - p \cdot p^T), where N is ``data_num`` and p is ``prob_dist``.
+    """
+    matrix = np.diag(prob_dist) - np.array([prob_dist]).T @ np.array([prob_dist])
+    return matrix / data_num
+
+
+def calc_covariance_matrix_of_prob_dists(
+    prob_dists: List[np.array], data_num: int
+) -> np.array:
+    """calculates covariance matrix of probability distributions(= direct product of each covariance matrix of probability distribution).
+
+    Parameters
+    ----------
+    prob_dists : List[np.array]
+        probability distributions.
+    data_num : int
+        number of data.
+
+    Returns
+    -------
+    np.array
+        direct product of each covariance matrix = \oplus_j V(p^j), where V(p) is covariance matrix of p.
+    """
+    # calculate diagonal blocks
+    diag_blocks = [
+        calc_covariance_matrix_of_prob_dist(prob_dist, data_num)
+        for prob_dist in prob_dists
+    ]
+
+    # calculate direct product of each covariance matrix of probability distribution
+    matrix_size = np.sum([len(prob_dist) for prob_dist in prob_dists])
+    matrix = np.zeros((matrix_size, matrix_size))
+    index = 0
+    for diag in diag_blocks:
+        size = diag.shape[0]
+        matrix[index : index + size, index : index + size] = diag
+        index += size
+
+    return matrix
+
+
+def calc_mse_of_linear_estimator(
+    matA: List[np.array], prob_dists: List[np.array], data_num: int
+):
+    A_left_inv = np.linalg.pinv(matA.T @ matA) @ matA.T
+    cov = calc_covariance_matrix_of_prob_dists(prob_dists, data_num)
+
+    tmp_matrix = A_left_inv.T @ A_left_inv @ cov
+    mse = np.trace(tmp_matrix)
     return mse
 
 
