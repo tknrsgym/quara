@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import Callable, List
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -21,6 +21,36 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
+
+
+def calc_mse(
+    xs: List[np.array],
+    y: np.array,
+    norm_function: Callable[[np.array, np.array], np.float64],
+) -> np.float64:
+    """calculates mse(mean squared error) of ``xs`` and ``y`` according to ``norm_function``.
+    
+    Parameters
+    ----------
+    xs : np.array
+        sample values.
+    y : np.array
+        true value.
+    norm_function : Callable[[np.array, np.array], np.float64]
+        norm function.
+
+    Returns
+    -------
+    np.float64
+        mse: 1/len(x) \sum_i norm_function(x_i, y)^2
+    """
+    norms = []
+    for x in xs:
+        norm = norm_function(x, y) ** 2
+        norms.append(norm)
+
+    mse = np.mean(norms, dtype=np.float64)
+    return mse
 
 
 # common
