@@ -4,11 +4,14 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 from quara.objects.qoperation import QOperation
-from quara.protocol.qtomography.estimator import Estimator, EstimationResult
+from quara.protocol.qtomography.qtomography_estimator import (
+    QTomographyEstimator,
+    QTomographyEstimationResult,
+)
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 
 
-class StandardQTomographyEstimationResult(EstimationResult):
+class StandardQTomographyEstimationResult(QTomographyEstimationResult):
     def __init__(
         self,
         qtomography: StandardQTomography,
@@ -74,7 +77,7 @@ class StandardQTomographyEstimationResult(EstimationResult):
         return qoperations
 
 
-class StandardQTomographyEstimator(Estimator):
+class StandardQTomographyEstimator(QTomographyEstimator):
     def __init__(self):
         super().__init__()
 
