@@ -39,4 +39,5 @@ class EstimationResult:
 
 
 class Estimator:
-    pass
+    def __init__(self):
+        pass
