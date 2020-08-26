@@ -72,11 +72,6 @@ class StandardPovmt(StandardQTomography):
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
 
-        # For debug
-        # TODO: remove
-        self.debug_set_qoperations = set_qoperations
-        self.debug_experiment = experiment
-
     def is_valid_experiment(self) -> bool:
         states = self._experiment.states
         if len(states) <= 1:
