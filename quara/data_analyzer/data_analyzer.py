@@ -3,6 +3,7 @@ from typing import List
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
@@ -218,3 +219,20 @@ def show_average_computation_times(
     )
     fig = go.Figure(data=data, layout=layout)
     fig.show()
+
+
+def make_prob_dist_histogram(values: list, x_range: tuple, bin_size: int):
+    # カスタマイズの必要性が生じたらplotlyに置き換える
+    # fig = px.histogram(values, range_x=range_x, nbins=nbins, histnorm="probability")
+    x_start, x_end = x_range
+    hist = go.Histogram(
+        x=values,
+        xbins=dict(start=x_start, end=x_end, size=bin_size),
+        histnorm="probability",
+    )
+
+    layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
+
+    fig = go.Figure(hist, layout=layout)
+
+    return fig
