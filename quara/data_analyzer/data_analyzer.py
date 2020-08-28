@@ -222,17 +222,18 @@ def show_average_computation_times(
 
 
 def make_prob_dist_histogram(values: list, x_range: tuple, bin_size: int):
-    # カスタマイズの必要性が生じたらplotlyに置き換える
-    # fig = px.histogram(values, range_x=range_x, nbins=nbins, histnorm="probability")
     x_start, x_end = x_range
-    hist = go.Histogram(
-        x=values,
-        xbins=dict(start=x_start, end=x_end, size=bin_size),
-        histnorm="probability",
-    )
+    # hist = go.Histogram(
+    #     x=values,
+    #     xbins=dict(start=x_start, end=x_end, size=bin_size),
+    #     histnorm="probability",
+    # )
+    hist = go.Histogram(x=values, xbins=dict(size=bin_size), histnorm="probability",)
 
     layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
 
     fig = go.Figure(hist, layout=layout)
+    ytickvals = [y * 0.1 for y in range(0, 10)]
+    fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="probability")
 
     return fig
