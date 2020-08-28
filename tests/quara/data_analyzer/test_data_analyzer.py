@@ -72,7 +72,6 @@ def test_calc_covariance_matrix_of_prob_dists():
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-"""
 def test_calc_mse_of_linear_estimator():
     # Arrange
     matA = np.eye(6)
@@ -85,6 +84,9 @@ def test_calc_mse_of_linear_estimator():
 
     # Act
     actual = data_analyzer.calc_mse_of_linear_estimator(matA, prob_dists, data_num)
-    print(actual)
+
+    # Assert
+    expected = 1.0 / data_num
+    npt.assert_almost_equal(actual, expected, decimal=15)
+    print(type(actual))
     assert False
-"""
