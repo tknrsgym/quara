@@ -88,5 +88,3 @@ def test_calc_mse_of_linear_estimator():
     # Assert
     expected = 1.0 / data_num
     npt.assert_almost_equal(actual, expected, decimal=15)
-    print(type(actual))
-    assert False
