@@ -109,7 +109,23 @@ def calc_covariance_matrix_of_prob_dists(
 
 def calc_mse_of_linear_estimator(
     matA: List[np.array], prob_dists: List[np.array], data_num: int
-):
+) -> np.float64:
+    """calculates mse(mean squared error) of linear estimator.
+
+    Parameters
+    ----------
+    matA : List[np.array]
+        matrix A of StandardQTomography :func:`~quara.protocol.qtomography.standard.StandardQTomography.calc_matA`
+    prob_dists : List[np.array]
+        probability distributions.
+    data_num : int
+        number of data.
+
+    Returns
+    -------
+    np.float64
+        mse of linear estimator = Tr[A_L^{-1T} A_L^{-1} V(p)], where A_L is left inverse of matrix A and V(p) is covariance matrix of p.
+    """
     A_left_inv = np.linalg.pinv(matA.T @ matA) @ matA.T
     cov = calc_covariance_matrix_of_prob_dists(prob_dists, data_num)
 
