@@ -234,6 +234,6 @@ def make_prob_dist_histogram(values: list, x_range: tuple, bin_size: int):
 
     fig = go.Figure(hist, layout=layout)
     ytickvals = [y * 0.1 for y in range(0, 10)]
-    fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="probability")
+    fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
 
     return fig
