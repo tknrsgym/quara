@@ -221,8 +221,11 @@ def show_average_computation_times(
     fig.show()
 
 
-def make_prob_dist_histogram(values: list, x_range: tuple, bin_size: int):
-    x_start, x_end = x_range
+def make_prob_dist_histogram(
+    values: list, bin_size: int, x_range: tuple = None, annotation_vlines: list = None
+):
+    if x_range:
+        x_start, x_end = x_range
     # hist = go.Histogram(
     #     x=values,
     #     xbins=dict(start=x_start, end=x_end, size=bin_size),
@@ -233,6 +236,45 @@ def make_prob_dist_histogram(values: list, x_range: tuple, bin_size: int):
     layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
 
     fig = go.Figure(hist, layout=layout)
+    ytickvals = [y * 0.1 for y in range(0, 10)]
+
+    if annotation_vlines:
+        for x_value in annotation_vlines:
+            # 指定した分位点を青線で表示
+            fig.add_shape(
+                type="line",
+                line_color="black",
+                line_width=1,
+                opacity=0.5,
+                x0=x_value,
+                x1=x_value,
+                xref="x",
+                y0=0,
+                y1=1,
+                yref="paper",
+            )
+
+    fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
+
+    return fig
+
+
+def make_prob_dist_histograms(
+    values_set: np.array, bin_size: int, x_range: tuple = None
+) -> "Figure":
+    if x_range:
+        x_start, x_end = x_range
+
+    fig = make_subplots(rows=len(values_set), cols=1)
+
+    for i, values in enumerate(values_set):
+        trace = go.Histogram(
+            x=values, xbins=dict(size=bin_size), histnorm="probability",
+        )
+        fig.append_trace(trace, i + 1, 1)
+
+    layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
+    fig["layout"].update(layout)
     ytickvals = [y * 0.1 for y in range(0, 10)]
     fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
 
