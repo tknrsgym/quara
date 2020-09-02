@@ -59,8 +59,13 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 0), ("gate", 0), ("povm", 1)],
         ]
+        seed = 7
         exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedules,
+            seed=seed,
         )
         return exp
 
@@ -100,8 +105,13 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 2)],
             [("state", 0), ("gate", 1), ("povm", 0)],
         ]
+        seed = 7
         exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedules,
+            seed=seed,
         )
         return exp
 
@@ -138,10 +148,48 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("gate", 1), ("povm", 1)],
             [("state", 0), ("gate", 0), ("gate", 1), ("povm", 2)],
         ]
+        seed = 7
         exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedules,
+            seed=seed,
         )
         return exp
+
+    def test_reset_seed(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        states = [get_z0_1q(c_sys)]
+        gates = [get_x(c_sys)]
+        povm_x = get_x_measurement(c_sys)
+        povm_y = get_y_measurement(c_sys)
+        povm_z = get_z_measurement(c_sys)
+        povms = [povm_x, povm_y, povm_z]
+        schedules = [
+            [("state", 0), ("povm", 0)],
+            [("state", 0), ("povm", 1)],
+            [("state", 0), ("povm", 2)],
+        ]
+        seed = 7
+        experiment = Experiment(
+            states=states, gates=gates, povms=povms, schedules=schedules, seed=seed
+        )
+
+        # init
+        actual = experiment.generate_data(0, 10)
+        expected = [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]
+        assert np.all(actual == expected)
+
+        # reset
+        seed = 77
+        experiment.reset_seed(seed)
+        actual = experiment.generate_data(0, 10)
+        print(actual)
+        expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
+        assert np.all(actual == expected)
 
     def test_copy(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -158,8 +206,9 @@ class TestExperiment:
             [("state", 0), ("povm", 1)],
             [("state", 0), ("povm", 2)],
         ]
+        seed = 7
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules,
+            states=states, gates=gates, povms=povms, schedules=schedules, seed=seed
         )
         experiment_copy = experiment.copy()
 
@@ -219,8 +268,13 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 0), ("gate", 0), ("povm", 1)],
         ]
+        seed = 7
         exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedules,
+            seed=seed,
         )
 
         # Act
@@ -247,8 +301,13 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 0), ("gate", 0), ("povm", 1)],
         ]
+        seed = 7
         exp = Experiment(
-            states=state_list, povms=povm_list, gates=gate_list, schedules=schedules,
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            schedules=schedules,
+            seed=seed,
         )
 
         # Act
@@ -326,21 +385,23 @@ class TestExperiment:
 
         # Act
         # Case 1:
-        actual = exp.generate_data(schedule_index=0, data_num=10, seed=7)
+        actual = exp.generate_data(schedule_index=0, data_num=10)
 
         # Assert
         expected = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         assert actual == expected
 
         # Case 2:
-        actual = exp.generate_data(schedule_index=1, data_num=20, seed=77)
+        exp.reset_seed(77)
+        actual = exp.generate_data(schedule_index=1, data_num=20)
 
         # Assert
         expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
         assert actual == expected
 
         # Case 3:
-        actual = exp.generate_data(schedule_index=1, data_num=0, seed=7)
+        exp.reset_seed(7)
+        actual = exp.generate_data(schedule_index=1, data_num=0)
 
         # Assert
         expected = []
@@ -355,74 +416,60 @@ class TestExperiment:
         ng_data_num = -1
         with pytest.raises(ValueError):
             # ValueError: The value of 'data_num' must be a non-negative integer.
-            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num, seed=7)
+            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num)
 
         # Case 2:
         ng_data_num = 0.1
         with pytest.raises(TypeError):
             # TypeError: The type of 'data_num' must be int.
-            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num, seed=7)
+            _ = exp.generate_data(schedule_index=0, data_num=ng_data_num)
 
         # Case 3:
         ng_schedule_index = len(exp.schedules)
 
         with pytest.raises(IndexError):
             # IndexError: The value of 'schedule_index' must be an integer between 0 and 1.
-            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10, seed=7)
+            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10)
 
         # Case 4:
         ng_schedule_index = 0.1
         with pytest.raises(TypeError):
             # TypeError: The type of 'schedule_index' must be int.
-            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10, seed=7)
+            _ = exp.generate_data(schedule_index=ng_schedule_index, data_num=10)
 
     def test_generate_dataset(self):
         # Array
         exp = self.array_experiment_data()
 
         # Case 1:
-        actual = exp.generate_dataset(data_nums=[10, 20], seeds=[7, 77])
+        actual = exp.generate_dataset(data_nums=[10, 20])
         expected = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1],
+            [1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0],
         ]
         assert actual == expected
 
         # Case 2:
-        actual = exp.generate_dataset(data_nums=[0, 5], seeds=[7, 77])
-        expected = [[], [1, 1, 1, 0, 0]]
+        actual = exp.generate_dataset(data_nums=[0, 5])
+        expected = [[], [0, 0, 0, 0, 0]]
         assert actual == expected
 
     def test_generate_dataset_exception(self):
         # Array
         exp = self.array_experiment_data()
-        ok_data_nums = [10, 20]
-        ok_seed_list = [7, 77]
 
         # Case 1:
         ng_data_nums = [1, 1, 1]
 
         with pytest.raises(ValueError):
             # ValueError: The number of elements in 'data_nums' must be the same as the number of 'schedules';
-            _ = exp.generate_dataset(data_nums=ng_data_nums, seeds=ok_seed_list)
+            _ = exp.generate_dataset(data_nums=ng_data_nums)
 
         # Case 2:
         ng_data_nums = 1
         with pytest.raises(TypeError):
             # TypeError: The type of 'data_nums' must be list.
-            _ = exp.generate_dataset(data_nums=ng_data_nums, seeds=ok_seed_list)
-
-        # Case 3:
-        ng_seed_list = [1]
-        with pytest.raises(ValueError):
-            # ValueError: The number of elements in 'seeds' must be the same as the number of 'schedules';
-            _ = exp.generate_dataset(data_nums=ok_data_nums, seeds=[ng_seed_list])
-
-        # Case 4:
-        ng_seed_list = 1
-        with pytest.raises(TypeError):
-            # TypeError: The type of 'seeds' must be list.
-            _ = exp.generate_dataset(data_nums=ok_data_nums, seeds=ng_seed_list)
+            _ = exp.generate_dataset(data_nums=ng_data_nums)
 
     def test_generate_empi_dist_sequence(self):
         # Array
@@ -433,7 +480,6 @@ class TestExperiment:
         # probdist: [1, 0]
         # data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         num_sums = [5, 10, 20]
-        # seed_list = [7, 77]
         actual = exp.generate_empi_dist_sequence(schedule_index=0, num_sums=num_sums)
 
         # Assert
@@ -450,18 +496,16 @@ class TestExperiment:
         # Act
         # Case 2:
         # probdist: [0.5, 0.5]
-        # data: [1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1]
+        # data: [1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0]
         num_sums = [5, 10, 15, 20]
-        actual = exp.generate_empi_dist_sequence(
-            schedule_index=1, num_sums=num_sums, seed=77
-        )
+        actual = exp.generate_empi_dist_sequence(schedule_index=1, num_sums=num_sums)
 
         # Assert
         expected_2 = [
-            (5, np.array([0.4, 0.6])),
-            (10, np.array([0.4, 0.6])),
-            (15, np.array([6 / 15, 9 / 15])),
-            (20, np.array([0.45, 0.55])),
+            (5, np.array([0.2, 0.8])),
+            (10, np.array([0.3, 0.7])),
+            (15, np.array([8 / 15, 7 / 15])),
+            (20, np.array([0.5, 0.5])),
         ]
         assert len(actual) == len(expected_2)
         for a, e in zip(actual, expected_2):
@@ -478,7 +522,7 @@ class TestExperiment:
         ng_schedule_index = 0.1
         with pytest.raises(TypeError):
             actual = exp.generate_empi_dist_sequence(
-                schedule_index=ng_schedule_index, num_sums=ok_num_sums, seed=7
+                schedule_index=ng_schedule_index, num_sums=ok_num_sums
             )
 
         # Act & Assert
@@ -486,24 +530,21 @@ class TestExperiment:
         ng_schedule_index = len(exp.schedules)
         with pytest.raises(IndexError):
             actual = exp.generate_empi_dist_sequence(
-                schedule_index=ng_schedule_index, num_sums=ok_num_sums, seed=7
+                schedule_index=ng_schedule_index, num_sums=ok_num_sums
             )
 
     def test_generate_empi_dists_sequence(self):
         # Array
         exp = self.array_experiment_data()
         list_num_sums = [[5, 10], [15, 20]]
-        list_seeds = [[7, 77], [7, 77]]
 
         # Act
-        actual = exp.generate_empi_dists_sequence(
-            list_num_sums=list_num_sums, list_seeds=list_seeds
-        )
+        actual = exp.generate_empi_dists_sequence(list_num_sums=list_num_sums)
 
         # Assert
         expected = [
             [(5, np.array([1, 0])), (15, np.array([1, 0]))],
-            [(10, np.array([0.4, 0.6])), (20, np.array([0.45, 0.55]))],
+            [(10, np.array([0.4, 0.6])), (20, np.array([0.55, 0.45]))],
         ]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
@@ -516,36 +557,17 @@ class TestExperiment:
         # Array
         exp = self.array_experiment_data()
         ok_list_num_sums = [[5, 10, 20], [5, 10, 15, 20]]
-        ok_list_seeds = [7, 77]
 
         # Act
         # Case 1:
         ng_list_num_sums = [[5, 10, 20]]
         with pytest.raises(ValueError):
-            actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ng_list_num_sums, list_seeds=ok_list_seeds
-            )
+            actual = exp.generate_empi_dists_sequence(list_num_sums=ng_list_num_sums)
 
         # Case 2:
         ng_list_num_sums = [[5, 10, 20], [5, 10, 20], [5, 10, 20]]
         with pytest.raises(ValueError):
-            actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ng_list_num_sums, list_seeds=ok_list_seeds
-            )
-
-        # Case 3:
-        ng_list_seeds = [7]
-        with pytest.raises(ValueError):
-            actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ok_list_num_sums, list_seeds=ng_list_seeds
-            )
-
-        # Case 4:
-        ng_list_seeds = [7, 77, 777]
-        with pytest.raises(ValueError):
-            actual = exp.generate_empi_dists_sequence(
-                list_num_sums=ok_list_num_sums, list_seeds=ng_list_seeds
-            )
+            actual = exp.generate_empi_dists_sequence(list_num_sums=ng_list_num_sums)
 
     def test_getter(self):
         # Array
@@ -554,9 +576,12 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 1), ("gate", 1), ("povm", 1)],
         ]
+        seed = 7
 
         # Act & Assert
-        _ = Experiment(states=states, povms=povms, gates=gates, schedules=schedules,)
+        _ = Experiment(
+            states=states, povms=povms, gates=gates, schedules=schedules, seed=seed
+        )
 
         # Arrange
         source_states = [states[0], None]
@@ -569,6 +594,7 @@ class TestExperiment:
             povms=source_povms,
             gates=source_gates,
             schedules=schedules,
+            seed=seed,
         )
 
         # Assert
@@ -599,12 +625,15 @@ class TestExperiment:
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 1), ("gate", 1), ("povm", 1)],
         ]
+        seed = 7
         ok_new_states = [states[1], states[0]]
         ok_new_povms = [povms[1], povms[0]]
         ok_new_gates = [gates[1], gates[0]]
         ok_new_schedules = [schedules[1], schedules[0]]
 
-        exp = Experiment(states=states, povms=povms, gates=gates, schedules=schedules,)
+        exp = Experiment(
+            states=states, povms=povms, gates=gates, schedules=schedules, seed=seed
+        )
 
         # State
         # Act & Assert

@@ -47,6 +47,7 @@ class Experiment:
         povms: List[Povm],
         gates: List[Gate],
         schedules: List[List[Tuple[str, int]]],
+        seed: int = None,
     ) -> None:
 
         # Validation
@@ -65,6 +66,10 @@ class Experiment:
         self._validate_schedules(schedules)
         # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
+        self._seed: int = seed
+
+        # Set seed
+        self.reset_seed(self._seed)
 
     @property
     def states(self) -> List[State]:
@@ -134,6 +139,22 @@ class Experiment:
     def schedules(self, value):
         self._validate_schedules(value)
         self._schedules = value
+
+    @property
+    def seed(self) -> int:
+        return self._seed
+
+    def reset_seed(self, seed: int) -> None:
+        """reset new seed.
+
+        Parameters
+        ----------
+        seed : int
+            new seed.
+        """
+        self._seed = seed
+        if self._seed is not None:
+            np.random.seed(self._seed)
 
     def _validate_type(self, targets, expected_type) -> None:
         for target in targets:
@@ -378,9 +399,7 @@ class Experiment:
             prob_dists.append(r)
         return prob_dists
 
-    def generate_data(
-        self, schedule_index: int, data_num: int, seed: int = None
-    ) -> List[int]:
+    def generate_data(self, schedule_index: int, data_num: int) -> List[int]:
         """Runs the specified schedule to caluclate the probability distribution and generate random data.
 
         Parameters
@@ -389,8 +408,6 @@ class Experiment:
             Index of the schedule.
         data_num : int
             Length of the data.
-        seed : int, optional
-            A seed used to generate random data, by default None
 
         Returns
         -------
@@ -415,38 +432,33 @@ class Experiment:
         self._validate_schedule_index(schedule_index)
 
         prob_dist = self.calc_prob_dist(schedule_index)
-        data = data_generator.generate_data_from_prob_dist(prob_dist, data_num, seed)
+        data = data_generator.generate_data_from_prob_dist(prob_dist, data_num)
         return data
 
-    def generate_dataset(
-        self, data_nums: List[int], seeds: List[int] = None,
-    ) -> List[List[np.array]]:
+    def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
         """Run all the schedules to caluclate the probability distribution and generate random data.
 
         Parameters
         ----------
         data_nums : List[int]
             A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
-        seeds : List[int], optional
-            A list of the seeds to be used in each schedule, by default None
 
-        Returns
+        Returnsf
         -------
         List[List[np.array]]
             Generated dataset.
         """
 
         self._validate_eq_schedule_len(data_nums, "data_nums")
-        self._validate_eq_schedule_len(seeds, "seeds")
 
         prob_dists = self.calc_prob_dists()
         dataset = data_generator.generate_dataset_from_prob_dists(
-            prob_dists=prob_dists, data_nums=data_nums, seeds=seeds
+            prob_dists=prob_dists, data_nums=data_nums
         )
         return dataset
 
     def generate_empi_dist_sequence(
-        self, schedule_index: int, num_sums: List[int], seed: int = None
+        self, schedule_index: int, num_sums: List[int]
     ) -> List[Tuple[int, np.array]]:
         """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
 
@@ -458,8 +470,6 @@ class Experiment:
             Index of schedule.
         num_sums : List[int]
             List of the number of data to caluclate the experience distribution
-        seed : int, optional
-            A seed used to generate random data, by default None.
 
         Returns
         -------
@@ -472,16 +482,14 @@ class Experiment:
         prob_dist = self.calc_prob_dist(schedule_index)
         measurement_num = len(prob_dist)
 
-        data = self.generate_data(
-            schedule_index=schedule_index, data_num=data_n, seed=seed
-        )
+        data = self.generate_data(schedule_index=schedule_index, data_num=data_n)
         empi_dist = data_generator.calc_empi_dist_sequence(
             measurement_num=measurement_num, data=data, num_sums=num_sums
         )
         return empi_dist
 
     def generate_empi_dists_sequence(
-        self, list_num_sums: List[List[int]], list_seeds: List[List[int]] = None
+        self, list_num_sums: List[List[int]]
     ) -> List[List[Tuple[int, np.array]]]:
         """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
 
@@ -489,8 +497,6 @@ class Experiment:
         ----------
         list_num_sums : List[List[int]]
             A list of the number of data to use to calculate the experience distribution for each schedule.
-        list_seeds : List[int], optional
-            A list of seeds, by default None
 
         Returns
         -------
@@ -499,13 +505,9 @@ class Experiment:
         """
         for num_sums in list_num_sums:
             self._validate_eq_schedule_len(num_sums, "list_num_sums")
-        for seeds in list_seeds:
-            self._validate_eq_schedule_len(seeds, "list_seeds")
 
         measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
-        datasets = self.generate_dataset(
-            data_nums=list_num_sums[-1], seeds=list_seeds[-1]
-        )
+        datasets = self.generate_dataset(data_nums=list_num_sums[-1])
 
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 

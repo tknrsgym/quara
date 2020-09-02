@@ -27,7 +27,7 @@ def get_test_data(on_para_eq_constraint=False):
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
 
     return qst, c_sys
 
@@ -111,11 +111,8 @@ class TestLinearEstimator:
 
         result_sequence = []
 
-        for iteration in range(iterations):
-            seeds = [iteration] * len(num_data)
-            empi_dists_seq = qst.generate_empi_dists_sequence(
-                true_object, num_data, seeds
-            )
+        for _ in range(iterations):
+            empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
 
             estimator = LinearEstimator()
             result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
@@ -123,8 +120,6 @@ class TestLinearEstimator:
             for var in result.estimated_var_sequence:
                 assert len(var) == 3
             assert len(result.estimated_qoperation_sequence) == 4
-            for qope in result.estimated_qoperation_sequence:
-                assert qope.is_physical(atol=10 ** (-3))
 
         # calc mse
         result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
@@ -133,7 +128,12 @@ class TestLinearEstimator:
             for result in result_sequences_tmp
         ]
         print(f"mse={actual}")
-        expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
+        expected = [
+            0.0037000000000000036,
+            0.0005530000000000015,
+            6.636000000000025e-05,
+            6.1338999999999626e-06,
+        ]
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_scenario_on_para_eq_constraint_False(self):
@@ -146,11 +146,8 @@ class TestLinearEstimator:
 
         result_sequence = []
 
-        for iteration in range(iterations):
-            seeds = [iteration] * len(num_data)
-            empi_dists_seq = qst.generate_empi_dists_sequence(
-                true_object, num_data, seeds
-            )
+        for _ in range(iterations):
+            empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
 
             estimator = LinearEstimator()
             result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
@@ -158,8 +155,6 @@ class TestLinearEstimator:
             for var in result.estimated_var_sequence:
                 assert len(var) == 4
             assert len(result.estimated_qoperation_sequence) == 4
-            for qope in result.estimated_qoperation_sequence:
-                assert qope.is_physical(atol=10 ** (-3))
 
         # calc mse
         result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
@@ -168,5 +163,10 @@ class TestLinearEstimator:
             for result in result_sequences_tmp
         ]
         print(f"mse={actual}")
-        expected = [4.000e-04, 6.5000e-04, 8.392e-05, 6.442e-07]
+        expected = [
+            0.0037000000000000045,
+            0.0005530000000000005,
+            6.635999999999932e-05,
+            6.133899999999996e-06,
+        ]
         npt.assert_almost_equal(actual, expected, decimal=15)
