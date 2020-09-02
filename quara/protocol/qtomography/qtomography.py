@@ -103,6 +103,16 @@ class QTomography:
         """
         return self._num_variables
 
+    def reset_seed(self, seed: int) -> None:
+        """reset new seed.
+
+        Parameters
+        ----------
+        seed : int
+            new seed.
+        """
+        self._experiment.reset_seed(seed)
+
     @abstractmethod
     def is_valid_experiment(self) -> bool:
         """returns whether the experiment is valid.
@@ -158,9 +168,7 @@ class QTomography:
         raise NotImplementedError()
 
     @abstractmethod
-    def generate_dataset(
-        self, data_nums: List[int], seeds: List[int] = None,
-    ) -> List[List[np.array]]:
+    def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
         """Run all the schedules to caluclate the probability distribution and generate random data.
 
         this function must be implemented in the subclass.
@@ -169,8 +177,6 @@ class QTomography:
         ----------
         data_nums : List[int]
             A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
-        seeds : List[int], optional
-            A list of the seeds to be used in each schedule, by default None
 
         Returns
         -------
@@ -186,7 +192,7 @@ class QTomography:
 
     @abstractmethod
     def generate_empi_dists(
-        self, qoperation: QOperation, num_sum: int, seed: int = None
+        self, qoperation: QOperation, num_sum: int
     ) -> List[Tuple[int, np.array]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -198,8 +204,6 @@ class QTomography:
             QOperation to use to generate the experience distributions.
         num_sum : int
             the number of data to use to generate the experience distributions for each schedule.
-        seed : int, optional
-            the seed, by default None
 
         Returns
         -------

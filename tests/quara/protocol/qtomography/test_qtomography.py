@@ -1,5 +1,7 @@
 import pytest
 
+import numpy as np
+
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import get_x
@@ -31,7 +33,11 @@ def get_test_data():
         schedule = [("state", 0), ("povm", index)]
         schedules.append(schedule)
 
-    experiment = Experiment(states=[None], gates=[], povms=povms, schedules=schedules)
+    seed = 7
+
+    experiment = Experiment(
+        states=[None], gates=[], povms=povms, schedules=schedules, seed=seed
+    )
     set_qoperations = SetQOperations(states=[get_z0_1q(c_sys)], gates=[], povms=[])
 
     return experiment, set_qoperations
@@ -86,3 +92,42 @@ class TestQTomography:
 
         qt = QTomography(experiment, set_qoperations)
         assert qt.num_schedules == 3
+
+    def test_reset_seed(self):
+        # Set up
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        state_0 = get_z0_1q(c_sys)
+
+        povm_x = get_x_measurement(c_sys)
+        povm_y = get_y_measurement(c_sys)
+        povm_z = get_z_measurement(c_sys)
+        povms = [povm_x, povm_y, povm_z]
+
+        schedules = []
+        for index in range(len(povms)):
+            schedule = [("state", 0), ("povm", index)]
+            schedules.append(schedule)
+
+        seed = 7
+
+        experiment = Experiment(
+            states=[state_0], gates=[], povms=povms, schedules=schedules, seed=seed
+        )
+        set_qoperations = SetQOperations(states=[state_0], gates=[], povms=[])
+
+        qt = QTomography(experiment, set_qoperations)
+
+        # init
+        actual = experiment.generate_data(1, 10)
+        expected = [0, 1, 0, 1, 1, 1, 1, 0, 0, 0]
+        assert np.all(actual == expected)
+
+        # reset
+        seed = 77
+        experiment.reset_seed(seed)
+        actual = experiment.generate_data(1, 10)
+        print(actual)
+        expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
+        assert np.all(actual == expected)
