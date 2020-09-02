@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 
 def get_sorted_eigenvalues_list(estimated_qobject_list) -> list:
-    value_list = []
     sorted_eigenvalues_list = []
 
     for estimated_qobject in tqdm(estimated_qobject_list):
