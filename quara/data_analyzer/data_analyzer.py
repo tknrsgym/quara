@@ -3,6 +3,7 @@ from typing import Callable, List
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
@@ -329,3 +330,4 @@ def show_average_computation_times(
     )
     fig = go.Figure(data=data, layout=layout)
     fig.show()
+
