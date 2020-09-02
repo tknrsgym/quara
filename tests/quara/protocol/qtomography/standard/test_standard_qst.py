@@ -24,7 +24,7 @@ def get_test_data():
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=False)
+    qst = StandardQst(povms, on_para_eq_constraint=False, seed=7)
 
     return qst, c_sys
 
@@ -191,19 +191,19 @@ class TestStandardQst:
         state = get_z0_1q(c_sys)
 
         # schedule_index = 0
-        actual = qst.generate_empi_dist(0, state, 10, 7)
+        actual = qst.generate_empi_dist(0, state, 10)
         expected = (10, np.array([0.5, 0.5], dtype=np.float64))
         assert actual[0] == expected[0]
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
         # schedule_index = 1
-        actual = qst.generate_empi_dist(1, state, 10, 7)
-        expected = (10, np.array([0.5, 0.5], dtype=np.float64))
+        actual = qst.generate_empi_dist(1, state, 10)
+        expected = (10, np.array([0.6, 0.4], dtype=np.float64))
         assert actual[0] == expected[0]
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
         # schedule_index = 2
-        actual = qst.generate_empi_dist(2, state, 10, 7)
+        actual = qst.generate_empi_dist(2, state, 10)
         expected = (10, np.array([1, 0], dtype=np.float64))
         assert actual[0] == expected[0]
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
@@ -212,10 +212,10 @@ class TestStandardQst:
         qst, c_sys = get_test_data()
         state = get_z0_1q(c_sys)
 
-        actual = qst.generate_empi_dists(state, 10, 7)
+        actual = qst.generate_empi_dists(state, 10)
         expected = [
             (10, np.array([0.5, 0.5], dtype=np.float64)),
-            (10, np.array([0.5, 0.5], dtype=np.float64)),
+            (10, np.array([0.6, 0.4], dtype=np.float64)),
             (10, np.array([1, 0], dtype=np.float64)),
         ]
         for a, e in zip(actual, expected):
@@ -226,17 +226,17 @@ class TestStandardQst:
         qst, c_sys = get_test_data()
         state = get_z0_1q(c_sys)
 
-        actual = qst.generate_empi_dists_sequence(state, [10, 20], [7, 77])
+        actual = qst.generate_empi_dists_sequence(state, [10, 20])
         print(actual)
         expected = [
             [
-                (10, np.array([0.4, 0.6], dtype=np.float64)),
-                (10, np.array([0.4, 0.6], dtype=np.float64)),
+                (10, np.array([0.5, 0.5], dtype=np.float64)),
+                (10, np.array([0.3, 0.7], dtype=np.float64)),
                 (10, np.array([1, 0], dtype=np.float64)),
             ],
             [
-                (20, np.array([0.45, 0.55], dtype=np.float64)),
-                (20, np.array([0.45, 0.55], dtype=np.float64)),
+                (20, np.array([0.55, 0.45], dtype=np.float64)),
+                (20, np.array([0.5, 0.5], dtype=np.float64)),
                 (20, np.array([1, 0], dtype=np.float64)),
             ],
         ]

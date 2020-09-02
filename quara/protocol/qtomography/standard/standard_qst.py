@@ -20,6 +20,7 @@ class StandardQst(StandardQTomography):
         on_algo_eq_constraint: bool = False,
         on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = 10 ** (-4),
+        seed: int = None,
     ):
         """Constructor
 
@@ -39,6 +40,8 @@ class StandardQst(StandardQTomography):
             whether the algorithm of estimate is on inequal constraint, by default False
         eps_proj_physical : float, optional
             threshold epsilon where the algorithm repeats the projection in order to make estimate object is physical, by default 10**(-4)
+        seed : int, optional
+            a seed used to generate random data, by default None.
 
         Raises
         ------
@@ -51,7 +54,7 @@ class StandardQst(StandardQTomography):
             schedule = [("state", 0), ("povm", index)]
             schedules.append(schedule)
         experiment = Experiment(
-            states=[None], gates=[], povms=povms, schedules=schedules
+            states=[None], gates=[], povms=povms, schedules=schedules, seed=seed
         )
 
         # create SetQOperations
@@ -160,9 +163,7 @@ class StandardQst(StandardQTomography):
         prob_dists = tmp_experiment.calc_prob_dists()
         return prob_dists
 
-    def generate_dataset(
-        self, data_nums: List[int], seeds: List[int] = None,
-    ) -> List[List[np.array]]:
+    def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
         """calculates a probability distribution.
         
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_dataset`
@@ -171,7 +172,7 @@ class StandardQst(StandardQTomography):
         pass
 
     def generate_empi_dist(
-        self, schedule_index: int, state: State, num_sum: int, seed: int = None
+        self, schedule_index: int, state: State, num_sum: int
     ) -> Tuple[int, np.array]:
         """Generate empirical distribution using the data generated from probability distribution of specified schedules.
 
@@ -183,8 +184,6 @@ class StandardQst(StandardQTomography):
             true object.
         num_sum : int
             the number of data to use to generate the experience distributions for each schedule.
-        seed : int, optional
-            the seed, by default None
 
         Returns
         -------
@@ -196,12 +195,12 @@ class StandardQst(StandardQTomography):
         tmp_experiment.states[state_index] = state
 
         empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
-            schedule_index, [num_sum], seed
+            schedule_index, [num_sum]
         )
         return empi_dist_seq[0]
 
     def generate_empi_dists(
-        self, state: State, num_sum: int, seed: int = None
+        self, state: State, num_sum: int
     ) -> List[Tuple[int, np.array]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -213,15 +212,14 @@ class StandardQst(StandardQTomography):
             tmp_experiment.states[state_index] = state
 
         num_sums = [num_sum] * self._num_schedules
-        seeds = [seed] * self._num_schedules
 
-        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums], [seeds])
+        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums])
 
         empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
         return empi_dists
 
     def generate_empi_dists_sequence(
-        self, state: State, num_sums: List[int], seeds: List[int] = None
+        self, state: State, num_sums: List[int]
     ) -> List[List[Tuple[int, np.array]]]:
         """Generate sequence of empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -231,8 +229,6 @@ class StandardQst(StandardQTomography):
             true object.
         num_sums : List[int]
             list of the number of data to use to generate the experience distributions for each schedule.
-        seeds : List[int], optional
-            list of the seed, by default None
 
         Returns
         -------
@@ -243,15 +239,13 @@ class StandardQst(StandardQTomography):
 
         list_num_sums = [num_sums] * self._num_schedules
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
-        list_seeds = [seeds] * self._num_schedules
-        list_seeds_tmp = [list(seeds) for seeds in zip(*list_seeds)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_state_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
-            list_num_sums_tmp, list_seeds_tmp,
+            list_num_sums_tmp
         )
         empi_dists_sequence = [
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
