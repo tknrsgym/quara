@@ -11,3 +11,4 @@ pytest-randomly
 mypy
 nbsphinx
 plotly
+plotly-express
