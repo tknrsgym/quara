@@ -24,16 +24,22 @@ def get_sum_of_eigenvalues_violation(
 ) -> Tuple[List[float], List[float]]:
     sum_eig_less_than_zero_list = []
     sum_eig_greater_than_one_list = []
-    sorted_eigenvalues_list = sorted(eigenvalues_list, reverse=True)
+    # sorted_eigenvalues_list = sorted(eigenvalues_list, reverse=True)
+    sorted_eigenvalues_list = eigenvalues_list
+    print(eigenvalues_list[999])
 
-    for values in sorted_eigenvalues_list:
+    for i, values in enumerate(sorted_eigenvalues_list):
         eig_less_than_zero_list = [v for v in values if v < 0]
         if eig_less_than_zero_list:
             sum_eig_less_than_zero_list.append(np.sum(eig_less_than_zero_list))
+        else:
+            print(f"{i}: {values}")
 
         eig_greater_than_one_list = [v for v in values if v > 1]
         if eig_greater_than_one_list:
             sum_eig_greater_than_one_list.append(np.sum(eig_greater_than_one_list))
+        else:
+            print(f"{i}: {values}")
     return sum_eig_less_than_zero_list, sum_eig_greater_than_one_list
 
 
