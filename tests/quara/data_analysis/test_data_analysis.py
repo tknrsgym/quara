@@ -2,7 +2,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analyzer import data_analyzer
+from quara.data_analysis import data_analysis
 from quara.math import norm
 
 
@@ -15,7 +15,7 @@ def test_calc_mse():
     y = np.array([1.0, 2.0], dtype=np.float64)
 
     # Act
-    actual = data_analyzer.calc_mse(xs, y, norm.l2_norm)
+    actual = data_analysis.calc_mse(xs, y, norm.l2_norm)
 
     # Assert
     npt.assert_almost_equal(actual, 10.0, decimal=14)
@@ -28,7 +28,7 @@ def test_calc_covariance_matrix_of_prob_dist():
     data_num = 10
 
     # Act
-    actual = data_analyzer.calc_covariance_matrix_of_prob_dist(prob_dist, data_num)
+    actual = data_analysis.calc_covariance_matrix_of_prob_dist(prob_dist, data_num)
 
     # Assert
     expected = np.array([[0.25, -0.25], [-0.25, 0.25]]) / data_num
@@ -40,7 +40,7 @@ def test_calc_covariance_matrix_of_prob_dist():
     data_num = 10
 
     # Act
-    actual = data_analyzer.calc_covariance_matrix_of_prob_dist(prob_dist, data_num)
+    actual = data_analysis.calc_covariance_matrix_of_prob_dist(prob_dist, data_num)
 
     # Assert
     expected = np.array([[0.0, 0.0], [0.0, 0.0]]) / data_num
@@ -57,7 +57,7 @@ def test_calc_covariance_matrix_of_prob_dists():
     data_num = 10
 
     # Act
-    actual = data_analyzer.calc_covariance_matrix_of_prob_dists(prob_dists, data_num)
+    actual = data_analysis.calc_covariance_matrix_of_prob_dists(prob_dists, data_num)
 
     # Assert
     mat = [
@@ -83,7 +83,7 @@ def test_calc_mse_of_linear_estimator():
     data_num = 10
 
     # Act
-    actual = data_analyzer.calc_mse_of_linear_estimator(matA, prob_dists, data_num)
+    actual = data_analysis.calc_mse_of_linear_estimator(matA, prob_dists, data_num)
 
     # Assert
     expected = 1.0 / data_num
