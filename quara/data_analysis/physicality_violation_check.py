@@ -26,7 +26,6 @@ def get_sum_of_eigenvalues_violation(
     sum_eig_greater_than_one_list = []
     # sorted_eigenvalues_list = sorted(eigenvalues_list, reverse=True)
     sorted_eigenvalues_list = eigenvalues_list
-    print(eigenvalues_list[999])
 
     for i, values in enumerate(sorted_eigenvalues_list):
         eig_less_than_zero_list = [v for v in values if v < 0]
