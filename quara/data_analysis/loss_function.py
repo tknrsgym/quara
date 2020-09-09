@@ -3,6 +3,10 @@ from abc import abstractmethod
 import numpy as np
 
 
+class LossFunctionOption:
+    pass
+
+
 class LossFunction:
     def __init__(
         self, num_var: int, on_gradient: bool, on_hessian: bool,
