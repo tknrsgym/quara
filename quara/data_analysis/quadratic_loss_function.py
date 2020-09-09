@@ -2,7 +2,17 @@ from abc import abstractmethod
 
 import numpy as np
 
-from quara.data_analysis.loss_function import LossFunction
+from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
+
+
+class QuadraticLossFunctionOption(LossFunctionOption):
+    def __init__(self, var_a: np.array = None):
+        super().__init__()
+        self._var_a: np.array = var_a
+
+    @property
+    def var_a(self) -> np.array:
+        return self._var_a
 
 
 class QuadraticLossFunction(LossFunction):
