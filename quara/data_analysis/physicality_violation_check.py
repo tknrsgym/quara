@@ -31,16 +31,11 @@ def get_sum_of_eigenvalues_violation(
         eig_less_than_zero_list = [v for v in values if v < 0 - eps]
         if eig_less_than_zero_list:
             sum_eig_less_than_zero_list.append(np.sum(eig_less_than_zero_list))
-        else:
-            print("not (v < 0 - eps)")
-            print(f"{i}: {values}")
 
         eig_greater_than_one_list = [v for v in values if v > 1 + eps]
         if eig_greater_than_one_list:
             sum_eig_greater_than_one_list.append(np.sum(eig_greater_than_one_list))
-        else:
-            print("not (v > 1 + eps)")
-            print(f"{i}: {values}")
+
     return sum_eig_less_than_zero_list, sum_eig_greater_than_one_list
 
 
