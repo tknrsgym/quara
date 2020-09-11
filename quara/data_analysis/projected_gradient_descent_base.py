@@ -83,7 +83,9 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
                 )
                 - x_prev
             )
-            # print(f"k={k}, y_prev={y_prev}")
+            print(
+                f"k={k}, y_prev={y_prev}, x_prev={x_prev}, gradient(x_prev)={loss_function.gradient(x_prev)}, mu={mu}"
+            )
 
             alpha = 1.0
             while self._is_doing_for_alpha(x_prev, y_prev, alpha, gamma, loss_function):
