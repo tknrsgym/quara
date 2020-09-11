@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple, Dict, Any, Union
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -6,12 +6,12 @@ import numpy as np
 from tqdm import tqdm
 
 
-def get_sorted_eigenvalues_list(estimated_qobject_list) -> list:
-    value_list = []
+def get_sorted_eigenvalues_list(
+    estimated_qobject_list: List["State"],
+) -> List[List[float]]:
     sorted_eigenvalues_list = []
 
     for estimated_qobject in tqdm(estimated_qobject_list):
-        estimated_qobject = estimated_qobject[0]  # TODO: 複数あった場合への対応
         sorted_eigenvalues = sorted(
             [x.real for x in estimated_qobject.calc_eigenvalues()], reverse=True
         )
@@ -19,30 +19,33 @@ def get_sorted_eigenvalues_list(estimated_qobject_list) -> list:
     return sorted_eigenvalues_list
 
 
-def get_sum_of_eigenvalues_violation(eigenvalues_list: list) -> tuple:
+def get_sum_of_eigenvalues_violation(
+    eigenvalues_list: List[List[float]],
+) -> Tuple[List[float], List[float]]:
     sum_eig_less_than_zero_list = []
     sum_eig_greater_than_one_list = []
-    sorted_eigenvalues_list = sorted(eigenvalues_list, reverse=True)
-
-    for values in sorted_eigenvalues_list:
-        eig_less_than_zero_list = [v for v in values if v < 0]
+    # sorted_eigenvalues_list = sorted(eigenvalues_list, reverse=True)
+    sorted_eigenvalues_list = eigenvalues_list
+    eps = 10 ** (-13)
+    for i, values in enumerate(sorted_eigenvalues_list):
+        eig_less_than_zero_list = [v for v in values if v < 0 - eps]
         if eig_less_than_zero_list:
             sum_eig_less_than_zero_list.append(np.sum(eig_less_than_zero_list))
 
-        eig_greater_than_one_list = [v for v in values if v > 1]
+        eig_greater_than_one_list = [v for v in values if v > 1 + eps]
         if eig_greater_than_one_list:
             sum_eig_greater_than_one_list.append(np.sum(eig_greater_than_one_list))
+
     return sum_eig_less_than_zero_list, sum_eig_greater_than_one_list
 
 
 # TODO: rename
 def get_physicality_violation_result_for_state_affine(
-    estimated_state_list: list,
-) -> list:
+    estimated_state_list: List["State"],
+) -> List[float]:
     value_list = []
 
     for estimated_state in estimated_state_list:
-        estimated_state = estimated_state[0]  # TODO
         tr = np.trace(estimated_state.to_density_matrix())
         value = tr.real
         # TODO: 虚部が10 ** -14以上だったらwarningを出す
@@ -50,8 +53,10 @@ def get_physicality_violation_result_for_state_affine(
     return value_list
 
 
-def get_physicality_violation_result_for_state(estimated_qobject_list: list) -> dict:
-    on_para_eq_constraint = estimated_qobject_list[0][0].on_para_eq_constraint
+def get_physicality_violation_result_for_state(
+    estimated_qobject_list: List["State"],
+) -> Dict[str, Any]:
+    on_para_eq_constraint = estimated_qobject_list[0].on_para_eq_constraint
 
     if on_para_eq_constraint:
         violation_list = get_physicality_violation_result_for_state_affine(
@@ -74,7 +79,10 @@ def get_physicality_violation_result_for_state(estimated_qobject_list: list) -> 
 
 
 def make_prob_dist_histogram(
-    values: list, bin_size: int, x_range: tuple = None, annotation_vlines: list = None
+    values: List[float],
+    bin_size: int,
+    x_range: tuple = None,
+    annotation_vlines: List[Union[float, int]] = None,
 ):
     if x_range:
         x_start, x_end = x_range
