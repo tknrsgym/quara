@@ -11,21 +11,28 @@ from quara.data_analysis.minimization_algorithm import (
 class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
     def __init__(
         self,
+        func_proj,
         var_start: np.array,
         mu: float = None,
         gamma: float = 0.3,
-        eps: float = 10 ^ (-10),
+        eps: float = 1.0e-10,
         on_iteration_history: bool = False,
     ):
         super().__init__(
             var_start, True, False, on_iteration_history=on_iteration_history
         )
 
+        self._func_proj = func_proj
+
         if mu is None:
             mu = 3 / (2 * np.sqrt(var_start.shape[0]))
         self._mu: float = mu
         self._gamma: float = gamma
         self._eps: float = eps
+
+    @property
+    def func_proj(self):
+        return self._func_proj
 
     @property
     def mu(self) -> float:
@@ -49,47 +56,58 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
         algorithm_option: ProjectedGradientDescentBaseOption,
-    ):
+    ) -> np.array:
         # TODO loss_function, algorithm_option is_gradient_requiredとかのチェック
         # TODO history対応
 
         x_prev = algorithm_option.var_start
+        x_next = None
         mu = algorithm_option.mu
         gamma = algorithm_option.gamma
+        eps = algorithm_option.eps
+        # print(
+        #    f"x_start={x_prev}, var_ref={loss_function._var_ref}, var_a={loss_function_option.var_a}, mu={mu}, gamma={gamma}, eps={eps}"
+        # )
+        # print(f"grad(x_start)={loss_function.gradient(x_prev)}")
 
         k = 0
-        is_doing = False
+        is_doing = True
         while is_doing:
+            # shift variables
+            if x_next is not None:
+                x_prev = x_next
+
             y_prev = (
-                self._func_proj(
+                algorithm_option.func_proj(
                     x_prev - loss_function.gradient(x_prev) / mu, loss_function_option
                 )
                 - x_prev
+            )
+            print(
+                f"k={k}, y_prev={y_prev}, x_prev={x_prev}, gradient(x_prev)={loss_function.gradient(x_prev)}, mu={mu}"
             )
 
             alpha = 1.0
             while self._is_doing_for_alpha(x_prev, y_prev, alpha, gamma, loss_function):
                 alpha = 0.5 * alpha
+                # print(f"k={k}, alpha={alpha}")
 
             x_next = x_prev + alpha * y_prev
+            # print(f"k={k}, x_prev={x_prev}, x_next={x_next}")
             k += 1
 
-            is_doing = (
-                loss_function.value(x_prev) - loss_function.value(x_next)
-                > algorithm_option.eps
-            )
+            val = loss_function.value(x_prev) - loss_function.value(x_next)
+            # print(
+            #    f"k={k}, val={val}, grad(x_prev)={loss_function.gradient(x_prev)}, grad(x_next)={loss_function.gradient(x_next)}"
+            # )
+            is_doing = True if val > eps else False
+            if k == 10:
+                break
 
-    def _func_proj(
-        self, var: np.array, loss_function_option: LossFunctionOption
-    ) -> np.array:
-        # TODO var_aを使うと、QuadraticLossFunctionOptionに依存しているがよいのか？
-        var_a = loss_function_option.var_a
-        if var_a is None:
-            proj_value = var
-        else:
-            proj_value = var - np.dot(var_a, var) / np.dot(var_a, var_a) * var_a + var_a
-
-        return proj_value
+        print(
+            f"var_ref={loss_function._var_ref}, var_a={loss_function_option.var_a}: {algorithm_option.var_start} -> {x_next}"
+        )
+        return x_next
 
     def _is_doing_for_alpha(
         self,
