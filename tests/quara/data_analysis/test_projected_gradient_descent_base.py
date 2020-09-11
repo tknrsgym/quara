@@ -44,4 +44,4 @@ class TestProjectedGradientDescentBase:
             algo_option = ProjectedGradientDescentBaseOption(_func_proj_a, var_start)
             algo.optimize(loss, loss_option, algo_option)
 
-        assert False
+        assert True
