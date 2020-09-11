@@ -293,24 +293,24 @@ class State(QOperation):
             density matrix.
         """
         density = np.zeros((self._dim, self._dim), dtype=np.complex128)
-        i = 0
+        # i = 0
         for coefficient, basis in zip(self._vec, self.composite_system.basis()):
             # density += coefficient * basis
             w = coefficient * basis
             density += w
-            print(f"{i}----------------------")
-            print(f"coefficient={coefficient}")
-            print(f"basis[0][0] = {basis[0][0]}")
-            print(f"basis[0][1] = {basis[0][1]}")
-            print(f"basis[1][0] = {basis[1][0]}")
-            print(f"basis[1][1] = {basis[1][1]}")
+            # print(f"{i}----------------------")
+            # print(f"coefficient={coefficient}")
+            # print(f"basis[0][0] = {basis[0][0]}")
+            # print(f"basis[0][1] = {basis[0][1]}")
+            # print(f"basis[1][0] = {basis[1][0]}")
+            # print(f"basis[1][1] = {basis[1][1]}")
 
-            print(f"cofficient * basis = ")
-            print(f"(0, 0) = {w[0][0]}")
-            print(f"(0, 1) = {w[0][1]}")
-            print(f"(1, 0) = {w[1][0]}")
-            print(f"(1, 1) = {w[1][1]}")
-            i += 1
+            # print(f"cofficient * basis = ")
+            # print(f"(0, 0) = {w[0][0]}")
+            # print(f"(0, 1) = {w[0][1]}")
+            # print(f"(1, 0) = {w[1][0]}")
+            # print(f"(1, 1) = {w[1][1]}")
+            # i += 1
         return density
 
     def is_trace_one(self, atol: float = None) -> bool:
@@ -329,8 +329,8 @@ class State(QOperation):
         atol = atol if atol else Settings.get_atol()
         tr = np.trace(self.to_density_matrix())
 
-        print(f"tr={tr}")
-        print(f"atol={atol}")
+        # print(f"tr={tr}")
+        # print(f"atol={atol}")
 
         return np.isclose(tr, 1, atol=atol)
 
