@@ -90,8 +90,8 @@ class StandardPovmt(StandardQTomography):
 
         list_num_sums = [num_sums] * self._num_schedules
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
-        list_seeds = [seeds] * self._num_schedules
-        list_seeds_tmp = [list(seeds) for seeds in zip(*list_seeds)]
+        # list_seeds = [seeds] * self._num_schedules
+        # list_seeds_tmp = [list(seeds) for seeds in zip(*list_seeds)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
             # Trueに相当するインデックスを取得して置き換える
@@ -99,7 +99,7 @@ class StandardPovmt(StandardQTomography):
             tmp_experiment.povms[target_index] = povm
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
-            list_num_sums_tmp, list_seeds_tmp,
+            list_num_sums_tmp
         )
         empi_dists_sequence = [
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
