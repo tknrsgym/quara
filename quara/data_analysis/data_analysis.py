@@ -189,9 +189,9 @@ def calc_estimate(
     # generate empi dists and calc estimate
     results = []
     for ite in range(iteration):
-        seeds = [ite] * len(num_data)
-        empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data, seeds)
-
+        # seeds = [ite] * len(num_data)
+        # empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data, seeds)
+        empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
         result = estimator.calc_estimate_sequence(
             qst, empi_dists_seq, is_computation_time_required=True
         )
