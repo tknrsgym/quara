@@ -11,7 +11,7 @@ def test_proj_to_self():
     var = np.array([1.0, 2.0], dtype=np.float64)
     actual = proj(var)
     expected = np.array([1.0, 2.0], dtype=np.float64)
-    npt.assert_almost_equal(actual, var, decimal=15)
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_proj_to_hyperplane():
