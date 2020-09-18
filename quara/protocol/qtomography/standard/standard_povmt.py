@@ -1,5 +1,4 @@
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
-import itertools
 from typing import List, Tuple
 
 import numpy as np
@@ -84,14 +83,12 @@ class StandardPovmt(StandardQTomography):
         return all(checks)
 
     def generate_empi_dists_sequence(
-        self, povm: Povm, num_sums: List[int], seeds: List[int] = None
+        self, povm: Povm, num_sums: List[int]
     ) -> List[List[Tuple[int, np.array]]]:
         tmp_experiment = self._experiment.copy()
 
         list_num_sums = [num_sums] * self._num_schedules
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
-        # list_seeds = [seeds] * self._num_schedules
-        # list_seeds_tmp = [list(seeds) for seeds in zip(*list_seeds)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
             # Trueに相当するインデックスを取得して置き換える

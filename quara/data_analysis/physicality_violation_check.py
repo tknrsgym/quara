@@ -1,3 +1,4 @@
+import warnings
 from typing import List, Tuple, Dict, Any, Union
 
 import plotly.graph_objects as go
@@ -48,7 +49,9 @@ def get_physicality_violation_result_for_state_affine(
     for estimated_state in estimated_state_list:
         tr = np.trace(estimated_state.to_density_matrix())
         value = tr.real
-        # TODO: 虚部が10 ** -14以上だったらwarningを出す
+        if tr.imag >= 10 ** -14:
+            message = "Imaginary number of trace >= 10 ** -14"
+            warnings.warn(message)
         value_list.append(value)
     return value_list
 
@@ -81,7 +84,7 @@ def get_physicality_violation_result_for_state(
 def make_prob_dist_histogram(
     values: List[float],
     bin_size: int,
-    x_range: tuple = None,
+    x_range: Optional[tuple] = None,
     annotation_vlines: List[Union[float, int]] = None,
 ):
     if x_range:
@@ -116,7 +119,7 @@ def make_prob_dist_histogram(
 
 
 def make_prob_dist_histograms(
-    values_set: np.array, bin_size: int, x_range: tuple = None
+    values_set: np.array, bin_size: int, x_range: Optional[tuple] = None
 ) -> "Figure":
     if x_range:
         x_start, x_end = x_range
