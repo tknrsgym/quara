@@ -1,5 +1,5 @@
 import warnings
-from typing import List, Tuple, Dict, Any, Union
+from typing import List, Tuple, Dict, Any, Union, Optional
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
