@@ -299,6 +299,30 @@ def show_mse(num_data: List[int], mses: List[float], title: str = "Mean Square V
     fig.show()
 
 
+def show_mses(
+    num_data: List[int],
+    mses: List[List[float]],
+    title: str = "Mean Square Value",
+    names: Optional[List[str]] = None,
+):
+    if not names:
+        names = [f"data_{i}" for i in range(len(mses))]
+    data = []
+    for i, mse in enumerate(mses):
+        trace = go.Scatter(x=num_data, y=mse, mode="lines+markers", name=names[i])
+        data.append(trace)
+
+    layout = go.Layout(
+        title=title,
+        xaxis_title_text="number of data",
+        yaxis_title_text="Mean Square Error of estimates and true",
+        xaxis_type="log",
+        yaxis_type="log",
+    )
+    fig = go.Figure(data=data, layout=layout)
+    fig.show()
+
+
 # common(depend on "num_data")
 def show_computation_times(
     num_data: List[int],
