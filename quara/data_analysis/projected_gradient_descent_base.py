@@ -1,4 +1,5 @@
-from typing import Callable
+import time
+from typing import Callable, List
 
 import numpy as np
 
@@ -7,7 +8,47 @@ from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
 from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
+    MinimizationResult,
 )
+
+
+class ProjectedGradientDescentBaseResult(MinimizationResult):
+    def __init__(
+        self,
+        value: np.array,
+        computation_time: float = None,
+        k: int = None,
+        fx: List[np.array] = None,
+        x: List[np.array] = None,
+        y: List[np.array] = None,
+        alpha: List[float] = None,
+    ):
+        super().__init__(value, computation_time)
+        self._k: int = k
+        self._fx: List[np.array] = fx
+        self._x: List[np.array] = x
+        self._y: List[np.array] = y
+        self._alpha: List[float] = alpha
+
+    @property
+    def k(self) -> int:
+        return self._k
+
+    @property
+    def fx(self) -> List[np.array]:
+        return self._fx
+
+    @property
+    def x(self) -> List[np.array]:
+        return self._x
+
+    @property
+    def y(self) -> List[np.array]:
+        return self._y
+
+    @property
+    def alpha(self) -> List[np.array]:
+        return self._alpha
 
 
 class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
@@ -18,11 +59,8 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         mu: float = None,
         gamma: float = 0.3,
         eps: float = 1.0e-10,
-        on_iteration_history: bool = False,
     ):
-        super().__init__(
-            var_start, True, False, on_iteration_history=on_iteration_history
-        )
+        super().__init__(var_start, True, False)
 
         self._func_proj: Callable[[np.array], np.array] = func_proj
 
@@ -33,7 +71,7 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         self._eps: float = eps
 
     @property
-    def func_proj(self):
+    def func_proj(self) -> Callable[[np.array], np.array]:
         return self._func_proj
 
     @property
@@ -59,9 +97,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         loss_function_option: LossFunctionOption,
         algorithm_option: ProjectedGradientDescentBaseOption,
         on_iteration_history: bool = False,
-    ) -> np.array:
-        # TODO history対応
-
+    ) -> ProjectedGradientDescentBaseResult:
         if loss_function.on_gradient == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_gradient' of loss_function must be True."
@@ -79,7 +115,8 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
 
         # variables for debug
         if on_iteration_history:
-            values = [loss_function.value(x_prev)]
+            start_time = time.time()
+            fxs = [loss_function.value(x_prev)]
             xs = [x_prev]
             ys = []
             alphas = []
@@ -106,24 +143,28 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             val = loss_function.value(x_prev) - loss_function.value(x_next)
             is_doing = True if val > eps else False
 
-            # variables for debug
+            # variables for iteration history
             if on_iteration_history:
-                values.append(loss_function.value(x_next))
+                fxs.append(loss_function.value(x_next))
                 xs.append(x_next)
                 ys.append(y_prev)
                 alphas.append(alpha)
 
         if on_iteration_history:
-            history = {
-                "k": k,
-                "value": values,
-                "x": xs,
-                "y": ys,
-                "alpha": alphas,
-            }
-            return x_next, history
+            computation_time = time.time() - start_time
+            result = ProjectedGradientDescentBaseResult(
+                x_next,
+                computation_time=computation_time,
+                k=k,
+                fx=fxs,
+                x=xs,
+                y=ys,
+                alpha=alphas,
+            )
+            return result
         else:
-            return x_next
+            result = ProjectedGradientDescentBaseResult(x_next)
+            return result
 
     def _is_doing_for_alpha(
         self,
