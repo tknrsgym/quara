@@ -132,8 +132,8 @@ class StandardPovmt(StandardQTomography):
                 stack_list.append(state.vec)
                 if post_zeros.size != 0:
                     stack_list.append(post_zeros)
-                # c = np.hstack(stack_list)
-                c = (1 / np.sqrt(dim)) * np.hstack(stack_list)
+                c = np.hstack(stack_list)
+                # c = (1 / np.sqrt(dim)) * np.hstack(stack_list)
 
                 if on_para_eq_constraint:
                     a_prime, c_prime = np.split(c, [vec_size * (m - 1)])
