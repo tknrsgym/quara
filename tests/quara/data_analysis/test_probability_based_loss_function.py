@@ -10,13 +10,6 @@ from quara.data_analysis.probability_based_loss_function import (
 )
 
 
-def multiply_veca_vecb_matc(
-    vec_a: np.array, vec_b: np.array, mat_c: np.array
-) -> np.array:
-    vec = np.dot(vec_a, vec_b @ mat_c)
-    return vec
-
-
 mat_p = np.array(
     [
         [1, 1, 0, 0],
