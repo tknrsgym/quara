@@ -558,15 +558,29 @@ def convert_var_to_povm(
     vecs = copy.copy(var)
     dim = int(np.sqrt(var.shape[0]))
     if on_para_eq_constraint:
-        last_vec = np.eye(dim).flatten()
-        var = vecs.reshape(dim - 1, dim * dim)
+        # [1, 0, 0, 1]
+        # ここが違う
+        last_vec = np.hstack([np.array(np.sqrt(dim)), np.zeros((dim**2-1,))])
+        # last_vec = np.eye(dim).flatten()  # 4,
+        # var = [0.70710678, 0.5, 0.        , 0.5]]
+        var = vecs.reshape(dim - 1, dim * dim)  # 1 * 4
         for vec in var:
+            # 1loop
+            # vec = [[0.70710678, 0.5, 0, 0.5]]
+            # last_vec = [1, 0, 0, 1] - [0.70710678, 0.5, 0, 0.5]
+            #          = [ 0.29289322, -0.5,  0.,  0.5]
             last_vec -= vec.flatten()
-        vecs = np.hstack([vecs, last_vec])
+        # vecs = [0.70710678, 0.5, 0., 0.5, 0.29289322, -0.5,  0.,  0.5]
+        vecs = np.hstack([vecs, last_vec])  # 12
 
     vec_list = []
-    reshaped_vecs = vecs.reshape(dim, dim ** dim)
+    # reshaped_vecs = [[0.70710678, 0.5, 0., 0.5],
+    #                  [0.29289322, -0.5,  0.,  0.5]]
+    reshaped_vecs = vecs.reshape(dim, dim ** dim)  # 2 * 4
     for vec in reshaped_vecs:
+        # np.arrayからlistへの変換
+        # vec_list = [[0.70710678, 0.5, 0., 0.5],
+        #             [0.29289322, -0.5,  0.,  0.5]]
         vec_list.append(vec)
     povm = Povm(
         c_sys,
