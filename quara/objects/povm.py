@@ -3,6 +3,7 @@ import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
+from numpy.testing._private.utils import measure
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
@@ -241,6 +242,7 @@ class Povm(QOperation):
         return new_povm
 
     def _generate_from_var_func(self):
+        # TODO
         return convert_var_to_povm
 
     def calc_proj_physical(self):
@@ -556,16 +558,21 @@ def convert_var_to_povm(
         converted povm.
     """
     vecs = copy.copy(var)
-    dim = int(np.sqrt(var.shape[0]))
+    dim = c_sys.dim
+
     if on_para_eq_constraint:
-        last_vec = np.eye(dim).flatten()
-        var = vecs.reshape(dim - 1, dim * dim)
-        for vec in var:
-            last_vec -= vec.flatten()
-        vecs = np.hstack([vecs, last_vec])
+        measurement_n = var.shape[0] // (dim ** 2) + 1
+        # [√d, 0, 0...]
+        total_vecs = np.hstack([np.array(np.sqrt(dim)), np.zeros(dim ** 2 - 1,)])
+        pre_vecs = vecs.reshape(dim ** 2, measurement_n - 1).T
+        last_vec = total_vecs - pre_vecs.sum(axis=0)
+        vecs = np.append(pre_vecs, last_vec)
+    else:
+        measurement_n = var.shape[0] // (dim ** 2)
 
     vec_list = []
-    reshaped_vecs = vecs.reshape(dim, dim ** dim)
+    reshaped_vecs = vecs.reshape(measurement_n, dim ** 2)
+    # convert np.array to list of np.array
     for vec in reshaped_vecs:
         vec_list.append(vec)
     povm = Povm(
