@@ -1,10 +1,11 @@
 import time
-from typing import Callable, List
+from typing import Callable, List, Optional, Union
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
+from tqdm import tqdm
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
@@ -30,7 +31,7 @@ def calc_mse(
     norm_function: Callable[[np.array, np.array], np.float64],
 ) -> np.float64:
     """calculates mse(mean squared error) of ``xs`` and ``y`` according to ``norm_function``.
-    
+
     Parameters
     ----------
     xs : np.array
@@ -183,15 +184,13 @@ def calc_estimate(
     iteration: int,
     estimator=StandardQTomographyEstimator,
     on_para_eq_constraint: bool = True,
-) -> StandardQTomographyEstimationResult:
+) -> List[StandardQTomographyEstimationResult]:
     qst = StandardQst(tester_povms, on_para_eq_constraint=on_para_eq_constraint)
 
     # generate empi dists and calc estimate
     results = []
     for ite in range(iteration):
-        seeds = [ite] * len(num_data)
-        empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data, seeds)
-
+        empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
         result = estimator.calc_estimate_sequence(
             qst, empi_dists_seq, is_computation_time_required=True
         )
@@ -206,6 +205,43 @@ def calc_estimate(
         results.append(result)
 
     return results
+
+
+# common
+def _estimate(
+    qtomography: "StandardQTomography",
+    true_object: QOperation,
+    num_data: List[int],
+    estimator=StandardQTomographyEstimator,
+) -> List[StandardQTomographyEstimationResult]:
+    empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
+    result = estimator.calc_estimate_sequence(
+        qtomography, empi_dists_seq, is_computation_time_required=True
+    )
+    return result
+
+
+# common
+def estimate(
+    qtomography: "StandardQTomography",
+    true_object: QOperation,
+    num_data: List[int],
+    estimator=StandardQTomographyEstimator,
+    iteration: Optional[int] = None,
+) -> Union[
+    List[StandardQTomographyEstimationResult],
+    List[List[StandardQTomographyEstimationResult]],
+]:
+
+    if iteration is None:
+        result = _estimate(qtomography, true_object, num_data, estimator)
+        return result
+    else:
+        results = []
+        for _ in tqdm(range(iteration)):
+            result = _estimate(qtomography, true_object, num_data, estimator)
+            results.append(result)
+        return results
 
 
 # StandardQst, StandardQTomographyEstimator
@@ -252,6 +288,30 @@ def calc_estimate_with_average_comp_time(
 def show_mse(num_data: List[int], mses: List[float], title: str = "Mean Square Value"):
     trace = go.Scatter(x=num_data, y=mses, mode="lines+markers")
     data = [trace]
+    layout = go.Layout(
+        title=title,
+        xaxis_title_text="number of data",
+        yaxis_title_text="Mean Square Error of estimates and true",
+        xaxis_type="log",
+        yaxis_type="log",
+    )
+    fig = go.Figure(data=data, layout=layout)
+    fig.show()
+
+
+def show_mses(
+    num_data: List[int],
+    mses: List[List[float]],
+    title: str = "Mean Square Value",
+    names: Optional[List[str]] = None,
+):
+    if not names:
+        names = [f"data_{i}" for i in range(len(mses))]
+    data = []
+    for i, mse in enumerate(mses):
+        trace = go.Scatter(x=num_data, y=mse, mode="lines+markers", name=names[i])
+        data.append(trace)
+
     layout = go.Layout(
         title=title,
         xaxis_title_text="number of data",

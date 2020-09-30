@@ -612,7 +612,63 @@ class TestPovm:
 
         # Case 3:
         # Arrange
-        var = np.array([2, 3, 5, 7], dtype=np.float64)
+        # var = np.array([2, 3, 5, 7], dtype=np.float64)
+        # source_is_estimation_object = False
+        # source_on_para_eq_constraint = True
+        # source_on_algo_eq_constraint = False
+        # source_on_algo_ineq_constraint = True
+        # source_eps_proj_physical = 10 ** (-2)
+
+        # Act
+        # actual = source_povm.generate_from_var(
+        #     var,
+        #     is_estimation_object=source_is_estimation_object,
+        #     on_para_eq_constraint=source_on_para_eq_constraint,
+        #     on_algo_eq_constraint=source_on_algo_eq_constraint,
+        #     on_algo_ineq_constraint=source_on_algo_ineq_constraint,
+        #     eps_proj_physical=source_eps_proj_physical,
+        # )
+
+        # Assert
+        # expected = [
+        #     np.array([2, 3, 5, 7], dtype=np.float64),
+        #     np.array([-1, -3, -5, -6], dtype=np.float64),
+        # ]
+        # assert len(actual.vecs) == len(expected)
+        # for a, e in zip(actual.vecs, expected):
+        #     npt.assert_almost_equal(a, e, decimal=15)
+        # assert actual._composite_system is c_sys
+        # assert actual.is_physicality_required is init_is_physicality_required
+        # assert actual.is_estimation_object is source_is_estimation_object
+        # assert actual.on_para_eq_constraint is source_on_para_eq_constraint
+        # assert actual.on_algo_eq_constraint is source_on_algo_eq_constraint
+        # assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
+        # assert actual.eps_proj_physical == source_eps_proj_physical
+
+        # Case 4:
+        # Array
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        a0, a1, a2, a3 = 1, 1 / np.sqrt(2), 0, 1 / np.sqrt(2)
+        m1 = (1 / np.sqrt(2)) * np.array([a0, a1, a2, a3])
+        m2 = (1 / np.sqrt(2)) * np.array([2 - a0, -a1, -a2, -a3])
+        source_is_estimation_object = False
+        source_on_para_eq_constraint = True
+        source_on_algo_eq_constraint = False
+        source_on_algo_ineq_constraint = True
+        source_eps_proj_physical = 10 ** (-2)
+
+        source_povm = Povm(
+            vecs=[m1, m2],
+            c_sys=c_sys,
+            is_estimation_object=source_is_estimation_object,
+            on_para_eq_constraint=source_on_para_eq_constraint,
+            on_algo_eq_constraint=source_on_algo_eq_constraint,
+            on_algo_ineq_constraint=source_on_algo_ineq_constraint,
+            eps_proj_physical=source_eps_proj_physical,
+        )
+        var = source_povm.to_var()
         source_is_estimation_object = False
         source_on_para_eq_constraint = True
         source_on_algo_eq_constraint = False
@@ -629,16 +685,12 @@ class TestPovm:
             eps_proj_physical=source_eps_proj_physical,
         )
 
-        # Assert
-        expected = [
-            np.array([2, 3, 5, 7], dtype=np.float64),
-            np.array([-1, -3, -5, -6], dtype=np.float64),
-        ]
+        expected = source_povm.vecs
         assert len(actual.vecs) == len(expected)
         for a, e in zip(actual.vecs, expected):
             npt.assert_almost_equal(a, e, decimal=15)
         assert actual._composite_system is c_sys
-        assert actual.is_physicality_required is init_is_physicality_required
+        assert actual.is_physicality_required is True  # default
         assert actual.is_estimation_object is source_is_estimation_object
         assert actual.on_para_eq_constraint is source_on_para_eq_constraint
         assert actual.on_algo_eq_constraint is source_on_algo_eq_constraint
@@ -1268,33 +1320,33 @@ def test_convert_var_to_povm():
 
     # Case 1: default
     # Arrange
-    vecs = np.array([2, 3, 5, 7], dtype=np.float64)
-    # Act
-    actual = convert_var_to_povm(c_sys, vecs, is_physicality_required=False)
-    # Assert
-    expected = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-        np.array([-1, -3, -5, -6], dtype=np.float64),
-    ]
-    assert len(actual.vecs) == len(expected)
-    for a, e in zip(actual.vecs, expected):
-        npt.assert_almost_equal(a, e, decimal=15)
+    # vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    # # Act
+    # actual = convert_var_to_povm(c_sys, vecs, is_physicality_required=False)
+    # # Assert
+    # expected = [
+    #     np.array([2, 3, 5, 7], dtype=np.float64),
+    #     np.array([-1, -3, -5, -6], dtype=np.float64),
+    # ]
+    # assert len(actual.vecs) == len(expected)
+    # for a, e in zip(actual.vecs, expected):
+    #     npt.assert_almost_equal(a, e, decimal=15)
 
     # Case 2: on_para_eq_constraint=True
     # Arrange
-    vecs = np.array([2, 3, 5, 7], dtype=np.float64)
-    # Act
-    actual = convert_var_to_povm(
-        c_sys, vecs, on_para_eq_constraint=True, is_physicality_required=False
-    )
-    # Assert
-    expected = [
-        np.array([2, 3, 5, 7], dtype=np.float64),
-        np.array([-1, -3, -5, -6], dtype=np.float64),
-    ]
-    assert len(actual.vecs) == len(expected)
-    for a, e in zip(actual.vecs, expected):
-        npt.assert_almost_equal(a, e, decimal=15)
+    # vecs = np.array([2, 3, 5, 7], dtype=np.float64)
+    # # Act
+    # actual = convert_var_to_povm(
+    #     c_sys, vecs, on_para_eq_constraint=True, is_physicality_required=False
+    # )
+    # # Assert
+    # expected = [
+    #     np.array([2, 3, 5, 7], dtype=np.float64),
+    #     np.array([-1, -3, -5, -6], dtype=np.float64),
+    # ]
+    # assert len(actual.vecs) == len(expected)
+    # for a, e in zip(actual.vecs, expected):
+    #     npt.assert_almost_equal(a, e, decimal=15)
 
     # Case 3: on_para_eq_constraint=False
     # Arrange
@@ -1308,6 +1360,23 @@ def test_convert_var_to_povm():
         np.array([2, 3, 5, 7], dtype=np.float64),
         np.array([11, 13, 17, 19], dtype=np.float64),
     ]
+    assert len(actual.vecs) == len(expected)
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # Case 4:
+    e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = csys.CompositeSystem([e_sys])
+
+    a0, a1, a2, a3 = 1, 1 / np.sqrt(2), 0, 1 / np.sqrt(2)
+    m1 = (1 / np.sqrt(2)) * np.array([a0, a1, a2, a3])
+    m2 = (1 / np.sqrt(2)) * np.array([2 - a0, -a1, -a2, -a3])
+
+    true_object = Povm(vecs=[m1, m2], c_sys=c_sys)
+    true_var = true_object.to_var()
+
+    actual = convert_var_to_povm(c_sys, true_var, is_physicality_required=False)
+    expected = true_object.vecs
     assert len(actual.vecs) == len(expected)
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)

@@ -12,3 +12,4 @@ mypy
 nbsphinx
 plotly
 plotly-express
+tqdm

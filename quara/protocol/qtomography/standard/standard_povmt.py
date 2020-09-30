@@ -1,5 +1,4 @@
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
-import itertools
 from typing import List, Tuple
 
 import numpy as np
@@ -84,14 +83,12 @@ class StandardPovmt(StandardQTomography):
         return all(checks)
 
     def generate_empi_dists_sequence(
-        self, povm: Povm, num_sums: List[int], seeds: List[int] = None
+        self, povm: Povm, num_sums: List[int]
     ) -> List[List[Tuple[int, np.array]]]:
         tmp_experiment = self._experiment.copy()
 
         list_num_sums = [num_sums] * self._num_schedules
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
-        list_seeds = [seeds] * self._num_schedules
-        list_seeds_tmp = [list(seeds) for seeds in zip(*list_seeds)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
             # Trueに相当するインデックスを取得して置き換える
@@ -99,12 +96,27 @@ class StandardPovmt(StandardQTomography):
             tmp_experiment.povms[target_index] = povm
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
-            list_num_sums_tmp, list_seeds_tmp,
+            list_num_sums_tmp
         )
         empi_dists_sequence = [
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
         ]
         return empi_dists_sequence
+
+    def generate_prob_dists_sequence(
+        self, povm: Povm, num_sums: List[int]
+    ) -> List[List[Tuple[int, np.array]]]:
+        tmp_experiment = self._experiment.copy()
+
+        list_num_sums = [num_sums] * self._num_schedules
+        # list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
+
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            target_index = self._get_target_index(tmp_experiment, schedule_index)
+            tmp_experiment.povms[target_index] = povm
+
+        prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
+        return prob_dists_sequence_tmp
 
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
