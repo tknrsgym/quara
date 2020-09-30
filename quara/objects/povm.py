@@ -215,17 +215,27 @@ class Povm(QOperation):
             new_vec = vec - a_bar + c
             new_vecs.append(new_vec)
         new_povm = Povm(
-            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
+            c_sys=self.composite_system,
+            vecs=new_vecs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
         )
         return new_povm
 
     def calc_proj_ineq_constraint(self) -> "Povm":
         new_vecs = []
 
-        for m in self.matrices():
-            eigh, eigenvec = np.linalg.eigh(m)
+        for matrix in self.matrices():
+            eigenvals, eigenvec = np.linalg.eigh(matrix)
 
-            diag = np.diag(eigh)
+            #     |λ0          |
+            # Λ = |    ...     |
+            #     |        λd-1|
+            diag = np.diag(eigenvals)
             diag[diag < 0] = 0
 
             new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
@@ -236,7 +246,14 @@ class Povm(QOperation):
             new_vecs.append(new_vec)
 
         new_povm = Povm(
-            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
+            c_sys=self.composite_system,
+            vecs=new_vecs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
         )
 
         return new_povm

@@ -467,6 +467,7 @@ class QOperation:
         p_prev = self.generate_zero_obj()
         q_prev = self.generate_zero_obj()
         x_prev = self.copy()
+
         x_prev._is_physicality_required = False
         x_prev._is_estimation_object = False
         y_prev = x_prev.calc_proj_ineq_constraint()
@@ -482,7 +483,12 @@ class QOperation:
 
         k = 0
         is_stopping = False
+        # TODO: remove
+        # count = 0
         while not is_stopping:
+            # TODO: remove
+            # print(f"[calc_proj_physical] loop_count = {count}")
+
             # shift variables
             if (
                 p_next is not None
