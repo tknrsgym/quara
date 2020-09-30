@@ -245,8 +245,8 @@ class Povm(QOperation):
         # TODO
         return convert_var_to_povm
 
-    def calc_proj_physical(self):
-        raise NotImplementedError()
+    def _copy(self):
+        return copy.deepcopy(self.vecs)
 
     def calc_stopping_criterion_birgin_raydan_vectors(self):
         raise NotImplementedError()
