@@ -3,6 +3,7 @@ import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
+from numpy.testing._private.utils import measure
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
@@ -241,6 +242,7 @@ class Povm(QOperation):
         return new_povm
 
     def _generate_from_var_func(self):
+        # TODO
         return convert_var_to_povm
 
     def calc_proj_physical(self):
@@ -556,31 +558,22 @@ def convert_var_to_povm(
         converted povm.
     """
     vecs = copy.copy(var)
-    dim = int(np.sqrt(var.shape[0]))
+    dim = c_sys.dim
+
     if on_para_eq_constraint:
-        # [1, 0, 0, 1]
-        # ここが違う
-        last_vec = np.hstack([np.array(np.sqrt(dim)), np.zeros((dim**2-1,))])
-        # last_vec = np.eye(dim).flatten()  # 4,
-        # var = [0.70710678, 0.5, 0.        , 0.5]]
-        var = vecs.reshape(dim - 1, dim * dim)  # 1 * 4
-        for vec in var:
-            # 1loop
-            # vec = [[0.70710678, 0.5, 0, 0.5]]
-            # last_vec = [1, 0, 0, 1] - [0.70710678, 0.5, 0, 0.5]
-            #          = [ 0.29289322, -0.5,  0.,  0.5]
-            last_vec -= vec.flatten()
-        # vecs = [0.70710678, 0.5, 0., 0.5, 0.29289322, -0.5,  0.,  0.5]
-        vecs = np.hstack([vecs, last_vec])  # 12
+        measurement_n = var.shape[0] // (dim ** 2) + 1
+        # [√d, 0, 0...]
+        total_vecs = np.hstack([np.array(np.sqrt(dim)), np.zeros(dim ** 2 - 1,)])
+        pre_vecs = vecs.reshape(dim ** 2, measurement_n - 1).T
+        last_vec = total_vecs - pre_vecs.sum(axis=0)
+        vecs = np.append(pre_vecs, last_vec)
+    else:
+        measurement_n = var.shape[0] // (dim ** 2)
 
     vec_list = []
-    # reshaped_vecs = [[0.70710678, 0.5, 0., 0.5],
-    #                  [0.29289322, -0.5,  0.,  0.5]]
-    reshaped_vecs = vecs.reshape(dim, dim ** dim)  # 2 * 4
+    reshaped_vecs = vecs.reshape(measurement_n, dim ** 2)
+    # convert np.array to list of np.array
     for vec in reshaped_vecs:
-        # np.arrayからlistへの変換
-        # vec_list = [[0.70710678, 0.5, 0., 0.5],
-        #             [0.29289322, -0.5,  0.,  0.5]]
         vec_list.append(vec)
     povm = Povm(
         c_sys,
@@ -593,6 +586,78 @@ def convert_var_to_povm(
         eps_proj_physical=eps_proj_physical,
     )
     return povm
+
+
+# def convert_var_to_povm(
+#     c_sys: CompositeSystem,
+#     var: np.ndarray,
+#     is_physicality_required: bool = True,
+#     is_estimation_object: bool = True,
+#     on_para_eq_constraint: bool = True,
+#     on_algo_eq_constraint: bool = True,
+#     on_algo_ineq_constraint: bool = True,
+#     eps_proj_physical: float = 10 ** (-4),
+# ) -> Povm:
+#     """converts vec of variables to povm.
+
+#     Parameters
+#     ----------
+#     c_sys : CompositeSystem
+#         CompositeSystem of this povm.
+#     var : List[np.ndarray]
+#         list of vec of povm elements.
+#     on_para_eq_constraint : bool, optional
+#         uses equal constraints, by default True.
+
+#     Returns
+#     -------
+#     Povm
+#         converted povm.
+#     """
+#     vecs = copy.copy(var)
+#     # ここが違う
+#     # mの情報を使う必要がある
+#     dim =
+#     dim = int(np.sqrt(var.shape[0]))
+#     # mの情報をとる
+
+#     if on_para_eq_constraint:
+#         # [1, 0, 0, 1]
+#         # ここが違う
+#         last_vec = np.hstack([np.array(np.sqrt(dim)), np.zeros((dim**2-1,))])
+#         # last_vec = np.eye(dim).flatten()  # 4,
+#         # var = [0.70710678, 0.5, 0.        , 0.5]]
+#         # ここが違う
+#         var = vecs.reshape(dim - 1, dim * dim)  # 1 * 4
+#         for vec in var: # 0 - m-2までを引いていく
+#             # 1loop
+#             # vec = [[0.70710678, 0.5, 0, 0.5]]
+#             # last_vec = [1, 0, 0, 1] - [0.70710678, 0.5, 0, 0.5]
+#             #          = [ 0.29289322, -0.5,  0.,  0.5]
+#             last_vec -= vec.flatten()
+#         # vecs = [0.70710678, 0.5, 0., 0.5, 0.29289322, -0.5,  0.,  0.5]
+#         vecs = np.hstack([vecs, last_vec])  # 12
+
+#     vec_list = []
+#     # reshaped_vecs = [[0.70710678, 0.5, 0., 0.5],
+#     #                  [0.29289322, -0.5,  0.,  0.5]]
+#     reshaped_vecs = vecs.reshape(dim, dim ** dim)  # 2 * 4
+#     for vec in reshaped_vecs:
+#         # np.arrayからlistへの変換
+#         # vec_list = [[0.70710678, 0.5, 0., 0.5],
+#         #             [0.29289322, -0.5,  0.,  0.5]]
+#         vec_list.append(vec)
+#     povm = Povm(
+#         c_sys,
+#         vec_list,
+#         is_physicality_required=is_physicality_required,
+#         is_estimation_object=is_estimation_object,
+#         on_para_eq_constraint=on_para_eq_constraint,
+#         on_algo_eq_constraint=on_algo_eq_constraint,
+#         on_algo_ineq_constraint=on_algo_ineq_constraint,
+#         eps_proj_physical=eps_proj_physical,
+#     )
+#     return povm
 
 
 def convert_povm_to_var(
