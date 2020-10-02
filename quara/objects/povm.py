@@ -202,6 +202,8 @@ class Povm(QOperation):
     def calc_proj_eq_constraint(self):
         size = self.dim ** 2
         m = len(self.vecs)
+
+        # c = [√d/m, 0, 0, ...]
         c = np.hstack(
             [
                 np.array([np.sqrt(self.dim) / m], dtype=np.float64),
