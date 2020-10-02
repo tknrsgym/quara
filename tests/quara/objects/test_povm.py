@@ -1262,6 +1262,20 @@ class TestPovm:
         expected = np.array([2, 3, 5, 7, 11, 13, 17, 19])
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_calc_proj_eq_constraint_unexpected(self):
+        # Array
+        e_sys = esys.ElementalSystem(0, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        m_1 = (1 / 2) * np.array([1, 0, 0, 1])
+        m_2 = (1 / 2) * np.array([1, 0, 0, 1])
+
+        vecs = [m_1, m_2]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = povm.calc_proj_eq_constraint()
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange

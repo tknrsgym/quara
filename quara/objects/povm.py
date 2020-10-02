@@ -200,6 +200,9 @@ class Povm(QOperation):
         return povm
 
     def calc_proj_eq_constraint(self):
+        if not self.composite_system.basis().is_hermitian():
+            raise ValueError("basis is not hermitian.")
+
         size = self.dim ** 2
         m = len(self.vecs)
 
@@ -370,7 +373,6 @@ class Povm(QOperation):
                 return False
         return True
 
-    # 不等式制約を見たいしている
     def is_positive_semidefinite(self, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.
 
