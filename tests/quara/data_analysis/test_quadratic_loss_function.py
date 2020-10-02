@@ -8,9 +8,31 @@ from quara.data_analysis.quadratic_loss_function import QuadraticLossFunction
 
 
 class TestQuadraticLossFunction:
+    def test_update_on_value_true(self):
+        var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
+        loss_func = QuadraticLossFunction(var_ref)
+        loss_func._on_value = False
+        loss_func._update_on_value_true()
+        assert loss_func.on_value == True
+
+    def test_update_on_gradient_true(self):
+        var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
+        loss_func = QuadraticLossFunction(var_ref)
+        loss_func._on_gradient = False
+        loss_func._update_on_gradient_true()
+        assert loss_func.on_gradient == True
+
+    def test_update_on_hessian_true(self):
+        var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
+        loss_func = QuadraticLossFunction(var_ref)
+        loss_func._on_hessian = False
+        loss_func._update_on_hessian_true()
+        assert loss_func.on_hessian == True
+
     def test_value(self):
         var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
         loss_func = QuadraticLossFunction(var_ref)
+        assert loss_func.on_value == True
 
         # Case1: var = var_ref
         actual = loss_func.value(var_ref)
@@ -29,6 +51,7 @@ class TestQuadraticLossFunction:
     def test_gradient(self):
         var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
         loss_func = QuadraticLossFunction(var_ref)
+        assert loss_func.on_gradient == True
 
         # Case1: var = var_ref
         actual = loss_func.gradient(var_ref)
@@ -49,6 +72,7 @@ class TestQuadraticLossFunction:
     def test_hessian(self):
         var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
         loss_func = QuadraticLossFunction(var_ref)
+        assert loss_func.on_hessian == True
 
         # Case1: var = var_ref
         actual = loss_func.hessian(var_ref)

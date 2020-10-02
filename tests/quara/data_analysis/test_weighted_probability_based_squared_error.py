@@ -22,9 +22,6 @@ mat_p = np.array(
 
 
 def _func_prob_dist(index: int):
-    # def _process(var: np.array) -> np.float64:
-    #    return np.dot(mat_p[index], var)
-
     def _process(var: np.array) -> np.array:
         return mat_p[2 * index : 2 * (index + 1)] @ var
 
@@ -40,7 +37,7 @@ def func_prob_dists(x: int = None):
 
 
 def _func_gradient_prob_dist(index: int):
-    def _process(alpha: int, var: np.array) -> np.float64:
+    def _process(alpha: int, var: np.array) -> np.array:
         return np.array(
             [mat_p[2 * index, alpha], mat_p[2 * index + 1, alpha]], dtype=np.float64
         )
@@ -100,7 +97,6 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         # case2: var = [1, 0, 0, 0.9]/sqrt(2)
         var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
         actual = func.value(var)
-        print(actual)
         npt.assert_almost_equal(actual, 0.005, decimal=15)
 
         # case3: var = [1, 0, 0, 0.9]/sqrt(2), weight_matrices = {I, I, 2I}
@@ -148,12 +144,10 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         )
         var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
         actual = func.gradient(var)
-        print(actual)
         expected = np.array([0.0, 0.0, 0.0, -2 * np.sqrt(2) / 10], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_hessian(self):
-        # TODO
         func = WeightedProbabilityBasedSquaredErrorFunction(
             4,
             func_prob_dists(),
@@ -167,11 +161,26 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         actual = func.hessian(var)
         expected = np.array(
             [
-                [0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0],
+                [6.0, 0.0, 0.0, 0.0],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 2.0],
             ],
             dtype=np.float64,
         )
-        # npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case2: var = [1, 0, 0, 0.9]/sqrt(2)
+        var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
+        actual = func.hessian(var)
+        print(actual)
+        expected = np.array(
+            [
+                [6.0, 0.0, 0.0, 0.0],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 2.0],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
