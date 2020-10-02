@@ -147,7 +147,7 @@ class Povm(QOperation):
         """
         # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
         # therefore, do not call the `is_hermitian` function explicitly.
-        return self.is_positive_semidefinite() and self.is_identity()
+        return self.is_positive_semidefinite() and self.is_identity_sum()
 
     def set_zero(self):
         size = self.dim ** 2
@@ -368,6 +368,7 @@ class Povm(QOperation):
                 return False
         return True
 
+    # 不等式制約を見たいしている
     def is_positive_semidefinite(self, atol: float = None) -> bool:
         """Returns whether each element is positive semidifinite.
 
@@ -384,7 +385,7 @@ class Povm(QOperation):
 
         return True
 
-    def is_identity(self) -> bool:
+    def is_identity_sum(self) -> bool:
         """Returns whether the sum of the elements ``_vecs`` is an identity matrix.
 
         Returns

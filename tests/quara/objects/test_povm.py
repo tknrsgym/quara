@@ -99,7 +99,7 @@ class TestPovm:
         # Test that no exceptions are raised.
         _ = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
-    def test_validate_sum_is_identity_ok(self):
+    def test_validate_sum_is_identity_sum_ok(self):
         # Arrange
         p1 = np.array([1, 0, 0, 0], dtype=np.float64)
         p2 = np.array([0, 0, 0, 1], dtype=np.float64)
@@ -110,12 +110,12 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm.is_identity()
+        actual = povm.is_identity_sum()
 
         # Assert
         assert actual is True
 
-    def test_validate_sum_is_identity_ng(self):
+    def test_validate_sum_is_identity_sum_ng(self):
         # Arrange
         p1 = np.array([1, 0, 0, 0], dtype=np.float64)
         p2 = np.array([0, 1, 0, 0], dtype=np.float64)
@@ -129,7 +129,7 @@ class TestPovm:
             # ValueError: The sum of the elements of POVM must be an identity matrix.
             _ = Povm(c_sys=c_sys, vecs=vecs)
 
-    def test_validate_sum_is_identity_not_physical_ok(self):
+    def test_validate_sum_is_identity_sum_not_physical_ok(self):
         # Arrange
         p1 = np.array([1, 0, 0, 1], dtype=np.float64)
         p2 = np.array([1, 0, 0, 1], dtype=np.float64)
