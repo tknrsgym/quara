@@ -483,13 +483,7 @@ class QOperation:
 
         k = 0
         is_stopping = False
-        # TODO: remove
-        count = 0
         while not is_stopping:
-            # TODO: remove
-            print(f"[calc_proj_physical] loop_count = {count}")
-            count += 1
-
             # shift variables
             if (
                 p_next is not None
@@ -555,11 +549,6 @@ class QOperation:
             }
             return x_next, history
         else:
-            # TODO: remove
-            if not x_next.is_physical():
-                raise ValueError(
-                    f"x_next.is_physical()==False , count={count}, stacked_vector={x_next.to_stacked_vector()}"
-                )
             return x_next
 
     def _calc_stopping_criterion_birgin_raydan_vectors(
