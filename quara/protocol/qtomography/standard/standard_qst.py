@@ -19,7 +19,7 @@ class StandardQst(StandardQTomography):
         on_para_eq_constraint: bool = False,
         on_algo_eq_constraint: bool = False,
         on_algo_ineq_constraint: bool = False,
-        eps_proj_physical: float = 10 ** (-4),
+        eps_proj_physical: float = None,
         seed: int = None,
     ):
         """Constructor
@@ -39,7 +39,7 @@ class StandardQst(StandardQTomography):
         on_algo_ineq_constraint : bool, optional
             whether the algorithm of estimate is on inequal constraint, by default False
         eps_proj_physical : float, optional
-            threshold epsilon where the algorithm repeats the projection in order to make estimate object is physical, by default 10**(-4)
+            threshold epsilon where the algorithm repeats the projection in order to make estimate object is physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
         seed : int, optional
             a seed used to generate random data, by default None.
 

@@ -4,6 +4,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects.qoperation import QOperation
+from quara.settings import Settings
 
 
 class TestSetQOperation:
@@ -22,7 +23,7 @@ class TestSetQOperation:
         assert actual.on_para_eq_constraint == True
         assert actual.on_algo_eq_constraint == True
         assert actual.on_algo_ineq_constraint == True
-        assert actual.eps_proj_physical == 10 ** (-4)
+        assert actual.eps_proj_physical == Settings.get_atol() / 10.0
 
     def test_init_error(self):
         # Arrange

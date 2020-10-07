@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
+from quara.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class QOperation:
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
-        eps_proj_physical: float = 10 ** (-4),
+        eps_proj_physical: float = None,
     ):
         """Constructor
 
@@ -37,13 +38,16 @@ class QOperation:
         on_algo_ineq_constraint : bool, optional
             whether this QOperation is on algorithm inequality constraint, by default True
         eps_proj_physical : float, optional
-            epsiron that is projection algorithm error threshold for being physical, by default 10**(-4)
+            epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
 
         Raises
         ------
         ValueError
             ``eps_proj_physical`` is negative.
         """
+        eps_proj_physical = (
+            eps_proj_physical if eps_proj_physical else Settings.get_atol() / 10.0
+        )
         # Validation
         if eps_proj_physical < 0:
             raise ValueError("'eps_proj_physical' must be non-negative.")
