@@ -186,7 +186,7 @@ def calc_estimate(
     on_para_eq_constraint: bool = True,
 ) -> List[StandardQTomographyEstimationResult]:
     qst = StandardQst(tester_povms, on_para_eq_constraint=on_para_eq_constraint)
-
+    print(type(estimator))
     # generate empi dists and calc estimate
     results = []
     for ite in range(iteration):

@@ -1277,6 +1277,107 @@ class TestPovm:
         with pytest.raises(ValueError):
             _ = povm.calc_proj_eq_constraint()
 
+    def test_calc_proj(self):
+        # Array
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+
+        # Case 1
+        # ">=": True "=I": True
+        # Array
+        m_1 = np.array([1 / np.sqrt(2), 0, 0, 0])
+        m_2 = np.array([1 / np.sqrt(2), 0, 0, 0])
+
+        vecs = [m_1, m_2]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Make sure the prerequisites are met
+        assert povm.is_positive_semidefinite() is True
+        assert povm.is_identity_sum() is True
+
+        # Act
+        actual_ineq = povm.calc_proj_ineq_constraint()
+        actual_eq = povm.calc_proj_eq_constraint()
+
+        # Assert
+        assert actual_ineq.is_positive_semidefinite() is True
+        npt.assert_allclose(povm.vecs, actual_ineq.vecs)
+
+        assert actual_eq.is_identity_sum() is True
+        npt.assert_allclose(povm.vecs, actual_eq.vecs)
+
+        # Case 2
+        # ">=": False "=I": True
+        # Array
+        m_1 = np.array([np.sqrt(2), 0.0, 0.0, np.sqrt(2)])
+        m_2 = np.array([0, 0.0, 0.0, -np.sqrt(2)])
+
+        vecs = [m_1, m_2]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Make sure the prerequisites are met
+        assert povm.is_positive_semidefinite() is False
+        assert povm.is_identity_sum() is True
+
+        # Act
+        actual_ineq = povm.calc_proj_ineq_constraint()
+        actual_eq = povm.calc_proj_eq_constraint()
+
+        # Assert
+        assert actual_ineq.is_positive_semidefinite() is True
+        assert not np.allclose(povm.vecs, actual_ineq.vecs)
+
+        assert actual_eq.is_identity_sum() is True
+        npt.assert_allclose(povm.vecs, actual_eq.vecs)
+
+        # Case 3
+        # ">=": True "=I": False
+        # Array
+        m_1 = np.array([np.sqrt(2), 0.0, 0.0, 1.0])
+        m_2 = np.array([np.sqrt(2), 0.0, 0.0, 1.0])
+
+        vecs = [m_1, m_2]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Make sure the prerequisites are met
+        assert povm.is_positive_semidefinite() is True
+        assert povm.is_identity_sum() is False
+
+        # Act
+        actual_ineq = povm.calc_proj_ineq_constraint()
+        actual_eq = povm.calc_proj_eq_constraint()
+
+        # Assert
+        assert actual_ineq.is_positive_semidefinite() is True
+        npt.assert_allclose(povm.vecs, actual_ineq.vecs)
+
+        assert actual_eq.is_identity_sum() is True
+        assert not np.allclose(povm.vecs, actual_eq.vecs)
+
+        # Case 4
+        # ">=": False "=I": False
+        # Array
+        m_1 = np.array([np.sqrt(2), 0.0, 0.0, 1.0])
+        m_2 = np.array([-np.sqrt(2), 0.0, 0.0, 1.0])
+
+        vecs = [m_1, m_2]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Make sure the prerequisites are met
+        assert povm.is_positive_semidefinite() is False
+        assert povm.is_identity_sum() is False
+
+        # Act
+        actual_ineq = povm.calc_proj_ineq_constraint()
+        actual_eq = povm.calc_proj_eq_constraint()
+
+        # Assert
+        assert actual_ineq.is_positive_semidefinite() is True
+        assert not np.allclose(povm.vecs, actual_ineq.vecs)
+
+        assert actual_eq.is_identity_sum() is True
+        assert not np.allclose(povm.vecs, actual_eq.vecs)
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
