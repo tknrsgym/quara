@@ -29,7 +29,7 @@ class Povm(QOperation):
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
-        eps_proj_physical: float = 10 ** (-4),
+        eps_proj_physical: float = None,
     ):
         """Constructor
 
@@ -537,7 +537,7 @@ def convert_var_to_povm(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
-    eps_proj_physical: float = 10 ** (-4),
+    eps_proj_physical: float = None,
 ) -> Povm:
     """converts vec of variables to povm.
 
@@ -615,7 +615,7 @@ def calc_gradient_from_povm(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
-    eps_proj_physical: float = 10 ** (-4),
+    eps_proj_physical: float = None,
 ) -> Povm:
     """calculates gradient from gate.
 

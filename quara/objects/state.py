@@ -27,7 +27,7 @@ class State(QOperation):
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
-        eps_proj_physical: float = 10 ** (-4),
+        eps_proj_physical: float = None,
     ):
         """Constructor
 
