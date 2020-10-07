@@ -39,6 +39,7 @@ from quara.objects.povm import (
 )
 from quara.objects.state import get_x0_1q
 from quara.protocol import simple_io as s_io
+from quara.settings import Settings
 
 
 class TestPovm:
@@ -1218,7 +1219,7 @@ class TestPovm:
         assert actual.on_para_eq_constraint == True
         assert actual.on_algo_eq_constraint == True
         assert actual.on_algo_ineq_constraint == True
-        assert actual.eps_proj_physical == 10 ** (-4)
+        assert actual.eps_proj_physical == Settings.get_atol() / 10.0
 
         # Case 2:
         # Arrange
