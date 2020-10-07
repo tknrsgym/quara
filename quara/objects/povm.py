@@ -147,7 +147,7 @@ class Povm(QOperation):
         """
         # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
         # therefore, do not call the `is_hermitian` function explicitly.
-        return self.is_positive_semidefinite() and self.is_identity()
+        return self.is_positive_semidefinite() and self.is_identity_sum()
 
     def set_zero(self):
         size = self.dim ** 2
@@ -200,8 +200,13 @@ class Povm(QOperation):
         return povm
 
     def calc_proj_eq_constraint(self):
+        if not self.composite_system.basis().is_hermitian():
+            raise ValueError("basis is not hermitian.")
+
         size = self.dim ** 2
         m = len(self.vecs)
+
+        # c = [√d/m, 0, 0, ...]
         c = np.hstack(
             [
                 np.array([np.sqrt(self.dim) / m], dtype=np.float64),
@@ -215,17 +220,27 @@ class Povm(QOperation):
             new_vec = vec - a_bar + c
             new_vecs.append(new_vec)
         new_povm = Povm(
-            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
+            c_sys=self.composite_system,
+            vecs=new_vecs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
         )
         return new_povm
 
     def calc_proj_ineq_constraint(self) -> "Povm":
         new_vecs = []
 
-        for m in self.matrices():
-            eigh, eigenvec = np.linalg.eigh(m)
+        for matrix in self.matrices():
+            eigenvals, eigenvec = np.linalg.eigh(matrix)
 
-            diag = np.diag(eigh)
+            #     |λ0          |
+            # Λ = |    ...     |
+            #     |        λd-1|
+            diag = np.diag(eigenvals)
             diag[diag < 0] = 0
 
             new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
@@ -236,7 +251,14 @@ class Povm(QOperation):
             new_vecs.append(new_vec)
 
         new_povm = Povm(
-            c_sys=self.composite_system, vecs=new_vecs, is_physicality_required=False
+            c_sys=self.composite_system,
+            vecs=new_vecs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            eps_proj_physical=self.eps_proj_physical,
         )
 
         return new_povm
@@ -245,8 +267,8 @@ class Povm(QOperation):
         # TODO
         return convert_var_to_povm
 
-    def calc_proj_physical(self):
-        raise NotImplementedError()
+    def _copy(self):
+        return copy.deepcopy(self.vecs)
 
     def calc_stopping_criterion_birgin_raydan_vectors(self):
         raise NotImplementedError()
@@ -367,7 +389,7 @@ class Povm(QOperation):
 
         return True
 
-    def is_identity(self) -> bool:
+    def is_identity_sum(self) -> bool:
         """Returns whether the sum of the elements ``_vecs`` is an identity matrix.
 
         Returns

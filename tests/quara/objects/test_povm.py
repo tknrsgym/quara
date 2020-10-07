@@ -100,7 +100,7 @@ class TestPovm:
         # Test that no exceptions are raised.
         _ = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
 
-    def test_validate_sum_is_identity_ok(self):
+    def test_validate_sum_is_identity_sum_ok(self):
         # Arrange
         p1 = np.array([1, 0, 0, 0], dtype=np.float64)
         p2 = np.array([0, 0, 0, 1], dtype=np.float64)
@@ -111,12 +111,12 @@ class TestPovm:
 
         # Act
         povm = Povm(c_sys=c_sys, vecs=vecs)
-        actual = povm.is_identity()
+        actual = povm.is_identity_sum()
 
         # Assert
         assert actual is True
 
-    def test_validate_sum_is_identity_ng(self):
+    def test_validate_sum_is_identity_sum_ng(self):
         # Arrange
         p1 = np.array([1, 0, 0, 0], dtype=np.float64)
         p2 = np.array([0, 1, 0, 0], dtype=np.float64)
@@ -130,7 +130,7 @@ class TestPovm:
             # ValueError: The sum of the elements of POVM must be an identity matrix.
             _ = Povm(c_sys=c_sys, vecs=vecs)
 
-    def test_validate_sum_is_identity_not_physical_ok(self):
+    def test_validate_sum_is_identity_sum_not_physical_ok(self):
         # Arrange
         p1 = np.array([1, 0, 0, 1], dtype=np.float64)
         p2 = np.array([1, 0, 0, 1], dtype=np.float64)
@@ -1262,6 +1262,20 @@ class TestPovm:
         # Assert
         expected = np.array([2, 3, 5, 7, 11, 13, 17, 19])
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_proj_eq_constraint_unexpected(self):
+        # Array
+        e_sys = esys.ElementalSystem(0, get_comp_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        m_1 = (1 / 2) * np.array([1, 0, 0, 1])
+        m_2 = (1 / 2) * np.array([1, 0, 0, 1])
+
+        vecs = [m_1, m_2]
+        povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            _ = povm.calc_proj_eq_constraint()
 
 
 def test_convert_var_index_to_povm_index():
