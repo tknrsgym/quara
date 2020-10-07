@@ -24,6 +24,7 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
+from quara.settings import Settings
 
 
 class TestState:
@@ -152,7 +153,7 @@ class TestState:
         assert state.on_para_eq_constraint == True
         assert state.on_algo_eq_constraint == True
         assert state.on_algo_ineq_constraint == True
-        assert state.eps_proj_physical == 10 ** (-4)
+        assert state.eps_proj_physical == Settings.get_atol() / 10.0
 
     def test_generate_zero_obj(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -168,7 +169,7 @@ class TestState:
         assert zero.on_para_eq_constraint == state.on_para_eq_constraint
         assert zero.on_algo_eq_constraint == state.on_algo_eq_constraint
         assert zero.on_algo_ineq_constraint == state.on_algo_ineq_constraint
-        assert zero.eps_proj_physical == state.eps_proj_physical
+        assert zero.eps_proj_physical == Settings.get_atol() / 10.0
 
     def test_generate_origin_obj(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -184,7 +185,7 @@ class TestState:
         assert origin.on_para_eq_constraint == state.on_para_eq_constraint
         assert origin.on_algo_eq_constraint == state.on_algo_eq_constraint
         assert origin.on_algo_ineq_constraint == state.on_algo_ineq_constraint
-        assert origin.eps_proj_physical == state.eps_proj_physical
+        assert origin.eps_proj_physical == Settings.get_atol() / 10.0
 
     def test_copy(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -758,7 +759,7 @@ class TestState:
         assert actual.on_para_eq_constraint == True
         assert actual.on_algo_eq_constraint == True
         assert actual.on_algo_ineq_constraint == True
-        assert actual.eps_proj_physical == 10 ** (-4)
+        assert actual.eps_proj_physical == Settings.get_atol() / 10.0
 
         # case: on_para_eq_constraint=False
         vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
@@ -772,7 +773,7 @@ class TestState:
         assert actual.on_para_eq_constraint == False
         assert actual.on_algo_eq_constraint == True
         assert actual.on_algo_ineq_constraint == True
-        assert actual.eps_proj_physical == 10 ** (-4)
+        assert actual.eps_proj_physical == Settings.get_atol() / 10.0
 
     def test_calc_proj_eq_constraint(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1378,11 +1379,11 @@ class TestState:
         ) / np.sqrt(2)
         npt.assert_almost_equal(actual.vec, expected, decimal=4)
         assert actual.is_physical(actual.eps_proj_physical) == True
-        assert len(history["p"]) == 21
-        assert len(history["q"]) == 21
-        assert len(history["x"]) == 21
-        assert len(history["y"]) == 21
-        assert len(history["error_value"]) == 20
+        assert len(history["p"]) == 54
+        assert len(history["q"]) == 54
+        assert len(history["x"]) == 54
+        assert len(history["y"]) == 54
+        assert len(history["error_value"]) == 53
 
     def test_calc_stopping_criterion_birgin_raydan_vectors(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

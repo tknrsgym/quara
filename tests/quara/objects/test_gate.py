@@ -198,7 +198,7 @@ class TestGate:
         assert gate.on_para_eq_constraint == True
         assert gate.on_algo_eq_constraint == True
         assert gate.on_algo_ineq_constraint == True
-        assert gate.eps_proj_physical == 10 ** (-4)
+        assert gate.eps_proj_physical == Settings.get_atol() / 10.0
 
     def test_zero_obj(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
