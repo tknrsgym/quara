@@ -20,7 +20,7 @@ class StandardPovmt(StandardQTomography):
         on_para_eq_constraint: bool = False,
         on_algo_eq_constraint: bool = False,
         on_algo_ineq_constraint: bool = False,
-        eps_proj_physical: float = 10 ** (-4),
+        eps_proj_physical: float = None,
     ):
         # Make Experment with states
         schedules = [[("state", i), ("povm", 0)] for i in range(len(states))]
