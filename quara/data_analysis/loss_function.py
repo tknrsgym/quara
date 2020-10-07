@@ -8,23 +8,26 @@ class LossFunctionOption:
 
 
 class LossFunction:
-    def __init__(
-        self, num_var: int, on_gradient: bool, on_hessian: bool,
-    ):
+    def __init__(self, num_var: int):
         """Constructor
 
         Parameters
         ----------
         num_var : int
             number of variables.
+        on_value : bool
+            whether or not to support value.
         on_gradient : bool
             whether or not to support gradient.
         on_hessian : bool
             whether or not to support Hessian.
         """
+        # TODO 子クラス(コンストラクタ、setter)でnum_varとの一致性をチェックすること。
         self._num_var: int = num_var
-        self._on_gradient: bool = on_gradient
-        self._on_hessian: bool = on_hessian
+        # TODO 子クラスで上書きすること
+        self._on_value: bool = False
+        self._on_gradient: bool = False
+        self._on_hessian: bool = False
 
     @property
     def num_var(self) -> int:
@@ -38,6 +41,28 @@ class LossFunction:
         return self._num_var
 
     @property
+    def on_value(self) -> bool:
+        """returns whether or not to support value.
+
+        Returns
+        -------
+        bool
+            whether or not to support value.
+        """
+        return self._on_value
+
+    @abstractmethod
+    def _update_on_value_true(self) -> bool:
+        raise NotImplementedError()
+
+    def _reset_on_value(self) -> None:
+        self._on_value = False
+
+    def _set_on_value(self, on_value: bool) -> None:
+        # validateなしでセットする。validateは呼び出す側の責任
+        self._on_value = on_value
+
+    @property
     def on_gradient(self) -> bool:
         """returns whether or not to support gradient.
 
@@ -47,6 +72,17 @@ class LossFunction:
             whether or not to support gradient.
         """
         return self._on_gradient
+
+    @abstractmethod
+    def _update_on_gradient_true(self) -> bool:
+        raise NotImplementedError()
+
+    def _reset_on_gradient(self) -> None:
+        self._on_gradient = False
+
+    def _set_on_gradient(self, on_gradient: bool) -> None:
+        # validateなしでセットする。validateは呼び出す側の責任
+        self._on_gradient = on_gradient
 
     @property
     def on_hessian(self) -> bool:
@@ -58,6 +94,17 @@ class LossFunction:
             whether or not to support Hessian.
         """
         return self._on_hessian
+
+    @abstractmethod
+    def _update_on_hessian_true(self) -> bool:
+        raise NotImplementedError()
+
+    def _reset_on_hessian(self) -> None:
+        self._on_hessian = False
+
+    def _set_on_hessian(self, on_hessian: bool) -> None:
+        # validateなしでセットする。validateは呼び出す側の責任
+        self._on_hessian = on_hessian
 
     def _validate_var_shape(self, var: np.array) -> None:
         """validates whether the shape of variable is ``(num_var,)``.
