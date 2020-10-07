@@ -209,9 +209,6 @@ class Gate(QOperation):
 
         return new_gate
 
-    def calc_proj_physical(self):
-        raise NotImplementedError()
-
     def _add_vec(self, other) -> np.array:
         new_hs = self.hs + other.hs
         return new_hs
@@ -411,6 +408,9 @@ class Gate(QOperation):
 
     def _generate_from_var_func(self):
         return convert_var_to_gate
+
+    def _copy(self):
+        return copy.deepcopy(self.hs)
 
 
 def hs_from_choi(choi, c_sys: CompositeSystem) -> np.array:

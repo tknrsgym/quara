@@ -471,6 +471,7 @@ class QOperation:
         p_prev = self.generate_zero_obj()
         q_prev = self.generate_zero_obj()
         x_prev = self.copy()
+
         x_prev._is_physicality_required = False
         x_prev._is_estimation_object = False
         y_prev = x_prev.calc_proj_ineq_constraint()
