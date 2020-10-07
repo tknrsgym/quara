@@ -11,20 +11,14 @@ class LossFunction:
     def __init__(self, num_var: int):
         """Constructor
 
+        Subclasses have a responsibility to set ``on_value``, ``on_gradient``, ``on_hessian``.
+
         Parameters
         ----------
         num_var : int
             number of variables.
-        on_value : bool
-            whether or not to support value.
-        on_gradient : bool
-            whether or not to support gradient.
-        on_hessian : bool
-            whether or not to support Hessian.
         """
-        # TODO 子クラス(コンストラクタ、setter)でnum_varとの一致性をチェックすること。
         self._num_var: int = num_var
-        # TODO 子クラスで上書きすること
         self._on_value: bool = False
         self._on_gradient: bool = False
         self._on_hessian: bool = False
@@ -53,13 +47,39 @@ class LossFunction:
 
     @abstractmethod
     def _update_on_value_true(self) -> bool:
+        """validates and updates ``on_value`` to True.
+
+        Returns
+        -------
+        bool
+            True when success.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     def _reset_on_value(self) -> None:
+        """resets ``on_value`` to False.
+
+        This function is intended to be called by subclasses.
+        Subclasses have a responsibility to validate.
+        """
         self._on_value = False
 
     def _set_on_value(self, on_value: bool) -> None:
-        # validateなしでセットする。validateは呼び出す側の責任
+        """sets ``on_value``.
+
+        This function is intended to be called by subclasses.
+        Subclasses have a responsibility to validate.
+
+        Parameters
+        ----------
+        on_value : bool
+            value of ``on_value``.
+        """
         self._on_value = on_value
 
     @property
@@ -75,13 +95,39 @@ class LossFunction:
 
     @abstractmethod
     def _update_on_gradient_true(self) -> bool:
+        """validates and updates ``on_gradient`` to True.
+
+        Returns
+        -------
+        bool
+            True when success.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     def _reset_on_gradient(self) -> None:
+        """resets ``on_gradient`` to False.
+
+        This function is intended to be called by subclasses.
+        Subclasses have a responsibility to validate.
+        """
         self._on_gradient = False
 
     def _set_on_gradient(self, on_gradient: bool) -> None:
-        # validateなしでセットする。validateは呼び出す側の責任
+        """sets ``on_gradient``.
+
+        This function is intended to be called by subclasses.
+        Subclasses have a responsibility to validate.
+
+        Parameters
+        ----------
+        on_gradient : bool
+            value of ``on_gradient``.
+        """
         self._on_gradient = on_gradient
 
     @property
@@ -97,13 +143,39 @@ class LossFunction:
 
     @abstractmethod
     def _update_on_hessian_true(self) -> bool:
+        """validates and updates ``on_hessian`` to True.
+
+        Returns
+        -------
+        bool
+            True when success.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
         raise NotImplementedError()
 
     def _reset_on_hessian(self) -> None:
+        """resets ``on_hessian`` to False.
+
+        This function is intended to be called by subclasses.
+        Subclasses have a responsibility to validate.
+        """
         self._on_hessian = False
 
     def _set_on_hessian(self, on_hessian: bool) -> None:
-        # validateなしでセットする。validateは呼び出す側の責任
+        """sets ``on_hessian``.
+
+        This function is intended to be called by subclasses.
+        Subclasses have a responsibility to validate.
+
+        Parameters
+        ----------
+        on_hessian : bool
+            value of ``on_hessian``.
+        """
         self._on_hessian = on_hessian
 
     def _validate_var_shape(self, var: np.array) -> None:
