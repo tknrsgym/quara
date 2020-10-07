@@ -49,17 +49,43 @@ class TestProjectedLinearEstimator:
         actual = estimator.calc_estimate(
             qst, empi_dists, is_computation_time_required=True
         )
+        print(actual.estimated_var)
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
         assert type(actual.computation_time) == float
 
-        # is_computation_time_required=False
+        is_computation_time_required = False
         actual = estimator.calc_estimate(qst, empi_dists)
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
         assert actual.computation_time == None
+
+    def test_calc_estimate_eps_proj_physical(self):
+        qst, _ = get_test_data()
+        empi_dists = [
+            (1000, np.array([0.797, 0.203], dtype=np.float64)),
+            (1000, np.array([0.809, 0.191], dtype=np.float64)),
+            (1000, np.array([0.791, 0.209], dtype=np.float64)),
+        ]
+
+        estimator = ProjectedLinearEstimator()
+
+        # is_computation_time_required=True
+        actual = estimator.calc_estimate(
+            qst, empi_dists, is_computation_time_required=True
+        )
+        print(actual.estimated_var)
+        expected = [
+            0.707106781186547,
+            0.405390585996068,
+            0.421770003612071,
+            0.397200877188066,
+        ]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        assert type(actual.computation_time) == float
 
     def test_calc_estimate_sequence(self):
         qst, _ = get_test_data()
@@ -132,10 +158,10 @@ class TestProjectedLinearEstimator:
         ]
         print(f"mse={actual}")
         expected = [
-            0.0036880130679491944,
-            0.0005526794054590853,
-            6.635540138170866e-05,
-            6.133856506122645e-06,
+            0.00367945828346161,
+            0.00055245044790706,
+            6.635211672514839e-05,
+            6.13382544367555e-06,
         ]
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -167,9 +193,9 @@ class TestProjectedLinearEstimator:
         ]
         print(f"mse={actual}")
         expected = [
-            0.0036880130679491953,
-            0.0005526794054590844,
-            6.635540138170772e-05,
-            6.1338565061226786e-06,
+            0.00367945828346161,
+            0.000552450447907059,
+            6.635211672514742e-05,
+            6.133825443675581e-06,
         ]
         npt.assert_almost_equal(actual, expected, decimal=15)
