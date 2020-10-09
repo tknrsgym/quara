@@ -139,3 +139,82 @@ def calc_mse(xs: List[np.array], ys: List[np.array]) -> np.float64:
 
     mse = np.mean(square_errors, dtype=np.float64)
     return mse
+
+
+def calc_covariance_mat(q: List[np.array], n: int) -> np.array:
+    """calculates covariance matrix of vector ``q``.
+
+    Parameters
+    ----------
+    q : np.array
+        vector.
+    n : int
+        number of data.
+
+    Returns
+    -------
+    np.array
+        covariance matrix = 1/n (diag(q) - q \cdot q^T)
+    """
+    mat = np.diag(q) - np.array([q]).T @ np.array([q])
+    return mat / n
+
+
+def calc_direct_sum(matrices: List[np.array]) -> np.array:
+    """calculates direct sum of matrices.
+
+    Parameters
+    ----------
+    matrices : List[np.array]
+        matrices to calculate direct sum.
+
+    Returns
+    -------
+    np.array
+        direct sum.
+
+    Raises
+    ------
+    ValueError
+        ``matrices`` don't consist of matrices(dim=2).
+    ValueError
+        ``matrices`` don't consist of square matrices.
+    """
+    matrix_size = 0
+    for i, diag in enumerate(matrices):
+        if diag.ndim != 2:
+            raise ValueError(
+                "``matrices`` must consist of matrices(dim=2). dim of matrices[{i}] is {diag.ndim}"
+            )
+        if diag.shape[0] != diag.shape[0]:
+            raise ValueError(
+                "``matrices`` must consist of square matrices. shape of matrices[{i}] is {diag.shape}"
+            )
+        matrix_size += diag.shape[0]
+
+    matrix = np.zeros((matrix_size, matrix_size))
+    index = 0
+    for diag in matrices:
+        size = diag.shape[0]
+        matrix[index : index + size, index : index + size] = diag
+        index += size
+
+    return matrix
+
+
+def calc_conjugate(x: np.array, v: np.array) -> np.array:
+    """calculates conjugate of matrices.
+
+    Parameters
+    ----------
+    x : np.array
+        parameter ``x``.
+    v : np.array
+        parameter ``v``.
+
+    Returns
+    -------
+    np.array
+        x @ v @ x^T
+    """
+    return x @ v @ x.T
