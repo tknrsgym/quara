@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from quara.objects.composite_system import CompositeSystem
@@ -13,6 +14,7 @@ from quara.objects.povm import (
 from quara.objects.qoperations import SetQOperations
 from quara.objects.state import get_z0_1q
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
+from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.qcircuit.experiment import Experiment
 
 
@@ -34,6 +36,20 @@ def get_test_data():
     set_qoperations = SetQOperations(states=[get_z0_1q(c_sys)], gates=[], povms=[])
 
     return experiment, set_qoperations
+
+
+def get_test_data_qst():
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    povm_x = get_x_measurement(c_sys)
+    povm_y = get_y_measurement(c_sys)
+    povm_z = get_z_measurement(c_sys)
+    povms = [povm_x, povm_y, povm_z]
+
+    qst = StandardQst(povms, on_para_eq_constraint=False, seed=7)
+
+    return qst, c_sys
 
 
 class TestStandardQTomography:
@@ -121,3 +137,35 @@ class TestStandardQTomography:
         qt._coeffs_1st = coeffs_1st
 
         assert qt.is_fullrank_matA() == False
+
+    def test_calc_prob_dist(self):
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+
+        # schedule_index = 0
+        actual = qst.calc_prob_dist(0, state)
+        npt.assert_almost_equal(
+            actual, np.array([0.5, 0.5], dtype=np.float64), decimal=15
+        )
+
+        # schedule_index = 1
+        actual = qst.calc_prob_dist(1, state)
+        npt.assert_almost_equal(
+            actual, np.array([0.5, 0.5], dtype=np.float64), decimal=15
+        )
+
+        # schedule_index = 2
+        actual = qst.calc_prob_dist(2, state)
+        npt.assert_almost_equal(actual, np.array([1, 0], dtype=np.float64), decimal=15)
+
+    def test_calc_prob_dists(self):
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+
+        actual = qst.calc_prob_dists(state)
+        expected = [
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([1, 0], dtype=np.float64),
+        ]
+        npt.assert_almost_equal(actual, expected, decimal=15)

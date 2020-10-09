@@ -154,38 +154,6 @@ class TestStandardQst:
         qst, _ = get_test_data()
         assert qst.is_valid_experiment() == True
 
-    def test_calc_prob_dist(self):
-        qst, c_sys = get_test_data()
-        state = get_z0_1q(c_sys)
-
-        # schedule_index = 0
-        actual = qst.calc_prob_dist(0, state)
-        npt.assert_almost_equal(
-            actual, np.array([0.5, 0.5], dtype=np.float64), decimal=15
-        )
-
-        # schedule_index = 1
-        actual = qst.calc_prob_dist(1, state)
-        npt.assert_almost_equal(
-            actual, np.array([0.5, 0.5], dtype=np.float64), decimal=15
-        )
-
-        # schedule_index = 2
-        actual = qst.calc_prob_dist(2, state)
-        npt.assert_almost_equal(actual, np.array([1, 0], dtype=np.float64), decimal=15)
-
-    def test_calc_prob_dists(self):
-        qst, c_sys = get_test_data()
-        state = get_z0_1q(c_sys)
-
-        actual = qst.calc_prob_dists(state)
-        expected = [
-            np.array([0.5, 0.5], dtype=np.float64),
-            np.array([0.5, 0.5], dtype=np.float64),
-            np.array([1, 0], dtype=np.float64),
-        ]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-
     def test_generate_empi_dist(self):
         qst, c_sys = get_test_data()
         state = get_z0_1q(c_sys)
