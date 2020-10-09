@@ -186,3 +186,24 @@ def test_calc_conjugate():
     # Assert
     expected = np.array([[63, 145], [143, 329]])
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_calc_left_inv():
+    # case1: success
+    # Arrange
+    x = np.array([[2, 5], [1, 3]])
+
+    # Act
+    actual = util.calc_left_inv(x)
+
+    # Assert
+    expected = np.array([[3, -5], [-1, 2]])
+    npt.assert_almost_equal(actual, expected, decimal=12)
+
+    # case2: not full rank
+    # Arrange
+    x = np.array([[2, 5], [4, 10]])
+
+    # Act
+    with pytest.raises(ValueError):
+        util.calc_left_inv(x)

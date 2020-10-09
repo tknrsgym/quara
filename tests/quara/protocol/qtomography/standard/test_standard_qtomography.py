@@ -38,7 +38,7 @@ def get_test_data():
     return experiment, set_qoperations
 
 
-def get_test_data_qst():
+def get_test_data_qst(on_para_eq_constraint=True):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
@@ -47,7 +47,7 @@ def get_test_data_qst():
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=False, seed=7)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
 
     return qst, c_sys
 
@@ -143,23 +143,24 @@ class TestStandardQTomography:
         state = get_z0_1q(c_sys)
 
         # schedule_index = 0
-        actual = qst.calc_prob_dist(0, state)
+        actual = qst.calc_prob_dist(state, 0)
         npt.assert_almost_equal(
             actual, np.array([0.5, 0.5], dtype=np.float64), decimal=15
         )
 
         # schedule_index = 1
-        actual = qst.calc_prob_dist(1, state)
+        actual = qst.calc_prob_dist(state, 1)
         npt.assert_almost_equal(
             actual, np.array([0.5, 0.5], dtype=np.float64), decimal=15
         )
 
         # schedule_index = 2
-        actual = qst.calc_prob_dist(2, state)
+        actual = qst.calc_prob_dist(state, 2)
         npt.assert_almost_equal(actual, np.array([1, 0], dtype=np.float64), decimal=15)
 
     def test_calc_prob_dists(self):
-        qst, c_sys = get_test_data_qst()
+        # on_para_eq_constraint=True
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=True)
         state = get_z0_1q(c_sys)
 
         actual = qst.calc_prob_dists(state)
@@ -169,3 +170,81 @@ class TestStandardQTomography:
             np.array([1, 0], dtype=np.float64),
         ]
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # on_para_eq_constraint=False
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        state = get_z0_1q(c_sys)
+        state._on_para_eq_constraint = False
+
+        actual = qst.calc_prob_dists(state)
+        expected = [
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([1, 0], dtype=np.float64),
+        ]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_covariance_mat_single(self):
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+
+        # schedule_index = 0
+        actual = qst.calc_covariance_mat_single(state, 0, 10)
+        expected = np.array([[0.025, -0.025], [-0.025, 0.025]], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # schedule_index = 1
+        actual = qst.calc_covariance_mat_single(state, 1, 5)
+        expected = np.array([[0.05, -0.05], [-0.05, 0.05]], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # schedule_index = 2
+        actual = qst.calc_covariance_mat_single(state, 2, 10)
+        expected = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_covariance_mat_total(self):
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+
+        actual = qst.calc_covariance_mat_total(state, [10, 5, 10])
+        expected = np.array(
+            [
+                [0.025, -0.025, 0, 0, 0, 0],
+                [-0.025, 0.025, 0, 0, 0, 0],
+                [0, 0, 0.05, -0.05, 0, 0],
+                [0, 0, -0.05, 0.05, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_covariance_linear_mat_total(self):
+        # on_para_eq_constraint=True
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=True)
+        state = get_z0_1q(c_sys)
+
+        actual = qst.calc_covariance_linear_mat_total(state, [10, 5, 10])
+        expected = np.array([[0.05, 0, 0], [0, 0.1, 0], [0, 0, 0],], dtype=np.float64,)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # on_para_eq_constraint=False
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        state = get_z0_1q(c_sys)
+        state._on_para_eq_constraint = False
+
+        actual = qst.calc_covariance_linear_mat_total(state, [10, 5, 10])
+        expected = np.array(
+            [[0, 0, 0, 0], [0, 0.05, 0, 0], [0, 0, 0.1, 0], [0, 0, 0, 0],],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_mse_linear(self):
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+
+        actual = qst.calc_mse_linear(state, [10, 5, 10])
+        npt.assert_almost_equal(actual, 0.15, decimal=15)

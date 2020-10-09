@@ -69,12 +69,12 @@ class TestStandardQst:
         npt.assert_almost_equal(qst.calc_matA(), expectedA, decimal=15)
 
         arrayB = [
-            1 / np.sqrt(2),
-            1 / np.sqrt(2),
-            1 / np.sqrt(2),
-            1 / np.sqrt(2),
-            1 / np.sqrt(2),
-            1 / np.sqrt(2),
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
+            0.5,
         ]
         expectedB = np.array(arrayB, dtype=np.float64)
         # get_coeffs_0th
