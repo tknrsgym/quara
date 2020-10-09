@@ -133,3 +133,20 @@ class StandardQTomography(QTomography):
             this function does not be implemented in the subclass.
         """
         raise NotImplementedError()
+
+    def calc_prob_dist(self, schedule_index: int, qope: QOperation) -> List[float]:
+        """calculates a probability distribution.
+        
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dist`
+        """
+        prob_dists = self.calc_prob_dists(qope)
+        return prob_dists[schedule_index]
+
+    def calc_prob_dists(self, qope: QOperation) -> List[List[float]]:
+        """calculates probability distributions.
+        
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dists`
+        """
+        tmp_prob_dists = self.calc_matA() @ qope.to_stacked_vector() + self.calc_vecB()
+        prob_dists = tmp_prob_dists.reshape((self.num_schedules, -1))
+        return prob_dists

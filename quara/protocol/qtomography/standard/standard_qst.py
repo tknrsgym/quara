@@ -139,30 +139,6 @@ class StandardQst(StandardQTomography):
         state_index = schedule[0][1]
         return state_index
 
-    def calc_prob_dist(self, schedule_index: int, state: State) -> List[float]:
-        """calculates a probability distribution.
-        
-        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dist`
-        """
-        tmp_experiment = self._experiment.copy()
-        state_index = self._get_state_index(tmp_experiment, schedule_index)
-        tmp_experiment.states[state_index] = state
-
-        return tmp_experiment.calc_prob_dist(schedule_index)
-
-    def calc_prob_dists(self, state: State) -> List[List[float]]:
-        """calculates probability distributions.
-        
-        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dists`
-        """
-        tmp_experiment = self._experiment.copy()
-        for schedule_index in range(len(tmp_experiment.schedules)):
-            state_index = self._get_state_index(tmp_experiment, schedule_index)
-            tmp_experiment.states[state_index] = state
-
-        prob_dists = tmp_experiment.calc_prob_dists()
-        return prob_dists
-
     def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
         """calculates a probability distribution.
         
