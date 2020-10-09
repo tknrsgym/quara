@@ -7,6 +7,7 @@ from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.qtomography import QTomography
 from quara.qcircuit.experiment import Experiment
+from quara.utils import matrix_util
 
 
 class StandardQTomography(QTomography):
@@ -134,7 +135,7 @@ class StandardQTomography(QTomography):
         """
         raise NotImplementedError()
 
-    def calc_prob_dist(self, schedule_index: int, qope: QOperation) -> List[float]:
+    def calc_prob_dist(self, qope: QOperation, schedule_index: int) -> List[float]:
         """calculates a probability distribution.
         
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dist`
@@ -147,6 +148,97 @@ class StandardQTomography(QTomography):
         
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dists`
         """
-        tmp_prob_dists = self.calc_matA() @ qope.to_stacked_vector() + self.calc_vecB()
+        tmp_prob_dists = self.calc_matA() @ qope.to_var() + self.calc_vecB()
         prob_dists = tmp_prob_dists.reshape((self.num_schedules, -1))
         return prob_dists
+
+    def calc_covariance_mat_single(
+        self, qope: QOperation, schedule_index: int, data_num: int
+    ) -> np.array:
+        """calculates covariance matrix of single probability distribution.
+
+        Parameters
+        ----------
+        qope : QOperation
+            QOperation to calculate covariance matrix of single probability distribution.
+        schedule_index : int
+            schedule index.
+        data_num : int
+            number of data.
+
+        Returns
+        -------
+        np.array
+            covariance matrix of single probability distribution.
+        """
+        prob_dist = self.calc_prob_dist(qope, schedule_index)
+        val = matrix_util.calc_covariance_mat(prob_dist, data_num)
+        return val
+
+    def calc_covariance_mat_total(
+        self, qope: QOperation, data_num_list: List[int]
+    ) -> np.array:
+        """calculates covariance matrix of total probability distributions.
+
+        Parameters
+        ----------
+        qope : QOperation
+            QOperation to calculate covariance matrix of total probability distributions.
+        data_num_list : List[int]
+            list of number of data.
+
+        Returns
+        -------
+        np.array
+            covariance matrix of total probability distributions.
+        """
+        matrices = []
+        for schedule_index in range(self.num_schedules):
+            mat_single = self.calc_covariance_mat_single(
+                qope, schedule_index, data_num_list[schedule_index]
+            )
+            matrices.append(mat_single)
+
+        val = matrix_util.calc_direct_sum(matrices)
+        return val
+
+    def calc_covariance_linear_mat_total(
+        self, qope: QOperation, data_num_list: List[int]
+    ) -> np.array:
+        """calculates covariance matrix of linear estimate of probability distributions.
+
+        Parameters
+        ----------
+        qope : QOperation
+            QOperation to calculate covariance matrix of linear estimate of probability distributions.
+        data_num_list : List[int]
+            list of number of data.
+
+        Returns
+        -------
+        np.array
+            covariance matrix of linear estimate of probability distributions.
+        """
+        A_inv = matrix_util.calc_left_inv(self.calc_matA())
+        val = matrix_util.calc_conjugate(
+            A_inv, self.calc_covariance_mat_total(qope, data_num_list)
+        )
+        return val
+
+    def calc_mse_linear(self, qope: QOperation, data_num_list: List[int]) -> np.float64:
+        """calculates mean squared error of linear estimate of probability distributions.
+
+        Parameters
+        ----------
+        qope : QOperation
+            QOperation to calculate mean squared error of linear estimate of probability distributions.
+        data_num_list : List[int]
+            list of number of data.
+
+        Returns
+        -------
+        np.float64
+            mean squared error of linear estimate of probability distributions.
+        """
+        val = np.trace(self.calc_covariance_linear_mat_total(qope, data_num_list))
+        return val

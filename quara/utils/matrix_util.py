@@ -218,3 +218,32 @@ def calc_conjugate(x: np.array, v: np.array) -> np.array:
         x @ v @ x^T
     """
     return x @ v @ x.T
+
+
+def calc_left_inv(matrix: np.array) -> np.array:
+    """calculates left inverse matrix.
+
+    Parameters
+    ----------
+    matrix : np.array
+        matrix to calculate left inverse matrix.
+
+    Returns
+    -------
+    np.array
+        left inverse matrix.
+
+    Raises
+    ------
+    ValueError
+        ``matrix`` is not full rank.
+    """
+    # check full rank
+    rank = np.linalg.matrix_rank(matrix)
+    size = min(matrix.shape)
+    if size != rank:
+        raise ValueError("``matrix`` must be full rank. size={size}, rank={rank}")
+
+    # calculate left inverse
+    left_inv = np.linalg.pinv(matrix.T @ matrix) @ matrix.T
+    return left_inv

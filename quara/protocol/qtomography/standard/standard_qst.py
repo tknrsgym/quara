@@ -90,12 +90,14 @@ class StandardQst(StandardQTomography):
         self._map_setqoperations_to_experiment = {("state", 0): ("state", 0)}
 
         # calc and set coeff0s, coeff1s, matA and vecB
-        self._set_coeffs(experiment, on_para_eq_constraint)
+        self._set_coeffs(experiment, on_para_eq_constraint, state.dim)
 
         self.debug_set_qoperations = set_qoperations
         self.debug_experiment = experiment
 
-    def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
+    def _set_coeffs(
+        self, experiment: Experiment, on_para_eq_constraint: bool, dim: int
+    ):
         # coeff0s and coeff1s
         self._coeffs_0th = dict()
         self._coeffs_1st = dict()
@@ -106,7 +108,9 @@ class StandardQst(StandardQTomography):
             povm = self._experiment.povms[povm_index]
             for element_index, vec in enumerate(povm.vecs):
                 if on_para_eq_constraint:
-                    self._coeffs_0th[(schedule_index, element_index)] = vec[0]
+                    self._coeffs_0th[(schedule_index, element_index)] = vec[
+                        0
+                    ] / np.sqrt(dim)
                     self._coeffs_1st[(schedule_index, element_index)] = vec[1:]
                     tmp_coeffs_0th.append(vec[0])
                     tmp_coeffs_1st.append(vec[1:])

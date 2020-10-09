@@ -132,17 +132,17 @@ class QTomography:
         raise NotImplementedError()
 
     @abstractmethod
-    def calc_prob_dist(self, schedule_index: int, qope: QOperation) -> List[float]:
+    def calc_prob_dist(self, qope: QOperation, schedule_index: int) -> List[float]:
         """calculates a probability distribution.
 
         this function must be implemented in the subclass.
 
         Parameters
         ----------
-        schedule_index : int
-            schedule index.
         qope : QOperation
             QOperation to calculate a probability distribution.
+        schedule_index : int
+            schedule index.
 
         Returns
         -------
