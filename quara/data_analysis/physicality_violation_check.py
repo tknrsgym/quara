@@ -6,6 +6,9 @@ from plotly.subplots import make_subplots
 import numpy as np
 from tqdm import tqdm
 
+from quara.protocol.qtomography.estimator import EstimationResult
+from quara.objects.state import State
+
 
 def get_sorted_eigenvalues_list(
     estimated_qobject_list: List["State"],
@@ -56,7 +59,20 @@ def get_physicality_violation_result_for_state_affine(
     return value_list
 
 
-def get_physicality_violation_result_for_state(
+def check_physicality_violation(
+    estimation_results: List[EstimationResult],
+) -> Dict[str, Any]:
+    qoperation = estimation_results[0].estimated_qoperation
+    estimated_qoperations = [qo.estimated_qoperation for qo in estimation_results]
+    if type(qoperation) == State:
+        result = _check_physicality_violation_for_state(estimated_qoperations)
+    else:
+        # TODO: error message
+        raise ValueError()
+    return result
+
+
+def _check_physicality_violation_for_state(
     estimated_qobject_list: List["State"],
 ) -> Dict[str, Any]:
     on_para_eq_constraint = estimated_qobject_list[0].on_para_eq_constraint
