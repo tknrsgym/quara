@@ -20,7 +20,7 @@ class ProbabilityBasedLossFunction(LossFunction):
         func_hessian_dists: List[Callable[[int, int, np.array], np.array]] = None,
         prob_dists_q: List[np.array] = None,
     ):
-        # TODO on_value, on_gradientとon_hessianは子クラスでupdaterする
+        # TODO on_value, on_gradientとon_hessianは子クラスでupdateすることをdocに記述すること
         super().__init__(num_var)
         self._func_prob_dists: List[Callable[[np.array], np.array]] = func_prob_dists
         self._func_gradient_dists: List[
@@ -96,10 +96,10 @@ class ProbabilityBasedLossFunction(LossFunction):
         return self._on_prob_dists_q
 
     def size_prob_dists(self) -> int:
-        return len(self._func_prob_dists)
-
-    def size_prob_dist(self, i: int) -> int:
-        return len(self._func_prob_dists[i])
+        if self._func_prob_dists is None:
+            return 0
+        else:
+            return len(self._func_prob_dists)
 
     def set_prob_dists_q(self, prob_dists_q: List[np.array]) -> None:
         self._prob_dists_q = prob_dists_q
