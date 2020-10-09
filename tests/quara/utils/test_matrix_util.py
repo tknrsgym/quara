@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 import quara.utils.matrix_util as util
@@ -111,3 +112,98 @@ def test_calc_mse():
     actual = util.calc_mse(xs, ys)
     expected = float(400)
     assert actual == expected
+
+
+def test_calc_covariance_mat():
+    # Case: 1
+    # Arrange
+    q = np.array([0.5, 0.5], dtype=np.float64)
+    n = 10
+
+    # Act
+    actual = util.calc_covariance_mat(q, n)
+
+    # Assert
+    expected = np.array([[0.25, -0.25], [-0.25, 0.25]]) / n
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case: 2
+    # Arrange
+    q = np.array([1.0, 0.0], dtype=np.float64)
+    n = 10
+
+    # Act
+    actual = util.calc_covariance_mat(q, n)
+
+    # Assert
+    expected = np.array([[0.0, 0.0], [0.0, 0.0]]) / n
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_calc_direct_sum():
+    # case1: success
+    matrices = [
+        np.array([[1, 2], [3, 4]]),
+        np.array([[11, 12, 13], [14, 15, 16], [17, 18, 19]]),
+    ]
+    actual = util.calc_direct_sum(matrices)
+    expected = np.array(
+        [
+            [1, 2, 0, 0, 0],
+            [3, 4, 0, 0, 0],
+            [0, 0, 11, 12, 13],
+            [0, 0, 14, 15, 16],
+            [0, 0, 17, 18, 19],
+        ]
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # case2: not matrix
+    matrices = [
+        np.array([1, 2]),
+        np.array([11, 12, 13]),
+    ]
+    with pytest.raises(ValueError):
+        util.calc_direct_sum(matrices)
+
+    # case3: not square matrix
+    matrices = [
+        np.array([[1, 2], [3, 4], [5, 6]]),
+        np.array([[11, 12, 13], [14, 15, 16], [17, 18, 19]]),
+    ]
+    with pytest.raises(ValueError):
+        util.calc_direct_sum(matrices)
+
+
+def test_calc_conjugate():
+    # Arrange
+    x = np.array([[1, 2], [3, 4]])
+    v = np.array([[5, 6], [7, 8]])
+
+    # Act
+    actual = util.calc_conjugate(x, v)
+
+    # Assert
+    expected = np.array([[63, 145], [143, 329]])
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_calc_left_inv():
+    # case1: success
+    # Arrange
+    x = np.array([[2, 5], [1, 3]])
+
+    # Act
+    actual = util.calc_left_inv(x)
+
+    # Assert
+    expected = np.array([[3, -5], [-1, 2]])
+    npt.assert_almost_equal(actual, expected, decimal=12)
+
+    # case2: not full rank
+    # Arrange
+    x = np.array([[2, 5], [4, 10]])
+
+    # Act
+    with pytest.raises(ValueError):
+        util.calc_left_inv(x)

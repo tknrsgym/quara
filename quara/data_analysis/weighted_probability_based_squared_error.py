@@ -7,7 +7,8 @@ from quara.data_analysis.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )
-from quara.math.matrix import multiply_veca_vecb_matc
+from quara.math.matrix import multiply_veca_vecb, multiply_veca_vecb_matc
+from quara.utils import matrix_util
 
 
 class WeightedProbabilityBasedSquaredErrorOption(ProbabilityBasedLossFunctionOption):
@@ -15,7 +16,7 @@ class WeightedProbabilityBasedSquaredErrorOption(ProbabilityBasedLossFunctionOpt
         super().__init__()
 
 
-class WeightedProbabilityBasedSquaredErrorFunction(ProbabilityBasedLossFunction):
+class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
     def __init__(
         self,
         num_var: int,
@@ -25,7 +26,6 @@ class WeightedProbabilityBasedSquaredErrorFunction(ProbabilityBasedLossFunction)
         prob_dists_q: List[np.array] = None,
         weight_matrices: List[np.array] = None,
     ):
-        # TODO Wは実対称行列
         super().__init__(
             num_var,
             func_prob_dists,
@@ -33,12 +33,9 @@ class WeightedProbabilityBasedSquaredErrorFunction(ProbabilityBasedLossFunction)
             func_hessian_dists,
             prob_dists_q,
         )
-        if weight_matrices == None:
-            # weight_matrices = list of identity matrices
-            size = prob_dists_q[0].shape[0]
-            weight_matrices = [
-                np.eye(size, dtype=np.float64) for _ in range(len(prob_dists_q))
-            ]
+
+        # validate
+        self._validate_weight_matrices(weight_matrices)
         self._weight_matrices = weight_matrices
 
         # update on_value, on_gradient and on_hessian
@@ -46,28 +43,49 @@ class WeightedProbabilityBasedSquaredErrorFunction(ProbabilityBasedLossFunction)
         self._update_on_gradient_true()
         self._update_on_hessian_true()
 
+    def _validate_weight_matrices(self, weight_matrices: List[np.array]) -> None:
+        if weight_matrices:
+            for index, weight_matrix in enumerate(weight_matrices):
+                # weight_matrices are real matrices
+                if weight_matrix.dtype != np.float64:
+                    raise ValueError(
+                        f"entries of weight_matrices must be real numbers. dtype of weight_matrices[{index}] is {weight_matrix.dtype}"
+                    )
+
+                # weight_matrices are symmetric matrices
+                if not matrix_util.is_hermitian(weight_matrix):
+                    raise ValueError(
+                        f"weight_matrices must be symmetric. dtype of weight_matrices[{index}] is not symmetric"
+                    )
+
     @property
     def weight_matrices(self) -> List[np.array]:
         return self._weight_matrices
 
+    def set_weight_matrices(self, weight_matrices: List[np.array]) -> None:
+        self._validate_weight_matrices(weight_matrices)
+        self._weight_matrices = weight_matrices
+
     def _update_on_value_true(self) -> bool:
-        if self.on_func_prob_dists is not None:
+        if self.on_func_prob_dists is True and self.on_prob_dists_q is True:
             self._set_on_value(True)
         return self.on_value
 
     def _update_on_gradient_true(self) -> bool:
         if (
-            self.on_func_prob_dists is not None
-            and self.on_func_gradient_dists is not None
+            self.on_func_prob_dists is True
+            and self.on_func_gradient_dists is True
+            and self.on_prob_dists_q is True
         ):
             self._set_on_gradient(True)
         return self.on_gradient
 
     def _update_on_hessian_true(self) -> bool:
         if (
-            self.on_func_prob_dists is not None
-            and self.on_func_gradient_dists is not None
-            and self.on_func_hessian_dists is not None
+            self.on_func_prob_dists is True
+            and self.on_func_gradient_dists is True
+            and self.on_func_hessian_dists is True
+            and self.on_prob_dists_q is True
         ):
             self._set_on_hessian(True)
         return self.on_hessian
@@ -76,7 +94,12 @@ class WeightedProbabilityBasedSquaredErrorFunction(ProbabilityBasedLossFunction)
         tmp_values = []
         for index in range(len(self.func_prob_dists)):
             vec = self.func_prob_dists[index](var) - self.prob_dists_q[index]
-            tmp_value = multiply_veca_vecb_matc(vec, vec, self.weight_matrices[index])
+            if self.weight_matrices:
+                tmp_value = multiply_veca_vecb_matc(
+                    vec, vec, self.weight_matrices[index]
+                )
+            else:
+                tmp_value = multiply_veca_vecb(vec, vec)
             tmp_values.append(tmp_value)
 
         val = np.sum(tmp_values)
@@ -89,10 +112,14 @@ class WeightedProbabilityBasedSquaredErrorFunction(ProbabilityBasedLossFunction)
             for index in range(len(self.func_prob_dists)):
                 vec_a = self.func_gradient_dists[index](alpha, var)
                 vec_b = self.func_prob_dists[index](var) - self.prob_dists_q[index]
-                tmp_value = multiply_veca_vecb_matc(
-                    vec_a, vec_b, self.weight_matrices[index]
-                )
-                tmp_values.append(tmp_value)
+                if self.weight_matrices:
+                    tmp_value = multiply_veca_vecb_matc(
+                        vec_a, vec_b, self.weight_matrices[index]
+                    )
+                    tmp_values.append(tmp_value)
+                else:
+                    tmp_value = multiply_veca_vecb(vec_a, vec_b)
+                    tmp_values.append(tmp_value)
 
             val = np.sum(tmp_values)
             grad.append(val)
@@ -109,10 +136,18 @@ class WeightedProbabilityBasedSquaredErrorFunction(ProbabilityBasedLossFunction)
                     grad_beta = self.func_gradient_dists[index](beta, var)
                     hess = self.func_hessian_dists[index](alpha, beta, var)
                     p_q = self.func_prob_dists[index](var) - self.prob_dists_q[index]
-                    tmp_value = multiply_veca_vecb_matc(
-                        grad_alpha, grad_beta, self.weight_matrices[index]
-                    ) + multiply_veca_vecb_matc(hess, p_q, self.weight_matrices[index])
-                    tmp_values.append(tmp_value)
+                    if self.weight_matrices:
+                        tmp_value = multiply_veca_vecb_matc(
+                            grad_alpha, grad_beta, self.weight_matrices[index]
+                        ) + multiply_veca_vecb_matc(
+                            hess, p_q, self.weight_matrices[index]
+                        )
+                        tmp_values.append(tmp_value)
+                    else:
+                        tmp_value = multiply_veca_vecb(
+                            grad_alpha, grad_beta
+                        ) + multiply_veca_vecb(hess, p_q)
+                        tmp_values.append(tmp_value)
 
                 val = np.sum(tmp_values)
                 hess_alpha.append(val)

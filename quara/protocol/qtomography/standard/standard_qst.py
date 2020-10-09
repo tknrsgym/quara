@@ -90,12 +90,14 @@ class StandardQst(StandardQTomography):
         self._map_setqoperations_to_experiment = {("state", 0): ("state", 0)}
 
         # calc and set coeff0s, coeff1s, matA and vecB
-        self._set_coeffs(experiment, on_para_eq_constraint)
+        self._set_coeffs(experiment, on_para_eq_constraint, state.dim)
 
         self.debug_set_qoperations = set_qoperations
         self.debug_experiment = experiment
 
-    def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
+    def _set_coeffs(
+        self, experiment: Experiment, on_para_eq_constraint: bool, dim: int
+    ):
         # coeff0s and coeff1s
         self._coeffs_0th = dict()
         self._coeffs_1st = dict()
@@ -106,7 +108,9 @@ class StandardQst(StandardQTomography):
             povm = self._experiment.povms[povm_index]
             for element_index, vec in enumerate(povm.vecs):
                 if on_para_eq_constraint:
-                    self._coeffs_0th[(schedule_index, element_index)] = vec[0]
+                    self._coeffs_0th[(schedule_index, element_index)] = vec[
+                        0
+                    ] / np.sqrt(dim)
                     self._coeffs_1st[(schedule_index, element_index)] = vec[1:]
                     tmp_coeffs_0th.append(vec[0])
                     tmp_coeffs_1st.append(vec[1:])
@@ -138,30 +142,6 @@ class StandardQst(StandardQTomography):
         schedule = experiment.schedules[schedule_index]
         state_index = schedule[0][1]
         return state_index
-
-    def calc_prob_dist(self, schedule_index: int, state: State) -> List[float]:
-        """calculates a probability distribution.
-        
-        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dist`
-        """
-        tmp_experiment = self._experiment.copy()
-        state_index = self._get_state_index(tmp_experiment, schedule_index)
-        tmp_experiment.states[state_index] = state
-
-        return tmp_experiment.calc_prob_dist(schedule_index)
-
-    def calc_prob_dists(self, state: State) -> List[List[float]]:
-        """calculates probability distributions.
-        
-        see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dists`
-        """
-        tmp_experiment = self._experiment.copy()
-        for schedule_index in range(len(tmp_experiment.schedules)):
-            state_index = self._get_state_index(tmp_experiment, schedule_index)
-            tmp_experiment.states[state_index] = state
-
-        prob_dists = tmp_experiment.calc_prob_dists()
-        return prob_dists
 
     def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
         """calculates a probability distribution.
