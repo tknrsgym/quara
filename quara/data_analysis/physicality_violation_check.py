@@ -6,6 +6,9 @@ from plotly.subplots import make_subplots
 import numpy as np
 from tqdm import tqdm
 
+from quara.protocol.qtomography.estimator import EstimationResult
+from quara.objects.state import State
+
 
 def get_sorted_eigenvalues_list(
     estimated_qobject_list: List["State"],
@@ -56,16 +59,29 @@ def get_physicality_violation_result_for_state_affine(
     return value_list
 
 
-def get_physicality_violation_result_for_state(
+def check_physicality_violation(
+    estimation_results: List[EstimationResult],
+) -> Dict[str, Any]:
+    qoperation = estimation_results[0].estimated_qoperation
+    estimated_qoperations = [qo.estimated_qoperation for qo in estimation_results]
+    if type(qoperation) == State:
+        result = _check_physicality_violation_for_state(estimated_qoperations)
+    else:
+        # TODO: error message
+        raise ValueError()
+    return result
+
+
+def _check_physicality_violation_for_state(
     estimated_qobject_list: List["State"],
 ) -> Dict[str, Any]:
     on_para_eq_constraint = estimated_qobject_list[0].on_para_eq_constraint
 
     if on_para_eq_constraint:
-        violation_list = get_physicality_violation_result_for_state_affine(
+        trace_list = get_physicality_violation_result_for_state_affine(
             estimated_qobject_list
         )
-        return dict(violation_list=violation_list)
+        return dict(trace_list=trace_list)
     else:
         sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobject_list)
         sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
@@ -81,6 +97,8 @@ def get_physicality_violation_result_for_state(
         )
 
 
+# Plot
+# Common
 def make_prob_dist_histogram(
     values: List[float],
     bin_size: int,
@@ -118,6 +136,7 @@ def make_prob_dist_histogram(
     return fig
 
 
+# Common
 def make_prob_dist_histograms(
     values_set: np.array, bin_size: int, x_range: Optional[tuple] = None
 ) -> "Figure":
@@ -138,3 +157,140 @@ def make_prob_dist_histograms(
     fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
 
     return fig
+
+
+# common
+def _convert_result_to_qoperation(
+    estimation_results: List[EstimationResult], index: int = 0
+) -> List["QOperation"]:
+    if index == 0:
+        estimated_qoperations = [
+            result.estimated_qoperation for result in estimation_results
+        ]
+    else:
+        estimated_qoperations = [
+            result.estimated_qoperation_sequence[index] for result in estimation_results
+        ]
+    return estimated_qoperations
+
+
+# common, on_para_eq_constraint=False
+def make_graphs_eigenvalues(
+    estimation_results: List[EstimationResult],
+    true_object: "QOperation",
+    num_data: List[int],
+    index: int = 0,
+    bin_size: float = 0.0001,
+) -> List["Figure"]:
+    estimated_qoperations = _convert_result_to_qoperation(
+        estimation_results, index=index
+    )
+
+    n_data = num_data[index]
+    if type(true_object) == State:
+        figs = _make_graphs_eigenvalues_state(
+            estimated_qoperations, true_object, n_data, bin_size
+        )
+    else:
+        # TODO: message
+        raise TypeError()
+    return figs
+
+
+def make_graphs_sum_unphysical_eigenvalues(
+    estimation_results: List[EstimationResult],
+    num_data: List[int],
+    index: int = 0,
+    bin_size: float = 0.0001,
+):
+    estimated_qoperations = _convert_result_to_qoperation(
+        estimation_results, index=index
+    )
+    n_data = num_data[index]
+    sample_object = estimated_qoperations[0]
+    if type(sample_object) == State:
+        figs = _make_graphs_sum_unphysical_eigenvalues_state(
+            estimated_qoperations, n_data, bin_size
+        )
+    else:
+        # TODO: message
+        raise TypeError()
+    return figs
+
+
+def _make_graphs_eigenvalues_state(
+    estimated_states: List[State],
+    true_object: State,
+    num_data: int,
+    bin_size: float = 0.0001,
+) -> List["Figure"]:
+    # Eigenvalues of True State
+    true_eigs = sorted(
+        [eig.real for eig in true_object.calc_eigenvalues()], reverse=True
+    )
+
+    # Eigenvalues of Estimated States
+    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_states)
+    sorted_eigenvalues_list = np.array(sorted_eigenvalues_list).T.tolist()
+
+    figs = []
+    for i, values in enumerate(sorted_eigenvalues_list):
+        # plot eigenvalues of estimated states
+        fig = make_prob_dist_histogram(values, bin_size=bin_size)
+        fig.update_layout(title=f"N={num_data}, Nrep={len(values)}")
+        fig.update_xaxes(title=f"Eigenvalue (i={i})")
+
+        # plot eigenvalues of true state
+        x_value = true_eigs[i]
+        fig.add_shape(
+            type="line",
+            line_color="red",
+            line_width=2,
+            opacity=0.5,
+            x0=x_value,
+            x1=x_value,
+            xref="x",
+            y0=0,
+            y1=1,
+            yref="paper",
+        )
+        figs.append(fig)
+
+    return figs
+
+
+# only State
+def _make_graphs_sum_unphysical_eigenvalues_state(
+    estimated_states: List[State], num_data: int, bin_size: float = 0.0001
+) -> List["Figure"]:
+
+    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_states)
+    less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
+        sorted_eigenvalues_list
+    )
+
+    n_rep = len(sorted_eigenvalues_list)
+    figs = []
+    # Figure 1
+    fig = make_prob_dist_histogram(
+        less_than_zero_list, bin_size=bin_size, annotation_vlines=[0]
+    )
+
+    n_unphysical = len(less_than_zero_list)
+    title = f"N={num_data}, Nrep={n_rep}, Number of Unphysical estimates={n_unphysical}"
+    fig.update_layout(title=title)
+    fig.update_xaxes(title=f"Sum of unphysical eigenvalues (<0)")
+    figs.append(fig)
+
+    # Figure 2
+    fig = make_prob_dist_histogram(
+        greater_than_one_list, bin_size=bin_size, annotation_vlines=[1]
+    )
+
+    n_unphysical = len(less_than_zero_list)
+    title = f"N={num_data}, Nrep={n_rep}, Number of Unphysical estimates={n_unphysical}"
+    fig.update_layout(title=title)  # TODO
+    fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
+    figs.append(fig)
+
+    return figs

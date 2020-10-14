@@ -213,7 +213,7 @@ def _estimate(
     true_object: QOperation,
     num_data: List[int],
     estimator=StandardQTomographyEstimator,
-) -> List[StandardQTomographyEstimationResult]:
+) -> StandardQTomographyEstimationResult:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
     result = estimator.calc_estimate_sequence(
         qtomography, empi_dists_seq, is_computation_time_required=True
@@ -226,11 +226,10 @@ def estimate(
     qtomography: "StandardQTomography",
     true_object: QOperation,
     num_data: List[int],
-    estimator=StandardQTomographyEstimator,
+    estimator: StandardQTomographyEstimator,
     iteration: Optional[int] = None,
 ) -> Union[
-    List[StandardQTomographyEstimationResult],
-    List[List[StandardQTomographyEstimationResult]],
+    StandardQTomographyEstimationResult, List[StandardQTomographyEstimationResult],
 ]:
 
     if iteration is None:
