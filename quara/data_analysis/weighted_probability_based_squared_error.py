@@ -21,8 +21,8 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         self,
         num_var: int,
         func_prob_dists: List = None,
-        func_gradient_dists: List = None,
-        func_hessian_dists: List = None,
+        func_gradient_prob_dists: List = None,
+        func_hessian_prob_dists: List = None,
         prob_dists_q: List[np.array] = None,
         weight_matrices: List[np.array] = None,
     ):
@@ -34,9 +34,9 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
             number of variables.
         func_prob_dists : List[Callable[[np.array], np.array]], optional
             functions map variables to a probability distribution.
-        func_gradient_dists : List[Callable[[int, np.array], np.array]], optional
+        func_gradient_prob_dists : List[Callable[[int, np.array], np.array]], optional
             functions map variables and an index of variables to gradient of probability distributions.
-        func_hessian_dists : List[Callable[[int, int, np.array], np.array]], optional
+        func_hessian_prob_dists : List[Callable[[int, int, np.array], np.array]], optional
             functions map variables and indices of variables to Hessian of probability distributions.
         prob_dists_q : List[np.array], optional
             vectors of ``q``, by default None.
@@ -46,8 +46,8 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         super().__init__(
             num_var,
             func_prob_dists,
-            func_gradient_dists,
-            func_hessian_dists,
+            func_gradient_prob_dists,
+            func_hessian_prob_dists,
             prob_dists_q,
         )
 
@@ -113,7 +113,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         """
         if (
             self.on_func_prob_dists is True
-            and self.on_func_gradient_dists is True
+            and self.on_func_gradient_prob_dists is True
             and self.on_prob_dists_q is True
         ):
             self._set_on_gradient(True)
@@ -126,8 +126,8 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         """
         if (
             self.on_func_prob_dists is True
-            and self.on_func_gradient_dists is True
-            and self.on_func_hessian_dists is True
+            and self.on_func_gradient_prob_dists is True
+            and self.on_func_hessian_prob_dists is True
             and self.on_prob_dists_q is True
         ):
             self._set_on_hessian(True)
@@ -161,7 +161,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         for alpha in range(self.num_var):
             tmp_values = []
             for index in range(len(self.func_prob_dists)):
-                vec_a = self.func_gradient_dists[index](alpha, var)
+                vec_a = self.func_gradient_prob_dists[index](alpha, var)
                 vec_b = self.func_prob_dists[index](var) - self.prob_dists_q[index]
                 if self.weight_matrices:
                     tmp_value = multiply_veca_vecb_matc(
@@ -187,9 +187,9 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
             for beta in range(self.num_var):
                 tmp_values = []
                 for index in range(len(self.func_prob_dists)):
-                    grad_alpha = self.func_gradient_dists[index](alpha, var)
-                    grad_beta = self.func_gradient_dists[index](beta, var)
-                    hess = self.func_hessian_dists[index](alpha, beta, var)
+                    grad_alpha = self.func_gradient_prob_dists[index](alpha, var)
+                    grad_beta = self.func_gradient_prob_dists[index](beta, var)
+                    hess = self.func_hessian_prob_dists[index](alpha, beta, var)
                     p_q = self.func_prob_dists[index](var) - self.prob_dists_q[index]
                     if self.weight_matrices:
                         tmp_value = multiply_veca_vecb_matc(
