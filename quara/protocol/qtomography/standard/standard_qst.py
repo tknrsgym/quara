@@ -170,7 +170,7 @@ class StandardQst(StandardQTomography):
             Generated empirical distribution.
         """
         tmp_experiment = self._experiment.copy()
-        state_index = self._get_state_index(tmp_experiment, schedule_index)
+        state_index = self._get_target_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
 
         empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
@@ -187,7 +187,7 @@ class StandardQst(StandardQTomography):
         """
         tmp_experiment = self._experiment.copy()
         for schedule_index in range(len(tmp_experiment.schedules)):
-            state_index = self._get_state_index(tmp_experiment, schedule_index)
+            state_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
 
         num_sums = [num_sum] * self._num_schedules
@@ -240,15 +240,3 @@ class StandardQst(StandardQTomography):
         state = template.generate_from_var(var=var)
         return state
 
-    # def generate_prob_dists_sequence(
-    #     self, true_object: State
-    # ) -> List[List[Tuple[int, np.array]]]:
-    #     tmp_experiment = self._experiment.copy()
-
-    #     attribute_name = self.__class__._estimated_qoperation_type.__name__.lower() + "s"
-    #     for schedule_index in range(len(tmp_experiment.schedules)):
-    #         target_index = self._get_state_index(tmp_experiment, schedule_index)
-    #         getattr(tmp_experiment, attribute_name)[target_index] = true_object
-
-    #     prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
-    #     return prob_dists_sequence_tmp

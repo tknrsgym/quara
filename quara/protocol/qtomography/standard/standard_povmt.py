@@ -105,20 +105,6 @@ class StandardPovmt(StandardQTomography):
         ]
         return empi_dists_sequence
 
-    # def generate_prob_dists_sequence(
-    #     self, true_object: Povm, num_sums: List[int]
-    # ) -> List[List[Tuple[int, np.array]]]:
-    #     tmp_experiment = self._experiment.copy()
-
-    #     list_num_sums = [num_sums] * self._num_schedules
-
-    #     for schedule_index in range(len(tmp_experiment.schedules)):
-    #         target_index = self._get_target_index(tmp_experiment, schedule_index)
-    #         tmp_experiment.povms[target_index] = true_object
-
-    #     prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
-    #     return prob_dists_sequence_tmp
-
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         POVM_ITEM_INDEX = 1
