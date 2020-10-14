@@ -1,5 +1,5 @@
-from abc import abstractmethod
-from typing import List
+from abc import abstractmethod, abstractproperty
+from typing import List, Tuple
 
 import numpy as np
 
@@ -242,3 +242,25 @@ class StandardQTomography(QTomography):
         """
         val = np.trace(self.calc_covariance_linear_mat_total(qope, data_num_list))
         return val
+
+    @abstractmethod
+    def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
+        raise NotImplementedError()
+
+    @abstractproperty
+    def _estimated_qoperation_type(cls):
+        raise NotImplementedError()
+
+    def generate_prob_dists_sequence(
+        self, true_object: QOperation
+    ) -> List[List[Tuple[int, np.array]]]:
+        tmp_experiment = self._experiment.copy()
+        attribute_name = (
+            self.__class__._estimated_qoperation_type.__name__.lower() + "s"
+        )
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            target_index = self._get_target_index(tmp_experiment, schedule_index)
+            getattr(tmp_experiment, attribute_name)[target_index] = true_object
+
+        prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
+        return prob_dists_sequence_tmp
