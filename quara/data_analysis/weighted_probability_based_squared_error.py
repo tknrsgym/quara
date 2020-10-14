@@ -26,6 +26,23 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         prob_dists_q: List[np.array] = None,
         weight_matrices: List[np.array] = None,
     ):
+        """Constructor
+
+        Parameters
+        ----------
+        num_var : int
+            number of variables.
+        func_prob_dists : List[Callable[[np.array], np.array]], optional
+            functions map variables to a probability distribution.
+        func_gradient_dists : List[Callable[[int, np.array], np.array]], optional
+            functions map variables and an index of variables to gradient of probability distributions.
+        func_hessian_dists : List[Callable[[int, int, np.array], np.array]], optional
+            functions map variables and indices of variables to Hessian of probability distributions.
+        prob_dists_q : List[np.array], optional
+            vectors of ``q``, by default None.
+        weight_matrices : List[np.array], optional
+            weight matrices, by default None
+        """
         super().__init__(
             num_var,
             func_prob_dists,
@@ -60,18 +77,40 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
 
     @property
     def weight_matrices(self) -> List[np.array]:
+        """returns weight matrices.
+
+        Returns
+        -------
+        List[np.array]
+            weight matrices.
+        """
         return self._weight_matrices
 
     def set_weight_matrices(self, weight_matrices: List[np.array]) -> None:
+        """sets weight matrices.
+
+        Parameters
+        ----------
+        weight_matrices : List[np.array]
+            weight matrices.
+        """
         self._validate_weight_matrices(weight_matrices)
         self._weight_matrices = weight_matrices
 
     def _update_on_value_true(self) -> bool:
+        """validates and updates ``on_value`` to True.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction._update_on_value_true`
+        """
         if self.on_func_prob_dists is True and self.on_prob_dists_q is True:
             self._set_on_value(True)
         return self.on_value
 
     def _update_on_gradient_true(self) -> bool:
+        """validates and updates ``on_gradient`` to True.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction._update_on_gradient_true`
+        """
         if (
             self.on_func_prob_dists is True
             and self.on_func_gradient_dists is True
@@ -81,6 +120,10 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         return self.on_gradient
 
     def _update_on_hessian_true(self) -> bool:
+        """validates and updates ``on_hessian`` to True.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction._update_on_hessian_true`
+        """
         if (
             self.on_func_prob_dists is True
             and self.on_func_gradient_dists is True
@@ -91,6 +134,10 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         return self.on_hessian
 
     def value(self, var: np.array) -> np.float64:
+        """returns the value of Weighted Probability Based Squared Error.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction.value`
+        """
         tmp_values = []
         for index in range(len(self.func_prob_dists)):
             vec = self.func_prob_dists[index](var) - self.prob_dists_q[index]
@@ -106,6 +153,10 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         return val
 
     def gradient(self, var: np.array) -> np.array:
+        """returns the gradient of Weighted Probability Based Squared Error.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`
+        """
         grad = []
         for alpha in range(self.num_var):
             tmp_values = []
@@ -126,6 +177,10 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         return 2 * np.array(grad, dtype=np.float64)
 
     def hessian(self, var: np.array) -> np.array:
+        """returns the Hessian of Weighted Probability Based Squared Error.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction.hessian`
+        """
         hess_all = []
         for alpha in range(self.num_var):
             hess_alpha = []
