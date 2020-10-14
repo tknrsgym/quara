@@ -1301,10 +1301,10 @@ class TestPovm:
 
         # Assert
         assert actual_ineq.is_positive_semidefinite() is True
-        npt.assert_allclose(povm.vecs, actual_ineq.vecs)
+        npt.assert_almost_equal(povm.vecs, actual_ineq.vecs, decimal=15)
 
         assert actual_eq.is_identity_sum() is True
-        npt.assert_allclose(povm.vecs, actual_eq.vecs)
+        npt.assert_almost_equal(povm.vecs, actual_eq.vecs, decimal=15)
 
         # Case 2
         # ">=": False "=I": True
@@ -1328,7 +1328,7 @@ class TestPovm:
         assert not np.allclose(povm.vecs, actual_ineq.vecs)
 
         assert actual_eq.is_identity_sum() is True
-        npt.assert_allclose(povm.vecs, actual_eq.vecs)
+        npt.assert_almost_equal(povm.vecs, actual_eq.vecs, decimal=15)
 
         # Case 3
         # ">=": True "=I": False
@@ -1349,7 +1349,7 @@ class TestPovm:
 
         # Assert
         assert actual_ineq.is_positive_semidefinite() is True
-        npt.assert_allclose(povm.vecs, actual_ineq.vecs)
+        npt.assert_almost_equal(povm.vecs, actual_ineq.vecs, decimal=15)
 
         assert actual_eq.is_identity_sum() is True
         assert not np.allclose(povm.vecs, actual_eq.vecs)
