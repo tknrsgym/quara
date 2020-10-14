@@ -31,14 +31,26 @@ class QuadraticLossFunction(LossFunction):
         self._var_ref: np.array = var_ref
 
     def _update_on_value_true(self) -> bool:
+        """validates and updates ``on_value`` to True.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction._update_on_value_true`
+        """
         self._set_on_value(True)
         return True
 
     def _update_on_gradient_true(self) -> bool:
+        """validates and updates ``on_gradient`` to True.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction._update_on_gradient_true`
+        """
         self._set_on_gradient(True)
         return True
 
     def _update_on_hessian_true(self) -> bool:
+        """validates and updates ``on_hessian`` to True.
+
+        see :func:`~quara.data_analysis.loss_function.LossFunction._update_on_hessian_true`
+        """
         self._set_on_hessian(True)
         return True
 

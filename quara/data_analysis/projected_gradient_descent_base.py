@@ -98,6 +98,31 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         algorithm_option: ProjectedGradientDescentBaseOption,
         on_iteration_history: bool = False,
     ) -> ProjectedGradientDescentBaseResult:
+        """optimizes using specified parameters.
+
+        Parameters
+        ----------
+        loss_function : LossFunction
+            Loss Function
+        loss_function_option : LossFunctionOption
+            Loss Function Option
+        algorithm_option : ProjectedGradientDescentBaseOption
+            Projected Gradient Descent Base Algorithm Option
+        on_iteration_history : bool, optional
+            whether to return iteration history, by default False
+
+        Returns
+        -------
+        ProjectedGradientDescentBaseResult
+            the result of the optimization.
+
+        Raises
+        ------
+        ValueError
+            when ``on_gradient`` of ``loss_function`` is False. 
+        ValueError
+            when ``is_gradient_required`` of ``algorithm_option`` is False.
+        """
         if loss_function.on_gradient == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_gradient' of loss_function must be True."

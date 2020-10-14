@@ -110,7 +110,7 @@ class MinimizationAlgorithm:
         algorithm_option: MinimizationAlgorithmOption,
         on_iteration_history: bool = False,
     ) -> MinimizationResult:
-        """optimize using specified parameters.
+        """optimizes using specified parameters.
 
         Parameters
         ----------
