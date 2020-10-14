@@ -11,6 +11,8 @@ from quara.qcircuit.experiment import Experiment
 
 
 class StandardQst(StandardQTomography):
+    _estimated_qoperation_type = State
+
     def __init__(
         self,
         povms: List[Povm],
@@ -92,9 +94,6 @@ class StandardQst(StandardQTomography):
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint, state.dim)
 
-        self.debug_set_qoperations = set_qoperations
-        self.debug_experiment = experiment
-
     def _set_coeffs(
         self, experiment: Experiment, on_para_eq_constraint: bool, dim: int
     ):
@@ -138,14 +137,14 @@ class StandardQst(StandardQTomography):
         ]
         return all(checks)
 
-    def _get_state_index(self, experiment: Experiment, schedule_index: int) -> int:
+    def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         state_index = schedule[0][1]
         return state_index
 
     def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
         """calculates a probability distribution.
-        
+
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_dataset`
         """
         # TODO
@@ -171,7 +170,7 @@ class StandardQst(StandardQTomography):
             Generated empirical distribution.
         """
         tmp_experiment = self._experiment.copy()
-        state_index = self._get_state_index(tmp_experiment, schedule_index)
+        state_index = self._get_target_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
 
         empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
@@ -188,7 +187,7 @@ class StandardQst(StandardQTomography):
         """
         tmp_experiment = self._experiment.copy()
         for schedule_index in range(len(tmp_experiment.schedules)):
-            state_index = self._get_state_index(tmp_experiment, schedule_index)
+            state_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
 
         num_sums = [num_sum] * self._num_schedules
@@ -221,7 +220,7 @@ class StandardQst(StandardQTomography):
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
-            state_index = self._get_state_index(tmp_experiment, schedule_index)
+            state_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
@@ -240,3 +239,4 @@ class StandardQst(StandardQTomography):
         template = self._set_qoperations.states[0]
         state = template.generate_from_var(var=var)
         return state
+
