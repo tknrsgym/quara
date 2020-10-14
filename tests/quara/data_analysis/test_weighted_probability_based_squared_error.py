@@ -152,41 +152,41 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         assert loss_func.on_gradient == False
         assert loss_func.on_hessian == False
         assert loss_func.on_func_prob_dists == False
-        assert loss_func.on_func_gradient_dists == False
-        assert loss_func.on_func_hessian_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
 
         loss_func.set_func_prob_dists(func_prob_dists())
         assert loss_func.on_value == True
         assert loss_func.on_gradient == False
         assert loss_func.on_hessian == False
         assert loss_func.on_func_prob_dists == True
-        assert loss_func.on_func_gradient_dists == False
-        assert loss_func.on_func_hessian_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
         assert loss_func.size_prob_dists() == 3
         assert len(loss_func.func_prob_dists) == 3
 
-        loss_func.set_func_gradient_dists(func_gradient_prob_dists())
+        loss_func.set_func_gradient_prob_dists(func_gradient_prob_dists())
         assert loss_func.on_value == True
         assert loss_func.on_gradient == True
         assert loss_func.on_hessian == False
         assert loss_func.on_func_prob_dists == True
-        assert loss_func.on_func_gradient_dists == True
-        assert loss_func.on_func_hessian_dists == False
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == False
         assert loss_func.size_prob_dists() == 3
         assert len(loss_func.func_prob_dists) == 3
-        assert len(loss_func.func_gradient_dists) == 3
+        assert len(loss_func.func_gradient_prob_dists) == 3
 
-        loss_func.set_func_hessian_dists(func_hessian_prob_dists())
+        loss_func.set_func_hessian_prob_dists(func_hessian_prob_dists())
         assert loss_func.on_value == True
         assert loss_func.on_gradient == True
         assert loss_func.on_hessian == True
         assert loss_func.on_func_prob_dists == True
-        assert loss_func.on_func_gradient_dists == True
-        assert loss_func.on_func_hessian_dists == True
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
         assert loss_func.size_prob_dists() == 3
         assert len(loss_func.func_prob_dists) == 3
-        assert len(loss_func.func_gradient_dists) == 3
-        assert len(loss_func.func_hessian_dists) == 3
+        assert len(loss_func.func_gradient_prob_dists) == 3
+        assert len(loss_func.func_hessian_prob_dists) == 3
 
         # case2: set_func_hessian_dists -> set_func_gradient_dists -> set_func_prob_dists
         loss_func = WeightedProbabilityBasedSquaredError(4, prob_dists_q=prob_dists_q)
@@ -194,39 +194,39 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         assert loss_func.on_gradient == False
         assert loss_func.on_hessian == False
         assert loss_func.on_func_prob_dists == False
-        assert loss_func.on_func_gradient_dists == False
-        assert loss_func.on_func_hessian_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
 
-        loss_func.set_func_hessian_dists(func_hessian_prob_dists())
+        loss_func.set_func_hessian_prob_dists(func_hessian_prob_dists())
         assert loss_func.on_value == False
         assert loss_func.on_gradient == False
         assert loss_func.on_hessian == False
         assert loss_func.on_func_prob_dists == False
-        assert loss_func.on_func_gradient_dists == False
-        assert loss_func.on_func_hessian_dists == True
-        assert len(loss_func.func_hessian_dists) == 3
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == True
+        assert len(loss_func.func_hessian_prob_dists) == 3
 
-        loss_func.set_func_gradient_dists(func_gradient_prob_dists())
+        loss_func.set_func_gradient_prob_dists(func_gradient_prob_dists())
         assert loss_func.on_value == False
         assert loss_func.on_gradient == False
         assert loss_func.on_hessian == False
         assert loss_func.on_func_prob_dists == False
-        assert loss_func.on_func_gradient_dists == True
-        assert loss_func.on_func_hessian_dists == True
-        assert len(loss_func.func_gradient_dists) == 3
-        assert len(loss_func.func_hessian_dists) == 3
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
+        assert len(loss_func.func_gradient_prob_dists) == 3
+        assert len(loss_func.func_hessian_prob_dists) == 3
 
         loss_func.set_func_prob_dists(func_prob_dists())
         assert loss_func.on_value == True
         assert loss_func.on_gradient == True
         assert loss_func.on_hessian == True
         assert loss_func.on_func_prob_dists == True
-        assert loss_func.on_func_gradient_dists == True
-        assert loss_func.on_func_hessian_dists == True
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
         assert loss_func.size_prob_dists() == 3
         assert len(loss_func.func_prob_dists) == 3
-        assert len(loss_func.func_gradient_dists) == 3
-        assert len(loss_func.func_hessian_dists) == 3
+        assert len(loss_func.func_gradient_prob_dists) == 3
+        assert len(loss_func.func_hessian_prob_dists) == 3
 
     def test_value(self):
         func = WeightedProbabilityBasedSquaredError(
@@ -362,5 +362,5 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         assert loss_func.on_gradient == False
         assert loss_func.on_hessian == False
         assert loss_func.on_func_prob_dists == True
-        assert loss_func.on_func_gradient_dists == True
-        assert loss_func.on_func_hessian_dists == True
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
