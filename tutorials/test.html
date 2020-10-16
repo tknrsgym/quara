@@ -9,11 +9,12 @@
              table {border: solid 1px #666666;}
              h1 {margin-top: 60px; border-top: 2px #dcdcdc solid; padding-top: 10px; font-size: 25px}
              h2 {font-size: 20px}
-             h3 {color: #618CBC}
+             h3 {color:#EB9348; font-size: 15px;}
              .box{
                  display: inline-block;
                  width: 400px;
                 }
+            h4{font-size: 15px; color: #618CBC; }
          -->
     </style>
 <title>タイトル</title>
@@ -30,8 +31,19 @@
 <h1>Physicality Violation Test</h1>
 
 <h2>on_para_eq_constraint=True</h2>
-<h3>case 0: LinearEstimator<h3>
+<h3>case 0: LinearEstimator(True)<h3>
 <div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=0_trace_num=100_0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=0_trace_num=1000_0.png></div></div>
 
+<h2>on_para_eq_constraint=False</h2>
+<h3>case 1: LinearEstimator(False)<h3>
+<h4>Eigenvalue</h4>
+<div><div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=0_i=0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=0_i=1.png></div></div><div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=1_i=0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=1_i=1.png></div></div></div>
+<h4>Sum of unphysical eigenvalues </h4>
+<div><div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_sum-unphysical-eigenvalues_num=0_type=0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_sum-unphysical-eigenvalues_num=0_type=1.png></div></div><div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_sum-unphysical-eigenvalues_num=1_type=0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_sum-unphysical-eigenvalues_num=1_type=1.png></div></div></div>
+
+
+<div>
+end
+</div>
 </body>
 </html>

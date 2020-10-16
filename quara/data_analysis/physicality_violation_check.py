@@ -225,13 +225,13 @@ def make_graphs_eigenvalues(
 def make_graphs_sum_unphysical_eigenvalues(
     estimation_results: List[EstimationResult],
     num_data: List[int],
-    index: int = 0,
+    num_data_index: int = 0,
     bin_size: float = 0.0001,
 ):
     estimated_qoperations = _convert_result_to_qoperation(
-        estimation_results, index=index
+        estimation_results, index=num_data_index
     )
-    n_data = num_data[index]
+    n_data = num_data[num_data_index]
     sample_object = estimated_qoperations[0]
     if type(sample_object) == State:
         figs = _make_graphs_sum_unphysical_eigenvalues_state(
@@ -302,7 +302,9 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
     )
 
     n_unphysical = len(less_than_zero_list)
-    title = f"N={num_data}, Nrep={n_rep}, Number of Unphysical estimates={n_unphysical}"
+    title = (
+        f"N={num_data}, Nrep={n_rep}<br>Number of Unphysical estimates={n_unphysical}"
+    )
     fig.update_layout(title=title)
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (<0)")
     figs.append(fig)
@@ -316,9 +318,73 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
     )
 
     n_unphysical = len(less_than_zero_list)
-    title = f"N={num_data}, Nrep={n_rep}, Number of Unphysical estimates={n_unphysical}"
+    title = (
+        f"N={num_data}, Nrep={n_rep}<br>Number of Unphysical estimates={n_unphysical}"
+    )
     fig.update_layout(title=title)  # TODO
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
     figs.append(fig)
 
     return figs
+
+
+def _generate_graph_sum_eigenvalues_seq(
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    true_object,
+    num_data: List[int],
+) -> list:
+
+    fig_info_list_list = []
+    for num_data_index in range(len(num_data)):
+        fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
+            estimation_results, num_data=num_data, num_data_index=num_data_index,
+        )
+        fig_info_list = []
+
+        for i, fig in enumerate(fig_list):
+            fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
+
+            # output
+            # TODO
+            dir_path = Path(
+                "/Users/tomoko/project/rcast/workspace/quara/tutorials/images"
+            )
+            path = str(dir_path / f"{fig_name}.png")
+            fig.update_layout(width=500, height=400)
+            dir_path.mkdir(exist_ok=True)
+            fig.write_image(path)
+
+            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+
+        fig_info_list_list.append(fig_info_list)
+    return fig_info_list_list
+
+
+def _generate_sum_eigenvalues_div(fig_info_list_list) -> str:
+    graph_block_html_all = ""
+    for fig_info_list in fig_info_list_list:
+        graph_block_html = ""
+        for fig_info in fig_info_list:
+            graph_subblock = (
+                f"<div class='box'><img src={fig_info['image_path']}></div>"
+            )
+            graph_block_html += graph_subblock
+
+        graph_block_html_all += f"<div>{graph_block_html}</div>"
+    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+
+    return graph_block_html_all
+
+
+def generate_sum_eigenvalues_div(
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    num_data: List[int],
+    true_object,
+):
+    fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
+        estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
+    )
+    div_html = _generate_eigenvalues_div(fig_info_list_list)
+    return div_html
