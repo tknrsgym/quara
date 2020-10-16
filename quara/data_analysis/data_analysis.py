@@ -298,12 +298,12 @@ def show_mse(num_data: List[int], mses: List[float], title: str = "Mean Square V
     fig.show()
 
 
-def show_mses(
+def make_mses_graph(
     num_data: List[int],
     mses: List[List[float]],
     title: str = "Mean Square Value",
     names: Optional[List[str]] = None,
-):
+) -> List["Figure"]:
     if not names:
         names = [f"data_{i}" for i in range(len(mses))]
     data = []
@@ -319,6 +319,16 @@ def show_mses(
         yaxis_type="log",
     )
     fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def show_mses(
+    num_data: List[int],
+    mses: List[List[float]],
+    title: str = "Mean Square Value",
+    names: Optional[List[str]] = None,
+):
+    fig = make_mses_graph(num_data=num_data, mses=mses, title=title, names=names)
     fig.show()
 
 
