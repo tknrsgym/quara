@@ -5,18 +5,19 @@
     <style type="text/css">
         <!--
              body {color: #666666;}
-             {table_contents_css}
-             table {border: solid 1px #666666;}
              h1 {margin-top: 60px; border-top: 2px #dcdcdc solid; padding-top: 10px; font-size: 25px}
              h2 {font-size: 20px}
              h3 {color:#EB9348; font-size: 15px;}
-             .box{
-                 display: inline-block;
-                 width: 400px;
-                }
-            h4{font-size: 15px; color: #618CBC; }
+             h4{font-size: 15px; color: #618CBC; }
+            
+.box{
+ display: inline-block;
+ width: 400px;
+}
+
             
 table{
+  border: solid 1px #666666;
   border-collapse: collapse;
   border-spacing: 0;
 }
@@ -45,18 +46,21 @@ table td{
   width: 400px;
 }
 
-            pdftoc {color: #666;}
-            pdftoc.pdftoclevel0 {
-                        font-weight: bold;
-                        margin-top: 0.5em;
-                        }
-            pdftoc.pdftoclevel1 {
-                        margin-left: 1em;
-                        }
-            pdftoc.pdftoclevel2 {
-                        margin-left: 2em;
-                        font-style: italic;
-                        }
+            
+pdftoc {
+    color: #666;
+}
+pdftoc.pdftoclevel0 {
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+pdftoc.pdftoclevel1 {
+    margin-left: 1em;
+}
+pdftoc.pdftoclevel2 {
+    margin-left: 2em;
+    font-style: italic;
+}
          -->
     </style>
 <title>タイトル</title>
@@ -167,7 +171,7 @@ table td{
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>case_name</th>
+      <th>name</th>
       <th>tomography</th>
       <th>estimator</th>
     </tr>
@@ -187,6 +191,8 @@ table td{
     </tr>
   </tbody>
 </table>
+<h1>Consistency Test</h1>
+<div>(TODO)</div>
 </div><h1>MSE</h1>
 <div>
 <div><img src="/Users/tomoko/project/rcast/workspace/quara/tutorials/images/mse.png"></div>
