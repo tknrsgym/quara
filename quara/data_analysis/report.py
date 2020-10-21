@@ -1,10 +1,11 @@
+from quara.protocol.qtomography.estimator import EstimationResult
 from typing import List
 from pathlib import Path
 
 from xhtml2pdf import pisa
 from xhtml2pdf.config.httpconfig import httpConfig
 
-from quara.data_analysis import physicality_violation_check
+from quara.data_analysis import physicality_violation_check, data_analysis
 
 _TEMPLATE_BASE = """<html>
     <body>
@@ -208,3 +209,39 @@ def generate_sum_eigenvalues_div(
     )
     div_html = _generate_eigenvalues_div(fig_info_list_list)
     return div_html
+
+
+def generate_mse_div(
+    estimation_results_list: List[List[EstimationResult]],
+    case_name_list: List[str],
+    true_object,
+    num_data: List[int],
+    n_rep: int = None,
+) -> str:
+    mses_list = []
+    print("generate_mse_div")
+
+    for result in estimation_results_list:
+        mses, *_ = data_analysis.convert_to_series(result, true_object)
+        mses_list.append(mses)
+        name_list = [f"case {i}: {name}" for i, name in enumerate(case_name_list)]
+
+    title = f"Mean Square Value"
+    if not n_rep:
+        title += "<br>Nrep={n_rep}"
+
+    fig = data_analysis.make_mses_graph(
+        num_data=num_data, mses=mses_list, names=case_name_list, title=title
+    )
+
+    fig_name = f"mse"
+
+    # TODO:
+    dir_path = Path("/Users/tomoko/project/rcast/workspace/quara/tutorials/images")
+    path = str(dir_path / f"{fig_name}.png")
+    dir_path.mkdir(exist_ok=True)
+    fig.write_image(path)
+
+    mse_div = f"""<div><img src="{path}"></div>
+    """
+    return mse_div
