@@ -211,6 +211,14 @@ class ProbabilityBasedLossFunction(LossFunction):
             vectors of ``q``, by default None.
         """
         self._prob_dists_q = prob_dists_q
+        if self.prob_dists_q:
+            self._on_prob_dists_q = True
+        else:
+            self._on_prob_dists_q = False
+
+        self._update_on_value_true()
+        self._update_on_gradient_true()
+        self._update_on_hessian_true()
 
     def _generate_func_prob_dist(
         self, matA: np.array, vecB: np.array, size_prob_dist: int, index: int
