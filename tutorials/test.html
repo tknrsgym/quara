@@ -38,11 +38,127 @@ pdftoc.pdftoclevel2 {
 <h1>Table of Contents</h1>
 <pdf:toc />
 </div>
+<h1>Experimental Condition</h1>
+<div>
+
+<table>
+  <tr>
+    <td>John</td>
+    <td>Doe</td>
+  </tr>
+  <tr>
+    <td>Jane<br>hoge</td>
+    <td>Doe</td>
+  </tr>
+</table>
+
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>featureA</th>
+      <th>featureB</th>
+      <th>featureC</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">dataA</th>
+      <th>2016-07-01 00:00:00</th>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>2016-07-01 00:01:00</th>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>2016-07-01 00:02:00</th>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">dataB</th>
+      <th>2016-07-01 00:00:00</th>
+      <td>2.0</td>
+      <td>2.0</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>2016-07-01 00:01:00</th>
+      <td>2.0</td>
+      <td>2.0</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>2016-07-01 00:02:00</th>
+      <td>2.0</td>
+      <td>2.0</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">dataC</th>
+      <th>2016-07-01 00:00:00</th>
+      <td>3.0</td>
+      <td>3.0</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>2016-07-01 00:01:00</th>
+      <td>3.0</td>
+      <td>3.0</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>2016-07-01 00:02:00</th>
+      <td>3.0</td>
+      <td>3.0</td>
+      <td>3.0</td>
+    </tr>
+  </tbody>
+</table>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>type:&amp;#009;Povm&lt;br&gt;dim:&amp;#009;2&lt;br&gt;number of measurements:&amp;#009;2&lt;br&gt;vec:&amp;#009;[0.70710678 0.70710678 0.         0.        ]&lt;br&gt;&amp;#009;[ 0.70710678 -0.70710678  0.          0.        ]&lt;br&gt;</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>type:&amp;#009;Povm&lt;br&gt;dim:&amp;#009;2&lt;br&gt;number of measurements:&amp;#009;2&lt;br&gt;vec:&amp;#009;[0.70710678 0.         0.70710678 0.        ]&lt;br&gt;&amp;#009;[ 0.70710678  0.         -0.70710678  0.        ]&lt;br&gt;</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>type:&amp;#009;Povm&lt;br&gt;dim:&amp;#009;2&lt;br&gt;number of measurements:&amp;#009;2&lt;br&gt;vec:&amp;#009;[0.70710678 0.         0.         0.70710678]&lt;br&gt;&amp;#009;[ 0.70710678  0.          0.         -0.70710678]&lt;br&gt;</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>True Object</h2>
+<div>
+type:	State<br>dim:	2<br>vec:	[0.70710678 0.         0.         0.70710678]
+</div>
+<h2>Tester Objects</h2>
+<div>
+    type:&#009;Povm<br>dim:&#009;2<br>number of measurements:&#009;2<br>vec:&#009;[0.70710678 0.70710678 0.         0.        ]<br>&#009;[ 0.70710678 -0.70710678  0.          0.        ]<br>type:&#009;Povm<br>dim:&#009;2<br>number of measurements:&#009;2<br>vec:&#009;[0.70710678 0.         0.70710678 0.        ]<br>&#009;[ 0.70710678  0.         -0.70710678  0.        ]<br>type:&#009;Povm<br>dim:&#009;2<br>number of measurements:&#009;2<br>vec:&#009;[0.70710678 0.         0.         0.70710678]<br>&#009;[ 0.70710678  0.          0.         -0.70710678]<br>
+</div>
 <h1>MSE</h1>
 <div>
 <div><img src="/Users/tomoko/project/rcast/workspace/quara/tutorials/images/mse.png"></div>
     
-<p>TODO: 解析解を追加する</p>
 </div>
 <h1>Physicality Violation Test</h1>
 
