@@ -1,12 +1,13 @@
-from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
-from quara.protocol.qtomography.estimator import EstimationResult
 from typing import List, Tuple, Optional
 from pathlib import Path
 
+import pandas as pd
 from xhtml2pdf import pisa
 from xhtml2pdf.config.httpconfig import httpConfig
 
 from quara.data_analysis import physicality_violation_check, data_analysis
+from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
+from quara.protocol.qtomography.estimator import EstimationResult
 
 
 def _convert_html2pdf(source_html: str, output_path: str):
@@ -233,3 +234,46 @@ def generate_mse_div(
     mse_div = f"""<div><img src="{path}"></div>
     """
     return mse_div
+
+
+def _convert_object_to_datafrane(qoperation) -> pd.DataFrame:
+    desc = str(qoperation)
+
+    # parse description of QOperation
+    item_names = [t[t.rfind("\n") + 1 :] for t in desc.split("\t")][:-1]
+    item_names = [item.replace(":", "") for item in item_names if item]
+
+    continue_flag, before_t = False, ""
+    value_list = []
+    pre_value_list = desc.split("\t")[1:]
+
+    for i, t in enumerate(pre_value_list):
+        if continue_flag:
+            target = before_t + t
+        else:
+            target = t[: t.find("\n")]
+
+        if t.endswith("\n") and i < len(pre_value_list) - 1:
+            # 続く場合
+            continue_flag = True
+            before_t = t
+        else:
+            # この行が最後の場合
+            continue_flag = False
+            before_t = ""
+            value_list.append(target)
+    value_list = [v.replace("\n", "<br>") for v in value_list]
+
+    df = pd.DataFrame(value_list, item_names).rename(columns={0: "value"})
+
+    return df
+
+
+def _convert_objects_to_multiindex_dataframe(qoperations) -> pd.DataFrame:
+    df_dict = {}
+
+    for i, tester in enumerate(qoperations):
+        df_dict[i] = _convert_object_to_datafrane(qoperations[i])
+
+    objects_df_multiindex = pd.concat(df_dict, axis=0)
+    return objects_df_multiindex
