@@ -98,6 +98,15 @@ class Povm(QOperation):
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the POVM is not physically correct.")
 
+    def __str__(self):
+        desc = f"type:\t{self.__class__.__name__}\n"
+        desc += f"dim:\t{self.dim}\n"
+        desc += f"number of measurements:\t{len(self.vecs)}\n"
+        desc += f"vec:"
+        for vec in self.vecs:
+            desc += f"\t{vec}\n"
+        return desc
+
     @property
     def vecs(self) -> List[np.ndarray]:  # read only
         """Property to get vecs of povm.
