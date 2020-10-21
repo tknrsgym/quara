@@ -163,6 +163,13 @@ class Experiment:
                 error_message = "'{}' must be a list of {}.".format(
                     arg_name, expected_type.__name__
                 )
+                if type(target) == list:
+                    type_names = set([type(t) for t in target])
+                    type_names = ", ".join(type_names)
+                    error_message += f"Type of parameter passed: List of {type_names}"
+                else:
+                    error_message += f"Type of parameter passed: {type(target)}"
+
                 raise TypeError(error_message)
 
     def _validate_schedules(
