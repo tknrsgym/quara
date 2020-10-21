@@ -9,9 +9,9 @@ from quara.data_analysis import physicality_violation_check, data_analysis
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
 
-
 _table_css = """
 table{
+  border: solid 1px #666666;
   border-collapse: collapse;
   border-spacing: 0;
 }
@@ -38,6 +38,29 @@ table td{
   padding-top: 3px;
   padding-right: 3px;
   width: 400px;
+}
+"""
+
+_table_contents_css = """
+pdftoc {
+    color: #666;
+}
+pdftoc.pdftoclevel0 {
+    font-weight: bold;
+    margin-top: 0.5em;
+}
+pdftoc.pdftoclevel1 {
+    margin-left: 1em;
+}
+pdftoc.pdftoclevel2 {
+    margin-left: 2em;
+    font-style: italic;
+}"""
+
+_inline_block_css = """
+.box{
+ display: inline-block;
+ width: 400px;
 }
 """
 
