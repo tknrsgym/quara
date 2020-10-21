@@ -10,6 +10,38 @@ from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimato
 from quara.protocol.qtomography.estimator import EstimationResult
 
 
+_table_css = """
+table{
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+table tr{
+  border-bottom: solid 1px #666;
+}
+
+table th{
+  text-align: right;
+  background-color: #666;
+  color: #fff;
+  border-bottom: solid 1px #fff;
+  border-right: solid 1px #fff;
+  font-size: 13px;
+  width: 100px;
+  padding-top: 3px;
+  padding-right: 3px;
+}
+
+table td{
+  text-align: right;
+  font-size: 13px;
+  padding-top: 3px;
+  padding-right: 3px;
+  width: 400px;
+}
+"""
+
+
 def _convert_html2pdf(source_html: str, output_path: str):
     # TODO: make parent directory
     # TODO: check file extension
@@ -236,13 +268,8 @@ def generate_mse_div(
     return mse_div
 
 
-def _convert_object_to_datafrane(qoperation) -> pd.DataFrame:
+def _parse_qoperation_desc(qoperation) -> list:
     desc = str(qoperation)
-
-    # parse description of QOperation
-    item_names = [t[t.rfind("\n") + 1 :] for t in desc.split("\t")][:-1]
-    item_names = [item.replace(":", "") for item in item_names if item]
-
     continue_flag, before_t = False, ""
     value_list = []
     pre_value_list = desc.split("\t")[1:]
@@ -263,6 +290,16 @@ def _convert_object_to_datafrane(qoperation) -> pd.DataFrame:
             before_t = ""
             value_list.append(target)
     value_list = [v.replace("\n", "<br>") for v in value_list]
+    return value_list
+
+
+def _convert_object_to_datafrane(qoperation) -> pd.DataFrame:
+    desc = str(qoperation)
+
+    # parse description of QOperation
+    item_names = [t[t.rfind("\n") + 1 :] for t in desc.split("\t")][:-1]
+    item_names = [item.replace(":", "") for item in item_names if item]
+    value_list = _parse_qoperation_desc(qoperation)
 
     df = pd.DataFrame(value_list, item_names).rename(columns={0: "value"})
 

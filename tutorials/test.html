@@ -45,20 +45,18 @@ table td{
   width: 400px;
 }
 
-            pdftoc {
-    color: #666;
-}
-pdftoc.pdftoclevel0 {
-    font-weight: bold;
-    margin-top: 0.5em;
-}
-pdftoc.pdftoclevel1 {
-    margin-left: 1em;
-}
-pdftoc.pdftoclevel2 {
-    margin-left: 2em;
-    font-style: italic;
-}
+            pdftoc {color: #666;}
+            pdftoc.pdftoclevel0 {
+                        font-weight: bold;
+                        margin-top: 0.5em;
+                        }
+            pdftoc.pdftoclevel1 {
+                        margin-left: 1em;
+                        }
+            pdftoc.pdftoclevel2 {
+                        margin-left: 2em;
+                        font-style: italic;
+                        }
          -->
     </style>
 <title>タイトル</title>
@@ -160,6 +158,32 @@ pdftoc.pdftoclevel2 {
     <tr>
       <th>vec</th>
       <td>[0.70710678 0.         0.         0.70710678]<br>[ 0.70710678  0.          0.         -0.70710678]<br></td>
+    </tr>
+  </tbody>
+</table>
+<h2>Cases</h2>
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>case_name</th>
+      <th>tomography</th>
+      <th>estimator</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>LinearEstimator(True)</td>
+      <td>StandardQst</td>
+      <td>LinearEstimator</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>LinearEstimator(False)</td>
+      <td>StandardQst</td>
+      <td>LinearEstimator</td>
     </tr>
   </tbody>
 </table>
