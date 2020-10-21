@@ -1,36 +1,12 @@
+from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
-from typing import List
+from typing import List, Tuple, Optional
 from pathlib import Path
 
 from xhtml2pdf import pisa
 from xhtml2pdf.config.httpconfig import httpConfig
 
 from quara.data_analysis import physicality_violation_check, data_analysis
-
-_TEMPLATE_BASE = """<html>
-    <body>
-        {}
-        <hr>
-        {}
-    </body>
-</html>
-"""
-_TEMPLATE_SECTION_PHYSICALITY_VIOLATION_CHECK = """<div>
-    <h2>Physicality Violation Check</h2>
-    {}
-</div>"""
-
-_TAMPLATE_SUBSECTION_PYHYICALITY_VIOLATION_CHECK = """<div>
-    <h3>Distribution of Eigenvalues</h3>
-    <img src="images/figure_1.png">
-    <h3>Sum of Unphysival Eigenvalues</h3>
-    <img src="images/figure_2.png">
-</div>
-"""
-_TEMPLATE_SECTION_MSE = """<div>
-    <h2>Mean Square Error</h2>
-    <img src="images/figure_3.png">
-</div>"""
 
 
 def _convert_html2pdf(source_html: str, output_path: str):
@@ -217,21 +193,33 @@ def generate_mse_div(
     true_object,
     num_data: List[int],
     n_rep: int = None,
+    qtomographies: List["StandardQTomography"] = None,
 ) -> str:
     mses_list = []
-    print("generate_mse_div")
+    display_name_list = []
 
     for result in estimation_results_list:
         mses, *_ = data_analysis.convert_to_series(result, true_object)
         mses_list.append(mses)
-        name_list = [f"case {i}: {name}" for i, name in enumerate(case_name_list)]
+        display_name_list = [
+            f"case {i}: {name}" for i, name in enumerate(case_name_list)
+        ]
+
+    if qtomographies:
+        for qtomography in qtomographies:
+            true_mses = []
+            for num in num_data:
+                true_mse = qtomography.calc_mse_linear(true_object, [num] * 3)
+                true_mses.append(true_mse)
+            mses_list.append(true_mses)
+            display_name_list.append("analytical solution")
 
     title = f"Mean Square Value"
     if not n_rep:
         title += "<br>Nrep={n_rep}"
 
     fig = data_analysis.make_mses_graph(
-        num_data=num_data, mses=mses_list, names=case_name_list, title=title
+        num_data=num_data, mses=mses_list, names=display_name_list, title=title
     )
 
     fig_name = f"mse"
