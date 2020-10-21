@@ -398,14 +398,3 @@ class TestProbabilityBasedLossFunction:
         assert len(loss_func.func_prob_dists) == 3
         assert len(loss_func.func_gradient_prob_dists) == 3
         assert len(loss_func.func_hessian_prob_dists) == 3
-
-    def test_prob_dist_size_4(self):
-        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
-        c_sys = CompositeSystem([e_sys])
-
-        povm_x = get_x_measurement(c_sys)
-        povm_y = get_y_measurement(c_sys)
-        povm_z = get_z_measurement(c_sys)
-        povms = [povm_x, povm_y, povm_z]
-
-        qst = StandardQst(povms, on_para_eq_constraint=False, seed=7)
