@@ -52,12 +52,11 @@ def gradient_relative_entropy_2nd(
     return val
 
 
-"""
 def hessian_relative_entropy_2nd(
     prob_dist_q: np.array,
     prob_dist_p: np.array,
-    gradient_prob_dist_p: np.array,
-    hessian_prob_dist_p: np.array,
+    gradient_prob_dist_ps: np.array,  # TODO 2D
+    hessian_prob_dist_ps: np.array,  # TODO 3D
     eps_q: float = None,
     eps_p: float = None,
 ) -> float:
@@ -68,7 +67,7 @@ def hessian_relative_entropy_2nd(
 
     val = 0
     for q, p, grad_p, hess_p in zip(
-        prob_dist_q, prob_dist_p, gradient_prob_dist_p, hessian_prob_dist_p
+        prob_dist_q, prob_dist_p, gradient_prob_dist_ps, hessian_prob_dist_ps
     ):
         if q >= eps_q:
             p_round = round_varz(p, eps_p)
@@ -78,5 +77,3 @@ def hessian_relative_entropy_2nd(
             )
 
     return val
-"""
-
