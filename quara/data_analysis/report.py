@@ -11,21 +11,22 @@ from quara.protocol.qtomography.estimator import EstimationResult
 
 _table_css = """
 table{
-  border: solid 1px #666666;
+  border: solid 1px #d3d3d3;
   border-collapse: collapse;
   border-spacing: 0;
+  table-layout: fixed;
+  width:100%;
 }
 
 table tr{
-  border-bottom: solid 1px #666;
+  border: solid 1px #d3d3d3;
 }
 
 table th{
   text-align: right;
-  background-color: #666;
-  color: #fff;
-  border-bottom: solid 1px #fff;
-  border-right: solid 1px #fff;
+  background-color: #666666;
+  color: #ffffff;
+  border: solid 1px #ffffff;
   font-size: 13px;
   width: 100px;
   padding-top: 3px;
@@ -37,7 +38,8 @@ table td{
   font-size: 13px;
   padding-top: 3px;
   padding-right: 3px;
-  width: 400px;
+  width: 350px;
+  word-break: break-all;
 }
 """
 
