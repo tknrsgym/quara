@@ -1,3 +1,6 @@
+import tempfile
+import shutil
+
 from typing import List, Tuple, Optional
 from pathlib import Path
 
@@ -8,6 +11,8 @@ from xhtml2pdf.config.httpconfig import httpConfig
 from quara.data_analysis import physicality_violation_check, data_analysis
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
+
+_temp_dir_path = ""
 
 _css = f"""
 body {{color: #666666;}}
@@ -101,8 +106,7 @@ def _make_graph_trace_seq(
         fig_name = f"case={case_id}_trace_num={num}_0"
 
         # output
-        # TODO
-        dir_path = Path("/Users/tomoko/project/rcast/workspace/quara/tutorials/images")
+        dir_path = Path(_temp_dir_path)
         path = str(dir_path / f"{fig_name}.png")
         fig.update_layout(width=500, height=400)
         dir_path.mkdir(exist_ok=True)
@@ -151,10 +155,7 @@ def _generate_graph_eigenvalues_seq(
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
 
             # output
-            # TODO
-            dir_path = Path(
-                "/Users/tomoko/project/rcast/workspace/quara/tutorials/images"
-            )
+            dir_path = Path(_temp_dir_path)
             path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
             dir_path.mkdir(exist_ok=True)
@@ -213,10 +214,7 @@ def _generate_graph_sum_eigenvalues_seq(
             fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
 
             # output
-            # TODO
-            dir_path = Path(
-                "/Users/tomoko/project/rcast/workspace/quara/tutorials/images"
-            )
+            dir_path = Path(_temp_dir_path)
             path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
             dir_path.mkdir(exist_ok=True)
@@ -294,8 +292,7 @@ def generate_mse_div(
 
     fig_name = f"mse"
 
-    # TODO:
-    dir_path = Path("/Users/tomoko/project/rcast/workspace/quara/tutorials/images")
+    dir_path = Path(_temp_dir_path)
     path = str(dir_path / f"{fig_name}.png")
     dir_path.mkdir(exist_ok=True)
     fig.write_image(path)
@@ -464,7 +461,12 @@ def export_report(
     tester_objects,
     num_data,
     n_rep,
+    save_materials: bool = False,
 ):
+    temp_dir_path = tempfile.mkdtemp()
+    global _temp_dir_path
+    _temp_dir_path = Path(temp_dir_path)
+
     # Experiment Condition
     condition_table = generate_condition_table(qtomography_list, n_rep, num_data)
 
@@ -543,7 +545,20 @@ def export_report(
     </div>
 </body>
 </html>"""
-    with open("test.html", "w") as f:
+
+    # print(Path(_temp_dir_path) / "quara_report.html")
+    with open(Path(_temp_dir_path) / "quara_report.html", "w") as f:
         f.write(report_html)
 
     _convert_html2pdf(report_html, path)
+    if save_materials:
+        import datetime as dt
+
+        identity = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+        material_path = f"quara_report_{identity}"
+        Path(material_path).mkdir(parents=True, exist_ok=True)
+        shutil.copytree(_temp_dir_path, material_path, dirs_exist_ok=True)
+
+    shutil.rmtree(_temp_dir_path)
+    _temp_dir_path = ""
+    print(f"Completed to export pdf. ({path})")
