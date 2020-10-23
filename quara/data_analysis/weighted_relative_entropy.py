@@ -120,18 +120,15 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.value`
         """
-        tmp_values = []
+        val = 0.0
         for index in range(len(self.func_prob_dists)):
             q = self.prob_dists_q[index]
             p = self.func_prob_dists[index](var)
             if self.weights:
-                tmp_value = self.weights[index] * relative_entropy(q, p)
+                val += self.weights[index] * relative_entropy(q, p)
             else:
-                tmp_value = relative_entropy(q, p)
+                val += relative_entropy(q, p)
 
-            tmp_values.append(tmp_value)
-
-        val = np.sum(tmp_values)
         return val
 
     def gradient(self, var: np.array) -> np.array:
@@ -139,25 +136,23 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`
         """
-        grad = []
-        for alpha in range(self.num_var):
-            tmp_values = []
-            for index in range(len(self.func_prob_dists)):
-                q = self.prob_dists_q[index]
-                p = self.func_prob_dists[index](var)
-                grad_p = self.func_gradient_prob_dists[index](alpha, var)
-                if self.weights:
-                    tmp_value = self.weights[index] * gradient_relative_entropy_2nd(
-                        q, p, grad_p
-                    )
-                else:
-                    tmp_value = gradient_relative_entropy_2nd(q, p, grad_p)
+        grad = np.zeros(self.num_var, dtype=np.float64)
+        for index in range(len(self.func_prob_dists)):
+            tmp_grad_ps = []
+            for alpha in range(self.num_var):
+                tmp_grad_ps.append(self.func_gradient_prob_dists[index](alpha, var))
+            grad_ps = np.stack(tmp_grad_ps, 1)
 
-                tmp_values.append(tmp_value)
+            q = self.prob_dists_q[index]
+            p = self.func_prob_dists[index](var)
+            if self.weights:
+                grad += self.weights[index] * gradient_relative_entropy_2nd(
+                    q, p, grad_ps
+                )
+            else:
+                grad += gradient_relative_entropy_2nd(q, p, grad_ps)
 
-            val = np.sum(tmp_values)
-            grad.append(val)
-        return np.array(grad, dtype=np.float64)
+        return grad
 
     def hessian(self, var: np.array) -> np.array:
         """returns the Hessian of Weighted Probability Based Squared Error.
