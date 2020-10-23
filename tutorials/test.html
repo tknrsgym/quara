@@ -67,101 +67,101 @@ pdftoc.pdftoclevel2 {
 </head>
 <body>
 <div id="table_of_contents">
-<h1>Table of Contents</h1>
+<h1>Table of contents</h1>
 <pdf:toc />
 </div>
-<h1>Experimental Condition</h1>
+<h1>Experimental condition</h1>
 <div>
 <table border="1" class="dataframe">
   <tbody>
     <tr>
-      <th>type of tomography</th>
+      <th>Type of tomography</th>
       <td>StandardQst</td>
     </tr>
     <tr>
-      <th>n_rep</th>
+      <th>Nrep</th>
       <td>100</td>
     </tr>
     <tr>
-      <th>num_data</th>
+      <th>N</th>
       <td>[100, 1000]</td>
     </tr>
   </tbody>
 </table>
 </div>
-<h2>True Object</h2>
+<h2>True object</h2>
 <div>
 <table border="1" class="dataframe">
   <tbody>
     <tr>
-      <th>type</th>
+      <th>Type</th>
       <td>State</td>
     </tr>
     <tr>
-      <th>dim</th>
+      <th>Dim</th>
       <td>2</td>
     </tr>
     <tr>
-      <th>vec</th>
-      <td>[0.70710678 0.         0.         0.70710678</td>
+      <th>Vec</th>
+      <td>[0.70710678 0.         0.         0.70710678]</td>
     </tr>
   </tbody>
 </table>
 </div>
-<h2>Tester Objects</h2>
+<h2>Tester objects</h2>
 <div>
 <table border="1" class="dataframe">
   <tbody>
     <tr>
       <th rowspan="4" valign="top">0</th>
-      <th>type</th>
+      <th>Type</th>
       <td>Povm</td>
     </tr>
     <tr>
-      <th>dim</th>
+      <th>Dim</th>
       <td>2</td>
     </tr>
     <tr>
-      <th>number of measurements</th>
+      <th>Outcomes</th>
       <td>2</td>
     </tr>
     <tr>
-      <th>vec</th>
-      <td>[0.70710678 0.70710678 0.         0.        ]<br>[ 0.70710678 -0.70710678  0.          0.        ]<br></td>
+      <th>Vecs</th>
+      <td>[0.70710678 0.70710678 0.         0.        ]<br>[ 0.70710678 -0.70710678  0.          0.        ]</td>
     </tr>
     <tr>
       <th rowspan="4" valign="top">1</th>
-      <th>type</th>
+      <th>Type</th>
       <td>Povm</td>
     </tr>
     <tr>
-      <th>dim</th>
+      <th>Dim</th>
       <td>2</td>
     </tr>
     <tr>
-      <th>number of measurements</th>
+      <th>Outcomes</th>
       <td>2</td>
     </tr>
     <tr>
-      <th>vec</th>
-      <td>[0.70710678 0.         0.70710678 0.        ]<br>[ 0.70710678  0.         -0.70710678  0.        ]<br></td>
+      <th>Vecs</th>
+      <td>[0.70710678 0.         0.70710678 0.        ]<br>[ 0.70710678  0.         -0.70710678  0.        ]</td>
     </tr>
     <tr>
       <th rowspan="4" valign="top">2</th>
-      <th>type</th>
+      <th>Type</th>
       <td>Povm</td>
     </tr>
     <tr>
-      <th>dim</th>
+      <th>Dim</th>
       <td>2</td>
     </tr>
     <tr>
-      <th>number of measurements</th>
+      <th>Outcomes</th>
       <td>2</td>
     </tr>
     <tr>
-      <th>vec</th>
-      <td>[0.70710678 0.         0.         0.70710678]<br>[ 0.70710678  0.          0.         -0.70710678]<br></td>
+      <th>Vecs</th>
+      <td>[0.70710678 0.         0.         0.70710678]<br>[ 0.70710678  0.          0.         -0.70710678]</td>
     </tr>
   </tbody>
 </table>
@@ -171,41 +171,58 @@ pdftoc.pdftoclevel2 {
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>name</th>
-      <th>tomography</th>
-      <th>estimator</th>
+      <th>Name</th>
+      <th>Parameterization</th>
+      <th>Tomography</th>
+      <th>Estimator</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
       <td>LinearEstimator(True)</td>
+      <td>True</td>
       <td>StandardQst</td>
       <td>LinearEstimator</td>
     </tr>
     <tr>
       <th>1</th>
       <td>LinearEstimator(False)</td>
+      <td>False</td>
       <td>StandardQst</td>
       <td>LinearEstimator</td>
     </tr>
+    <tr>
+      <th>2</th>
+      <td>ProjectedLinearEstimator(True)</td>
+      <td>True</td>
+      <td>StandardQst</td>
+      <td>ProjectedLinearEstimator</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>ProjectedLinearEstimator(False)</td>
+      <td>False</td>
+      <td>StandardQst</td>
+      <td>ProjectedLinearEstimator</td>
+    </tr>
   </tbody>
 </table>
-<h1>Consistency Test</h1>
+<h1>Consistency test</h1>
 <div>(TODO)</div>
 </div><h1>MSE</h1>
 <div>
 <div><img src="/Users/tomoko/project/rcast/workspace/quara/tutorials/images/mse.png"></div>
     
 </div>
-<h1>Physicality Violation Test</h1>
+<h1>Physicality violation test</h1>
 
 <h2>on_para_eq_constraint=True</h2>
-<h3>case 0: LinearEstimator(True)<h3>
+<h3>Case 0: LinearEstimator(True)<h3>
 <div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=0_trace_num=100_0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=0_trace_num=1000_0.png></div></div>
 
 <h2>on_para_eq_constraint=False</h2>
-<h3>case 1: LinearEstimator(False)<h3>
+<h3>Case 1: LinearEstimator(False)<h3>
 <h4>Eigenvalue</h4>
 <div><div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=0_i=0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=0_i=1.png></div></div><div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=1_i=0.png></div><div class='box'><img src=/Users/tomoko/project/rcast/workspace/quara/tutorials/images/case=1_eigenvalues_num=1_i=1.png></div></div></div>
 <h4>Sum of unphysical eigenvalues </h4>

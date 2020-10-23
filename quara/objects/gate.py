@@ -95,9 +95,9 @@ class Gate(QOperation):
             raise ValueError("the gate is not physically correct.")
 
     def __str__(self):
-        desc = f"type:\t{self.__class__.__name__}\n"
-        desc += f"dim:\t{self.dim}\n"
-        desc += f"hs:\t{self.hs}"
+        desc = f"Type:\t{self.__class__.__name__}\n"
+        desc += f"Dim:\t{self.dim}\n"
+        desc += f"HS:\t{self.hs}"
         return desc
 
     @property

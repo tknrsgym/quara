@@ -115,7 +115,7 @@ def make_prob_dist_histogram(
 
     hist = go.Histogram(x=values, xbins=dict(size=bin_size), histnorm="probability",)
 
-    layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
+    layout = go.Layout(xaxis=dict(title="Value", dtick=0), yaxis=dict(title="Prob"))
 
     fig = go.Figure(hist, layout=layout)
     ytickvals = [y * 0.1 for y in range(0, 10)]
@@ -159,7 +159,7 @@ def make_prob_dist_histograms(
         )
         fig.append_trace(trace, i + 1, 1)
 
-    layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
+    layout = go.Layout(xaxis=dict(title="Value", dtick=0), yaxis=dict(title="Prob"))
     fig["layout"].update(layout)
     ytickvals = [y * 0.1 for y in range(0, 10)]
     fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
@@ -303,7 +303,7 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
 
     n_unphysical = len(less_than_zero_list)
     title = (
-        f"N={num_data}, Nrep={n_rep}<br>Number of Unphysical estimates={n_unphysical}"
+        f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
     )
     fig.update_layout(title=title)
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (<0)")
@@ -319,7 +319,7 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
 
     n_unphysical = len(less_than_zero_list)
     title = (
-        f"N={num_data}, Nrep={n_rep}<br>Number of Unphysical estimates={n_unphysical}"
+        f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
     )
     fig.update_layout(title=title)  # TODO
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
