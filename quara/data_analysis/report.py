@@ -239,7 +239,7 @@ def generate_sum_eigenvalues_div(
     fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
         estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
     )
-    div_html = _generate_eigenvalues_div(fig_info_list_list)
+    div_html = _generate_sum_eigenvalues_div(fig_info_list_list)
     return div_html
 
 
@@ -258,19 +258,19 @@ def generate_mse_div(
         mses, *_ = data_analysis.convert_to_series(result, true_object)
         mses_list.append(mses)
         display_name_list = [
-            f"case {i}: {name}" for i, name in enumerate(case_name_list)
+            f"Case {i}: {name}" for i, name in enumerate(case_name_list)
         ]
 
     if qtomographies:
         for qtomography in qtomographies:
             true_mses = []
             for num in num_data:
-                true_mse = qtomography.calc_mse_linear(true_object, [num] * 3)
+                true_mse = qtomography.calc_mse_linear(true_object, [num] * 3)  # TODO
                 true_mses.append(true_mse)
             mses_list.append(true_mses)
-            display_name_list.append("analytical solution")
+            display_name_list.append("Analytical result")
 
-    title = f"Mean Square Value"
+    title = f"Mean squared error"
     if not n_rep:
         title += "<br>Nrep={n_rep}"
 
@@ -301,7 +301,7 @@ def _parse_qoperation_desc(qoperation) -> list:
         if continue_flag:
             target = before_t + t
         else:
-            target = t[: t.find("\n")]
+            target = t[: t.find("\n")] if "\n" in t else t
 
         if t.endswith("\n") and i < len(pre_value_list) - 1:
             # 続く場合

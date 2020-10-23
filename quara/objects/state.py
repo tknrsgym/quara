@@ -100,9 +100,9 @@ class State(QOperation):
             raise ValueError("the state is not physically correct.")
 
     def __str__(self):
-        desc = f"type:\t{self.__class__.__name__}\n"
-        desc += f"dim:\t{self.dim}\n"
-        desc += f"vec:\t{self.vec}"
+        desc = f"Type:\t{self.__class__.__name__}\n"
+        desc += f"Dim:\t{self.dim}\n"
+        desc += f"Vec:\t{self.vec}"
         return desc
 
     @property

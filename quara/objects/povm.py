@@ -99,12 +99,13 @@ class Povm(QOperation):
             raise ValueError("the POVM is not physically correct.")
 
     def __str__(self):
-        desc = f"type:\t{self.__class__.__name__}\n"
-        desc += f"dim:\t{self.dim}\n"
-        desc += f"number of measurements:\t{len(self.vecs)}\n"
-        desc += f"vec:"
+        desc = f"Type:\t{self.__class__.__name__}\n"
+        desc += f"Dim:\t{self.dim}\n"
+        desc += f"Outcomes:\t{len(self.vecs)}\n"
+        desc += f"Vecs:"
         for vec in self.vecs:
             desc += f"\t{vec}\n"
+        desc = desc.rstrip("\n")
         return desc
 
     @property
