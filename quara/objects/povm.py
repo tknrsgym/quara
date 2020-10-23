@@ -101,7 +101,7 @@ class Povm(QOperation):
     def __str__(self):
         desc = f"Type:\t{self.__class__.__name__}\n"
         desc += f"Dim:\t{self.dim}\n"
-        desc += f"Outcomes:\t{len(self.vecs)}\n"
+        desc += f"Number of outcomes:\t{len(self.vecs)}\n"
         desc += f"Vecs:"
         for vec in self.vecs:
             desc += f"\t{vec}\n"

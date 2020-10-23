@@ -120,7 +120,7 @@ def _make_graph_trace_seq(
     return fig_info_list
 
 
-def _generate_trace_div(fig_info_list) -> str:
+def _generate_trace_div(fig_info_list: List[dict]) -> str:
     graph_block_html = ""
     for fig_info in fig_info_list:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
@@ -144,7 +144,7 @@ def generate_trace_div(
 def _generate_graph_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
     case_id: int,
-    true_object,
+    true_object: "QOperation",
     num_data: List[int],
 ) -> list:
 
@@ -171,7 +171,7 @@ def _generate_graph_eigenvalues_seq(
     return fig_info_list_list
 
 
-def _generate_eigenvalues_div(fig_info_list_list) -> str:
+def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
         graph_block_html = ""
@@ -191,7 +191,7 @@ def generate_eigenvalues_div(
     estimation_results: List["EstimationResult"],
     case_id: int,
     num_data: List[int],
-    true_object,
+    true_object: "QOperation",
 ):
     fig_info_list_list = _generate_graph_eigenvalues_seq(
         estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
@@ -205,7 +205,7 @@ def _generate_graph_sum_eigenvalues_seq(
     case_id: int,
     true_object,
     num_data: List[int],
-) -> list:
+) -> List[List[dict]]:
 
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
@@ -230,7 +230,7 @@ def _generate_graph_sum_eigenvalues_seq(
     return fig_info_list_list
 
 
-def _generate_sum_eigenvalues_div(fig_info_list_list) -> str:
+def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
         graph_block_html = ""
@@ -262,7 +262,7 @@ def generate_sum_eigenvalues_div(
 def generate_mse_div(
     estimation_results_list: List[List[EstimationResult]],
     case_name_list: List[str],
-    true_object,
+    true_object: "QOperation",
     num_data: List[int],
     n_rep: int = None,
     qtomographies: List["StandardQTomography"] = None,
@@ -306,7 +306,7 @@ def generate_mse_div(
     return mse_div
 
 
-def _parse_qoperation_desc(qoperation) -> list:
+def _parse_qoperation_desc(qoperation: "QOperation") -> List[str]:
     desc = str(qoperation)
     continue_flag, before_t = False, ""
     value_list = []
@@ -331,7 +331,7 @@ def _parse_qoperation_desc(qoperation) -> list:
     return value_list
 
 
-def _convert_object_to_datafrane(qoperation) -> pd.DataFrame:
+def _convert_object_to_datafrane(qoperation: "QOperation") -> pd.DataFrame:
     desc = str(qoperation)
 
     # parse description of QOperation
@@ -344,7 +344,9 @@ def _convert_object_to_datafrane(qoperation) -> pd.DataFrame:
     return df
 
 
-def _convert_objects_to_multiindex_dataframe(qoperations) -> pd.DataFrame:
+def _convert_objects_to_multiindex_dataframe(
+    qoperations: List["QOperation"],
+) -> pd.DataFrame:
     df_dict = {}
 
     for i, tester in enumerate(qoperations):
@@ -355,7 +357,11 @@ def _convert_objects_to_multiindex_dataframe(qoperations) -> pd.DataFrame:
 
 
 def generate_physicality_violation_test_div(
-    estimation_results_list, case_name_list, para_list, true_object, num_data
+    estimation_results_list: List[List["EstimationResult"]],
+    case_name_list: List[str],
+    para_list: List[bool],
+    true_object: "QOperation",
+    num_data: List[int],
 ):
     physicality_violation_test_true_case_divs = ""
     physicality_violation_test_false_eigenvalues_divs = ""
@@ -416,7 +422,12 @@ def generate_physicality_violation_test_div(
     return physicality_violation_test_div
 
 
-def generate_case_table(case_name_list, qtomography_list, para_list, estimator_list):
+def generate_case_table(
+    case_name_list: List["str"],
+    qtomography_list: List["QTomography"],
+    para_list: List[int],
+    estimator_list: List["Estimator"],
+):
     case_dict = dict(
         Name=case_name_list,
         Parameterization=para_list,
@@ -433,7 +444,9 @@ def generate_case_table(case_name_list, qtomography_list, para_list, estimator_l
     return case_table
 
 
-def generate_condition_table(qtomography_list, n_rep, num_data):
+def generate_condition_table(
+    qtomography_list: List["QTomography"], n_rep: int, num_data: List[int]
+) -> str:
     type_tomography_values = list(
         set([qt.__class__.__name__ for qt in qtomography_list])
     )
@@ -451,7 +464,10 @@ def generate_condition_table(qtomography_list, n_rep, num_data):
 
 
 def generate_consistency_check_table(
-    qtomography_list, para_list, estimator_list, true_object,
+    qtomography_list: List["QTomography"],
+    para_list: List[bool],
+    estimator_list: List["Estimator"],
+    true_object: "QOperation",
 ):
     result_list = []
 
@@ -479,16 +495,16 @@ def generate_consistency_check_table(
 
 
 def export_report(
-    path,
-    estimation_results_list,
-    case_name_list,
-    qtomography_list,
-    para_list,
-    estimator_list,
-    true_object,
-    tester_objects,
-    num_data,
-    n_rep,
+    path: str,
+    estimation_results_list: List[List["EstimationResult"]],
+    case_name_list: List[str],
+    qtomography_list: List["QTomography"],
+    para_list: List[bool],
+    estimator_list: List["Estimator"],
+    true_object: "QOperation",
+    tester_objects: List["QOperation"],
+    num_data: List[int],
+    n_rep: int,
     save_materials: bool = False,
 ):
     temp_dir_path = tempfile.mkdtemp()
