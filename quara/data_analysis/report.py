@@ -8,7 +8,11 @@ import pandas as pd
 from xhtml2pdf import pisa
 from xhtml2pdf.config.httpconfig import httpConfig
 
-from quara.data_analysis import physicality_violation_check, data_analysis
+from quara.data_analysis import (
+    physicality_violation_check,
+    data_analysis,
+    consistency_check,
+)
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
 
@@ -350,10 +354,6 @@ def _convert_objects_to_multiindex_dataframe(qoperations) -> pd.DataFrame:
     return objects_df_multiindex
 
 
-# class ExperimentCondition:
-#    def __init__(case_name, qtomography, parametorization, )
-
-
 def generate_physicality_violation_test_div(
     estimation_results_list, case_name_list, para_list, true_object, num_data
 ):
@@ -450,6 +450,34 @@ def generate_condition_table(qtomography_list, n_rep, num_data):
     return condition_table
 
 
+def generate_consistency_check_table(
+    qtomography_list, para_list, estimator_list, true_object,
+):
+    result_list = []
+
+    for i, qtomo in enumerate(qtomography_list):
+        estimator = estimator_list[i]
+        diff = consistency_check.calc_mse_of_true_estimated(
+            true_object=true_object, qtomography=qtomo, estimator=estimator
+        )
+        result_list.append(diff)
+
+    type_tomography_values = [qt.__class__.__name__ for qt in qtomography_list]
+    type_estimator_values = [e.__class__.__name__ for e in estimator_list]
+
+    result_dict = {
+        "Type of tomography": type_tomography_values,
+        "Parametorization": para_list,
+        "Estimator": type_estimator_values,
+        "Result": result_list,
+    }
+
+    consistency_check_table = pd.DataFrame(result_dict).to_html(
+        classes="consistency_check_table", escape=False
+    )
+    return consistency_check_table
+
+
 def export_report(
     path,
     estimation_results_list,
@@ -476,13 +504,14 @@ def export_report(
     )
 
     # MSE
+    qtomography_class = qtomography_list[0].__class__
     mse_div = generate_mse_div(
         estimation_results_list=estimation_results_list,
         case_name_list=case_name_list,
         true_object=true_object,
         num_data=num_data,
         n_rep=n_rep,
-        # qtomographies=[StandardQst(tester_objects, on_para_eq_constraint=True)]
+        qtomographies=[qtomography_class(tester_objects, on_para_eq_constraint=True)],
     )
 
     # Physicality Violation Test
@@ -497,6 +526,11 @@ def export_report(
     # Tester Object
     tester_table = _convert_objects_to_multiindex_dataframe(tester_objects).to_html(
         classes="tester_objects_table", escape=False, header=False
+    )
+
+    # Consistency Test
+    consistency_check_table = generate_consistency_check_table(
+        qtomography_list, para_list, estimator_list, true_object,
     )
 
     report_html = f"""<html>
@@ -534,7 +568,7 @@ def export_report(
         {case_table}
     </div>
 <h1>Consistency test</h1>
-    <div>(TODO)</div>
+    <div>{consistency_check_table}</div>
 <h1>MSE</h1>
     <div>
     {mse_div}
