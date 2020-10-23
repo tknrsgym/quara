@@ -9,6 +9,18 @@ from quara.data_analysis import physicality_violation_check, data_analysis
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
 
+_css = f"""
+body {{color: #666666;}}
+h1 {{margin-top: 60px;
+    border-top: 2px #dcdcdc solid;
+    padding-top: 10px;
+    font-size: 25px}}
+h2 {{font-size: 20px}}
+h3 {{font-size: 15px;
+    color: #618CBC;}}
+h4 {{color:#EB9348; font-size: 15px;}}
+"""
+
 _table_css = """
 table{
   border: solid 1px #d3d3d3;
@@ -339,3 +351,199 @@ def _convert_objects_to_multiindex_dataframe(qoperations) -> pd.DataFrame:
 
     objects_df_multiindex = pd.concat(df_dict, axis=0)
     return objects_df_multiindex
+
+
+# class ExperimentCondition:
+#    def __init__(case_name, qtomography, parametorization, )
+
+
+def generate_physicality_violation_test_div(
+    estimation_results_list, case_name_list, para_list, true_object, num_data
+):
+    physicality_violation_test_true_case_divs = ""
+    physicality_violation_test_false_eigenvalues_divs = ""
+    physicality_violation_test_false_sum_eigenvalues_divs = ""
+
+    for case_id, case_name in enumerate(case_name_list):
+        estimation_results = estimation_results_list[case_id]
+        if para_list[case_id]:
+            # on_para_eq_constraint = True
+            div = generate_trace_div(
+                estimation_results, case_id=case_id, num_data=num_data
+            )
+            physicality_violation_test_true_case_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+        else:
+            # on_para_eq_constraint = False
+            div = generate_eigenvalues_div(
+                estimation_results,
+                case_id=case_id,
+                num_data=num_data,
+                true_object=true_object,
+            )
+            physicality_violation_test_false_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+            div = generate_sum_eigenvalues_div(
+                estimation_results,
+                case_id=case_id,
+                num_data=num_data,
+                true_object=true_object,
+            )
+            physicality_violation_test_false_sum_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+    physicality_violation_test_true_all_div = f"""
+        <h2>on_para_eq_constraint=True</h2>
+        {physicality_violation_test_true_case_divs}
+    """
+    physicality_violation_test_false_all_div = f"""
+        <h2>on_para_eq_constraint=False</h2>
+        <h3>Eigenvalue</h3>
+        {physicality_violation_test_false_eigenvalues_divs}
+        <h3>Sum of unphysical eigenvalues </h3>
+        {physicality_violation_test_false_sum_eigenvalues_divs}
+    """
+
+    physicality_violation_test_div = f"""
+        {physicality_violation_test_true_all_div}
+        {physicality_violation_test_false_all_div}
+    """
+
+    return physicality_violation_test_div
+
+
+def generate_case_table(case_name_list, qtomography_list, para_list, estimator_list):
+    case_dict = dict(
+        Name=case_name_list,
+        Parameterization=para_list,
+        Tomography=[t.__class__.__name__ for t in qtomography_list],
+        Estimator=[e.__class__.__name__ for e in estimator_list],
+    )
+    case_df = pd.DataFrame(case_dict)
+    styles = [
+        dict(selector=".col0", props=[("width", "400px")]),
+        dict(selector=".col1", props=[("width", "200px")]),
+        dict(selector=".col2", props=[("width", "200px")]),
+    ]
+    case_table = case_df.style.set_table_styles(styles).render()
+    return case_table
+
+
+def generate_condition_table(qtomography_list, n_rep, num_data):
+    type_tomography_values = list(
+        set([qt.__class__.__name__ for qt in qtomography_list])
+    )
+
+    info = {
+        "Type of tomography": type_tomography_values,
+        "Nrep": [n_rep],
+        "N": [num_data],
+    }
+    condition_df = pd.DataFrame(info).T
+    condition_table = condition_df.to_html(
+        classes="condition_table", escape=False, header=False
+    )
+    return condition_table
+
+
+def export_report(
+    path,
+    estimation_results_list,
+    case_name_list,
+    qtomography_list,
+    para_list,
+    estimator_list,
+    true_object,
+    tester_objects,
+    num_data,
+    n_rep,
+):
+    # Experiment Condition
+    condition_table = generate_condition_table(qtomography_list, n_rep, num_data)
+
+    # Cases
+    case_table = generate_case_table(
+        case_name_list, qtomography_list, para_list, estimator_list
+    )
+
+    # MSE
+    mse_div = generate_mse_div(
+        estimation_results_list=estimation_results_list,
+        case_name_list=case_name_list,
+        true_object=true_object,
+        num_data=num_data,
+        n_rep=n_rep,
+        # qtomographies=[StandardQst(tester_objects, on_para_eq_constraint=True)]
+    )
+
+    # Physicality Violation Test
+    physicality_violation_test_div = generate_physicality_violation_test_div(
+        estimation_results_list, case_name_list, para_list, true_object, num_data
+    )
+
+    # True Object
+    true_object_table = _convert_object_to_datafrane(true_object).to_html(
+        classes="true_object_table", escape=False, header=False
+    )
+    # Tester Object
+    tester_table = _convert_objects_to_multiindex_dataframe(tester_objects).to_html(
+        classes="tester_objects_table", escape=False, header=False
+    )
+
+    report_html = f"""<html>
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style type="text/css">
+        <!--
+            {_css}
+            {_inline_block_css}
+            {_table_css}
+            {_table_contents_css}
+         -->
+    </style>
+<title>Quara Report</title>
+</head>
+<body>
+<div id="table_of_contents">
+    <h1>Table of contents</h1>
+    <pdf:toc />
+</div>
+<h1>Experimental condition</h1>
+    <div>
+        {condition_table}
+    </div>
+<h2>True object</h2>
+    <div>
+        {true_object_table}
+    </div>
+<h2>Tester objects</h2>
+    <div>
+        {tester_table}
+    </div>
+<h2>Cases</h2>
+    <div>
+        {case_table}
+    </div>
+<h1>Consistency test</h1>
+    <div>(TODO)</div>
+<h1>MSE</h1>
+    <div>
+    {mse_div}
+    </div>
+<h1>Physicality violation test</h1>
+    <div>
+        {physicality_violation_test_div}
+    </div>
+</body>
+</html>"""
+    with open("test.html", "w") as f:
+        f.write(report_html)
+
+    _convert_html2pdf(report_html, path)
