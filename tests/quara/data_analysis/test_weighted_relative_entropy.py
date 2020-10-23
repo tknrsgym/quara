@@ -76,6 +76,33 @@ weights = [1.0, 1.0, 2.0]
 
 
 class TestWeightedRelativeEntropy:
+    def test_access_weights(self):
+        weights = [1.0, 2.0, 3.0]
+        loss_func = WeightedRelativeEntropy(4, weights=weights)
+        for a, e in zip(loss_func.weights, weights):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # Test that "weights" cannot be updated
+        with pytest.raises(AttributeError):
+            loss_func.weights = weights
+
+        # Test that "weights" are not real
+        weights = [1.0, 2.0, 3.0j]
+        with pytest.raises(ValueError):
+            WeightedRelativeEntropy(4, weights=weights)
+
+    def test_set_weights(self):
+        loss_func = WeightedRelativeEntropy(4)
+        weights = [1.0, 2.0, 3.0]
+        loss_func.set_weights(weights)
+        for a, e in zip(loss_func.weights, weights):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # Test that "weights" are not real
+        weights = [1.0, 2.0, 3.0j]
+        with pytest.raises(ValueError):
+            loss_func.set_weights(weights)
+
     def test_value(self):
         func = WeightedRelativeEntropy(
             4,
@@ -134,7 +161,7 @@ class TestWeightedRelativeEntropy:
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-        # case3: var = [1, 0, 0, 0.9]/sqrt(2), weights = [1.0, 1.0, 2.0]
+        # case3: var = [1, 0, 0, 0.9]/sqrt(2), weights = [1.0, 1.0, 2.0], weights = [1.0, 1.0, 2.0]
         func = WeightedRelativeEntropy(
             4,
             func_prob_dists(),
@@ -149,3 +176,64 @@ class TestWeightedRelativeEntropy:
             2
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_hessian(self):
+        func = WeightedRelativeEntropy(
+            4,
+            func_prob_dists(),
+            func_gradient_prob_dists(),
+            func_hessian_prob_dists(),
+            prob_dists_q,
+        )
+
+        # case1: var = [1, 0, 0, 1]/sqrt(2)
+        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = func.hessian(var)
+        expected = np.array(
+            [
+                [4.5, 0.0, 0.0, 0.5],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [0.5, 0.0, 0.0, 0.5],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case2: var = [1, 0, 0, 0.9]/sqrt(2)
+        var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
+        actual = func.hessian(var)
+        expected = np.array(
+            [
+                [4.0 + 2 / 1.9 ** 2, 0.0, 0.0, 2 / 1.9 ** 2],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [2 / 1.9 ** 2, 0.0, 0.0, 2 / 1.9 ** 2],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case3: var = [1, 0, 0, 0.9]/sqrt(2), weights = [1.0, 1.0, 2.0], weights = [1.0, 1.0, 2.0]
+        func = WeightedRelativeEntropy(
+            4,
+            func_prob_dists(),
+            func_gradient_prob_dists(),
+            func_hessian_prob_dists(),
+            prob_dists_q,
+            weights=weights,
+        )
+        var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
+        actual = func.hessian(var)
+        expected = np.array(
+            [
+                [4.0 + 4 / 1.9 ** 2, 0.0, 0.0, 4 / 1.9 ** 2],
+                [0.0, 2.0, 0.0, 0.0],
+                [0.0, 0.0, 2.0, 0.0],
+                [4 / 1.9 ** 2, 0.0, 0.0, 4 / 1.9 ** 2],
+            ],
+            dtype=np.float64,
+        )
+        print(actual)
+        print(expected)
+        npt.assert_almost_equal(actual, expected, decimal=14)

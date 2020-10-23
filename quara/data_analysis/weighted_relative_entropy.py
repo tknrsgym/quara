@@ -7,7 +7,11 @@ from quara.data_analysis.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )
-from quara.math.entropy import relative_entropy, gradient_relative_entropy_2nd
+from quara.math.entropy import (
+    relative_entropy,
+    gradient_relative_entropy_2nd,
+    hessian_relative_entropy_2nd,
+)
 from quara.utils import matrix_util
 
 
@@ -51,12 +55,23 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
             prob_dists_q,
         )
 
+        # validate
+        self._validate_weights(weights)
         self._weights = weights
 
         # update on_value, on_gradient and on_hessian
         self._update_on_value_true()
         self._update_on_gradient_true()
         self._update_on_hessian_true()
+
+    def _validate_weights(self, weights: List[float]) -> None:
+        if weights:
+            for index, weight in enumerate(weights):
+                # weights are real values
+                if type(weight) != float:
+                    raise ValueError(
+                        f"values of weights must be real numbers(float). dtype of weights[{index}] is {type(weight)}"
+                    )
 
     @property
     def weights(self) -> List[float]:
@@ -77,6 +92,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         weights : List[float]
             weights.
         """
+        self._validate_weights(weights)
         self._weights = weights
 
     def _update_on_value_true(self) -> bool:
@@ -116,7 +132,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         return self.on_hessian
 
     def value(self, var: np.array) -> np.float64:
-        """returns the value of Weighted Probability Based Squared Error.
+        """returns the value of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.value`
         """
@@ -132,12 +148,13 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         return val
 
     def gradient(self, var: np.array) -> np.array:
-        """returns the gradient of Weighted Probability Based Squared Error.
+        """returns the gradient of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`
         """
         grad = np.zeros(self.num_var, dtype=np.float64)
         for index in range(len(self.func_prob_dists)):
+            # calc list of gradient p
             tmp_grad_ps = []
             for alpha in range(self.num_var):
                 tmp_grad_ps.append(self.func_gradient_prob_dists[index](alpha, var))
@@ -155,34 +172,36 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         return grad
 
     def hessian(self, var: np.array) -> np.array:
-        """returns the Hessian of Weighted Probability Based Squared Error.
+        """returns the Hessian of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.hessian`
         """
-        hess_all = []
-        for alpha in range(self.num_var):
-            hess_alpha = []
-            for beta in range(self.num_var):
-                tmp_values = []
-                for index in range(len(self.func_prob_dists)):
-                    grad_alpha = self.func_gradient_prob_dists[index](alpha, var)
-                    grad_beta = self.func_gradient_prob_dists[index](beta, var)
-                    hess = self.func_hessian_prob_dists[index](alpha, beta, var)
-                    p_q = self.func_prob_dists[index](var) - self.prob_dists_q[index]
-                    if self.weight_matrices:
-                        tmp_value = multiply_veca_vecb_matc(
-                            grad_alpha, grad_beta, self.weight_matrices[index]
-                        ) + multiply_veca_vecb_matc(
-                            hess, p_q, self.weight_matrices[index]
-                        )
-                        tmp_values.append(tmp_value)
-                    else:
-                        tmp_value = multiply_veca_vecb(
-                            grad_alpha, grad_beta
-                        ) + multiply_veca_vecb(hess, p_q)
-                        tmp_values.append(tmp_value)
+        hess = np.zeros((self.num_var, self.num_var), dtype=np.float64)
+        for index in range(len(self.func_prob_dists)):
+            # calc list of gradient p
+            tmp_grad_ps = []
+            for alpha in range(self.num_var):
+                tmp_grad_ps.append(self.func_gradient_prob_dists[index](alpha, var))
+            grad_ps = np.stack(tmp_grad_ps, 1)
 
-                val = np.sum(tmp_values)
-                hess_alpha.append(val)
-            hess_all.append(hess_alpha)
-        return 2 * np.array(hess_all, dtype=np.float64)
+            # calc list of Hessian p
+            tmp_hess = []
+            for alpha in range(self.num_var):
+                tmp_hess_row = []
+                for beta in range(self.num_var):
+                    tmp_hess_row.append(
+                        self.func_hessian_prob_dists[index](alpha, beta, var)
+                    )
+                tmp_hess.append(tmp_hess_row)
+            hess_ps = np.array(tmp_hess).transpose(2, 0, 1)
+
+            q = self.prob_dists_q[index]
+            p = self.func_prob_dists[index](var)
+            if self.weights:
+                hess += self.weights[index] * hessian_relative_entropy_2nd(
+                    q, p, grad_ps, hess_ps
+                )
+            else:
+                hess += hessian_relative_entropy_2nd(q, p, grad_ps, hess_ps)
+
+        return hess
