@@ -6,7 +6,7 @@ from quara.data_analysis import data_analysis
 from quara.math import norm
 
 
-def test_calc_mse():
+def test_calc_mse_general_norm():
     # Arrange
     xs = [
         np.array([2.0, 3.0], dtype=np.float64),
@@ -15,7 +15,7 @@ def test_calc_mse():
     y = np.array([1.0, 2.0], dtype=np.float64)
 
     # Act
-    actual = data_analysis.calc_mse(xs, y, norm.l2_norm)
+    actual = data_analysis.calc_mse_general_norm(xs, y, norm.l2_norm)
 
     # Assert
     npt.assert_almost_equal(actual, 10.0, decimal=14)
@@ -71,20 +71,3 @@ def test_calc_covariance_matrix_of_prob_dists():
     expected = np.array(mat) / data_num
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-
-def test_calc_mse_of_linear_estimator():
-    # Arrange
-    matA = np.eye(6)
-    prob_dists = [
-        np.array([0.5, 0.5], dtype=np.float64),
-        np.array([0.5, 0.5], dtype=np.float64),
-        np.array([1.0, 0.0], dtype=np.float64),
-    ]
-    data_num = 10
-
-    # Act
-    actual = data_analysis.calc_mse_of_linear_estimator(matA, prob_dists, data_num)
-
-    # Assert
-    expected = 1.0 / data_num
-    npt.assert_almost_equal(actual, expected, decimal=15)

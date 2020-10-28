@@ -242,13 +242,13 @@ class TestStandardQTomography:
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-    def test_calc_mse_linear(self):
+    def test_calc_mse_linear_analytical(self):
         # Case 1: qst, on_par_eq_constraint = True
         # Arrange
         qst, c_sys = get_test_data_qst()
         state = get_z0_1q(c_sys)
         # Act
-        actual = qst.calc_mse_linear(state, [10, 5, 10])
+        actual = qst.calc_mse_linear_analytical(state, [10, 5, 10])
         # Assert
         npt.assert_almost_equal(actual, 0.15, decimal=15)
 
@@ -256,8 +256,10 @@ class TestStandardQTomography:
         # Arange
         qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
         state = get_z0_1q(c_sys)
-        state = State(vec=get_z0_1q(c_sys).vec, c_sys=c_sys, on_para_eq_constraint=False)
+        state = State(
+            vec=get_z0_1q(c_sys).vec, c_sys=c_sys, on_para_eq_constraint=False
+        )
         # Act
-        actual = qst.calc_mse_linear(state, [10, 5, 10])
+        actual = qst.calc_mse_linear_analytical(state, [10, 5, 10])
         # Assert
         npt.assert_almost_equal(actual, 0.15, decimal=15)

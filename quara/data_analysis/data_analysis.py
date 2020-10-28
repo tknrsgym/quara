@@ -25,7 +25,7 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
 )
 
 
-def calc_mse(
+def calc_mse_general_norm(
     xs: List[np.array],
     y: np.array,
     norm_function: Callable[[np.array, np.array], np.float64],
@@ -109,36 +109,9 @@ def calc_covariance_matrix_of_prob_dists(
     return matrix
 
 
-def calc_mse_of_linear_estimator(
-    matA: List[np.array], prob_dists: List[np.array], data_num: int
-) -> np.float64:
-    """calculates mse(mean squared error) of linear estimator.
-
-    Parameters
-    ----------
-    matA : List[np.array]
-        matrix A of StandardQTomography :func:`~quara.protocol.qtomography.standard.StandardQTomography.calc_matA`
-    prob_dists : List[np.array]
-        probability distributions.
-    data_num : int
-        number of data.
-
-    Returns
-    -------
-    np.float64
-        mse of linear estimator = Tr[A_L^{-1T} A_L^{-1} V(p)], where A_L is left inverse of matrix A and V(p) is covariance matrix of p.
-    """
-    A_left_inv = np.linalg.pinv(matA.T @ matA) @ matA.T
-    cov = calc_covariance_matrix_of_prob_dists(prob_dists, data_num)
-
-    tmp_matrix = A_left_inv.T @ A_left_inv @ cov
-    mse = np.trace(tmp_matrix)
-    return mse
-
-
 # common
 # statistical quantity
-def calc_statistical_quantity(xs: List[QOperation], ys: List[QOperation]) -> np.float64:
+def calc_mse_qoperations(xs: List[QOperation], ys: List[QOperation]) -> np.float64:
     points = []
     for x, y in zip(xs, ys):
         x_vec = x.to_stacked_vector()
@@ -161,7 +134,7 @@ def convert_to_series(
         list(qoperation_sequence) for qoperation_sequence in zip(*results_tmp)
     ]
     mses = [
-        calc_statistical_quantity(
+        calc_mse_qoperations(
             qoperation_sequence, [true_object] * len(qoperation_sequence)
         )
         for qoperation_sequence in results_tmp
