@@ -78,8 +78,16 @@ pdftoc.pdftoclevel1 {
 }
 pdftoc.pdftoclevel2 {
     margin-left: 2em;
+}
+pdftoc.pdftoclevel3 {
+    margin-left: 3em;
     font-style: italic;
-}"""
+}
+pdftoc.pdftoclevel4 {
+    margin-left: 4em;
+    font-style: italic;
+}
+"""
 
 _inline_block_css = """
 .box{
@@ -464,7 +472,10 @@ def generate_case_table(
 
 
 def generate_condition_table(
-    qtomography_list: List["QTomography"], n_rep: int, num_data: List[int], seed: Optional[int]
+    qtomography_list: List["QTomography"],
+    n_rep: int,
+    num_data: List[int],
+    seed: Optional[int],
 ) -> str:
     type_tomography_values = list(
         set([qt.__class__.__name__ for qt in qtomography_list])
@@ -474,7 +485,7 @@ def generate_condition_table(
         "Type of tomography": type_tomography_values,
         "Nrep": [n_rep],
         "N": [num_data],
-        "RNG seed": [seed]
+        "RNG seed": [seed],
     }
     condition_df = pd.DataFrame(info).T
     condition_table = condition_df.to_html(
@@ -526,7 +537,7 @@ def export_report(
     num_data: List[int],
     n_rep: int,
     save_materials: bool = False,
-    seed: int = None
+    seed: int = None,
 ):
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
