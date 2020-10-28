@@ -96,11 +96,35 @@ class TestProbabilityBasedLossFunction:
             loss_func.on_prob_dists_q = False
 
     def test_set_prob_dists_q(self):
-        loss_func = ProbabilityBasedLossFunction(4)
+        qt = get_test_qst(on_para_eq_constraint=False)
+        loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
         assert loss_func.prob_dists_q is None
 
         loss_func.set_prob_dists_q(prob_dists_q)
+        assert loss_func.on_prob_dists_q == True
         assert len(loss_func.prob_dists_q) == 3
+
+    def test_set_func_prob_dists_from_standard_qt___on_para_eq_constraint_True(self):
+        # Arrange
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == False
+
+        # Act
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+
+        # Assert
+        assert loss_func.on_func_prob_dists == True
+        func_prob_dists = loss_func.func_prob_dists
+        expected = [[0.5, 0.5], [0.5, 0.5], [1, 0]]
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 3
+        for index in range(len(func_prob_dists)):
+            npt.assert_almost_equal(
+                func_prob_dists[index](var), expected[index], decimal=15
+            )
 
     def test_set_func_prob_dists_from_standard_qt___on_para_eq_constraint_False(self):
         # Arrange
@@ -118,11 +142,42 @@ class TestProbabilityBasedLossFunction:
         assert loss_func.on_func_prob_dists == True
         func_prob_dists = loss_func.func_prob_dists
         expected = [[0.5, 0.5], [0.5, 0.5], [1, 0]]
-        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 4
         for index in range(len(func_prob_dists)):
             npt.assert_almost_equal(
                 func_prob_dists[index](var), expected[index], decimal=15
             )
+
+    def test_set_func_gradient_prob_dists_from_standard_qt___on_para_eq_constraint_True(
+        self,
+    ):
+        # Arrange
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == False
+
+        # Act
+        loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
+
+        # Assert
+        assert loss_func.on_func_gradient_prob_dists == True
+        func_gradient_dists = loss_func.func_gradient_prob_dists
+        expected = [
+            [[1 / np.sqrt(2), -1 / np.sqrt(2)], [0, 0], [0, 0],],
+            [[0, 0], [1 / np.sqrt(2), -1 / np.sqrt(2)], [0, 0],],
+            [[0, 0], [0, 0], [1 / np.sqrt(2), -1 / np.sqrt(2)],],
+        ]
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 3
+        for index in range(len(func_gradient_dists)):
+            for var_index in range(qt.num_variables):
+                npt.assert_almost_equal(
+                    func_gradient_dists[index](var_index, var),
+                    expected[index][var_index],
+                    decimal=15,
+                )
 
     def test_set_func_gradient_prob_dists_from_standard_qt___on_para_eq_constraint_False(
         self,
@@ -161,7 +216,7 @@ class TestProbabilityBasedLossFunction:
                 [1 / np.sqrt(2), -1 / np.sqrt(2)],
             ],
         ]
-        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 4
         for index in range(len(func_gradient_dists)):
             for var_index in range(qt.num_variables):
                 npt.assert_almost_equal(
@@ -170,10 +225,37 @@ class TestProbabilityBasedLossFunction:
                     decimal=15,
                 )
 
+    def test_set_func_hessian_prob_dists_from_standard_qt___on_para_eq_constraint_True(
+        self,
+    ):
+        # Arrange
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == False
+
+        # Act
+        loss_func.set_func_hessian_prob_dists_from_standard_qt(qt)
+
+        # Assert
+        assert loss_func.on_func_hessian_prob_dists == True
+        func_hessian_prob_dists = loss_func.func_hessian_prob_dists
+        expected = [0, 0]
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 3
+        for index in range(len(func_hessian_prob_dists)):
+            for var_index1 in range(qt.num_variables):
+                for var_index2 in range(qt.num_variables):
+                    npt.assert_almost_equal(
+                        func_hessian_prob_dists[index](var_index1, var_index2, var),
+                        expected,
+                        decimal=15,
+                    )
+
     def test_set_func_hessian_prob_dists_from_standard_qt___on_para_eq_constraint_False(
         self,
     ):
-        # TODO 複合ケースのテスト, on_para_eq_constraint=Trueのテスト, 確率分布の次元が3のテスト
         # Arrange
         qt = get_test_qst(on_para_eq_constraint=False)
         loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
@@ -189,7 +271,7 @@ class TestProbabilityBasedLossFunction:
         assert loss_func.on_func_hessian_prob_dists == True
         func_hessian_prob_dists = loss_func.func_hessian_prob_dists
         expected = [0, 0]
-        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 4
         for index in range(len(func_hessian_prob_dists)):
             for var_index1 in range(qt.num_variables):
                 for var_index2 in range(qt.num_variables):
@@ -198,3 +280,120 @@ class TestProbabilityBasedLossFunction:
                         expected,
                         decimal=15,
                     )
+
+    def test_set_func_xxx_prob_dists_from_standard_qt(self):
+        # tests set_func_prob_dists_from_standard_qt, set_func_gradient_prob_dists_from_standard_qt, set_func_hessian_prob_dists_from_standard_qt
+
+        # case1: set_prob_dists_q -> set_func_prob_dists_from_standard_qt -> set_func_gradient_prob_dists_from_standard_qt -> set_func_hessian_prob_dists_from_standard_qt
+        qt = get_test_qst(on_para_eq_constraint=False)
+        loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
+        assert loss_func.on_value == False
+        assert loss_func.on_gradient == False
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == False
+
+        loss_func.set_prob_dists_q(prob_dists_q)
+        assert loss_func.on_value == False
+        assert loss_func.on_gradient == False
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == True
+
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+        assert loss_func.on_value == True
+        assert loss_func.on_gradient == False
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == True
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == True
+        assert loss_func.size_prob_dists() == 3
+        assert len(loss_func.func_prob_dists) == 3
+
+        loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
+        assert loss_func.on_value == True
+        assert loss_func.on_gradient == True
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == True
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == True
+        assert loss_func.size_prob_dists() == 3
+        assert len(loss_func.func_prob_dists) == 3
+        assert len(loss_func.func_gradient_prob_dists) == 3
+
+        loss_func.set_func_hessian_prob_dists_from_standard_qt(qt)
+        assert loss_func.on_value == True
+        assert loss_func.on_gradient == True
+        assert loss_func.on_hessian == True
+        assert loss_func.on_func_prob_dists == True
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
+        assert loss_func.on_prob_dists_q == True
+        assert loss_func.size_prob_dists() == 3
+        assert len(loss_func.func_prob_dists) == 3
+        assert len(loss_func.func_gradient_prob_dists) == 3
+        assert len(loss_func.func_hessian_prob_dists) == 3
+
+        # case2: set_func_hessian_prob_dists_from_standard_qt -> set_func_gradient_prob_dists_from_standard_qt -> set_func_prob_dists_from_standard_qt -> set_prob_dists_q
+        qt = get_test_qst(on_para_eq_constraint=False)
+        loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
+        assert loss_func.on_value == False
+        assert loss_func.on_gradient == False
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == False
+
+        loss_func.set_func_hessian_prob_dists_from_standard_qt(qt)
+        assert loss_func.on_value == False
+        assert loss_func.on_gradient == False
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == True
+        assert loss_func.on_prob_dists_q == False
+        assert len(loss_func.func_hessian_prob_dists) == 3
+
+        loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
+        assert loss_func.on_value == False
+        assert loss_func.on_gradient == False
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
+        assert loss_func.on_prob_dists_q == False
+        assert len(loss_func.func_gradient_prob_dists) == 3
+        assert len(loss_func.func_hessian_prob_dists) == 3
+
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+        assert loss_func.on_value == False
+        assert loss_func.on_gradient == False
+        assert loss_func.on_hessian == False
+        assert loss_func.on_func_prob_dists == True
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
+        assert loss_func.on_prob_dists_q == False
+        assert loss_func.size_prob_dists() == 3
+        assert len(loss_func.func_prob_dists) == 3
+        assert len(loss_func.func_gradient_prob_dists) == 3
+        assert len(loss_func.func_hessian_prob_dists) == 3
+
+        loss_func.set_prob_dists_q(prob_dists_q)
+        assert loss_func.on_value == True
+        assert loss_func.on_gradient == True
+        assert loss_func.on_hessian == True
+        assert loss_func.on_func_prob_dists == True
+        assert loss_func.on_func_gradient_prob_dists == True
+        assert loss_func.on_func_hessian_prob_dists == True
+        assert loss_func.on_prob_dists_q == True
+        assert loss_func.size_prob_dists() == 3
+        assert len(loss_func.func_prob_dists) == 3
+        assert len(loss_func.func_gradient_prob_dists) == 3
+        assert len(loss_func.func_hessian_prob_dists) == 3

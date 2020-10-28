@@ -1,5 +1,5 @@
 """utility package about matrix."""
-from typing import List
+from typing import List, Tuple
 from functools import reduce
 from operator import add
 
@@ -123,9 +123,9 @@ def calc_mse(xs: List[np.array], ys: List[np.array]) -> np.float64:
     Parameters
     ----------
     xs : List[np.array]
-        a list of estimete.
+        a list of array.
     ys : List[np.array]
-        a list of true.
+        a list of array.
 
     Returns
     -------
@@ -141,7 +141,34 @@ def calc_mse(xs: List[np.array], ys: List[np.array]) -> np.float64:
     return mse
 
 
-def calc_covariance_mat(q: List[np.array], n: int) -> np.array:
+def calc_mse_prob_dists(
+    xs_list: List[List[np.array]], ys_list: List[List[np.array]]
+) -> np.float64:
+    """calculates MSE(Mean Square Error) of 'list of xs' and 'list of ys'.
+
+    MSE is a sum of each MSE.
+    Assume xs_list = [xs0, xs1] and ys_list = [ys0, ys1], returns 'MSE of xs0 and ys0' + 'MSE of xs1 and ys1'. 
+
+    Parameters
+    ----------
+    xs_list : List[List[np.array]]
+        a list of list of array.
+    ys_list : List[List[np.array]]
+        a list of list of array.
+
+    Returns
+    -------
+    np.float64
+        MSE of ``xs_list`` and ``ys_list``.
+    """
+    mse_total = 0.0
+    for xs, ys in zip(xs_list, ys_list):
+        mse_total += calc_mse(xs, ys)
+
+    return mse_total
+
+
+def calc_covariance_mat(q: np.array, n: int) -> np.array:
     """calculates covariance matrix of vector ``q``.
 
     Parameters
@@ -158,6 +185,29 @@ def calc_covariance_mat(q: List[np.array], n: int) -> np.array:
     """
     mat = np.diag(q) - np.array([q]).T @ np.array([q])
     return mat / n
+
+
+def calc_covariance_mat_total(empi_dists: List[Tuple[int, np.array]]) -> np.array:
+    """calculates covariance matrix of total empirical distributions.
+
+    Parameters
+    ----------
+    empi_dists : List[Tuple[int, np.array]]
+        list of empirical distributions.
+        each empirical distribution is a tuple of (data_num, empirical distribution).
+
+    Returns
+    -------
+    np.array
+        covariance matrix of total empirical distributions.
+    """
+    matrices = []
+    for empi_dist in empi_dists:
+        mat_single = calc_covariance_mat(empi_dist[1], empi_dist[0])
+        matrices.append(mat_single)
+
+    val = calc_direct_sum(matrices)
+    return val
 
 
 def calc_direct_sum(matrices: List[np.array]) -> np.array:

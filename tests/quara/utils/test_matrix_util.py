@@ -114,6 +114,20 @@ def test_calc_mse():
     assert actual == expected
 
 
+def test_calc_mse_prob_dists():
+    xs_list = [
+        [np.array([1, 2]), np.array([3, 4]),],
+        [np.array([5, 6]), np.array([7, 8]),],
+    ]
+    ys_list = [
+        [np.array([11, 12]), np.array([13, 14]),],
+        [np.array([15, 16]), np.array([17, 18]),],
+    ]
+    actual = util.calc_mse_prob_dists(xs_list, ys_list)
+    expected = float(400)
+    assert actual == expected
+
+
 def test_calc_covariance_mat():
     # Case: 1
     # Arrange
@@ -137,6 +151,27 @@ def test_calc_covariance_mat():
 
     # Assert
     expected = np.array([[0.0, 0.0], [0.0, 0.0]]) / n
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_calc_covariance_mat_total():
+    empi_dists = [
+        (10, np.array([0.5, 0.5])),
+        (5, np.array([0.5, 0.5])),
+        (10, np.array([1.0, 0.0])),
+    ]
+    actual = util.calc_covariance_mat_total(empi_dists)
+    expected = np.array(
+        [
+            [0.025, -0.025, 0, 0, 0, 0],
+            [-0.025, 0.025, 0, 0, 0, 0],
+            [0, 0, 0.05, -0.05, 0, 0],
+            [0, 0, -0.05, 0.05, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0],
+        ],
+        dtype=np.float64,
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
