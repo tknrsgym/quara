@@ -28,6 +28,7 @@ h2 {{font-size: 20px}}
 h3 {{font-size: 15px;
     color: #618CBC;}}
 h4 {{color:#EB9348; font-size: 15px;}}
+#footer_content {{text-align: right;}}
 """
 
 _table_css = """
@@ -521,13 +522,17 @@ def export_report(
 
     # MSE
     qtomography_class = qtomography_list[0].__class__
+    analytical_result_qtomographies = [
+        qtomography_class(tester_objects, on_para_eq_constraint=True),
+        # qtomography_class(tester_objects, on_para_eq_constraint=False),
+    ]
     mse_div = generate_mse_div(
         estimation_results_list=estimation_results_list,
         case_name_list=case_name_list,
         true_object=true_object,
         num_data=num_data,
         n_rep=n_rep,
-        qtomographies=[qtomography_class(tester_objects, on_para_eq_constraint=True)],
+        qtomographies=analytical_result_qtomographies,
     )
 
     # Physicality Violation Test
@@ -559,6 +564,18 @@ def export_report(
             {_table_css}
             {_table_contents_css}
          -->
+    </style>
+    <style>
+    @page {{
+        size: a4 portrait;
+        @frame content_frame {{
+            left: 20pt; right: 20pt; top: 50pt; height: 672pt;
+        }}
+        @frame footer_frame {{
+            -pdf-frame-content: footer_content;
+            left: 20pt; right: 20pt; top: 812pt; height: 20pt;
+        }}
+    }}
     </style>
 <title>Quara Report</title>
 </head>
@@ -593,6 +610,9 @@ def export_report(
     <div>
         {physicality_violation_test_div}
     </div>
+<div id="footer_content">
+    <pdf:pagenumber>
+</div>
 </body>
 </html>"""
 
