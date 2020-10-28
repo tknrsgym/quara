@@ -245,6 +245,31 @@ class StandardQTomography(QTomography):
         val = np.trace(self.calc_covariance_linear_mat_total(qope, data_num_list))
         return val
 
+    def calc_mse_empi_dists_analytical(
+        self, qope: QOperation, data_num_list: List[int]
+    ) -> np.float64:
+        """calculates analytical solution of mean squared error of empirical distributions.
+
+        Parameters
+        ----------
+        qope : QOperation
+            QOperation to calculate analytical solution of mean squared error of empirical distributions.
+        data_num_list : List[int]
+            list of number of data.
+
+        Returns
+        -------
+        np.float64
+            analytical solution of mean squared error of empirical distributions.
+        """
+        mse_total = 0.0
+        for schedule_index, data_num in enumerate(data_num_list):
+            mse_total += np.trace(
+                self.calc_covariance_mat_single(qope, schedule_index, data_num)
+            )
+
+        return mse_total
+
     @abstractmethod
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         raise NotImplementedError()
