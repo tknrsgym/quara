@@ -225,7 +225,9 @@ class StandardQTomography(QTomography):
         )
         return val
 
-    def calc_mse_linear(self, qope: QOperation, data_num_list: List[int]) -> np.float64:
+    def calc_mse_linear_analytical(
+        self, qope: QOperation, data_num_list: List[int]
+    ) -> np.float64:
         """calculates mean squared error of linear estimate of probability distributions.
 
         Parameters
