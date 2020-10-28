@@ -59,16 +59,20 @@ def get_physicality_violation_result_for_state_affine(
     return value_list
 
 
+# TODO: rename
 def check_physicality_violation(
-    estimation_results: List[EstimationResult],
+    estimation_results: List[EstimationResult], num_data_index: int = 0
 ) -> Dict[str, Any]:
     qoperation = estimation_results[0].estimated_qoperation
-    estimated_qoperations = [qo.estimated_qoperation for qo in estimation_results]
+    estimated_qoperations = [
+        result.estimated_qoperation_sequence[num_data_index]
+        for result in estimation_results
+    ]
     if type(qoperation) == State:
         result = _check_physicality_violation_for_state(estimated_qoperations)
     else:
         # TODO: error message
-        raise ValueError()
+        raise NotImplementedError()
     return result
 
 
@@ -102,6 +106,7 @@ def _check_physicality_violation_for_state(
 def make_prob_dist_histogram(
     values: List[float],
     bin_size: int,
+    num_data: int,
     x_range: Optional[tuple] = None,
     annotation_vlines: List[Union[float, int]] = None,
 ):
@@ -110,7 +115,7 @@ def make_prob_dist_histogram(
 
     hist = go.Histogram(x=values, xbins=dict(size=bin_size), histnorm="probability",)
 
-    layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
+    layout = go.Layout(xaxis=dict(title="Value", dtick=0), yaxis=dict(title="Prob"))
 
     fig = go.Figure(hist, layout=layout)
     ytickvals = [y * 0.1 for y in range(0, 10)]
@@ -132,6 +137,9 @@ def make_prob_dist_histogram(
             )
 
     fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
+    n_rep = len(values)
+    title = f"N={num_data}, Nrep={n_rep}"
+    fig.update_layout(title=title)
 
     return fig
 
@@ -151,7 +159,7 @@ def make_prob_dist_histograms(
         )
         fig.append_trace(trace, i + 1, 1)
 
-    layout = go.Layout(xaxis=dict(title="value", dtick=0), yaxis=dict(title="prob"))
+    layout = go.Layout(xaxis=dict(title="Value", dtick=0), yaxis=dict(title="Prob"))
     fig["layout"].update(layout)
     ytickvals = [y * 0.1 for y in range(0, 10)]
     fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
@@ -174,19 +182,36 @@ def _convert_result_to_qoperation(
     return estimated_qoperations
 
 
+# Qst, on_para_eq_constraint=True
+def make_graph_trace(
+    estimation_results: List[EstimationResult],
+    num_data: List[int],
+    num_data_index: int = 0,
+    bin_size: float = 0.0001,
+) -> "Figure":
+    violation_result = check_physicality_violation(
+        estimation_results, num_data_index=num_data_index
+    )
+    num_data = num_data[num_data_index]
+    fig = make_prob_dist_histogram(
+        violation_result["trace_list"], num_data=num_data, bin_size=bin_size
+    )
+    return fig
+
+
 # common, on_para_eq_constraint=False
 def make_graphs_eigenvalues(
     estimation_results: List[EstimationResult],
     true_object: "QOperation",
     num_data: List[int],
-    index: int = 0,
+    num_data_index: int = 0,
     bin_size: float = 0.0001,
 ) -> List["Figure"]:
     estimated_qoperations = _convert_result_to_qoperation(
-        estimation_results, index=index
+        estimation_results, index=num_data_index
     )
 
-    n_data = num_data[index]
+    n_data = num_data[num_data_index]
     if type(true_object) == State:
         figs = _make_graphs_eigenvalues_state(
             estimated_qoperations, true_object, n_data, bin_size
@@ -200,13 +225,13 @@ def make_graphs_eigenvalues(
 def make_graphs_sum_unphysical_eigenvalues(
     estimation_results: List[EstimationResult],
     num_data: List[int],
-    index: int = 0,
+    num_data_index: int = 0,
     bin_size: float = 0.0001,
 ):
     estimated_qoperations = _convert_result_to_qoperation(
-        estimation_results, index=index
+        estimation_results, index=num_data_index
     )
-    n_data = num_data[index]
+    n_data = num_data[num_data_index]
     sample_object = estimated_qoperations[0]
     if type(sample_object) == State:
         figs = _make_graphs_sum_unphysical_eigenvalues_state(
@@ -236,7 +261,7 @@ def _make_graphs_eigenvalues_state(
     figs = []
     for i, values in enumerate(sorted_eigenvalues_list):
         # plot eigenvalues of estimated states
-        fig = make_prob_dist_histogram(values, bin_size=bin_size)
+        fig = make_prob_dist_histogram(values, num_data=num_data, bin_size=bin_size)
         fig.update_layout(title=f"N={num_data}, Nrep={len(values)}")
         fig.update_xaxes(title=f"Eigenvalue (i={i})")
 
@@ -273,24 +298,93 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
     figs = []
     # Figure 1
     fig = make_prob_dist_histogram(
-        less_than_zero_list, bin_size=bin_size, annotation_vlines=[0]
+        less_than_zero_list, bin_size=bin_size, num_data=num_data, annotation_vlines=[0]
     )
 
     n_unphysical = len(less_than_zero_list)
-    title = f"N={num_data}, Nrep={n_rep}, Number of Unphysical estimates={n_unphysical}"
+    title = (
+        f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
+    )
     fig.update_layout(title=title)
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (<0)")
     figs.append(fig)
 
     # Figure 2
     fig = make_prob_dist_histogram(
-        greater_than_one_list, bin_size=bin_size, annotation_vlines=[1]
+        greater_than_one_list,
+        bin_size=bin_size,
+        num_data=num_data,
+        annotation_vlines=[1],
     )
 
     n_unphysical = len(less_than_zero_list)
-    title = f"N={num_data}, Nrep={n_rep}, Number of Unphysical estimates={n_unphysical}"
+    title = (
+        f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
+    )
     fig.update_layout(title=title)  # TODO
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
     figs.append(fig)
 
     return figs
+
+
+def _generate_graph_sum_eigenvalues_seq(
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    true_object,
+    num_data: List[int],
+) -> list:
+
+    fig_info_list_list = []
+    for num_data_index in range(len(num_data)):
+        fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
+            estimation_results, num_data=num_data, num_data_index=num_data_index,
+        )
+        fig_info_list = []
+
+        for i, fig in enumerate(fig_list):
+            fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
+
+            # output
+            # TODO
+            dir_path = Path(
+                "/Users/tomoko/project/rcast/workspace/quara/tutorials/images"
+            )
+            path = str(dir_path / f"{fig_name}.png")
+            fig.update_layout(width=500, height=400)
+            dir_path.mkdir(exist_ok=True)
+            fig.write_image(path)
+
+            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+
+        fig_info_list_list.append(fig_info_list)
+    return fig_info_list_list
+
+
+def _generate_sum_eigenvalues_div(fig_info_list_list) -> str:
+    graph_block_html_all = ""
+    for fig_info_list in fig_info_list_list:
+        graph_block_html = ""
+        for fig_info in fig_info_list:
+            graph_subblock = (
+                f"<div class='box'><img src={fig_info['image_path']}></div>"
+            )
+            graph_block_html += graph_subblock
+
+        graph_block_html_all += f"<div>{graph_block_html}</div>"
+    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+
+    return graph_block_html_all
+
+
+def generate_sum_eigenvalues_div(
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    num_data: List[int],
+    true_object,
+):
+    fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
+        estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
+    )
+    div_html = _generate_eigenvalues_div(fig_info_list_list)
+    return div_html

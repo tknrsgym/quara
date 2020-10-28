@@ -99,6 +99,12 @@ class State(QOperation):
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the state is not physically correct.")
 
+    def __str__(self):
+        desc = f"Type:\t{self.__class__.__name__}\n"
+        desc += f"Dim:\t{self.dim}\n"
+        desc += f"Vec:\t{self.vec}"
+        return desc
+
     @property
     def vec(self):
         """returns vec of this state.

@@ -284,13 +284,13 @@ def calc_estimate_with_average_comp_time(
 
 
 # common(show log-log scatter?)
-def show_mse(num_data: List[int], mses: List[float], title: str = "Mean Square Value"):
+def show_mse(num_data: List[int], mses: List[float], title: str = "Mean squared error"):
     trace = go.Scatter(x=num_data, y=mses, mode="lines+markers")
     data = [trace]
     layout = go.Layout(
         title=title,
-        xaxis_title_text="number of data",
-        yaxis_title_text="Mean Square Error of estimates and true",
+        xaxis_title_text="Number of data",
+        yaxis_title_text="Mean squared error of estimates and true",
         xaxis_type="log",
         yaxis_type="log",
     )
@@ -298,12 +298,12 @@ def show_mse(num_data: List[int], mses: List[float], title: str = "Mean Square V
     fig.show()
 
 
-def show_mses(
+def make_mses_graph(
     num_data: List[int],
     mses: List[List[float]],
-    title: str = "Mean Square Value",
+    title: str = "Mean squared error",
     names: Optional[List[str]] = None,
-):
+) -> List["Figure"]:
     if not names:
         names = [f"data_{i}" for i in range(len(mses))]
     data = []
@@ -313,12 +313,22 @@ def show_mses(
 
     layout = go.Layout(
         title=title,
-        xaxis_title_text="number of data",
-        yaxis_title_text="Mean Square Error of estimates and true",
+        xaxis_title_text="Number of data",
+        yaxis_title_text="Mean squared error of estimates and true",
         xaxis_type="log",
         yaxis_type="log",
     )
     fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def show_mses(
+    num_data: List[int],
+    mses: List[List[float]],
+    title: str = "Mean squared error",
+    names: Optional[List[str]] = None,
+):
+    fig = make_mses_graph(num_data=num_data, mses=mses, title=title, names=names)
     fig.show()
 
 
@@ -326,7 +336,7 @@ def show_mses(
 def show_computation_times(
     num_data: List[int],
     computation_times_sequence: List[List[float]],
-    title: str = "computation times for each estimate",
+    title: str = "Computation times for each estimate",
     histnorm: str = "count",
 ):
     if not histnorm in ["count", "percent", "frequency"]:
@@ -335,7 +345,7 @@ def show_computation_times(
         )
 
     subplot_titles = [
-        f"number of data = {num}<br>total count of number = {len(computation_times)}"
+        f"Number of data = {num}<br>Total count of number = {len(computation_times)}"
         for num, computation_times in zip(num_data, computation_times_sequence)
     ]
     fig = make_subplots(rows=1, cols=len(num_data), subplot_titles=subplot_titles)
@@ -358,7 +368,7 @@ def show_computation_times(
 
     fig.update_layout(
         title_text=title,
-        xaxis_title_text="computation time(sec)",
+        xaxis_title_text="Computation time(sec)",
         yaxis_title_text=histnorm,
         showlegend=False,
         width=1200,
@@ -377,12 +387,12 @@ def show_average_computation_times(
     data = [trace]
 
     if title is None:
-        title = f"computation times for estimates<br> number of runs for averaging = {num_of_runs}"
+        title = f"Computation times for estimates<br> number of runs for averaging = {num_of_runs}"
     max_value = np.max(computation_times_sequence)
     layout = go.Layout(
         title=title,
-        xaxis_title_text="number of data",
-        yaxis_title_text="average of computation times(sec)",
+        xaxis_title_text="Number of data",
+        yaxis_title_text="Average of computation times(sec)",
         # yaxis_min=0,
         xaxis_type="log",
         yaxis_range=[0, max_value * 1.1],
