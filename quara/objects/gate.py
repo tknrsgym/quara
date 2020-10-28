@@ -94,6 +94,12 @@ class Gate(QOperation):
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the gate is not physically correct.")
 
+    def __str__(self):
+        desc = f"Type:\t{self.__class__.__name__}\n"
+        desc += f"Dim:\t{self.dim}\n"
+        desc += f"HS:\t{self.hs}"
+        return desc
+
     @property
     def dim(self):
         """returns dim of gate.

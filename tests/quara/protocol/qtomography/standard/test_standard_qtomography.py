@@ -12,7 +12,7 @@ from quara.objects.povm import (
     get_z_measurement,
 )
 from quara.objects.qoperations import SetQOperations
-from quara.objects.state import get_z0_1q
+from quara.objects.state import get_z0_1q, State
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.qcircuit.experiment import Experiment
@@ -243,8 +243,21 @@ class TestStandardQTomography:
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_calc_mse_linear(self):
+        # Case 1: qst, on_par_eq_constraint = True
+        # Arrange
         qst, c_sys = get_test_data_qst()
         state = get_z0_1q(c_sys)
-
+        # Act
         actual = qst.calc_mse_linear(state, [10, 5, 10])
+        # Assert
+        npt.assert_almost_equal(actual, 0.15, decimal=15)
+
+        # Case 2: qst, on_par_eq_constraint = False
+        # Arange
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        state = get_z0_1q(c_sys)
+        state = State(vec=get_z0_1q(c_sys).vec, c_sys=c_sys, on_para_eq_constraint=False)
+        # Act
+        actual = qst.calc_mse_linear(state, [10, 5, 10])
+        # Assert
         npt.assert_almost_equal(actual, 0.15, decimal=15)
