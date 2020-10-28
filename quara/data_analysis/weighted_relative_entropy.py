@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Callable, List
+from typing import Callable, List, Union
 
 import numpy as np
 
@@ -28,7 +28,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         func_gradient_prob_dists: List = None,
         func_hessian_prob_dists: List = None,
         prob_dists_q: List[np.array] = None,
-        weights: List[float] = None,
+        weights: Union[List[float], List[np.float64]] = None,
     ):
         """Constructor
 
@@ -44,7 +44,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
             functions map variables and indices of variables to Hessian of probability distributions.
         prob_dists_q : List[np.array], optional
             vectors of ``q``, by default None.
-        weights : List[float], optional
+        weights : Union[List[float], List[np.float64]], optional
             weights, by default None
         """
         super().__init__(
@@ -68,9 +68,9 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         if weights:
             for index, weight in enumerate(weights):
                 # weights are real values
-                if type(weight) != float:
+                if type(weight) != float and type(weight) != np.float64:
                     raise ValueError(
-                        f"values of weights must be real numbers(float). dtype of weights[{index}] is {type(weight)}"
+                        f"values of weights must be real numbers(float or np.float64). dtype of weights[{index}] is {type(weight)}"
                     )
 
     @property

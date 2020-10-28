@@ -256,7 +256,6 @@ class TestProbabilityBasedLossFunction:
     def test_set_func_hessian_prob_dists_from_standard_qt___on_para_eq_constraint_False(
         self,
     ):
-        # TODO 複合ケースのテスト, on_para_eq_constraint=Trueのテスト, 確率分布の次元が3のテスト
         # Arrange
         qt = get_test_qst(on_para_eq_constraint=False)
         loss_func = WeightedProbabilityBasedSquaredError(qt.num_variables)
