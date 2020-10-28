@@ -1,10 +1,26 @@
-from typing import List
+from typing import List, Union
 
 import numpy as np
 
 
-def round_varz(z: np.float64, eps: np.float64) -> np.float64:
-    # TODO validation, float, non-negative
+def round_varz(
+    z: Union[float, np.float64], eps: Union[float, np.float64]
+) -> np.float64:
+    # validation
+    if type(z) != float and type(z) != np.float64:
+        raise ValueError(
+            f"z must be real numbers(float or np.float64). dtype of z is {type(z)}"
+        )
+    if z < 0:
+        raise ValueError(f"z must be non-negative numbers. z is {z}")
+    if type(eps) != float and type(z) != np.float64:
+        raise ValueError(
+            f"eps must be real numbers(float or np.float64). dtype of eps is {type(eps)}"
+        )
+    if eps < 0:
+        raise ValueError(f"eps must be non-negative numbers. eps is {eps}")
+
+    # round
     val = max(z, eps)
     return val
 
