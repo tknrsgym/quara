@@ -6,6 +6,17 @@ from quara.data_analysis.weighted_relative_entropy import (
     WeightedRelativeEntropy,
     WeightedRelativeEntropyOption,
 )
+from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.povm import (
+    Povm,
+    get_x_measurement,
+    get_y_measurement,
+    get_z_measurement,
+)
+from quara.objects.state import get_z0_1q
+from quara.protocol.qtomography.standard.standard_qst import StandardQst
 
 
 # parameters for test
@@ -75,6 +86,19 @@ prob_dists_q = [
 weights = [1.0, 1.0, 2.0]
 
 
+def get_test_qst(on_para_eq_constraint=True):
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    povm_x = get_x_measurement(c_sys)
+    povm_y = get_y_measurement(c_sys)
+    povm_z = get_z_measurement(c_sys)
+    povms = [povm_x, povm_y, povm_z]
+
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    return qst
+
+
 class TestWeightedRelativeEntropy:
     def test_access_weights(self):
         weights = [1.0, 2.0, 3.0]
@@ -138,6 +162,16 @@ class TestWeightedRelativeEntropy:
         expected = 2 * np.log(2 / 1.9)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+        # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedRelativeEntropy(qt.num_variables, prob_dists_q=prob_dists_q)
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = loss_func.value(var)
+        expected = 0
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_gradient(self):
         func = WeightedRelativeEntropy(
             4,
@@ -175,6 +209,17 @@ class TestWeightedRelativeEntropy:
         expected = -np.array([4 + 4 / 1.9, 0, 0, 4 / 1.9], dtype=np.float64) / np.sqrt(
             2
         )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedRelativeEntropy(qt.num_variables, prob_dists_q=prob_dists_q)
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+        loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
+
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = loss_func.gradient(var)
+        expected = -np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_hessian(self):
@@ -237,3 +282,17 @@ class TestWeightedRelativeEntropy:
         print(actual)
         print(expected)
         npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedRelativeEntropy(qt.num_variables, prob_dists_q=prob_dists_q)
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+        loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
+        loss_func.set_func_hessian_prob_dists_from_standard_qt(qt)
+
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = loss_func.hessian(var)
+        expected = np.array(
+            [[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 0.5],], dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
