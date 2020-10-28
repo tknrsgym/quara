@@ -278,11 +278,14 @@ def generate_mse_div(
             f"Case {i}: {name}" for i, name in enumerate(case_name_list)
         ]
 
+    # calc analytical result
     if qtomographies:
         for qtomography in qtomographies:
             true_mses = []
             for num in num_data:
-                true_mse = qtomography.calc_mse_linear(true_object, [num] * 3)  # TODO
+                true_mse = qtomography.calc_mse_linear_analytical(
+                    true_object, [num] * 3
+                )
                 true_mses.append(true_mse)
             mses_list.append(true_mses)
             display_name_list.append("Analytical result")
