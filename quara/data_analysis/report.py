@@ -464,7 +464,7 @@ def generate_case_table(
 
 
 def generate_condition_table(
-    qtomography_list: List["QTomography"], n_rep: int, num_data: List[int]
+    qtomography_list: List["QTomography"], n_rep: int, num_data: List[int], seed: Optional[int]
 ) -> str:
     type_tomography_values = list(
         set([qt.__class__.__name__ for qt in qtomography_list])
@@ -474,6 +474,7 @@ def generate_condition_table(
         "Type of tomography": type_tomography_values,
         "Nrep": [n_rep],
         "N": [num_data],
+        "RNG seed": [seed]
     }
     condition_df = pd.DataFrame(info).T
     condition_table = condition_df.to_html(
@@ -525,13 +526,14 @@ def export_report(
     num_data: List[int],
     n_rep: int,
     save_materials: bool = False,
+    seed: int = None
 ):
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
     _temp_dir_path = Path(temp_dir_path)
 
     # Experiment Condition
-    condition_table = generate_condition_table(qtomography_list, n_rep, num_data)
+    condition_table = generate_condition_table(qtomography_list, n_rep, num_data, seed)
 
     # Cases
     case_table = generate_case_table(
