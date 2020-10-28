@@ -6,6 +6,17 @@ from quara.data_analysis.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
 )
+from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.povm import (
+    Povm,
+    get_x_measurement,
+    get_y_measurement,
+    get_z_measurement,
+)
+from quara.objects.state import get_z0_1q
+from quara.protocol.qtomography.standard.standard_qst import StandardQst
 
 
 # parameters for test
@@ -79,8 +90,34 @@ weight_matrices = [
 ]
 
 
+def get_test_qst(on_para_eq_constraint=True):
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    povm_x = get_x_measurement(c_sys)
+    povm_y = get_y_measurement(c_sys)
+    povm_z = get_z_measurement(c_sys)
+    povms = [povm_x, povm_y, povm_z]
+
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    return qst
+
+
 class TestWeightedProbabilityBasedSquaredErrorFunction:
     def test_access_weight_matrices(self):
+        # success(dtype=float)
+        weight_matrices = [
+            np.eye(4, dtype=float),
+            np.eye(4, dtype=float),
+            np.array([[0, 1], [1, 0]], dtype=float),
+        ]
+        loss_func = WeightedProbabilityBasedSquaredError(
+            4, weight_matrices=weight_matrices
+        )
+        for a, e in zip(loss_func.weight_matrices, weight_matrices):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # success(dtype=np.float64)
         weight_matrices = [
             np.eye(4, dtype=np.float64),
             np.eye(4, dtype=np.float64),
@@ -115,6 +152,18 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
             WeightedProbabilityBasedSquaredError(4, weight_matrices=weight_matrices)
 
     def test_set_weight_matrices(self):
+        # success(dtype=float)
+        loss_func = WeightedProbabilityBasedSquaredError(4)
+        weight_matrices = [
+            np.eye(4, dtype=float),
+            np.eye(4, dtype=float),
+            np.array([[0, 1], [1, 0]], dtype=float),
+        ]
+        loss_func.set_weight_matrices(weight_matrices)
+        for a, e in zip(loss_func.weight_matrices, weight_matrices):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # success(dtype=np.float64)
         loss_func = WeightedProbabilityBasedSquaredError(4)
         weight_matrices = [
             np.eye(4, dtype=np.float64),
@@ -260,6 +309,18 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         actual = func.value(var)
         npt.assert_almost_equal(actual, 0.01, decimal=15)
 
+        # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedProbabilityBasedSquaredError(
+            qt.num_variables, prob_dists_q=prob_dists_q
+        )
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = loss_func.value(var)
+        expected = 0
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_gradient(self):
         func = WeightedProbabilityBasedSquaredError(
             4,
@@ -293,6 +354,19 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
         actual = func.gradient(var)
         expected = np.array([0.0, 0.0, 0.0, -2 * np.sqrt(2) / 10], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedProbabilityBasedSquaredError(
+            qt.num_variables, prob_dists_q=prob_dists_q
+        )
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+        loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
+
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = loss_func.gradient(var)
+        expected = np.array([0.0, 0.0, 0.0], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_hessian(self):
@@ -353,6 +427,22 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedProbabilityBasedSquaredError(
+            qt.num_variables, prob_dists_q=prob_dists_q
+        )
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+        loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
+        loss_func.set_func_hessian_prob_dists_from_standard_qt(qt)
+
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = loss_func.hessian(var)
+        expected = np.array(
+            [[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0],], dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_on_prob_dists_q_False(self):
         loss_func = WeightedProbabilityBasedSquaredError(
