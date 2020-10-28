@@ -98,7 +98,6 @@ def _convert_html2pdf(source_html: str, output_path: str):
     return pisa_status.err
 
 
-# 等式制約のグラフを作る
 def _make_graph_trace_seq(
     estimation_results: List["EstimationResult"], case_id: int, num_data: List[int]
 ) -> list:
@@ -266,29 +265,45 @@ def generate_mse_div(
     true_object: "QOperation",
     num_data: List[int],
     n_rep: int = None,
+    show_analytical_results: bool = True,
     qtomographies: List["StandardQTomography"] = None,
+    tester_objects: List["QOperation"] = None,
 ) -> str:
     mses_list = []
     display_name_list = []
 
-    for result in estimation_results_list:
-        mses, *_ = data_analysis.convert_to_series(result, true_object)
+    for results in estimation_results_list:
+        mses, *_ = data_analysis.convert_to_series(results, true_object)
         mses_list.append(mses)
         display_name_list = [
             f"Case {i}: {name}" for i, name in enumerate(case_name_list)
         ]
 
     # calc analytical result
-    if qtomographies:
+    if show_analytical_results:
+        if not (qtomographies and tester_objects):
+            error_message = "Specify 'qtomographies' and 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
+            raise ValueError(error_message)
+
         for qtomography in qtomographies:
-            true_mses = []
-            for num in num_data:
-                true_mse = qtomography.calc_mse_linear_analytical(
-                    true_object, [num] * 3
+            for parameter in [True, False]:
+                true_object_copied = true_object.__class__(
+                    vec=true_object.vec,
+                    c_sys=true_object.composite_system,
+                    on_para_eq_constraint=parameter,
                 )
-                true_mses.append(true_mse)
-            mses_list.append(true_mses)
-            display_name_list.append("Analytical result")
+                tmp_tomography = qtomography.__class__(
+                    tester_objects, on_para_eq_constraint=parameter
+                )
+
+                true_mses = []
+                for num in num_data:
+                    true_mse = tmp_tomography.calc_mse_linear_analytical(
+                        true_object_copied, [num] * 3
+                    )
+                    true_mses.append(true_mse)
+                mses_list.append(true_mses)
+                display_name_list.append(f"Analytical result (Linear, {parameter})")
 
     title = f"Mean squared error"
     if not n_rep:
@@ -535,7 +550,9 @@ def export_report(
         true_object=true_object,
         num_data=num_data,
         n_rep=n_rep,
+        show_analytical_results=True,
         qtomographies=analytical_result_qtomographies,
+        tester_objects=tester_objects,
     )
 
     # Physicality Violation Test
