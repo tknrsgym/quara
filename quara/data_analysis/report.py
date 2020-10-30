@@ -305,6 +305,44 @@ def generate_mse_div(
     return mse_div
 
 
+def generate_empi_dist_mse_div(
+    estimation_results_list: List[List[EstimationResult]],
+    case_name_list: List[str],
+    true_object: "QOperation",
+    num_data: List[int],
+    n_rep: int = None,
+    show_analytical_results: bool = True,
+    qtomographies: List["StandardQTomography"] = None,
+    tester_objects: List["QOperation"] = None,
+) -> str:
+
+    title = f"Mean squared error"
+    if not n_rep:
+        title += "<br>Nrep={n_rep}"
+
+    display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
+    fig = data_analysis.make_empi_dists_mse_graph(
+        estimation_results_list,
+        display_name_list,
+        qtomographies,
+        true_object,
+        num_data,
+        n_rep,
+        tester_objects,
+    )
+
+    fig_name = f"empi_dists_mse"
+
+    dir_path = Path(_temp_dir_path)
+    path = str(dir_path / f"{fig_name}.png")
+    dir_path.mkdir(exist_ok=True)
+    fig.write_image(path)
+
+    div = f"""<div><img src="{path}"></div>
+    """
+    return div
+
+
 def _parse_qoperation_desc(qoperation: "QOperation") -> List[str]:
     desc = str(qoperation)
     continue_flag, before_t = False, ""
@@ -554,6 +592,18 @@ def export_report(
         classes="tester_objects_table", escape=False, header=False
     )
 
+    # MSE of Empirical Distributions
+    empi_dists_mse_div = generate_empi_dist_mse_div(
+        estimation_results_list,
+        case_name_list,
+        true_object,
+        num_data,
+        n_rep,
+        True,
+        qtomography_list,
+        tester_objects,
+    )
+
     # Consistency Test
     consistency_check_table = generate_consistency_check_table(
         qtomography_list, para_list, estimator_list, true_object,
@@ -605,6 +655,8 @@ def export_report(
     <div>
         {case_table}
     </div>
+<h1>MSE of Empirical Distributions</h1>
+    <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
 <h1>MSE</h1>
