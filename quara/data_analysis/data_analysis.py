@@ -437,64 +437,6 @@ def extract_empi_dists(results: List["EstimationResult"]) -> List[List[List[np.a
     return converted
 
 
-# def make_empi_dists_mse_graph(
-#     estimation_results_list,
-#     case_name_list,
-#     qtomographies,
-#     true_object,
-#     num_data,
-#     n_rep,
-#     tester_objects,
-# ):
-#     mses_list = []
-#     display_names = case_name_list[:]
-
-#     # Data
-#     for i, results in enumerate(estimation_results_list):
-#         qtomography = qtomographies[i]
-#         # 経験分布
-#         xs_list_list = extract_empi_dists(results)
-#         # 確率分布
-#         ys_list_list = [
-#             [qtomography.generate_prob_dists_sequence(true_object)] * n_rep
-#         ] * len(num_data)
-
-#         mses = []
-#         for i in range(len(num_data)):
-#             mses.append(
-#                 matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i])
-#             )
-#         mses_list.append(mses)
-
-#     # Analytical
-#     analytical_mses_list = []
-
-#     for parameter in [True, False]:
-#         true_object_copied = true_object.__class__(
-#             vec=true_object.vec,
-#             c_sys=true_object.composite_system,
-#             on_para_eq_constraint=parameter,
-#         )
-#         tmp_tomography = qtomographies[0].__class__(
-#             tester_objects, on_para_eq_constraint=parameter
-#         )
-
-#         true_mses = []
-#         for num in num_data:
-#             true_mse = tmp_tomography.calc_mse_linear_analytical(
-#                 true_object_copied, [num] * 3
-#             )
-#             true_mses.append(true_mse)
-#         mses_list.append(true_mses)
-#         display_names.append(f"Analytical result (Linear, {parameter})")
-
-#     mses_list += analytical_mses_list
-#     # display_names.append("Analytical Result(True)")
-
-#     fig = make_mses_graph(mses=mses_list, num_data=num_data, names=display_names,)
-#     return fig
-
-
 def make_empi_dists_mse_graph(
     estimation_results_list,
     case_name_list,
@@ -511,9 +453,8 @@ def make_empi_dists_mse_graph(
     qtomography = qtomographies[target_index]
     results = estimation_results_list[target_index]
     display_names = [case_name_list[target_index]]
-    # 経験分布
+
     xs_list_list = extract_empi_dists(results)
-    # 確率分布
     ys_list_list = [
         [qtomography.generate_prob_dists_sequence(true_object)] * n_rep
     ] * len(num_data)
@@ -522,7 +463,7 @@ def make_empi_dists_mse_graph(
     for i in range(len(num_data)):
         mses.append(matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i]))
     mses_list.append(mses)
-    # print(len(mses_list))
+
     # Analytical
     analytical_mses_list = []
 
@@ -544,11 +485,6 @@ def make_empi_dists_mse_graph(
             true_mses.append(true_mse)
         mses_list.append(true_mses)
         display_names.append(f"Analytical result")
-
-    # mses_list += analytical_mses_list
-    # display_names.append("Analytical Result(True)")
-    print(len(mses_list))
-    print(len(display_names))
 
     fig = make_mses_graph(mses=mses_list, num_data=num_data, names=display_names,)
     return fig
