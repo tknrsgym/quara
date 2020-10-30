@@ -1,3 +1,4 @@
+from quara.protocol.qtomography.estimator import EstimationResult
 import time
 from typing import Callable, List, Optional, Union
 
@@ -292,6 +293,51 @@ def make_mses_graph(
         yaxis_type="log",
     )
     fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def make_mses_graph_estimation_results(
+    estimation_results_list: List["EstimationResult"],
+    case_names: List[str],
+    num_data,
+    true_object,
+    title: str = None,
+    show_analytical_results: bool = None,
+    qtomographies: list = None,
+    tester_objects: QOperation = None,
+) -> "Figure":
+    mses_list = []
+    display_case_names = case_names[:]
+    for estimation_results in estimation_results_list:
+        mses, *_ = convert_to_series(estimation_results, true_object)
+        mses_list.append(mses)
+
+    # calc analytical result
+    if show_analytical_results:
+        if not (qtomographies and tester_objects):
+            error_message = "Specify 'qtomographies' and 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
+            raise ValueError(error_message)
+
+        for qtomography in qtomographies:
+            for parameter in [True, False]:
+                true_object_copied = true_object.__class__(
+                    vec=true_object.vec,
+                    c_sys=true_object.composite_system,
+                    on_para_eq_constraint=parameter,
+                )
+                tmp_tomography = qtomography.__class__(
+                    tester_objects, on_para_eq_constraint=parameter
+                )
+
+                true_mses = []
+                for num in num_data:
+                    true_mse = tmp_tomography.calc_mse_linear_analytical(
+                        true_object_copied, [num] * 3
+                    )
+                    true_mses.append(true_mse)
+                mses_list.append(true_mses)
+                display_case_names.append(f"Analytical result (Linear, {parameter})")
+    fig = make_mses_graph(num_data, mses_list, names=display_case_names, title=title)
     return fig
 
 

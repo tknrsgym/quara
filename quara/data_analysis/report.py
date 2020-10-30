@@ -277,48 +277,20 @@ def generate_mse_div(
     qtomographies: List["StandardQTomography"] = None,
     tester_objects: List["QOperation"] = None,
 ) -> str:
-    mses_list = []
-    display_name_list = []
-
-    for results in estimation_results_list:
-        mses, *_ = data_analysis.convert_to_series(results, true_object)
-        mses_list.append(mses)
-        display_name_list = [
-            f"Case {i}: {name}" for i, name in enumerate(case_name_list)
-        ]
-
-    # calc analytical result
-    if show_analytical_results:
-        if not (qtomographies and tester_objects):
-            error_message = "Specify 'qtomographies' and 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
-            raise ValueError(error_message)
-
-        for qtomography in qtomographies:
-            for parameter in [True, False]:
-                true_object_copied = true_object.__class__(
-                    vec=true_object.vec,
-                    c_sys=true_object.composite_system,
-                    on_para_eq_constraint=parameter,
-                )
-                tmp_tomography = qtomography.__class__(
-                    tester_objects, on_para_eq_constraint=parameter
-                )
-
-                true_mses = []
-                for num in num_data:
-                    true_mse = tmp_tomography.calc_mse_linear_analytical(
-                        true_object_copied, [num] * 3
-                    )
-                    true_mses.append(true_mse)
-                mses_list.append(true_mses)
-                display_name_list.append(f"Analytical result (Linear, {parameter})")
 
     title = f"Mean squared error"
     if not n_rep:
         title += "<br>Nrep={n_rep}"
 
-    fig = data_analysis.make_mses_graph(
-        num_data=num_data, mses=mses_list, names=display_name_list, title=title
+    display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
+    fig = data_analysis.make_mses_graph_estimation_results(
+        estimation_results_list=estimation_results_list,
+        true_object=true_object,
+        num_data=num_data,
+        case_names=display_name_list,
+        show_analytical_results=True,
+        qtomographies=qtomographies,
+        tester_objects=tester_objects,
     )
 
     fig_name = f"mse"
