@@ -18,12 +18,14 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         data,
         estimated_var_sequence: List[np.array],
         computation_times: List[float],
+        empi_dists_sequence,
     ):
         super().__init__(computation_times)
 
         self._qtomography: StandardQTomography = qtomography
         self._data = data
         self._estimated_var_sequence: List[np.array] = estimated_var_sequence
+        self._empi_dists_sequence = empi_dists_sequence
 
     @property
     def estimated_var(self) -> np.array:
@@ -75,6 +77,10 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
             for var in self._estimated_var_sequence
         ]
         return qoperations
+
+    @property
+    def empi_dists_sequence(self) -> list:
+        return self._empi_dists_sequence
 
 
 class StandardQTomographyEstimator(QTomographyEstimator):
