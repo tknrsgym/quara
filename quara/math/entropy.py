@@ -6,19 +6,47 @@ import numpy as np
 def round_varz(
     z: Union[float, np.float64], eps: Union[float, np.float64]
 ) -> np.float64:
+    """returns max{z , eps}.
+    
+    This function to be used to avoid divergence.
+    Both the arguments z and eps must be negative real numbers. 
+
+    Parameters
+    ----------
+    z : Union[float, np.float64]
+        variable z.
+    eps : Union[float, np.float64]
+        variable eps.
+
+    Returns
+    -------
+    np.float64
+        max{z , eps}.
+
+    Raises
+    ------
+    ValueError
+        z is not a real number(float or np.float64).
+    ValueError
+        z is a negative number.
+    ValueError
+        eps is not a real number(float or np.float64).
+    ValueError
+        eps is a negative number.
+    """
     # validation
     if type(z) != float and type(z) != np.float64:
         raise ValueError(
-            f"z must be real numbers(float or np.float64). dtype of z is {type(z)}"
+            f"z must be a real number(float or np.float64). dtype of z is {type(z)}"
         )
     if z < 0:
-        raise ValueError(f"z must be non-negative numbers. z is {z}")
+        raise ValueError(f"z must be a non-negative number. z is {z}")
     if type(eps) != float and type(z) != np.float64:
         raise ValueError(
-            f"eps must be real numbers(float or np.float64). dtype of eps is {type(eps)}"
+            f"eps must be a real number(float or np.float64). dtype of eps is {type(eps)}"
         )
     if eps < 0:
-        raise ValueError(f"eps must be non-negative numbers. eps is {eps}")
+        raise ValueError(f"eps must be a non-negative number. eps is {eps}")
 
     # round
     val = max(z, eps)
@@ -31,6 +59,24 @@ def relative_entropy(
     eps_q: float = None,
     eps_p: float = None,
 ) -> float:
+    """returns relative entropy of probability distributions q and p.
+
+    Parameters
+    ----------
+    prob_dist_q : np.array
+        a probability distribution q.
+    prob_dist_p : np.array
+        a probability distribution p.
+    eps_q : float, optional
+        a parameter to avoid divergence about q, by default 1e-10
+    eps_p : float, optional
+        a parameter to avoid divergence about p, by default 1e-10
+
+    Returns
+    -------
+    float
+        relative entropy of probability distributions q and p.
+    """
     if eps_q == None:
         eps_q = 1e-10
     if eps_p == None:
@@ -50,10 +96,30 @@ def relative_entropy(
 def gradient_relative_entropy_2nd(
     prob_dist_q: np.array,
     prob_dist_p: np.array,
-    gradient_prob_dist_ps: np.array,  # TODO 2D
+    gradient_prob_dist_ps: np.array,
     eps_q: float = None,
     eps_p: float = None,
 ) -> np.array:
+    """returns gradient of relative entropy of probability distributions q and p.
+
+    Parameters
+    ----------
+    prob_dist_q : np.array
+        a probability distribution q.
+    prob_dist_p : np.array
+        a probability distribution p.
+    gradient_prob_dist_ps : np.array
+        gradients of probability distribution p. ``ndim`` of this parameter must be 2 (list of gradients).
+    eps_q : float, optional
+        a parameter to avoid divergence about q, by default 1e-10
+    eps_p : float, optional
+        a parameter to avoid divergence about p, by default 1e-10
+
+    Returns
+    -------
+    np.array
+        gradient of relative entropy of probability distributions q and p.
+    """
     if eps_q == None:
         eps_q = 1e-10
     if eps_p == None:
@@ -71,11 +137,33 @@ def gradient_relative_entropy_2nd(
 def hessian_relative_entropy_2nd(
     prob_dist_q: np.array,
     prob_dist_p: np.array,
-    gradient_prob_dist_ps: np.array,  # TODO 2D
-    hessian_prob_dist_ps: np.array,  # TODO 3D
+    gradient_prob_dist_ps: np.array,
+    hessian_prob_dist_ps: np.array,
     eps_q: float = None,
     eps_p: float = None,
 ) -> float:
+    """returns Hessian of relative entropy of probability distributions q and p.
+
+    Parameters
+    ----------
+    prob_dist_q : np.array
+        [description]
+    prob_dist_p : np.array
+        [description]
+    gradient_prob_dist_ps : np.array
+        gradients of probability distribution p. ``ndim`` of this parameter must be 2 (list of gradients).
+    hessian_prob_dist_ps : np.array
+        Hessians of probability distribution p. ``ndim`` of this parameter must be 3 (list of Hessians).
+    eps_q : float, optional
+        a parameter to avoid divergence about q, by default 1e-10
+    eps_p : float, optional
+        a parameter to avoid divergence about p, by default 1e-10
+
+    Returns
+    -------
+    float
+        Hessian of relative entropy of probability distributions q and p.
+    """
     if eps_q == None:
         eps_q = 1e-10
     if eps_p == None:
