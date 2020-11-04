@@ -117,8 +117,8 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
 
 
-def calc_mse(xs: List[np.array], ys: List[np.array]) -> np.float64:
-    """calculates MSE(Mean Square Error) of ``xs`` and ``ys``.
+def calc_se(xs: List[np.array], ys: List[np.array]) -> np.float64:
+    """calculates Squared Error of ``xs`` and ``ys``.
 
     Parameters
     ----------
@@ -130,21 +130,21 @@ def calc_mse(xs: List[np.array], ys: List[np.array]) -> np.float64:
     Returns
     -------
     np.float64
-        MSE of ``xs`` and ``ys``.
+        Squared Error of ``xs`` and ``ys``.
     """
-    square_errors = []
+    squared_errors = []
     for x, y in zip(xs, ys):
-        square_error = np.vdot(x - y, x - y)
-        square_errors.append(square_error)
+        squared_error = np.vdot(x - y, x - y)
+        squared_errors.append(squared_error)
 
-    mse = np.mean(square_errors, dtype=np.float64)
-    return mse
+    se = np.sum(squared_errors, dtype=np.float64)
+    return se
 
 
 def calc_mse_prob_dists(
     xs_list: List[List[np.array]], ys_list: List[List[np.array]]
 ) -> np.float64:
-    """calculates MSE(Mean Square Error) of 'list of xs' and 'list of ys'.
+    """calculates MSE(Mean Squared Error) of 'list of xs' and 'list of ys'.
 
     MSE is a sum of each MSE.
     Assume xs_list = [xs0, xs1] and ys_list = [ys0, ys1], returns 'MSE of xs0 and ys0' + 'MSE of xs1 and ys1'. 
@@ -161,11 +161,12 @@ def calc_mse_prob_dists(
     np.float64
         MSE of ``xs_list`` and ``ys_list``.
     """
-    mse_total = 0.0
+    se_total = 0.0
     for xs, ys in zip(xs_list, ys_list):
-        mse_total += calc_mse(xs, ys)
-
-    return mse_total
+        se_total += calc_se(xs, ys)
+    mse = se_total / len(xs_list)
+    print(f"calc_mse_prob_dists: {mse}")
+    return mse
 
 
 def calc_covariance_mat(q: np.array, n: int) -> np.array:

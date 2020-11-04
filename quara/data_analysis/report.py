@@ -78,8 +78,16 @@ pdftoc.pdftoclevel1 {
 }
 pdftoc.pdftoclevel2 {
     margin-left: 2em;
+}
+pdftoc.pdftoclevel3 {
+    margin-left: 3em;
     font-style: italic;
-}"""
+}
+pdftoc.pdftoclevel4 {
+    margin-left: 4em;
+    font-style: italic;
+}
+"""
 
 _inline_block_css = """
 .box{
@@ -98,7 +106,6 @@ def _convert_html2pdf(source_html: str, output_path: str):
     return pisa_status.err
 
 
-# 等式制約のグラフを作る
 def _make_graph_trace_seq(
     estimation_results: List["EstimationResult"], case_id: int, num_data: List[int]
 ) -> list:
@@ -266,36 +273,24 @@ def generate_mse_div(
     true_object: "QOperation",
     num_data: List[int],
     n_rep: int = None,
+    show_analytical_results: bool = True,
     qtomographies: List["StandardQTomography"] = None,
+    tester_objects: List["QOperation"] = None,
 ) -> str:
-    mses_list = []
-    display_name_list = []
-
-    for result in estimation_results_list:
-        mses, *_ = data_analysis.convert_to_series(result, true_object)
-        mses_list.append(mses)
-        display_name_list = [
-            f"Case {i}: {name}" for i, name in enumerate(case_name_list)
-        ]
-
-    # calc analytical result
-    if qtomographies:
-        for qtomography in qtomographies:
-            true_mses = []
-            for num in num_data:
-                true_mse = qtomography.calc_mse_linear_analytical(
-                    true_object, [num] * 3
-                )
-                true_mses.append(true_mse)
-            mses_list.append(true_mses)
-            display_name_list.append("Analytical result")
 
     title = f"Mean squared error"
     if not n_rep:
         title += "<br>Nrep={n_rep}"
 
-    fig = data_analysis.make_mses_graph(
-        num_data=num_data, mses=mses_list, names=display_name_list, title=title
+    display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
+    fig = data_analysis.make_mses_graph_estimation_results(
+        estimation_results_list=estimation_results_list,
+        case_names=display_name_list,
+        num_data=num_data,
+        true_object=true_object,
+        show_analytical_results=show_analytical_results,
+        qtomographies=qtomographies,
+        tester_objects=tester_objects,
     )
 
     fig_name = f"mse"
@@ -308,6 +303,42 @@ def generate_mse_div(
     mse_div = f"""<div><img src="{path}"></div>
     """
     return mse_div
+
+
+def generate_empi_dist_mse_div(
+    estimation_results_list: List[List[EstimationResult]],
+    case_name_list: List[str],
+    true_object: "QOperation",
+    num_data: List[int],
+    n_rep: int = None,
+    show_analytical_results: bool = True,
+    qtomographies: List["StandardQTomography"] = None,
+    tester_objects: List["QOperation"] = None,
+) -> str:
+
+    title = f"Mean squared error"
+    if not n_rep:
+        title += "<br>Nrep={n_rep}"
+
+    fig = data_analysis.make_empi_dists_mse_graph(
+        estimation_results_list[0],
+        qtomographies[0],
+        true_object,
+        num_data,
+        n_rep,
+        tester_objects,
+    )
+
+    fig_name = f"empi_dists_mse"
+
+    dir_path = Path(_temp_dir_path)
+    path = str(dir_path / f"{fig_name}.png")
+    dir_path.mkdir(exist_ok=True)
+    fig.write_image(path)
+
+    div = f"""<div><img src="{path}"></div>
+    """
+    return div
 
 
 def _parse_qoperation_desc(qoperation: "QOperation") -> List[str]:
@@ -449,7 +480,10 @@ def generate_case_table(
 
 
 def generate_condition_table(
-    qtomography_list: List["QTomography"], n_rep: int, num_data: List[int]
+    qtomography_list: List["QTomography"],
+    n_rep: int,
+    num_data: List[int],
+    seed: Optional[int],
 ) -> str:
     type_tomography_values = list(
         set([qt.__class__.__name__ for qt in qtomography_list])
@@ -459,6 +493,7 @@ def generate_condition_table(
         "Type of tomography": type_tomography_values,
         "Nrep": [n_rep],
         "N": [num_data],
+        "RNG seed": [seed],
     }
     condition_df = pd.DataFrame(info).T
     condition_table = condition_df.to_html(
@@ -510,13 +545,14 @@ def export_report(
     num_data: List[int],
     n_rep: int,
     save_materials: bool = False,
+    seed: int = None,
 ):
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
     _temp_dir_path = Path(temp_dir_path)
 
     # Experiment Condition
-    condition_table = generate_condition_table(qtomography_list, n_rep, num_data)
+    condition_table = generate_condition_table(qtomography_list, n_rep, num_data, seed)
 
     # Cases
     case_table = generate_case_table(
@@ -535,7 +571,9 @@ def export_report(
         true_object=true_object,
         num_data=num_data,
         n_rep=n_rep,
+        show_analytical_results=True,
         qtomographies=analytical_result_qtomographies,
+        tester_objects=tester_objects,
     )
 
     # Physicality Violation Test
@@ -550,6 +588,18 @@ def export_report(
     # Tester Object
     tester_table = _convert_objects_to_multiindex_dataframe(tester_objects).to_html(
         classes="tester_objects_table", escape=False, header=False
+    )
+
+    # MSE of Empirical Distributions
+    empi_dists_mse_div = generate_empi_dist_mse_div(
+        estimation_results_list,
+        case_name_list,
+        true_object,
+        num_data,
+        n_rep,
+        True,
+        qtomography_list,
+        tester_objects,
     )
 
     # Consistency Test
@@ -603,6 +653,8 @@ def export_report(
     <div>
         {case_table}
     </div>
+<h1>MSE of Empirical Distributions</h1>
+    <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
 <h1>MSE</h1>

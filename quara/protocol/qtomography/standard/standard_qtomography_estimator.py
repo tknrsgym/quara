@@ -76,6 +76,10 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         ]
         return qoperations
 
+    @property
+    def data(self) -> list:
+        return self._data
+
 
 class StandardQTomographyEstimator(QTomographyEstimator):
     def __init__(self):
