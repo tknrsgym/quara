@@ -22,6 +22,7 @@ class LossFunction:
         self._on_value: bool = False
         self._on_gradient: bool = False
         self._on_hessian: bool = False
+        self._option: LossFunctionOption = None
 
     @property
     def num_var(self) -> int:
@@ -195,6 +196,41 @@ class LossFunction:
             raise ValueError(
                 "the shape of variable must be ({self.num_var},). the shape of variable is {var.shape}"
             )
+
+    @property
+    def option(self) -> LossFunctionOption:
+        """returns loss function option.
+
+        Returns
+        -------
+        LossFunctionOption
+            loss function option.
+        """
+        return self._option
+
+    def set_from_option(self, option: LossFunctionOption) -> None:
+        """sets option from LossFunctionOption and calls ``is_option_sufficient`` function.
+
+        Parameters
+        ----------
+        option : LossFunctionOption
+            option to set.
+        """
+        self._option = option
+        self.is_option_sufficient()
+
+    def is_option_sufficient(self) -> bool:
+        """returns whether the option is sufficient.
+
+        In the default implementation, this function returns True.
+        Override with subclasses as needed.
+
+        Returns
+        -------
+        bool
+            whether the option is sufficient.
+        """
+        return True
 
     @abstractmethod
     def value(self, var: np.array) -> np.float64:
