@@ -18,14 +18,9 @@ class ProjectedLinearEstimationResult(LinearEstimationResult):
         data,
         estimated_var_sequence: List[np.array],
         computation_times: List[float],
-        empi_dists_sequence,
     ):
         super().__init__(
-            qtomography,
-            data,
-            estimated_var_sequence,
-            computation_times,
-            empi_dists_sequence,
+            qtomography, data, estimated_var_sequence, computation_times,
         )
 
 
@@ -91,6 +86,5 @@ class ProjectedLinearEstimator(LinearEstimator):
             empi_dists_sequence,
             proj_estimated_var_sequence,
             proj_computation_times,
-            empi_dists_sequence,
         )
         return result
