@@ -440,8 +440,8 @@ def extract_empi_dists(results: List["EstimationResult"]) -> List[List[List[np.a
 
 
 def make_empi_dists_mse_graph(
-    estimation_results_list: List[EstimationResult],
-    qtomographies: List["StandardQTomography"],
+    estimation_results: Union[List[EstimationResult], List[List[EstimationResult]]],
+    qtomography: Union["StandardQTomography", List["StandardQTomography"]],
     true_object: "QOperation",
     num_data: List[int],
     n_rep: int,
@@ -450,15 +450,10 @@ def make_empi_dists_mse_graph(
     mses_list = []
 
     # Data
-    target_index = 0
-    qtomography = qtomographies[target_index]
-    results = estimation_results_list[target_index]
     display_names = ["Empirical distributions"]
 
-    xs_list_list = extract_empi_dists(results)
-    ys_list_list = [
-        [qtomography.generate_prob_dists_sequence(true_object)] * n_rep
-    ] * len(num_data)
+    xs_list_list = extract_empi_dists(estimation_results)
+    ys_list_list = [[qtomography.calc_prob_dists(true_object)] * n_rep] * len(num_data)
 
     mses = []
     for i in range(len(num_data)):
@@ -466,23 +461,100 @@ def make_empi_dists_mse_graph(
     mses_list.append(mses)
 
     # Analytical
-
     for parameter in [True]:
         true_object_copied = true_object.__class__(
             vec=true_object.vec,
             c_sys=true_object.composite_system,
             on_para_eq_constraint=parameter,
         )
-        tmp_tomography = qtomographies[0].__class__(
+        tmp_tomography = qtomography.__class__(
             tester_objects, on_para_eq_constraint=parameter
         )
 
         true_mses = []
         for num in num_data:
-            print("Call: calc_mse_empi_dists_analytical")
             true_mse = tmp_tomography.calc_mse_empi_dists_analytical(
                 true_object_copied, [num] * 3
             )
+
+            true_mses.append(true_mse)
+        mses_list.append(true_mses)
+        display_names.append(f"Analytical result")
+
+        # for debug
+        # TODO: remove
+        # mses_for_debug = []
+        # for i, num in enumerate(num_data):
+
+        #     # debug 1:
+        #     # true_mse = tmp_tomography.calc_mse_empi_dists_analytical_for_debug(
+        #     #     true_object_copied, [num] * 3
+        #     # )
+        #     # debug 2:
+        #     mse_for_debug = tmp_tomography.calc_mse_empi_dists_analytical_for_debug_2(
+        #         estimation_results[0].data[i]
+        #     )
+
+        #     mses_for_debug.append(mse_for_debug)
+
+        # mses_list.append(mses_for_debug)
+        # display_names.append(f"(debug)")
+
+    fig = make_mses_graph(
+        mses=mses_list,
+        num_data=num_data,
+        names=display_names,
+        yaxis_title_text="Mean squared error",
+    )
+    return fig
+
+
+def make_empi_dists_mse_graph_for_debug(
+    estimation_results_list: List[List[EstimationResult]],
+    qtomographies: List["StandardQTomography"],
+    true_object: "QOperation",
+    num_data: List[int],
+    n_rep: int,
+    tester_objects: List["QOperation"],
+    case_names: List["str"],
+):
+    mses_list = []
+
+    # Data
+    display_names = [f"Empirical distributions ({name})" for name in case_names]
+
+    for j, results in enumerate(estimation_results_list):
+        xs_list_list = extract_empi_dists(results)
+        ys_list_list = [[qtomographies[j].calc_prob_dists(true_object)] * n_rep] * len(
+            num_data
+        )
+
+        mses = []
+        for i in range(len(num_data)):
+            mses.append(
+                matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i])
+            )
+        mses_list.append(mses)
+
+    qtomography = qtomographies[0]
+    estimation_results = estimation_results_list[0]
+    # Analytical
+    for parameter in [True]:
+        true_object_copied = true_object.__class__(
+            vec=true_object.vec,
+            c_sys=true_object.composite_system,
+            on_para_eq_constraint=parameter,
+        )
+        tmp_tomography = qtomography.__class__(
+            tester_objects, on_para_eq_constraint=parameter
+        )
+
+        true_mses = []
+        for num in num_data:
+            true_mse = tmp_tomography.calc_mse_empi_dists_analytical(
+                true_object_copied, [num] * 3
+            )
+
             true_mses.append(true_mse)
         mses_list.append(true_mses)
         display_names.append(f"Analytical result")
