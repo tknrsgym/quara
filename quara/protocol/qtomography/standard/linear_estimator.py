@@ -77,6 +77,6 @@ class LinearEstimator(StandardQTomographyEstimator):
                 comp_time_sequence.append(comp_time)
 
         result = LinearEstimationResult(
-            qtomography, empi_dists_sequence, estimate_sequence, comp_time_sequence
+            qtomography, empi_dists_sequence, estimate_sequence, comp_time_sequence,
         )
         return result

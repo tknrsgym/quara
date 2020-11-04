@@ -1,3 +1,4 @@
+from quara.protocol.qtomography.estimator import EstimationResult
 import time
 from typing import Callable, List, Optional, Union
 
@@ -23,6 +24,7 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
+from quara.utils import matrix_util
 
 
 def calc_mse_general_norm(
@@ -159,7 +161,7 @@ def calc_estimate(
     on_para_eq_constraint: bool = True,
 ) -> List[StandardQTomographyEstimationResult]:
     qst = StandardQst(tester_povms, on_para_eq_constraint=on_para_eq_constraint)
-    print(type(estimator))
+
     # generate empi dists and calc estimate
     results = []
     for ite in range(iteration):
@@ -276,6 +278,7 @@ def make_mses_graph(
     mses: List[List[float]],
     title: str = "Mean squared error",
     names: Optional[List[str]] = None,
+    yaxis_title_text: str = "Mean squared error of estimates and true",
 ) -> List["Figure"]:
     if not names:
         names = [f"data_{i}" for i in range(len(mses))]
@@ -287,11 +290,57 @@ def make_mses_graph(
     layout = go.Layout(
         title=title,
         xaxis_title_text="Number of data",
-        yaxis_title_text="Mean squared error of estimates and true",
+        # yaxis_title_text="Mean squared error of estimates and true",
+        yaxis_title_text=yaxis_title_text,
         xaxis_type="log",
         yaxis_type="log",
     )
     fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def make_mses_graph_estimation_results(
+    estimation_results_list: List["EstimationResult"],
+    case_names: List[str],
+    num_data,
+    true_object,
+    title: str = None,
+    show_analytical_results: bool = True,
+    qtomographies: list = None,
+    tester_objects: QOperation = None,
+) -> "Figure":
+    mses_list = []
+    display_case_names = case_names[:]
+    for estimation_results in estimation_results_list:
+        mses, *_ = convert_to_series(estimation_results, true_object)
+        mses_list.append(mses)
+
+    # calc analytical result
+    if show_analytical_results:
+        if not (qtomographies and tester_objects):
+            error_message = "Specify 'qtomographies' and 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
+            raise ValueError(error_message)
+
+        for qtomography in qtomographies:
+            for parameter in [True, False]:
+                true_object_copied = true_object.__class__(
+                    vec=true_object.vec,
+                    c_sys=true_object.composite_system,
+                    on_para_eq_constraint=parameter,
+                )
+                tmp_tomography = qtomography.__class__(
+                    tester_objects, on_para_eq_constraint=parameter
+                )
+
+                true_mses = []
+                for num in num_data:
+                    true_mse = tmp_tomography.calc_mse_linear_analytical(
+                        true_object_copied, [num] * 3
+                    )
+                    true_mses.append(true_mse)
+                mses_list.append(true_mses)
+                display_case_names.append(f"Analytical result (Linear, {parameter})")
+    fig = make_mses_graph(num_data, mses_list, names=display_case_names, title=title)
     return fig
 
 
@@ -373,3 +422,130 @@ def show_average_computation_times(
     fig = go.Figure(data=data, layout=layout)
     fig.show()
 
+
+def extract_empi_dists(results: List["EstimationResult"]) -> List[List[List[np.array]]]:
+    converted = []
+    num_data_len = len(results[0].data)  # num_dataの要素数
+    n_rep = len(results)
+    for num_data_index in range(num_data_len):  # num_dataの要素数だけ回る
+        converted_dists_seq = []
+        for rep_index in tqdm(range(n_rep)):  # Nrepの数だけ回る
+            result = results[rep_index]
+            empi_dists = result.data[num_data_index]
+            # list of tuple -> list of np.array
+            converted_dists = [data[1] for data in empi_dists]
+            converted_dists_seq.append(converted_dists)
+        converted.append(converted_dists_seq)
+    return converted
+
+
+def make_empi_dists_mse_graph(
+    estimation_results: Union[List[EstimationResult], List[List[EstimationResult]]],
+    qtomography: Union["StandardQTomography", List["StandardQTomography"]],
+    true_object: "QOperation",
+    num_data: List[int],
+    n_rep: int,
+    tester_objects: List["QOperation"],
+):
+    mses_list = []
+
+    # Data
+    display_names = ["Empirical distributions"]
+
+    empi_dists = extract_empi_dists(estimation_results)
+    xs_list_list = empi_dists
+    ys_list_list = [[qtomography.calc_prob_dists(true_object)] * n_rep] * len(num_data)
+
+    mses = []
+    for i in range(len(num_data)):
+        mses.append(matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i]))
+    mses_list.append(mses)
+
+    # Analytical
+    for parameter in [True]:
+        true_object_copied = true_object.__class__(
+            vec=true_object.vec,
+            c_sys=true_object.composite_system,
+            on_para_eq_constraint=parameter,
+        )
+        tmp_tomography = qtomography.__class__(
+            tester_objects, on_para_eq_constraint=parameter
+        )
+
+        true_mses = []
+        for num in num_data:
+            true_mse = tmp_tomography.calc_mse_empi_dists_analytical(
+                true_object_copied, [num] * 3
+            )
+
+            true_mses.append(true_mse)
+        mses_list.append(true_mses)
+        display_names.append(f"Analytical result")
+
+    fig = make_mses_graph(
+        mses=mses_list,
+        num_data=num_data,
+        names=display_names,
+        yaxis_title_text="Mean squared error",
+    )
+    return fig
+
+
+def make_empi_dists_mse_graph_for_debug(
+    estimation_results_list: List[List[EstimationResult]],
+    qtomographies: List["StandardQTomography"],
+    true_object: "QOperation",
+    num_data: List[int],
+    n_rep: int,
+    tester_objects: List["QOperation"],
+    case_names: List["str"],
+):
+    mses_list = []
+
+    # Data
+    display_names = [f"Empirical distributions ({name})" for name in case_names]
+
+    for j, results in enumerate(estimation_results_list):
+        empi_dists = extract_empi_dists(results)
+        xs_list_list = empi_dists
+        ys_list_list = [[qtomographies[j].calc_prob_dists(true_object)] * n_rep] * len(
+            num_data
+        )
+
+        mses = []
+        for i in range(len(num_data)):
+            mses.append(
+                matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i])
+            )
+        mses_list.append(mses)
+
+    qtomography = qtomographies[0]
+    estimation_results = estimation_results_list[0]
+    # Analytical
+    for parameter in [True]:
+        true_object_copied = true_object.__class__(
+            vec=true_object.vec,
+            c_sys=true_object.composite_system,
+            on_para_eq_constraint=parameter,
+        )
+        tmp_tomography = qtomography.__class__(
+            tester_objects, on_para_eq_constraint=parameter
+        )
+
+        true_mses = []
+        for num in num_data:
+            true_mse = tmp_tomography.calc_mse_empi_dists_analytical(
+                true_object_copied, [num] * 3
+            )
+
+            true_mses.append(true_mse)
+        mses_list.append(true_mses)
+        display_names.append(f"Analytical result")
+
+    fig = make_mses_graph(
+        mses=mses_list,
+        num_data=num_data,
+        names=display_names,
+        yaxis_title_text="Mean squared error",
+    )
+    return fig

@@ -19,7 +19,9 @@ class ProjectedLinearEstimationResult(LinearEstimationResult):
         estimated_var_sequence: List[np.array],
         computation_times: List[float],
     ):
-        super().__init__(qtomography, data, estimated_var_sequence, computation_times)
+        super().__init__(
+            qtomography, data, estimated_var_sequence, computation_times,
+        )
 
 
 class ProjectedLinearEstimator(LinearEstimator):

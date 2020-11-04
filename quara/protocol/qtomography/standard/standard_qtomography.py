@@ -150,6 +150,7 @@ class StandardQTomography(QTomography):
         """
         tmp_prob_dists = self.calc_matA() @ qope.to_var() + self.calc_vecB()
         prob_dists = tmp_prob_dists.reshape((self.num_schedules, -1))
+
         return prob_dists
 
     def calc_covariance_mat_single(
@@ -262,12 +263,12 @@ class StandardQTomography(QTomography):
         np.float64
             analytical solution of mean squared error of empirical distributions.
         """
+
         mse_total = 0.0
         for schedule_index, data_num in enumerate(data_num_list):
             mse_total += np.trace(
                 self.calc_covariance_mat_single(qope, schedule_index, data_num)
             )
-
         return mse_total
 
     @abstractmethod
@@ -290,4 +291,5 @@ class StandardQTomography(QTomography):
             getattr(tmp_experiment, attribute_name)[target_index] = true_object
 
         prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
+
         return prob_dists_sequence_tmp
