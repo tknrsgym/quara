@@ -150,6 +150,7 @@ class StandardQTomography(QTomography):
         """
         tmp_prob_dists = self.calc_matA() @ qope.to_var() + self.calc_vecB()
         prob_dists = tmp_prob_dists.reshape((self.num_schedules, -1))
+
         return prob_dists
 
     def calc_covariance_mat_single(
@@ -262,11 +263,42 @@ class StandardQTomography(QTomography):
         np.float64
             analytical solution of mean squared error of empirical distributions.
         """
+        # TODO: remove
+        print("call: calc_mse_empi_dists_analytical")
+
         mse_total = 0.0
         for schedule_index, data_num in enumerate(data_num_list):
             mse_total += np.trace(
                 self.calc_covariance_mat_single(qope, schedule_index, data_num)
             )
+        print(f"mse_total: {mse_total}")
+        return mse_total
+
+    # DEBUG
+    # TODO: remove
+    def calc_mse_empi_dists_analytical_for_debug(
+        self, qope: QOperation, data_num_list: List[int]
+    ) -> np.float64:
+        # matrix_util.calc_covariance_mat_totalを使うように変更したもの
+        # TODO: remove
+        print("call: calc_mse_empi_dists_analytical_for_debug")
+
+        data_list = []
+        for schedule_index, data_num in enumerate(data_num_list):
+            prob_dist = self.calc_prob_dist(qope, schedule_index)
+            data_list.append((data_num, prob_dist))
+
+        mse_total = np.trace(matrix_util.calc_covariance_mat_total(data_list))
+        print(f"mse_total: {mse_total}")
+
+        return mse_total
+
+    # DEBUG
+    # TODO: remove
+    def calc_mse_empi_dists_analytical_for_debug_2(self, data_list) -> np.float64:
+        print("call: calc_mse_empi_dists_analytical_for_debug_2")
+        mse_total = np.trace(matrix_util.calc_covariance_mat_total(data_list))
+        print(f"mse_total: {mse_total}")
 
         return mse_total
 
@@ -290,4 +322,5 @@ class StandardQTomography(QTomography):
             getattr(tmp_experiment, attribute_name)[target_index] = true_object
 
         prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
+
         return prob_dists_sequence_tmp

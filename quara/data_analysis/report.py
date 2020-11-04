@@ -321,8 +321,8 @@ def generate_empi_dist_mse_div(
         title += "<br>Nrep={n_rep}"
 
     fig = data_analysis.make_empi_dists_mse_graph(
-        estimation_results_list,
-        qtomographies,
+        estimation_results_list[0],
+        qtomographies[0],
         true_object,
         num_data,
         n_rep,
