@@ -86,7 +86,7 @@ def test_is_tp():
     assert not util.is_tp(target_matrix, 2)
 
 
-def test_calc_mse():
+def test_calc_se():
     # list of vectors
     xs = [
         np.array([1, 2]),
@@ -96,8 +96,8 @@ def test_calc_mse():
         np.array([11, 12]),
         np.array([13, 14]),
     ]
-    actual = util.calc_mse(xs, ys)
-    expected = float(200)
+    actual = util.calc_se(xs, ys)
+    expected = float(400)
     assert actual == expected
 
     # list of matrices
@@ -109,8 +109,8 @@ def test_calc_mse():
         np.array([[11, 12], [13, 14]]),
         np.array([[15, 16], [17, 18]]),
     ]
-    actual = util.calc_mse(xs, ys)
-    expected = float(400)
+    actual = util.calc_se(xs, ys)
+    expected = float(800)
     assert actual == expected
 
 
