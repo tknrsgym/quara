@@ -15,7 +15,7 @@ from quara.objects.povm import (
 from quara.objects.state import get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
-from quara.utils.matrix_util import calc_mse
+from quara.utils.matrix_util import calc_se
 
 
 def get_test_data(on_para_eq_constraint=False):
@@ -124,7 +124,7 @@ class TestLinearEstimator:
         # calc mse
         result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
         actual = [
-            calc_mse(result, [true_object.vec[1:]] * len(result))
+            calc_se(result, [true_object.vec[1:]] * len(result)) / len(result)
             for result in result_sequences_tmp
         ]
         print(f"mse={actual}")
@@ -159,7 +159,7 @@ class TestLinearEstimator:
         # calc mse
         result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
         actual = [
-            calc_mse(result, [true_object.vec] * len(result))
+            calc_se(result, [true_object.vec] * len(result)) / len(result)
             for result in result_sequences_tmp
         ]
         print(f"mse={actual}")

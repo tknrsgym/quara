@@ -76,7 +76,6 @@ class LinearEstimator(StandardQTomographyEstimator):
                 comp_time = time.time() - start_time
                 comp_time_sequence.append(comp_time)
 
-        # print(f"calc_estimate_sequence: {empi_dists_sequence}")
         result = LinearEstimationResult(
             qtomography, empi_dists_sequence, estimate_sequence, comp_time_sequence,
         )

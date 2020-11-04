@@ -164,9 +164,6 @@ def calc_mse_prob_dists(
     se_total = 0.0
     for xs, ys in zip(xs_list, ys_list):
         se_total += calc_se(xs, ys)
-    # print(f"割る前: {se_total}")
-    # print(f"len={len(xs_list)}")
-    # print(f"割った後: {se_total / len(xs_list)}")
     mse = se_total / len(xs_list)
     print(f"calc_mse_prob_dists: {mse}")
     return mse
