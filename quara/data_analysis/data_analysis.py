@@ -278,6 +278,7 @@ def make_mses_graph(
     mses: List[List[float]],
     title: str = "Mean squared error",
     names: Optional[List[str]] = None,
+    yaxis_title_text: str = "Mean squared error of estimates and true",
 ) -> List["Figure"]:
     if not names:
         names = [f"data_{i}" for i in range(len(mses))]
@@ -289,7 +290,8 @@ def make_mses_graph(
     layout = go.Layout(
         title=title,
         xaxis_title_text="Number of data",
-        yaxis_title_text="Mean squared error of estimates and true",
+        # yaxis_title_text="Mean squared error of estimates and true",
+        yaxis_title_text=yaxis_title_text,
         xaxis_type="log",
         yaxis_type="log",
     )
@@ -303,7 +305,7 @@ def make_mses_graph_estimation_results(
     num_data,
     true_object,
     title: str = None,
-    show_analytical_results: bool = None,
+    show_analytical_results: bool = True,
     qtomographies: list = None,
     tester_objects: QOperation = None,
 ) -> "Figure":
@@ -423,13 +425,13 @@ def show_average_computation_times(
 
 def extract_empi_dists(results: List["EstimationResult"]) -> List[List[List[np.array]]]:
     converted = []
-    num_data_len = len(results[0].empi_dists_sequence)  # num_dataの要素数
+    num_data_len = len(results[0].data)  # num_dataの要素数
     n_rep = len(results)
     for num_data_index in range(num_data_len):  # num_dataの要素数だけ回る
         converted_dists_seq = []
         for rep_index in tqdm(range(n_rep)):  # Nrepの数だけ回る
             result = results[rep_index]
-            empi_dists = result.empi_dists_sequence[num_data_index]
+            empi_dists = result.data[num_data_index]
             # list of tuple -> list of np.array
             converted_dists = [data[1] for data in empi_dists]
             converted_dists_seq.append(converted_dists)
@@ -438,13 +440,12 @@ def extract_empi_dists(results: List["EstimationResult"]) -> List[List[List[np.a
 
 
 def make_empi_dists_mse_graph(
-    estimation_results_list,
-    case_name_list,
-    qtomographies,
-    true_object,
-    num_data,
-    n_rep,
-    tester_objects,
+    estimation_results_list: List[EstimationResult],
+    qtomographies: List["StandardQTomography"],
+    true_object: "QOperation",
+    num_data: List[int],
+    n_rep: int,
+    tester_objects: List["QOperation"],
 ):
     mses_list = []
 
@@ -452,7 +453,7 @@ def make_empi_dists_mse_graph(
     target_index = 0
     qtomography = qtomographies[target_index]
     results = estimation_results_list[target_index]
-    display_names = [case_name_list[target_index]]
+    display_names = ["Empirical distributions"]
 
     xs_list_list = extract_empi_dists(results)
     ys_list_list = [
@@ -465,7 +466,6 @@ def make_empi_dists_mse_graph(
     mses_list.append(mses)
 
     # Analytical
-    analytical_mses_list = []
 
     for parameter in [True]:
         true_object_copied = true_object.__class__(
@@ -479,12 +479,18 @@ def make_empi_dists_mse_graph(
 
         true_mses = []
         for num in num_data:
-            true_mse = tmp_tomography.calc_mse_linear_analytical(
+            print("Call: calc_mse_empi_dists_analytical")
+            true_mse = tmp_tomography.calc_mse_empi_dists_analytical(
                 true_object_copied, [num] * 3
             )
             true_mses.append(true_mse)
         mses_list.append(true_mses)
         display_names.append(f"Analytical result")
 
-    fig = make_mses_graph(mses=mses_list, num_data=num_data, names=display_names,)
+    fig = make_mses_graph(
+        mses=mses_list,
+        num_data=num_data,
+        names=display_names,
+        yaxis_title_text="Mean squared error",
+    )
     return fig

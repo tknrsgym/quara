@@ -285,10 +285,10 @@ def generate_mse_div(
     display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
     fig = data_analysis.make_mses_graph_estimation_results(
         estimation_results_list=estimation_results_list,
-        true_object=true_object,
-        num_data=num_data,
         case_names=display_name_list,
-        show_analytical_results=True,
+        num_data=num_data,
+        true_object=true_object,
+        show_analytical_results=show_analytical_results,
         qtomographies=qtomographies,
         tester_objects=tester_objects,
     )
@@ -320,10 +320,8 @@ def generate_empi_dist_mse_div(
     if not n_rep:
         title += "<br>Nrep={n_rep}"
 
-    display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
     fig = data_analysis.make_empi_dists_mse_graph(
         estimation_results_list,
-        display_name_list,
         qtomographies,
         true_object,
         num_data,
