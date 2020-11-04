@@ -60,7 +60,7 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         gamma: float = 0.3,
         eps: float = 1.0e-10,
     ):
-        super().__init__(var_start, True, False)
+        super().__init__(var_start)
 
         self._func_proj: Callable[[np.array], np.array] = func_proj
 
@@ -90,6 +90,64 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
 class ProjectedGradientDescentBase(MinimizationAlgorithm):
     def __init__(self):
         super().__init__()
+        self._is_gradient_required = True
+        self._is_hessian_required = False
+
+    def is_loss_sufficient(self) -> bool:
+        """returns whether the loss is sufficient.
+
+        Returns
+        -------
+        bool
+            whether the loss is sufficient.
+        """
+        # TODO validate
+        if self.loss is None:
+            return False
+        elif self.loss.on_value is False:
+            return False
+        elif self.loss.on_gradient is False:
+            return False
+        else:
+            return True
+
+    def is_option_sufficient(self) -> bool:
+        """returns whether the option is sufficient.
+
+        Returns
+        -------
+        bool
+            whether the option is sufficient.
+        """
+        # TODO validate
+        if self.option is None:
+            return False
+        elif self.option.func_proj is None:
+            return False
+        elif self.option.mu <= 0:
+            return False
+        elif self.option.gamma <= 0:
+            return False
+        elif self.option.eps <= 0:
+            return False
+        else:
+            return True
+
+    def is_loss_and_option_sufficient(self) -> bool:
+        """returns whether the loss and the option are sufficient.
+
+        Returns
+        -------
+        bool
+            whether the loss and the option are sufficient.
+        """
+        # TODO validate
+        num_var_option = self.option.var_start.shape[0]
+        num_var_loss = self.loss.num_var
+        if num_var_option != num_var_loss:
+            return False
+        else:
+            return True
 
     def optimize(
         self,
@@ -121,15 +179,16 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         ValueError
             when ``on_gradient`` of ``loss_function`` is False. 
         ValueError
-            when ``is_gradient_required`` of ``algorithm_option`` is False.
+            when ``is_gradient_required`` of this algorithm is False.
         """
+        # TODO delete these checks
         if loss_function.on_gradient == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_gradient' of loss_function must be True."
             )
-        if algorithm_option.is_gradient_required == False:
+        if self.is_gradient_required == False:
             raise ValueError(
-                "to execute ProjectedGradientDescentBase, 'is_gradient_required' of algorithm option must be True."
+                "to execute ProjectedGradientDescentBase, 'is_gradient_required' of this algorithm must be True."
             )
 
         x_prev = algorithm_option.var_start
