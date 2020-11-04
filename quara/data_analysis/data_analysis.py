@@ -190,6 +190,7 @@ def _estimate(
     estimator=StandardQTomographyEstimator,
 ) -> StandardQTomographyEstimationResult:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
+    print(f"_estimate: {empi_dists_seq}")
     result = estimator.calc_estimate_sequence(
         qtomography, empi_dists_seq, is_computation_time_required=True
     )
@@ -452,7 +453,9 @@ def make_empi_dists_mse_graph(
     # Data
     display_names = ["Empirical distributions"]
 
-    xs_list_list = extract_empi_dists(estimation_results)
+    empi_dists = extract_empi_dists(estimation_results)
+    # print(f"make_empi_dists_mse_graph: {empi_dists}")
+    xs_list_list = empi_dists
     ys_list_list = [[qtomography.calc_prob_dists(true_object)] * n_rep] * len(num_data)
 
     mses = []
@@ -481,25 +484,6 @@ def make_empi_dists_mse_graph(
         mses_list.append(true_mses)
         display_names.append(f"Analytical result")
 
-        # for debug
-        # TODO: remove
-        # mses_for_debug = []
-        # for i, num in enumerate(num_data):
-
-        #     # debug 1:
-        #     # true_mse = tmp_tomography.calc_mse_empi_dists_analytical_for_debug(
-        #     #     true_object_copied, [num] * 3
-        #     # )
-        #     # debug 2:
-        #     mse_for_debug = tmp_tomography.calc_mse_empi_dists_analytical_for_debug_2(
-        #         estimation_results[0].data[i]
-        #     )
-
-        #     mses_for_debug.append(mse_for_debug)
-
-        # mses_list.append(mses_for_debug)
-        # display_names.append(f"(debug)")
-
     fig = make_mses_graph(
         mses=mses_list,
         num_data=num_data,
@@ -524,7 +508,9 @@ def make_empi_dists_mse_graph_for_debug(
     display_names = [f"Empirical distributions ({name})" for name in case_names]
 
     for j, results in enumerate(estimation_results_list):
-        xs_list_list = extract_empi_dists(results)
+        empi_dists = extract_empi_dists(results)
+        # print(f"make_empi_dists_mse_graph: {empi_dists}")
+        xs_list_list = empi_dists
         ys_list_list = [[qtomographies[j].calc_prob_dists(true_object)] * n_rep] * len(
             num_data
         )
