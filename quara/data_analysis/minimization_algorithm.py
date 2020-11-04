@@ -44,10 +44,7 @@ class MinimizationResult:
 
 class MinimizationAlgorithmOption:
     def __init__(
-        self,
-        var_start: np.array,
-        is_gradient_required: bool,
-        is_hessian_required: bool,
+        self, var_start: np.array,
     ):
         """Constructor
 
@@ -55,14 +52,8 @@ class MinimizationAlgorithmOption:
         ----------
         var_start : np.array
             initial variable for the algorithm.
-        is_gradient_required : bool
-            whether or not to support gradient.
-        is_hessian_required : bool
-            whether or not to support Hessian.
         """
         self._var_start: np.array = var_start
-        self._is_gradient_required: bool = is_gradient_required
-        self._is_hessian_required: bool = is_hessian_required
 
     @property
     def var_start(self) -> np.array:
@@ -75,32 +66,125 @@ class MinimizationAlgorithmOption:
         """
         return self._var_start
 
+
+class MinimizationAlgorithm:
+    def __init__(self):
+        """Constructor.
+
+        Subclasses have a responsibility to set the following variables.
+        - ``_is_gradient_required``: whether or not to require gradient.
+        - ``_is_hessian_required``: whether or not to require Hessian.
+
+        """
+        self._is_gradient_required: bool = False
+        self._is_hessian_required: bool = False
+        self._loss: LossFunction = None
+        self._option: MinimizationAlgorithmOption = None
+
     @property
     def is_gradient_required(self) -> bool:
-        """returns whether or not to support gradient.
+        """returns whether or not to require gradient.
 
         Returns
         -------
         bool
-            whether or not to support gradient.
+            whether or not to require gradient.
         """
         return self._is_gradient_required
 
     @property
     def is_hessian_required(self) -> bool:
-        """returns whether or not to support Hessian.
+        """returns whether or not to require Hessian.
 
         Returns
         -------
         bool
-            whether or not to support Hessian.
+            whether or not to require Hessian.
         """
         return self._is_hessian_required
 
+    @property
+    def loss(self) -> LossFunction:
+        """returns loss function.
 
-class MinimizationAlgorithm:
-    def __init__(self):
-        pass
+        Returns
+        -------
+        LossFunction
+            loss function.
+        """
+        return self._loss
+
+    def set_from_loss(self, loss: LossFunction) -> None:
+        """sets from LossFunction and calls ``is_loss_sufficient`` function.
+
+        Parameters
+        ----------
+        loss : MinimizationAlgorithmOption
+            loss to set.
+        """
+        self._loss = loss
+        self.is_loss_sufficient()
+
+    def is_loss_sufficient(self) -> bool:
+        """returns whether the loss is sufficient.
+
+        In the default implementation, this function returns True.
+        Override with subclasses as needed.
+
+        Returns
+        -------
+        bool
+            whether the loss is sufficient.
+        """
+        return True
+
+    @property
+    def option(self) -> MinimizationAlgorithmOption:
+        """returns algorithm option.
+
+        Returns
+        -------
+        LossFunctionOption
+            algorithm option.
+        """
+        return self._option
+
+    def set_from_option(self, option: MinimizationAlgorithmOption) -> None:
+        """sets option from MinimizationAlgorithmOption and calls ``is_option_sufficient`` function.
+
+        Parameters
+        ----------
+        option : MinimizationAlgorithmOption
+            option to set.
+        """
+        self._option = option
+        self.is_option_sufficient()
+
+    def is_option_sufficient(self) -> bool:
+        """returns whether the option is sufficient.
+
+        In the default implementation, this function returns True.
+        Override with subclasses as needed.
+
+        Returns
+        -------
+        bool
+            whether the option is sufficient.
+        """
+        return True
+
+    def is_loss_and_option_sufficient(self) -> bool:
+        """returns whether the loss and the option are sufficient.
+
+        In the default implementation, this function returns True.
+        Override with subclasses as needed.
+
+        Returns
+        -------
+        bool
+            whether the loss and the option are sufficient.
+        """
+        return True
 
     @abstractmethod
     def optimize(
