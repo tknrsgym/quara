@@ -271,7 +271,7 @@ class StandardQTomography(QTomography):
             mse_total += np.trace(
                 self.calc_covariance_mat_single(qope, schedule_index, data_num)
             )
-        print(f"mse_total: {mse_total}")
+        # print(f"mse_total: {mse_total}")
         return mse_total
 
     # DEBUG
@@ -281,7 +281,7 @@ class StandardQTomography(QTomography):
     ) -> np.float64:
         # matrix_util.calc_covariance_mat_totalを使うように変更したもの
         # TODO: remove
-        print("call: calc_mse_empi_dists_analytical_for_debug")
+        # print("call: calc_mse_empi_dists_analytical_for_debug")
 
         data_list = []
         for schedule_index, data_num in enumerate(data_num_list):
@@ -289,16 +289,16 @@ class StandardQTomography(QTomography):
             data_list.append((data_num, prob_dist))
 
         mse_total = np.trace(matrix_util.calc_covariance_mat_total(data_list))
-        print(f"mse_total: {mse_total}")
+        # print(f"mse_total: {mse_total}")
 
         return mse_total
 
     # DEBUG
     # TODO: remove
     def calc_mse_empi_dists_analytical_for_debug_2(self, data_list) -> np.float64:
-        print("call: calc_mse_empi_dists_analytical_for_debug_2")
+        # print("call: calc_mse_empi_dists_analytical_for_debug_2")
         mse_total = np.trace(matrix_util.calc_covariance_mat_total(data_list))
-        print(f"mse_total: {mse_total}")
+        # print(f"mse_total: {mse_total}")
 
         return mse_total
 
