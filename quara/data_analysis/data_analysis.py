@@ -161,7 +161,7 @@ def calc_estimate(
     on_para_eq_constraint: bool = True,
 ) -> List[StandardQTomographyEstimationResult]:
     qst = StandardQst(tester_povms, on_para_eq_constraint=on_para_eq_constraint)
-    print(type(estimator))
+
     # generate empi dists and calc estimate
     results = []
     for ite in range(iteration):
@@ -190,7 +190,6 @@ def _estimate(
     estimator=StandardQTomographyEstimator,
 ) -> StandardQTomographyEstimationResult:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
-    print(f"_estimate: {empi_dists_seq}")
     result = estimator.calc_estimate_sequence(
         qtomography, empi_dists_seq, is_computation_time_required=True
     )
@@ -454,7 +453,6 @@ def make_empi_dists_mse_graph(
     display_names = ["Empirical distributions"]
 
     empi_dists = extract_empi_dists(estimation_results)
-    # print(f"make_empi_dists_mse_graph: {empi_dists}")
     xs_list_list = empi_dists
     ys_list_list = [[qtomography.calc_prob_dists(true_object)] * n_rep] * len(num_data)
 
@@ -509,7 +507,6 @@ def make_empi_dists_mse_graph_for_debug(
 
     for j, results in enumerate(estimation_results_list):
         empi_dists = extract_empi_dists(results)
-        # print(f"make_empi_dists_mse_graph: {empi_dists}")
         xs_list_list = empi_dists
         ys_list_list = [[qtomographies[j].calc_prob_dists(true_object)] * n_rep] * len(
             num_data
