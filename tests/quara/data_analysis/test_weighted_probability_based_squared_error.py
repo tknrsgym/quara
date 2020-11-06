@@ -277,6 +277,16 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         assert len(loss_func.func_gradient_prob_dists) == 3
         assert len(loss_func.func_hessian_prob_dists) == 3
 
+    def test_is_option_sufficient(self):
+        func = WeightedProbabilityBasedSquaredError(
+            4,
+            func_prob_dists(),
+            func_gradient_prob_dists(),
+            func_hessian_prob_dists(),
+            prob_dists_q,
+        )
+        assert func.is_option_sufficient() == True
+
     def test_value(self):
         func = WeightedProbabilityBasedSquaredError(
             4,
