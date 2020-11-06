@@ -1,5 +1,6 @@
 import warnings
 from typing import List, Tuple, Dict, Any, Union, Optional
+from collections import defaultdict
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -8,6 +9,8 @@ from tqdm import tqdm
 
 from quara.protocol.qtomography.estimator import EstimationResult
 from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
 
 
 def get_sorted_eigenvalues_list(
@@ -43,6 +46,32 @@ def get_sum_of_eigenvalues_violation(
     return sum_eig_less_than_zero_list, sum_eig_greater_than_one_list
 
 
+def get_sum_of_eigenvalues_violation_povm(
+    estimated_povms: List["Povm"],
+) -> Dict[int, List[float]]:
+
+    minus_eigenvalues_dict = defaultdict(lambda: [])
+
+    for est in tqdm(estimated_povms):
+        eigenvalues = est.calc_eigenvalues()
+        sorted_eigenvalues = []
+        for eigs in eigenvalues:
+            eigs = sorted(eigs, reverse=True)
+            sorted_eigenvalues.append(eigs)
+
+        # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
+        eps = 10 ** (-13)
+        for x_i, values in enumerate(sorted_eigenvalues):
+            sum_values = sum(
+                [e.real for e in sorted_eigenvalues[x_i] if e.real < 0 - eps]
+            )
+            if minus_eigenvalues_dict[x_i]:
+                minus_eigenvalues_dict[x_i].append(sum_values)
+            else:
+                minus_eigenvalues_dict[x_i] = [sum_values]
+    return minus_eigenvalues_dict
+
+
 # TODO: rename
 def get_physicality_violation_result_for_state_affine(
     estimated_state_list: List["State"],
@@ -59,6 +88,19 @@ def get_physicality_violation_result_for_state_affine(
     return value_list
 
 
+def get_sum_vecs(estimated_povms: List["Povm"]) -> np.array:
+    sum_vecs = None
+
+    for est in tqdm(estimated_povms):
+        if sum_vecs is not None:
+            sum_vecs = np.vstack([sum_vecs, sum(est.vecs)])
+        else:
+            sum_vecs = sum(est.vecs)
+
+    sum_vecs = sum_vecs.T
+    return sum_vecs
+
+
 # TODO: rename
 def check_physicality_violation(
     estimation_results: List[EstimationResult], num_data_index: int = 0
@@ -70,24 +112,25 @@ def check_physicality_violation(
     ]
     if type(qoperation) == State:
         result = _check_physicality_violation_for_state(estimated_qoperations)
+    elif type(qoperation) == Povm:
+        result = _check_physicality_violation_for_povm(estimated_qoperations)
     else:
-        # TODO: error message
         raise NotImplementedError()
     return result
 
 
 def _check_physicality_violation_for_state(
-    estimated_qobject_list: List["State"],
+    estimated_qobjects: List["State"],
 ) -> Dict[str, Any]:
-    on_para_eq_constraint = estimated_qobject_list[0].on_para_eq_constraint
+    on_para_eq_constraint = estimated_qobjects[0].on_para_eq_constraint
 
     if on_para_eq_constraint:
         trace_list = get_physicality_violation_result_for_state_affine(
-            estimated_qobject_list
+            estimated_qobjects
         )
         return dict(trace_list=trace_list)
     else:
-        sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobject_list)
+        sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
         sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
         less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
             sorted_eigenvalues_list
@@ -99,6 +142,16 @@ def _check_physicality_violation_for_state(
                 greater_than_one=greater_than_one_list,
             ),
         )
+
+
+def _check_physicality_violation_for_povm(estimated_povms: List["Povm"]) -> dict:
+    on_para_eq_constraint = estimated_qobjects[0].on_para_eq_constraint
+
+    if on_para_eq_constraint:
+        sum_vecs = get_sum_vecs(estimated_povms)
+        return dict(sum_vecs=sum_vecs)
+    else:
+        raise NotImplementedError()
 
 
 # Plot
@@ -169,15 +222,16 @@ def make_prob_dist_histograms(
 
 # common
 def _convert_result_to_qoperation(
-    estimation_results: List[EstimationResult], index: int = 0
+    estimation_results: List[EstimationResult], num_data_index: int = 0
 ) -> List["QOperation"]:
-    if index == 0:
+    if num_data_index == 0:
         estimated_qoperations = [
             result.estimated_qoperation for result in estimation_results
         ]
     else:
         estimated_qoperations = [
-            result.estimated_qoperation_sequence[index] for result in estimation_results
+            result.estimated_qoperation_sequence[num_data_index]
+            for result in estimation_results
         ]
     return estimated_qoperations
 
@@ -206,14 +260,18 @@ def make_graphs_eigenvalues(
     num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
-) -> List["Figure"]:
+) -> Union[List["Figure"], List[List["Figure"]]]:
     estimated_qoperations = _convert_result_to_qoperation(
-        estimation_results, index=num_data_index
+        estimation_results, num_data_index=num_data_index
     )
 
     n_data = num_data[num_data_index]
     if type(true_object) == State:
         figs = _make_graphs_eigenvalues_state(
+            estimated_qoperations, true_object, n_data, bin_size
+        )
+    elif type(true_object) == Povm:
+        figs = _make_graphs_eigenvalues_povm(
             estimated_qoperations, true_object, n_data, bin_size
         )
     else:
@@ -229,7 +287,7 @@ def make_graphs_sum_unphysical_eigenvalues(
     bin_size: float = 0.0001,
 ):
     estimated_qoperations = _convert_result_to_qoperation(
-        estimation_results, index=num_data_index
+        estimation_results, num_data_index=num_data_index
     )
     n_data = num_data[num_data_index]
     sample_object = estimated_qoperations[0]
@@ -237,10 +295,41 @@ def make_graphs_sum_unphysical_eigenvalues(
         figs = _make_graphs_sum_unphysical_eigenvalues_state(
             estimated_qoperations, n_data, bin_size
         )
+    elif type(sample_object) == Povm:
+        figs = _make_graphs_sum_unphysical_eigenvalues_povm(
+            estimated_qoperations, n_data, bin_size
+        )
     else:
         # TODO: message
         raise TypeError()
     return figs
+
+
+def make_graphs_sum_vecs(
+    estimation_results: List["EstimatedResult"],
+    true_object: "Povm",
+    num_data_index: int,
+) -> List["Figure"]:
+    num_data = estimation_results[0].num_data
+
+    estimated_povms = _convert_result_to_qoperation(
+        estimation_results, num_data_index=num_data_index
+    )
+
+    vlines_list = [np.sqrt(true_object.dim), 0, 0, 0]
+    sum_vecs = get_sum_vecs(estimated_povms)
+    fig_list = []
+    for i, value_list in enumerate(sum_vecs):
+        fig = make_prob_dist_histogram(
+            value_list,
+            bin_size=0.001,
+            num_data=num_data,
+            annotation_vlines=[vlines_list[i]],
+        )
+        title = f"N={num_data[num_data_index]}, α={i}"
+        fig.update_layout(title=title)  # TODO
+        fig_list.append(fig)
+    return fig_list
 
 
 def _make_graphs_eigenvalues_state(
@@ -284,6 +373,59 @@ def _make_graphs_eigenvalues_state(
     return figs
 
 
+def get_sorted_eigenvalues_list_povm(
+    estimated_povms: List[Povm],
+) -> Dict[int, np.array]:
+    eigenvalues_dict = defaultdict(lambda: [])
+
+    for est in tqdm(estimated_povms):
+        eigenvalues = est.calc_eigenvalues()
+
+        # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
+        sorted_eigenvalues = []
+        for eigs in eigenvalues:  # 各測定値の固有値
+            eigs = sorted(eigs, reverse=True)
+            eigs_real = [eig.real for eig in eigs]
+            sorted_eigenvalues.append(eigs_real)
+
+        for x_i, values in enumerate(sorted_eigenvalues):
+            if eigenvalues_dict[x_i]:
+                eigenvalues_dict[x_i].append(values)
+            else:
+                eigenvalues_dict[x_i] = [values]
+
+    for x_i, values_list in eigenvalues_dict.items():
+        eigenvalues_dict[x_i] = np.array(values_list).T
+    return eigenvalues_dict
+
+
+def _make_graphs_eigenvalues_povm(
+    estimated_povms: List[Povm],
+    true_object: Povm,
+    num_data: int,
+    bin_size: float = 0.0001,
+) -> List[List["Figure"]]:
+    n_rep = len(estimated_povms)
+
+    # Eigenvalues of Estimated Povms
+    eigenvalues_dict = get_sorted_eigenvalues_list_povm(estimated_povms)
+    fig_list_list = []
+    for x_i, eigs_list in tqdm(eigenvalues_dict.items()):  # 各測定値
+        fig_list = []
+        for i, value_list in tqdm(enumerate(eigs_list)):  # 各固有値
+            title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
+
+            fig = make_prob_dist_histogram(
+                value_list, bin_size=bin_size, num_data=num_data
+            )
+            fig.update_layout(title=title)
+            fig.update_xaxes(title=f"Eigenvalues (i={i})")
+            fig_list.append(fig)
+        fig_list_list.append(fig_list)
+
+    return fig_list_list
+
+
 # only State
 def _make_graphs_sum_unphysical_eigenvalues_state(
     estimated_states: List[State], num_data: int, bin_size: float = 0.0001
@@ -324,6 +466,28 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
     fig.update_layout(title=title)  # TODO
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
     figs.append(fig)
+
+    return figs
+
+
+def _make_graphs_sum_unphysical_eigenvalues_povm(
+    estimated_povms: List["Povm"], num_data: int, bin_size: float = 0.0001
+) -> List["Figure"]:
+    figs = []
+    n_rep = len(estimated_povms)
+    minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
+
+    print(f"{minus_eigenvalues_dict=}")
+
+    for x_i, value_list in minus_eigenvalues_dict.items():
+        fig = make_prob_dist_histogram(
+            value_list, bin_size=bin_size, annotation_vlines=[0], num_data=num_data
+        )
+        title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
+        title += f"<br>Number of unphysical estimates={len(value_list)}"
+        fig.update_layout(title=title)
+        fig.update_xaxes(title=f"Sum of unphysical eigenvalues (<0)")
+        figs.append(fig)
 
     return figs
 
