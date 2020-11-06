@@ -467,11 +467,9 @@ def make_empi_dists_mse_graph(
     # Analytical
     true_mses = []
     for num in num_data:
-        # TODO: revert
         true_mse = qtomography.calc_mse_empi_dists_analytical(
             true_object, [num] * num_schedules
         )
-        # true_mse = qtomography.calc_mse_empi_dists_analytical(true_object, [num] * 3)
         true_mses.append(true_mse)
 
     mses_list.append(true_mses)
