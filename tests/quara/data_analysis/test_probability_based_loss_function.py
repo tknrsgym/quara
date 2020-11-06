@@ -73,6 +73,10 @@ def get_test_qst(on_para_eq_constraint=True):
 
 
 class TestProbabilityBasedLossFunction:
+    def test_is_option_sufficient(self):
+        loss_func = ProbabilityBasedLossFunction(4)
+        assert loss_func.is_option_sufficient() == True
+
     def test_access_prob_dists_q(self):
         loss_func = ProbabilityBasedLossFunction(4)
         assert loss_func.prob_dists_q is None
