@@ -43,22 +43,29 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
         # TODO write 'this function changes loss, algo properties'
+        # TODO is_computation_time_required
 
         # set loss settings
         loss.set_func_prob_dists_from_standard_qt(qtomography)
         loss.set_func_gradient_prob_dists_from_standard_qt(qtomography)
         loss.set_func_hessian_prob_dists_from_standard_qt(qtomography)
-        loss.set_prob_dists_q(empi_dists)
+        empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
+        loss.set_prob_dists_q(empi_dists_tmp)
         loss.set_from_option(loss_option)
 
         # set algorithm settings
         algo.set_from_loss(loss)
         algo.set_from_option(algo_option)
 
+        # TODO validate error messages
         # validate
-        if loss.is_loss_sufficient() == False:
+        if loss.is_option_sufficient() == False:
             raise ValueError(
-                "loss.is_loss_sufficient() must return True. But returns False"
+                "loss.is_option_sufficient() must return True. But returns False"
+            )
+        if algo.is_loss_sufficient() == False:
+            raise ValueError(
+                "algo.is_loss_sufficient() must return True. But returns False"
             )
         if algo.is_option_sufficient() == False:
             raise ValueError(
@@ -70,7 +77,10 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
             )
 
         # optimize
-        result = algo.optimize(loss, loss_option, algo_option)
+        algo_result = algo.optimize(loss, loss_option, algo_option)
+        result = LossMinimizationEstimationResult(
+            qtomography, empi_dists, [algo_result.value], [algo_result.computation_time]
+        )
 
         # TODO post-processing
-
+        return result

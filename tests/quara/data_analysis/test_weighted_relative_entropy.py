@@ -127,6 +127,16 @@ class TestWeightedRelativeEntropy:
         with pytest.raises(ValueError):
             loss_func.set_weights(weights)
 
+    def test_is_option_sufficient(self):
+        func = WeightedRelativeEntropy(
+            4,
+            func_prob_dists(),
+            func_gradient_prob_dists(),
+            func_hessian_prob_dists(),
+            prob_dists_q,
+        )
+        assert func.is_option_sufficient() == True
+
     def test_value(self):
         func = WeightedRelativeEntropy(
             4,
