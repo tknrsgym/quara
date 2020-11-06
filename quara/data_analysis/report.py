@@ -16,6 +16,11 @@ from quara.data_analysis import (
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
 
+from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
+
+
 _temp_dir_path = ""
 
 _css = f"""
@@ -28,6 +33,7 @@ h2 {{font-size: 20px}}
 h3 {{font-size: 15px;
     color: #618CBC;}}
 h4 {{color:#EB9348; font-size: 15px;}}
+h5 {{color:#666666; font-size: 13px;}}
 #footer_content {{text-align: right;}}
 """
 
@@ -94,6 +100,12 @@ _inline_block_css = """
  display: inline-block;
  width: 400px;
 }
+
+.box_col4{
+ display: inline-block;
+ width: 190px;
+ padding: 0;
+}
 """
 
 
@@ -146,6 +158,62 @@ def generate_trace_div(
         estimation_results, case_id=case_id, num_data=num_data
     )
     div_html = _generate_trace_div(fig_info_list)
+    return div_html
+
+
+def _make_graph_sum_vecs_seq(
+    estimation_results: List["EstimationResult"], case_id: int, true_object: Povm
+) -> List[List["Figure"]]:
+    fig_info_list_list = []
+    num_data = estimation_results[0].num_data
+
+    for num_data_index, num in enumerate(num_data):
+        figs = physicality_violation_check.make_graphs_sum_vecs(
+            estimation_results, true_object, num_data_index=num_data_index
+        )
+        fig_info_list = []
+        for alpha, fig in enumerate(figs):
+            fig_name = f"case={case_id}_trace_num={num}_alpha={alpha}"
+
+            # output
+            dir_path = Path(_temp_dir_path)
+            path = str(dir_path / f"{fig_name}.png")
+            fig.update_layout(width=500, height=400)
+            dir_path.mkdir(exist_ok=True)
+            fig.write_image(path)
+            fig_info_list.append(
+                dict(image_path=path, fig=fig, fig_name=fig_name, num=num, alpha=alpha)
+            )
+        fig_info_list_list.append(fig_info_list)
+
+    return fig_info_list_list
+
+
+def _generate_sum_vecs_div(fig_info_list_list: List[List[dict]]) -> str:
+    graph_block_html_all = ""
+
+    for fig_info_list in fig_info_list_list:  # num
+        num = fig_info_list[0]["num"]
+        graph_block_html = f"<h5>N={num}</h5>"
+        for fig_info in fig_info_list:  # alpha
+            graph_subblock = (
+                f"<div class='box_col4'><img src={fig_info['image_path']}></div>"
+            )
+            graph_block_html += graph_subblock
+
+        graph_block_html_all += f"<div>{graph_block_html}</div>"
+    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+
+    return graph_block_html_all
+
+
+def generate_sum_vecs_div(
+    estimation_results: List["EstimationResult"], case_id: int, true_object: Povm,
+):
+    fig_info_list_list = _make_graph_sum_vecs_seq(
+        estimation_results, case_id=case_id, true_object=true_object
+    )
+    div_html = _generate_sum_vecs_div(fig_info_list_list)
     return div_html
 
 
@@ -377,11 +445,11 @@ def _convert_objects_to_multiindex_dataframe(
     return objects_df_multiindex
 
 
-def generate_physicality_violation_test_div(
+def _generate_physicality_violation_test_div_for_state(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
     para_list: List[bool],
-    true_object: "QOperation",
+    true_object: State,
     num_data: List[int],
 ):
     physicality_violation_test_true_case_divs = ""
@@ -423,11 +491,11 @@ def generate_physicality_violation_test_div(
             {div}
             """
 
-    physicality_violation_test_true_all_div = f"""
+    true_all_div = f"""
         <h2>on_para_eq_constraint=True</h2>
         {physicality_violation_test_true_case_divs}
     """
-    physicality_violation_test_false_all_div = f"""
+    false_all_div = f"""
         <h2>on_para_eq_constraint=False</h2>
         <h3>Eigenvalue</h3>
         {physicality_violation_test_false_eigenvalues_divs}
@@ -435,9 +503,99 @@ def generate_physicality_violation_test_div(
         {physicality_violation_test_false_sum_eigenvalues_divs}
     """
 
+    return true_all_div, false_all_div
+
+
+def _generate_physicality_violation_test_div_for_povm(
+    estimation_results_list: List[List["EstimationResult"]],
+    case_name_list: List[str],
+    para_list: List[bool],
+    true_object: State,
+    num_data: List[int],
+):
+    true_case_divs = ""
+    false_eigenvalues_divs = ""
+    false_sum_eigenvalues_divs = ""
+
+    for case_id, case_name in enumerate(case_name_list):
+        estimation_results = estimation_results_list[case_id]
+        if para_list[case_id]:
+            # on_para_eq_constraint = True
+            div = generate_sum_vecs_div(
+                estimation_results, case_id=case_id, true_object=true_object
+            )
+            true_case_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+        else:
+            # on_para_eq_constraint = False
+            # div = generate_eigenvalues_div(
+            #     estimation_results,
+            #     case_id=case_id,
+            #     num_data=num_data,
+            #     true_object=true_object,
+            # )
+            # physicality_violation_test_false_eigenvalues_divs += f"""
+            # <h4>Case {case_id}: {case_name}<h4>
+            # {div}
+            # """
+
+            # div = generate_sum_eigenvalues_div(
+            #     estimation_results,
+            #     case_id=case_id,
+            #     num_data=num_data,
+            #     true_object=true_object,
+            # )
+            # physicality_violation_test_false_sum_eigenvalues_divs += f"""
+            # <h4>Case {case_id}: {case_name}<h4>
+            # {div}
+            # """
+            pass
+
+    true_all_div = f"""
+        <h2>on_para_eq_constraint=True</h2>
+        {true_case_divs}
+    """
+    false_all_div = f"""
+        <h2>on_para_eq_constraint=False</h2>
+        <h3>Eigenvalue</h3>
+        {false_eigenvalues_divs}
+        <h3>Sum of unphysical eigenvalues </h3>
+        {false_sum_eigenvalues_divs}
+    """
+
+    return true_all_div, false_all_div
+
+
+def generate_physicality_violation_test_div(
+    estimation_results_list: List[List["EstimationResult"]],
+    case_name_list: List[str],
+    para_list: List[bool],
+    true_object: "QOperation",
+    num_data: List[int],
+):
+
+    if type(true_object) == State:
+        (
+            true_all_div,
+            false_all_div,
+        ) = _generate_physicality_violation_test_div_for_state(
+            estimation_results_list, case_name_list, para_list, true_object, num_data
+        )
+    elif type(true_object) == Povm:
+        (
+            true_all_div,
+            false_all_div,
+        ) = _generate_physicality_violation_test_div_for_povm(
+            estimation_results_list, case_name_list, para_list, true_object, num_data
+        )
+    else:
+        raise NotImplementedError()
+
     physicality_violation_test_div = f"""
-        {physicality_violation_test_true_all_div}
-        {physicality_violation_test_false_all_div}
+        {true_all_div}
+        {false_all_div}
     """
 
     return physicality_violation_test_div
@@ -557,9 +715,9 @@ def export_report(
     )
 
     # Physicality Violation Test
-    # physicality_violation_test_div = generate_physicality_violation_test_div(
-    #     estimation_results_list, case_name_list, para_list, true_object, num_data
-    # )
+    physicality_violation_test_div = generate_physicality_violation_test_div(
+        estimation_results_list, case_name_list, para_list, true_object, num_data
+    )
 
     # True Object
     true_object_table = _convert_object_to_datafrane(true_object).to_html(
@@ -634,6 +792,10 @@ def export_report(
         <div>
         {mse_div}
         </div>
+<h1>Physicality violation test</h1>
+    <div>
+        {physicality_violation_test_div}
+    </div>
 <div id="footer_content">
     <pdf:pagenumber>
 </div>
