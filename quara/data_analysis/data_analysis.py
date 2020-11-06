@@ -339,7 +339,7 @@ def make_mses_graph_estimation_results(
                 true_mses = []
                 for num in num_data:
                     true_mse = tmp_tomography.calc_mse_linear_analytical(
-                        true_object_copied, [num] * len(tester_objects)
+                        true_object_copied, [num] * tmp_tomography.num_schedules
                     )
                     true_mses.append(true_mse)
                 mses_list.append(true_mses)
@@ -447,6 +447,7 @@ def make_empi_dists_mse_graph(
     estimation_results: List["LinearEstimationResult"], true_object: "QOperation"
 ):
     qtomography = estimation_results[0]._qtomography
+    num_schedules = qtomography.num_schedules
     num_data = estimation_results[0].num_data
     n_rep = len(estimation_results)
     mses_list = []
@@ -466,7 +467,11 @@ def make_empi_dists_mse_graph(
     # Analytical
     true_mses = []
     for num in num_data:
-        true_mse = qtomography.calc_mse_empi_dists_analytical(true_object, [num] * 3)
+        # TODO: revert
+        true_mse = qtomography.calc_mse_empi_dists_analytical(
+            true_object, [num] * num_schedules
+        )
+        # true_mse = qtomography.calc_mse_empi_dists_analytical(true_object, [num] * 3)
         true_mses.append(true_mse)
 
     mses_list.append(true_mses)
