@@ -274,7 +274,6 @@ def generate_mse_div(
     num_data: List[int],
     n_rep: int = None,
     show_analytical_results: bool = True,
-    qtomographies: List["StandardQTomography"] = None,
     tester_objects: List["QOperation"] = None,
 ) -> str:
 
@@ -289,7 +288,6 @@ def generate_mse_div(
         num_data=num_data,
         true_object=true_object,
         show_analytical_results=show_analytical_results,
-        qtomographies=qtomographies,
         tester_objects=tester_objects,
     )
 
@@ -306,23 +304,15 @@ def generate_mse_div(
 
 
 def generate_empi_dist_mse_div(
-    estimation_results_list: List[List[EstimationResult]],
-    case_name_list: List[str],
-    true_object: "QOperation",
-    num_data: List[int],
-    n_rep: int = None,
-    show_analytical_results: bool = True,
-    qtomographies: List["StandardQTomography"] = None,
-    tester_objects: List["QOperation"] = None,
+    estimation_results_list: List[List[EstimationResult]], true_object: "QOperation",
 ) -> str:
 
     title = f"Mean squared error"
-    if not n_rep:
-        title += "<br>Nrep={n_rep}"
+    n_rep = len(estimation_results_list[0])
+    title += "<br>Nrep={n_rep}"
 
     fig = data_analysis.make_empi_dists_mse_graph(
-        estimation_results_list[0],
-        true_object
+        estimation_results_list[0], true_object
     )
 
     fig_name = f"empi_dists_mse"
@@ -556,21 +546,13 @@ def export_report(
     )
 
     # MSE
-    qtomography_class = qtomography_list[0].__class__
-    # TODO: revert
-    # analytical_result_qtomographies = [
-    #     qtomography_class(tester_objects, on_para_eq_constraint=True),
-    #     # qtomography_class(tester_objects, on_para_eq_constraint=False),
-    # ]
     mse_div = generate_mse_div(
         estimation_results_list=estimation_results_list,
         case_name_list=case_name_list,
         true_object=true_object,
         num_data=num_data,
         n_rep=n_rep,
-        # show_analytical_results=True,
-        show_analytical_results=False,
-        # qtomographies=analytical_result_qtomographies,
+        show_analytical_results=True,
         tester_objects=tester_objects,
     )
 
@@ -590,14 +572,7 @@ def export_report(
 
     # MSE of Empirical Distributions
     empi_dists_mse_div = generate_empi_dist_mse_div(
-        estimation_results_list,
-        case_name_list,
-        true_object,
-        num_data,
-        n_rep,
-        True,
-        qtomography_list,
-        tester_objects,
+        estimation_results_list, true_object
     )
 
     # Consistency Test

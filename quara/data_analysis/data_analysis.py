@@ -300,14 +300,13 @@ def make_mses_graph(
 
 
 def make_mses_graph_estimation_results(
-    estimation_results_list: List["EstimationResult"],
+    estimation_results_list: List["LinearEstimationResult"],
     case_names: List[str],
     num_data,
     true_object,
     title: str = None,
     show_analytical_results: bool = True,
-    qtomographies: list = None,
-    tester_objects: QOperation = None,
+    tester_objects: List[QOperation] = None,
 ) -> "Figure":
     mses_list = []
     display_case_names = case_names[:]
@@ -317,25 +316,30 @@ def make_mses_graph_estimation_results(
 
     # calc analytical result
     if show_analytical_results:
-        if not (qtomographies and tester_objects):
-            error_message = "Specify 'qtomographies' and 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
+        if not (tester_objects):
+            error_message = "Specify 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
             raise ValueError(error_message)
 
-        for qtomography in qtomographies:
+        qtomography_classes = set(
+            [results[0].qtomography.__class__ for results in estimation_results_list]
+        )
+
+        for qtomography_class in qtomography_classes:
             for parameter in [True, False]:
-                true_object_copied = true_object.__class__(
-                    vec=true_object.vec,
-                    c_sys=true_object.composite_system,
-                    on_para_eq_constraint=parameter,
-                )
-                tmp_tomography = qtomography.__class__(
-                    tester_objects, on_para_eq_constraint=parameter
-                )
+                # Make QOperation
+                true_object_copied = true_object.copy()
+                true_object_copied._on_para_eq_constraint = parameter
+
+                # Make QTomography
+                args = dict(on_para_eq_constraint=parameter,)
+                if type(true_object) == Povm:
+                    args["measurement_n"] = len(true_object.vecs)
+                tmp_tomography = qtomography_class(tester_objects, **args)
 
                 true_mses = []
                 for num in num_data:
                     true_mse = tmp_tomography.calc_mse_linear_analytical(
-                        true_object_copied, [num] * 3
+                        true_object_copied, [num] * len(tester_objects)
                     )
                     true_mses.append(true_mse)
                 mses_list.append(true_mses)
