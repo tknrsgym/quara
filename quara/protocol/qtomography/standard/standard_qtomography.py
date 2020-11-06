@@ -266,6 +266,8 @@ class StandardQTomography(QTomography):
 
         mse_total = 0.0
         for schedule_index, data_num in enumerate(data_num_list):
+            print(f"{schedule_index=}")
+            print(f"{data_num=}")
             mse_total += np.trace(
                 self.calc_covariance_mat_single(qope, schedule_index, data_num)
             )
