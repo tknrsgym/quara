@@ -60,8 +60,11 @@ def get_sum_of_eigenvalues_violation_povm(
             sorted_eigenvalues.append(eigs)
 
         # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
+        eps = 10 ** (-13)
         for x_i, values in enumerate(sorted_eigenvalues):
-            sum_values = sum([e.real for e in sorted_eigenvalues[x_i] if e.real < 0])
+            sum_values = sum(
+                [e.real for e in sorted_eigenvalues[x_i] if e.real < 0 - eps]
+            )
             if minus_eigenvalues_dict[x_i]:
                 minus_eigenvalues_dict[x_i].append(sum_values)
             else:
@@ -402,10 +405,6 @@ def _make_graphs_eigenvalues_povm(
     num_data: int,
     bin_size: float = 0.0001,
 ) -> List[List["Figure"]]:
-    # Eigenvalues of True Povm
-    # true_eigs = sorted(
-    #     [eig.real for eig in true_object.calc_eigenvalues()], reverse=True
-    # )
     n_rep = len(estimated_povms)
 
     # Eigenvalues of Estimated Povms
@@ -414,14 +413,13 @@ def _make_graphs_eigenvalues_povm(
     for x_i, eigs_list in tqdm(eigenvalues_dict.items()):  # 各測定値
         fig_list = []
         for i, value_list in tqdm(enumerate(eigs_list)):  # 各固有値
-            title = f"λ x={x_i}, i={i}"
-            title += "<br>"
-            title += f"N={num_data}, Nrep={n_rep}"
+            title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
 
             fig = make_prob_dist_histogram(
                 value_list, bin_size=bin_size, num_data=num_data
             )
-            fig.update_layout(title=title)  # TODO
+            fig.update_layout(title=title)
+            fig.update_xaxes(title=f"Eigenvalues (i={i})")
             fig_list.append(fig)
         fig_list_list.append(fig_list)
 
@@ -478,6 +476,9 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
     figs = []
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
+
+    print(f"{minus_eigenvalues_dict=}")
+
     for x_i, value_list in minus_eigenvalues_dict.items():
         fig = make_prob_dist_histogram(
             value_list, bin_size=bin_size, annotation_vlines=[0], num_data=num_data
