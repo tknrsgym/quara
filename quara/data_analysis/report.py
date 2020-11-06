@@ -300,7 +300,14 @@ def _generate_graph_sum_eigenvalues_seq(
             dir_path.mkdir(exist_ok=True)
             fig.write_image(path)
 
-            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+            fig_info_list.append(
+                dict(
+                    image_path=path,
+                    fig=fig,
+                    fig_name=fig_name,
+                    num=num_data[num_data_index],
+                )
+            )
 
         fig_info_list_list.append(fig_info_list)
     return fig_info_list_list
@@ -309,7 +316,9 @@ def _generate_graph_sum_eigenvalues_seq(
 def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
-        graph_block_html = ""
+        num = fig_info_list[0]["num"]
+        graph_block_html = f"<h5>N={num}</h5>"
+
         for fig_info in fig_info_list:
             graph_subblock = (
                 f"<div class='box'><img src={fig_info['image_path']}></div>"
@@ -541,17 +550,16 @@ def _generate_physicality_violation_test_div_for_povm(
             # {div}
             # """
 
-            # div = generate_sum_eigenvalues_div(
-            #     estimation_results,
-            #     case_id=case_id,
-            #     num_data=num_data,
-            #     true_object=true_object,
-            # )
-            # physicality_violation_test_false_sum_eigenvalues_divs += f"""
-            # <h4>Case {case_id}: {case_name}<h4>
-            # {div}
-            # """
-            pass
+            div = generate_sum_eigenvalues_div(
+                estimation_results,
+                case_id=case_id,
+                num_data=num_data,
+                true_object=true_object,
+            )
+            false_sum_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
 
     true_all_div = f"""
         <h2>on_para_eq_constraint=True</h2>
