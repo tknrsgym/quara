@@ -165,7 +165,6 @@ def calc_mse_prob_dists(
     for xs, ys in zip(xs_list, ys_list):
         se_total += calc_se(xs, ys)
     mse = se_total / len(xs_list)
-    print(f"calc_mse_prob_dists: {mse}")
     return mse
 
 

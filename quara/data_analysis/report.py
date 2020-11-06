@@ -16,6 +16,11 @@ from quara.data_analysis import (
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
 
+from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
+
+
 _temp_dir_path = ""
 
 _css = f"""
@@ -28,6 +33,8 @@ h2 {{font-size: 20px}}
 h3 {{font-size: 15px;
     color: #618CBC;}}
 h4 {{color:#EB9348; font-size: 15px;}}
+h5 {{color:#666666; font-size: 13px;}}
+h6 {{color:#666666; font-size: 13px; font-style:italic;}}
 #footer_content {{text-align: right;}}
 """
 
@@ -87,12 +94,22 @@ pdftoc.pdftoclevel4 {
     margin-left: 4em;
     font-style: italic;
 }
+pdftoc.pdftoclevel5 {
+    margin-left: 5em;
+    font-style: italic;
+}
 """
 
 _inline_block_css = """
 .box{
  display: inline-block;
  width: 400px;
+}
+
+.box_col4{
+ display: inline-block;
+ width: 190px;
+ padding: 0;
 }
 """
 
@@ -149,6 +166,62 @@ def generate_trace_div(
     return div_html
 
 
+def _make_graph_sum_vecs_seq(
+    estimation_results: List["EstimationResult"], case_id: int, true_object: Povm
+) -> List[List["Figure"]]:
+    fig_info_list_list = []
+    num_data = estimation_results[0].num_data
+
+    for num_data_index, num in enumerate(num_data):
+        figs = physicality_violation_check.make_graphs_sum_vecs(
+            estimation_results, true_object, num_data_index=num_data_index
+        )
+        fig_info_list = []
+        for alpha, fig in enumerate(figs):
+            fig_name = f"case={case_id}_trace_num={num}_alpha={alpha}"
+
+            # output
+            dir_path = Path(_temp_dir_path)
+            path = str(dir_path / f"{fig_name}.png")
+            fig.update_layout(width=500, height=400)
+            dir_path.mkdir(exist_ok=True)
+            fig.write_image(path)
+            fig_info_list.append(
+                dict(image_path=path, fig=fig, fig_name=fig_name, num=num, alpha=alpha)
+            )
+        fig_info_list_list.append(fig_info_list)
+
+    return fig_info_list_list
+
+
+def _generate_sum_vecs_div(fig_info_list_list: List[List[dict]]) -> str:
+    graph_block_html_all = ""
+
+    for fig_info_list in fig_info_list_list:  # num
+        num = fig_info_list[0]["num"]
+        graph_block_html = f"<h5>N={num}</h5>"
+        for fig_info in fig_info_list:  # alpha
+            graph_subblock = (
+                f"<div class='box_col4'><img src={fig_info['image_path']}></div>"
+            )
+            graph_block_html += graph_subblock
+
+        graph_block_html_all += f"<div>{graph_block_html}</div>"
+    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+
+    return graph_block_html_all
+
+
+def generate_sum_vecs_div(
+    estimation_results: List["EstimationResult"], case_id: int, true_object: Povm,
+):
+    fig_info_list_list = _make_graph_sum_vecs_seq(
+        estimation_results, case_id=case_id, true_object=true_object
+    )
+    div_html = _generate_sum_vecs_div(fig_info_list_list)
+    return div_html
+
+
 def _generate_graph_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
     case_id: int,
@@ -195,16 +268,94 @@ def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     return graph_block_html_all
 
 
+def _generate_eigenvalues_div_3loop(fig_info_list3: List[List[List[dict]]]) -> str:
+    graph_block_html_all = ""
+    for fig_info_list2 in fig_info_list3:  # num_data
+        num = fig_info_list2[0][0]["num"]
+        graph_block_html = f"<h5>N={num}</h5>"
+
+        for fig_info_list in fig_info_list2:  # measurement
+            x_i = fig_info_list[0]["x"]
+            sub_graph_block_html = f"<h6>x={x_i}</h6>"
+            for fig_info in fig_info_list:
+                graph_subblock = (
+                    f"<div class='box'><img src={fig_info['image_path']}></div>"
+                )
+                sub_graph_block_html += graph_subblock
+            graph_block_html += f"<div>{sub_graph_block_html}</div>"
+
+        graph_block_html_all += f"<div>{graph_block_html}</div>"
+    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+
+    return graph_block_html_all
+
+
+def _generate_graph_eigenvalues_seq_3loop(
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    true_object: "QOperation",
+    num_data: List[int],
+) -> list:
+    # For State
+    fig_info_list3 = []
+    for num_data_index in range(len(num_data)):
+        fig_list_list = physicality_violation_check.make_graphs_eigenvalues(
+            estimation_results, true_object, num_data, num_data_index=num_data_index,
+        )
+        fig_info_list2 = []
+
+        for x_i, fig_list in enumerate(fig_list_list):
+            fig_info_list = []
+            for i, fig in enumerate(fig_list):
+                fig_name = (
+                    f"case={case_id}_eigenvalues_num={num_data_index}_x={x_i}_i={i}"
+                )
+
+                # output
+                dir_path = Path(_temp_dir_path)
+                path = str(dir_path / f"{fig_name}.png")
+                fig.update_layout(width=500, height=400)
+                dir_path.mkdir(exist_ok=True)
+                fig.write_image(path)
+
+                fig_info = dict(
+                    image_path=path,
+                    fig=fig,
+                    fig_name=fig_name,
+                    num=num_data[num_data_index],
+                    x=x_i,
+                    i=i,
+                )
+                fig_info_list.append(fig_info)
+            fig_info_list2.append(fig_info_list)
+        fig_info_list3.append(fig_info_list2)
+    return fig_info_list3
+
+
 def generate_eigenvalues_div(
     estimation_results: List["EstimationResult"],
     case_id: int,
     num_data: List[int],
     true_object: "QOperation",
 ):
-    fig_info_list_list = _generate_graph_eigenvalues_seq(
-        estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
-    )
-    div_html = _generate_eigenvalues_div(fig_info_list_list)
+    if type(true_object) == State:
+        fig_info_list_list = _generate_graph_eigenvalues_seq(
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
+            num_data=num_data,
+        )
+        div_html = _generate_eigenvalues_div(fig_info_list_list)
+    elif type(true_object) == Povm:
+        fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
+            num_data=num_data,
+        )
+        div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
+    else:
+        raise NotImplementedError()
     return div_html
 
 
@@ -232,7 +383,14 @@ def _generate_graph_sum_eigenvalues_seq(
             dir_path.mkdir(exist_ok=True)
             fig.write_image(path)
 
-            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+            fig_info_list.append(
+                dict(
+                    image_path=path,
+                    fig=fig,
+                    fig_name=fig_name,
+                    num=num_data[num_data_index],
+                )
+            )
 
         fig_info_list_list.append(fig_info_list)
     return fig_info_list_list
@@ -241,7 +399,9 @@ def _generate_graph_sum_eigenvalues_seq(
 def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
-        graph_block_html = ""
+        num = fig_info_list[0]["num"]
+        graph_block_html = f"<h5>N={num}</h5>"
+
         for fig_info in fig_info_list:
             graph_subblock = (
                 f"<div class='box'><img src={fig_info['image_path']}></div>"
@@ -274,7 +434,6 @@ def generate_mse_div(
     num_data: List[int],
     n_rep: int = None,
     show_analytical_results: bool = True,
-    qtomographies: List["StandardQTomography"] = None,
     tester_objects: List["QOperation"] = None,
 ) -> str:
 
@@ -289,7 +448,6 @@ def generate_mse_div(
         num_data=num_data,
         true_object=true_object,
         show_analytical_results=show_analytical_results,
-        qtomographies=qtomographies,
         tester_objects=tester_objects,
     )
 
@@ -306,27 +464,15 @@ def generate_mse_div(
 
 
 def generate_empi_dist_mse_div(
-    estimation_results_list: List[List[EstimationResult]],
-    case_name_list: List[str],
-    true_object: "QOperation",
-    num_data: List[int],
-    n_rep: int = None,
-    show_analytical_results: bool = True,
-    qtomographies: List["StandardQTomography"] = None,
-    tester_objects: List["QOperation"] = None,
+    estimation_results_list: List[List[EstimationResult]], true_object: "QOperation",
 ) -> str:
 
     title = f"Mean squared error"
-    if not n_rep:
-        title += "<br>Nrep={n_rep}"
+    n_rep = len(estimation_results_list[0])
+    title += "<br>Nrep={n_rep}"
 
     fig = data_analysis.make_empi_dists_mse_graph(
-        estimation_results_list[0],
-        qtomographies[0],
-        true_object,
-        num_data,
-        n_rep,
-        tester_objects,
+        estimation_results_list[0], true_object
     )
 
     fig_name = f"empi_dists_mse"
@@ -391,11 +537,11 @@ def _convert_objects_to_multiindex_dataframe(
     return objects_df_multiindex
 
 
-def generate_physicality_violation_test_div(
+def _generate_physicality_violation_test_div_for_state(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
     para_list: List[bool],
-    true_object: "QOperation",
+    true_object: State,
     num_data: List[int],
 ):
     physicality_violation_test_true_case_divs = ""
@@ -437,11 +583,11 @@ def generate_physicality_violation_test_div(
             {div}
             """
 
-    physicality_violation_test_true_all_div = f"""
+    true_all_div = f"""
         <h2>on_para_eq_constraint=True</h2>
         {physicality_violation_test_true_case_divs}
     """
-    physicality_violation_test_false_all_div = f"""
+    false_all_div = f"""
         <h2>on_para_eq_constraint=False</h2>
         <h3>Eigenvalue</h3>
         {physicality_violation_test_false_eigenvalues_divs}
@@ -449,9 +595,98 @@ def generate_physicality_violation_test_div(
         {physicality_violation_test_false_sum_eigenvalues_divs}
     """
 
+    return true_all_div, false_all_div
+
+
+def _generate_physicality_violation_test_div_for_povm(
+    estimation_results_list: List[List["EstimationResult"]],
+    case_name_list: List[str],
+    para_list: List[bool],
+    true_object: State,
+    num_data: List[int],
+):
+    true_case_divs = ""
+    false_eigenvalues_divs = ""
+    false_sum_eigenvalues_divs = ""
+
+    for case_id, case_name in enumerate(case_name_list):
+        estimation_results = estimation_results_list[case_id]
+        if para_list[case_id]:
+            # on_para_eq_constraint = True
+            div = generate_sum_vecs_div(
+                estimation_results, case_id=case_id, true_object=true_object
+            )
+            true_case_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+        else:
+            on_para_eq_constraint = False
+            div = generate_eigenvalues_div(
+                estimation_results,
+                case_id=case_id,
+                num_data=num_data,
+                true_object=true_object,
+            )
+            false_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+            div = generate_sum_eigenvalues_div(
+                estimation_results,
+                case_id=case_id,
+                num_data=num_data,
+                true_object=true_object,
+            )
+            false_sum_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+    true_all_div = f"""
+        <h2>on_para_eq_constraint=True</h2>
+        {true_case_divs}
+    """
+    false_all_div = f"""
+        <h2>on_para_eq_constraint=False</h2>
+        <h3>Eigenvalue</h3>
+        {false_eigenvalues_divs}
+        <h3>Sum of unphysical eigenvalues </h3>
+        {false_sum_eigenvalues_divs}
+    """
+
+    return true_all_div, false_all_div
+
+
+def generate_physicality_violation_test_div(
+    estimation_results_list: List[List["EstimationResult"]],
+    case_name_list: List[str],
+    para_list: List[bool],
+    true_object: "QOperation",
+    num_data: List[int],
+):
+
+    if type(true_object) == State:
+        (
+            true_all_div,
+            false_all_div,
+        ) = _generate_physicality_violation_test_div_for_state(
+            estimation_results_list, case_name_list, para_list, true_object, num_data
+        )
+    elif type(true_object) == Povm:
+        (
+            true_all_div,
+            false_all_div,
+        ) = _generate_physicality_violation_test_div_for_povm(
+            estimation_results_list, case_name_list, para_list, true_object, num_data
+        )
+    else:
+        raise NotImplementedError()
+
     physicality_violation_test_div = f"""
-        {physicality_violation_test_true_all_div}
-        {physicality_violation_test_false_all_div}
+        {true_all_div}
+        {false_all_div}
     """
 
     return physicality_violation_test_div
@@ -560,11 +795,6 @@ def export_report(
     )
 
     # MSE
-    qtomography_class = qtomography_list[0].__class__
-    analytical_result_qtomographies = [
-        qtomography_class(tester_objects, on_para_eq_constraint=True),
-        # qtomography_class(tester_objects, on_para_eq_constraint=False),
-    ]
     mse_div = generate_mse_div(
         estimation_results_list=estimation_results_list,
         case_name_list=case_name_list,
@@ -572,7 +802,6 @@ def export_report(
         num_data=num_data,
         n_rep=n_rep,
         show_analytical_results=True,
-        qtomographies=analytical_result_qtomographies,
         tester_objects=tester_objects,
     )
 
@@ -592,14 +821,7 @@ def export_report(
 
     # MSE of Empirical Distributions
     empi_dists_mse_div = generate_empi_dist_mse_div(
-        estimation_results_list,
-        case_name_list,
-        true_object,
-        num_data,
-        n_rep,
-        True,
-        qtomography_list,
-        tester_objects,
+        estimation_results_list, true_object
     )
 
     # Consistency Test
@@ -657,10 +879,10 @@ def export_report(
     <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
-<h1>MSE</h1>
-    <div>
-    {mse_div}
-    </div>
+    <h1>MSE</h1>
+        <div>
+        {mse_div}
+        </div>
 <h1>Physicality violation test</h1>
     <div>
         {physicality_violation_test_div}
@@ -670,6 +892,70 @@ def export_report(
 </div>
 </body>
 </html>"""
+
+    #     report_html = f"""<html>
+    # <head>
+    #     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    #     <style type="text/css">
+    #         <!--
+    #             {_css}
+    #             {_inline_block_css}
+    #             {_table_css}
+    #             {_table_contents_css}
+    #          -->
+    #     </style>
+    #     <style>
+    #     @page {{
+    #         size: a4 portrait;
+    #         @frame content_frame {{
+    #             left: 20pt; right: 20pt; top: 50pt; height: 672pt;
+    #         }}
+    #         @frame footer_frame {{
+    #             -pdf-frame-content: footer_content;
+    #             left: 20pt; right: 20pt; top: 812pt; height: 20pt;
+    #         }}
+    #     }}
+    #     </style>
+    # <title>Quara Report</title>
+    # </head>
+    # <body>
+    # <div id="table_of_contents">
+    #     <h1>Table of contents</h1>
+    #     <pdf:toc />
+    # </div>
+    # <h1>Experimental condition</h1>
+    #     <div>
+    #         {condition_table}
+    #     </div>
+    # <h2>True object</h2>
+    #     <div>
+    #         {true_object_table}
+    #     </div>
+    # <h2>Tester objects</h2>
+    #     <div>
+    #         {tester_table}
+    #     </div>
+    # <h2>Cases</h2>
+    #     <div>
+    #         {case_table}
+    #     </div>
+    # <h1>MSE of Empirical Distributions</h1>
+    #     <div>{empi_dists_mse_div}</div>
+    # <h1>Consistency test</h1>
+    #     <div>{consistency_check_table}</div>
+    # <h1>MSE</h1>
+    #     <div>
+    #     {mse_div}
+    #     </div>
+    # <h1>Physicality violation test</h1>
+    #     <div>
+    #         {physicality_violation_test_div}
+    #     </div>
+    # <div id="footer_content">
+    #     <pdf:pagenumber>
+    # </div>
+    # </body>
+    # </html>"""
 
     # print(Path(_temp_dir_path) / "quara_report.html")
     with open(Path(_temp_dir_path) / "quara_report.html", "w") as f:

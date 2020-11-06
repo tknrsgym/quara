@@ -23,11 +23,12 @@ class StandardPovmt(StandardQTomography):
         on_algo_eq_constraint: bool = False,
         on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = None,
+        seed: int = None,
     ):
         # Make Experment with states
         schedules = [[("state", i), ("povm", 0)] for i in range(len(states))]
         experiment = Experiment(
-            states=states, gates=[], povms=[None], schedules=schedules
+            states=states, gates=[], povms=[None], schedules=schedules, seed=seed
         )
 
         # Make SetQOperation
