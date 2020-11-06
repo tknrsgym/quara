@@ -322,11 +322,7 @@ def generate_empi_dist_mse_div(
 
     fig = data_analysis.make_empi_dists_mse_graph(
         estimation_results_list[0],
-        qtomographies[0],
-        true_object,
-        num_data,
-        n_rep,
-        tester_objects,
+        true_object
     )
 
     fig_name = f"empi_dists_mse"
@@ -561,25 +557,27 @@ def export_report(
 
     # MSE
     qtomography_class = qtomography_list[0].__class__
-    analytical_result_qtomographies = [
-        qtomography_class(tester_objects, on_para_eq_constraint=True),
-        # qtomography_class(tester_objects, on_para_eq_constraint=False),
-    ]
+    # TODO: revert
+    # analytical_result_qtomographies = [
+    #     qtomography_class(tester_objects, on_para_eq_constraint=True),
+    #     # qtomography_class(tester_objects, on_para_eq_constraint=False),
+    # ]
     mse_div = generate_mse_div(
         estimation_results_list=estimation_results_list,
         case_name_list=case_name_list,
         true_object=true_object,
         num_data=num_data,
         n_rep=n_rep,
-        show_analytical_results=True,
-        qtomographies=analytical_result_qtomographies,
+        # show_analytical_results=True,
+        show_analytical_results=False,
+        # qtomographies=analytical_result_qtomographies,
         tester_objects=tester_objects,
     )
 
     # Physicality Violation Test
-    physicality_violation_test_div = generate_physicality_violation_test_div(
-        estimation_results_list, case_name_list, para_list, true_object, num_data
-    )
+    # physicality_violation_test_div = generate_physicality_violation_test_div(
+    #     estimation_results_list, case_name_list, para_list, true_object, num_data
+    # )
 
     # True Object
     true_object_table = _convert_object_to_datafrane(true_object).to_html(
@@ -657,19 +655,79 @@ def export_report(
     <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
-<h1>MSE</h1>
-    <div>
-    {mse_div}
-    </div>
-<h1>Physicality violation test</h1>
-    <div>
-        {physicality_violation_test_div}
-    </div>
+    <h1>MSE</h1>
+        <div>
+        {mse_div}
+        </div>
 <div id="footer_content">
     <pdf:pagenumber>
 </div>
 </body>
 </html>"""
+
+    #     report_html = f"""<html>
+    # <head>
+    #     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    #     <style type="text/css">
+    #         <!--
+    #             {_css}
+    #             {_inline_block_css}
+    #             {_table_css}
+    #             {_table_contents_css}
+    #          -->
+    #     </style>
+    #     <style>
+    #     @page {{
+    #         size: a4 portrait;
+    #         @frame content_frame {{
+    #             left: 20pt; right: 20pt; top: 50pt; height: 672pt;
+    #         }}
+    #         @frame footer_frame {{
+    #             -pdf-frame-content: footer_content;
+    #             left: 20pt; right: 20pt; top: 812pt; height: 20pt;
+    #         }}
+    #     }}
+    #     </style>
+    # <title>Quara Report</title>
+    # </head>
+    # <body>
+    # <div id="table_of_contents">
+    #     <h1>Table of contents</h1>
+    #     <pdf:toc />
+    # </div>
+    # <h1>Experimental condition</h1>
+    #     <div>
+    #         {condition_table}
+    #     </div>
+    # <h2>True object</h2>
+    #     <div>
+    #         {true_object_table}
+    #     </div>
+    # <h2>Tester objects</h2>
+    #     <div>
+    #         {tester_table}
+    #     </div>
+    # <h2>Cases</h2>
+    #     <div>
+    #         {case_table}
+    #     </div>
+    # <h1>MSE of Empirical Distributions</h1>
+    #     <div>{empi_dists_mse_div}</div>
+    # <h1>Consistency test</h1>
+    #     <div>{consistency_check_table}</div>
+    # <h1>MSE</h1>
+    #     <div>
+    #     {mse_div}
+    #     </div>
+    # <h1>Physicality violation test</h1>
+    #     <div>
+    #         {physicality_violation_test_div}
+    #     </div>
+    # <div id="footer_content">
+    #     <pdf:pagenumber>
+    # </div>
+    # </body>
+    # </html>"""
 
     # print(Path(_temp_dir_path) / "quara_report.html")
     with open(Path(_temp_dir_path) / "quara_report.html", "w") as f:
