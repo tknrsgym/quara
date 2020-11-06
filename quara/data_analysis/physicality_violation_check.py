@@ -1,5 +1,6 @@
 import warnings
 from typing import List, Tuple, Dict, Any, Union, Optional
+from collections import defaultdict
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -8,6 +9,8 @@ from tqdm import tqdm
 
 from quara.protocol.qtomography.estimator import EstimationResult
 from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
 
 
 def get_sorted_eigenvalues_list(
@@ -41,6 +44,29 @@ def get_sum_of_eigenvalues_violation(
             sum_eig_greater_than_one_list.append(np.sum(eig_greater_than_one_list))
 
     return sum_eig_less_than_zero_list, sum_eig_greater_than_one_list
+
+
+def get_sum_of_eigenvalues_violation_povm(
+    estimated_povms: List["Povm"],
+) -> Dict[int, List[float]]:
+
+    minus_eigenvalues_dict = defaultdict(lambda: [])
+
+    for est in tqdm(estimated_povms):
+        eigenvalues = est.calc_eigenvalues()
+        sorted_eigenvalues = []
+        for eigs in eigenvalues:
+            eigs = sorted(eigs, reverse=True)
+            sorted_eigenvalues.append(eigs)
+
+        # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
+        for x_i, values in enumerate(sorted_eigenvalues):
+            sum_values = sum([e.real for e in sorted_eigenvalues[x_i] if e.real < 0])
+            if minus_eigenvalues_dict[x_i]:
+                minus_eigenvalues_dict[x_i].append(sum_values)
+            else:
+                minus_eigenvalues_dict[x_i] = [sum_values]
+    return minus_eigenvalues_dict
 
 
 # TODO: rename
@@ -262,6 +288,10 @@ def make_graphs_sum_unphysical_eigenvalues(
         figs = _make_graphs_sum_unphysical_eigenvalues_state(
             estimated_qoperations, n_data, bin_size
         )
+    elif type(sample_object) == Povm:
+        figs = _make_graphs_sum_unphysical_eigenvalues_povm(
+            estimated_qoperations, n_data, bin_size
+        )
     else:
         # TODO: message
         raise TypeError()
@@ -376,6 +406,24 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
     fig.update_layout(title=title)  # TODO
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
     figs.append(fig)
+
+    return figs
+
+
+def _make_graphs_sum_unphysical_eigenvalues_povm(
+    estimated_povms: List["Povm"], num_data: int, bin_size: float = 0.0001
+) -> List["Figure"]:
+    figs = []
+    minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
+    for x_i, value_list in minus_eigenvalues_dict.items():
+        fig = make_prob_dist_histogram(
+            value_list, bin_size=0.001, annotation_vlines=[0], num_data=num_data
+        )
+        # TODO: modify
+        title = f"各測定値の負の値の固有値の総和の頻度分布"
+        title += f"<br>N={num_data}, x={x_i}"
+        fig.update_layout(title=title)  # TODO
+        figs.append(fig)
 
     return figs
 
