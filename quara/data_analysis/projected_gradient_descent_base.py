@@ -10,6 +10,8 @@ from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithmOption,
     MinimizationResult,
 )
+from quara.math import func_proj
+from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.settings import Settings
 
 
@@ -55,14 +57,14 @@ class ProjectedGradientDescentBaseResult(MinimizationResult):
 class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
     def __init__(
         self,
-        var_start: np.array,
+        var_start: np.array = None,
         mu: float = None,
         gamma: float = 0.3,
         eps: float = None,
     ):
         super().__init__(var_start)
 
-        if mu is None:
+        if mu is None and var_start is not None:
             mu = 3 / (2 * np.sqrt(var_start.shape[0]))
         self._mu: float = mu
         self._gamma: float = gamma
@@ -89,10 +91,25 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         self._func_proj: Callable[[np.array], np.array] = func_proj
         self._is_gradient_required: bool = True
         self._is_hessian_required: bool = False
+        self._qt: StandardQTomography = None
 
     @property
     def func_proj(self) -> Callable[[np.array], np.array]:
         return self._func_proj
+
+    def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
+        self._qt = qt
+        if qt.on_algo_eq_constraint == True and qt.on_algo_ineq_constraint == True:
+            # TODO use QOperation.calc_proj_physical()
+            pass
+        elif qt.on_algo_eq_constraint == True and qt.on_algo_ineq_constraint == False:
+            # TODO use QOperation.calc_eq_constraint()
+            pass
+        elif qt.on_algo_eq_constraint == False and qt.on_algo_ineq_constraint == True:
+            # TODO use QOperation.calc_ineq_constraint()
+            pass
+        else:
+            self._func_proj = func_proj.proj_to_self()
 
     def is_loss_sufficient(self) -> bool:
         """returns whether the loss is sufficient.
@@ -140,7 +157,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         bool
             whether the loss and the option are sufficient.
         """
-        # TODO validate
+        # TODO validate when option.var_start exists
         num_var_option = self.option.var_start.shape[0]
         num_var_loss = self.loss.num_var
         if num_var_option != num_var_loss:
@@ -190,9 +207,16 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
                 "to execute ProjectedGradientDescentBase, 'is_gradient_required' of this algorithm must be True."
             )
 
-        x_prev = algorithm_option.var_start
+        if algorithm_option.var_start is None:
+            # TODO
+            x_prev = self._qt._set_qoperations.states[0].generate_origin_obj()
+        else:
+            x_prev = algorithm_option.var_start
         x_next = None
-        mu = algorithm_option.mu
+        if algorithm_option.var_start is None:
+            mu = 3 / (2 * np.sqrt(self._qt.num_variables))
+        else:
+            mu = algorithm_option.mu
         gamma = algorithm_option.gamma
         eps = algorithm_option.eps
 
