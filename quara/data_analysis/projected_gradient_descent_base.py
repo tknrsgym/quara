@@ -10,6 +10,7 @@ from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithmOption,
     MinimizationResult,
 )
+from quara.settings import Settings
 
 
 class ProjectedGradientDescentBaseResult(MinimizationResult):
@@ -58,7 +59,7 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         var_start: np.array,
         mu: float = None,
         gamma: float = 0.3,
-        eps: float = 1.0e-10,
+        eps: float = None,
     ):
         super().__init__(var_start)
 
@@ -68,6 +69,8 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
             mu = 3 / (2 * np.sqrt(var_start.shape[0]))
         self._mu: float = mu
         self._gamma: float = gamma
+        if eps is None:
+            eps = Settings.get_atol() / 10.0
         self._eps: float = eps
 
     @property
