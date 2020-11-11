@@ -1,3 +1,4 @@
+from os import remove
 import tempfile
 import shutil
 
@@ -415,11 +416,10 @@ def generate_mse_div(
     estimation_results_list: List[List[EstimationResult]],
     case_name_list: List[str],
     true_object: "QOperation",
-    num_data: List[int],
-    n_rep: int = None,
     show_analytical_results: bool = True,
     tester_objects: List["QOperation"] = None,
 ) -> str:
+    n_rep = len(estimation_results_list[0])
 
     title = f"Mean squared error"
     if not n_rep:
@@ -429,7 +429,6 @@ def generate_mse_div(
     fig = data_analysis.make_mses_graph_estimation_results(
         estimation_results_list=estimation_results_list,
         case_names=display_name_list,
-        num_data=num_data,
         true_object=true_object,
         show_analytical_results=show_analytical_results,
         tester_objects=tester_objects,
@@ -737,8 +736,6 @@ def export_report(
     estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
-    num_data: List[int],
-    n_rep: int,
     save_materials: bool = False,
     seed: int = None,
 ):
@@ -746,29 +743,12 @@ def export_report(
     global _temp_dir_path
     _temp_dir_path = Path(temp_dir_path)
 
+    num_data = estimation_results_list[0][0].num_data
+    n_rep = len(estimation_results_list[0])
+
     # Experiment Condition
+    print("​Generating table of experimental conditions ...")
     condition_table = generate_condition_table(qtomography_list, n_rep, num_data, seed)
-
-    # Cases
-    case_table = generate_case_table(
-        case_name_list, qtomography_list, para_list, estimator_list
-    )
-
-    # MSE
-    mse_div = generate_mse_div(
-        estimation_results_list=estimation_results_list,
-        case_name_list=case_name_list,
-        true_object=true_object,
-        num_data=num_data,
-        n_rep=n_rep,
-        show_analytical_results=True,
-        tester_objects=tester_objects,
-    )
-
-    # Physicality Violation Test
-    physicality_violation_test_div = generate_physicality_violation_test_div(
-        estimation_results_list, case_name_list, true_object
-    )
 
     # True Object
     true_object_table = _convert_object_to_datafrane(true_object).to_html(
@@ -779,14 +759,38 @@ def export_report(
         classes="tester_objects_table", escape=False, header=False
     )
 
+    # Cases
+    print("Generating case list ...")
+    case_table = generate_case_table(
+        case_name_list, qtomography_list, para_list, estimator_list
+    )
+
     # MSE of Empirical Distributions
+    print("​​Generating MSE of empirical distributions blocks ...")
     empi_dists_mse_div = generate_empi_dist_mse_div(
         estimation_results_list, true_object
     )
 
     # Consistency Test
+    print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
         qtomography_list, para_list, estimator_list, true_object,
+    )
+
+    # MSE
+    print("​Generating a graph for MSE ...")
+    mse_div = generate_mse_div(
+        estimation_results_list=estimation_results_list,
+        case_name_list=case_name_list,
+        true_object=true_object,
+        show_analytical_results=True,
+        tester_objects=tester_objects,
+    )
+
+    # Physicality Violation Test
+    print("​​Generating physicality violation test blocks ...")
+    physicality_violation_test_div = generate_physicality_violation_test_div(
+        estimation_results_list, case_name_list, true_object
     )
 
     report_html = f"""<html>
@@ -839,10 +843,10 @@ def export_report(
     <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
-    <h1>MSE</h1>
-        <div>
+<h1>MSE</h1>
+    <div>
         {mse_div}
-        </div>
+    </div>
 <h1>Physicality violation test</h1>
     <div>
         {physicality_violation_test_div}
@@ -856,6 +860,7 @@ def export_report(
     with open(Path(_temp_dir_path) / "quara_report.html", "w") as f:
         f.write(report_html)
 
+    print("Converting to PDF report ...")
     _convert_html2pdf(report_html, path)
     if save_materials:
         import datetime as dt
@@ -865,6 +870,7 @@ def export_report(
         Path(material_path).mkdir(parents=True, exist_ok=True)
         shutil.copytree(_temp_dir_path, material_path, dirs_exist_ok=True)
 
+    print("​Deleting temporary files ...")
     shutil.rmtree(_temp_dir_path)
     _temp_dir_path = ""
     print(f"Completed to export pdf. ({path})")
