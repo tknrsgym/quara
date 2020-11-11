@@ -341,9 +341,7 @@ def generate_eigenvalues_div(
         div_html = _generate_eigenvalues_div(fig_info_list_list)
     elif type(true_object) == Povm:
         fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
-            estimation_results,
-            case_id=case_id,
-            true_object=true_object,
+            estimation_results, case_id=case_id, true_object=true_object,
         )
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
     else:
@@ -352,9 +350,7 @@ def generate_eigenvalues_div(
 
 
 def _generate_graph_sum_eigenvalues_seq(
-    estimation_results: List["EstimationResult"],
-    case_id: int,
-    true_object,
+    estimation_results: List["EstimationResult"], case_id: int, true_object,
 ) -> List[List[dict]]:
     num_data = estimation_results[0].num_data
     fig_info_list_list = []
@@ -406,9 +402,7 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
 
 
 def generate_sum_eigenvalues_div(
-    estimation_results: List["EstimationResult"],
-    case_id: int,
-    true_object,
+    estimation_results: List["EstimationResult"], case_id: int, true_object,
 ):
     fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
         estimation_results, case_id=case_id, true_object=true_object
@@ -535,21 +529,18 @@ def _generate_physicality_violation_test_div_for_state(
     test_eq_const_divs = ""
     test_ineq_const_eigenvalues_divs = ""
     test_ineq_const_sum_eigenvalues_divs = ""
-    num_data = estimation_results_list[0][0].num_data
-    print(num_data)
 
     for case_id, case_name in enumerate(case_name_list):
         estimation_results = estimation_results_list[case_id]
+        # Test of equality constraint violation
         div = generate_trace_div(estimation_results, case_id=case_id)
         test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
-
+        # Test of inequality constraint violation
         div = generate_eigenvalues_div(
-            estimation_results,
-            case_id=case_id,
-            true_object=true_object,
+            estimation_results, case_id=case_id, true_object=true_object,
         )
         test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -557,9 +548,7 @@ def _generate_physicality_violation_test_div_for_state(
             """
 
         div = generate_sum_eigenvalues_div(
-            estimation_results,
-            case_id=case_id,
-            true_object=true_object,
+            estimation_results, case_id=case_id, true_object=true_object,
         )
         test_ineq_const_sum_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -584,70 +573,58 @@ def _generate_physicality_violation_test_div_for_state(
 def _generate_physicality_violation_test_div_for_povm(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    para_list: List[bool],
     true_object: State,
-    num_data: List[int],
 ):
-    true_case_divs = ""
-    false_eigenvalues_divs = ""
-    false_sum_eigenvalues_divs = ""
+    test_eq_const_divs = ""
+    test_ineq_const_eigenvalues_divs = ""
+    test_ineq_const_sum_eigenvalues_divs = ""
 
     for case_id, case_name in enumerate(case_name_list):
         estimation_results = estimation_results_list[case_id]
-        if para_list[case_id]:
-            # on_para_eq_constraint = True
-            div = generate_sum_vecs_div(
-                estimation_results, case_id=case_id, true_object=true_object
-            )
-            true_case_divs += f"""
+        # Test of equality constraint violation
+        div = generate_sum_vecs_div(
+            estimation_results, case_id=case_id, true_object=true_object
+        )
+        test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
-        else:
-            on_para_eq_constraint = False
-            div = generate_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            false_eigenvalues_divs += f"""
+        # Test of inequality constraint violation
+        div = generate_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-            div = generate_sum_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            false_sum_eigenvalues_divs += f"""
+        div = generate_sum_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_sum_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-    true_all_div = f"""
-        <h2>on_para_eq_constraint=True</h2>
-        {true_case_divs}
+    eq_all_div = f"""
+        <h2>Test of equality constraint violation</h2>
+        {test_eq_const_divs}
     """
-    false_all_div = f"""
-        <h2>on_para_eq_constraint=False</h2>
+    ineq_all_div = f"""
+        <h2>Test of inequality constraint violation</h2>
         <h3>Eigenvalue</h3>
-        {false_eigenvalues_divs}
+        {test_ineq_const_eigenvalues_divs}
         <h3>Sum of unphysical eigenvalues </h3>
-        {false_sum_eigenvalues_divs}
+        {test_ineq_const_sum_eigenvalues_divs}
     """
 
-    return true_all_div, false_all_div
+    return eq_all_div, ineq_all_div
 
 
 def generate_physicality_violation_test_div(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    para_list: List[bool],
     true_object: "QOperation",
-    num_data: List[int],
 ):
 
     if type(true_object) == State:
@@ -662,7 +639,7 @@ def generate_physicality_violation_test_div(
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_povm(
-            estimation_results_list, case_name_list, para_list, true_object, num_data
+            estimation_results_list, case_name_list, true_object
         )
     else:
         raise NotImplementedError()
@@ -790,7 +767,7 @@ def export_report(
 
     # Physicality Violation Test
     physicality_violation_test_div = generate_physicality_violation_test_div(
-        estimation_results_list, case_name_list, para_list, true_object, num_data
+        estimation_results_list, case_name_list, true_object
     )
 
     # True Object

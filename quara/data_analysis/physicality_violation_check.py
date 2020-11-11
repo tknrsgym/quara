@@ -122,40 +122,19 @@ def check_physicality_violation(
 def _check_physicality_violation_for_state(
     estimated_qobjects: List["State"],
 ) -> Dict[str, Any]:
-    on_para_eq_constraint = estimated_qobjects[0].on_para_eq_constraint
 
-    # if on_para_eq_constraint:
-    #     trace_list = get_physicality_violation_result_for_state_affine(
-    #         estimated_qobjects
-    #     )
-    #     return dict(trace_list=trace_list)
-    # else:
-    #     sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
-    #     sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
-    #     less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
-    #         sorted_eigenvalues_list
-    #     )
-    #     return dict(
-    #         sorted_eigenvalues_list=sorted_eigenvalues_list_T,
-    #         sum_of_eigenvalues=dict(
-    #             less_than_zero=less_than_zero_list,
-    #             greater_than_one=greater_than_one_list,
-    #         ),
-    #     )
-    trace_list = get_physicality_violation_result_for_state_affine(
-            estimated_qobjects
-        )
+    trace_list = get_physicality_violation_result_for_state_affine(estimated_qobjects)
     result_dict = dict(trace_list=trace_list)
+
     sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
     sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
     less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
-            sorted_eigenvalues_list
-        )
+        sorted_eigenvalues_list
+    )
     result_dict["sorted_eigenvalues_list"] = sorted_eigenvalues_list_T
     result_dict["sum_of_eigenvalues"] = dict(
-                less_than_zero=less_than_zero_list,
-                greater_than_one=greater_than_one_list,
-            )
+        less_than_zero=less_than_zero_list, greater_than_one=greater_than_one_list,
+    )
     return result_dict
 
 
@@ -492,8 +471,6 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
 
-    print(f"{minus_eigenvalues_dict=}")
-
     for x_i, value_list in minus_eigenvalues_dict.items():
         fig = make_prob_dist_histogram(
             value_list, bin_size=bin_size, annotation_vlines=[0], num_data=num_data
@@ -538,32 +515,3 @@ def _generate_graph_sum_eigenvalues_seq(
 
         fig_info_list_list.append(fig_info_list)
     return fig_info_list_list
-
-
-def _generate_sum_eigenvalues_div(fig_info_list_list) -> str:
-    graph_block_html_all = ""
-    for fig_info_list in fig_info_list_list:
-        graph_block_html = ""
-        for fig_info in fig_info_list:
-            graph_subblock = (
-                f"<div class='box'><img src={fig_info['image_path']}></div>"
-            )
-            graph_block_html += graph_subblock
-
-        graph_block_html_all += f"<div>{graph_block_html}</div>"
-    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
-
-    return graph_block_html_all
-
-
-def generate_sum_eigenvalues_div(
-    estimation_results: List["EstimationResult"],
-    case_id: int,
-    num_data: List[int],
-    true_object,
-):
-    fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
-        estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
-    )
-    div_html = _generate_eigenvalues_div(fig_info_list_list)
-    return div_html
