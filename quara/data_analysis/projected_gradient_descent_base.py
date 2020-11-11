@@ -98,6 +98,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         return self._func_proj
 
     def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
+        # TOOD this implentation is wrong. qt does not have on_algo_eq_constraint and on_algo_ineq_constraint.
         self._qt = qt
         if qt.on_algo_eq_constraint == True and qt.on_algo_ineq_constraint == True:
             # TODO use QOperation.calc_proj_physical()
