@@ -92,12 +92,10 @@ pdftoc.pdftoclevel3 {
     font-style: italic;
 }
 pdftoc.pdftoclevel4 {
-    margin-left: 4em;
-    font-style: italic;
+    -pdf-outline: false;
 }
 pdftoc.pdftoclevel5 {
-    margin-left: 5em;
-    font-style: italic;
+    -pdf-outline: false;
 }
 """
 
@@ -240,7 +238,9 @@ def _generate_graph_eigenvalues_seq(
             fig.update_layout(width=500, height=400)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
-            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name, num=num))
+            fig_info_list.append(
+                dict(image_path=path, fig=fig, fig_name=fig_name, num=num)
+            )
 
         fig_info_list_list.append(fig_info_list)
     return fig_info_list_list
@@ -719,6 +719,7 @@ def export_report(
     tester_objects: List["QOperation"],
     save_materials: bool = False,
     seed: int = None,
+    computation_time: float = None,
 ):
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
@@ -726,6 +727,8 @@ def export_report(
 
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
+
+    computation_time_text = "{0}".format(computation_time / 60) + "[min]"
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")
@@ -803,6 +806,10 @@ def export_report(
 <div id="table_of_contents">
     <h1>Table of contents</h1>
     <pdf:toc />
+</div>
+<h1>Computation time</h1>
+<div>
+{computation_time_text}
 </div>
 <h1>Experimental condition</h1>
     <div>
