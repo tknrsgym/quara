@@ -124,8 +124,10 @@ def _convert_html2pdf(source_html: str, output_path: str):
 
 
 def _make_graph_trace_seq(
-    estimation_results: List["EstimationResult"], case_id: int, num_data: List[int]
+    estimation_results: List["EstimationResult"], case_id: int
 ) -> list:
+    num_data = estimation_results[0].num_data
+
     fig_info_list = []
     for i, num in enumerate(num_data):
         fig = physicality_violation_check.make_graph_trace(
@@ -156,12 +158,8 @@ def _generate_trace_div(fig_info_list: List[dict]) -> str:
     return graph_block_html
 
 
-def generate_trace_div(
-    estimation_results: List["EstimationResult"], case_id: int, num_data: List[int]
-):
-    fig_info_list = _make_graph_trace_seq(
-        estimation_results, case_id=case_id, num_data=num_data
-    )
+def generate_trace_div(estimation_results: List["EstimationResult"], case_id: int):
+    fig_info_list = _make_graph_trace_seq(estimation_results, case_id=case_id)
     div_html = _generate_trace_div(fig_info_list)
     return div_html
 
@@ -226,9 +224,8 @@ def _generate_graph_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
     case_id: int,
     true_object: "QOperation",
-    num_data: List[int],
 ) -> list:
-
+    num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_eigenvalues(
@@ -294,8 +291,8 @@ def _generate_graph_eigenvalues_seq_3loop(
     estimation_results: List["EstimationResult"],
     case_id: int,
     true_object: "QOperation",
-    num_data: List[int],
 ) -> list:
+    num_data = estimation_results[0].num_data
     # For State
     fig_info_list3 = []
     for num_data_index in range(len(num_data)):
@@ -335,15 +332,11 @@ def _generate_graph_eigenvalues_seq_3loop(
 def generate_eigenvalues_div(
     estimation_results: List["EstimationResult"],
     case_id: int,
-    num_data: List[int],
     true_object: "QOperation",
 ):
     if type(true_object) == State:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
-            estimation_results,
-            case_id=case_id,
-            true_object=true_object,
-            num_data=num_data,
+            estimation_results, case_id=case_id, true_object=true_object,
         )
         div_html = _generate_eigenvalues_div(fig_info_list_list)
     elif type(true_object) == Povm:
@@ -351,7 +344,6 @@ def generate_eigenvalues_div(
             estimation_results,
             case_id=case_id,
             true_object=true_object,
-            num_data=num_data,
         )
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
     else:
@@ -363,9 +355,8 @@ def _generate_graph_sum_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
     case_id: int,
     true_object,
-    num_data: List[int],
 ) -> List[List[dict]]:
-
+    num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
@@ -417,11 +408,10 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
 def generate_sum_eigenvalues_div(
     estimation_results: List["EstimationResult"],
     case_id: int,
-    num_data: List[int],
     true_object,
 ):
     fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
-        estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
+        estimation_results, case_id=case_id, true_object=true_object
     )
     div_html = _generate_sum_eigenvalues_div(fig_info_list_list)
     return div_html
@@ -540,62 +530,55 @@ def _convert_objects_to_multiindex_dataframe(
 def _generate_physicality_violation_test_div_for_state(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    para_list: List[bool],
     true_object: State,
-    num_data: List[int],
 ):
-    physicality_violation_test_true_case_divs = ""
-    physicality_violation_test_false_eigenvalues_divs = ""
-    physicality_violation_test_false_sum_eigenvalues_divs = ""
+    test_eq_const_divs = ""
+    test_ineq_const_eigenvalues_divs = ""
+    test_ineq_const_sum_eigenvalues_divs = ""
+    num_data = estimation_results_list[0][0].num_data
+    print(num_data)
 
     for case_id, case_name in enumerate(case_name_list):
         estimation_results = estimation_results_list[case_id]
-        if para_list[case_id]:
-            # on_para_eq_constraint = True
-            div = generate_trace_div(
-                estimation_results, case_id=case_id, num_data=num_data
-            )
-            physicality_violation_test_true_case_divs += f"""
-            <h4>Case {case_id}: {case_name}<h4>
-            {div}
-            """
-        else:
-            # on_para_eq_constraint = False
-            div = generate_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            physicality_violation_test_false_eigenvalues_divs += f"""
+        div = generate_trace_div(estimation_results, case_id=case_id)
+        test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-            div = generate_sum_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            physicality_violation_test_false_sum_eigenvalues_divs += f"""
+        div = generate_eigenvalues_div(
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-    true_all_div = f"""
-        <h2>on_para_eq_constraint=True</h2>
-        {physicality_violation_test_true_case_divs}
+        div = generate_sum_eigenvalues_div(
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        test_ineq_const_sum_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+    eq_all_div = f"""
+        <h2>Test of equality constraint violation</h2>
+        {test_eq_const_divs}
     """
-    false_all_div = f"""
-        <h2>on_para_eq_constraint=False</h2>
+    ineq_all_div = f"""
+        <h2>Test of inequality constraint violation</h2>
         <h3>Eigenvalue</h3>
-        {physicality_violation_test_false_eigenvalues_divs}
+        {test_ineq_const_eigenvalues_divs}
         <h3>Sum of unphysical eigenvalues </h3>
-        {physicality_violation_test_false_sum_eigenvalues_divs}
+        {test_ineq_const_eigenvalues_divs}
     """
 
-    return true_all_div, false_all_div
+    return eq_all_div, ineq_all_div
 
 
 def _generate_physicality_violation_test_div_for_povm(
@@ -672,7 +655,7 @@ def generate_physicality_violation_test_div(
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_state(
-            estimation_results_list, case_name_list, para_list, true_object, num_data
+            estimation_results_list, case_name_list, true_object
         )
     elif type(true_object) == Povm:
         (

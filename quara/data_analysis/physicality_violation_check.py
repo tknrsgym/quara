@@ -124,24 +124,39 @@ def _check_physicality_violation_for_state(
 ) -> Dict[str, Any]:
     on_para_eq_constraint = estimated_qobjects[0].on_para_eq_constraint
 
-    if on_para_eq_constraint:
-        trace_list = get_physicality_violation_result_for_state_affine(
+    # if on_para_eq_constraint:
+    #     trace_list = get_physicality_violation_result_for_state_affine(
+    #         estimated_qobjects
+    #     )
+    #     return dict(trace_list=trace_list)
+    # else:
+    #     sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
+    #     sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
+    #     less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
+    #         sorted_eigenvalues_list
+    #     )
+    #     return dict(
+    #         sorted_eigenvalues_list=sorted_eigenvalues_list_T,
+    #         sum_of_eigenvalues=dict(
+    #             less_than_zero=less_than_zero_list,
+    #             greater_than_one=greater_than_one_list,
+    #         ),
+    #     )
+    trace_list = get_physicality_violation_result_for_state_affine(
             estimated_qobjects
         )
-        return dict(trace_list=trace_list)
-    else:
-        sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
-        sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
-        less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
+    result_dict = dict(trace_list=trace_list)
+    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
+    sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
+    less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
             sorted_eigenvalues_list
         )
-        return dict(
-            sorted_eigenvalues_list=sorted_eigenvalues_list_T,
-            sum_of_eigenvalues=dict(
+    result_dict["sorted_eigenvalues_list"] = sorted_eigenvalues_list_T
+    result_dict["sum_of_eigenvalues"] = dict(
                 less_than_zero=less_than_zero_list,
                 greater_than_one=greater_than_one_list,
-            ),
-        )
+            )
+    return result_dict
 
 
 def _check_physicality_violation_for_povm(estimated_povms: List["Povm"]) -> dict:
