@@ -29,7 +29,11 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
 from quara.utils.matrix_util import calc_mse
 
 
-def get_test_data(on_para_eq_constraint=False):
+def get_test_data(
+    on_para_eq_constraint=False,
+    on_algo_eq_constraint=False,
+    on_algo_ineq_constraint=False,
+):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
@@ -38,7 +42,13 @@ def get_test_data(on_para_eq_constraint=False):
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    qst = StandardQst(
+        povms,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        seed=7,
+    )
 
     return qst, c_sys
 
@@ -64,25 +74,29 @@ class TestLossMinimizationEstimator:
 
         estimator = LossMinimizationEstimator()
 
-        """
         # is_computation_time_required=True
         actual = estimator.calc_estimate(
-            qst, empi_dists, is_computation_time_required=True
+            qst,
+            empi_dists,
+            loss,
+            loss_option,
+            algo,
+            algo_option,
+            is_computation_time_required=True,
         )
+        """
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
-        assert type(actual.computation_time) == float
         """
+        assert type(actual.computation_time) == float
 
         # is_computation_time_required=False
         actual = estimator.calc_estimate(
             qst, empi_dists, loss, loss_option, algo, algo_option
         )
-        print(actual.estimated_var)
-        print(actual.computation_time)
-        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         # TODO
+        # expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         # assert actual.estimated_qoperation.is_physical()
         # npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
         # assert actual.computation_time == None
