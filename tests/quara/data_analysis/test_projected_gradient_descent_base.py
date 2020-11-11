@@ -185,7 +185,7 @@ class TestProjectedGradientDescentBase:
         )
 
         npt.assert_almost_equal(actual.value, expected, decimal=7)
-        assert actual.k == 6
+        assert actual.k == 7
         assert len(actual.fx) == actual.k + 1
         assert len(actual.x) == actual.k + 1
         assert len(actual.y) == actual.k
