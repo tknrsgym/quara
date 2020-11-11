@@ -124,6 +124,15 @@ def _convert_html2pdf(source_html: str, output_path: str):
     return pisa_status.err
 
 
+def _save_fig_to_tmp_dir(fig: "Figure", fig_name: str) -> str:
+    dir_path = Path(_temp_dir_path)
+    path = str(dir_path / f"{fig_name}.png")
+    dir_path.mkdir(exist_ok=True)
+    fig.write_image(path)
+
+    return path
+
+
 def _make_graph_trace_seq(
     estimation_results: List["EstimationResult"], case_id: int
 ) -> list:
@@ -136,13 +145,8 @@ def _make_graph_trace_seq(
         )
 
         fig_name = f"case={case_id}_trace_num={num}_0"
-
-        # output
-        dir_path = Path(_temp_dir_path)
-        path = str(dir_path / f"{fig_name}.png")
         fig.update_layout(width=500, height=400)
-        dir_path.mkdir(exist_ok=True)
-        fig.write_image(path)
+        path = _save_fig_to_tmp_dir(fig, fig_name)
 
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
     return fig_info_list
@@ -178,13 +182,9 @@ def _make_graph_sum_vecs_seq(
         fig_info_list = []
         for alpha, fig in enumerate(figs):
             fig_name = f"case={case_id}_trace_num={num}_alpha={alpha}"
-
-            # output
-            dir_path = Path(_temp_dir_path)
-            path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
-            dir_path.mkdir(exist_ok=True)
-            fig.write_image(path)
+            path = _save_fig_to_tmp_dir(fig, fig_name)
+
             fig_info_list.append(
                 dict(image_path=path, fig=fig, fig_name=fig_name, num=num, alpha=alpha)
             )
@@ -236,13 +236,8 @@ def _generate_graph_eigenvalues_seq(
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
-
-            # output
-            dir_path = Path(_temp_dir_path)
-            path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
-            dir_path.mkdir(exist_ok=True)
-            fig.write_image(path)
+            path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
 
@@ -308,13 +303,8 @@ def _generate_graph_eigenvalues_seq_3loop(
                 fig_name = (
                     f"case={case_id}_eigenvalues_num={num_data_index}_x={x_i}_i={i}"
                 )
-
-                # output
-                dir_path = Path(_temp_dir_path)
-                path = str(dir_path / f"{fig_name}.png")
                 fig.update_layout(width=500, height=400)
-                dir_path.mkdir(exist_ok=True)
-                fig.write_image(path)
+                path = _save_fig_to_tmp_dir(fig, fig_name)
 
                 fig_info = dict(
                     image_path=path,
@@ -345,8 +335,10 @@ def generate_eigenvalues_div(
             estimation_results, case_id=case_id, true_object=true_object,
         )
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
-    else:
+    elif type(true_object) == Gate:
         raise NotImplementedError()
+    else:
+        raise TypeError()
     return div_html
 
 
@@ -363,13 +355,8 @@ def _generate_graph_sum_eigenvalues_seq(
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
-
-            # output
-            dir_path = Path(_temp_dir_path)
-            path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
-            dir_path.mkdir(exist_ok=True)
-            fig.write_image(path)
+            path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(
                 dict(
@@ -435,11 +422,7 @@ def generate_mse_div(
     )
 
     fig_name = f"mse"
-
-    dir_path = Path(_temp_dir_path)
-    path = str(dir_path / f"{fig_name}.png")
-    dir_path.mkdir(exist_ok=True)
-    fig.write_image(path)
+    path = _save_fig_to_tmp_dir(fig, fig_name)
 
     mse_div = f"""<div><img src="{path}"></div>
     """
@@ -451,7 +434,6 @@ def generate_empi_dist_mse_div(
 ) -> str:
 
     title = f"Mean squared error"
-    n_rep = len(estimation_results_list[0])
     title += "<br>Nrep={n_rep}"
 
     fig = data_analysis.make_empi_dists_mse_graph(
@@ -459,11 +441,7 @@ def generate_empi_dist_mse_div(
     )
 
     fig_name = f"empi_dists_mse"
-
-    dir_path = Path(_temp_dir_path)
-    path = str(dir_path / f"{fig_name}.png")
-    dir_path.mkdir(exist_ok=True)
-    fig.write_image(path)
+    path = _save_fig_to_tmp_dir(fig, fig_name)
 
     div = f"""<div><img src="{path}"></div>
     """
@@ -513,7 +491,7 @@ def _convert_objects_to_multiindex_dataframe(
 ) -> pd.DataFrame:
     df_dict = {}
 
-    for i, tester in enumerate(qoperations):
+    for i in range(len(qoperations)):
         df_dict[i] = _convert_object_to_datafrane(qoperations[i])
 
     objects_df_multiindex = pd.concat(df_dict, axis=0)
