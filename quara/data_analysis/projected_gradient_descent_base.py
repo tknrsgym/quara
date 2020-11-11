@@ -55,15 +55,12 @@ class ProjectedGradientDescentBaseResult(MinimizationResult):
 class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
     def __init__(
         self,
-        func_proj: Callable[[np.array], np.array],
         var_start: np.array,
         mu: float = None,
         gamma: float = 0.3,
         eps: float = None,
     ):
         super().__init__(var_start)
-
-        self._func_proj: Callable[[np.array], np.array] = func_proj
 
         if mu is None:
             mu = 3 / (2 * np.sqrt(var_start.shape[0]))
@@ -72,10 +69,6 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         if eps is None:
             eps = Settings.get_atol() / 10.0
         self._eps: float = eps
-
-    @property
-    def func_proj(self) -> Callable[[np.array], np.array]:
-        return self._func_proj
 
     @property
     def mu(self) -> float:
@@ -91,10 +84,15 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
 
 
 class ProjectedGradientDescentBase(MinimizationAlgorithm):
-    def __init__(self):
+    def __init__(self, func_proj: Callable[[np.array], np.array]):
         super().__init__()
-        self._is_gradient_required = True
-        self._is_hessian_required = False
+        self._func_proj: Callable[[np.array], np.array] = func_proj
+        self._is_gradient_required: bool = True
+        self._is_hessian_required: bool = False
+
+    @property
+    def func_proj(self) -> Callable[[np.array], np.array]:
+        return self._func_proj
 
     def is_loss_sufficient(self) -> bool:
         """returns whether the loss is sufficient.
@@ -124,8 +122,6 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         """
         # TODO validate
         if self.option is None:
-            return False
-        elif self.option.func_proj is None:
             return False
         elif self.option.mu <= 0:
             return False
@@ -216,8 +212,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
                 x_prev = x_next
 
             y_prev = (
-                algorithm_option.func_proj(x_prev - loss_function.gradient(x_prev) / mu)
-                - x_prev
+                self.func_proj(x_prev - loss_function.gradient(x_prev) / mu) - x_prev
             )
 
             alpha = 1.0
