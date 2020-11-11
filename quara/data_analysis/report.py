@@ -233,13 +233,14 @@ def _generate_graph_eigenvalues_seq(
             estimation_results, true_object, num_data, num_data_index=num_data_index,
         )
         fig_info_list = []
+        num = num_data[num_data_index]
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
             fig.update_layout(width=500, height=400)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
-            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name, num=num))
 
         fig_info_list_list.append(fig_info_list)
     return fig_info_list_list
@@ -248,7 +249,9 @@ def _generate_graph_eigenvalues_seq(
 def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
-        graph_block_html = ""
+        # TODO
+        num = fig_info_list[0]["num"]
+        graph_block_html = f"<h5>N={num}</h5>"
         for fig_info in fig_info_list:
             graph_subblock = (
                 f"<div class='box'><img src={fig_info['image_path']}></div>"
@@ -541,7 +544,7 @@ def _generate_physicality_violation_test_div_for_state(
         <h3>Eigenvalue</h3>
         {test_ineq_const_eigenvalues_divs}
         <h3>Sum of unphysical eigenvalues </h3>
-        {test_ineq_const_eigenvalues_divs}
+        {test_ineq_const_sum_eigenvalues_divs}
     """
 
     return eq_all_div, ineq_all_div
