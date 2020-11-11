@@ -53,13 +53,14 @@ class TestLossMinimizationEstimator:
         ]
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
-        algo = ProjectedGradientDescentBase()
 
         # TODO choice func_proj
         proj = func_proj.proj_to_self()
+        algo = ProjectedGradientDescentBase(proj)
+
         obj_start = qst._set_qoperations.states[0].generate_origin_obj()
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBaseOption(proj, var_start)
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
 
         estimator = LossMinimizationEstimator()
 
