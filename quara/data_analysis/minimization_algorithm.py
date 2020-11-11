@@ -3,6 +3,7 @@ from abc import abstractmethod
 import numpy as np
 
 from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
+from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 
 
 class MinimizationResult:
@@ -44,14 +45,14 @@ class MinimizationResult:
 
 class MinimizationAlgorithmOption:
     def __init__(
-        self, var_start: np.array,
+        self, var_start: np.array = None,
     ):
         """Constructor
 
         Parameters
         ----------
-        var_start : np.array
-            initial variable for the algorithm.
+        var_start : np.array, optional
+            initial variable for the algorithm, by default None.
         """
         self._var_start: np.array = var_start
 
@@ -159,6 +160,22 @@ class MinimizationAlgorithm:
         """
         self._option = option
         self.is_option_sufficient()
+
+    @abstractmethod
+    def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
+        """sets constraint from StandardQTomography.
+
+        Parameters
+        ----------
+        qt : StandardQTomography
+            StandardQTomography to set constraint.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        raise NotImplementedError()
 
     def is_option_sufficient(self) -> bool:
         """returns whether the option is sufficient.
