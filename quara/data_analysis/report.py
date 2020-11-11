@@ -1,3 +1,4 @@
+from os import remove
 import tempfile
 import shutil
 
@@ -123,9 +124,20 @@ def _convert_html2pdf(source_html: str, output_path: str):
     return pisa_status.err
 
 
+def _save_fig_to_tmp_dir(fig: "Figure", fig_name: str) -> str:
+    dir_path = Path(_temp_dir_path)
+    path = str(dir_path / f"{fig_name}.png")
+    dir_path.mkdir(exist_ok=True)
+    fig.write_image(path)
+
+    return path
+
+
 def _make_graph_trace_seq(
-    estimation_results: List["EstimationResult"], case_id: int, num_data: List[int]
+    estimation_results: List["EstimationResult"], case_id: int
 ) -> list:
+    num_data = estimation_results[0].num_data
+
     fig_info_list = []
     for i, num in enumerate(num_data):
         fig = physicality_violation_check.make_graph_trace(
@@ -133,13 +145,8 @@ def _make_graph_trace_seq(
         )
 
         fig_name = f"case={case_id}_trace_num={num}_0"
-
-        # output
-        dir_path = Path(_temp_dir_path)
-        path = str(dir_path / f"{fig_name}.png")
         fig.update_layout(width=500, height=400)
-        dir_path.mkdir(exist_ok=True)
-        fig.write_image(path)
+        path = _save_fig_to_tmp_dir(fig, fig_name)
 
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
     return fig_info_list
@@ -156,12 +163,8 @@ def _generate_trace_div(fig_info_list: List[dict]) -> str:
     return graph_block_html
 
 
-def generate_trace_div(
-    estimation_results: List["EstimationResult"], case_id: int, num_data: List[int]
-):
-    fig_info_list = _make_graph_trace_seq(
-        estimation_results, case_id=case_id, num_data=num_data
-    )
+def generate_trace_div(estimation_results: List["EstimationResult"], case_id: int):
+    fig_info_list = _make_graph_trace_seq(estimation_results, case_id=case_id)
     div_html = _generate_trace_div(fig_info_list)
     return div_html
 
@@ -179,13 +182,9 @@ def _make_graph_sum_vecs_seq(
         fig_info_list = []
         for alpha, fig in enumerate(figs):
             fig_name = f"case={case_id}_trace_num={num}_alpha={alpha}"
-
-            # output
-            dir_path = Path(_temp_dir_path)
-            path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
-            dir_path.mkdir(exist_ok=True)
-            fig.write_image(path)
+            path = _save_fig_to_tmp_dir(fig, fig_name)
+
             fig_info_list.append(
                 dict(image_path=path, fig=fig, fig_name=fig_name, num=num, alpha=alpha)
             )
@@ -226,9 +225,8 @@ def _generate_graph_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
     case_id: int,
     true_object: "QOperation",
-    num_data: List[int],
 ) -> list:
-
+    num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_eigenvalues(
@@ -238,13 +236,8 @@ def _generate_graph_eigenvalues_seq(
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
-
-            # output
-            dir_path = Path(_temp_dir_path)
-            path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
-            dir_path.mkdir(exist_ok=True)
-            fig.write_image(path)
+            path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
 
@@ -294,8 +287,8 @@ def _generate_graph_eigenvalues_seq_3loop(
     estimation_results: List["EstimationResult"],
     case_id: int,
     true_object: "QOperation",
-    num_data: List[int],
 ) -> list:
+    num_data = estimation_results[0].num_data
     # For State
     fig_info_list3 = []
     for num_data_index in range(len(num_data)):
@@ -310,13 +303,8 @@ def _generate_graph_eigenvalues_seq_3loop(
                 fig_name = (
                     f"case={case_id}_eigenvalues_num={num_data_index}_x={x_i}_i={i}"
                 )
-
-                # output
-                dir_path = Path(_temp_dir_path)
-                path = str(dir_path / f"{fig_name}.png")
                 fig.update_layout(width=500, height=400)
-                dir_path.mkdir(exist_ok=True)
-                fig.write_image(path)
+                path = _save_fig_to_tmp_dir(fig, fig_name)
 
                 fig_info = dict(
                     image_path=path,
@@ -335,37 +323,29 @@ def _generate_graph_eigenvalues_seq_3loop(
 def generate_eigenvalues_div(
     estimation_results: List["EstimationResult"],
     case_id: int,
-    num_data: List[int],
     true_object: "QOperation",
 ):
     if type(true_object) == State:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
-            estimation_results,
-            case_id=case_id,
-            true_object=true_object,
-            num_data=num_data,
+            estimation_results, case_id=case_id, true_object=true_object,
         )
         div_html = _generate_eigenvalues_div(fig_info_list_list)
     elif type(true_object) == Povm:
         fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
-            estimation_results,
-            case_id=case_id,
-            true_object=true_object,
-            num_data=num_data,
+            estimation_results, case_id=case_id, true_object=true_object,
         )
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
-    else:
+    elif type(true_object) == Gate:
         raise NotImplementedError()
+    else:
+        raise TypeError()
     return div_html
 
 
 def _generate_graph_sum_eigenvalues_seq(
-    estimation_results: List["EstimationResult"],
-    case_id: int,
-    true_object,
-    num_data: List[int],
+    estimation_results: List["EstimationResult"], case_id: int, true_object,
 ) -> List[List[dict]]:
-
+    num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
@@ -375,13 +355,8 @@ def _generate_graph_sum_eigenvalues_seq(
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
-
-            # output
-            dir_path = Path(_temp_dir_path)
-            path = str(dir_path / f"{fig_name}.png")
             fig.update_layout(width=500, height=400)
-            dir_path.mkdir(exist_ok=True)
-            fig.write_image(path)
+            path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(
                 dict(
@@ -415,13 +390,10 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
 
 
 def generate_sum_eigenvalues_div(
-    estimation_results: List["EstimationResult"],
-    case_id: int,
-    num_data: List[int],
-    true_object,
+    estimation_results: List["EstimationResult"], case_id: int, true_object,
 ):
     fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
-        estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
+        estimation_results, case_id=case_id, true_object=true_object
     )
     div_html = _generate_sum_eigenvalues_div(fig_info_list_list)
     return div_html
@@ -431,11 +403,10 @@ def generate_mse_div(
     estimation_results_list: List[List[EstimationResult]],
     case_name_list: List[str],
     true_object: "QOperation",
-    num_data: List[int],
-    n_rep: int = None,
     show_analytical_results: bool = True,
     tester_objects: List["QOperation"] = None,
 ) -> str:
+    n_rep = len(estimation_results_list[0])
 
     title = f"Mean squared error"
     if not n_rep:
@@ -445,18 +416,13 @@ def generate_mse_div(
     fig = data_analysis.make_mses_graph_estimation_results(
         estimation_results_list=estimation_results_list,
         case_names=display_name_list,
-        num_data=num_data,
         true_object=true_object,
         show_analytical_results=show_analytical_results,
         tester_objects=tester_objects,
     )
 
     fig_name = f"mse"
-
-    dir_path = Path(_temp_dir_path)
-    path = str(dir_path / f"{fig_name}.png")
-    dir_path.mkdir(exist_ok=True)
-    fig.write_image(path)
+    path = _save_fig_to_tmp_dir(fig, fig_name)
 
     mse_div = f"""<div><img src="{path}"></div>
     """
@@ -468,7 +434,6 @@ def generate_empi_dist_mse_div(
 ) -> str:
 
     title = f"Mean squared error"
-    n_rep = len(estimation_results_list[0])
     title += "<br>Nrep={n_rep}"
 
     fig = data_analysis.make_empi_dists_mse_graph(
@@ -476,11 +441,7 @@ def generate_empi_dist_mse_div(
     )
 
     fig_name = f"empi_dists_mse"
-
-    dir_path = Path(_temp_dir_path)
-    path = str(dir_path / f"{fig_name}.png")
-    dir_path.mkdir(exist_ok=True)
-    fig.write_image(path)
+    path = _save_fig_to_tmp_dir(fig, fig_name)
 
     div = f"""<div><img src="{path}"></div>
     """
@@ -530,7 +491,7 @@ def _convert_objects_to_multiindex_dataframe(
 ) -> pd.DataFrame:
     df_dict = {}
 
-    for i, tester in enumerate(qoperations):
+    for i in range(len(qoperations)):
         df_dict[i] = _convert_object_to_datafrane(qoperations[i])
 
     objects_df_multiindex = pd.concat(df_dict, axis=0)
@@ -540,131 +501,107 @@ def _convert_objects_to_multiindex_dataframe(
 def _generate_physicality_violation_test_div_for_state(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    para_list: List[bool],
     true_object: State,
-    num_data: List[int],
 ):
-    physicality_violation_test_true_case_divs = ""
-    physicality_violation_test_false_eigenvalues_divs = ""
-    physicality_violation_test_false_sum_eigenvalues_divs = ""
+    test_eq_const_divs = ""
+    test_ineq_const_eigenvalues_divs = ""
+    test_ineq_const_sum_eigenvalues_divs = ""
 
     for case_id, case_name in enumerate(case_name_list):
         estimation_results = estimation_results_list[case_id]
-        if para_list[case_id]:
-            # on_para_eq_constraint = True
-            div = generate_trace_div(
-                estimation_results, case_id=case_id, num_data=num_data
-            )
-            physicality_violation_test_true_case_divs += f"""
+        # Test of equality constraint violation
+        div = generate_trace_div(estimation_results, case_id=case_id)
+        test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
-        else:
-            # on_para_eq_constraint = False
-            div = generate_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            physicality_violation_test_false_eigenvalues_divs += f"""
+        # Test of inequality constraint violation
+        div = generate_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-            div = generate_sum_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            physicality_violation_test_false_sum_eigenvalues_divs += f"""
+        div = generate_sum_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_sum_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-    true_all_div = f"""
-        <h2>on_para_eq_constraint=True</h2>
-        {physicality_violation_test_true_case_divs}
+    eq_all_div = f"""
+        <h2>Test of equality constraint violation</h2>
+        {test_eq_const_divs}
     """
-    false_all_div = f"""
-        <h2>on_para_eq_constraint=False</h2>
+    ineq_all_div = f"""
+        <h2>Test of inequality constraint violation</h2>
         <h3>Eigenvalue</h3>
-        {physicality_violation_test_false_eigenvalues_divs}
+        {test_ineq_const_eigenvalues_divs}
         <h3>Sum of unphysical eigenvalues </h3>
-        {physicality_violation_test_false_sum_eigenvalues_divs}
+        {test_ineq_const_eigenvalues_divs}
     """
 
-    return true_all_div, false_all_div
+    return eq_all_div, ineq_all_div
 
 
 def _generate_physicality_violation_test_div_for_povm(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    para_list: List[bool],
     true_object: State,
-    num_data: List[int],
 ):
-    true_case_divs = ""
-    false_eigenvalues_divs = ""
-    false_sum_eigenvalues_divs = ""
+    test_eq_const_divs = ""
+    test_ineq_const_eigenvalues_divs = ""
+    test_ineq_const_sum_eigenvalues_divs = ""
 
     for case_id, case_name in enumerate(case_name_list):
         estimation_results = estimation_results_list[case_id]
-        if para_list[case_id]:
-            # on_para_eq_constraint = True
-            div = generate_sum_vecs_div(
-                estimation_results, case_id=case_id, true_object=true_object
-            )
-            true_case_divs += f"""
+        # Test of equality constraint violation
+        div = generate_sum_vecs_div(
+            estimation_results, case_id=case_id, true_object=true_object
+        )
+        test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
-        else:
-            on_para_eq_constraint = False
-            div = generate_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            false_eigenvalues_divs += f"""
+        # Test of inequality constraint violation
+        div = generate_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-            div = generate_sum_eigenvalues_div(
-                estimation_results,
-                case_id=case_id,
-                num_data=num_data,
-                true_object=true_object,
-            )
-            false_sum_eigenvalues_divs += f"""
+        div = generate_sum_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_sum_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
             {div}
             """
 
-    true_all_div = f"""
-        <h2>on_para_eq_constraint=True</h2>
-        {true_case_divs}
+    eq_all_div = f"""
+        <h2>Test of equality constraint violation</h2>
+        {test_eq_const_divs}
     """
-    false_all_div = f"""
-        <h2>on_para_eq_constraint=False</h2>
+    ineq_all_div = f"""
+        <h2>Test of inequality constraint violation</h2>
         <h3>Eigenvalue</h3>
-        {false_eigenvalues_divs}
+        {test_ineq_const_eigenvalues_divs}
         <h3>Sum of unphysical eigenvalues </h3>
-        {false_sum_eigenvalues_divs}
+        {test_ineq_const_sum_eigenvalues_divs}
     """
 
-    return true_all_div, false_all_div
+    return eq_all_div, ineq_all_div
 
 
 def generate_physicality_violation_test_div(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    para_list: List[bool],
     true_object: "QOperation",
-    num_data: List[int],
 ):
 
     if type(true_object) == State:
@@ -672,14 +609,14 @@ def generate_physicality_violation_test_div(
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_state(
-            estimation_results_list, case_name_list, para_list, true_object, num_data
+            estimation_results_list, case_name_list, true_object
         )
     elif type(true_object) == Povm:
         (
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_povm(
-            estimation_results_list, case_name_list, para_list, true_object, num_data
+            estimation_results_list, case_name_list, true_object
         )
     else:
         raise NotImplementedError()
@@ -777,8 +714,6 @@ def export_report(
     estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
-    num_data: List[int],
-    n_rep: int,
     save_materials: bool = False,
     seed: int = None,
 ):
@@ -786,29 +721,12 @@ def export_report(
     global _temp_dir_path
     _temp_dir_path = Path(temp_dir_path)
 
+    num_data = estimation_results_list[0][0].num_data
+    n_rep = len(estimation_results_list[0])
+
     # Experiment Condition
+    print("​Generating table of experimental conditions ...")
     condition_table = generate_condition_table(qtomography_list, n_rep, num_data, seed)
-
-    # Cases
-    case_table = generate_case_table(
-        case_name_list, qtomography_list, para_list, estimator_list
-    )
-
-    # MSE
-    mse_div = generate_mse_div(
-        estimation_results_list=estimation_results_list,
-        case_name_list=case_name_list,
-        true_object=true_object,
-        num_data=num_data,
-        n_rep=n_rep,
-        show_analytical_results=True,
-        tester_objects=tester_objects,
-    )
-
-    # Physicality Violation Test
-    physicality_violation_test_div = generate_physicality_violation_test_div(
-        estimation_results_list, case_name_list, para_list, true_object, num_data
-    )
 
     # True Object
     true_object_table = _convert_object_to_datafrane(true_object).to_html(
@@ -819,14 +737,38 @@ def export_report(
         classes="tester_objects_table", escape=False, header=False
     )
 
+    # Cases
+    print("Generating case list ...")
+    case_table = generate_case_table(
+        case_name_list, qtomography_list, para_list, estimator_list
+    )
+
     # MSE of Empirical Distributions
+    print("​​Generating MSE of empirical distributions blocks ...")
     empi_dists_mse_div = generate_empi_dist_mse_div(
         estimation_results_list, true_object
     )
 
     # Consistency Test
+    print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
         qtomography_list, para_list, estimator_list, true_object,
+    )
+
+    # MSE
+    print("​Generating a graph for MSE ...")
+    mse_div = generate_mse_div(
+        estimation_results_list=estimation_results_list,
+        case_name_list=case_name_list,
+        true_object=true_object,
+        show_analytical_results=True,
+        tester_objects=tester_objects,
+    )
+
+    # Physicality Violation Test
+    print("​​Generating physicality violation test blocks ...")
+    physicality_violation_test_div = generate_physicality_violation_test_div(
+        estimation_results_list, case_name_list, true_object
     )
 
     report_html = f"""<html>
@@ -879,10 +821,10 @@ def export_report(
     <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
-    <h1>MSE</h1>
-        <div>
+<h1>MSE</h1>
+    <div>
         {mse_div}
-        </div>
+    </div>
 <h1>Physicality violation test</h1>
     <div>
         {physicality_violation_test_div}
@@ -893,74 +835,10 @@ def export_report(
 </body>
 </html>"""
 
-    #     report_html = f"""<html>
-    # <head>
-    #     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    #     <style type="text/css">
-    #         <!--
-    #             {_css}
-    #             {_inline_block_css}
-    #             {_table_css}
-    #             {_table_contents_css}
-    #          -->
-    #     </style>
-    #     <style>
-    #     @page {{
-    #         size: a4 portrait;
-    #         @frame content_frame {{
-    #             left: 20pt; right: 20pt; top: 50pt; height: 672pt;
-    #         }}
-    #         @frame footer_frame {{
-    #             -pdf-frame-content: footer_content;
-    #             left: 20pt; right: 20pt; top: 812pt; height: 20pt;
-    #         }}
-    #     }}
-    #     </style>
-    # <title>Quara Report</title>
-    # </head>
-    # <body>
-    # <div id="table_of_contents">
-    #     <h1>Table of contents</h1>
-    #     <pdf:toc />
-    # </div>
-    # <h1>Experimental condition</h1>
-    #     <div>
-    #         {condition_table}
-    #     </div>
-    # <h2>True object</h2>
-    #     <div>
-    #         {true_object_table}
-    #     </div>
-    # <h2>Tester objects</h2>
-    #     <div>
-    #         {tester_table}
-    #     </div>
-    # <h2>Cases</h2>
-    #     <div>
-    #         {case_table}
-    #     </div>
-    # <h1>MSE of Empirical Distributions</h1>
-    #     <div>{empi_dists_mse_div}</div>
-    # <h1>Consistency test</h1>
-    #     <div>{consistency_check_table}</div>
-    # <h1>MSE</h1>
-    #     <div>
-    #     {mse_div}
-    #     </div>
-    # <h1>Physicality violation test</h1>
-    #     <div>
-    #         {physicality_violation_test_div}
-    #     </div>
-    # <div id="footer_content">
-    #     <pdf:pagenumber>
-    # </div>
-    # </body>
-    # </html>"""
-
-    # print(Path(_temp_dir_path) / "quara_report.html")
     with open(Path(_temp_dir_path) / "quara_report.html", "w") as f:
         f.write(report_html)
 
+    print("Converting to PDF report ...")
     _convert_html2pdf(report_html, path)
     if save_materials:
         import datetime as dt
@@ -970,6 +848,7 @@ def export_report(
         Path(material_path).mkdir(parents=True, exist_ok=True)
         shutil.copytree(_temp_dir_path, material_path, dirs_exist_ok=True)
 
+    print("​Deleting temporary files ...")
     shutil.rmtree(_temp_dir_path)
     _temp_dir_path = ""
     print(f"Completed to export pdf. ({path})")

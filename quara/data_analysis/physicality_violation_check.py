@@ -72,11 +72,8 @@ def get_sum_of_eigenvalues_violation_povm(
     return minus_eigenvalues_dict
 
 
-# TODO: rename
-def get_physicality_violation_result_for_state_affine(
-    estimated_state_list: List["State"],
-) -> List[float]:
-    value_list = []
+def get_trace_list(estimated_state_list: List["State"],) -> List[float]:
+    trace_list = []
 
     for estimated_state in estimated_state_list:
         tr = np.trace(estimated_state.to_density_matrix())
@@ -84,8 +81,8 @@ def get_physicality_violation_result_for_state_affine(
         if tr.imag >= 10 ** -14:
             message = "Imaginary number of trace >= 10 ** -14"
             warnings.warn(message)
-        value_list.append(value)
-    return value_list
+        trace_list.append(value)
+    return trace_list
 
 
 def get_sum_vecs(estimated_povms: List["Povm"]) -> np.array:
@@ -99,59 +96,6 @@ def get_sum_vecs(estimated_povms: List["Povm"]) -> np.array:
 
     sum_vecs = sum_vecs.T
     return sum_vecs
-
-
-# TODO: rename
-def check_physicality_violation(
-    estimation_results: List[EstimationResult], num_data_index: int = 0
-) -> Dict[str, Any]:
-    qoperation = estimation_results[0].estimated_qoperation
-    estimated_qoperations = [
-        result.estimated_qoperation_sequence[num_data_index]
-        for result in estimation_results
-    ]
-    if type(qoperation) == State:
-        result = _check_physicality_violation_for_state(estimated_qoperations)
-    elif type(qoperation) == Povm:
-        result = _check_physicality_violation_for_povm(estimated_qoperations)
-    else:
-        raise NotImplementedError()
-    return result
-
-
-def _check_physicality_violation_for_state(
-    estimated_qobjects: List["State"],
-) -> Dict[str, Any]:
-    on_para_eq_constraint = estimated_qobjects[0].on_para_eq_constraint
-
-    if on_para_eq_constraint:
-        trace_list = get_physicality_violation_result_for_state_affine(
-            estimated_qobjects
-        )
-        return dict(trace_list=trace_list)
-    else:
-        sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
-        sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
-        less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
-            sorted_eigenvalues_list
-        )
-        return dict(
-            sorted_eigenvalues_list=sorted_eigenvalues_list_T,
-            sum_of_eigenvalues=dict(
-                less_than_zero=less_than_zero_list,
-                greater_than_one=greater_than_one_list,
-            ),
-        )
-
-
-def _check_physicality_violation_for_povm(estimated_povms: List["Povm"]) -> dict:
-    on_para_eq_constraint = estimated_qobjects[0].on_para_eq_constraint
-
-    if on_para_eq_constraint:
-        sum_vecs = get_sum_vecs(estimated_povms)
-        return dict(sum_vecs=sum_vecs)
-    else:
-        raise NotImplementedError()
 
 
 # Plot
@@ -243,13 +187,15 @@ def make_graph_trace(
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ) -> "Figure":
-    violation_result = check_physicality_violation(
-        estimation_results, num_data_index=num_data_index
-    )
+    estimated_states = [
+        result.estimated_qoperation_sequence[num_data_index]
+        for result in estimation_results
+    ]
+
+    trace_list = get_trace_list(estimated_states)
+
     num_data = num_data[num_data_index]
-    fig = make_prob_dist_histogram(
-        violation_result["trace_list"], num_data=num_data, bin_size=bin_size
-    )
+    fig = make_prob_dist_histogram(trace_list, num_data=num_data, bin_size=bin_size)
     return fig
 
 
@@ -271,12 +217,12 @@ def make_graphs_eigenvalues(
             estimated_qoperations, true_object, n_data, bin_size
         )
     elif type(true_object) == Povm:
-        figs = _make_graphs_eigenvalues_povm(
-            estimated_qoperations, true_object, n_data, bin_size
-        )
+        figs = _make_graphs_eigenvalues_povm(estimated_qoperations, n_data, bin_size)
+    elif type(true_object) == Gate:
+        raise NotImplementedError()
     else:
-        # TODO: message
-        raise TypeError()
+        message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+        raise TypeError(message)
     return figs
 
 
@@ -319,6 +265,7 @@ def make_graphs_sum_vecs(
     vlines_list = [np.sqrt(true_object.dim), 0, 0, 0]
     sum_vecs = get_sum_vecs(estimated_povms)
     fig_list = []
+
     for i, value_list in enumerate(sum_vecs):
         fig = make_prob_dist_histogram(
             value_list,
@@ -400,19 +347,16 @@ def get_sorted_eigenvalues_list_povm(
 
 
 def _make_graphs_eigenvalues_povm(
-    estimated_povms: List[Povm],
-    true_object: Povm,
-    num_data: int,
-    bin_size: float = 0.0001,
+    estimated_povms: List[Povm], num_data: int, bin_size: float = 0.0001,
 ) -> List[List["Figure"]]:
     n_rep = len(estimated_povms)
 
     # Eigenvalues of Estimated Povms
     eigenvalues_dict = get_sorted_eigenvalues_list_povm(estimated_povms)
     fig_list_list = []
-    for x_i, eigs_list in tqdm(eigenvalues_dict.items()):  # 各測定値
+    for x_i, eigs_list in tqdm(eigenvalues_dict.items()):  # each measurement
         fig_list = []
-        for i, value_list in tqdm(enumerate(eigs_list)):  # 各固有値
+        for i, value_list in tqdm(enumerate(eigs_list)):  # each eigenvalue
             title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
 
             fig = make_prob_dist_histogram(
@@ -463,7 +407,7 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
     title = (
         f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
     )
-    fig.update_layout(title=title)  # TODO
+    fig.update_layout(title=title)
     fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
     figs.append(fig)
 
@@ -477,8 +421,6 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
 
-    print(f"{minus_eigenvalues_dict=}")
-
     for x_i, value_list in minus_eigenvalues_dict.items():
         fig = make_prob_dist_histogram(
             value_list, bin_size=bin_size, annotation_vlines=[0], num_data=num_data
@@ -490,65 +432,3 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
         figs.append(fig)
 
     return figs
-
-
-def _generate_graph_sum_eigenvalues_seq(
-    estimation_results: List["EstimationResult"],
-    case_id: int,
-    true_object,
-    num_data: List[int],
-) -> list:
-
-    fig_info_list_list = []
-    for num_data_index in range(len(num_data)):
-        fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
-            estimation_results, num_data=num_data, num_data_index=num_data_index,
-        )
-        fig_info_list = []
-
-        for i, fig in enumerate(fig_list):
-            fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
-
-            # output
-            # TODO
-            dir_path = Path(
-                "/Users/tomoko/project/rcast/workspace/quara/tutorials/images"
-            )
-            path = str(dir_path / f"{fig_name}.png")
-            fig.update_layout(width=500, height=400)
-            dir_path.mkdir(exist_ok=True)
-            fig.write_image(path)
-
-            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
-
-        fig_info_list_list.append(fig_info_list)
-    return fig_info_list_list
-
-
-def _generate_sum_eigenvalues_div(fig_info_list_list) -> str:
-    graph_block_html_all = ""
-    for fig_info_list in fig_info_list_list:
-        graph_block_html = ""
-        for fig_info in fig_info_list:
-            graph_subblock = (
-                f"<div class='box'><img src={fig_info['image_path']}></div>"
-            )
-            graph_block_html += graph_subblock
-
-        graph_block_html_all += f"<div>{graph_block_html}</div>"
-    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
-
-    return graph_block_html_all
-
-
-def generate_sum_eigenvalues_div(
-    estimation_results: List["EstimationResult"],
-    case_id: int,
-    num_data: List[int],
-    true_object,
-):
-    fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
-        estimation_results, case_id=case_id, true_object=true_object, num_data=num_data
-    )
-    div_html = _generate_eigenvalues_div(fig_info_list_list)
-    return div_html

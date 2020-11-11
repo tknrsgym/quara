@@ -302,12 +302,12 @@ def make_mses_graph(
 def make_mses_graph_estimation_results(
     estimation_results_list: List["LinearEstimationResult"],
     case_names: List[str],
-    num_data,
     true_object,
     title: str = None,
     show_analytical_results: bool = True,
     tester_objects: List[QOperation] = None,
 ) -> "Figure":
+    num_data = estimation_results_list[0][0].num_data
     mses_list = []
     display_case_names = case_names[:]
     for estimation_results in estimation_results_list:
