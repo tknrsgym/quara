@@ -1,3 +1,4 @@
+import time
 from typing import List, Tuple
 
 import numpy as np
@@ -42,45 +43,88 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         algo_option: MinimizationAlgorithmOption,
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
+        result = self.calc_estimate_sequence(
+            qtomography,
+            [empi_dists],
+            loss,
+            loss_option,
+            algo,
+            algo_option,
+            is_computation_time_required=is_computation_time_required,
+        )
+
+        return result
+
+    def calc_estimate_sequence(
+        self,
+        qtomography: StandardQTomography,
+        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+        loss: ProbabilityBasedLossFunction,
+        loss_option: ProbabilityBasedLossFunctionOption,
+        algo: MinimizationAlgorithm,
+        algo_option: MinimizationAlgorithmOption,
+        is_computation_time_required: bool = False,
+    ) -> StandardQTomographyEstimationResult:
         # TODO write 'this function changes loss, algo properties'
         # TODO is_computation_time_required
 
-        # set loss settings
-        loss.set_func_prob_dists_from_standard_qt(qtomography)
-        loss.set_func_gradient_prob_dists_from_standard_qt(qtomography)
-        loss.set_func_hessian_prob_dists_from_standard_qt(qtomography)
-        empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
-        loss.set_prob_dists_q(empi_dists_tmp)
-        loss.set_from_option(loss_option)
+        estimated_var_sequence = []
+        computation_times = [] if is_computation_time_required else None
 
-        # set algorithm settings
-        algo.set_from_loss(loss)
-        algo.set_from_option(algo_option)
+        for empi_dists in empi_dists_sequence:
+            if is_computation_time_required:
+                start_time = time.time()
 
-        # TODO validate error messages
-        # validate
-        if loss.is_option_sufficient() == False:
-            raise ValueError(
-                "loss.is_option_sufficient() must return True. But returns False"
-            )
-        if algo.is_loss_sufficient() == False:
-            raise ValueError(
-                "algo.is_loss_sufficient() must return True. But returns False"
-            )
-        if algo.is_option_sufficient() == False:
-            raise ValueError(
-                "algo.is_option_sufficient() must return True. But returns False"
-            )
-        if algo.is_loss_and_option_sufficient() == False:
-            raise ValueError(
-                "algo.is_loss_and_option_sufficient() must return True. But returns False"
+            # set loss settings
+            loss.set_func_prob_dists_from_standard_qt(qtomography)
+            loss.set_func_gradient_prob_dists_from_standard_qt(qtomography)
+            loss.set_func_hessian_prob_dists_from_standard_qt(qtomography)
+            empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
+            loss.set_prob_dists_q(empi_dists_tmp)
+            loss.set_from_option(loss_option)
+
+            # set algorithm settings
+            # TODO implements
+            # algo.set_constraint_from_standard_qt(qtomography)
+            algo.set_from_loss(loss)
+            algo.set_from_option(algo_option)
+
+            # TODO validate error messages
+            # validate
+            if loss.is_option_sufficient() == False:
+                raise ValueError(
+                    "loss.is_option_sufficient() must return True. But returns False"
+                )
+            if algo.is_loss_sufficient() == False:
+                raise ValueError(
+                    "algo.is_loss_sufficient() must return True. But returns False"
+                )
+            if algo.is_option_sufficient() == False:
+                raise ValueError(
+                    "algo.is_option_sufficient() must return True. But returns False"
+                )
+            if algo.is_loss_and_option_sufficient() == False:
+                raise ValueError(
+                    "algo.is_loss_and_option_sufficient() must return True. But returns False"
+                )
+
+            if is_computation_time_required:
+                prepare_time = time.time() - start_time
+
+            # optimize
+            algo_result = algo.optimize(
+                loss,
+                loss_option,
+                algo_option,
+                on_iteration_history=is_computation_time_required,
             )
 
-        # optimize
-        algo_result = algo.optimize(loss, loss_option, algo_option)
+            # post-processing
+            estimated_var_sequence.append(algo_result.value)
+            if is_computation_time_required:
+                computation_times.append(prepare_time + algo_result.computation_time)
+
         result = LossMinimizationEstimationResult(
-            qtomography, empi_dists, [algo_result.value], [algo_result.computation_time]
+            qtomography, empi_dists, estimated_var_sequence, computation_times
         )
-
-        # TODO post-processing
         return result
