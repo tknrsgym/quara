@@ -72,11 +72,8 @@ def get_sum_of_eigenvalues_violation_povm(
     return minus_eigenvalues_dict
 
 
-# TODO: rename
-def get_physicality_violation_result_for_state_affine(
-    estimated_state_list: List["State"],
-) -> List[float]:
-    value_list = []
+def get_trace_list(estimated_state_list: List["State"],) -> List[float]:
+    trace_list = []
 
     for estimated_state in estimated_state_list:
         tr = np.trace(estimated_state.to_density_matrix())
@@ -84,8 +81,8 @@ def get_physicality_violation_result_for_state_affine(
         if tr.imag >= 10 ** -14:
             message = "Imaginary number of trace >= 10 ** -14"
             warnings.warn(message)
-        value_list.append(value)
-    return value_list
+        trace_list.append(value)
+    return trace_list
 
 
 def get_sum_vecs(estimated_povms: List["Povm"]) -> np.array:
@@ -99,53 +96,6 @@ def get_sum_vecs(estimated_povms: List["Povm"]) -> np.array:
 
     sum_vecs = sum_vecs.T
     return sum_vecs
-
-
-# TODO: rename
-def check_physicality_violation(
-    estimation_results: List[EstimationResult], num_data_index: int = 0
-) -> Dict[str, Any]:
-    qoperation = estimation_results[0].estimated_qoperation
-    estimated_qoperations = [
-        result.estimated_qoperation_sequence[num_data_index]
-        for result in estimation_results
-    ]
-    if type(qoperation) == State:
-        result = _check_physicality_violation_for_state(estimated_qoperations)
-    elif type(qoperation) == Povm:
-        result = _check_physicality_violation_for_povm(estimated_qoperations)
-    else:
-        raise NotImplementedError()
-    return result
-
-
-def _check_physicality_violation_for_state(
-    estimated_qobjects: List["State"],
-) -> Dict[str, Any]:
-
-    trace_list = get_physicality_violation_result_for_state_affine(estimated_qobjects)
-    result_dict = dict(trace_list=trace_list)
-
-    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
-    sorted_eigenvalues_list_T = np.array(sorted_eigenvalues_list).T.tolist()
-    less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
-        sorted_eigenvalues_list
-    )
-    result_dict["sorted_eigenvalues_list"] = sorted_eigenvalues_list_T
-    result_dict["sum_of_eigenvalues"] = dict(
-        less_than_zero=less_than_zero_list, greater_than_one=greater_than_one_list,
-    )
-    return result_dict
-
-
-def _check_physicality_violation_for_povm(estimated_povms: List["Povm"]) -> dict:
-    on_para_eq_constraint = estimated_qobjects[0].on_para_eq_constraint
-
-    if on_para_eq_constraint:
-        sum_vecs = get_sum_vecs(estimated_povms)
-        return dict(sum_vecs=sum_vecs)
-    else:
-        raise NotImplementedError()
 
 
 # Plot
@@ -237,13 +187,15 @@ def make_graph_trace(
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ) -> "Figure":
-    violation_result = check_physicality_violation(
-        estimation_results, num_data_index=num_data_index
-    )
+    estimated_states = [
+        result.estimated_qoperation_sequence[num_data_index]
+        for result in estimation_results
+    ]
+
+    trace_list = get_trace_list(estimated_states)
+
     num_data = num_data[num_data_index]
-    fig = make_prob_dist_histogram(
-        violation_result["trace_list"], num_data=num_data, bin_size=bin_size
-    )
+    fig = make_prob_dist_histogram(trace_list, num_data=num_data, bin_size=bin_size)
     return fig
 
 
@@ -265,9 +217,7 @@ def make_graphs_eigenvalues(
             estimated_qoperations, true_object, n_data, bin_size
         )
     elif type(true_object) == Povm:
-        figs = _make_graphs_eigenvalues_povm(
-            estimated_qoperations, n_data, bin_size
-        )
+        figs = _make_graphs_eigenvalues_povm(estimated_qoperations, n_data, bin_size)
     elif type(true_object) == Gate:
         raise NotImplementedError()
     else:
@@ -315,6 +265,7 @@ def make_graphs_sum_vecs(
     vlines_list = [np.sqrt(true_object.dim), 0, 0, 0]
     sum_vecs = get_sum_vecs(estimated_povms)
     fig_list = []
+
     for i, value_list in enumerate(sum_vecs):
         fig = make_prob_dist_histogram(
             value_list,
