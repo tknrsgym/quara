@@ -791,6 +791,25 @@ class TestState:
             state.vec, np.array([1, 0, 0, 0], dtype=np.float64), decimal=15
         )
 
+    def test_func_calc_proj_eq_constraint(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        vec = np.array([1, 0, 0, 0], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        func = state.func_calc_proj_eq_constraint()
+
+        # case1: var = [1, 0, 0, 0]/sqrt(2)
+        var = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        actual = func(var)
+        expected = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case2: var = [1, 0, 0, 0]
+        var = np.array([1, 0, 0, 0], dtype=np.float64)
+        actual = func(var)
+        expected = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_ineq_constraint(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -804,6 +823,22 @@ class TestState:
         npt.assert_almost_equal(actual.vec, expected, decimal=15)
         assert actual.is_hermitian() == True
         assert actual.is_positive_semidefinite() == True
+
+    def test_func_calc_proj_ineq_constraint(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        vec = np.array([1, 2, 0, 0], dtype=np.float64) / np.sqrt(2)
+        state = State(c_sys, vec, is_physicality_required=False)
+        func = state.func_calc_proj_ineq_constraint()
+
+        # case1: var = [1, 2, 0, 0]/sqrt(2)
+        var = np.array([1, 2, 0, 0], dtype=np.float64) / np.sqrt(2)
+        actual = func(var)
+
+        expected = np.array(
+            [3 * np.sqrt(2) / 4, 3 * np.sqrt(2) / 4, 0, 0], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_to_density_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1589,6 +1624,36 @@ class TestState:
         )
 
         assert is_stopping == False
+
+    def test_func_calc_proj_physical(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        func = state.func_calc_proj_physical()
+
+        # z0 -> z0
+        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        actual = func(var)
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # [1, 0, 0, 1] -> z0
+        var = np.array([1, 0, 0, 1], dtype=np.float64)
+        actual = func(var)
+        expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # [1/sqrt(2), 1/sqrt(6), 1/sqrt(6), 1/sqrt(6)] -> [1/sqrt(2), 1/sqrt(6), 1/sqrt(6), 1/sqrt(6)]
+        var = np.array(
+            [1 / np.sqrt(2), 1 / np.sqrt(6), 1 / np.sqrt(6), 1 / np.sqrt(6)],
+            dtype=np.float64,
+        )
+        actual = func(var)
+        expected = np.array(
+            [1 / np.sqrt(2), 1 / np.sqrt(6), 1 / np.sqrt(6), 1 / np.sqrt(6)],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_convert_var_index_to_state_index():
