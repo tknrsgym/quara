@@ -5,6 +5,7 @@ import numpy as np
 
 from quara.objects.state import State
 from quara.objects.povm import Povm
+from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.qcircuit.experiment import Experiment
@@ -151,3 +152,7 @@ class StandardPovmt(StandardQTomography):
         template = self._set_qoperations.povms[0]
         povm = template.generate_from_var(var=var)
         return povm
+
+    def generate_empty_estimation_obj_with_setting_info(self) -> QOperation:
+        empty_estimation_obj = self._set_qoperations.povms[0]
+        return empty_estimation_obj.copy()
