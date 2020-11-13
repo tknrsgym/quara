@@ -60,7 +60,7 @@ def get_sum_of_eigenvalues_violation_povm(
             sorted_eigenvalues.append(eigs)
 
         # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
-        eps = 10 ** (-10)
+        eps = 10 ** (-13)
         for x_i, values in enumerate(sorted_eigenvalues):
             minus_values = [e.real for e in values if e.real < 0 - eps]
             if minus_values:
