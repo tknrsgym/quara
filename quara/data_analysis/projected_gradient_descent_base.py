@@ -100,13 +100,23 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
     def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
         # TOOD this implentation is wrong. qt does not have on_algo_eq_constraint and on_algo_ineq_constraint.
         self._qt = qt
-        if qt.on_algo_eq_constraint == True and qt.on_algo_ineq_constraint == True:
+        setting_info = self._qt.generate_empty_estimation_obj_with_setting_info()
+        if (
+            setting_info.on_algo_eq_constraint == True
+            and setting_info.on_algo_ineq_constraint == True
+        ):
             # TODO use QOperation.calc_proj_physical()
             pass
-        elif qt.on_algo_eq_constraint == True and qt.on_algo_ineq_constraint == False:
+        elif (
+            setting_info.on_algo_eq_constraint == True
+            and setting_info.on_algo_ineq_constraint == False
+        ):
             # TODO use QOperation.calc_eq_constraint()
             pass
-        elif qt.on_algo_eq_constraint == False and qt.on_algo_ineq_constraint == True:
+        elif (
+            setting_info.on_algo_eq_constraint == False
+            and setting_info.on_algo_ineq_constraint == True
+        ):
             # TODO use QOperation.calc_ineq_constraint()
             pass
         else:
@@ -209,8 +219,9 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             )
 
         if algorithm_option.var_start is None:
-            # TODO
-            x_prev = self._qt._set_qoperations.states[0].generate_origin_obj()
+            x_prev = (
+                self._qt.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+            )
         else:
             x_prev = algorithm_option.var_start
         x_next = None
