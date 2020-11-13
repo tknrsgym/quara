@@ -11,12 +11,8 @@ from tqdm import tqdm
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
-from quara.objects.povm import (
-    Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
-)
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
@@ -327,8 +323,23 @@ def make_mses_graph_estimation_results(
         for qtomography_class in qtomography_classes:
             for parameter in [True, False]:
                 # Make QOperation
-                true_object_copied = true_object.copy()
-                true_object_copied._on_para_eq_constraint = parameter
+                # true_object_copied = true_object.copy()
+                # true_object_copied._on_para_eq_constraint = parameter
+
+                if type(true_object) == State:
+                    true_object_copied = State(
+                        vec=true_object.vec,
+                        c_sys=true_object.composite_system,
+                        on_para_eq_constraint=parameter,
+                    )
+                elif type(true_object) == Povm:
+                    true_object_copied = Povm(
+                        vecs=true_object.vecs,
+                        c_sys=true_object.composite_system,
+                        on_para_eq_constraint=parameter,
+                    )
+                elif type(true_object) == Gate:
+                    raise NotImplementedError()
 
                 # Make QTomography
                 args = dict(on_para_eq_constraint=parameter,)

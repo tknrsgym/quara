@@ -34,8 +34,8 @@ h2 {{font-size: 20px}}
 h3 {{font-size: 15px;
     color: #618CBC;}}
 h4 {{color:#EB9348; font-size: 15px;}}
-h5 {{color:#666666; font-size: 13px;}}
-h6 {{color:#666666; font-size: 13px; font-style:italic;}}
+h5 {{color:#666666; font-size: 13px; -pdf-outline: false;}}
+h6 {{color:#666666; font-size: 13px; font-style:italic; -pdf-outline: false;}}
 #footer_content {{text-align: right;}}
 """
 
@@ -89,14 +89,6 @@ pdftoc.pdftoclevel2 {
 }
 pdftoc.pdftoclevel3 {
     margin-left: 3em;
-    font-style: italic;
-}
-pdftoc.pdftoclevel4 {
-    margin-left: 4em;
-    font-style: italic;
-}
-pdftoc.pdftoclevel5 {
-    margin-left: 5em;
     font-style: italic;
 }
 """
@@ -158,8 +150,6 @@ def _generate_trace_div(fig_info_list: List[dict]) -> str:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
         graph_block_html += graph_subblock
 
-    graph_block_html = f"<div>{graph_block_html}</div>"
-
     return graph_block_html
 
 
@@ -176,8 +166,12 @@ def _make_graph_sum_vecs_seq(
     num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
+        bin_size = 10 ** (-13)
         figs = physicality_violation_check.make_graphs_sum_vecs(
-            estimation_results, true_object, num_data_index=num_data_index
+            estimation_results,
+            true_object,
+            num_data_index=num_data_index,
+            bin_size=bin_size,
         )
         fig_info_list = []
         for alpha, fig in enumerate(figs):
@@ -205,8 +199,7 @@ def _generate_sum_vecs_div(fig_info_list_list: List[List[dict]]) -> str:
             )
             graph_block_html += graph_subblock
 
-        graph_block_html_all += f"<div>{graph_block_html}</div>"
-    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+        graph_block_html_all += graph_block_html
 
     return graph_block_html_all
 
@@ -233,13 +226,16 @@ def _generate_graph_eigenvalues_seq(
             estimation_results, true_object, num_data, num_data_index=num_data_index,
         )
         fig_info_list = []
+        num = num_data[num_data_index]
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
             fig.update_layout(width=500, height=400)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
-            fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+            fig_info_list.append(
+                dict(image_path=path, fig=fig, fig_name=fig_name, num=num)
+            )
 
         fig_info_list_list.append(fig_info_list)
     return fig_info_list_list
@@ -248,15 +244,16 @@ def _generate_graph_eigenvalues_seq(
 def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
-        graph_block_html = ""
+        # TODO
+        num = fig_info_list[0]["num"]
+        graph_block_html = f"<h5>N={num}</h5>"
         for fig_info in fig_info_list:
             graph_subblock = (
                 f"<div class='box'><img src={fig_info['image_path']}></div>"
             )
             graph_block_html += graph_subblock
 
-        graph_block_html_all += f"<div>{graph_block_html}</div>"
-    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+        graph_block_html_all += graph_block_html
 
     return graph_block_html_all
 
@@ -275,10 +272,9 @@ def _generate_eigenvalues_div_3loop(fig_info_list3: List[List[List[dict]]]) -> s
                     f"<div class='box'><img src={fig_info['image_path']}></div>"
                 )
                 sub_graph_block_html += graph_subblock
-            graph_block_html += f"<div>{sub_graph_block_html}</div>"
+            graph_block_html += sub_graph_block_html
 
-        graph_block_html_all += f"<div>{graph_block_html}</div>"
-    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+        graph_block_html_all += graph_block_html
 
     return graph_block_html_all
 
@@ -383,8 +379,7 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
             )
             graph_block_html += graph_subblock
 
-        graph_block_html_all += f"<div>{graph_block_html}</div>"
-    graph_block_html_all = f"<div>{graph_block_html_all}</div>"
+        graph_block_html_all += graph_block_html
 
     return graph_block_html_all
 
@@ -424,8 +419,7 @@ def generate_mse_div(
     fig_name = f"mse"
     path = _save_fig_to_tmp_dir(fig, fig_name)
 
-    mse_div = f"""<div><img src="{path}"></div>
-    """
+    mse_div = f"<img src='{path}'>"
     return mse_div
 
 
@@ -443,8 +437,7 @@ def generate_empi_dist_mse_div(
     fig_name = f"empi_dists_mse"
     path = _save_fig_to_tmp_dir(fig, fig_name)
 
-    div = f"""<div><img src="{path}"></div>
-    """
+    div = f"<img src='{path}'>"
     return div
 
 
@@ -511,8 +504,10 @@ def _generate_physicality_violation_test_div_for_state(
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_trace_div(estimation_results, case_id=case_id)
+        # <h5> is dummy
         test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
+            <h5></h5>
             {div}
             """
         # Test of inequality constraint violation
@@ -541,7 +536,7 @@ def _generate_physicality_violation_test_div_for_state(
         <h3>Eigenvalue</h3>
         {test_ineq_const_eigenvalues_divs}
         <h3>Sum of unphysical eigenvalues </h3>
-        {test_ineq_const_eigenvalues_divs}
+        {test_ineq_const_sum_eigenvalues_divs}
     """
 
     return eq_all_div, ineq_all_div
@@ -562,8 +557,10 @@ def _generate_physicality_violation_test_div_for_povm(
         div = generate_sum_vecs_div(
             estimation_results, case_id=case_id, true_object=true_object
         )
+        # <h5> is dummy
         test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
+            <h5></h5>
             {div}
             """
         # Test of inequality constraint violation
@@ -705,6 +702,25 @@ def generate_consistency_check_table(
     return consistency_check_table
 
 
+def generate_computation_time_table(
+    computation_time: Optional[float] = None,
+) -> pd.DataFrame:
+    if computation_time is None:
+        computation_time_text = "None"
+    else:
+        computation_time_text = "{0}".format(computation_time / 60) + "min."
+
+    info = {
+        "Total": [computation_time_text],
+    }
+
+    computation_time_table = pd.DataFrame(info).T.to_html(
+        classes="computation_time_table", escape=False, header=False
+    )
+
+    return computation_time_table
+
+
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
@@ -714,8 +730,9 @@ def export_report(
     estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
-    save_materials: bool = False,
-    seed: int = None,
+    seed: Optional[int] = None,
+    computation_time: Optional[float] = None,
+    keep_tmp_files: bool = False,
 ):
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
@@ -723,6 +740,10 @@ def export_report(
 
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
+
+    # Computation Time
+    print("​Generating table of computation time ...")
+    computation_time_table = generate_computation_time_table(computation_time)
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")
@@ -801,6 +822,10 @@ def export_report(
     <h1>Table of contents</h1>
     <pdf:toc />
 </div>
+<h1>Computation time</h1>
+    <div>
+        {computation_time_table}
+    </div>
 <h1>Experimental condition</h1>
     <div>
         {condition_table}
@@ -840,13 +865,14 @@ def export_report(
 
     print("Converting to PDF report ...")
     _convert_html2pdf(report_html, path)
-    if save_materials:
+    if keep_tmp_files:
         import datetime as dt
 
         identity = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
         material_path = f"quara_report_{identity}"
         Path(material_path).mkdir(parents=True, exist_ok=True)
         shutil.copytree(_temp_dir_path, material_path, dirs_exist_ok=True)
+        print("Completed to copy temporary files. dst: {material_path}")
 
     print("​Deleting temporary files ...")
     shutil.rmtree(_temp_dir_path)
