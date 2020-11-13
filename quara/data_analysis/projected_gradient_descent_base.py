@@ -86,7 +86,7 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
 
 
 class ProjectedGradientDescentBase(MinimizationAlgorithm):
-    def __init__(self, func_proj: Callable[[np.array], np.array]):
+    def __init__(self, func_proj: Callable[[np.array], np.array] = None):
         super().__init__()
         self._func_proj: Callable[[np.array], np.array] = func_proj
         self._is_gradient_required: bool = True
@@ -100,25 +100,26 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
     def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
         # TOOD this implentation is wrong. qt does not have on_algo_eq_constraint and on_algo_ineq_constraint.
         self._qt = qt
+
+        if self._func_proj is not None:
+            return
+
         setting_info = self._qt.generate_empty_estimation_obj_with_setting_info()
         if (
             setting_info.on_algo_eq_constraint == True
             and setting_info.on_algo_ineq_constraint == True
         ):
-            # TODO use QOperation.calc_proj_physical()
-            pass
+            self._func_proj = setting_info.func_calc_proj_physical()
         elif (
             setting_info.on_algo_eq_constraint == True
             and setting_info.on_algo_ineq_constraint == False
         ):
-            # TODO use QOperation.calc_eq_constraint()
-            pass
+            self._func_proj = setting_info.func_calc_proj_eq_constraint()
         elif (
             setting_info.on_algo_eq_constraint == False
             and setting_info.on_algo_ineq_constraint == True
         ):
-            # TODO use QOperation.calc_ineq_constraint()
-            pass
+            self._func_proj = setting_info.func_calc_proj_ineq_constraint()
         else:
             self._func_proj = func_proj.proj_to_self()
 
@@ -151,7 +152,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         # TODO validate
         if self.option is None:
             return False
-        elif self.option.mu <= 0:
+        elif self.option.mu is not None and self.option.mu <= 0:
             return False
         elif self.option.gamma <= 0:
             return False
@@ -169,12 +170,13 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             whether the loss and the option are sufficient.
         """
         # TODO validate when option.var_start exists
-        num_var_option = self.option.var_start.shape[0]
-        num_var_loss = self.loss.num_var
-        if num_var_option != num_var_loss:
-            return False
-        else:
-            return True
+        if self.option.var_start is not None:
+            num_var_option = self.option.var_start.shape[0]
+            num_var_loss = self.loss.num_var
+            if num_var_option != num_var_loss:
+                return False
+
+        return True
 
     def optimize(
         self,
