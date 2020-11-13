@@ -168,8 +168,9 @@ def _make_graph_sum_vecs_seq(
     num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
+        bin_size = 10 ** (-13)
         figs = physicality_violation_check.make_graphs_sum_vecs(
-            estimation_results, true_object, num_data_index=num_data_index
+            estimation_results, true_object, num_data_index=num_data_index, bin_size=bin_size
         )
         fig_info_list = []
         for alpha, fig in enumerate(figs):
