@@ -62,13 +62,13 @@ def get_sum_of_eigenvalues_violation_povm(
         # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
         eps = 10 ** (-13)
         for x_i, values in enumerate(sorted_eigenvalues):
-            sum_values = sum(
-                [e.real for e in sorted_eigenvalues[x_i] if e.real < 0 - eps]
-            )
-            if minus_eigenvalues_dict[x_i]:
-                minus_eigenvalues_dict[x_i].append(sum_values)
-            else:
-                minus_eigenvalues_dict[x_i] = [sum_values]
+            minus_values = [e.real for e in values if e.real < 0 - eps]
+            if minus_values:
+                sum_values = sum(minus_values)
+                if minus_eigenvalues_dict[x_i]:
+                    minus_eigenvalues_dict[x_i].append(sum_values)
+                else:
+                    minus_eigenvalues_dict[x_i] = [sum_values]
     return minus_eigenvalues_dict
 
 
@@ -102,7 +102,7 @@ def get_sum_vecs(estimated_povms: List["Povm"]) -> np.array:
 # Common
 def make_prob_dist_histogram(
     values: List[float],
-    bin_size: int,
+    bin_size: Union[int, float, List[float]],
     num_data: int,
     x_range: Optional[tuple] = None,
     annotation_vlines: List[Union[float, int]] = None,
@@ -110,7 +110,17 @@ def make_prob_dist_histogram(
     if x_range:
         x_start, x_end = x_range
 
-    hist = go.Histogram(x=values, xbins=dict(size=bin_size), histnorm="probability",)
+    if type(bin_size) in [int, float]:
+        hist = go.Histogram(
+            x=values, xbins=dict(size=bin_size), histnorm="probability",
+        )
+    elif type(bin_size) == go.histogram.XBins:
+        hist = go.Histogram(x=values, xbins=bin_size, histnorm="probability",)
+    else:
+        error_message = (
+            f"bin_size must be int, float, or go.histogram.Xbins, not {type(bin_size)}"
+        )
+        raise TypeError(error_message)
 
     layout = go.Layout(xaxis=dict(title="Value", dtick=0), yaxis=dict(title="Prob"))
 
@@ -119,7 +129,6 @@ def make_prob_dist_histogram(
 
     if annotation_vlines:
         for x_value in annotation_vlines:
-            # 指定した分位点を青線で表示
             fig.add_shape(
                 type="line",
                 line_color="black",
@@ -245,16 +254,41 @@ def make_graphs_sum_unphysical_eigenvalues(
         figs = _make_graphs_sum_unphysical_eigenvalues_povm(
             estimated_qoperations, n_data, bin_size
         )
+    elif type(sample_object) == Gate:
+        raise NotImplementedError()
     else:
         # TODO: message
         raise TypeError()
     return figs
 
 
+def make_xbins(
+    ref_x: float, min_x: float, max_x: float, bin_size: float
+) -> List[float]:
+    bin_list = []
+    bin_list.append(ref_x - bin_size / 2)
+    bin_list.append(ref_x + bin_size / 2)
+
+    x = min(bin_list)
+
+    while x > min_x:
+        x -= bin_size
+        bin_list.append(x)
+
+    x = max(bin_list)
+
+    while x < max_x:
+        x += bin_size
+        bin_list.append(x)
+
+    return go.histogram.XBins(start=min(bin_list), end=max(bin_list), size=bin_size)
+
+
 def make_graphs_sum_vecs(
     estimation_results: List["EstimatedResult"],
     true_object: "Povm",
     num_data_index: int,
+    bin_size: float = 0.0001,
 ) -> List["Figure"]:
     num_data = estimation_results[0].num_data
 
@@ -267,9 +301,14 @@ def make_graphs_sum_vecs(
     fig_list = []
 
     for i, value_list in enumerate(sum_vecs):
+        min_x, max_x = min(value_list), min(value_list)
+        xbins = make_xbins(
+            ref_x=vlines_list[i], min_x=min_x, max_x=max_x, bin_size=bin_size
+        )
         fig = make_prob_dist_histogram(
             value_list,
-            bin_size=0.001,
+            # bin_size=bin_size,
+            bin_size=xbins,
             num_data=num_data,
             annotation_vlines=[vlines_list[i]],
         )
@@ -420,8 +459,12 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
     figs = []
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
+    measurement_n = len(estimated_povms[0].vecs)
 
-    for x_i, value_list in minus_eigenvalues_dict.items():
+    for x_i in range(measurement_n):
+        value_list = []
+        if x_i in minus_eigenvalues_dict:
+            value_list = minus_eigenvalues_dict[x_i]
         fig = make_prob_dist_histogram(
             value_list, bin_size=bin_size, annotation_vlines=[0], num_data=num_data
         )
