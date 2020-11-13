@@ -708,6 +708,25 @@ def generate_consistency_check_table(
     return consistency_check_table
 
 
+def generate_computation_time_table(
+    computation_time: Optional[float] = None,
+) -> pd.DataFrame:
+    if computation_time is None:
+        computation_time_text = "None"
+    else:
+        computation_time_text = "{0}".format(computation_time / 60) + "min."
+
+    info = {
+        "Total": [computation_time_text],
+    }
+
+    computation_time_table = pd.DataFrame(info).T.to_html(
+        classes="computation_time_table", escape=False, header=False
+    )
+
+    return computation_time_table
+
+
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
@@ -718,8 +737,8 @@ def export_report(
     true_object: "QOperation",
     tester_objects: List["QOperation"],
     save_materials: bool = False,
-    seed: int = None,
-    computation_time: float = None,
+    seed: Optional[int] = None,
+    computation_time: Optional[float] = None,
 ):
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
@@ -728,7 +747,9 @@ def export_report(
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
 
-    computation_time_text = "{0}".format(computation_time / 60) + "[min]"
+    # Computation Time
+    print("​Generating table of computation time ...")
+    computation_time_table = generate_computation_time_table(computation_time)
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")
@@ -808,9 +829,9 @@ def export_report(
     <pdf:toc />
 </div>
 <h1>Computation time</h1>
-<div>
-{computation_time_text}
-</div>
+    <div>
+        {computation_time_table}
+    </div>
 <h1>Experimental condition</h1>
     <div>
         {condition_table}
