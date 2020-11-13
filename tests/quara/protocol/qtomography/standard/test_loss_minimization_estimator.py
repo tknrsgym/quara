@@ -54,8 +54,7 @@ def get_test_data(
 
 
 class TestLossMinimizationEstimator:
-    def test_calc_estimate(self):
-        qst, _ = get_test_data()
+    def test_calc_estimate__is_computation_time_required(self):
         empi_dists = [
             (10000, np.array([0.5, 0.5], dtype=np.float64)),
             (10000, np.array([0.5, 0.5], dtype=np.float64)),
@@ -64,13 +63,9 @@ class TestLossMinimizationEstimator:
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        # TODO choice func_proj
-        proj = func_proj.proj_to_self()
-        algo = ProjectedGradientDescentBase(proj)
-
-        obj_start = qst._set_qoperations.states[0].generate_origin_obj()
-        var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBaseOption(var_start)
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+        algo_option = ProjectedGradientDescentBaseOption()
 
         estimator = LossMinimizationEstimator()
 
@@ -84,22 +79,47 @@ class TestLossMinimizationEstimator:
             algo_option,
             is_computation_time_required=True,
         )
-        """
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
-        """
         assert type(actual.computation_time) == float
 
         # is_computation_time_required=False
         actual = estimator.calc_estimate(
             qst, empi_dists, loss, loss_option, algo, algo_option
         )
-        # TODO
-        # expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
-        # assert actual.estimated_qoperation.is_physical()
-        # npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
-        # assert actual.computation_time == None
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        assert actual.computation_time == None
+
+    def test_calc_estimate__on_algo_xx_constraint(self):
+        empi_dists = [
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([1, 0], dtype=np.float64)),
+        ]
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        # TODO choice func_proj
+        # func_proj=auto setting, on_algo_eq_constraint=True, on_algo_ineq_constraint=True
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = qst._set_qoperations.states[0].generate_origin_obj()
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        assert actual.computation_time == None
 
     """
     def test_calc_estimate_sequence(self):
