@@ -150,8 +150,6 @@ def _generate_trace_div(fig_info_list: List[dict]) -> str:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
         graph_block_html += graph_subblock
 
-    # graph_block_html = f"<div>{graph_block_html}</div>"
-
     return graph_block_html
 
 
@@ -170,7 +168,10 @@ def _make_graph_sum_vecs_seq(
     for num_data_index, num in enumerate(num_data):
         bin_size = 10 ** (-13)
         figs = physicality_violation_check.make_graphs_sum_vecs(
-            estimation_results, true_object, num_data_index=num_data_index, bin_size=bin_size
+            estimation_results,
+            true_object,
+            num_data_index=num_data_index,
+            bin_size=bin_size,
         )
         fig_info_list = []
         for alpha, fig in enumerate(figs):
@@ -198,9 +199,7 @@ def _generate_sum_vecs_div(fig_info_list_list: List[List[dict]]) -> str:
             )
             graph_block_html += graph_subblock
 
-        # graph_block_html_all += f"<div>{graph_block_html}</div>"
         graph_block_html_all += graph_block_html
-    # graph_block_html_all = f"<div>{graph_block_html_all}</div>"
 
     return graph_block_html_all
 
@@ -254,9 +253,7 @@ def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
             )
             graph_block_html += graph_subblock
 
-        # graph_block_html_all += f"<div>{graph_block_html}</div>"
         graph_block_html_all += graph_block_html
-    # graph_block_html_all = f"<div>{graph_block_html_all}</div>"
 
     return graph_block_html_all
 
@@ -275,12 +272,9 @@ def _generate_eigenvalues_div_3loop(fig_info_list3: List[List[List[dict]]]) -> s
                     f"<div class='box'><img src={fig_info['image_path']}></div>"
                 )
                 sub_graph_block_html += graph_subblock
-            # graph_block_html += f"<div>{sub_graph_block_html}</div>"
             graph_block_html += sub_graph_block_html
 
-        # graph_block_html_all += f"<div>{graph_block_html}</div>"
         graph_block_html_all += graph_block_html
-    # graph_block_html_all = f"<div>{graph_block_html_all}</div>"
 
     return graph_block_html_all
 
@@ -385,9 +379,7 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
             )
             graph_block_html += graph_subblock
 
-        # graph_block_html_all += f"<div>{graph_block_html}</div>"
         graph_block_html_all += graph_block_html
-    # graph_block_html_all = f"<div>{graph_block_html_all}</div>"
 
     return graph_block_html_all
 
