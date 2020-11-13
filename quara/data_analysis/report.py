@@ -34,8 +34,8 @@ h2 {{font-size: 20px}}
 h3 {{font-size: 15px;
     color: #618CBC;}}
 h4 {{color:#EB9348; font-size: 15px;}}
-h5 {{color:#666666; font-size: 13px;}}
-h6 {{color:#666666; font-size: 13px; font-style:italic;}}
+h5 {{color:#666666; font-size: 13px; -pdf-outline: false;}}
+h6 {{color:#666666; font-size: 13px; font-style:italic; -pdf-outline: false;}}
 #footer_content {{text-align: right;}}
 """
 
@@ -90,12 +90,6 @@ pdftoc.pdftoclevel2 {
 pdftoc.pdftoclevel3 {
     margin-left: 3em;
     font-style: italic;
-}
-pdftoc.pdftoclevel4 {
-    -pdf-outline: false;
-}
-pdftoc.pdftoclevel5 {
-    -pdf-outline: false;
 }
 """
 
@@ -828,6 +822,27 @@ def export_report(
     <h1>Table of contents</h1>
     <pdf:toc />
 </div>
+
+<h1>H1</h1>
+<h2>H2</h2>
+<h3>H3</h3>
+<h4>Case dummy: H4</h4>
+<div>
+<div class="box">aaa</div>
+<div class="box">bbb</div>
+<div class="box">ccc</div>
+</div>
+<div>
+<div class="box">aaa</div>
+<div class="box">bbb</div>
+<div class="box">ccc</div>
+</div>
+<div>
+<div class="box">aaa</div>
+<div class="box">bbb</div>
+<div class="box">ccc</div>
+</div>
+
 <h1>Computation time</h1>
     <div>
         {computation_time_table}
