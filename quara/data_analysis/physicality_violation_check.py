@@ -60,15 +60,15 @@ def get_sum_of_eigenvalues_violation_povm(
             sorted_eigenvalues.append(eigs)
 
         # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
-        eps = 10 ** (-13)
+        eps = 10 ** (-10)
         for x_i, values in enumerate(sorted_eigenvalues):
-            sum_values = sum(
-                [e.real for e in sorted_eigenvalues[x_i] if e.real < 0 - eps]
-            )
-            if minus_eigenvalues_dict[x_i]:
-                minus_eigenvalues_dict[x_i].append(sum_values)
-            else:
-                minus_eigenvalues_dict[x_i] = [sum_values]
+            minus_values = [e.real for e in values if e.real < 0 - eps]
+            if minus_values:
+                sum_values = sum(minus_values)
+                if minus_eigenvalues_dict[x_i]:
+                    minus_eigenvalues_dict[x_i].append(sum_values)
+                else:
+                    minus_eigenvalues_dict[x_i] = [sum_values]
     return minus_eigenvalues_dict
 
 
@@ -459,8 +459,12 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
     figs = []
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
+    measurement_n = len(estimated_povms[0].vecs)
 
-    for x_i, value_list in minus_eigenvalues_dict.items():
+    for x_i in range(measurement_n):
+        value_list = []
+        if x_i in minus_eigenvalues_dict:
+            value_list = minus_eigenvalues_dict[x_i]
         fig = make_prob_dist_histogram(
             value_list, bin_size=bin_size, annotation_vlines=[0], num_data=num_data
         )
