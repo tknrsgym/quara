@@ -143,21 +143,6 @@ def calc_mse_qoperations(
     return mse, std
 
 
-# def calc_mse_qoperations(
-#     xs: List[QOperation], ys: List[QOperation], mode: str = "qoperation"
-# ) -> np.float64:
-#     points = []
-#     for x, y in zip(xs, ys):
-#         x_vec = x.to_stacked_vector()
-#         y_vec = y.to_stacked_vector()
-#         point = np.vdot(x_vec - y_vec, x_vec - y_vec)
-#         points.append(point)
-
-#     mse = np.mean(points, dtype=np.float64)
-#     std = np.std(points, dtype=np.float64, ddof=1)
-#     return mse, std
-
-
 # common(StandardQTomography)
 def convert_to_series(
     results: List[StandardQTomographyEstimationResult], true_object: QOperation
@@ -359,8 +344,6 @@ def make_mses_graph_estimation_results(
         for qtomography_class in qtomography_classes:
             for parameter in [True, False]:
                 # Make QOperation
-                # true_object_copied = true_object.copy()
-                # true_object_copied._on_para_eq_constraint = parameter
 
                 if type(true_object) == State:
                     true_object_copied = State(
