@@ -26,7 +26,6 @@ from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
-from quara.utils.matrix_util import calc_mse
 
 
 def get_test_data(
