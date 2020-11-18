@@ -1,6 +1,6 @@
 from abc import abstractmethod
 import logging
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
 
@@ -344,6 +344,16 @@ class QOperation:
         """
         raise NotImplementedError()
 
+    def func_calc_proj_eq_constraint(self) -> Callable[[np.array], np.array]:
+        qobj_empty = self.generate_zero_obj()
+
+        def _func_proj(var: np.array) -> np.array:
+            qobj_tmp = qobj_empty.generate_from_var(var, on_para_eq_constraint=False)
+            qobj_result = qobj_tmp.calc_proj_eq_constraint()
+            return qobj_result.to_stacked_vector()
+
+        return _func_proj
+
     @abstractmethod
     def calc_proj_ineq_constraint(self) -> "QOperation":
         """calculates the projection of QOperation on inequal constraint.
@@ -354,6 +364,16 @@ class QOperation:
             the projection of QOperation on inequal constraint.
         """
         raise NotImplementedError()
+
+    def func_calc_proj_ineq_constraint(self) -> Callable[[np.array], np.array]:
+        qobj_empty = self.generate_zero_obj()
+
+        def _func_proj(var: np.array) -> np.array:
+            qobj_tmp = qobj_empty.generate_from_var(var, on_para_eq_constraint=False)
+            qobj_result = qobj_tmp.calc_proj_ineq_constraint()
+            return qobj_result.to_stacked_vector()
+
+        return _func_proj
 
     @abstractmethod
     def _generate_from_var_func(self):
@@ -634,6 +654,16 @@ class QOperation:
             eps_proj_physical,
         )
         return result, error_value
+
+    def func_calc_proj_physical(self) -> Callable[[np.array], np.array]:
+        qobj_empty = self.generate_zero_obj()
+
+        def _func_proj(var: np.array) -> np.array:
+            qobj_tmp = qobj_empty.generate_from_var(var, on_para_eq_constraint=False)
+            qobj_result = qobj_tmp.calc_proj_physical()
+            return qobj_result.to_stacked_vector()
+
+        return _func_proj
 
     def __add__(self, other):
         # Validation

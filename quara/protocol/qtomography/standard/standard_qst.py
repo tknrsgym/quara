@@ -5,6 +5,7 @@ import numpy as np
 
 from quara.objects.state import State, convert_var_to_state
 from quara.objects.povm import Povm
+from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.qcircuit.experiment import Experiment
@@ -240,3 +241,6 @@ class StandardQst(StandardQTomography):
         state = template.generate_from_var(var=var)
         return state
 
+    def generate_empty_estimation_obj_with_setting_info(self) -> QOperation:
+        empty_estimation_obj = self._set_qoperations.states[0]
+        return empty_estimation_obj.copy()

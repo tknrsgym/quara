@@ -173,3 +173,28 @@ class TestStandardPovmt:
         # Act & Assert
         with pytest.raises(ValueError):
             _ = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
+
+    def test_generate_empty_estimation_obj_with_setting_info(self):
+        # Array
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # |+><+|
+        state_x0 = get_x0_1q(c_sys)
+        # |+i><+i|
+        state_y0 = get_y0_1q(c_sys)
+        # |0><0|
+        state_z0 = get_z0_1q(c_sys)
+        # |1><1|
+        state_z1 = get_z1_1q(c_sys)
+        states = [state_x0, state_y0, state_z0, state_z1]
+
+        # Act
+        actual = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
+        setting_info = actual.generate_empty_estimation_obj_with_setting_info()
+
+        expected = np.array([0, 0, 0, 0, 0, 0, 0, 0])
+        npt.assert_almost_equal(setting_info.to_stacked_vector(), expected, decimal=15)
+        assert setting_info.on_para_eq_constraint == False
+        assert setting_info.on_algo_eq_constraint == False
+        assert setting_info.on_algo_ineq_constraint == False

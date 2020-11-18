@@ -212,3 +212,13 @@ class TestStandardQst:
             for a, e in zip(a_dists, e_dists):
                 assert a[0] == e[0]
                 npt.assert_almost_equal(a[1], e[1], decimal=15)
+
+    def test_generate_empty_estimation_obj_with_setting_info(self):
+        qst, c_sys = get_test_data()
+        setting_info = qst.generate_empty_estimation_obj_with_setting_info()
+
+        expected = np.array([0, 0, 0, 0])
+        npt.assert_almost_equal(setting_info.to_stacked_vector(), expected, decimal=15)
+        assert setting_info.on_para_eq_constraint == False
+        assert setting_info.on_algo_eq_constraint == False
+        assert setting_info.on_algo_ineq_constraint == False
