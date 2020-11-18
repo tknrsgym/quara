@@ -11,6 +11,7 @@ from quara.protocol.qtomography.estimator import EstimationResult
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.settings import Settings
 
 
 def get_sorted_eigenvalues_list(
@@ -59,9 +60,13 @@ def get_sum_of_eigenvalues_violation_povm(
             eigs = sorted(eigs, reverse=True)
             sorted_eigenvalues.append(eigs)
 
-        # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
-        eps = 10 ** (-13)
+        eps = Settings.get_atol()
         for x_i, values in enumerate(sorted_eigenvalues):
+            for e in values:
+                if e.imag >= Settings.get_atol():
+                    message = f"​The imaginary part of the eigenvalue is larger than {Settings.get_atol()}"
+                    warnings.warn(message)
+
             minus_values = [e.real for e in values if e.real < 0 - eps]
             if minus_values:
                 sum_values = sum(minus_values)
