@@ -222,7 +222,9 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
 
         if algorithm_option.var_start is None:
             x_prev = (
-                self._qt.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+                self._qt.generate_empty_estimation_obj_with_setting_info()
+                .generate_origin_obj()
+                .to_stacked_vector()
             )
         else:
             x_prev = algorithm_option.var_start
