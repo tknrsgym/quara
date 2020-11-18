@@ -26,8 +26,8 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         self._estimated_var_sequence: List[np.array] = estimated_var_sequence
 
     @property
-    def qtomography(self) -> StandardQTomography:
-        return self._qtomography
+    def data(self):
+        return self._data
 
     @property
     def estimated_var(self) -> np.array:
@@ -79,15 +79,6 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
             for var in self._estimated_var_sequence
         ]
         return qoperations
-
-    @property
-    def data(self) -> List[Tuple[int, np.array]]:
-        return self._data
-
-    @property
-    def num_data(self) -> List[int]:
-        num_data = [data[0][0] for data in self._data]
-        return num_data
 
 
 class StandardQTomographyEstimator(QTomographyEstimator):

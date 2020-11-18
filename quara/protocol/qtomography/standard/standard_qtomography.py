@@ -135,6 +135,22 @@ class StandardQTomography(QTomography):
         """
         raise NotImplementedError()
 
+    @abstractmethod
+    def generate_empty_estimation_obj_with_setting_info(self) -> QOperation:
+        """generates the empty estimation object with setting information.
+
+        Returns
+        -------
+        QOperation
+            the empty estimation object(QOperation) with setting information.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        raise NotImplementedError()
+
     def calc_prob_dist(self, qope: QOperation, schedule_index: int) -> List[float]:
         """calculates a probability distribution.
         
