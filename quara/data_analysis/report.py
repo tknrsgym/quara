@@ -552,6 +552,8 @@ def _generate_physicality_violation_test_div_for_povm(
     test_ineq_const_sum_eigenvalues_divs = ""
 
     for case_id, case_name in enumerate(case_name_list):
+        # print(f"len={len(estimation_results_list)}")
+        # print(f"{case_id=}")
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_sum_vecs_div(
