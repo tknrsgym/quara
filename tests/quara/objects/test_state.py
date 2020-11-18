@@ -1636,12 +1636,16 @@ class TestState:
         actual = func(var)
         expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
         npt.assert_almost_equal(actual, expected, decimal=15)
+        actual_qobj = State(c_sys, actual)
+        assert actual_qobj.is_physical() == True
 
         # [1, 0, 0, 1] -> z0
         var = np.array([1, 0, 0, 1], dtype=np.float64)
         actual = func(var)
         expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=14)
+        actual_qobj = State(c_sys, actual)
+        assert actual_qobj.is_physical() == True
 
         # [1/sqrt(2), 1/sqrt(6), 1/sqrt(6), 1/sqrt(6)] -> [1/sqrt(2), 1/sqrt(6), 1/sqrt(6), 1/sqrt(6)]
         var = np.array(
@@ -1654,6 +1658,8 @@ class TestState:
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
+        actual_qobj = State(c_sys, actual)
+        assert actual_qobj.is_physical() == True
 
 
 def test_convert_var_index_to_state_index():
