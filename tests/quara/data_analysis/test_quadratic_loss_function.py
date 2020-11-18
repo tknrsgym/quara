@@ -29,6 +29,11 @@ class TestQuadraticLossFunction:
         loss_func._update_on_hessian_true()
         assert loss_func.on_hessian == True
 
+    def test_is_option_sufficient(self):
+        var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
+        loss_func = QuadraticLossFunction(var_ref)
+        assert loss_func.is_option_sufficient() == True
+
     def test_value(self):
         var_ref = np.array([1, 2, 3, 4], dtype=np.float64)
         loss_func = QuadraticLossFunction(var_ref)

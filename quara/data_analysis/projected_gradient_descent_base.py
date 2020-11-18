@@ -10,6 +10,9 @@ from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithmOption,
     MinimizationResult,
 )
+from quara.math import func_proj
+from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
+from quara.settings import Settings
 
 
 class ProjectedGradientDescentBaseResult(MinimizationResult):
@@ -54,25 +57,20 @@ class ProjectedGradientDescentBaseResult(MinimizationResult):
 class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
     def __init__(
         self,
-        func_proj: Callable[[np.array], np.array],
-        var_start: np.array,
+        var_start: np.array = None,
         mu: float = None,
         gamma: float = 0.3,
-        eps: float = 1.0e-10,
+        eps: float = None,
     ):
-        super().__init__(var_start, True, False)
+        super().__init__(var_start)
 
-        self._func_proj: Callable[[np.array], np.array] = func_proj
-
-        if mu is None:
+        if mu is None and var_start is not None:
             mu = 3 / (2 * np.sqrt(var_start.shape[0]))
         self._mu: float = mu
         self._gamma: float = gamma
+        if eps is None:
+            eps = Settings.get_atol() / 10.0
         self._eps: float = eps
-
-    @property
-    def func_proj(self) -> Callable[[np.array], np.array]:
-        return self._func_proj
 
     @property
     def mu(self) -> float:
@@ -88,8 +86,97 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
 
 
 class ProjectedGradientDescentBase(MinimizationAlgorithm):
-    def __init__(self):
+    def __init__(self, func_proj: Callable[[np.array], np.array] = None):
         super().__init__()
+        self._func_proj: Callable[[np.array], np.array] = func_proj
+        self._is_gradient_required: bool = True
+        self._is_hessian_required: bool = False
+        self._qt: StandardQTomography = None
+
+    @property
+    def func_proj(self) -> Callable[[np.array], np.array]:
+        return self._func_proj
+
+    def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
+        # TOOD this implentation is wrong. qt does not have on_algo_eq_constraint and on_algo_ineq_constraint.
+        self._qt = qt
+
+        if self._func_proj is not None:
+            return
+
+        setting_info = self._qt.generate_empty_estimation_obj_with_setting_info()
+        if (
+            setting_info.on_algo_eq_constraint == True
+            and setting_info.on_algo_ineq_constraint == True
+        ):
+            self._func_proj = setting_info.func_calc_proj_physical()
+        elif (
+            setting_info.on_algo_eq_constraint == True
+            and setting_info.on_algo_ineq_constraint == False
+        ):
+            self._func_proj = setting_info.func_calc_proj_eq_constraint()
+        elif (
+            setting_info.on_algo_eq_constraint == False
+            and setting_info.on_algo_ineq_constraint == True
+        ):
+            self._func_proj = setting_info.func_calc_proj_ineq_constraint()
+        else:
+            self._func_proj = func_proj.proj_to_self()
+
+    def is_loss_sufficient(self) -> bool:
+        """returns whether the loss is sufficient.
+
+        Returns
+        -------
+        bool
+            whether the loss is sufficient.
+        """
+        # TODO validate
+        if self.loss is None:
+            return False
+        elif self.loss.on_value is False:
+            return False
+        elif self.loss.on_gradient is False:
+            return False
+        else:
+            return True
+
+    def is_option_sufficient(self) -> bool:
+        """returns whether the option is sufficient.
+
+        Returns
+        -------
+        bool
+            whether the option is sufficient.
+        """
+        # TODO validate
+        if self.option is None:
+            return False
+        elif self.option.mu is not None and self.option.mu <= 0:
+            return False
+        elif self.option.gamma <= 0:
+            return False
+        elif self.option.eps <= 0:
+            return False
+        else:
+            return True
+
+    def is_loss_and_option_sufficient(self) -> bool:
+        """returns whether the loss and the option are sufficient.
+
+        Returns
+        -------
+        bool
+            whether the loss and the option are sufficient.
+        """
+        # TODO validate when option.var_start exists
+        if self.option.var_start is not None:
+            num_var_option = self.option.var_start.shape[0]
+            num_var_loss = self.loss.num_var
+            if num_var_option != num_var_loss:
+                return False
+
+        return True
 
     def optimize(
         self,
@@ -121,20 +208,31 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         ValueError
             when ``on_gradient`` of ``loss_function`` is False. 
         ValueError
-            when ``is_gradient_required`` of ``algorithm_option`` is False.
+            when ``is_gradient_required`` of this algorithm is False.
         """
+        # TODO delete these checks
         if loss_function.on_gradient == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_gradient' of loss_function must be True."
             )
-        if algorithm_option.is_gradient_required == False:
+        if self.is_gradient_required == False:
             raise ValueError(
-                "to execute ProjectedGradientDescentBase, 'is_gradient_required' of algorithm option must be True."
+                "to execute ProjectedGradientDescentBase, 'is_gradient_required' of this algorithm must be True."
             )
 
-        x_prev = algorithm_option.var_start
+        if algorithm_option.var_start is None:
+            x_prev = (
+                self._qt.generate_empty_estimation_obj_with_setting_info()
+                .generate_origin_obj()
+                .to_stacked_vector()
+            )
+        else:
+            x_prev = algorithm_option.var_start
         x_next = None
-        mu = algorithm_option.mu
+        if algorithm_option.var_start is None:
+            mu = 3 / (2 * np.sqrt(self._qt.num_variables))
+        else:
+            mu = algorithm_option.mu
         gamma = algorithm_option.gamma
         eps = algorithm_option.eps
 
@@ -154,8 +252,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
                 x_prev = x_next
 
             y_prev = (
-                algorithm_option.func_proj(x_prev - loss_function.gradient(x_prev) / mu)
-                - x_prev
+                self.func_proj(x_prev - loss_function.gradient(x_prev) / mu) - x_prev
             )
 
             alpha = 1.0
