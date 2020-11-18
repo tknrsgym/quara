@@ -242,8 +242,19 @@ class StandardQTomography(QTomography):
         )
         return val
 
-    def calc_mse_linear_analytical(
+    def _calc_mse_linear_analytical_mode_qoperation(
         self, qope: QOperation, data_num_list: List[int]
+    ) -> np.float64:
+        val = np.trace(self.calc_covariance_linear_mat_total(qope, data_num_list))
+        return val
+
+    def _calc_mse_linear_analytical_mode_var(
+        self, qope: QOperation, data_num_list: List[int]
+    ) -> np.float64:
+        return self._calc_mse_linear_analytical_mode_qoperation(qope, data_num_list)
+
+    def calc_mse_linear_analytical(
+        self, qope: QOperation, data_num_list: List[int], mode: str = "qoperation"
     ) -> np.float64:
         """calculates mean squared error of linear estimate of probability distributions.
 
@@ -259,7 +270,14 @@ class StandardQTomography(QTomography):
         np.float64
             mean squared error of linear estimate of probability distributions.
         """
-        val = np.trace(self.calc_covariance_linear_mat_total(qope, data_num_list))
+        if mode == "qoperation":
+            val = self._calc_mse_linear_analytical_mode_qoperation(qope, data_num_list)
+        elif mode == "var":
+            val = self._calc_mse_linear_analytical_mode_var(qope, data_num_list)
+        else:
+            error_message = "​The argument `mode` must be `qoperation` or `var`"
+            raise ValueError(error_message)
+
         return val
 
     def calc_mse_empi_dists_analytical(

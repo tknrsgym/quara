@@ -86,6 +86,15 @@ class StandardPovmt(StandardQTomography):
         ]
         return all(checks)
 
+    def _calc_mse_linear_analytical_mode_var(
+        self, qope: "QOperation", data_num_list: List[int]
+    ) -> np.float64:
+        if qope.on_para_eq_constraint:
+            raise NotImplementedError()
+        else:
+            val = self._calc_mse_linear_analytical_mode_qoperation(qope, data_num_list)
+        return val
+
     def generate_empi_dists_sequence(
         self, povm: Povm, num_sums: List[int]
     ) -> List[List[Tuple[int, np.array]]]:
