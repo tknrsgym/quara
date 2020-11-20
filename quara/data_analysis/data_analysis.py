@@ -307,7 +307,6 @@ def make_mses_graph(
     layout = go.Layout(
         title=title,
         xaxis_title_text="Number of data",
-        # yaxis_title_text="Mean squared error of estimates and true",
         yaxis_title_text=yaxis_title_text,
         xaxis_type="log",
         yaxis_type="log",
@@ -320,7 +319,6 @@ def make_mses_graph_estimation_results(
     estimation_results_list: List["LinearEstimationResult"],
     case_names: List[str],
     true_object,
-    title: str = None,
     show_analytical_results: bool = True,
     tester_objects: List[QOperation] = None,
 ) -> "Figure":
@@ -374,7 +372,7 @@ def make_mses_graph_estimation_results(
                     true_mses.append(true_mse)
                 mses_list.append(true_mses)
                 display_case_names.append(f"Analytical result (Linear, {parameter})")
-    fig = make_mses_graph(num_data, mses_list, names=display_case_names, title=title)
+    fig = make_mses_graph(num_data, mses_list, names=display_case_names)
     return fig
 
 

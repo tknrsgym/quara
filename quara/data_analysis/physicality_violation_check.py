@@ -109,29 +109,33 @@ def make_prob_dist_histogram(
     values: List[float],
     bin_size: Union[int, float, List[float]],
     num_data: int,
-    x_range: Optional[tuple] = None,
     annotation_vlines: List[Union[float, int]] = None,
+    xaxis_title_text: str = "Value",
+    x_abs_min: float = 10 ** (-4),
+    title: str = None,
+    additional_title_text: str = None,
 ):
-    if x_range:
-        x_start, x_end = x_range
+    if list(values):
+        x_min, x_max = min(values), max(values)
+    else:
+        x_min, x_max = None, None
 
+    # Adjust size of bin
     if type(bin_size) in [int, float]:
-        hist = go.Histogram(
-            x=values, xbins=dict(size=bin_size), histnorm="probability",
-        )
+        xbins = dict(size=bin_size)
     elif type(bin_size) == go.histogram.XBins:
-        hist = go.Histogram(x=values, xbins=bin_size, histnorm="probability",)
+        xbins = bin_size
     else:
         error_message = (
             f"bin_size must be int, float, or go.histogram.Xbins, not {type(bin_size)}"
         )
         raise TypeError(error_message)
 
-    layout = go.Layout(xaxis=dict(title="Value", dtick=0), yaxis=dict(title="Prob"))
-
+    hist = go.Histogram(x=values, xbins=xbins, histnorm="probability",)
+    layout = go.Layout()
     fig = go.Figure(hist, layout=layout)
-    ytickvals = [y * 0.1 for y in range(0, 10)]
 
+    # Annotation
     if annotation_vlines:
         for x_value in annotation_vlines:
             fig.add_shape(
@@ -146,12 +150,37 @@ def make_prob_dist_histogram(
                 y1=1,
                 yref="paper",
             )
-
+    # Y axis
+    ytickvals = [y * 0.1 for y in range(0, 10)]
     fig.update_yaxes(range=[0, 1], tickvals=ytickvals, title="Frequency")
-    n_rep = len(values)
-    title = f"N={num_data}, Nrep={n_rep}"
-    fig.update_layout(title=title)
+    # X axis
+    if x_min is not None and x_max is not None:
+        additional_text = (
+            f"<br><br>Min: {x_min}<br>Max: {x_max}<br>|Max-Min|: {abs(x_max-x_min)}"
+        )
+        xaxis_title_text += additional_text
+    fig.update_xaxes(title=xaxis_title_text)
 
+    # Adjust range of xaxis
+    if annotation_vlines:
+        ref_x = annotation_vlines[0]
+        if (x_min is None and x_max is None) or (
+            (ref_x - x_abs_min) < x_min and x_max < (ref_x + x_abs_min)
+        ):
+            x_range = ((ref_x - x_abs_min), (ref_x + x_abs_min))
+            fig.update_xaxes(range=[x_range[0], x_range[1]], autorange=False)
+
+    # Title
+    n_rep = len(values)
+    if not title:
+        title = f"N={num_data}, Nrep={n_rep}"
+    if additional_title_text:
+        title += additional_title_text
+
+    n_lines = title.count("<br>") + 1
+    fig.update_layout(
+        title=title, margin={"t": 40 * n_lines, "b": 0},
+    )
     return fig
 
 
@@ -209,7 +238,9 @@ def make_graph_trace(
     trace_list = get_trace_list(estimated_states)
 
     num_data = num_data[num_data_index]
-    fig = make_prob_dist_histogram(trace_list, num_data=num_data, bin_size=bin_size)
+    fig = make_prob_dist_histogram(
+        trace_list, num_data=num_data, bin_size=bin_size, annotation_vlines=[1]
+    )
     return fig
 
 
@@ -231,7 +262,9 @@ def make_graphs_eigenvalues(
             estimated_qoperations, true_object, n_data, bin_size
         )
     elif type(true_object) == Povm:
-        figs = _make_graphs_eigenvalues_povm(estimated_qoperations, n_data, bin_size)
+        figs = _make_graphs_eigenvalues_povm(
+            estimated_qoperations, true_object, n_data, bin_size
+        )
     elif type(true_object) == Gate:
         raise NotImplementedError()
     else:
@@ -242,10 +275,10 @@ def make_graphs_eigenvalues(
 
 def make_graphs_sum_unphysical_eigenvalues(
     estimation_results: List[EstimationResult],
-    num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ):
+    num_data = estimation_results[0].num_data
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -310,15 +343,15 @@ def make_graphs_sum_vecs(
         xbins = make_xbins(
             ref_x=vlines_list[i], min_x=min_x, max_x=max_x, bin_size=bin_size
         )
+
         fig = make_prob_dist_histogram(
             value_list,
-            # bin_size=bin_size,
             bin_size=xbins,
             num_data=num_data,
             annotation_vlines=[vlines_list[i]],
         )
         title = f"N={num_data[num_data_index]}, α={i}"
-        fig.update_layout(title=title)  # TODO
+        fig.update_layout(title=title)
         fig_list.append(fig)
     return fig_list
 
@@ -341,25 +374,30 @@ def _make_graphs_eigenvalues_state(
     figs = []
     for i, values in enumerate(sorted_eigenvalues_list):
         # plot eigenvalues of estimated states
-        fig = make_prob_dist_histogram(values, num_data=num_data, bin_size=bin_size)
+        fig = make_prob_dist_histogram(
+            values,
+            num_data=num_data,
+            bin_size=bin_size,
+            xaxis_title_text=f"Eigenvalue (i={i})",
+            annotation_vlines=[true_eigs[i]],
+        )
         fig.update_layout(title=f"N={num_data}, Nrep={len(values)}")
-        fig.update_xaxes(title=f"Eigenvalue (i={i})")
 
         # plot eigenvalues of true state
-        x_value = true_eigs[i]
-        fig.add_shape(
-            type="line",
-            line_color="red",
-            line_width=2,
-            opacity=0.5,
-            x0=x_value,
-            x1=x_value,
-            xref="x",
-            y0=0,
-            y1=1,
-            yref="paper",
-        )
-        figs.append(fig)
+        # x_value = true_eigs[i]
+        # fig.add_shape(
+        #     type="line",
+        #     line_color="red",
+        #     line_width=2,
+        #     opacity=0.5,
+        #     x0=x_value,
+        #     x1=x_value,
+        #     xref="x",
+        #     y0=0,
+        #     y1=1,
+        #     yref="paper",
+        # )
+        # figs.append(fig)
 
     return figs
 
@@ -391,9 +429,16 @@ def get_sorted_eigenvalues_list_povm(
 
 
 def _make_graphs_eigenvalues_povm(
-    estimated_povms: List[Povm], num_data: int, bin_size: float = 0.0001,
+    estimated_povms: List[Povm],
+    true_object: Povm,
+    num_data: int,
+    bin_size: float = 0.0001,
 ) -> List[List["Figure"]]:
     n_rep = len(estimated_povms)
+    sorted_true_eigs_list = []
+    for eigenvalues in true_object.calc_eigenvalues():
+        sorted_true_eigs = sorted([eig.real for eig in eigenvalues], reverse=True)
+        sorted_true_eigs_list.append(sorted_true_eigs)
 
     # Eigenvalues of Estimated Povms
     eigenvalues_dict = get_sorted_eigenvalues_list_povm(estimated_povms)
@@ -404,10 +449,13 @@ def _make_graphs_eigenvalues_povm(
             title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
 
             fig = make_prob_dist_histogram(
-                value_list, bin_size=bin_size, num_data=num_data
+                value_list,
+                bin_size=bin_size,
+                num_data=num_data,
+                xaxis_title_text=f"Eigenvalues (i={i})",
+                annotation_vlines=[sorted_true_eigs_list[x_i][i]],
             )
             fig.update_layout(title=title)
-            fig.update_xaxes(title=f"Eigenvalues (i={i})")
             fig_list.append(fig)
         fig_list_list.append(fig_list)
 
@@ -427,32 +475,39 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
     n_rep = len(sorted_eigenvalues_list)
     figs = []
     # Figure 1
-    fig = make_prob_dist_histogram(
-        less_than_zero_list, bin_size=bin_size, num_data=num_data, annotation_vlines=[0]
-    )
-
+    xaxis_title_text = f"Sum of unphysical eigenvalues (<0)"
     n_unphysical = len(less_than_zero_list)
-    title = (
-        f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
+
+    fig = make_prob_dist_histogram(
+        less_than_zero_list,
+        bin_size=bin_size,
+        num_data=num_data,
+        annotation_vlines=[0],
+        xaxis_title_text=xaxis_title_text,
+        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
-    fig.update_layout(title=title)
-    fig.update_xaxes(title=f"Sum of unphysical eigenvalues (<0)")
+    # title = (
+    #     f"N={num_data}, Nrep={n_rep}"
+    # )
+    # fig.update_layout(title=title)
     figs.append(fig)
 
     # Figure 2
+    xaxis_title_text = f"Sum of unphysical eigenvalues (>1)"
+    n_unphysical = len(less_than_zero_list)
     fig = make_prob_dist_histogram(
         greater_than_one_list,
         bin_size=bin_size,
         num_data=num_data,
         annotation_vlines=[1],
+        xaxis_title_text=xaxis_title_text,
+        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
 
-    n_unphysical = len(less_than_zero_list)
-    title = (
-        f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
-    )
-    fig.update_layout(title=title)
-    fig.update_xaxes(title=f"Sum of unphysical eigenvalues (>1)")
+    # title = (
+    #     f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
+    # )
+    # fig.update_layout(title=title)
     figs.append(fig)
 
     return figs
@@ -466,17 +521,22 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
     measurement_n = len(estimated_povms[0].vecs)
 
+    xaxis_title_text = f"Sum of unphysical eigenvalues (<0)"
     for x_i in range(measurement_n):
         value_list = []
         if x_i in minus_eigenvalues_dict:
             value_list = minus_eigenvalues_dict[x_i]
-        fig = make_prob_dist_histogram(
-            value_list, bin_size=bin_size, annotation_vlines=[0], num_data=num_data
-        )
+
         title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
         title += f"<br>Number of unphysical estimates={len(value_list)}"
-        fig.update_layout(title=title)
-        fig.update_xaxes(title=f"Sum of unphysical eigenvalues (<0)")
+        fig = make_prob_dist_histogram(
+            value_list,
+            bin_size=bin_size,
+            annotation_vlines=[0],
+            num_data=num_data,
+            xaxis_title_text=xaxis_title_text,
+            title=title,
+        )
         figs.append(fig)
 
     return figs

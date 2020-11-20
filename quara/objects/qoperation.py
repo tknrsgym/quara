@@ -610,8 +610,6 @@ class QOperation:
         error_value = self._calc_stopping_criterion_birgin_raydan_vectors(
             p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
         )
-        # TODO: remove
-        # print(f"{eps_proj_physical=}")
         if error_value < eps_proj_physical:
             return True, error_value
         else:
