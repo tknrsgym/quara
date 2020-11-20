@@ -111,7 +111,7 @@ def make_prob_dist_histogram(
     num_data: int,
     annotation_vlines: List[Union[float, int]] = None,
     xaxis_title_text: str = "Value",
-    x_abs_min: float = 10 ** (-4),
+    x_abs_min: float = 10 ** (-3),
     title: str = None,
     additional_title_text: str = None,
 ):
