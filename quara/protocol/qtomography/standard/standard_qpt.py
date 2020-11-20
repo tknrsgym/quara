@@ -118,36 +118,44 @@ class StandardQpt(StandardQTomography):
         self._coeffs_0th = dict()  # b
         self._coeffs_1st = dict()  # α
         STATE_ITEM_INDEX = 0
-        POVM_ITEM_INDEX = 2
+        POVM_ITEM_INDEX = 2  # TODO:
 
         # Create C
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             state_index = schedule[STATE_ITEM_INDEX][1]
             state = self._experiment.states[state_index]
+
+            povm_index = schedule[POVM_ITEM_INDEX][1]
+            povm = self._experiment.povms[povm_index]
+
             vec_size = state.vec.shape[0]
             dim = np.sqrt(vec_size)
-            for m_index in range(m):
-                pre_zeros = np.zeros((1, m_index * vec_size)).flatten()
-                post_zeros = np.zeros((1, ((m - 1) - m_index) * vec_size)).flatten()
+            for m_index, povm_vec in enumerate(povm.vecs):  # each measurement
+                c = povm.vecs * state.vec.T
+                print(c)
 
-                stack_list = []
-                if pre_zeros.size != 0:
-                    stack_list.append(pre_zeros)
-                stack_list.append(state.vec)
-                if post_zeros.size != 0:
-                    stack_list.append(post_zeros)
-                c = np.hstack(stack_list)
+            # for m_index in range(m):
+            #     pre_zeros = np.zeros((1, m_index * vec_size)).flatten()
+            #     post_zeros = np.zeros((1, ((m - 1) - m_index) * vec_size)).flatten()
 
-                if on_para_eq_constraint:
-                    a_prime, c_prime = np.split(c, [vec_size * (m - 1)])
-                    a = a_prime - np.tile(c_prime, m - 1)
-                    self._coeffs_1st[(schedule_index, m_index)] = a
-                    self._coeffs_0th[(schedule_index, m_index)] = (
-                        np.sqrt(dim) * c_prime[0]
-                    )
-                else:
-                    self._coeffs_1st[(schedule_index, m_index)] = c
-                    self._coeffs_0th[(schedule_index, m_index)] = 0
+            #     stack_list = []
+            #     if pre_zeros.size != 0:
+            #         stack_list.append(pre_zeros)
+            #     stack_list.append(state.vec)
+            #     if post_zeros.size != 0:
+            #         stack_list.append(post_zeros)
+            #     c = np.hstack(stack_list)
+
+            #     if on_para_eq_constraint:
+            #         a_prime, c_prime = np.split(c, [vec_size * (m - 1)])
+            #         a = a_prime - np.tile(c_prime, m - 1)
+            #         self._coeffs_1st[(schedule_index, m_index)] = a
+            #         self._coeffs_0th[(schedule_index, m_index)] = (
+            #             np.sqrt(dim) * c_prime[0]
+            #         )
+            #     else:
+            #         self._coeffs_1st[(schedule_index, m_index)] = c
+            #         self._coeffs_0th[(schedule_index, m_index)] = 0
 
     def convert_var_to_qoperation(self, var: np.array) -> Gate:
         template = self._set_qoperations.gates[0]

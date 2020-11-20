@@ -858,11 +858,11 @@ def export_report(
     <div>
         {case_table}
     </div>
-<h1>MSE of Empirical Distributions</h1>
+<h1>MSE of empirical distributions</h1>
     <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
-<h1>MSE</h1>
+<h1>MSE of estimators</h1>
     <div>
         {mse_div}
     </div>
