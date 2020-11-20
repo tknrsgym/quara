@@ -15,6 +15,9 @@ class SetQOperations:
         # Validation
         self._validate_type(states, State)
         self._validate_type(povms, Povm)
+        print(f"{gates=}")
+        for i, g in enumerate(gates):
+            print(f"{i}: {type(g)}")
         self._validate_type(gates, Gate)
 
         # Set
