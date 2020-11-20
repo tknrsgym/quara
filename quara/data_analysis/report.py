@@ -33,7 +33,10 @@ h1 {{margin-top: 60px;
 h2 {{font-size: 20px}}
 h3 {{font-size: 15px;
     color: #618CBC;}}
-h4 {{color:#EB9348; font-size: 15px;}}
+h4 {{color:#EB9348;
+font-size: 15px;
+-pdf-outline: false;
+}}
 h5 {{color:#666666;
 font-size: 13px;
 -pdf-outline: false;
