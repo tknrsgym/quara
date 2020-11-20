@@ -9,10 +9,90 @@ from quara.data_analysis.projected_gradient_descent_base import (
     ProjectedGradientDescentBase,
     ProjectedGradientDescentBaseOption,
 )
+from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.povm import (
+    get_x_measurement,
+    get_y_measurement,
+    get_z_measurement,
+)
+from quara.objects.state import convert_var_to_state, get_z0_1q
+from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.math import func_proj
 
 
+def get_test_data(
+    on_para_eq_constraint=False,
+    on_algo_eq_constraint=False,
+    on_algo_ineq_constraint=False,
+):
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    povm_x = get_x_measurement(c_sys)
+    povm_y = get_y_measurement(c_sys)
+    povm_z = get_z_measurement(c_sys)
+    povms = [povm_x, povm_y, povm_z]
+
+    qst = StandardQst(
+        povms,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        seed=7,
+    )
+
+    return qst, c_sys
+
+
 class TestProjectedGradientDescentBase:
+    def test_set_constraint_from_standard_qt(self):
+        # case1: use func_calc_proj_physical() if on_algo_eq_constraint=True, on_algo_ineq_constraint=True
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+        algo.set_constraint_from_standard_qt(qst)
+        var = np.array([2, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
+        actual = algo.func_proj(var)
+        expected = np.array(
+            [1, 1 / np.sqrt(3), 1 / np.sqrt(3), 1 / np.sqrt(3)], dtype=np.float64
+        ) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case2: use func_calc_proj_physical() if on_algo_eq_constraint=True, on_algo_ineq_constraint=False
+        qst, _ = get_test_data(
+            on_algo_eq_constraint=True, on_algo_ineq_constraint=False
+        )
+        algo = ProjectedGradientDescentBase()
+        algo.set_constraint_from_standard_qt(qst)
+        var = np.array([2, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
+        actual = algo.func_proj(var)
+        expected = np.array([1, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case3: use func_calc_proj_ineq_constraint() if on_algo_eq_constraint=False, on_algo_ineq_constraint=True
+        qst, _ = get_test_data(
+            on_algo_eq_constraint=False, on_algo_ineq_constraint=True
+        )
+        algo = ProjectedGradientDescentBase()
+        algo.set_constraint_from_standard_qt(qst)
+        var = np.array([1, 1.1, 0, 0], dtype=np.float64) / np.sqrt(2)
+        actual = algo.func_proj(var)
+        expected = np.array(
+            [7.42462120245875e-01, 7.42462120245875e-01, 0, 0], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # case4: use proj_to_self() if on_algo_eq_constraint=False, on_algo_ineq_constraint=False
+        qst, _ = get_test_data(
+            on_algo_eq_constraint=False, on_algo_ineq_constraint=False
+        )
+        algo = ProjectedGradientDescentBase()
+        algo.set_constraint_from_standard_qt(qst)
+        var = np.array([2, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
+        actual = algo.func_proj(var)
+        npt.assert_almost_equal(actual, var, decimal=14)
+
     def test_optimize_with_proj_to_self(self):
         loss_option = QuadraticLossFunctionOption()
         var_ref = np.array([1, 1], dtype=np.float64)
