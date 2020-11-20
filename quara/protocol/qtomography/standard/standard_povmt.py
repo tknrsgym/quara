@@ -9,6 +9,7 @@ from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.qcircuit.experiment import Experiment
+from quara.utils import matrix_util
 
 
 class StandardPovmt(StandardQTomography):
@@ -90,7 +91,27 @@ class StandardPovmt(StandardQTomography):
         self, qope: "QOperation", data_num_list: List[int]
     ) -> np.float64:
         if qope.on_para_eq_constraint:
-            raise NotImplementedError()
+            val_1st_term = self._calc_mse_linear_analytical_mode_qoperation(
+                qope, data_num_list
+            )
+
+            # generate matS
+            STATE_ITEM_INDEX = 0
+            schedule = self._experiment.schedules[0]
+            state_index = schedule[STATE_ITEM_INDEX][1]
+            state = self._experiment.states[state_index]
+            squared_dim = state.vec.shape[0]
+            I = np.eye(squared_dim, dtype=np.float64)
+            I_list = [I for _ in range(self._measurement_n - 1)]
+            matS = np.hstack(I_list)
+
+            # calcurates val_2nd_term = Tr[S V(v^{L}) S^T]
+            ScovST = matrix_util.calc_conjugate(
+                matS, self.calc_covariance_linear_mat_total(qope, data_num_list)
+            )
+            val_2nd_term = np.trace(ScovST)
+
+            val = val_1st_term + val_2nd_term
         else:
             val = self._calc_mse_linear_analytical_mode_qoperation(qope, data_num_list)
         return val
