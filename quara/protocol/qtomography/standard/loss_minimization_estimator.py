@@ -66,7 +66,6 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
         # TODO write 'this function changes loss, algo properties'
-        # TODO is_computation_time_required
 
         estimated_var_sequence = []
         computation_times = [] if is_computation_time_required else None

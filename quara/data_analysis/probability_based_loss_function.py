@@ -232,6 +232,13 @@ class ProbabilityBasedLossFunction(LossFunction):
         return _process
 
     def set_func_prob_dists_from_standard_qt(self, qt: StandardQTomography) -> None:
+        """sets the function of probability distributions from StandardQTomography.
+
+        Parameters
+        ----------
+        qt : StandardQTomography
+            StandardQTomography to set the function of probability distributions.
+        """
         matA = np.copy(qt.calc_matA())
         vecB = np.copy(qt.calc_vecB())
         num_func = qt.num_schedules
@@ -258,6 +265,13 @@ class ProbabilityBasedLossFunction(LossFunction):
     def set_func_gradient_prob_dists_from_standard_qt(
         self, qt: StandardQTomography
     ) -> None:
+        """sets the gradient of probability distributions from StandardQTomography.
+
+        Parameters
+        ----------
+        qt : StandardQTomography
+            StandardQTomography to set the gradient of probability distributions.
+        """
         matA = np.copy(qt.calc_matA())
         num_func = qt.num_schedules
         size_prob_dist = int(matA.shape[0] / num_func)
@@ -277,6 +291,13 @@ class ProbabilityBasedLossFunction(LossFunction):
     def set_func_hessian_prob_dists_from_standard_qt(
         self, qt: StandardQTomography
     ) -> None:
+        """sets the Hessian of probability distributions from StandardQTomography.
+
+        Parameters
+        ----------
+        qt : StandardQTomography
+            StandardQTomography to set the Hessian of probability distributions.
+        """
         matA = np.copy(qt.calc_matA())
         num_func = qt.num_schedules
         size_prob_dist = int(matA.shape[0] / num_func)
