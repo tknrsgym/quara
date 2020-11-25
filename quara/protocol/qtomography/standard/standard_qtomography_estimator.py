@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -27,10 +27,24 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
 
     @property
     def qtomography(self) -> StandardQTomography:
+        """returns the StandardQTomography used for estimation.
+
+        Returns
+        -------
+        StandardQTomography
+            the StandardQTomography used for estimation.
+        """
         return self._qtomography
 
     @property
-    def data(self):
+    def data(self) -> Any:
+        """returns the data used for estimation.
+
+        Returns
+        -------
+        Any
+            returns the data used for estimation.
+        """
         return self._data
 
     @property
