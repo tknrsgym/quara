@@ -121,6 +121,8 @@ class StandardQpt(StandardQTomography):
         POVM_ITEM_INDEX = 2  # TODO:
 
         # Create C
+        total_index = 0
+        c_list = []
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             state_index = schedule[STATE_ITEM_INDEX][1]
             state = self._experiment.states[state_index]
@@ -131,31 +133,19 @@ class StandardQpt(StandardQTomography):
             vec_size = state.vec.shape[0]
             dim = np.sqrt(vec_size)
             for m_index, povm_vec in enumerate(povm.vecs):  # each measurement
-                c = povm.vecs * state.vec.T
-                print(c)
+                c = np.kron(povm_vec, state.vec.T)
 
-            # for m_index in range(m):
-            #     pre_zeros = np.zeros((1, m_index * vec_size)).flatten()
-            #     post_zeros = np.zeros((1, ((m - 1) - m_index) * vec_size)).flatten()
-
-            #     stack_list = []
-            #     if pre_zeros.size != 0:
-            #         stack_list.append(pre_zeros)
-            #     stack_list.append(state.vec)
-            #     if post_zeros.size != 0:
-            #         stack_list.append(post_zeros)
-            #     c = np.hstack(stack_list)
-
-            #     if on_para_eq_constraint:
-            #         a_prime, c_prime = np.split(c, [vec_size * (m - 1)])
-            #         a = a_prime - np.tile(c_prime, m - 1)
-            #         self._coeffs_1st[(schedule_index, m_index)] = a
-            #         self._coeffs_0th[(schedule_index, m_index)] = (
-            #             np.sqrt(dim) * c_prime[0]
-            #         )
-            #     else:
-            #         self._coeffs_1st[(schedule_index, m_index)] = c
-            #         self._coeffs_0th[(schedule_index, m_index)] = 0
+                if on_para_eq_constraint:
+                    a = c[int(dim * dim) :]
+                    self._coeffs_1st[(schedule_index, m_index)] = a
+                    self._coeffs_0th[(schedule_index, m_index)] = c[0]
+                else:
+                    self._coeffs_1st[(schedule_index, m_index)] = c
+                    self._coeffs_0th[(schedule_index, m_index)] = 0
+                total_index += 1
+                c_list.append(c)
+        # for debugging and test
+        self._C = np.array(c_list)
 
     def convert_var_to_qoperation(self, var: np.array) -> Gate:
         template = self._set_qoperations.gates[0]

@@ -1,6 +1,6 @@
 from quara.protocol.qtomography.estimator import EstimationResult
 import time
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Dict
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -320,7 +320,7 @@ def make_mses_graph_estimation_results(
     case_names: List[str],
     true_object,
     show_analytical_results: bool = True,
-    tester_objects: List[QOperation] = None,
+    tester_objects: Union[List[QOperation], Dict[str, List[QOperation]]] = None,
 ) -> "Figure":
     num_data = estimation_results_list[0][0].num_data
     mses_list = []
@@ -356,13 +356,25 @@ def make_mses_graph_estimation_results(
                         on_para_eq_constraint=parameter,
                     )
                 elif type(true_object) == Gate:
-                    raise NotImplementedError()
+                    true_object_copied = Gate(
+                        hs=true_object.hs,
+                        c_sys=true_object.composite_system,
+                        on_para_eq_constraint=parameter,
+                    )
+                else:
+                    # TODO: message
+                    raise TypeError()
 
                 # Make QTomography
                 args = dict(on_para_eq_constraint=parameter,)
                 if type(true_object) == Povm:
                     args["measurement_n"] = len(true_object.vecs)
-                tmp_tomography = qtomography_class(tester_objects, **args)
+                if type(true_object) == Gate:
+                    tmp_tomography = qtomography_class(states=tester_objects["states"],
+                                          povms=tester_objects["povms"],
+                                          **args)
+                else:
+                    tmp_tomography = qtomography_class(tester_objects, **args)
 
                 true_mses = []
                 for num in num_data:
