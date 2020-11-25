@@ -179,8 +179,13 @@ class TestLossMinimizationEstimator:
         actual = estimator.calc_estimate(
             qst, empi_dists, loss, loss_option, algo, algo_option
         )
-        expected = [0.707106777392249, 0, 0, 0.707106797613043]
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        expected = [
+            7.071067772680395e-01,
+            -3.291237808416748e-26,
+            -3.291237808416748e-26,
+            7.071067976130435e-01,
+        ]
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=10)
 
     def test_calc_estimate__func_proj(self):
         empi_dists = [
