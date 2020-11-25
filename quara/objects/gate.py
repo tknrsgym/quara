@@ -1275,3 +1275,42 @@ def get_swap(c_sys: CompositeSystem) -> Gate:
     ).real.astype(np.float64)
     gate = Gate(c_sys, hs_for_c_sys)
     return gate
+
+
+def get_depolarizing_channel(p: float) -> Gate:
+    hs = np.diag(np.array([1, 1 - p, 1 - p, 1 - p], dtype=np.float64))
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
+
+
+def get_x_ratation(theta: float) -> Gate:
+    hs = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, np.cos(theta), -np.sin(theta)],
+            [0, 0, np.sin(theta), np.cos(theta)],
+        ],
+        dtype=np.float64,
+    )
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
+
+def get_amplitutde_damping_channel(gamma: float) -> Gate:
+    hs = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, np.sqrt(1-gamma), 0, 0],
+            [0, 0, np.sqrt(1-gamma), 0],
+            [gamma, 0, 0, 1-gamma],
+        ],
+        dtype=np.float64,
+    )
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
