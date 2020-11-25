@@ -43,6 +43,41 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         algo_option: MinimizationAlgorithmOption,
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
+        """StandardQTomography to calculates estimate variables. 
+
+        Parameters
+        ----------
+        qtomography : StandardQTomography
+            StandardQTomography to calculates estimate variables. 
+        empi_dists : List[Tuple[int, np.array]]
+            empirical distributions to calculates estimate variables. 
+        loss : ProbabilityBasedLossFunction
+            ProbabilityBasedLossFunction to calculates estimate variables.
+        loss_option : ProbabilityBasedLossFunctionOption
+            ProbabilityBasedLossFunctionOption to calculates estimate variables.
+        algo : MinimizationAlgorithm
+            MinimizationAlgorithm to calculates estimate variables.
+        algo_option : MinimizationAlgorithmOption
+            MinimizationAlgorithmOption to calculates estimate variables.
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
+
+        Returns
+        -------
+        StandardQTomographyEstimationResult
+            estimation result.
+
+        Raises
+        ------
+        ValueError
+            loss.is_option_sufficient() returns False.
+        ValueError
+            algo.is_loss_sufficient() returns False.
+        ValueError
+            algo.is_option_sufficient() returns False.
+        ValueError
+            algo.is_loss_and_option_sufficient() returns False.
+        """
         result = self.calc_estimate_sequence(
             qtomography,
             [empi_dists],
@@ -65,8 +100,43 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         algo_option: MinimizationAlgorithmOption,
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
-        # TODO write 'this function changes loss, algo properties'
+        """calculates sequence of estimate variables.
 
+        Notice: this function updates ``loss`` and ``algo properties``.
+
+        Parameters
+        ----------
+        qtomography : StandardQTomography
+            StandardQTomography to calculates estimate variables. 
+        empi_dists_sequence : List[List[Tuple[int, np.array]]]
+            sequence of empirical distributions to calculates estimate variables.
+        loss : ProbabilityBasedLossFunction
+            ProbabilityBasedLossFunction to calculates estimate variables.
+        loss_option : ProbabilityBasedLossFunctionOption
+            ProbabilityBasedLossFunctionOption to calculates estimate variables.
+        algo : MinimizationAlgorithm
+            MinimizationAlgorithm to calculates estimate variables.
+        algo_option : MinimizationAlgorithmOption
+            MinimizationAlgorithmOption to calculates estimate variables.
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
+
+        Returns
+        -------
+        StandardQTomographyEstimationResult
+            estimation result.
+
+        Raises
+        ------
+        ValueError
+            loss.is_option_sufficient() returns False.
+        ValueError
+            algo.is_loss_sufficient() returns False.
+        ValueError
+            algo.is_option_sufficient() returns False.
+        ValueError
+            algo.is_loss_and_option_sufficient() returns False.
+        """
         estimated_var_sequence = []
         computation_times = [] if is_computation_time_required else None
 
@@ -87,7 +157,6 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
             algo.set_from_loss(loss)
             algo.set_from_option(algo_option)
 
-            # TODO validate error messages
             # validate
             if loss.is_option_sufficient() == False:
                 raise ValueError(
