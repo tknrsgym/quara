@@ -75,6 +75,11 @@ class StandardPovmt(StandardQTomography):
 
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
+        self._on_para_eq_constraint = on_para_eq_constraint
+
+    @property
+    def on_para_eq_constraint(self):  # read only
+        return self._on_para_eq_constraint
 
     def is_valid_experiment(self) -> bool:
         states = self._experiment.states
