@@ -396,3 +396,22 @@ class TestProjectedGradientDescentBase:
         assert len(actual.y) == actual.k
         assert len(actual.alpha) == actual.k
         assert type(actual.computation_time) == float
+
+    def test_optimize_value_error(self):
+        # loss.on_value is False
+        var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        loss = QuadraticLossFunction(var_ref)
+        loss._on_value = False
+        algo = ProjectedGradientDescentBase()
+        algo.set_from_loss(loss)
+        with pytest.raises(ValueError):
+            algo.optimize(loss, None, None)
+
+        # loss.on_gradient is False
+        var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        loss = QuadraticLossFunction(var_ref)
+        loss._on_gradient = False
+        algo = ProjectedGradientDescentBase()
+        algo.set_from_loss(loss)
+        with pytest.raises(ValueError):
+            algo.optimize(loss, None, None)
