@@ -241,9 +241,9 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             return False
         elif self.option.mu is not None and self.option.mu <= 0:
             return False
-        elif self.option.gamma <= 0:
+        elif self.option.gamma is None or self.option.gamma <= 0:
             return False
-        elif self.option.eps <= 0:
+        elif self.option.eps is None or self.option.eps <= 0:
             return False
         else:
             return True
@@ -256,8 +256,12 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         bool
             whether the loss and the option are sufficient.
         """
-        # TODO validate when option.var_start exists
-        if self.option.var_start is not None:
+        # validate when option.var_start exists
+        if (
+            self.option is not None
+            and self.option.var_start is not None
+            and self.loss is not None
+        ):
             num_var_option = self.option.var_start.shape[0]
             num_var_loss = self.loss.num_var
             if num_var_option != num_var_loss:
@@ -315,10 +319,16 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         else:
             x_prev = algorithm_option.var_start
         x_next = None
-        if algorithm_option.var_start is None:
+        if algorithm_option.mu:
+            mu = algorithm_option.mu
+        elif algorithm_option.var_start:
+            mu = 3 / (2 * np.sqrt(len(algorithm_option.var_start)))
+        elif self._qt:
             mu = 3 / (2 * np.sqrt(self._qt.num_variables))
         else:
-            mu = algorithm_option.mu
+            # TODO
+            raise ValueError("")
+
         gamma = algorithm_option.gamma
         eps = algorithm_option.eps
 
