@@ -130,12 +130,8 @@ class StandardQTomographyEstimator(QTomographyEstimator):
 
         Returns
         -------
-        Dict
-            the return value forms the following dict:
-            {
-                "estimate": estimate variables(type=np.array),
-                "computation_time": computation time(seconds, type=float),
-            }
+        StandardQTomographyEstimationResult
+            estimation result.
 
         Raises
         ------
@@ -166,14 +162,8 @@ class StandardQTomographyEstimator(QTomographyEstimator):
 
         Returns
         -------
-        Dict
-            the return value forms the following dict:
-            {
-                "estimate": sequence of estimate variables(type=List[np.array]),
-                "computation_time": computation time(seconds, type=List[float]),
-            }
-        np.array
-            sequence of empirical distributions.
+        StandardQTomographyEstimationResult
+            estimation result.
 
         Raises
         ------

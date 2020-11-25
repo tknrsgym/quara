@@ -35,22 +35,57 @@ class ProjectedGradientDescentBaseResult(MinimizationResult):
 
     @property
     def k(self) -> int:
+        """returns the number of iterations.
+
+        Returns
+        -------
+        int
+            the number of iterations.
+        """
         return self._k
 
     @property
     def fx(self) -> List[np.array]:
+        """return the value of f(x) per iteration.
+
+        Returns
+        -------
+        List[np.array]
+            the value of f(x) per iteration.
+        """
         return self._fx
 
     @property
     def x(self) -> List[np.array]:
+        """return the x per iteration.
+
+        Returns
+        -------
+        List[np.array]
+            the x per iteration.
+        """
         return self._x
 
     @property
     def y(self) -> List[np.array]:
+        """return the y per iteration.
+
+        Returns
+        -------
+        List[np.array]
+            the y per iteration.
+        """
         return self._y
 
     @property
     def alpha(self) -> List[np.array]:
+        """return the alpha per iteration.
+
+        Returns
+        -------
+        List[np.array]
+            the alpha per iteration.
+        """
         return self._alpha
 
 
@@ -62,6 +97,19 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         gamma: float = 0.3,
         eps: float = None,
     ):
+        """Constructor
+
+        Parameters
+        ----------
+        var_start : np.array, optional
+            initial variable for the algorithm, by default None
+        mu : float, optional
+            algorithm option ``mu``, by default None
+        gamma : float, optional
+            algorithm option ``gamma``, by default 0.3
+        eps : float, optional
+            algorithm option ``epsilon``, by default None
+        """
         super().__init__(var_start)
 
         if mu is None and var_start is not None:
@@ -74,19 +122,47 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
 
     @property
     def mu(self) -> float:
+        """returns algorithm option ``mu``.
+
+        Returns
+        -------
+        float
+            algorithm option ``mu``.
+        """
         return self._mu
 
     @property
     def gamma(self) -> float:
+        """returns algorithm option ``gamma``.
+
+        Returns
+        -------
+        float
+            algorithm option ``gamma``.
+        """
         return self._gamma
 
     @property
     def eps(self) -> float:
+        """returns algorithm option ``eps``.
+
+        Returns
+        -------
+        float
+            algorithm option ``eps``.
+        """
         return self._eps
 
 
 class ProjectedGradientDescentBase(MinimizationAlgorithm):
     def __init__(self, func_proj: Callable[[np.array], np.array] = None):
+        """Constructor
+
+        Parameters
+        ----------
+        func_proj : Callable[[np.array], np.array], optional
+            function of projection, by default None
+        """
         super().__init__()
         self._func_proj: Callable[[np.array], np.array] = func_proj
         self._is_gradient_required: bool = True
@@ -95,6 +171,13 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
 
     @property
     def func_proj(self) -> Callable[[np.array], np.array]:
+        """returns function of projection.
+
+        Returns
+        -------
+        Callable[[np.array], np.array]
+            function of projection.
+        """
         return self._func_proj
 
     def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
@@ -137,7 +220,6 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         bool
             whether the loss is sufficient.
         """
-        # TODO validate
         if self.loss is None:
             return False
         elif self.loss.on_value is False:
@@ -155,7 +237,6 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         bool
             whether the option is sufficient.
         """
-        # TODO validate
         if self.option is None:
             return False
         elif self.option.mu is not None and self.option.mu <= 0:
@@ -216,7 +297,6 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         ValueError
             when ``is_gradient_required`` of this algorithm is False.
         """
-        # TODO delete these checks
         if loss_function.on_gradient == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_gradient' of loss_function must be True."
