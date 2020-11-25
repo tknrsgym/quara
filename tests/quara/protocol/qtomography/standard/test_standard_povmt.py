@@ -233,7 +233,7 @@ class TestStandardPovmt:
         )
 
         # Assert
-        npt.assert_almost_equal(actual, 0.02, decimal=15)
+        npt.assert_almost_equal(actual, 0.04, decimal=15)
 
         ### Case 2: on_par_eq_constraint = False
         # Arange
@@ -285,7 +285,7 @@ class TestStandardPovmt:
         )
 
         # Assert
-        npt.assert_almost_equal(actual, 0.04, decimal=15)
+        npt.assert_almost_equal(actual, 0.02, decimal=15)
 
         ### Case 2: on_par_eq_constraint = False
         # Arange
