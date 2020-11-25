@@ -363,16 +363,19 @@ def make_mses_graph_estimation_results(
                     )
                 else:
                     # TODO: message
-                    raise TypeError()
+                    message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+                    raise TypeError(message)
 
                 # Make QTomography
                 args = dict(on_para_eq_constraint=parameter,)
                 if type(true_object) == Povm:
                     args["measurement_n"] = len(true_object.vecs)
                 if type(true_object) == Gate:
-                    tmp_tomography = qtomography_class(states=tester_objects["states"],
-                                          povms=tester_objects["povms"],
-                                          **args)
+                    tmp_tomography = qtomography_class(
+                        states=tester_objects["states"],
+                        povms=tester_objects["povms"],
+                        **args,
+                    )
                 else:
                     tmp_tomography = qtomography_class(tester_objects, **args)
 

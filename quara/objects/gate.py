@@ -2,7 +2,7 @@ import copy
 import itertools
 from functools import reduce
 from operator import add
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import numpy as np
 
@@ -1277,15 +1277,16 @@ def get_swap(c_sys: CompositeSystem) -> Gate:
     return gate
 
 
-def get_depolarizing_channel(p: float) -> Gate:
+def get_depolarizing_channel(p: float, c_sys: Optional[CompositeSystem] = None) -> Gate:
     hs = np.diag(np.array([1, 1 - p, 1 - p, 1 - p], dtype=np.float64))
-    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
-    c_sys = CompositeSystem([e_sys])
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
     gate = Gate(hs=hs, c_sys=c_sys)
     return gate
 
 
-def get_x_ratation(theta: float) -> Gate:
+def get_x_rotation(theta: float, c_sys: Optional[CompositeSystem] = None) -> Gate:
     hs = np.array(
         [
             [1, 0, 0, 0],
@@ -1295,22 +1296,27 @@ def get_x_ratation(theta: float) -> Gate:
         ],
         dtype=np.float64,
     )
-    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
-    c_sys = CompositeSystem([e_sys])
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
     gate = Gate(hs=hs, c_sys=c_sys)
     return gate
 
-def get_amplitutde_damping_channel(gamma: float) -> Gate:
+
+def get_amplitutde_damping_channel(
+    gamma: float, c_sys: Optional[CompositeSystem] = None
+) -> Gate:
     hs = np.array(
         [
             [1, 0, 0, 0],
-            [0, np.sqrt(1-gamma), 0, 0],
-            [0, 0, np.sqrt(1-gamma), 0],
-            [gamma, 0, 0, 1-gamma],
+            [0, np.sqrt(1 - gamma), 0, 0],
+            [0, 0, np.sqrt(1 - gamma), 0],
+            [gamma, 0, 0, 1 - gamma],
         ],
         dtype=np.float64,
     )
-    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
-    c_sys = CompositeSystem([e_sys])
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
     gate = Gate(hs=hs, c_sys=c_sys)
     return gate
