@@ -30,7 +30,7 @@ from quara.objects.gate import (
     is_hp,
     hs_from_choi,
     get_depolarizing_channel,
-    get_x_ratation,
+    get_x_rotation,
     get_amplitutde_damping_channel,
 )
 from quara.objects.operators import composite, tensor_product
@@ -1583,15 +1583,15 @@ def test_get_depolarizing_channel():
     npt.assert_almost_equal(actual.hs, expected, decimal=16)
 
 
-def test_get_x_ratation():
+def test_get_x_rotation():
     # Act
-    actual = get_x_ratation(theta=np.pi / 2)
+    actual = get_x_rotation(theta=np.pi / 2)
     # Assert
     expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]])
     npt.assert_almost_equal(actual.hs, expected, decimal=16)
 
     # Act
-    actual = get_x_ratation(theta=np.pi)
+    actual = get_x_rotation(theta=np.pi)
     # Assert
     expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]])
     npt.assert_almost_equal(actual.hs, expected, decimal=16)
