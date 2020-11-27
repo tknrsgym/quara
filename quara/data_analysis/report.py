@@ -254,10 +254,7 @@ def _generate_graph_eigenvalues_seq(
 
 def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
-    print(f"{fig_info_list_list}")
     for fig_info_list in fig_info_list_list:
-        # TODO
-        print(f"len(fig_info_list)={len(fig_info_list)}")
         num = fig_info_list[0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
         for fig_info in fig_info_list:
@@ -408,32 +405,21 @@ def generate_sum_eigenvalues_div(
     return div_html
 
 
-def generate_mse_div(
+def generate_mse_analytical_div(
     estimation_results_list: List[List[EstimationResult]],
-    case_name_list: List[str],
     true_object: "QOperation",
-    show_analytical_results: bool = True,
-    tester_objects: List["QOperation"] = None,
+    estimator_list: list,
 ) -> str:
-    n_rep = len(estimation_results_list[0])
-
-    title = f"Mean squared error"
-    if not n_rep:
-        title += "<br>Nrep={n_rep}"
-
-    display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
-    fig = data_analysis.make_mses_graph_estimation_results(
+    fig = data_analysis.make_mses_graph_analytical(
         estimation_results_list=estimation_results_list,
-        case_names=display_name_list,
         true_object=true_object,
-        show_analytical_results=show_analytical_results,
-        tester_objects=tester_objects,
+        estimator_list=estimator_list,
     )
-
-    fig_name = f"mse"
+    fig.update_layout(width=600, height=600)
+    fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
+    fig_name = f"mse_analytical"
     path = _save_fig_to_tmp_dir(fig, fig_name)
-
-    mse_div = f"<img src='{path}'>"
+    mse_div = f"<div class='box'><img src='{path}'></div>"
     return mse_div
 
 
@@ -645,9 +631,9 @@ def generate_physicality_violation_test_div(
 def generate_case_table(
     case_name_list: List["str"],
     qtomography_list: List["QTomography"],
-    para_list: List[int],
     estimator_list: List["Estimator"],
 ):
+    para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
     case_dict = dict(
         Name=case_name_list,
         Parameterization=para_list,
@@ -689,11 +675,11 @@ def generate_condition_table(
 
 def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
-    para_list: List[bool],
     estimator_list: List["Estimator"],
     true_object: "QOperation",
 ):
     result_list = []
+    para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
     for i, qtomo in enumerate(qtomography_list):
         estimator = estimator_list[i]
@@ -737,12 +723,52 @@ def generate_computation_time_table(
     return computation_time_table
 
 
+def _make_graphs_mses(func_make_graphs, mse_type: "str", **kwargs) -> list:
+    figs = func_make_graphs(**kwargs)
+    fig_info_list = []
+
+    for i, fig in enumerate(figs):
+        fig_name = f"mse_type={mse_type}_{i}"
+        fig.update_layout(width=600, height=600)
+        fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
+        path = _save_fig_to_tmp_dir(fig, fig_name)
+        fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+    return fig_info_list
+
+
+def _generate_figs_div(fig_info_list: List[List[dict]]) -> str:
+    graph_block_html = ""
+    subblock_list = []
+    for fig_info in fig_info_list:
+        graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
+        subblock_list.append(graph_subblock)
+
+    col_n = 2
+    div_line = ""
+    div_lines = []
+    for i, block in enumerate(subblock_list):
+        div_line += block
+        if i % col_n == col_n - 1:
+            div_lines.append(f"<div>{div_line}</div>")
+            div_line = ""
+    else:
+        if div_line:
+            div_lines.append(f"<div>{div_line}</div>")
+
+    graph_block_html = "".join(div_lines)
+    return graph_block_html
+
+
+def generate_figs_div(func, **kwargs):
+    fig_info_list = func(**kwargs)
+    div_html = _generate_figs_div(fig_info_list)
+    return div_html
+
+
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    qtomography_list: List["QTomography"],
-    para_list: List[bool],
     estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
@@ -756,6 +782,7 @@ def export_report(
 
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
+    qtomography_list = [results[0].qtomography for results in estimation_results_list]
 
     # Computation Time
     print("​Generating table of computation time ...")
@@ -776,9 +803,7 @@ def export_report(
 
     # Cases
     print("Generating case list ...")
-    case_table = generate_case_table(
-        case_name_list, qtomography_list, para_list, estimator_list
-    )
+    case_table = generate_case_table(case_name_list, qtomography_list, estimator_list)
 
     # MSE of Empirical Distributions
     print("​​Generating MSE of empirical distributions blocks ...")
@@ -789,17 +814,34 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        qtomography_list, para_list, estimator_list, true_object,
+        qtomography_list, estimator_list, true_object,
     )
 
     # MSE
     print("​Generating a graph for MSE ...")
-    mse_div = generate_mse_div(
+
+    # 1. Comparison of analytical results
+    mse_analytical_results_div = generate_mse_analytical_div(
+        estimation_results_list, true_object, estimator_list
+    )
+    # 2. Comparison of parametrization
+    mse_para_div = generate_figs_div(
+        _make_graphs_mses,
+        func_make_graphs=data_analysis.make_mses_graphs_estimator,
+        mse_type="estimator",
         estimation_results_list=estimation_results_list,
-        case_name_list=case_name_list,
+        case_names=case_name_list,
         true_object=true_object,
-        show_analytical_results=True,
-        tester_objects=tester_objects,
+        estimator_list=estimator_list,
+    )
+    # 3. Comparison of estimators
+    mse_est_div = generate_figs_div(
+        _make_graphs_mses,
+        func_make_graphs=data_analysis.make_mses_graphs_para,
+        mse_type="para",
+        estimation_results_list=estimation_results_list,
+        case_names=case_name_list,
+        true_object=true_object,
     )
 
     # Physicality Violation Test
@@ -823,7 +865,7 @@ def export_report(
     @page {{
         size: a4 portrait;
         @frame content_frame {{
-            left: 20pt; right: 20pt; top: 50pt; height: 672pt;
+            left: 20pt; right: 20pt; top: 20pt; height: 702pt;
         }}
         @frame footer_frame {{
             -pdf-frame-content: footer_content;
@@ -863,9 +905,18 @@ def export_report(
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
 <h1>MSE of estimators</h1>
-    <div>
-        {mse_div}
-    </div>
+    <h2>Comparison of analytical results</h2>
+        <div>
+            {mse_analytical_results_div}
+        </div>
+    <h2>Comparison of parametrization</h2>
+        <div>
+            {mse_para_div}
+        </div>
+    <h2>Comparison of estimators</h2>
+        <div>
+            {mse_est_div}
+        </div>
 <h1>Physicality violation test</h1>
     <div>
         {physicality_violation_test_div}

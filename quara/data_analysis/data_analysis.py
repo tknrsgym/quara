@@ -1,6 +1,9 @@
+from numpy.lib.utils import source
 from quara.protocol.qtomography.estimator import EstimationResult
 import time
 from typing import Callable, List, Optional, Union, Dict
+import copy
+from collections import namedtuple
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -294,6 +297,7 @@ def make_mses_graph(
     num_data: List[int],
     mses: List[List[float]],
     title: str = "Mean squared error",
+    additional_title_text: str = "",
     names: Optional[List[str]] = None,
     yaxis_title_text: str = "Mean squared error of estimates and true",
 ) -> List["Figure"]:
@@ -303,7 +307,8 @@ def make_mses_graph(
     for i, mse in enumerate(mses):
         trace = go.Scatter(x=num_data, y=mse, mode="lines+markers", name=names[i])
         data.append(trace)
-
+    if additional_title_text:
+        title = f"{title}<br>{additional_title_text}"
     layout = go.Layout(
         title=title,
         xaxis_title_text="Number of data",
@@ -315,11 +320,43 @@ def make_mses_graph(
     return fig
 
 
+def _recreate_qoperation(
+    source_qoperation: "Qoperation", on_para_eq_constraint: bool
+) -> "Qoperation":
+    # Make QOperation
+    true_object = copy.copy(source_qoperation)
+    if type(true_object) == State:
+        true_object_copied = State(
+            vec=true_object.vec,
+            c_sys=true_object.composite_system,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
+    elif type(true_object) == Povm:
+        true_object_copied = Povm(
+            vecs=true_object.vecs,
+            c_sys=true_object.composite_system,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
+    elif type(true_object) == Gate:
+        true_object_copied = Gate(
+            hs=true_object.hs,
+            c_sys=true_object.composite_system,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
+    else:
+        message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+        raise TypeError(message)
+    return true_object_copied
+
+
 def make_mses_graph_estimation_results(
     estimation_results_list: List["LinearEstimationResult"],
     case_names: List[str],
     true_object,
-    show_analytical_results: bool = True,
+    title: str = "Mean squared error",
+    additional_title_text: str = "",
+    show_analytical_results: bool = False,
+    estimator_list: list = None,
 ) -> "Figure":
     num_data = estimation_results_list[0][0].num_data
     mses_list = []
@@ -330,109 +367,168 @@ def make_mses_graph_estimation_results(
 
     # calc analytical result
     if show_analytical_results:
-        qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
-        qtomo_type_dict = {}
+        if not estimator_list:
+            # TODO
+            raise ValueError()
+        analytical_mses, analytical_case_names = _make_data_for_graphs_mses_analytical(
+            estimation_results_list, true_object, estimator_list
+        )
+        mses_list += analytical_mses
+        display_case_names += analytical_case_names
 
-        for qtomo in qtomo_list:
-            qtomo_type = (qtomo.__class__, qtomo.on_para_eq_constraint,)  # TODO: named tuple
-            qtomo_type_dict[qtomo_type] = qtomo
-
-        for qtomo_type, qtomo in qtomo_type_dict.items():
-            parameter = qtomo_type[1]
-
-            # Make QOperation
-            if type(true_object) == State:
-                true_object_copied = State(
-                    vec=true_object.vec,
-                    c_sys=true_object.composite_system,
-                    on_para_eq_constraint=parameter,
-                )
-            elif type(true_object) == Povm:
-                true_object_copied = Povm(
-                    vecs=true_object.vecs,
-                    c_sys=true_object.composite_system,
-                    on_para_eq_constraint=parameter,
-                )
-            elif type(true_object) == Gate:
-                true_object_copied = Gate(
-                    hs=true_object.hs,
-                    c_sys=true_object.composite_system,
-                    on_para_eq_constraint=parameter,
-                )
-            else:
-                message = (
-                    f"true_object must be State, Povm, or Gate, not {type(true_object)}"
-                )
-                raise TypeError(message)
-            true_mses = []
-            for num in num_data:
-                true_mse = qtomo.calc_mse_linear_analytical(
-                    true_object_copied, [num] * qtomo.num_schedules
-                )
-                true_mses.append(true_mse)
-
-            mses_list.append(true_mses)
-            display_case_names.append(f"Analytical result (Linear, {parameter})")
-
-        # if not (tester_objects):
-        #     error_message = "Specify 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
-        #     raise ValueError(error_message)
-
-        # qtomography_classes = set(
-        #     [results[0].qtomography.__class__ for results in estimation_results_list]
-        # )
-
-        # for qtomography_class in qtomography_classes:
-        #     for parameter in [True, False]:
-        #         # Make QOperation
-
-        #         if type(true_object) == State:
-        #             true_object_copied = State(
-        #                 vec=true_object.vec,
-        #                 c_sys=true_object.composite_system,
-        #                 on_para_eq_constraint=parameter,
-        #             )
-        #         elif type(true_object) == Povm:
-        #             true_object_copied = Povm(
-        #                 vecs=true_object.vecs,
-        #                 c_sys=true_object.composite_system,
-        #                 on_para_eq_constraint=parameter,
-        #             )
-        #         elif type(true_object) == Gate:
-        #             true_object_copied = Gate(
-        #                 hs=true_object.hs,
-        #                 c_sys=true_object.composite_system,
-        #                 on_para_eq_constraint=parameter,
-        #             )
-        #         else:
-        #             # TODO: message
-        #             message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
-        #             raise TypeError(message)
-
-        #         # Make QTomography
-        #         args = dict(on_para_eq_constraint=parameter,)
-        #         if type(true_object) == Povm:
-        #             args["measurement_n"] = len(true_object.vecs)
-        #         if type(true_object) == Gate:
-        #             tmp_tomography = qtomography_class(
-        #                 states=tester_objects["states"],
-        #                 povms=tester_objects["povms"],
-        #                 **args,
-        #             )
-        #         else:
-        #             tmp_tomography = qtomography_class(tester_objects, **args)
-
-        #         true_mses = []
-        #         for num in num_data:
-        #             true_mse = tmp_tomography.calc_mse_linear_analytical(
-        #                 true_object_copied, [num] * tmp_tomography.num_schedules
-        #             )
-        #             true_mses.append(true_mse)
-        #         mses_list.append(true_mses)
-        #         display_case_names.append(f"Analytical result (Linear, {parameter})")
-
-    fig = make_mses_graph(num_data, mses_list, names=display_case_names)
+    fig = make_mses_graph(
+        num_data,
+        mses_list,
+        names=display_case_names,
+        title=title,
+        additional_title_text=additional_title_text,
+    )
     return fig
+
+
+def _make_data_for_graphs_mses_analytical(
+    estimation_results_list: List["EstimationResult"],
+    true_object,
+    estimator_list: List[Union["Estimator", str]],
+):
+    if len(estimation_results_list) != len(estimator_list):
+        # TODO: error message
+        raise ValueError()
+
+    num_data = estimation_results_list[0][0].num_data
+    mses_list = []
+
+    qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
+    qtomo_type_dict = {}
+    QTomoType = namedtuple(
+        "QTomoType", ["qtomography_name", "on_para_eq_constraint", "estimator_name"]
+    )
+
+    for i, qtomo in enumerate(qtomo_list):
+        if type(estimator_list[i]) == str:
+            estimator_name = estimator_list[i]
+        else:
+            estimator_name = estimator_list[i].__class__.__name__
+        qtomo_type = QTomoType(
+            qtomo.__class__.__name__, qtomo.on_para_eq_constraint, estimator_name,
+        )
+        qtomo_type_dict[qtomo_type] = qtomo
+
+    estimator_table = {"LinearEstimator": "calc_mse_linear_analytical"}
+
+    display_case_names = []
+    for qtomo_type, qtomo in qtomo_type_dict.items():
+        parameter = qtomo_type.on_para_eq_constraint
+        estimator_name = qtomo_type.estimator_name
+        if estimator_name not in estimator_table:
+            continue
+        method_name = estimator_table[estimator_name]
+
+        true_object_copied = _recreate_qoperation(
+            true_object, on_para_eq_constraint=parameter
+        )
+        true_mses = []
+        for num in num_data:
+            method = eval(f"qtomo.{method_name}")
+            true_mse = method(true_object_copied, [num] * qtomo.num_schedules)
+            true_mses.append(true_mse)
+
+        mses_list.append(true_mses)
+        short_name = estimator_name.replace("Estimator", "")
+        display_case_names.append(f"Analytical result ({short_name}, {parameter})")
+
+    return mses_list, display_case_names
+
+
+def make_mses_graph_analytical(
+    estimation_results_list: List["LinearEstimationResult"],
+    true_object,
+    estimator_list: list,
+) -> "Figure":
+    num_data = estimation_results_list[0][0].num_data
+    mses_list, display_case_names = _make_data_for_graphs_mses_analytical(
+        estimation_results_list, true_object, estimator_list
+    )
+
+    fig = make_mses_graph(
+        num_data,
+        mses_list,
+        names=display_case_names,
+        additional_title_text="Analytical result",
+    )
+    return fig
+
+
+def make_mses_graphs_estimator(
+    estimation_results_list: List["EstimationResult"],
+    case_names: List[str],
+    true_object,
+    estimator_list: List["Estimator"],
+) -> list:
+    data_dict = {}
+
+    for i, estimator in enumerate(estimator_list):
+        estimator_name = estimator.__class__.__name__
+        results = estimation_results_list[i]
+        case_name = case_names[i]
+
+        if estimator_name in data_dict:
+            data_dict[estimator_name]["estimation_results"].append(results)
+            data_dict[estimator_name]["case_names"].append(case_name)
+            data_dict[estimator_name]["estimators"].append(estimator)
+        else:
+            data_dict[estimator_name] = dict(
+            estimation_results=[results], case_names=[case_name], estimators=[estimator]
+        )
+
+    figs = []
+    for key, target_dict in data_dict.items():
+        fig = make_mses_graph_estimation_results(
+            target_dict["estimation_results"],
+            target_dict["case_names"],
+            true_object,
+            additional_title_text=f"estimator={key}",
+            show_analytical_results=True,
+            estimator_list=target_dict["estimators"],
+        )
+
+        figs.append(fig)
+    return figs
+
+
+def make_mses_graphs_para(
+    estimation_results_list: List["EstimationResult"],
+    case_names: List[str],
+    true_object: "QOperation",
+) -> list:
+    def _get_parameter(estimation_results: List["EstimationResult"]) -> bool:
+        return estimation_results[0].qtomography.on_para_eq_constraint
+
+    # Split data (True/False)
+    true_dict = dict(title="True", estimation_results=[], case_names=[])
+    false_dict = dict(title="False", estimation_results=[], case_names=[])
+
+    for i, results in enumerate(estimation_results_list):
+        if _get_parameter(results):
+            # on_para_eq_constraint = True
+            true_dict["estimation_results"].append(results)
+            true_dict["case_names"].append(case_names[i])
+        else:
+            # on_para_eq_constraint = False
+            false_dict["estimation_results"].append(results)
+            false_dict["case_names"].append(case_names[i])
+
+    # Make figure
+    figs = []
+    for target_dict in [true_dict, false_dict]:
+        fig = make_mses_graph_estimation_results(
+            target_dict["estimation_results"],
+            target_dict["case_names"],
+            true_object,
+            additional_title_text=f"parametrization={target_dict['title']}",
+        )
+        figs.append(fig)
+    return figs
 
 
 def show_mses(
@@ -569,53 +665,3 @@ def make_empi_dists_mse_graph(
         yaxis_title_text="Mean squared error",
     )
     return fig
-
-
-# def make_empi_dists_mse_graph_for_debug(
-#     estimation_results_list: List[List[EstimationResult]],
-#     qtomographies: List["StandardQTomography"],
-#     true_object: "QOperation",
-#     num_data: List[int],
-#     n_rep: int,
-#     tester_objects: List["QOperation"],
-#     case_names: List["str"],
-# ):
-#     mses_list = []
-
-#     # Data
-#     display_names = [f"Empirical distributions ({name})" for name in case_names]
-
-#     for j, results in enumerate(estimation_results_list):
-#         empi_dists = extract_empi_dists(results)
-#         xs_list_list = empi_dists
-#         ys_list_list = [[qtomographies[j].calc_prob_dists(true_object)] * n_rep] * len(
-#             num_data
-#         )
-
-#         mses = []
-#         for i in range(len(num_data)):
-#             mses.append(
-#                 matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i])
-#             )
-#         mses_list.append(mses)
-
-#     qtomography = qtomographies[0]
-#     estimation_results = estimation_results_list[0]
-#     # Analytical
-#     true_mses = []
-#     for num in num_data:
-#         true_mse = qtomography.calc_mse_empi_dists_analytical(
-#                 true_object, [num] * 3
-#             )
-
-#         true_mses.append(true_mse)
-#     mses_list.append(true_mses)
-#     display_names.append(f"Analytical result")
-
-#     fig = make_mses_graph(
-#         mses=mses_list,
-#         num_data=num_data,
-#         names=display_names,
-#         yaxis_title_text="Mean squared error",
-#     )
-#     return fig
