@@ -410,13 +410,8 @@ def generate_mse_div(
     case_name_list: List[str],
     true_object: "QOperation",
     show_analytical_results: bool = True,
-    tester_objects: List["QOperation"] = None,
 ) -> str:
     n_rep = len(estimation_results_list[0])
-
-    title = f"Mean squared error"
-    if not n_rep:
-        title += "<br>Nrep={n_rep}"
 
     display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
     fig = data_analysis.make_mses_graph_estimation_results(
@@ -429,6 +424,22 @@ def generate_mse_div(
     fig_name = f"mse"
     path = _save_fig_to_tmp_dir(fig, fig_name)
 
+    mse_div = f"<img src='{path}'>"
+    return mse_div
+
+
+def generate_mse_analytical_div(
+    estimation_results_list: List[List[EstimationResult]],
+    true_object: "QOperation",
+    estimator_list: list,
+) -> str:
+    fig = data_analysis.make_mses_graph_analytical(
+        estimation_results_list=estimation_results_list,
+        true_object=true_object,
+        estimator_list=estimator_list,
+    )
+    fig_name = f"mse_analytical"
+    path = _save_fig_to_tmp_dir(fig, fig_name)
     mse_div = f"<img src='{path}'>"
     return mse_div
 
@@ -733,6 +744,35 @@ def generate_computation_time_table(
     return computation_time_table
 
 
+def _make_graphs_mses(func_make_graphs, mse_type: "str", **kwargs) -> list:
+    figs = func_make_graphs(**kwargs)
+    fig_info_list = []
+
+    for i, fig in enumerate(figs):
+        fig_name = f"mse_type={mse_type}_{i}"
+        height = _col2_fig_width
+        fig.update_layout(width=_col2_fig_width, height=height)
+        fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
+        path = _save_fig_to_tmp_dir(fig, fig_name)
+        fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
+    return fig_info_list
+
+
+def _generate_figs_div(fig_info_list: List[List[dict]]) -> str:
+    graph_block_html = ""
+    for fig_info in fig_info_list:
+        graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
+        graph_block_html += graph_subblock
+
+    return graph_block_html
+
+
+def generate_figs_div(func, **kwargs):
+    fig_info_list = func(**kwargs)
+    div_html = _generate_figs_div(fig_info_list)
+    return div_html
+
+
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
@@ -795,15 +835,23 @@ def export_report(
         case_name_list=case_name_list,
         true_object=true_object,
         show_analytical_results=True,
-        tester_objects=tester_objects,
     )
 
     # 1. Comparison of analytical results
-    mse_analytical_results_div = "<div>TODO</div>"
+    mse_analytical_results_div = generate_mse_analytical_div(
+        estimation_results_list, true_object, estimator_list
+    )
     # 2. Comparison of parametrization
     mse_analytical_para_div = "<div>TODO</div>"
     # 3. Comparison of estimators
-    mse_analytical_est_div = "<div>TODO</div>"
+    mse_analytical_est_div = generate_figs_div(
+        _make_graphs_mses,
+        func_make_graphs=data_analysis.make_mses_graphs_para,
+        mse_type="para",
+        estimation_results_list=estimation_results_list,
+        case_names=case_name_list,
+        true_object=true_object,
+    )
 
     # Physicality Violation Test
     print("​​Generating physicality violation test blocks ...")
@@ -873,11 +921,11 @@ def export_report(
         <div>
             {mse_analytical_results_div}
         </div>
-    <h2>Comparison of analytical results</h2>
+    <h2>Comparison of parametrization</h2>
         <div>
             {mse_analytical_para_div}
         </div>
-    <h2>Comparison of analytical results</h2>
+    <h2>Comparison of estimators</h2>
         <div>
             {mse_analytical_est_div}
         </div>
