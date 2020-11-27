@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 import numpy.testing as npt
+import pytest
 
 from quara.data_analysis.projected_gradient_descent_base import (
     ProjectedGradientDescentBase,
@@ -316,3 +317,95 @@ class TestLossMinimizationEstimator:
         for a, e in zip(actual.estimated_qoperation_sequence, expected):
             assert a.is_physical()
             npt.assert_almost_equal(a.to_stacked_vector(), e, decimal=15)
+
+    def test_calc_estimate_sequence_value_error(self):
+        qst, _ = get_test_data()
+        empi_dists_seq = [
+            [
+                (100, np.array([0.5, 0.5], dtype=np.float64)),
+                (100, np.array([0.5, 0.5], dtype=np.float64)),
+                (100, np.array([1, 0], dtype=np.float64)),
+            ],
+            [
+                (10000, np.array([1, 0], dtype=np.float64)),
+                (10000, np.array([0.5, 0.5], dtype=np.float64)),
+                (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            ],
+        ]
+
+        # loss.is_option_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
+
+        def _is_option_sufficient():
+            return False
+
+        loss.is_option_sufficient = _is_option_sufficient
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+        algo_option = ProjectedGradientDescentBaseOption()
+
+        estimator = LossMinimizationEstimator()
+
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )
+
+        # algo.is_loss_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        def _is_loss_sufficient():
+            return False
+
+        algo.is_loss_sufficient = _is_loss_sufficient
+        algo_option = ProjectedGradientDescentBaseOption()
+
+        estimator = LossMinimizationEstimator()
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )
+
+        # algo.is_option_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        def _is_option_sufficient():
+            return False
+
+        algo.is_option_sufficient = _is_option_sufficient
+        algo_option = ProjectedGradientDescentBaseOption()
+
+        estimator = LossMinimizationEstimator()
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )
+
+        # algo.is_loss_and_option_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        def _is_loss_and_option_sufficient():
+            return False
+
+        algo.is_loss_and_option_sufficient = _is_loss_and_option_sufficient
+        algo_option = ProjectedGradientDescentBaseOption()
+
+        estimator = LossMinimizationEstimator()
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )
