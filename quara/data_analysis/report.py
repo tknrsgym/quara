@@ -405,29 +405,6 @@ def generate_sum_eigenvalues_div(
     return div_html
 
 
-def generate_mse_div(
-    estimation_results_list: List[List[EstimationResult]],
-    case_name_list: List[str],
-    true_object: "QOperation",
-    show_analytical_results: bool = True,
-) -> str:
-    n_rep = len(estimation_results_list[0])
-
-    display_name_list = [f"Case {i}: {name}" for i, name in enumerate(case_name_list)]
-    fig = data_analysis.make_mses_graph_estimation_results(
-        estimation_results_list=estimation_results_list,
-        case_names=display_name_list,
-        true_object=true_object,
-        show_analytical_results=show_analytical_results,
-    )
-
-    fig_name = f"mse"
-    path = _save_fig_to_tmp_dir(fig, fig_name)
-
-    mse_div = f"<img src='{path}'>"
-    return mse_div
-
-
 def generate_mse_analytical_div(
     estimation_results_list: List[List[EstimationResult]],
     true_object: "QOperation",
@@ -438,9 +415,11 @@ def generate_mse_analytical_div(
         true_object=true_object,
         estimator_list=estimator_list,
     )
+    fig.update_layout(width=600, height=600)
+    fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
     fig_name = f"mse_analytical"
     path = _save_fig_to_tmp_dir(fig, fig_name)
-    mse_div = f"<img src='{path}'>"
+    mse_div = f"<div class='box'><img src='{path}'></div>"
     return mse_div
 
 
@@ -750,8 +729,7 @@ def _make_graphs_mses(func_make_graphs, mse_type: "str", **kwargs) -> list:
 
     for i, fig in enumerate(figs):
         fig_name = f"mse_type={mse_type}_{i}"
-        height = _col2_fig_width
-        fig.update_layout(width=_col2_fig_width, height=height)
+        fig.update_layout(width=600, height=600)
         fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
         path = _save_fig_to_tmp_dir(fig, fig_name)
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
@@ -760,10 +738,26 @@ def _make_graphs_mses(func_make_graphs, mse_type: "str", **kwargs) -> list:
 
 def _generate_figs_div(fig_info_list: List[List[dict]]) -> str:
     graph_block_html = ""
+    subblock_list = []
     for fig_info in fig_info_list:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
-        graph_block_html += graph_subblock
+        # TODO: revert
+        # graph_block_html += graph_subblock
+        subblock_list.append(graph_subblock)
 
+    col_n = 2
+    div_line = ""
+    div_lines = []
+    for i, block in enumerate(subblock_list):
+        div_line += block
+        if i % col_n == col_n - 1:
+            div_lines.append(f"<div>{div_line}</div>")
+            div_line = ""
+    else:
+        if div_line:
+            div_lines.append(f"<div>{div_line}</div>")
+
+    graph_block_html = "".join(div_lines)
     return graph_block_html
 
 
@@ -830,21 +824,23 @@ def export_report(
 
     # MSE
     print("​Generating a graph for MSE ...")
-    mse_div = generate_mse_div(
-        estimation_results_list=estimation_results_list,
-        case_name_list=case_name_list,
-        true_object=true_object,
-        show_analytical_results=True,
-    )
 
     # 1. Comparison of analytical results
     mse_analytical_results_div = generate_mse_analytical_div(
         estimation_results_list, true_object, estimator_list
     )
     # 2. Comparison of parametrization
-    mse_analytical_para_div = "<div>TODO</div>"
+    mse_para_div = generate_figs_div(
+        _make_graphs_mses,
+        func_make_graphs=data_analysis.make_mses_graphs_estimator,
+        mse_type="estimator",
+        estimation_results_list=estimation_results_list,
+        case_names=case_name_list,
+        true_object=true_object,
+        estimator_list=estimator_list,
+    )
     # 3. Comparison of estimators
-    mse_analytical_est_div = generate_figs_div(
+    mse_est_div = generate_figs_div(
         _make_graphs_mses,
         func_make_graphs=data_analysis.make_mses_graphs_para,
         mse_type="para",
@@ -874,7 +870,7 @@ def export_report(
     @page {{
         size: a4 portrait;
         @frame content_frame {{
-            left: 20pt; right: 20pt; top: 50pt; height: 672pt;
+            left: 20pt; right: 20pt; top: 20pt; height: 702pt;
         }}
         @frame footer_frame {{
             -pdf-frame-content: footer_content;
@@ -914,20 +910,17 @@ def export_report(
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
 <h1>MSE of estimators</h1>
-    <div>TODO: remove<br>
-        {mse_div}
-    </div>
     <h2>Comparison of analytical results</h2>
         <div>
             {mse_analytical_results_div}
         </div>
     <h2>Comparison of parametrization</h2>
         <div>
-            {mse_analytical_para_div}
+            {mse_para_div}
         </div>
     <h2>Comparison of estimators</h2>
         <div>
-            {mse_analytical_est_div}
+            {mse_est_div}
         </div>
 <h1>Physicality violation test</h1>
     <div>

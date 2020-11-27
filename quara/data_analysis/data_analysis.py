@@ -370,7 +370,9 @@ def make_mses_graph_estimation_results(
         if not estimator_list:
             # TODO
             raise ValueError()
-        analytical_mses, analytical_case_names = _make_data_for_graphs_mses_analytical(estimation_results_list, true_object, estimator_list)
+        analytical_mses, analytical_case_names = _make_data_for_graphs_mses_analytical(
+            estimation_results_list, true_object, estimator_list
+        )
         mses_list += analytical_mses
         display_case_names += analytical_case_names
 
@@ -387,7 +389,7 @@ def make_mses_graph_estimation_results(
 def _make_data_for_graphs_mses_analytical(
     estimation_results_list: List["EstimationResult"],
     true_object,
-    estimator_list: list,
+    estimator_list: List[Union["Estimator", str]],
 ):
     if len(estimation_results_list) != len(estimator_list):
         # TODO: error message
@@ -403,10 +405,12 @@ def _make_data_for_graphs_mses_analytical(
     )
 
     for i, qtomo in enumerate(qtomo_list):
+        if type(estimator_list[i]) == str:
+            estimator_name = estimator_list[i]
+        else:
+            estimator_name = estimator_list[i].__class__.__name__
         qtomo_type = QTomoType(
-            qtomo.__class__.__name__,
-            qtomo.on_para_eq_constraint,
-            estimator_list[i].__class__.__name__,
+            qtomo.__class__.__name__, qtomo.on_para_eq_constraint, estimator_name,
         )
         qtomo_type_dict[qtomo_type] = qtomo
 
@@ -430,7 +434,7 @@ def _make_data_for_graphs_mses_analytical(
             true_mses.append(true_mse)
 
         mses_list.append(true_mses)
-        short_name = estimator_name.rstrip("Estimator")
+        short_name = estimator_name.replace("Estimator", "")
         display_case_names.append(f"Analytical result ({short_name}, {parameter})")
 
     return mses_list, display_case_names
@@ -453,6 +457,43 @@ def make_mses_graph_analytical(
         additional_title_text="Analytical result",
     )
     return fig
+
+
+def make_mses_graphs_estimator(
+    estimation_results_list: List["EstimationResult"],
+    case_names: List[str],
+    true_object,
+    estimator_list: List["Estimator"],
+) -> list:
+    data_dict = {}
+
+    for i, estimator in enumerate(estimator_list):
+        estimator_name = estimator.__class__.__name__
+        results = estimation_results_list[i]
+        case_name = case_names[i]
+
+        if estimator_name in data_dict:
+            data_dict[estimator_name]["estimation_results"].append(results)
+            data_dict[estimator_name]["case_names"].append(case_name)
+            data_dict[estimator_name]["estimators"].append(estimator)
+        else:
+            data_dict[estimator_name] = dict(
+            estimation_results=[results], case_names=[case_name], estimators=[estimator]
+        )
+
+    figs = []
+    for key, target_dict in data_dict.items():
+        fig = make_mses_graph_estimation_results(
+            target_dict["estimation_results"],
+            target_dict["case_names"],
+            true_object,
+            additional_title_text=f"estimator={key}",
+            show_analytical_results=True,
+            estimator_list=target_dict["estimators"],
+        )
+
+        figs.append(fig)
+    return figs
 
 
 def make_mses_graphs_para(
