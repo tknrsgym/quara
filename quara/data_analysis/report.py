@@ -631,9 +631,9 @@ def generate_physicality_violation_test_div(
 def generate_case_table(
     case_name_list: List["str"],
     qtomography_list: List["QTomography"],
-    para_list: List[int],
     estimator_list: List["Estimator"],
 ):
+    para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
     case_dict = dict(
         Name=case_name_list,
         Parameterization=para_list,
@@ -675,11 +675,11 @@ def generate_condition_table(
 
 def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
-    para_list: List[bool],
     estimator_list: List["Estimator"],
     true_object: "QOperation",
 ):
     result_list = []
+    para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
     for i, qtomo in enumerate(qtomography_list):
         estimator = estimator_list[i]
@@ -741,8 +741,6 @@ def _generate_figs_div(fig_info_list: List[List[dict]]) -> str:
     subblock_list = []
     for fig_info in fig_info_list:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
-        # TODO: revert
-        # graph_block_html += graph_subblock
         subblock_list.append(graph_subblock)
 
     col_n = 2
@@ -771,8 +769,6 @@ def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    qtomography_list: List["QTomography"],
-    para_list: List[bool],
     estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
@@ -786,6 +782,7 @@ def export_report(
 
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
+    qtomography_list = [results[0].qtomography for results in estimation_results_list]
 
     # Computation Time
     print("​Generating table of computation time ...")
@@ -806,9 +803,7 @@ def export_report(
 
     # Cases
     print("Generating case list ...")
-    case_table = generate_case_table(
-        case_name_list, qtomography_list, para_list, estimator_list
-    )
+    case_table = generate_case_table(case_name_list, qtomography_list, estimator_list)
 
     # MSE of Empirical Distributions
     print("​​Generating MSE of empirical distributions blocks ...")
@@ -819,7 +814,7 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        qtomography_list, para_list, estimator_list, true_object,
+        qtomography_list, estimator_list, true_object,
     )
 
     # MSE
