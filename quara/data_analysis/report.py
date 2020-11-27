@@ -33,9 +33,21 @@ h1 {{margin-top: 60px;
 h2 {{font-size: 20px}}
 h3 {{font-size: 15px;
     color: #618CBC;}}
-h4 {{color:#EB9348; font-size: 15px;}}
-h5 {{color:#666666; font-size: 13px; -pdf-outline: false;}}
-h6 {{color:#666666; font-size: 13px; font-style:italic; -pdf-outline: false;}}
+h4 {{color:#EB9348;
+font-size: 15px;
+-pdf-outline: false;
+}}
+h5 {{color:#666666;
+font-size: 13px;
+-pdf-outline: false;
+padding: 0 0 0 0;
+margin: 0 0 0 0;}}
+h6 {{color:#666666;
+font-size: 13px;
+font-style:italic;
+-pdf-outline: false;
+padding: 0 0 0 0;
+margin: 0 0 0 0;}}
 #footer_content {{text-align: right;}}
 """
 
@@ -106,6 +118,9 @@ _inline_block_css = """
 }
 """
 
+_col2_fig_width = 500
+_col2_fig_height = 400
+
 
 def _convert_html2pdf(source_html: str, output_path: str):
     # TODO: make parent directory
@@ -137,7 +152,7 @@ def _make_graph_trace_seq(
         )
 
         fig_name = f"case={case_id}_trace_num={num}_0"
-        fig.update_layout(width=500, height=400)
+        fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
         path = _save_fig_to_tmp_dir(fig, fig_name)
 
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
@@ -166,17 +181,13 @@ def _make_graph_sum_vecs_seq(
     num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
-        bin_size = 10 ** (-13)
         figs = physicality_violation_check.make_graphs_sum_vecs(
-            estimation_results,
-            true_object,
-            num_data_index=num_data_index,
-            bin_size=bin_size,
+            estimation_results, true_object, num_data_index=num_data_index
         )
         fig_info_list = []
         for alpha, fig in enumerate(figs):
             fig_name = f"case={case_id}_trace_num={num}_alpha={alpha}"
-            fig.update_layout(width=500, height=400)
+            fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(
@@ -230,7 +241,7 @@ def _generate_graph_eigenvalues_seq(
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
-            fig.update_layout(width=500, height=400)
+            fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(
@@ -243,8 +254,10 @@ def _generate_graph_eigenvalues_seq(
 
 def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
+    print(f"{fig_info_list_list}")
     for fig_info_list in fig_info_list_list:
         # TODO
+        print(f"len(fig_info_list)={len(fig_info_list)}")
         num = fig_info_list[0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
         for fig_info in fig_info_list:
@@ -299,7 +312,7 @@ def _generate_graph_eigenvalues_seq_3loop(
                 fig_name = (
                     f"case={case_id}_eigenvalues_num={num_data_index}_x={x_i}_i={i}"
                 )
-                fig.update_layout(width=500, height=400)
+                fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
                 path = _save_fig_to_tmp_dir(fig, fig_name)
 
                 fig_info = dict(
@@ -341,17 +354,18 @@ def generate_eigenvalues_div(
 def _generate_graph_sum_eigenvalues_seq(
     estimation_results: List["EstimationResult"], case_id: int, true_object,
 ) -> List[List[dict]]:
+    # TODO: remove?
     num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
-            estimation_results, num_data=num_data, num_data_index=num_data_index,
+            estimation_results, num_data_index=num_data_index,
         )
         fig_info_list = []
 
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
-            fig.update_layout(width=500, height=400)
+            fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(
@@ -552,6 +566,8 @@ def _generate_physicality_violation_test_div_for_povm(
     test_ineq_const_sum_eigenvalues_divs = ""
 
     for case_id, case_name in enumerate(case_name_list):
+        # print(f"len={len(estimation_results_list)}")
+        # print(f"{case_id=}")
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_sum_vecs_div(
@@ -842,11 +858,11 @@ def export_report(
     <div>
         {case_table}
     </div>
-<h1>MSE of Empirical Distributions</h1>
+<h1>MSE of empirical distributions</h1>
     <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
-<h1>MSE</h1>
+<h1>MSE of estimators</h1>
     <div>
         {mse_div}
     </div>

@@ -1,6 +1,6 @@
 from quara.protocol.qtomography.estimator import EstimationResult
 import time
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Dict
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -141,21 +141,6 @@ def calc_mse_qoperations(
         error_message = "​The argument `mode` must be `qoperation` or `var`"
         raise ValueError(error_message)
     return mse, std
-
-
-# def calc_mse_qoperations(
-#     xs: List[QOperation], ys: List[QOperation], mode: str = "qoperation"
-# ) -> np.float64:
-#     points = []
-#     for x, y in zip(xs, ys):
-#         x_vec = x.to_stacked_vector()
-#         y_vec = y.to_stacked_vector()
-#         point = np.vdot(x_vec - y_vec, x_vec - y_vec)
-#         points.append(point)
-
-#     mse = np.mean(points, dtype=np.float64)
-#     std = np.std(points, dtype=np.float64, ddof=1)
-#     return mse, std
 
 
 # common(StandardQTomography)
@@ -322,7 +307,6 @@ def make_mses_graph(
     layout = go.Layout(
         title=title,
         xaxis_title_text="Number of data",
-        # yaxis_title_text="Mean squared error of estimates and true",
         yaxis_title_text=yaxis_title_text,
         xaxis_type="log",
         yaxis_type="log",
@@ -335,9 +319,7 @@ def make_mses_graph_estimation_results(
     estimation_results_list: List["LinearEstimationResult"],
     case_names: List[str],
     true_object,
-    title: str = None,
     show_analytical_results: bool = True,
-    tester_objects: List[QOperation] = None,
 ) -> "Figure":
     num_data = estimation_results_list[0][0].num_data
     mses_list = []
@@ -348,50 +330,108 @@ def make_mses_graph_estimation_results(
 
     # calc analytical result
     if show_analytical_results:
-        if not (tester_objects):
-            error_message = "Specify 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
-            raise ValueError(error_message)
+        qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
+        qtomo_type_dict = {}
 
-        qtomography_classes = set(
-            [results[0].qtomography.__class__ for results in estimation_results_list]
-        )
+        for qtomo in qtomo_list:
+            qtomo_type = (qtomo.__class__, qtomo.on_para_eq_constraint,)  # TODO: named tuple
+            qtomo_type_dict[qtomo_type] = qtomo
 
-        for qtomography_class in qtomography_classes:
-            for parameter in [True, False]:
-                # Make QOperation
-                # true_object_copied = true_object.copy()
-                # true_object_copied._on_para_eq_constraint = parameter
+        for qtomo_type, qtomo in qtomo_type_dict.items():
+            parameter = qtomo_type[1]
 
-                if type(true_object) == State:
-                    true_object_copied = State(
-                        vec=true_object.vec,
-                        c_sys=true_object.composite_system,
-                        on_para_eq_constraint=parameter,
-                    )
-                elif type(true_object) == Povm:
-                    true_object_copied = Povm(
-                        vecs=true_object.vecs,
-                        c_sys=true_object.composite_system,
-                        on_para_eq_constraint=parameter,
-                    )
-                elif type(true_object) == Gate:
-                    raise NotImplementedError()
+            # Make QOperation
+            if type(true_object) == State:
+                true_object_copied = State(
+                    vec=true_object.vec,
+                    c_sys=true_object.composite_system,
+                    on_para_eq_constraint=parameter,
+                )
+            elif type(true_object) == Povm:
+                true_object_copied = Povm(
+                    vecs=true_object.vecs,
+                    c_sys=true_object.composite_system,
+                    on_para_eq_constraint=parameter,
+                )
+            elif type(true_object) == Gate:
+                true_object_copied = Gate(
+                    hs=true_object.hs,
+                    c_sys=true_object.composite_system,
+                    on_para_eq_constraint=parameter,
+                )
+            else:
+                message = (
+                    f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+                )
+                raise TypeError(message)
+            true_mses = []
+            for num in num_data:
+                true_mse = qtomo.calc_mse_linear_analytical(
+                    true_object_copied, [num] * qtomo.num_schedules
+                )
+                true_mses.append(true_mse)
 
-                # Make QTomography
-                args = dict(on_para_eq_constraint=parameter,)
-                if type(true_object) == Povm:
-                    args["measurement_n"] = len(true_object.vecs)
-                tmp_tomography = qtomography_class(tester_objects, **args)
+            mses_list.append(true_mses)
+            display_case_names.append(f"Analytical result (Linear, {parameter})")
 
-                true_mses = []
-                for num in num_data:
-                    true_mse = tmp_tomography.calc_mse_linear_analytical(
-                        true_object_copied, [num] * tmp_tomography.num_schedules
-                    )
-                    true_mses.append(true_mse)
-                mses_list.append(true_mses)
-                display_case_names.append(f"Analytical result (Linear, {parameter})")
-    fig = make_mses_graph(num_data, mses_list, names=display_case_names, title=title)
+        # if not (tester_objects):
+        #     error_message = "Specify 'tester_objects' if 'show_analytical_results' is True to show the analutical result."
+        #     raise ValueError(error_message)
+
+        # qtomography_classes = set(
+        #     [results[0].qtomography.__class__ for results in estimation_results_list]
+        # )
+
+        # for qtomography_class in qtomography_classes:
+        #     for parameter in [True, False]:
+        #         # Make QOperation
+
+        #         if type(true_object) == State:
+        #             true_object_copied = State(
+        #                 vec=true_object.vec,
+        #                 c_sys=true_object.composite_system,
+        #                 on_para_eq_constraint=parameter,
+        #             )
+        #         elif type(true_object) == Povm:
+        #             true_object_copied = Povm(
+        #                 vecs=true_object.vecs,
+        #                 c_sys=true_object.composite_system,
+        #                 on_para_eq_constraint=parameter,
+        #             )
+        #         elif type(true_object) == Gate:
+        #             true_object_copied = Gate(
+        #                 hs=true_object.hs,
+        #                 c_sys=true_object.composite_system,
+        #                 on_para_eq_constraint=parameter,
+        #             )
+        #         else:
+        #             # TODO: message
+        #             message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+        #             raise TypeError(message)
+
+        #         # Make QTomography
+        #         args = dict(on_para_eq_constraint=parameter,)
+        #         if type(true_object) == Povm:
+        #             args["measurement_n"] = len(true_object.vecs)
+        #         if type(true_object) == Gate:
+        #             tmp_tomography = qtomography_class(
+        #                 states=tester_objects["states"],
+        #                 povms=tester_objects["povms"],
+        #                 **args,
+        #             )
+        #         else:
+        #             tmp_tomography = qtomography_class(tester_objects, **args)
+
+        #         true_mses = []
+        #         for num in num_data:
+        #             true_mse = tmp_tomography.calc_mse_linear_analytical(
+        #                 true_object_copied, [num] * tmp_tomography.num_schedules
+        #             )
+        #             true_mses.append(true_mse)
+        #         mses_list.append(true_mses)
+        #         display_case_names.append(f"Analytical result (Linear, {parameter})")
+
+    fig = make_mses_graph(num_data, mses_list, names=display_case_names)
     return fig
 
 

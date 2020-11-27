@@ -2,7 +2,7 @@ import copy
 import itertools
 from functools import reduce
 from operator import add
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import numpy as np
 
@@ -1274,4 +1274,49 @@ def get_swap(c_sys: CompositeSystem) -> Gate:
         hs_comp_basis, c_sys.comp_basis(), c_sys.basis()
     ).real.astype(np.float64)
     gate = Gate(c_sys, hs_for_c_sys)
+    return gate
+
+
+def get_depolarizing_channel(p: float, c_sys: Optional[CompositeSystem] = None) -> Gate:
+    hs = np.diag(np.array([1, 1 - p, 1 - p, 1 - p], dtype=np.float64))
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
+
+
+def get_x_rotation(theta: float, c_sys: Optional[CompositeSystem] = None) -> Gate:
+    hs = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, np.cos(theta), -np.sin(theta)],
+            [0, 0, np.sin(theta), np.cos(theta)],
+        ],
+        dtype=np.float64,
+    )
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
+
+
+def get_amplitutde_damping_channel(
+    gamma: float, c_sys: Optional[CompositeSystem] = None
+) -> Gate:
+    hs = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, np.sqrt(1 - gamma), 0, 0],
+            [0, 0, np.sqrt(1 - gamma), 0],
+            [gamma, 0, 0, 1 - gamma],
+        ],
+        dtype=np.float64,
+    )
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
     return gate

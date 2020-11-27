@@ -6,22 +6,12 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects.state import (
-    State,
     get_x0_1q,
-    get_x1_1q,
     get_y0_1q,
-    get_y1_1q,
     get_z0_1q,
     get_z1_1q,
 )
-from quara.objects.povm import (
-    Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
-)
-
-from quara.objects.qoperations import SetQOperations
+from quara.objects.povm import Povm
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
 
 
@@ -233,7 +223,7 @@ class TestStandardPovmt:
         )
 
         # Assert
-        npt.assert_almost_equal(actual, 0.02, decimal=15)
+        npt.assert_almost_equal(actual, 0.04, decimal=15)
 
         ### Case 2: on_par_eq_constraint = False
         # Arange
@@ -285,7 +275,7 @@ class TestStandardPovmt:
         )
 
         # Assert
-        npt.assert_almost_equal(actual, 0.04, decimal=15)
+        npt.assert_almost_equal(actual, 0.02, decimal=15)
 
         ### Case 2: on_par_eq_constraint = False
         # Arange
