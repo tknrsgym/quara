@@ -254,10 +254,7 @@ def _generate_graph_eigenvalues_seq(
 
 def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
-    print(f"{fig_info_list_list}")
     for fig_info_list in fig_info_list_list:
-        # TODO
-        print(f"len(fig_info_list)={len(fig_info_list)}")
         num = fig_info_list[0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
         for fig_info in fig_info_list:
@@ -427,7 +424,6 @@ def generate_mse_div(
         case_names=display_name_list,
         true_object=true_object,
         show_analytical_results=show_analytical_results,
-        tester_objects=tester_objects,
     )
 
     fig_name = f"mse"
@@ -802,6 +798,13 @@ def export_report(
         tester_objects=tester_objects,
     )
 
+    # 1. Comparison of analytical results
+    mse_analytical_results_div = "<div>TODO</div>"
+    # 2. Comparison of parametrization
+    mse_analytical_para_div = "<div>TODO</div>"
+    # 3. Comparison of estimators
+    mse_analytical_est_div = "<div>TODO</div>"
+
     # Physicality Violation Test
     print("​​Generating physicality violation test blocks ...")
     physicality_violation_test_div = generate_physicality_violation_test_div(
@@ -863,9 +866,21 @@ def export_report(
 <h1>Consistency test</h1>
     <div>{consistency_check_table}</div>
 <h1>MSE of estimators</h1>
-    <div>
+    <div>TODO: remove<br>
         {mse_div}
     </div>
+    <h2>Comparison of analytical results</h2>
+        <div>
+            {mse_analytical_results_div}
+        </div>
+    <h2>Comparison of analytical results</h2>
+        <div>
+            {mse_analytical_para_div}
+        </div>
+    <h2>Comparison of analytical results</h2>
+        <div>
+            {mse_analytical_est_div}
+        </div>
 <h1>Physicality violation test</h1>
     <div>
         {physicality_violation_test_div}

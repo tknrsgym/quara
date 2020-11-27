@@ -382,22 +382,7 @@ def _make_graphs_eigenvalues_state(
             annotation_vlines=[true_eigs[i]],
         )
         fig.update_layout(title=f"N={num_data}, Nrep={len(values)}")
-
-        # plot eigenvalues of true state
-        # x_value = true_eigs[i]
-        # fig.add_shape(
-        #     type="line",
-        #     line_color="red",
-        #     line_width=2,
-        #     opacity=0.5,
-        #     x0=x_value,
-        #     x1=x_value,
-        #     xref="x",
-        #     y0=0,
-        #     y1=1,
-        #     yref="paper",
-        # )
-        # figs.append(fig)
+        figs.append(fig)
 
     return figs
 
