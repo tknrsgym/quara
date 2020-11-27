@@ -75,6 +75,11 @@ class StandardPovmt(StandardQTomography):
 
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
+        self._on_para_eq_constraint = on_para_eq_constraint
+
+    @property
+    def on_para_eq_constraint(self):  # read only
+        return self._on_para_eq_constraint
 
     def is_valid_experiment(self) -> bool:
         states = self._experiment.states
@@ -87,11 +92,11 @@ class StandardPovmt(StandardQTomography):
         ]
         return all(checks)
 
-    def _calc_mse_linear_analytical_mode_var(
+    def _calc_mse_linear_analytical_mode_qoperation(
         self, qope: "QOperation", data_num_list: List[int]
     ) -> np.float64:
         if qope.on_para_eq_constraint:
-            val_1st_term = self._calc_mse_linear_analytical_mode_qoperation(
+            val_1st_term = self._calc_mse_linear_analytical_mode_var(
                 qope, data_num_list
             )
 
@@ -110,10 +115,10 @@ class StandardPovmt(StandardQTomography):
                 matS, self.calc_covariance_linear_mat_total(qope, data_num_list)
             )
             val_2nd_term = np.trace(ScovST)
-
             val = val_1st_term + val_2nd_term
+
         else:
-            val = self._calc_mse_linear_analytical_mode_qoperation(qope, data_num_list)
+            val = self._calc_mse_linear_analytical_mode_var(qope, data_num_list)
         return val
 
     def generate_empi_dists_sequence(
