@@ -241,9 +241,9 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             return False
         elif self.option.mu is not None and self.option.mu <= 0:
             return False
-        elif self.option.gamma <= 0:
+        elif self.option.gamma is None or self.option.gamma <= 0:
             return False
-        elif self.option.eps <= 0:
+        elif self.option.eps is None or self.option.eps <= 0:
             return False
         else:
             return True
@@ -256,8 +256,12 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         bool
             whether the loss and the option are sufficient.
         """
-        # TODO validate when option.var_start exists
-        if self.option.var_start is not None:
+        # validate when option.var_start exists
+        if (
+            self.option is not None
+            and self.option.var_start is not None
+            and self.loss is not None
+        ):
             num_var_option = self.option.var_start.shape[0]
             num_var_loss = self.loss.num_var
             if num_var_option != num_var_loss:
@@ -293,17 +297,17 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         Raises
         ------
         ValueError
-            when ``on_gradient`` of ``loss_function`` is False. 
+            when ``on_value`` of ``loss_function`` is False. 
         ValueError
-            when ``is_gradient_required`` of this algorithm is False.
+            when ``on_gradient`` of ``loss_function`` is False. 
         """
+        if loss_function.on_value == False:
+            raise ValueError(
+                "to execute ProjectedGradientDescentBase, 'on_value' of loss_function must be True."
+            )
         if loss_function.on_gradient == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_gradient' of loss_function must be True."
-            )
-        if self.is_gradient_required == False:
-            raise ValueError(
-                "to execute ProjectedGradientDescentBase, 'is_gradient_required' of this algorithm must be True."
             )
 
         if algorithm_option.var_start is None:
@@ -315,10 +319,15 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         else:
             x_prev = algorithm_option.var_start
         x_next = None
-        if algorithm_option.var_start is None:
+        if algorithm_option.mu:
+            mu = algorithm_option.mu
+        elif algorithm_option.var_start:
+            mu = 3 / (2 * np.sqrt(len(algorithm_option.var_start)))
+        elif self._qt:
             mu = 3 / (2 * np.sqrt(self._qt.num_variables))
         else:
-            mu = algorithm_option.mu
+            raise ValueError("unable to set the algorithm option mu.")
+
         gamma = algorithm_option.gamma
         eps = algorithm_option.eps
 
