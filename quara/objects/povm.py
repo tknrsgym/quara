@@ -98,15 +98,13 @@ class Povm(QOperation):
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the POVM is not physically correct.")
 
-    def __str__(self):
-        desc = f"Type:\t{self.__class__.__name__}\n"
-        desc += f"Dim:\t{self.dim}\n"
-        desc += f"Number of outcomes:\t{len(self.vecs)}\n"
-        desc += f"Vecs:"
-        for vec in self.vecs:
-            desc += f"\t{vec}\n"
-        desc = desc.rstrip("\n")
-        return desc
+    def _info(self):
+        info = {}
+        info["Type"] = self.__class__.__name__
+        info["Dim"] = self.dim
+        info["Number of outcomes"] = len(self.vecs)
+        info["Vecs"] = np.array(self.vecs)
+        return info
 
     @property
     def vecs(self) -> List[np.ndarray]:  # read only
