@@ -13,3 +13,4 @@ nbsphinx
 plotly
 plotly-express
 tqdm
+xhtml2pdf
