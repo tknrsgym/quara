@@ -14,3 +14,5 @@ plotly
 plotly-express
 tqdm
 xhtml2pdf
+psutil
+kaleido
