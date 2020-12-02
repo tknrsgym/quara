@@ -210,7 +210,11 @@ for true_idx, true_object in enumerate(true_objects):
     )
     # Fig
     fig = data_analysis.make_mses_graph_estimation_results(
-        result["estimation_results_list"], case_name_list, true_objects[true_idx]
+        result["estimation_results_list"],
+        case_name_list,
+        true_objects[true_idx],
+        show_analytical_results=True,
+        estimator_list=estimator_list,
     )
     path = (
         f"{output_dir}/mse/sample_qpt_case{true_idx}_{true_object_names[true_idx]}.html"
