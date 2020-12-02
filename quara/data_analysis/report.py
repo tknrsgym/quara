@@ -442,39 +442,13 @@ def generate_empi_dist_mse_div(
 
 
 def _parse_qoperation_desc(qoperation: "QOperation") -> List[str]:
-    desc = str(qoperation)
-    continue_flag, before_t = False, ""
-    value_list = []
-    pre_value_list = desc.split("\t")[1:]
-
-    for i, t in enumerate(pre_value_list):
-        if continue_flag:
-            target = before_t + t
-        else:
-            target = t[: t.find("\n")] if "\n" in t else t
-
-        if t.endswith("\n") and i < len(pre_value_list) - 1:
-            # 続く場合
-            continue_flag = True
-            before_t = t
-        else:
-            # この行が最後の場合
-            continue_flag = False
-            before_t = ""
-            value_list.append(target)
-    value_list = [v.replace("\n", "<br>") for v in value_list]
-    return value_list
-
+    value_list = qoperation._info().values()
+    return list(value_list)
 
 def _convert_object_to_datafrane(qoperation: "QOperation") -> pd.DataFrame:
-    desc = str(qoperation)
-
-    # parse description of QOperation
-    item_names = [t[t.rfind("\n") + 1 :] for t in desc.split("\t")][:-1]
-    item_names = [item.replace(":", "") for item in item_names if item]
-    value_list = _parse_qoperation_desc(qoperation)
-
-    df = pd.DataFrame(value_list, item_names).rename(columns={0: "value"})
+    values = [v.__str__().replace("\n", "<br>") for v in qoperation._info().values()]
+    item_names = qoperation._info().keys()
+    df = pd.DataFrame(values, item_names).rename(columns={0: "value"})
 
     return df
 
