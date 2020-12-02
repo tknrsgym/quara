@@ -14,6 +14,8 @@ from quara.utils import matrix_util
 
 
 class StandardQpt(StandardQTomography):
+    _estimated_qoperation_type = Gate
+
     def __init__(
         self,
         states: List[State],

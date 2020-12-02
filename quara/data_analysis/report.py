@@ -775,6 +775,7 @@ def export_report(
     seed: Optional[int] = None,
     computation_time: Optional[float] = None,
     keep_tmp_files: bool = False,
+    show_physicality_violation_check: bool = True,
 ):
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
@@ -846,9 +847,15 @@ def export_report(
 
     # Physicality Violation Test
     print("​​Generating physicality violation test blocks ...")
-    physicality_violation_test_div = generate_physicality_violation_test_div(
-        estimation_results_list, case_name_list, true_object
-    )
+    physicality_violation_check_block = ""
+    if show_physicality_violation_check:
+        physicality_violation_test_div = generate_physicality_violation_test_div(
+            estimation_results_list, case_name_list, true_object
+        )
+        physicality_violation_check_block = f"""<h1>Physicality violation test</h1>
+    <div>
+        {physicality_violation_test_div}
+    </div>"""
 
     report_html = f"""<html>
 <head>
@@ -917,10 +924,7 @@ def export_report(
         <div>
             {mse_est_div}
         </div>
-<h1>Physicality violation test</h1>
-    <div>
-        {physicality_violation_test_div}
-    </div>
+{physicality_violation_check_block}
 <div id="footer_content">
     <pdf:pagenumber>
 </div>
