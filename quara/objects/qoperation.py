@@ -795,3 +795,10 @@ class QOperation:
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qobject
+
+    def __str__(self):
+        desc = ""
+        for k, v in self._info().items():
+            desc += f"{k}:\n{v.__str__()}\n\n"
+        desc = desc.rstrip("\n")
+        return desc
