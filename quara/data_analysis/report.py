@@ -80,7 +80,7 @@ table td{
   font-size: 13px;
   padding-top: 3px;
   padding-right: 3px;
-  width: 350px;
+  width: 400px;
   word-break: break-all;
 }
 """
@@ -444,6 +444,7 @@ def generate_empi_dist_mse_div(
 def _parse_qoperation_desc(qoperation: "QOperation") -> List[str]:
     value_list = qoperation._info().values()
     return list(value_list)
+
 
 def _convert_object_to_datafrane(qoperation: "QOperation") -> pd.DataFrame:
     values = [v.__str__().replace("\n", "<br>") for v in qoperation._info().values()]
