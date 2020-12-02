@@ -489,10 +489,6 @@ def _make_graphs_sum_unphysical_eigenvalues_state(
         additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
 
-    # title = (
-    #     f"N={num_data}, Nrep={n_rep}<br>Number of unphysical estimates={n_unphysical}"
-    # )
-    # fig.update_layout(title=title)
     figs.append(fig)
 
     return figs
