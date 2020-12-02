@@ -49,6 +49,7 @@ from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.protocol.qtomography.standard.projected_linear_estimator import (
     ProjectedLinearEstimator,
 )
+import pickle
 
 
 # In[2]:
@@ -117,7 +118,7 @@ true_object_names = [
 
 
 num_data = [100, 1000]
-n_rep = 100
+n_rep = 10
 
 case_name_list = [
     "LinearEstimator(True)",
@@ -143,19 +144,26 @@ estimator_list = [
 ]
 
 all_results = []
+output_dir = f"output_qpt_nrep={n_rep}"
+Path(output_dir).mkdir(exist_ok=True)
+Path(f"{output_dir}/pickle").mkdir(exist_ok=True)
+Path(f"{output_dir}/pdf").mkdir(exist_ok=True)
+Path(f"{output_dir}/mse").mkdir(exist_ok=True)
 
-for i, true_object in enumerate(true_objects):
-    print(f"{i}: {true_object_names[i]}, {true_object}")
+for true_idx, true_object in enumerate(true_objects):
+    print("====================================")
+    print(f"{true_idx}: {true_object_names[true_idx]}, {true_object}")
+    print("====================================")
     estimation_results_list = []
     elapsed_times = []
 
-    for i, name in enumerate(case_name_list):
-        qtomography = qtomography_list[i]
-        estimator = estimator_list[i]
+    for case_idx, name in enumerate(case_name_list):
+        qtomography = qtomography_list[case_idx]
+        estimator = estimator_list[case_idx]
 
         start = time.time()
-        print(f"Case {i}: {name}")
-        print(f"Parametorization: {para_list[i]}")
+        print(f"Case {case_idx}: {name}")
+        print(f"Parametorization: {para_list[case_idx]}")
         print(f"Type of qtomography: {qtomography.__class__.__name__}")
         print(f"Estimator: {estimator.__class__.__name__}")
 
@@ -179,59 +187,39 @@ for i, true_object in enumerate(true_objects):
         elapsed_times=elapsed_times,
     )
     all_results.append(result)
-
-
-# In[28]:
-
-
-import pickle
-
-output_dir = "output_qpt_nrep={n_rep}"
-Path(output_dir).mkdir(exist_ok=True)
-with open(f"{output_dir}/qpt_estimation_results_nrep={n_rep}_all.pickle", "wb") as f:
-    pickle.dump(all_results, f)
-
-
-# In[19]:
-
-
-for i, _ in enumerate(all_results):
-    print(f"{i}: {true_object_names[i]}")
-    print(true_object.hs)
-    fig = data_analysis.make_mses_graph_estimation_results(
-        all_results[i]["estimation_results_list"], case_name_list, true_objects[i]
+    # output
+    with open(
+        f"{output_dir}/pickle/qpt_estimation_results_nrep={n_rep}_{true_object_names[true_idx]}.pickle",
+        "wb",
+    ) as f:
+        pickle.dump(result, f)
+    # PDF report
+    path = (
+        f"{output_dir}/pdf/sample_qpt_case{true_idx}_{true_object_names[true_idx]}.pdf"
     )
-    fig.show()
-
-
-# In[27]:
-
-
-for i, _ in enumerate(all_results):
-    print(f"{i}: {true_object_names[i]}")
     report.export_report(
-        f"{output_dir}/sample_qpt_case{i}_{true_object_names[i]}.pdf",
-        all_results[i]["estimation_results_list"],
+        path,
+        result["estimation_results_list"],
         case_name_list,
         estimator_list,
-        all_results[i]["true_object"],
+        result["true_object"],
         tester_states + tester_povms,
         seed=seed,
-        computation_time=sum(all_results[i]["elapsed_times"]),
+        computation_time=sum(result["elapsed_times"]),
         show_physicality_violation_check=False,
     )
-
-
-# In[29]:
-
-
-for i, _ in enumerate(all_results):
-    print(f"{i}: {true_object_names[i]}")
+    # Fig
     fig = data_analysis.make_mses_graph_estimation_results(
-        all_results[i]["estimation_results_list"], case_name_list, true_objects[i]
+        result["estimation_results_list"], case_name_list, true_objects[true_idx]
     )
-    path = f"{output_dir}/sample_qpt_case{i}_{true_object_names[i]}.html"
+    path = (
+        f"{output_dir}/mse/sample_qpt_case{true_idx}_{true_object_names[true_idx]}.html"
+    )
     fig.write_html(path)
+
+
+with open(f"{output_dir}/qpt_estimation_results_nrep={n_rep}_all.pickle", "wb") as f:
+    pickle.dump(all_results, f)
 
 print("Completed.")
 # In[ ]:
