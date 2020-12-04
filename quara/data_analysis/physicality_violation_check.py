@@ -164,9 +164,6 @@ def make_prob_dist_histogram(
     # Adjust range of xaxis
     if annotation_vlines:
         ref_x = annotation_vlines[0]
-        print(f"{ref_x=}, {type(ref_x)}")
-        print(f"{x_min=}, {type(x_min)}")
-        print(f"{x_max=}, {type(x_max)}")
         if (x_min is None and x_max is None) or (
             (ref_x - x_abs_min) < x_min and x_max < (ref_x + x_abs_min)
         ):
@@ -251,14 +248,13 @@ def make_graph_trace(
 def make_graphs_eigenvalues(
     estimation_results: List[EstimationResult],
     true_object: "QOperation",
-    num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ) -> Union[List["Figure"], List[List["Figure"]]]:
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-
+    num_data = estimation_results[0].num_data
     n_data = num_data[num_data_index]
     if type(true_object) == State:
         figs = _make_graphs_eigenvalues_state(
@@ -269,7 +265,7 @@ def make_graphs_eigenvalues(
             estimated_qoperations, true_object, n_data, bin_size
         )
     elif type(true_object) == Gate:
-        raise NotImplementedError()
+        figs = _make_graphs_eigenvalues_gate(estimated_qoperations, n_data, bin_size)
     else:
         message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
         raise TypeError(message)
@@ -450,6 +446,52 @@ def _make_graphs_eigenvalues_povm(
     return fig_list_list
 
 
+def get_sorted_eigenvalue_gate(gates: List[Gate]) -> list:
+    sorted_eigenvalues_list = []
+    for gate in gates:
+        choi_matrix = gate.to_choi_matrix()
+        eigenvals, _ = np.linalg.eig(choi_matrix)
+        sorted_eigenvalues = [eig.real for eig in sorted(eigenvals, reverse=True)]
+        sorted_eigenvalues_list.append(sorted_eigenvalues)
+    return sorted_eigenvalues_list
+
+
+def _make_graphs_eigenvalues_gate(
+    estimated_gates: List[Gate], num_data: int, bin_size: float = 0.0001
+):
+    sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_gates)
+    sorted_eigenvalues_list = np.array(sorted_eigenvalues_list).T
+
+    dim = estimated_gates[0].dim
+
+    figs = []
+    for i, values in enumerate(sorted_eigenvalues_list):
+        min_value = min(values)
+        max_value = max(values)
+        vlines = []
+        if (
+            (max_value <= 0)
+            or (min_value <= 0 <= max_value)
+            or (abs(min_value) <= abs(max_value - dim))
+        ):
+            vlines.append(0)
+        if (
+            (abs(min_value) >= abs(max_value - dim))
+            or (min_value <= dim <= max_value)
+            or (dim <= min_value)
+        ):
+            vlines.append(dim)
+
+        fig = make_prob_dist_histogram(
+            values, bin_size=bin_size, num_data=num_data, annotation_vlines=vlines
+        )
+        title = f"N={num_data}, i={i}"
+        fig.update_layout(title=title)
+        figs.append(fig)
+
+    return figs
+
+
 # only State
 def _make_graphs_sum_unphysical_eigenvalues_state(
     estimated_states: List[State], num_data: int, bin_size: float = 0.0001
@@ -542,8 +584,6 @@ def make_graphs_trace_error(
     figs = []
     for i in range(size):
         values = [gate.hs[0][i] for gate in estimated_gates]
-        print(values)
-
         fig = make_prob_dist_histogram(
             values,
             bin_size=bin_size,
@@ -554,3 +594,33 @@ def make_graphs_trace_error(
         fig.update_layout(title=title)
         figs.append(fig)
     return figs
+
+
+def make_graphs_trace_error_sum(
+    estimation_results: List["EstimatedResult"],
+    num_data_index: int,
+    bin_size: float = 0.0001,
+):
+    num_data = estimation_results[0].num_data
+    estimated_gates = _convert_result_to_qoperation(
+        estimation_results, num_data_index=num_data_index
+    )
+    size = estimated_gates[0].dim ** 2
+    expected = np.zeros((1, size))
+    expected[0][0] = 1
+    expected = expected.flatten().tolist()
+    values = []
+
+    for gate in estimated_gates:
+        value = sum([(gate.hs[0][i] - expected[i]) ** 2 for i in range(size)])
+        value = np.sqrt(value)
+        values.append(value)
+
+    fig = make_prob_dist_histogram(
+        values, bin_size=bin_size, num_data=num_data, annotation_vlines=[0]
+    )
+    title = f"N={num_data[num_data_index]}"
+    fig.update_layout(title=title)
+    fig.update_xaxes(range=[0, fig.layout.xaxis.range[1]])
+
+    return fig

@@ -234,7 +234,7 @@ def _generate_graph_eigenvalues_seq(
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_eigenvalues(
-            estimation_results, true_object, num_data, num_data_index=num_data_index,
+            estimation_results, true_object, num_data_index=num_data_index,
         )
         fig_info_list = []
         num = num_data[num_data_index]
@@ -299,7 +299,7 @@ def _generate_graph_eigenvalues_seq_3loop(
     fig_info_list3 = []
     for num_data_index in range(len(num_data)):
         fig_list_list = physicality_violation_check.make_graphs_eigenvalues(
-            estimation_results, true_object, num_data, num_data_index=num_data_index,
+            estimation_results, true_object, num_data_index=num_data_index,
         )
         fig_info_list2 = []
 
