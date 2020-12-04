@@ -164,6 +164,9 @@ def make_prob_dist_histogram(
     # Adjust range of xaxis
     if annotation_vlines:
         ref_x = annotation_vlines[0]
+        print(f"{ref_x=}, {type(ref_x)}")
+        print(f"{x_min=}, {type(x_min)}")
+        print(f"{x_max=}, {type(x_max)}")
         if (x_min is None and x_max is None) or (
             (ref_x - x_abs_min) < x_min and x_max < (ref_x + x_abs_min)
         ):
@@ -520,4 +523,34 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
         )
         figs.append(fig)
 
+    return figs
+
+
+def make_graphs_trace_error(
+    estimation_results: List["EstimatedResult"],
+    num_data_index: int,
+    bin_size: float = 0.0001,
+):
+    num_data = estimation_results[0].num_data
+    estimated_gates = _convert_result_to_qoperation(
+        estimation_results, num_data_index=num_data_index
+    )
+    size = estimated_gates[0].dim ** 2
+    expected = np.zeros((1, size))
+    expected[0][0] = 1
+    expected = expected.flatten().tolist()
+    figs = []
+    for i in range(size):
+        values = [gate.hs[0][i] for gate in estimated_gates]
+        print(values)
+
+        fig = make_prob_dist_histogram(
+            values,
+            bin_size=bin_size,
+            num_data=num_data,
+            annotation_vlines=[expected[i]],
+        )
+        title = f"N={num_data[num_data_index]}, α={i}"
+        fig.update_layout(title=title)
+        figs.append(fig)
     return figs
