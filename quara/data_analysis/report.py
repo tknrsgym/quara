@@ -229,12 +229,16 @@ def _generate_graph_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
     case_id: int,
     true_object: "QOperation",
+    bin_size: float = 0.0001,
 ) -> list:
     num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_eigenvalues(
-            estimation_results, true_object, num_data_index=num_data_index,
+            estimation_results,
+            true_object,
+            num_data_index=num_data_index,
+            bin_size=bin_size,
         )
         fig_info_list = []
         num = num_data[num_data_index]
@@ -242,6 +246,8 @@ def _generate_graph_eigenvalues_seq(
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
             fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
+            # fig.update_layout(width=_col2_fig_width * 2, height=_col2_fig_height* 2)
+
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
             fig_info_list.append(
@@ -252,20 +258,33 @@ def _generate_graph_eigenvalues_seq(
     return fig_info_list_list
 
 
-def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
+def _generate_eigenvalues_div(
+    fig_info_list_list: List[List[dict]], col_n: int = 2
+) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
         num = fig_info_list[0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
-        for fig_info in fig_info_list:
-            graph_subblock = (
-                f"<div class='box'><img src={fig_info['image_path']}></div>"
-            )
-            graph_block_html += graph_subblock
-
+        graph_block_html = _generate_figs_div(fig_info_list, col_n=col_n)
         graph_block_html_all += graph_block_html
 
     return graph_block_html_all
+
+
+# def _generate_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
+#     graph_block_html_all = ""
+#     for fig_info_list in fig_info_list_list:
+#         num = fig_info_list[0]["num"]
+#         graph_block_html = f"<h5>N={num}</h5>"
+#         for fig_info in fig_info_list:
+#             graph_subblock = (
+#                 f"<div class='box'><img src={fig_info['image_path']}></div>"
+#             )
+#             graph_block_html += graph_subblock
+
+#         graph_block_html_all += graph_block_html
+
+#     return graph_block_html_all
 
 
 def _generate_eigenvalues_div_3loop(fig_info_list3: List[List[List[dict]]]) -> str:
@@ -335,14 +354,19 @@ def generate_eigenvalues_div(
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results, case_id=case_id, true_object=true_object,
         )
-        div_html = _generate_eigenvalues_div(fig_info_list_list)
+        vals = true_object[0].calc_eigenvalues()
+        col_n = 2 if len(vals) <= 2 else 4
+        div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
     elif type(true_object) == Povm:
         fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
             estimation_results, case_id=case_id, true_object=true_object,
         )
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
     elif type(true_object) == Gate:
-        raise NotImplementedError()
+        fig_info_list_list = _generate_graph_eigenvalues_seq(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=2)
     else:
         raise TypeError()
     return div_html
@@ -572,12 +596,63 @@ def _generate_physicality_violation_test_div_for_povm(
     return eq_all_div, ineq_all_div
 
 
+def _generate_physicality_violation_test_div_for_gate(
+    estimation_results_list: List[List["EstimationResult"]],
+    case_name_list: List[str],
+    true_object: State,
+):
+    test_eq_const_divs = ""
+    test_ineq_const_eigenvalues_divs = ""
+    test_ineq_const_sum_eigenvalues_divs = ""
+
+    for case_id, case_name in enumerate(case_name_list):
+        estimation_results = estimation_results_list[case_id]
+        # Test of equality constraint violation
+        # div = generate_trace_div(estimation_results, case_id=case_id)
+        # # <h5> is dummy
+        # test_eq_const_divs += f"""
+        #     <h4>Case {case_id}: {case_name}<h4>
+        #     <h5></h5>
+        #     {div}
+        #     """
+        # Test of inequality constraint violation
+        div = generate_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+        div = generate_sum_eigenvalues_div(
+            estimation_results, case_id=case_id, true_object=true_object,
+        )
+        test_ineq_const_sum_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+    # eq_all_div = f"""
+    #     <h2>Test of equality constraint violation</h2>
+    #     {test_eq_const_divs}
+    # """
+    eq_all_div = "TODO"
+    ineq_all_div = f"""
+        <h2>Test of inequality constraint violation</h2>
+        <h3>Eigenvalue</h3>
+        {test_ineq_const_eigenvalues_divs}
+        <h3>Sum of unphysical eigenvalues </h3>
+        {test_ineq_const_sum_eigenvalues_divs}
+    """
+
+    return eq_all_div, ineq_all_div
+
+
 def generate_physicality_violation_test_div(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
     true_object: "QOperation",
 ):
-
     if type(true_object) == State:
         (
             true_all_div,
@@ -592,8 +667,16 @@ def generate_physicality_violation_test_div(
         ) = _generate_physicality_violation_test_div_for_povm(
             estimation_results_list, case_name_list, true_object
         )
+    elif type(true_object) == Gate:
+        (
+            true_all_div,
+            false_all_div,
+        ) = _generate_physicality_violation_test_div_for_gate(
+            estimation_results_list, case_name_list, true_object
+        )
     else:
-        raise NotImplementedError()
+        # TODO: error message
+        raise TypeError()
 
     physicality_violation_test_div = f"""
         {true_all_div}
@@ -711,14 +794,13 @@ def _make_graphs_mses(func_make_graphs, mse_type: "str", **kwargs) -> list:
     return fig_info_list
 
 
-def _generate_figs_div(fig_info_list: List[List[dict]]) -> str:
+def _generate_figs_div(fig_info_list: List[dict], col_n: int = 2) -> str:
     graph_block_html = ""
     subblock_list = []
     for fig_info in fig_info_list:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
         subblock_list.append(graph_subblock)
 
-    col_n = 2
     div_line = ""
     div_lines = []
     for i, block in enumerate(subblock_list):
