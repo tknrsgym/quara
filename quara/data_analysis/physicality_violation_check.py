@@ -57,7 +57,7 @@ def get_sum_of_eigenvalues_violation(
     sum_eig_greater_list = []
 
     eps = Settings.get_atol()
-    for i, values in enumerate(sorted_eigenvalues_list):
+    for _, values in enumerate(sorted_eigenvalues_list):
         eig_less_list = [v for v in values if v < expected_values[0] - eps]
         if eig_less_list:
             sum_eig_less_list.append(np.sum(eig_less_list))
@@ -180,7 +180,10 @@ def make_prob_dist_histogram(
         additional_text = (
             f"<br><br>Min: {x_min}<br>Max: {x_max}<br>|Max-Min|: {abs(x_max-x_min)}"
         )
-        xaxis_title_text += additional_text
+    else:
+        additional_text = f"<br><br>Min: -<br>Max: -<br>|Max-Min|: -"
+    xaxis_title_text += additional_text
+
     fig.update_xaxes(title=xaxis_title_text)
 
     # Adjust range of xaxis
@@ -549,7 +552,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
 
     # Figure 2
     xaxis_title_text = f"Sum of unphysical eigenvalues (>{expected_values[1]})"
-    n_unphysical = len(less_list)
+    n_unphysical = len(greater_list)
     fig = make_prob_dist_histogram(
         greater_list,
         bin_size=bin_size,
