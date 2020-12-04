@@ -343,26 +343,27 @@ def calc_fisher_matrix(
 
     # the sum of prob_dist must be 1
     sum = np.sum(prob_dist)
-    if sum != 1.0:
-        raise ValueError("the sum of prob_dist must be 1. the sum of prob_dist={sum}")
+    if not np.isclose(sum, 1.0, atol=eps, rtol=0.0):
+        raise ValueError(f"the sum of prob_dist must be 1. the sum of prob_dist={sum}")
 
     # the size of prob_dist and grad_prob_dist must be equal
     size_prob_dist = prob_dist.shape[0]
     size_grad_prob_dist = len(grad_prob_dist)
     if size_prob_dist != size_grad_prob_dist:
         raise ValueError(
-            "the size of prob_dist and grad_prob_dist must be equal. the sum of prob_dist={size_prob_dist}, the sum of grad_prob_dist={size_grad_prob_dist}"
+            f"the size of prob_dist and grad_prob_dist must be equal. the sum of prob_dist={size_prob_dist}, the sum of grad_prob_dist={size_grad_prob_dist}"
         )
 
     # eps must be a positive number
     if eps <= 0:
-        raise ValueError("eps must be a positive number. eps={eps}")
+        raise ValueError(f"eps must be a positive number. eps={eps}")
 
     # replace
     replaced_prob_dist = _replace_entry(prob_dist, eps)
 
     ### calculate
-    matrix = np.zeros((size_prob_dist, size_prob_dist))
+    size_var = grad_prob_dist[0].shape[0]
+    matrix = np.zeros((size_var, size_var))
     for prob, prob_dist in zip(replaced_prob_dist, grad_prob_dist):
         matrix += np.array([prob_dist]).T @ np.array([prob_dist]) / prob
 
@@ -407,7 +408,7 @@ def calc_fisher_matrix_total(
     Returns
     -------
     np.array
-        [description]
+        total Fisher matrix.
 
     Raises
     ------
