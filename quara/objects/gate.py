@@ -428,7 +428,9 @@ def hs_from_choi(choi, c_sys: CompositeSystem) -> np.array:
     for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
         b_alpha = np.conjugate(basis[alpha].T)
         b_beta = basis[beta].T
-        hs[alpha, beta] = np.trace(np.kron(b_alpha, b_beta) @ choi)
+        hs[alpha, beta] = (np.trace(np.kron(b_alpha, b_beta) @ choi)).real.astype(
+            np.float64
+        )
 
     return hs
 

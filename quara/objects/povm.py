@@ -253,7 +253,8 @@ class Povm(QOperation):
 
             new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
             new_vec = [
-                np.vdot(basis, new_matrix) for basis in self.composite_system.basis()
+                np.vdot(basis, new_matrix).real.astype(np.float64)
+                for basis in self.composite_system.basis()
             ]
             new_vec = np.array(new_vec, dtype=np.float64)
             new_vecs.append(new_vec)
@@ -494,8 +495,9 @@ class Povm(QOperation):
         return new_vecs
 
     def _truediv_vec(self, other):
-        new_vecs = [vec / other for vec in self.vecs]
-        return new_vecs
+        with np.errstate(divide="ignore"):
+            new_vecs = [vec / other for vec in self.vecs]
+            return new_vecs
 
 
 def convert_var_index_to_povm_index(
