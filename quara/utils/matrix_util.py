@@ -297,3 +297,101 @@ def calc_left_inv(matrix: np.array) -> np.array:
     # calculate left inverse
     left_inv = np.linalg.pinv(matrix.T @ matrix) @ matrix.T
     return left_inv
+
+
+def calc_fisher_matrix(
+    prob_dist: np.array, grad_prob_dist: List[np.array], eps: float = None
+) -> np.array:
+    """calculates Fisher matrix.
+
+    Parameters
+    ----------
+    prob_dist : np.array
+        probability distribution.
+    grad_prob_dist : List[np.array]
+        list of gradient of probability distribution.
+        the length of list is the size of probability distribution.
+        the size of np.array is the number of variables.
+    eps : float, optional
+        a parameter to avoid divergence about the inverse of probability, by default 1e-8
+
+    Returns
+    -------
+    np.array
+        Fisher matrix.
+
+    Raises
+    ------
+    ValueError
+        some elements of prob_dist are not between 0 and 1.
+    ValueError
+        the sum of prob_dist is not 1.
+    ValueError
+        the size of prob_dist and grad_prob_dist are not equal.
+    ValueError
+        eps is not a positive number.
+    """
+    eps = eps if eps is not None else 1e-8
+
+    ### validate
+    # each element of prob_dist must be between 0 and 1
+    for index, entry in enumerate(prob_dist):
+        if not (0.0 <= entry <= 1.0):
+            raise ValueError(
+                f"each element of prob_dist must be between 0 and 1. the sum of prob_dist[{index}]={entry}"
+            )
+
+    # the sum of prob_dist must be 1
+    sum = np.sum(prob_dist)
+    if sum != 1.0:
+        raise ValueError("the sum of prob_dist must be 1. the sum of prob_dist={sum}")
+
+    # the size of prob_dist and grad_prob_dist must be equal
+    size_prob_dist = prob_dist.shape[0]
+    size_grad_prob_dist = len(grad_prob_dist)
+    if size_prob_dist != size_grad_prob_dist:
+        raise ValueError(
+            "the size of prob_dist and grad_prob_dist must be equal. the sum of prob_dist={size_prob_dist}, the sum of grad_prob_dist={size_grad_prob_dist}"
+        )
+
+    # eps must be a positive number
+    if eps <= 0:
+        raise ValueError("eps must be a positive number. eps={eps}")
+
+    # replace
+    replaced_prob_dist = _replace_entry(prob_dist, eps)
+
+    ### calculate
+    matrix = np.zeros((size_prob_dist, size_prob_dist))
+    for prob, prob_dist in zip(replaced_prob_dist, grad_prob_dist):
+        matrix += np.array([prob_dist]).T @ np.array([prob_dist]) / prob
+
+    return matrix
+
+
+def _replace_entry(prob_dist: np.array, eps: float) -> np.array:
+    size_prob_dist = prob_dist.shape[0]
+    count_replace = np.count_nonzero(prob_dist < eps)
+    replaced = np.zeros(size_prob_dist)
+
+    for index, prob in enumerate(prob_dist):
+        if prob < eps:
+            replaced[index] = eps
+        else:
+            replaced[index] = prob_dist[index] - (eps * count_replace) / (
+                size_prob_dist - count_replace
+            )
+
+    return replaced
+
+
+def calc_fisher_matrix_total(
+    prob_dists: List[np.array], grad_prob_dists: List[List[np.array]]
+) -> np.array:
+    # TODO validation
+    matrix_size = prob_dists[0].shape[0]
+    matrix = np.zeros((matrix_size, matrix_size))
+    for prob_dist, grad_prob_dist in zip(prob_dists, grad_prob_dists):
+        matrix += calc_fisher_matrix(prob_dist, grad_prob_dist)
+
+    return matrix
