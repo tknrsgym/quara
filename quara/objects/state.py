@@ -181,7 +181,8 @@ class State(QOperation):
 
     def _truediv_vec(self, other):
         # self / other
-        return self.vec / other
+        with np.errstate(divide="ignore"):
+            return self.vec / other
 
     def to_var(self) -> np.array:
         """converts State to variables.
@@ -274,7 +275,7 @@ class State(QOperation):
         # calc new vec
         density_matrix_new = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
         vec_new = [
-            np.vdot(basis, density_matrix_new)
+            np.vdot(basis, density_matrix_new).real.astype(np.float64)
             for basis in self.composite_system.basis()
         ]
 
