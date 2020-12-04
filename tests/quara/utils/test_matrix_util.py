@@ -248,7 +248,10 @@ def test_calc_fisher_matrix():
     # case1: not replace
     # Arrange
     prob_dist = np.array([0.9, 0.1], dtype=np.float64)
-    grad_prob_dist = np.array([[3, 4], [5, 6]], dtype=np.float64)
+    grad_prob_dist = [
+        np.array([3, 4], dtype=np.float64),
+        np.array([5, 6], dtype=np.float64),
+    ]
 
     # Act
     actual = util.calc_fisher_matrix(prob_dist, grad_prob_dist)
@@ -260,7 +263,10 @@ def test_calc_fisher_matrix():
     # case2: replace
     # Arrange
     prob_dist = np.array([0.9, 0.1], dtype=np.float64)
-    grad_prob_dist = np.array([[3, 4], [5, 6]], dtype=np.float64)
+    grad_prob_dist = [
+        np.array([3, 4], dtype=np.float64),
+        np.array([5, 6], dtype=np.float64),
+    ]
     eps = 0.2
 
     # Act
@@ -276,31 +282,46 @@ def test_calc_fisher_matrix():
     # case3: error case. some entries < 0
     with pytest.raises(ValueError):
         prob_dist = np.array([0.9, -0.1], dtype=np.float64)
-        grad_prob_dist = np.array([[3, 4], [5, 6]], dtype=np.float64)
+        grad_prob_dist = [
+            np.array([3, 4], dtype=np.float64),
+            np.array([5, 6], dtype=np.float64),
+        ]
         util.calc_fisher_matrix(prob_dist, grad_prob_dist)
 
     # case4: error case. some entries > 1
     with pytest.raises(ValueError):
         prob_dist = np.array([1.1, 0.1], dtype=np.float64)
-        grad_prob_dist = np.array([[3, 4], [5, 6]], dtype=np.float64)
+        grad_prob_dist = [
+            np.array([3, 4], dtype=np.float64),
+            np.array([5, 6], dtype=np.float64),
+        ]
         util.calc_fisher_matrix(prob_dist, grad_prob_dist)
 
     # case5: error case. the sum of prob_dist is not 1
     with pytest.raises(ValueError):
         prob_dist = np.array([0.8, 0.1], dtype=np.float64)
-        grad_prob_dist = np.array([[3, 4], [5, 6]], dtype=np.float64)
+        grad_prob_dist = [
+            np.array([3, 4], dtype=np.float64),
+            np.array([5, 6], dtype=np.float64),
+        ]
         util.calc_fisher_matrix(prob_dist, grad_prob_dist)
 
     # case6: error case. the size of prob_dist and grad_prob_dist are not equal
     with pytest.raises(ValueError):
         prob_dist = np.array([0.8, 0.1, 0.1], dtype=np.float64)
-        grad_prob_dist = np.array([[3, 4], [5, 6]], dtype=np.float64)
+        grad_prob_dist = [
+            np.array([3, 4], dtype=np.float64),
+            np.array([5, 6], dtype=np.float64),
+        ]
         util.calc_fisher_matrix(prob_dist, grad_prob_dist)
 
     # case7: error case. eps is not a positive number
     with pytest.raises(ValueError):
         prob_dist = np.array([0.9, 0.1], dtype=np.float64)
-        grad_prob_dist = np.array([[3, 4], [5, 6]], dtype=np.float64)
+        grad_prob_dist = [
+            np.array([3, 4], dtype=np.float64),
+            np.array([5, 6], dtype=np.float64),
+        ]
         eps = 0.0
         util.calc_fisher_matrix(prob_dist, grad_prob_dist, eps=eps)
 
@@ -330,3 +351,24 @@ def test_replace_entry():
     expected = np.array([0.89, 0.1], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
+
+def test_calc_fisher_matrix_total():
+    prob_dists = [
+        np.array([0.9, 0.1], dtype=np.float64),
+        np.array([0.8, 0.2], dtype=np.float64),
+    ]
+    grad_prob_dists = [
+        [np.array([3, 4], dtype=np.float64), np.array([5, 6], dtype=np.float64),],
+        [np.array([7, 8], dtype=np.float64), np.array([9, 10], dtype=np.float64),],
+    ]
+    weights = [1.0, 0.5]
+
+    # Act
+    actual = util.calc_fisher_matrix_total(prob_dists, grad_prob_dists, weights)
+
+    # Assert
+    expected = np.array(
+        [[260 + 490 / 16 + 810 / 4, 940 / 3 + 260], [940 / 3 + 260, 3400 / 9 + 290],],
+        dtype=np.float64,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
