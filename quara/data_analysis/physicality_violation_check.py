@@ -14,12 +14,10 @@ from quara.objects.gate import Gate
 from quara.settings import Settings
 
 
-def get_sorted_eigenvalues_list(
-    estimated_qobject_list: List["State"],
-) -> List[List[float]]:
+def _get_sorted_eigenvalues_list_for_state(estimated_states: List["State"],):
     sorted_eigenvalues_list = []
 
-    for estimated_qobject in tqdm(estimated_qobject_list):
+    for estimated_qobject in tqdm(estimated_states):
         sorted_eigenvalues = sorted(
             [x.real for x in estimated_qobject.calc_eigenvalues()], reverse=True
         )
@@ -27,24 +25,48 @@ def get_sorted_eigenvalues_list(
     return sorted_eigenvalues_list
 
 
+def get_sorted_eigenvalues_list(
+    estimated_qobjects: List["State"],
+) -> List[List[float]]:
+    qobject_type = type(estimated_qobjects[0])
+    if qobject_type == State:
+        sorted_eigenvalues_list = _get_sorted_eigenvalues_list_for_state(
+            estimated_qobjects
+        )
+    elif qobject_type == Povm:
+        raise NotImplementedError()
+    elif qobject_type == Gate:
+        # TODO: function name
+        sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_qobjects)
+    else:
+        # TODO: error message
+        raise TypeError()
+
+    return sorted_eigenvalues_list
+
+
 def get_sum_of_eigenvalues_violation(
-    eigenvalues_list: List[List[float]],
+    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1),
 ) -> Tuple[List[float], List[float]]:
-    sum_eig_less_than_zero_list = []
-    sum_eig_greater_than_one_list = []
-    # sorted_eigenvalues_list = sorted(eigenvalues_list, reverse=True)
-    sorted_eigenvalues_list = eigenvalues_list
-    eps = 10 ** (-13)
+    expected_values = sorted(expected_values)
+    if len(expected_values) > 2:
+        # TODO: error message
+        raise ValueError()
+
+    sum_eig_less_list = []
+    sum_eig_greater_list = []
+
+    eps = Settings.get_atol()
     for i, values in enumerate(sorted_eigenvalues_list):
-        eig_less_than_zero_list = [v for v in values if v < 0 - eps]
-        if eig_less_than_zero_list:
-            sum_eig_less_than_zero_list.append(np.sum(eig_less_than_zero_list))
+        eig_less_list = [v for v in values if v < expected_values[0] - eps]
+        if eig_less_list:
+            sum_eig_less_list.append(np.sum(eig_less_list))
 
-        eig_greater_than_one_list = [v for v in values if v > 1 + eps]
-        if eig_greater_than_one_list:
-            sum_eig_greater_than_one_list.append(np.sum(eig_greater_than_one_list))
+        eig_greater_list = [v for v in values if v > expected_values[1] + eps]
+        if eig_greater_list:
+            sum_eig_greater_list.append(np.sum(eig_greater_list))
 
-    return sum_eig_less_than_zero_list, sum_eig_greater_than_one_list
+    return sum_eig_less_list, sum_eig_greater_list
 
 
 def get_sum_of_eigenvalues_violation_povm(
@@ -284,15 +306,18 @@ def make_graphs_sum_unphysical_eigenvalues(
     n_data = num_data[num_data_index]
     sample_object = estimated_qoperations[0]
     if type(sample_object) == State:
-        figs = _make_graphs_sum_unphysical_eigenvalues_state(
-            estimated_qoperations, n_data, bin_size
+        figs = _make_graphs_sum_unphysical_eigenvalues(
+            estimated_qoperations, n_data, bin_size, expected_values=(0, 1)
         )
     elif type(sample_object) == Povm:
         figs = _make_graphs_sum_unphysical_eigenvalues_povm(
             estimated_qoperations, n_data, bin_size
         )
     elif type(sample_object) == Gate:
-        raise NotImplementedError()
+        dim = sample_object.dim
+        figs = _make_graphs_sum_unphysical_eigenvalues(
+            estimated_qoperations, n_data, bin_size, expected_values=(0, dim)
+        )
     else:
         # TODO: message
         raise TypeError()
@@ -492,45 +517,46 @@ def _make_graphs_eigenvalues_gate(
     return figs
 
 
-# only State
-def _make_graphs_sum_unphysical_eigenvalues_state(
-    estimated_states: List[State], num_data: int, bin_size: float = 0.0001
+# only State and Gate
+def _make_graphs_sum_unphysical_eigenvalues(
+    estimated_qobjects: List[Union[State, Gate]],
+    num_data: int,
+    bin_size: float = 0.0001,
+    expected_values=(0, 1),
 ) -> List["Figure"]:
-
-    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_states)
-    less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
-        sorted_eigenvalues_list
+    expected_values = list(sorted(expected_values))
+    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
+    less_list, greater_list = get_sum_of_eigenvalues_violation(
+        sorted_eigenvalues_list, expected_values=expected_values
     )
 
     n_rep = len(sorted_eigenvalues_list)
     figs = []
     # Figure 1
-    xaxis_title_text = f"Sum of unphysical eigenvalues (<0)"
-    n_unphysical = len(less_than_zero_list)
+    xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
+    n_unphysical = len(less_list)
 
     fig = make_prob_dist_histogram(
-        less_than_zero_list,
+        less_list,
         bin_size=bin_size,
         num_data=num_data,
-        annotation_vlines=[0],
+        annotation_vlines=[expected_values[0]],
         xaxis_title_text=xaxis_title_text,
+        title=f"N={num_data}, Nrep={n_rep}",
         additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
-    # title = (
-    #     f"N={num_data}, Nrep={n_rep}"
-    # )
-    # fig.update_layout(title=title)
     figs.append(fig)
 
     # Figure 2
-    xaxis_title_text = f"Sum of unphysical eigenvalues (>1)"
-    n_unphysical = len(less_than_zero_list)
+    xaxis_title_text = f"Sum of unphysical eigenvalues (>{expected_values[1]})"
+    n_unphysical = len(less_list)
     fig = make_prob_dist_histogram(
-        greater_than_one_list,
+        greater_list,
         bin_size=bin_size,
         num_data=num_data,
-        annotation_vlines=[1],
+        annotation_vlines=[expected_values[1]],
         xaxis_title_text=xaxis_title_text,
+        title=f"N={num_data}, Nrep={n_rep}",
         additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
 
