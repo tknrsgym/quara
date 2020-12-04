@@ -386,12 +386,65 @@ def _replace_entry(prob_dist: np.array, eps: float) -> np.array:
 
 
 def calc_fisher_matrix_total(
-    prob_dists: List[np.array], grad_prob_dists: List[List[np.array]]
+    prob_dists: List[np.array],
+    grad_prob_dists: List[List[np.array]],
+    weights: List[float],
+    eps: float = None,
 ) -> np.array:
-    # TODO validation
+    """calculates total Fisher matrix.
+
+    Parameters
+    ----------
+    prob_dists : List[np.array]
+        list of probability distribution.
+    grad_prob_dists : List[List[np.array]]
+        list of list of gradient of probability distribution.
+    weights : List[float]
+        list of weight.
+    eps : float, optional
+        a parameter to avoid divergence about the inverse of probability, by default 1e-8
+
+    Returns
+    -------
+    np.array
+        [description]
+
+    Raises
+    ------
+    ValueError
+        size of prob_dists, grad_prob_dists and weights are not equal
+    ValueError
+        some weights are not non-nagative number.
+    """
+    eps = eps if eps is not None else 1e-8
+
+    ### validate
+    # size of prob_dists, grad_prob_dists and weights must be equal
+    size_prob_dists = len(prob_dists)
+    size_grad_prob_dists = len(grad_prob_dists)
+    size_weights = len(weights)
+    if size_prob_dists != size_grad_prob_dists:
+        raise ValueError(
+            f"size of prob_dists and grad_prob_dists must be equal. size of prob_dists={size_prob_dists}, size of grad_prob_dists={size_grad_prob_dists}"
+        )
+    if size_prob_dists != size_grad_prob_dists:
+        raise ValueError(
+            f"size of prob_dists and weights must be equal. size of prob_dists={size_prob_dists}, size of weights={size_weights}"
+        )
+
+    # each weight must be non-nagative number
+    for index, weight in enumerate(weights):
+        if weight < 0:
+            raise ValueError(
+                f"each weight must be non-negative number. weights[{index}]={weight}"
+            )
+
+    ### calculate
     matrix_size = prob_dists[0].shape[0]
     matrix = np.zeros((matrix_size, matrix_size))
-    for prob_dist, grad_prob_dist in zip(prob_dists, grad_prob_dists):
-        matrix += calc_fisher_matrix(prob_dist, grad_prob_dist)
+    for index in range(size_prob_dists):
+        matrix += weights[index] * calc_fisher_matrix(
+            prob_dists[index], grad_prob_dists[index], eps=eps
+        )
 
     return matrix
