@@ -1,5 +1,5 @@
 from abc import abstractmethod, abstractproperty
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -304,6 +304,24 @@ class StandardQTomography(QTomography):
                 self.calc_covariance_mat_single(qope, schedule_index, data_num)
             )
         return mse_total
+
+    def calc_fisher_matrix(self, j: int, var: Union[QOperation, np.array]) -> np.array:
+        # TODO QOperation or var
+        if isinstance(var, QOperation):
+            var = var.to_var()
+
+        matA = self.calc_matA()
+        vecB = self.calc_vecB()
+        size_prob_dist = int(len(matA) / self.num_schedules)
+        prob_dist = (
+            matA[size_prob_dist * j : size_prob_dist * (j + 1)] @ var
+            + vecB[size_prob_dist * j : size_prob_dist * (j + 1)]
+        )
+        grad_prob_dist = matA[size_prob_dist * j : size_prob_dist * (j + 1)]
+        fisher_matrix = matrix_util.calc_fisher_matrix(prob_dist, grad_prob_dist)
+        print(fisher_matrix)
+
+        return fisher_matrix
 
     @abstractmethod
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
