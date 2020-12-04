@@ -11,6 +11,14 @@ import plotly.express as px
 import numpy as np
 from tqdm import tqdm
 
+from quara.data_analysis.probability_based_loss_function import (
+    ProbabilityBasedLossFunction,
+    ProbabilityBasedLossFunctionOption,
+)
+from quara.data_analysis.minimization_algorithm import (
+    MinimizationAlgorithm,
+    MinimizationAlgorithmOption,
+)
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
@@ -18,6 +26,9 @@ from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
+from quara.protocol.qtomography.standard.loss_minimization_estimator import (
+    LossMinimizationEstimator,
+)
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
@@ -208,11 +219,27 @@ def _estimate(
     true_object: QOperation,
     num_data: List[int],
     estimator=StandardQTomographyEstimator,
+    loss: ProbabilityBasedLossFunction = None,
+    loss_option: ProbabilityBasedLossFunctionOption = None,
+    algo: MinimizationAlgorithm = None,
+    algo_option: MinimizationAlgorithmOption = None,
 ) -> StandardQTomographyEstimationResult:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
-    result = estimator.calc_estimate_sequence(
-        qtomography, empi_dists_seq, is_computation_time_required=True
-    )
+
+    if isinstance(estimator, LossMinimizationEstimator):
+        result = estimator.calc_estimate_sequence(
+            qtomography,
+            empi_dists_seq,
+            loss=loss,
+            loss_option=loss_option,
+            algo=algo,
+            algo_option=algo_option,
+            is_computation_time_required=True,
+        )
+    else:
+        result = estimator.calc_estimate_sequence(
+            qtomography, empi_dists_seq, is_computation_time_required=True,
+        )
     return result
 
 
@@ -222,18 +249,40 @@ def estimate(
     true_object: QOperation,
     num_data: List[int],
     estimator: StandardQTomographyEstimator,
+    loss: ProbabilityBasedLossFunction = None,
+    loss_option: ProbabilityBasedLossFunctionOption = None,
+    algo: MinimizationAlgorithm = None,
+    algo_option: MinimizationAlgorithmOption = None,
     iteration: Optional[int] = None,
 ) -> Union[
     StandardQTomographyEstimationResult, List[StandardQTomographyEstimationResult],
 ]:
 
     if iteration is None:
-        result = _estimate(qtomography, true_object, num_data, estimator)
+        result = _estimate(
+            qtomography,
+            true_object,
+            num_data,
+            estimator,
+            loss=loss,
+            loss_option=loss_option,
+            algo=algo,
+            algo_option=algo_option,
+        )
         return result
     else:
         results = []
         for _ in tqdm(range(iteration)):
-            result = _estimate(qtomography, true_object, num_data, estimator)
+            result = _estimate(
+                qtomography,
+                true_object,
+                num_data,
+                estimator,
+                loss=loss,
+                loss_option=loss_option,
+                algo=algo,
+                algo_option=algo_option,
+            )
             results.append(result)
         return results
 
