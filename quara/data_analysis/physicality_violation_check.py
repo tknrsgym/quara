@@ -14,12 +14,10 @@ from quara.objects.gate import Gate
 from quara.settings import Settings
 
 
-def get_sorted_eigenvalues_list(
-    estimated_qobject_list: List["State"],
-) -> List[List[float]]:
+def _get_sorted_eigenvalues_list_for_state(estimated_states: List["State"],):
     sorted_eigenvalues_list = []
 
-    for estimated_qobject in tqdm(estimated_qobject_list):
+    for estimated_qobject in tqdm(estimated_states):
         sorted_eigenvalues = sorted(
             [x.real for x in estimated_qobject.calc_eigenvalues()], reverse=True
         )
@@ -27,24 +25,48 @@ def get_sorted_eigenvalues_list(
     return sorted_eigenvalues_list
 
 
+def get_sorted_eigenvalues_list(
+    estimated_qobjects: List["State"],
+) -> List[List[float]]:
+    qobject_type = type(estimated_qobjects[0])
+    if qobject_type == State:
+        sorted_eigenvalues_list = _get_sorted_eigenvalues_list_for_state(
+            estimated_qobjects
+        )
+    elif qobject_type == Povm:
+        raise NotImplementedError()
+    elif qobject_type == Gate:
+        # TODO: function name
+        sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_qobjects)
+    else:
+        # TODO: error message
+        raise TypeError()
+
+    return sorted_eigenvalues_list
+
+
 def get_sum_of_eigenvalues_violation(
-    eigenvalues_list: List[List[float]],
+    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1),
 ) -> Tuple[List[float], List[float]]:
-    sum_eig_less_than_zero_list = []
-    sum_eig_greater_than_one_list = []
-    # sorted_eigenvalues_list = sorted(eigenvalues_list, reverse=True)
-    sorted_eigenvalues_list = eigenvalues_list
-    eps = 10 ** (-13)
-    for i, values in enumerate(sorted_eigenvalues_list):
-        eig_less_than_zero_list = [v for v in values if v < 0 - eps]
-        if eig_less_than_zero_list:
-            sum_eig_less_than_zero_list.append(np.sum(eig_less_than_zero_list))
+    expected_values = sorted(expected_values)
+    if len(expected_values) > 2:
+        # TODO: error message
+        raise ValueError()
 
-        eig_greater_than_one_list = [v for v in values if v > 1 + eps]
-        if eig_greater_than_one_list:
-            sum_eig_greater_than_one_list.append(np.sum(eig_greater_than_one_list))
+    sum_eig_less_list = []
+    sum_eig_greater_list = []
 
-    return sum_eig_less_than_zero_list, sum_eig_greater_than_one_list
+    eps = Settings.get_atol()
+    for _, values in enumerate(sorted_eigenvalues_list):
+        eig_less_list = [v for v in values if v < expected_values[0] - eps]
+        if eig_less_list:
+            sum_eig_less_list.append(np.sum(eig_less_list))
+
+        eig_greater_list = [v for v in values if v > expected_values[1] + eps]
+        if eig_greater_list:
+            sum_eig_greater_list.append(np.sum(eig_greater_list))
+
+    return sum_eig_less_list, sum_eig_greater_list
 
 
 def get_sum_of_eigenvalues_violation_povm(
@@ -158,7 +180,10 @@ def make_prob_dist_histogram(
         additional_text = (
             f"<br><br>Min: {x_min}<br>Max: {x_max}<br>|Max-Min|: {abs(x_max-x_min)}"
         )
-        xaxis_title_text += additional_text
+    else:
+        additional_text = f"<br><br>Min: -<br>Max: -<br>|Max-Min|: -"
+    xaxis_title_text += additional_text
+
     fig.update_xaxes(title=xaxis_title_text)
 
     # Adjust range of xaxis
@@ -248,14 +273,13 @@ def make_graph_trace(
 def make_graphs_eigenvalues(
     estimation_results: List[EstimationResult],
     true_object: "QOperation",
-    num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ) -> Union[List["Figure"], List[List["Figure"]]]:
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-
+    num_data = estimation_results[0].num_data
     n_data = num_data[num_data_index]
     if type(true_object) == State:
         figs = _make_graphs_eigenvalues_state(
@@ -266,7 +290,7 @@ def make_graphs_eigenvalues(
             estimated_qoperations, true_object, n_data, bin_size
         )
     elif type(true_object) == Gate:
-        raise NotImplementedError()
+        figs = _make_graphs_eigenvalues_gate(estimated_qoperations, n_data, bin_size)
     else:
         message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
         raise TypeError(message)
@@ -285,15 +309,18 @@ def make_graphs_sum_unphysical_eigenvalues(
     n_data = num_data[num_data_index]
     sample_object = estimated_qoperations[0]
     if type(sample_object) == State:
-        figs = _make_graphs_sum_unphysical_eigenvalues_state(
-            estimated_qoperations, n_data, bin_size
+        figs = _make_graphs_sum_unphysical_eigenvalues(
+            estimated_qoperations, n_data, bin_size, expected_values=(0, 1)
         )
     elif type(sample_object) == Povm:
         figs = _make_graphs_sum_unphysical_eigenvalues_povm(
             estimated_qoperations, n_data, bin_size
         )
     elif type(sample_object) == Gate:
-        raise NotImplementedError()
+        dim = sample_object.dim
+        figs = _make_graphs_sum_unphysical_eigenvalues(
+            estimated_qoperations, n_data, bin_size, expected_values=(0, dim)
+        )
     else:
         # TODO: message
         raise TypeError()
@@ -447,45 +474,92 @@ def _make_graphs_eigenvalues_povm(
     return fig_list_list
 
 
-# only State
-def _make_graphs_sum_unphysical_eigenvalues_state(
-    estimated_states: List[State], num_data: int, bin_size: float = 0.0001
-) -> List["Figure"]:
+def get_sorted_eigenvalue_gate(gates: List[Gate]) -> list:
+    sorted_eigenvalues_list = []
+    for gate in gates:
+        choi_matrix = gate.to_choi_matrix()
+        eigenvals, _ = np.linalg.eig(choi_matrix)
+        sorted_eigenvalues = [eig.real for eig in sorted(eigenvals, reverse=True)]
+        sorted_eigenvalues_list.append(sorted_eigenvalues)
+    return sorted_eigenvalues_list
 
-    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_states)
-    less_than_zero_list, greater_than_one_list = get_sum_of_eigenvalues_violation(
-        sorted_eigenvalues_list
+
+def _make_graphs_eigenvalues_gate(
+    estimated_gates: List[Gate], num_data: int, bin_size: float = 0.0001
+):
+    sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_gates)
+    sorted_eigenvalues_list = np.array(sorted_eigenvalues_list).T
+
+    dim = estimated_gates[0].dim
+
+    figs = []
+    for i, values in enumerate(sorted_eigenvalues_list):
+        min_value = min(values)
+        max_value = max(values)
+        vlines = []
+        if (
+            (max_value <= 0)
+            or (min_value <= 0 <= max_value)
+            or (abs(min_value) <= abs(max_value - dim))
+        ):
+            vlines.append(0)
+        if (
+            (abs(min_value) >= abs(max_value - dim))
+            or (min_value <= dim <= max_value)
+            or (dim <= min_value)
+        ):
+            vlines.append(dim)
+
+        fig = make_prob_dist_histogram(
+            values, bin_size=bin_size, num_data=num_data, annotation_vlines=vlines
+        )
+        title = f"N={num_data}, i={i}"
+        fig.update_layout(title=title)
+        figs.append(fig)
+
+    return figs
+
+
+# only State and Gate
+def _make_graphs_sum_unphysical_eigenvalues(
+    estimated_qobjects: List[Union[State, Gate]],
+    num_data: int,
+    bin_size: float = 0.0001,
+    expected_values=(0, 1),
+) -> List["Figure"]:
+    expected_values = list(sorted(expected_values))
+    sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
+    less_list, greater_list = get_sum_of_eigenvalues_violation(
+        sorted_eigenvalues_list, expected_values=expected_values
     )
 
     n_rep = len(sorted_eigenvalues_list)
     figs = []
     # Figure 1
-    xaxis_title_text = f"Sum of unphysical eigenvalues (<0)"
-    n_unphysical = len(less_than_zero_list)
+    xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
+    n_unphysical = len(less_list)
 
     fig = make_prob_dist_histogram(
-        less_than_zero_list,
+        less_list,
         bin_size=bin_size,
         num_data=num_data,
-        annotation_vlines=[0],
+        annotation_vlines=[expected_values[0]],
         xaxis_title_text=xaxis_title_text,
+        title=f"N={num_data}, Nrep={n_rep}",
         additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
-    # title = (
-    #     f"N={num_data}, Nrep={n_rep}"
-    # )
-    # fig.update_layout(title=title)
     figs.append(fig)
 
     # Figure 2
-    xaxis_title_text = f"Sum of unphysical eigenvalues (>1)"
-    n_unphysical = len(less_than_zero_list)
+    xaxis_title_text = f"Sum of unphysical eigenvalues (>{expected_values[1]})"
+    n_unphysical = len(greater_list)
     fig = make_prob_dist_histogram(
-        greater_than_one_list,
+        greater_list,
         bin_size=bin_size,
         num_data=num_data,
-        annotation_vlines=[1],
+        annotation_vlines=[expected_values[1]],
         xaxis_title_text=xaxis_title_text,
+        title=f"N={num_data}, Nrep={n_rep}",
         additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
 
@@ -520,4 +594,75 @@ def _make_graphs_sum_unphysical_eigenvalues_povm(
         )
         figs.append(fig)
 
+    return figs
+
+
+def make_graphs_trace_error(
+    estimation_results: List["EstimatedResult"],
+    num_data_index: int,
+    bin_size: float = 0.0001,
+):
+    num_data = estimation_results[0].num_data
+    estimated_gates = _convert_result_to_qoperation(
+        estimation_results, num_data_index=num_data_index
+    )
+    size = estimated_gates[0].dim ** 2
+    expected = np.zeros((1, size))
+    expected[0][0] = 1
+    expected = expected.flatten().tolist()
+    figs = []
+    for i in range(size):
+        values = [gate.hs[0][i] for gate in estimated_gates]
+        fig = make_prob_dist_histogram(
+            values,
+            bin_size=bin_size,
+            num_data=num_data,
+            annotation_vlines=[expected[i]],
+        )
+        title = f"N={num_data[num_data_index]}, α={i}"
+        fig.update_layout(title=title)
+        figs.append(fig)
+    return figs
+
+
+def make_graph_trace_error_sum(
+    estimation_results: List["EstimatedResult"],
+    num_data_index: int,
+    bin_size: float = 0.0001,
+):
+    num_data = estimation_results[0].num_data
+    estimated_gates = _convert_result_to_qoperation(
+        estimation_results, num_data_index=num_data_index
+    )
+    size = estimated_gates[0].dim ** 2
+    expected = np.zeros((1, size))
+    expected[0][0] = 1
+    expected = expected.flatten().tolist()
+    values = []
+
+    for gate in estimated_gates:
+        value = sum([(gate.hs[0][i] - expected[i]) ** 2 for i in range(size)])
+        value = np.sqrt(value)
+        values.append(value)
+
+    fig = make_prob_dist_histogram(
+        values, bin_size=bin_size, num_data=num_data, annotation_vlines=[0]
+    )
+    title = f"N={num_data[num_data_index]}"
+    fig.update_layout(title=title)
+    fig.update_xaxes(range=[0, fig.layout.xaxis.range[1]])
+
+    return fig
+
+
+def make_graphs_trace_error_sum(
+    estimation_results: List["EstimatedResult"], bin_size: float = 0.0001,
+) -> list:
+    num_data = estimation_results[0].num_data
+    figs = []
+    for num_data_index, num in enumerate(num_data):
+        fig = make_graph_trace_error_sum(
+            estimation_results, num_data_index, bin_size=bin_size
+        )
+        figs.append(fig)
     return figs
