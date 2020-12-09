@@ -345,6 +345,7 @@ def show_mse(num_data: List[int], mses: List[float], title: str = "Mean squared 
 def make_mses_graph(
     num_data: List[int],
     mses: List[List[float]],
+    sds_list: List[List[float]] = None,
     title: str = "Mean squared error",
     additional_title_text: str = "",
     names: Optional[List[str]] = None,
@@ -353,8 +354,18 @@ def make_mses_graph(
     if not names:
         names = [f"data_{i}" for i in range(len(mses))]
     data = []
+
     for i, mse in enumerate(mses):
-        trace = go.Scatter(x=num_data, y=mse, mode="lines+markers", name=names[i])
+        error_y = dict(visible=False)
+        if sds_list and i < len(sds_list):
+            error_y = dict(
+                type="data",  # value of error bar given in data coordinates
+                array=sds_list[i],
+                visible=True,
+            )
+        trace = go.Scatter(
+            x=num_data, y=mse, mode="lines+markers", name=names[i], error_y=error_y,
+        )
         data.append(trace)
     if additional_title_text:
         title = f"{title}<br>{additional_title_text}"
@@ -409,10 +420,12 @@ def make_mses_graph_estimation_results(
 ) -> "Figure":
     num_data = estimation_results_list[0][0].num_data
     mses_list = []
+    sds_list = []
     display_case_names = case_names[:]
     for estimation_results in estimation_results_list:
-        mses, *_ = convert_to_series(estimation_results, true_object)
+        mses, sds, _ = convert_to_series(estimation_results, true_object)
         mses_list.append(mses)
+        sds_list.append(sds)
 
     # calc analytical result
     if show_analytical_results:
@@ -424,13 +437,13 @@ def make_mses_graph_estimation_results(
         )
         mses_list += analytical_mses
         display_case_names += analytical_case_names
-
     fig = make_mses_graph(
         num_data,
         mses_list,
         names=display_case_names,
         title=title,
         additional_title_text=additional_title_text,
+        sds_list=sds_list,
     )
     return fig
 
@@ -527,8 +540,10 @@ def make_mses_graphs_estimator(
             data_dict[estimator_name]["estimators"].append(estimator)
         else:
             data_dict[estimator_name] = dict(
-            estimation_results=[results], case_names=[case_name], estimators=[estimator]
-        )
+                estimation_results=[results],
+                case_names=[case_name],
+                estimators=[estimator],
+            )
 
     figs = []
     for key, target_dict in data_dict.items():
