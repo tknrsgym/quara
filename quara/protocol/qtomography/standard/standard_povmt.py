@@ -190,5 +190,12 @@ class StandardPovmt(StandardQTomography):
         return povm
 
     def generate_empty_estimation_obj_with_setting_info(self) -> QOperation:
+        """generates the empty estimation object with setting information.
+
+        Returns
+        -------
+        QOperation
+            the empty estimation object(Povm) with setting information.
+        """
         empty_estimation_obj = self._set_qoperations.povms[0]
         return empty_estimation_obj.copy()

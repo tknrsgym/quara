@@ -3,6 +3,7 @@ from typing import List
 
 import numpy as np
 import numpy.testing as npt
+import pytest
 
 from quara.data_analysis.projected_gradient_descent_base import (
     ProjectedGradientDescentBase,
@@ -21,7 +22,7 @@ from quara.objects.povm import (
     get_y_measurement,
     get_z_measurement,
 )
-from quara.objects.state import get_z0_1q
+from quara.objects.state import convert_var_to_state, get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
@@ -101,12 +102,13 @@ class TestLossMinimizationEstimator:
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        # TODO choice func_proj
-        # func_proj=auto setting, on_algo_eq_constraint=True, on_algo_ineq_constraint=True
+        # case1: on_algo_eq_constraint=True, on_algo_ineq_constraint=True
         qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
         algo = ProjectedGradientDescentBase()
 
-        obj_start = qst._set_qoperations.states[0].generate_origin_obj()
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
         var_start = obj_start.to_var()
         algo_option = ProjectedGradientDescentBaseOption(var_start)
 
@@ -118,9 +120,168 @@ class TestLossMinimizationEstimator:
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
-        assert actual.computation_time == None
 
-    """
+        # case2: on_algo_eq_constraint=True, on_algo_ineq_constraint=False
+        qst, _ = get_test_data(
+            on_algo_eq_constraint=True, on_algo_ineq_constraint=False
+        )
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 0.707106764760052]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+
+        # case3: on_algo_eq_constraint=False, on_algo_ineq_constraint=True
+        qst, _ = get_test_data(
+            on_algo_eq_constraint=False, on_algo_ineq_constraint=True
+        )
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [0.707106790461949, 0, 0, 0.707106713475754]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+
+        # case4: on_algo_eq_constraint=False, on_algo_ineq_constraint=False
+        qst, _ = get_test_data(
+            on_algo_eq_constraint=False, on_algo_ineq_constraint=False
+        )
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [
+            7.071067772680395e-01,
+            -3.291237808416748e-26,
+            -3.291237808416748e-26,
+            7.071067976130435e-01,
+        ]
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=10)
+
+    def test_calc_estimate__func_proj(self):
+        empi_dists = [
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([1, 0], dtype=np.float64)),
+        ]
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        # case1: func_proj=auto setting
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+
+        # case2: func_proj=func_proj.proj_to_self
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+        loss = WeightedProbabilityBasedSquaredError(
+            4, func_prob_dists=func_proj.proj_to_self
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+
+        # case3: func_proj=func_proj.proj_to_hyperplane
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+        loss = WeightedProbabilityBasedSquaredError(
+            4, func_prob_dists=func_proj.proj_to_hyperplane(var_start)
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+
+        # case4: func_proj=func_proj.proj_to_nonnegative
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        obj_start = (
+            qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
+        )
+        var_start = obj_start.to_var()
+        algo_option = ProjectedGradientDescentBaseOption(var_start)
+        loss = WeightedProbabilityBasedSquaredError(
+            4, func_prob_dists=func_proj.proj_to_nonnegative
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+
     def test_calc_estimate_sequence(self):
         qst, _ = get_test_data()
         empi_dists_seq = [
@@ -130,106 +291,121 @@ class TestLossMinimizationEstimator:
                 (100, np.array([1, 0], dtype=np.float64)),
             ],
             [
-                (10000, np.array([0.5, 0.5], dtype=np.float64)),
-                (10000, np.array([0.5, 0.5], dtype=np.float64)),
                 (10000, np.array([1, 0], dtype=np.float64)),
+                (10000, np.array([0.5, 0.5], dtype=np.float64)),
+                (10000, np.array([0.5, 0.5], dtype=np.float64)),
             ],
         ]
 
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+        algo_option = ProjectedGradientDescentBaseOption()
+
         estimator = LossMinimizationEstimator()
 
-        # is_computation_time_required=True
         actual = estimator.calc_estimate_sequence(
-            qst, empi_dists_seq, is_computation_time_required=True
+            qst, empi_dists_seq, loss, loss_option, algo, algo_option,
         )
+
         expected = [
             [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
-            [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
+            [1 / np.sqrt(2), 1 / np.sqrt(2), 0, 0],
         ]
         for a, e in zip(actual.estimated_qoperation_sequence, expected):
             assert a.is_physical()
             npt.assert_almost_equal(a.to_stacked_vector(), e, decimal=15)
-        assert len(actual.computation_times) == 2
-        for a in actual.computation_times:
-            assert type(a) == float
 
-        # is_computation_time_required=False
-        actual = estimator.calc_estimate_sequence(qst, empi_dists_seq)
-        expected = [
-            [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
-            [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)],
+    def test_calc_estimate_sequence_value_error(self):
+        qst, _ = get_test_data()
+        empi_dists_seq = [
+            [
+                (100, np.array([0.5, 0.5], dtype=np.float64)),
+                (100, np.array([0.5, 0.5], dtype=np.float64)),
+                (100, np.array([1, 0], dtype=np.float64)),
+            ],
+            [
+                (10000, np.array([1, 0], dtype=np.float64)),
+                (10000, np.array([0.5, 0.5], dtype=np.float64)),
+                (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            ],
         ]
-        for a, e in zip(actual.estimated_var_sequence, expected):
-            npt.assert_almost_equal(a, e, decimal=15)
-        assert actual.computation_times == None
 
-    def test_scenario_on_para_eq_constraint_True(self):
-        qst, c_sys = get_test_data(on_para_eq_constraint=True)
+        # loss.is_option_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
 
-        # generate empi dists and calc estimate
-        true_object = get_z0_1q(c_sys)
-        num_data = [100, 1000, 10000, 100000]
-        iterations = 2
+        def _is_option_sufficient():
+            return False
 
-        result_sequence = []
+        loss.is_option_sufficient = _is_option_sufficient
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        for _ in range(iterations):
-            empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+        algo_option = ProjectedGradientDescentBaseOption()
 
-            estimator = LossMinimizationEstimator()
-            result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
-            result_sequence.append(result.estimated_var_sequence)
-            for var in result.estimated_var_sequence:
-                assert len(var) == 3
-            assert len(result.estimated_qoperation_sequence) == 4
+        estimator = LossMinimizationEstimator()
 
-        # calc mse
-        result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
-        actual = [
-            calc_mse(result, [true_object.vec[1:]] * len(result))
-            for result in result_sequences_tmp
-        ]
-        print(f"mse={actual}")
-        expected = [
-            0.0037000000000000036,
-            0.0005530000000000015,
-            6.636000000000025e-05,
-            6.1338999999999626e-06,
-        ]
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )
 
-    def test_scenario_on_para_eq_constraint_False(self):
-        qst, c_sys = get_test_data()
+        # algo.is_loss_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        # generate empi dists and calc estimate
-        true_object = get_z0_1q(c_sys)
-        num_data = [100, 1000, 10000, 100000]
-        iterations = 2
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
 
-        result_sequence = []
+        def _is_loss_sufficient():
+            return False
 
-        for _ in range(iterations):
-            empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
+        algo.is_loss_sufficient = _is_loss_sufficient
+        algo_option = ProjectedGradientDescentBaseOption()
 
-            estimator = LossMinimizationEstimator()
-            result = estimator.calc_estimate_sequence(qst, empi_dists_seq)
-            result_sequence.append(result.estimated_var_sequence)
-            for var in result.estimated_var_sequence:
-                assert len(var) == 4
-            assert len(result.estimated_qoperation_sequence) == 4
+        estimator = LossMinimizationEstimator()
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )
 
-        # calc mse
-        result_sequences_tmp = [list(result) for result in zip(*result_sequence)]
-        actual = [
-            calc_mse(result, [true_object.vec] * len(result))
-            for result in result_sequences_tmp
-        ]
-        print(f"mse={actual}")
-        expected = [
-            0.0037000000000000045,
-            0.0005530000000000005,
-            6.635999999999932e-05,
-            6.133899999999996e-06,
-        ]
-        npt.assert_almost_equal(actual, expected, decimal=15)
-    """
+        # algo.is_option_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        def _is_option_sufficient():
+            return False
+
+        algo.is_option_sufficient = _is_option_sufficient
+        algo_option = ProjectedGradientDescentBaseOption()
+
+        estimator = LossMinimizationEstimator()
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )
+
+        # algo.is_loss_and_option_sufficient() is False
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        algo = ProjectedGradientDescentBase()
+
+        def _is_loss_and_option_sufficient():
+            return False
+
+        algo.is_loss_and_option_sufficient = _is_loss_and_option_sufficient
+        algo_option = ProjectedGradientDescentBaseOption()
+
+        estimator = LossMinimizationEstimator()
+        with pytest.raises(ValueError):
+            estimator.calc_estimate_sequence(
+                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            )

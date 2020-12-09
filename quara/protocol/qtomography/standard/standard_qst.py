@@ -249,5 +249,12 @@ class StandardQst(StandardQTomography):
         return state
 
     def generate_empty_estimation_obj_with_setting_info(self) -> QOperation:
+        """generates the empty estimation object with setting information.
+
+        Returns
+        -------
+        QOperation
+            the empty estimation object(State) with setting information.
+        """
         empty_estimation_obj = self._set_qoperations.states[0]
         return empty_estimation_obj.copy()

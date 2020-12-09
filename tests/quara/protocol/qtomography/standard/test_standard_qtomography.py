@@ -285,3 +285,17 @@ class TestStandardQTomography:
         actual = qst.calc_mse_empi_dists_analytical(state, [10, 5, 10])
         # Assert
         npt.assert_almost_equal(actual, 0.15, decimal=15)
+
+    def test_calc_fisher_matrix(self):
+        """
+        # Case 1: qst, on_par_eq_constraint = True
+        # Arrange
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+        # Act
+        actual = qst.calc_fisher_matrix(2, state)
+        # Assert
+        expected = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0.5],], dtype=np.float64,)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+        """
+        pass
