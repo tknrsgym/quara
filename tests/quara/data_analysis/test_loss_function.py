@@ -4,7 +4,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.loss_function import LossFunction
+from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
 
 
 class TestLossFunction:
@@ -15,6 +15,12 @@ class TestLossFunction:
         # Test that "num_var" cannot be updated
         with pytest.raises(AttributeError):
             loss_func.num_var = 5
+
+    def test_access_option(self):
+        loss_func = LossFunction(4)
+        assert loss_func.option == None
+        loss_func.set_from_option(LossFunctionOption())
+        assert loss_func.option != None
 
     def test_access_on_value(self):
         loss_func = LossFunction(4)
