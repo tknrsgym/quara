@@ -426,7 +426,9 @@ def make_mses_graph_estimation_results(
         mses, sds, _ = convert_to_series(estimation_results, true_object)
         mses_list.append(mses)
         sds_list.append(sds)
-
+        # print("----------------")
+        # print(f"{mses=}")
+        # print(f"{sds=}")
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
