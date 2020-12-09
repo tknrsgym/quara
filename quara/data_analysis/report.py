@@ -613,16 +613,11 @@ def _generate_physicality_violation_test_div_for_gate(
             <h5></h5>
             {div}
             """
-        # div = generate_fig_list_list_div(
-        #     estimation_results=estimation_results,
-        #     case_id=case_id,
-        #     fig_type="physicality-violation-eq-trace-sum-error",
-        #     make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
-        # )
 
         div = generate_figs_div(
             func=_make_fig_info_list,
             estimation_results=estimation_results,
+            case_id=case_id,
             fig_type="physicality-violation-eq-trace-sum-error",
             size=(_col2_fig_width, _col2_fig_height),
             make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
@@ -816,7 +811,7 @@ def _make_graphs_mses(make_graphs_func, mse_type: "str", **kwargs) -> list:
 
 
 def _make_fig_info_list(
-    make_graphs_func, fig_type: "str", size=(600, 600), **kwargs
+    make_graphs_func, fig_type: "str", case_id: int = None, size=(600, 600), **kwargs
 ) -> list:
     arg_names = make_graphs_func.__code__.co_varnames[
         : make_graphs_func.__code__.co_argcount
@@ -830,7 +825,8 @@ def _make_fig_info_list(
 
     for i, fig in enumerate(figs):
         fig_name = f"fig_type={fig_type}_{i}"
-        # TODO:
+        if case_id is not None:
+            fig_name = f"case={case_id}_{fig_name}"
         fig.update_layout(width=size[0], height=size[1])
         fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
         path = _save_fig_to_tmp_dir(fig, fig_name)
