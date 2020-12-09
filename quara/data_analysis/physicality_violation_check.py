@@ -625,7 +625,7 @@ def make_graphs_trace_error(
     return figs
 
 
-def make_graphs_trace_error_sum(
+def make_graph_trace_error_sum(
     estimation_results: List["EstimatedResult"],
     num_data_index: int,
     bin_size: float = 0.0001,
@@ -653,3 +653,16 @@ def make_graphs_trace_error_sum(
     fig.update_xaxes(range=[0, fig.layout.xaxis.range[1]])
 
     return fig
+
+
+def make_graphs_trace_error_sum(
+    estimation_results: List["EstimatedResult"], bin_size: float = 0.0001,
+) -> list:
+    num_data = estimation_results[0].num_data
+    figs = []
+    for num_data_index, num in enumerate(num_data):
+        fig = make_graph_trace_error_sum(
+            estimation_results, num_data_index, bin_size=bin_size
+        )
+        figs.append(fig)
+    return figs
