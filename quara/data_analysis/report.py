@@ -374,7 +374,6 @@ def generate_eigenvalues_div(
 def _generate_graph_sum_eigenvalues_seq(
     estimation_results: List["EstimationResult"], case_id: int, true_object,
 ) -> List[List[dict]]:
-    # TODO: remove?
     num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
@@ -691,8 +690,8 @@ def generate_physicality_violation_test_div(
             estimation_results_list, case_name_list, true_object
         )
     else:
-        # TODO: error message
-        raise TypeError()
+        message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+        raise TypeError(message)
 
     physicality_violation_test_div = f"""
         {true_all_div}
@@ -855,7 +854,6 @@ def _make_fig_info_list_list(
         fig_info_list = []
         for alpha, fig in enumerate(figs):
             fig_name = f"case={case_id}_{fig_type}_num={num}_alpha={alpha}"
-            # TODO: 画像幅
             fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 

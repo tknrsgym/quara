@@ -456,8 +456,8 @@ def _make_data_for_graphs_mses_analytical(
     estimator_list: List[Union["Estimator", str]],
 ):
     if len(estimation_results_list) != len(estimator_list):
-        # TODO: error message
-        raise ValueError()
+        message = "`estimation_results_list` and `estimator_list` lengths do not match"
+        raise ValueError(message)
 
     num_data = estimation_results_list[0][0].num_data
     mses_list = []

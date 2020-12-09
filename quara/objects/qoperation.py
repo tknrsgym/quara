@@ -668,14 +668,14 @@ class QOperation:
     def __add__(self, other):
         # Validation
         if type(other) != type(self):
-            error_message = (
-                f"'+' not supported between instances of {type(self)} and {type(other)}"
-            )
+            error_message = f"'+' not supported between instances of {type(self)} and {type(other)}."
             raise TypeError(error_message)
 
         if other.composite_system is not self.composite_system:
-            # TODO: error message
-            raise ValueError()
+            message = (
+                "'+' not supported between instances with different composite_system."
+            )
+            raise ValueError(message)
 
         if (
             (self.is_physicality_required != other.is_physicality_required)
@@ -713,8 +713,10 @@ class QOperation:
             raise TypeError(error_message)
 
         if other.composite_system is not self.composite_system:
-            # TODO: error message
-            raise ValueError()
+            message = (
+                "'-' not supported between instances with different composite_system."
+            )
+            raise ValueError(message)
 
         if (
             (self.is_physicality_required != other.is_physicality_required)
@@ -724,8 +726,34 @@ class QOperation:
             or (self.on_algo_ineq_constraint != other.on_algo_ineq_constraint)
             or (self.eps_proj_physical != other.eps_proj_physical)
         ):
-            # TODO: error message
-            raise ValueError()
+            message = "'-' not supported between instances with different configration."
+            config_dict = dict(
+                is_physicality_required=(
+                    self.is_physicality_required,
+                    other.is_physicality_required,
+                ),
+                is_estimation_object=(
+                    self.is_estimation_object,
+                    other.is_estimation_object,
+                ),
+                on_para_eq_constraint=(
+                    self.on_para_eq_constraint,
+                    other.on_para_eq_constraint,
+                ),
+                on_algo_eq_constraint=(
+                    self.on_algo_eq_constraint,
+                    other.on_algo_eq_constraint,
+                ),
+                on_algo_ineq_constraint=(
+                    self.on_algo_ineq_constraint,
+                    other.on_algo_ineq_constraint,
+                ),
+                eps_proj_physical=(self.eps_proj_physical, other.eps_proj_physical,),
+            )
+            for k, v in config_dict.items():
+                if v[0] != v[1]:
+                    message += f"\nself.{k}=v[0], other.{k}=v[1]"
+            raise ValueError(message)
 
         # Calculation
         new_values = self._sub_vec(other)

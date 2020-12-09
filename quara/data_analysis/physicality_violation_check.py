@@ -26,7 +26,7 @@ def _get_sorted_eigenvalues_list_for_state(estimated_states: List["State"],):
 
 
 def get_sorted_eigenvalues_list(
-    estimated_qobjects: List["State"],
+    estimated_qobjects: List["QOperation"],
 ) -> List[List[float]]:
     qobject_type = type(estimated_qobjects[0])
     if qobject_type == State:
@@ -39,8 +39,8 @@ def get_sorted_eigenvalues_list(
         # TODO: function name
         sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_qobjects)
     else:
-        # TODO: error message
-        raise TypeError()
+        message = f"estimated_qobjects must be a list of State, Povm, or Gate, not {type(qobject_type)}"
+        raise TypeError(message)
 
     return sorted_eigenvalues_list
 
@@ -49,9 +49,9 @@ def get_sum_of_eigenvalues_violation(
     sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1),
 ) -> Tuple[List[float], List[float]]:
     expected_values = sorted(expected_values)
-    if len(expected_values) > 2:
-        # TODO: error message
-        raise ValueError()
+    if len(expected_values) != 2:
+        message = "`expected_values` must be a tuple of length 2."
+        raise ValueError(message)
 
     sum_eig_less_list = []
     sum_eig_greater_list = []
@@ -61,7 +61,6 @@ def get_sum_of_eigenvalues_violation(
         eig_less_list = [v for v in values if v < expected_values[0] - eps]
         if eig_less_list:
             sum_eig_less_list.append(np.sum(eig_less_list))
-
         eig_greater_list = [v for v in values if v > expected_values[1] + eps]
         if eig_greater_list:
             sum_eig_greater_list.append(np.sum(eig_greater_list))
