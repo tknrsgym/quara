@@ -286,8 +286,7 @@ class TestStandardQTomography:
         # Assert
         npt.assert_almost_equal(actual, 0.15, decimal=15)
 
-    def test_calc_fisher_matrix(self):
-        """
+    def test_calc_fisher_matrix_qoperation(self):
         # Case 1: qst, on_par_eq_constraint = True
         # Arrange
         qst, c_sys = get_test_data_qst()
@@ -295,7 +294,142 @@ class TestStandardQTomography:
         # Act
         actual = qst.calc_fisher_matrix(2, state)
         # Assert
-        expected = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0.5],], dtype=np.float64,)
+        expected = np.array(
+            [[0, 0, 0], [0, 0, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+        )
         npt.assert_almost_equal(actual, expected, decimal=15)
-        """
-        pass
+
+        # Case 2: qst, on_par_eq_constraint = False
+        # Arrange
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        state = State(c_sys, vec, on_para_eq_constraint=False)
+        # Act
+        actual = qst.calc_fisher_matrix(2, state)
+        # Assert
+        expected = np.array(
+            [
+                [50000000.499999985, 0, 0, -49999999.49999997],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-49999999.49999997, 0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_fisher_matrix_var(self):
+        # Case 1: qst, on_par_eq_constraint = True
+        # Arrange
+        qst, c_sys = get_test_data_qst()
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        # Act
+        actual = qst.calc_fisher_matrix(2, var)
+        # Assert
+        expected = np.array(
+            [[0, 0, 0], [0, 0, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: qst, on_par_eq_constraint = False
+        # Arrange
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        # Act
+        actual = qst.calc_fisher_matrix(2, var)
+        # Assert
+        expected = np.array(
+            [
+                [50000000.499999985, 0, 0, -49999999.49999997],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-49999999.49999997, 0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_fisher_matrix_total_qoperation(self):
+        # Case 1: qst, on_par_eq_constraint = True
+        # Arrange
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+        weights = [3, 2, 1]
+        # Act
+        actual = qst.calc_fisher_matrix_total(state, weights)
+        # Assert
+        expected = np.array(
+            [[6, 0, 0], [0, 4, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: qst, on_par_eq_constraint = False
+        # Arrange
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        state = State(c_sys, vec, on_para_eq_constraint=False)
+        weights = [3, 2, 1]
+        # Act
+        actual = qst.calc_fisher_matrix_total(state, weights)
+        # Assert
+        expected = np.array(
+            [
+                [50000010.499999985, 0, 0, -49999999.49999997],
+                [0, 6, 0, 0],
+                [0, 0, 4, 0],
+                [-49999999.49999997, 0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_calc_fisher_matrix_total_var(self):
+        # Case 1: qst, on_par_eq_constraint = True
+        # Arrange
+        qst, c_sys = get_test_data_qst()
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        weights = [3, 2, 1]
+        # Act
+        actual = qst.calc_fisher_matrix_total(var, weights)
+        # Assert
+        expected = np.array(
+            [[6, 0, 0], [0, 4, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: qst, on_par_eq_constraint = False
+        # Arrange
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        weights = [3, 2, 1]
+        # Act
+        actual = qst.calc_fisher_matrix_total(var, weights)
+        # Assert
+        expected = np.array(
+            [
+                [50000010.499999985, 0, 0, -49999999.49999997],
+                [0, 6, 0, 0],
+                [0, 0, 4, 0],
+                [-49999999.49999997, 0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    """
+    def test_calc_cramer_rao_bound_qoperation(self):
+        # Case 1: qst, on_par_eq_constraint = True
+        # Arrange
+        qst, c_sys = get_test_data_qst()
+        state = get_z0_1q(c_sys)
+        weights = [1, 1, 1]
+        # Act
+        actual = qst.calc_cramer_rao_bound(state, 1, weights)
+        # Assert
+        expected = np.array(
+            [[6, 0, 0], [0, 4, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+    """
