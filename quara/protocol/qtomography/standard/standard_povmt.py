@@ -1,5 +1,5 @@
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -119,6 +119,32 @@ class StandardPovmt(StandardQTomography):
 
         else:
             val = self._calc_mse_linear_analytical_mode_var(qope, data_num_list)
+        return val
+
+    def calc_cramer_rao_bound(
+        self, var: Union[QOperation, np.array], N: int, list_N: List[int]
+    ) -> np.array:
+        if self.on_para_eq_constraint:
+            val_1st_term = self._calc_cramer_rao_bound(var, N, list_N)
+
+            # TODO 共通化
+            # generate matS
+            STATE_ITEM_INDEX = 0
+            schedule = self._experiment.schedules[0]
+            state_index = schedule[STATE_ITEM_INDEX][1]
+            state = self._experiment.states[state_index]
+            squared_dim = state.vec.shape[0]
+            I = np.eye(squared_dim, dtype=np.float64)
+            I_list = [I for _ in range(self._measurement_n - 1)]
+            matS = np.hstack(I_list)
+
+            # calcurates val_2nd_term = Tr[S F^{-1} S^T]/N
+            fisher = self.calc_fisher_matrix_total(var, list_N)
+            ScovST = matrix_util.calc_conjugate(matS, np.linalg.inv(fisher))
+            val_2nd_term = np.trace(ScovST)
+            val = val_1st_term + val_2nd_term
+        else:
+            val = self._calc_cramer_rao_bound(var, N, list_N)
         return val
 
     def generate_empi_dists_sequence(

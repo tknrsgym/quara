@@ -378,6 +378,11 @@ class StandardQTomography(QTomography):
         np.array
             Cramer-Rao bound.
         """
+        return self._calc_cramer_rao_bound(var, N, list_N)
+
+    def _calc_cramer_rao_bound(
+        self, var: Union[QOperation, np.array], N: int, list_N: List[int]
+    ) -> np.array:
         fisher = self.calc_fisher_matrix_total(var, list_N)
         val = np.trace(np.linalg.inv(fisher)) / N
         return val
