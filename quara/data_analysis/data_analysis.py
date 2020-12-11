@@ -699,7 +699,6 @@ def make_empi_dists_mse_graph(
     num_schedules = qtomography.num_schedules
     num_data = estimation_results[0].num_data
     n_rep = len(estimation_results)
-    mses_list = []
 
     # Data
     display_names = ["Empirical distributions"]
@@ -709,9 +708,15 @@ def make_empi_dists_mse_graph(
     ys_list_list = [[qtomography.calc_prob_dists(true_object)] * n_rep] * len(num_data)
 
     mses = []
+    error_bar_values = []
     for i in range(len(num_data)):
-        mses.append(matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i]))
-    mses_list.append(mses)
+        mse, std = matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i])
+        mses.append(mse)
+        sigma = std
+        error_bar_value = sigma/np.sqrt(n_rep)
+        error_bar_values.append(error_bar_value)
+    mses_list = [mses]
+    error_bar_values_list = [error_bar_values]
 
     # Analytical
     true_mses = []
@@ -728,6 +733,7 @@ def make_empi_dists_mse_graph(
         mses=mses_list,
         num_data=num_data,
         names=display_names,
+        error_bar_values_list=error_bar_values_list,
         yaxis_title_text="Mean squared error",
     )
     return fig
