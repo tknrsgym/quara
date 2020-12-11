@@ -344,4 +344,4 @@ class TestStandardPovmt:
         )
 
         # Assert
-        npt.assert_almost_equal(actual, 0.07999999984703485, decimal=15)
+        npt.assert_almost_equal(actual, 0.07999999984703485, decimal=11)
