@@ -353,7 +353,7 @@ def generate_eigenvalues_div(
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results, case_id=case_id, true_object=true_object,
         )
-        vals = true_object[0].calc_eigenvalues()
+        vals = true_object.calc_eigenvalues()
         col_n = 2 if len(vals) <= 2 else 4
         div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
     elif type(true_object) == Povm:
@@ -374,7 +374,6 @@ def generate_eigenvalues_div(
 def _generate_graph_sum_eigenvalues_seq(
     estimation_results: List["EstimationResult"], case_id: int, true_object,
 ) -> List[List[dict]]:
-    # TODO: remove?
     num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
@@ -613,16 +612,11 @@ def _generate_physicality_violation_test_div_for_gate(
             <h5></h5>
             {div}
             """
-        # div = generate_fig_list_list_div(
-        #     estimation_results=estimation_results,
-        #     case_id=case_id,
-        #     fig_type="physicality-violation-eq-trace-sum-error",
-        #     make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
-        # )
 
         div = generate_figs_div(
             func=_make_fig_info_list,
             estimation_results=estimation_results,
+            case_id=case_id,
             fig_type="physicality-violation-eq-trace-sum-error",
             size=(_col2_fig_width, _col2_fig_height),
             make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
@@ -696,8 +690,8 @@ def generate_physicality_violation_test_div(
             estimation_results_list, case_name_list, true_object
         )
     else:
-        # TODO: error message
-        raise TypeError()
+        message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+        raise TypeError(message)
 
     physicality_violation_test_div = f"""
         {true_all_div}
@@ -816,7 +810,7 @@ def _make_graphs_mses(make_graphs_func, mse_type: "str", **kwargs) -> list:
 
 
 def _make_fig_info_list(
-    make_graphs_func, fig_type: "str", size=(600, 600), **kwargs
+    make_graphs_func, fig_type: "str", case_id: int = None, size=(600, 600), **kwargs
 ) -> list:
     arg_names = make_graphs_func.__code__.co_varnames[
         : make_graphs_func.__code__.co_argcount
@@ -830,7 +824,8 @@ def _make_fig_info_list(
 
     for i, fig in enumerate(figs):
         fig_name = f"fig_type={fig_type}_{i}"
-        # TODO:
+        if case_id is not None:
+            fig_name = f"case={case_id}_{fig_name}"
         fig.update_layout(width=size[0], height=size[1])
         fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
         path = _save_fig_to_tmp_dir(fig, fig_name)
@@ -859,7 +854,6 @@ def _make_fig_info_list_list(
         fig_info_list = []
         for alpha, fig in enumerate(figs):
             fig_name = f"case={case_id}_{fig_type}_num={num}_alpha={alpha}"
-            # TODO: 画像幅
             fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
