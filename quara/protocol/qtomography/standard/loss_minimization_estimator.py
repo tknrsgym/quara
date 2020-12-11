@@ -192,6 +192,6 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
                 computation_times.append(prepare_time + algo_result.computation_time)
 
         result = LossMinimizationEstimationResult(
-            qtomography, empi_dists, estimated_var_sequence, computation_times
+            qtomography, empi_dists_sequence, estimated_var_sequence, computation_times
         )
         return result
