@@ -353,7 +353,7 @@ def generate_eigenvalues_div(
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results, case_id=case_id, true_object=true_object,
         )
-        vals = true_object[0].calc_eigenvalues()
+        vals = true_object.calc_eigenvalues()
         col_n = 2 if len(vals) <= 2 else 4
         div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
     elif type(true_object) == Povm:
