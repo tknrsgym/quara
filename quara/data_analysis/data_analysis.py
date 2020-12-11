@@ -426,7 +426,9 @@ def make_mses_graph_estimation_results(
         mses, sds, _ = convert_to_series(estimation_results, true_object)
         mses_list.append(mses)
         sds_list.append(sds)
-
+        # print("----------------")
+        # print(f"{mses=}")
+        # print(f"{sds=}")
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
@@ -454,8 +456,8 @@ def _make_data_for_graphs_mses_analytical(
     estimator_list: List[Union["Estimator", str]],
 ):
     if len(estimation_results_list) != len(estimator_list):
-        # TODO: error message
-        raise ValueError()
+        message = "`estimation_results_list` and `estimator_list` lengths do not match"
+        raise ValueError(message)
 
     num_data = estimation_results_list[0][0].num_data
     mses_list = []
