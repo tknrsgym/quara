@@ -308,12 +308,11 @@ class TestStandardPovmt:
         state_z1 = get_z1_1q(c_sys)
         tester_objects = [state_x0, state_y0, state_z0, state_z1]
 
-        # true_object: origin
-        a0, a1, a2, a3 = 1, 0, 0, 0
+        # true_object: z0
+        a0, a1, a2, a3 = 1, 0, 0, 1
         m1 = (1 / np.sqrt(2)) * np.array([a0, a1, a2, a3])
         m2 = (1 / np.sqrt(2)) * np.array([2 - a0, -a1, -a2, -a3])
 
-        """
         ### Case 1: on_par_eq_constraint = True
         # Arange
         true_object = Povm(vecs=[m1, m2], c_sys=c_sys, on_para_eq_constraint=True)
@@ -328,8 +327,7 @@ class TestStandardPovmt:
         )
 
         # Assert
-        npt.assert_almost_equal(actual, 0.02, decimal=15)
-        """
+        npt.assert_almost_equal(actual, 0.0200000008, decimal=15)
 
         ### Case 2: on_par_eq_constraint = False
         # Arange
@@ -340,9 +338,10 @@ class TestStandardPovmt:
         )
 
         # Act
+        print(povmt.calc_fisher_matrix_total(true_object, [1, 1, 1, 1]))
         actual = povmt.calc_cramer_rao_bound(
             true_object, 100, [1] * len(tester_objects)
         )
 
         # Assert
-        npt.assert_almost_equal(actual, 0.08, decimal=15)
+        npt.assert_almost_equal(actual, 0.07999999984703485, decimal=15)
