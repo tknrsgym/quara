@@ -306,7 +306,20 @@ class StandardQTomography(QTomography):
         return mse_total
 
     def calc_fisher_matrix(self, j: int, var: Union[QOperation, np.array]) -> np.array:
-        # TODO QOperation or var
+        """calculates Fisher matrix of one schedule.
+
+        Parameters
+        ----------
+        j : int
+            schedule_index
+        var : Union[QOperation, np.array]
+            variables to calculate Fisher matrix of one schedule.
+
+        Returns
+        -------
+        np.array
+            Fisher matrix of one schedule.
+        """
         if isinstance(var, QOperation):
             var = var.to_var()
 
@@ -319,9 +332,60 @@ class StandardQTomography(QTomography):
         )
         grad_prob_dist = matA[size_prob_dist * j : size_prob_dist * (j + 1)]
         fisher_matrix = matrix_util.calc_fisher_matrix(prob_dist, grad_prob_dist)
-        print(fisher_matrix)
 
         return fisher_matrix
+
+    def calc_fisher_matrix_total(
+        self, var: Union[QOperation, np.array], weights: List[float]
+    ) -> np.array:
+        """calculates Fisher matrix of the total schedule.
+
+        Parameters
+        ----------
+        var : Union[QOperation, np.array]
+            variables to calculate Fisher matrix of one schedule.
+        weights : List[float]
+            weights to calculate Fisher matrix of one schedule.
+
+        Returns
+        -------
+        np.array
+            Fisher matrix of the total schedule.
+        """
+        fisher_matrices = []
+        for schedule_index in range(self.num_schedules):
+            fisher_matrices.append(
+                weights[schedule_index] * self.calc_fisher_matrix(schedule_index, var)
+            )
+        return sum(fisher_matrices)
+
+    def calc_cramer_rao_bound(
+        self, var: Union[QOperation, np.array], N: int, list_N: List[int]
+    ) -> np.array:
+        """calculates Cramer-Rao bound.
+
+        Parameters
+        ----------
+        var : Union[QOperation, np.array]
+            variables to calculate Cramer-Rao bound.
+        N : int
+            representative value of the number of data.
+        list_N : List[int]
+            the number of data for each schedule.
+
+        Returns
+        -------
+        np.array
+            Cramer-Rao bound.
+        """
+        return self._calc_cramer_rao_bound(var, N, list_N)
+
+    def _calc_cramer_rao_bound(
+        self, var: Union[QOperation, np.array], N: int, list_N: List[int]
+    ) -> np.array:
+        fisher = self.calc_fisher_matrix_total(var, list_N)
+        val = np.trace(np.linalg.inv(fisher)) / N
+        return val
 
     @abstractmethod
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
