@@ -750,14 +750,29 @@ def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
     estimator_list: List["Estimator"],
     true_object: "QOperation",
+    loss_list: List["ProbabilityBasedLossFunction"] = None,
+    loss_option_list: List["ProbabilityBasedLossFunctionOption"] = None,
+    algo_list: List["MinimizationAlgorithm"] = None,
+    algo_option_list: List["MinimizationAlgorithmOption"] = None,
 ):
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
     for i, qtomo in enumerate(qtomography_list):
         estimator = estimator_list[i]
+        loss = loss_list[i] if loss_list else None
+        loss_option = loss_option_list[i] if loss_option_list else None
+        algo = algo_list[i] if algo_list else None
+        algo_option = algo_option_list[i] if algo_option_list else None
+
         diff = consistency_check.calc_mse_of_true_estimated(
-            true_object=true_object, qtomography=qtomo, estimator=estimator
+            true_object=true_object,
+            qtomography=qtomo,
+            estimator=estimator,
+            loss=loss,
+            loss_option=loss_option,
+            algo=algo,
+            algo_option=algo_option,
         )
         result_list.append(diff)
 
@@ -915,6 +930,10 @@ def export_report(
     estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
+    loss_list: List["ProbabilityBasedLossFunction"] = None,
+    loss_option_list: List["ProbabilityBasedLossFunctionOption"] = None,
+    algo_list: List["MinimizationAlgorithm"] = None,
+    algo_option_list: List["MinimizationAlgorithmOption"] = None,
     seed: Optional[int] = None,
     computation_time: Optional[float] = None,
     keep_tmp_files: bool = False,
@@ -958,7 +977,13 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        qtomography_list, estimator_list, true_object,
+        qtomography_list,
+        estimator_list,
+        true_object,
+        loss_list=loss_list,
+        loss_option_list=loss_option_list,
+        algo_list=algo_list,
+        algo_option_list=algo_option_list,
     )
 
     # MSE
