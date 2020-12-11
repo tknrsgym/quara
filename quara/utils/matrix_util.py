@@ -161,11 +161,13 @@ def calc_mse_prob_dists(
     np.float64
         MSE of ``xs_list`` and ``ys_list``.
     """
-    se_total = 0.0
+    se_list = []
     for xs, ys in zip(xs_list, ys_list):
-        se_total += calc_se(xs, ys)
-    mse = se_total / len(xs_list)
-    return mse
+        se = calc_se(xs, ys)
+        se_list.append(se)
+    mse = np.mean(se_list, dtype=np.float64)
+    std = np.std(se_list, dtype=np.float64, ddof=1)
+    return mse, std
 
 
 def calc_covariance_mat(q: np.array, n: int) -> np.array:
