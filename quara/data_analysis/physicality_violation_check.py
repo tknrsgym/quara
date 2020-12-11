@@ -58,12 +58,23 @@ def get_sum_of_eigenvalues_violation(
 
     eps = Settings.get_atol()
     for _, values in enumerate(sorted_eigenvalues_list):
-        eig_less_list = [v for v in values if v < expected_values[0] - eps]
-        if eig_less_list:
-            sum_eig_less_list.append(np.sum(eig_less_list))
-        eig_greater_list = [v for v in values if v > expected_values[1] + eps]
-        if eig_greater_list:
-            sum_eig_greater_list.append(np.sum(eig_greater_list))
+        less_list = []
+        greater_list = []
+        for v in values:
+            if v < expected_values[0] - eps:
+                less_list.append(v)
+            else:
+                greater_list.append(v)
+        if less_list:
+            sum_eig_less_list.append(np.sum(less_list))
+        if np.sum(greater_list) > expected_values[1] + eps:
+            sum_eig_greater_list.append(np.sum(greater_list))
+
+    if len(sum_eig_less_list) != len(sum_eig_greater_list):
+        message = "sum_eig_less_list and sum_eig_greater_list lengths do not match."
+        message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
+        message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
+        warnings.warn(message)
 
     return sum_eig_less_list, sum_eig_greater_list
 
