@@ -345,7 +345,7 @@ def show_mse(num_data: List[int], mses: List[float], title: str = "Mean squared 
 def make_mses_graph(
     num_data: List[int],
     mses: List[List[float]],
-    sds_list: List[List[float]] = None,
+    error_bar_values_list: List[List[float]] = None,
     title: str = "Mean squared error",
     additional_title_text: str = "",
     names: Optional[List[str]] = None,
@@ -357,10 +357,10 @@ def make_mses_graph(
 
     for i, mse in enumerate(mses):
         error_y = dict(visible=False)
-        if sds_list and i < len(sds_list):
+        if error_bar_values_list and i < len(error_bar_values_list):
             error_y = dict(
                 type="data",  # value of error bar given in data coordinates
-                array=sds_list[i],
+                array=error_bar_values_list[i],
                 visible=True,
             )
         trace = go.Scatter(
@@ -420,15 +420,15 @@ def make_mses_graph_estimation_results(
 ) -> "Figure":
     num_data = estimation_results_list[0][0].num_data
     mses_list = []
-    sds_list = []
+    error_bar_values_list = []
+    n_rep = len(estimation_results_list[0])
     display_case_names = case_names[:]
     for estimation_results in estimation_results_list:
         mses, sds, _ = convert_to_series(estimation_results, true_object)
         mses_list.append(mses)
-        sds_list.append(sds)
-        # print("----------------")
-        # print(f"{mses=}")
-        # print(f"{sds=}")
+        error_bar_values = [sigma / np.sqrt(n_rep) for sigma in sds]
+        error_bar_values_list.append(error_bar_values)
+
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
@@ -445,7 +445,7 @@ def make_mses_graph_estimation_results(
         names=display_case_names,
         title=title,
         additional_title_text=additional_title_text,
-        sds_list=sds_list,
+        error_bar_values_list=error_bar_values_list,
     )
     return fig
 
@@ -699,7 +699,6 @@ def make_empi_dists_mse_graph(
     num_schedules = qtomography.num_schedules
     num_data = estimation_results[0].num_data
     n_rep = len(estimation_results)
-    mses_list = []
 
     # Data
     display_names = ["Empirical distributions"]
@@ -709,9 +708,15 @@ def make_empi_dists_mse_graph(
     ys_list_list = [[qtomography.calc_prob_dists(true_object)] * n_rep] * len(num_data)
 
     mses = []
+    error_bar_values = []
     for i in range(len(num_data)):
-        mses.append(matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i]))
-    mses_list.append(mses)
+        mse, std = matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i])
+        mses.append(mse)
+        sigma = std
+        error_bar_value = sigma/np.sqrt(n_rep)
+        error_bar_values.append(error_bar_value)
+    mses_list = [mses]
+    error_bar_values_list = [error_bar_values]
 
     # Analytical
     true_mses = []
@@ -728,6 +733,7 @@ def make_empi_dists_mse_graph(
         mses=mses_list,
         num_data=num_data,
         names=display_names,
+        error_bar_values_list=error_bar_values_list,
         yaxis_title_text="Mean squared error",
     )
     return fig
