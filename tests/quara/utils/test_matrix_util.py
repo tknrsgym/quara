@@ -124,7 +124,7 @@ def test_calc_mse_prob_dists():
         [np.array([15, 16]), np.array([17, 18]),],
     ]
     actual = util.calc_mse_prob_dists(xs_list, ys_list)
-    expected = float(400)
+    expected = float(400), 0.0
     assert actual == expected
 
 
