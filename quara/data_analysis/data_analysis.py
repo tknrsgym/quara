@@ -345,7 +345,7 @@ def show_mse(num_data: List[int], mses: List[float], title: str = "Mean squared 
 def make_mses_graph(
     num_data: List[int],
     mses: List[List[float]],
-    sds_list: List[List[float]] = None,
+    error_bar_values_list: List[List[float]] = None,
     title: str = "Mean squared error",
     additional_title_text: str = "",
     names: Optional[List[str]] = None,
@@ -357,10 +357,10 @@ def make_mses_graph(
 
     for i, mse in enumerate(mses):
         error_y = dict(visible=False)
-        if sds_list and i < len(sds_list):
+        if error_bar_values_list and i < len(error_bar_values_list):
             error_y = dict(
                 type="data",  # value of error bar given in data coordinates
-                array=sds_list[i],
+                array=error_bar_values_list[i],
                 visible=True,
             )
         trace = go.Scatter(
@@ -420,15 +420,15 @@ def make_mses_graph_estimation_results(
 ) -> "Figure":
     num_data = estimation_results_list[0][0].num_data
     mses_list = []
-    sds_list = []
+    error_bar_values_list = []
+    n_rep = len(estimation_results_list[0])
     display_case_names = case_names[:]
     for estimation_results in estimation_results_list:
         mses, sds, _ = convert_to_series(estimation_results, true_object)
         mses_list.append(mses)
-        sds_list.append(sds)
-        # print("----------------")
-        # print(f"{mses=}")
-        # print(f"{sds=}")
+        error_bar_values = [sigma / np.sqrt(n_rep) for sigma in sds]
+        error_bar_values_list.append(error_bar_values)
+
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
@@ -445,7 +445,7 @@ def make_mses_graph_estimation_results(
         names=display_case_names,
         title=title,
         additional_title_text=additional_title_text,
-        sds_list=sds_list,
+        error_bar_values_list=error_bar_values_list,
     )
     return fig
 
