@@ -345,8 +345,11 @@ class QOperation:
         raise NotImplementedError()
 
     def func_calc_proj_eq_constraint(
-        self, on_para_eq_constraint: bool
+        self, on_para_eq_constraint: bool = None
     ) -> Callable[[np.array], np.array]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
         qobj_empty = self.generate_zero_obj()
 
         def _func_proj(var: np.array) -> np.array:
@@ -370,8 +373,11 @@ class QOperation:
         raise NotImplementedError()
 
     def func_calc_proj_ineq_constraint(
-        self, on_para_eq_constraint: bool
+        self, on_para_eq_constraint: bool = None
     ) -> Callable[[np.array], np.array]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
         qobj_empty = self.generate_zero_obj()
 
         def _func_proj(var: np.array) -> np.array:
@@ -664,8 +670,11 @@ class QOperation:
         return result, error_value
 
     def func_calc_proj_physical(
-        self, on_para_eq_constraint: bool
+        self, on_para_eq_constraint: bool = None
     ) -> Callable[[np.array], np.array]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
         qobj_empty = self.generate_zero_obj()
 
         def _func_proj(var: np.array) -> np.array:
