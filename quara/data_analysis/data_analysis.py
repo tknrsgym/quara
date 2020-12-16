@@ -434,7 +434,13 @@ def make_mses_graph_estimation_results(
         if not estimator_list:
             # TODO
             raise ValueError()
-        analytical_mses, analytical_case_names = _make_data_for_graphs_mses_analytical(
+        (
+            analytical_mses,
+            analytical_case_names,
+            _,
+            _,
+            _,
+        ) = _make_data_for_graphs_mses_analytical(
             estimation_results_list, true_object, estimator_list
         )
         mses_list += analytical_mses
@@ -478,9 +484,14 @@ def _make_data_for_graphs_mses_analytical(
         )
         qtomo_type_dict[qtomo_type] = qtomo
 
-    estimator_table = {"LinearEstimator": "calc_mse_linear_analytical"}
+    estimator_table = {
+        "LinearEstimator": "calc_mse_linear_analytical",
+        "LossMinimizationEstimator": "calc_cramer_rao_bound",
+    }
 
     display_case_names = []
+    short_names = []
+    parameters = []
     for qtomo_type, qtomo in qtomo_type_dict.items():
         parameter = qtomo_type.on_para_eq_constraint
         estimator_name = qtomo_type.estimator_name
@@ -494,14 +505,19 @@ def _make_data_for_graphs_mses_analytical(
         true_mses = []
         for num in num_data:
             method = eval(f"qtomo.{method_name}")
-            true_mse = method(true_object_copied, [num] * qtomo.num_schedules)
+            if method_name == "calc_mse_linear_analytical":
+                true_mse = method(true_object_copied, [num] * qtomo.num_schedules)
+            elif method_name == "calc_cramer_rao_bound":
+                true_mse = method(true_object_copied, num, [num] * qtomo.num_schedules)
             true_mses.append(true_mse)
 
         mses_list.append(true_mses)
         short_name = estimator_name.replace("Estimator", "")
         display_case_names.append(f"Analytical result ({short_name}, {parameter})")
+        short_names.append(short_name)
+        parameters.append(parameter)
 
-    return mses_list, display_case_names
+    return mses_list, display_case_names, short_names, parameters, num_data
 
 
 def make_mses_graph_analytical(
@@ -510,17 +526,69 @@ def make_mses_graph_analytical(
     estimator_list: list,
 ) -> "Figure":
     num_data = estimation_results_list[0][0].num_data
-    mses_list, display_case_names = _make_data_for_graphs_mses_analytical(
+    (
+        mses_list,
+        display_case_names,
+        short_names,
+        parameters,
+        num_data,
+    ) = _make_data_for_graphs_mses_analytical(
         estimation_results_list, true_object, estimator_list
     )
 
-    fig = make_mses_graph(
-        num_data,
-        mses_list,
-        names=display_case_names,
-        additional_title_text="Analytical result",
-    )
-    return fig
+    figs = []
+
+    # make graphs by estimator
+    data_dict = {}
+
+    for i, estimator_name in enumerate(short_names):
+        if estimator_name in data_dict:
+            data_dict[estimator_name]["mses"].append(mses_list[i])
+            data_dict[estimator_name]["display_case_names"].append(
+                display_case_names[i]
+            )
+            data_dict[estimator_name]["parameters"].append(parameters[i])
+        else:
+            data_dict[estimator_name] = dict(
+                mses=[mses_list[i]],
+                display_case_names=[display_case_names[i]],
+                parameters=[parameters[i]],
+            )
+
+    for key, target_dict in data_dict.items():
+        fig = make_mses_graph(
+            num_data,
+            target_dict["mses"],
+            names=target_dict["display_case_names"],
+            additional_title_text=f"Analytical result<br>estimator={key}",
+        )
+        figs.append(fig)
+
+    # make graphs by parameter
+    data_dict = {}
+
+    for i, parameter in enumerate(parameters):
+        if parameter in data_dict:
+            data_dict[parameter]["mses"].append(mses_list[i])
+            data_dict[parameter]["display_case_names"].append(display_case_names[i])
+            data_dict[parameter]["parameters"].append(parameters[i])
+        else:
+            data_dict[parameter] = dict(
+                mses=[mses_list[i]],
+                display_case_names=[display_case_names[i]],
+                parameters=[parameters[i]],
+            )
+
+    for key, target_dict in data_dict.items():
+        fig = make_mses_graph(
+            num_data,
+            target_dict["mses"],
+            names=target_dict["display_case_names"],
+            additional_title_text=f"Analytical result<br>parametorization={key}",
+        )
+        figs.append(fig)
+
+    return figs
 
 
 def make_mses_graphs_estimator(
@@ -713,7 +781,7 @@ def make_empi_dists_mse_graph(
         mse, std = matrix_util.calc_mse_prob_dists(xs_list_list[i], ys_list_list[i])
         mses.append(mse)
         sigma = std
-        error_bar_value = sigma/np.sqrt(n_rep)
+        error_bar_value = sigma / np.sqrt(n_rep)
         error_bar_values.append(error_bar_value)
     mses_list = [mses]
     error_bar_values_list = [error_bar_values]

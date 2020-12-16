@@ -432,17 +432,28 @@ def generate_mse_analytical_div(
     true_object: "QOperation",
     estimator_list: list,
 ) -> str:
-    fig = data_analysis.make_mses_graph_analytical(
+    figs = data_analysis.make_mses_graph_analytical(
         estimation_results_list=estimation_results_list,
         true_object=true_object,
         estimator_list=estimator_list,
     )
-    fig.update_layout(width=600, height=600)
-    fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
-    fig_name = f"mse_analytical"
-    path = _save_fig_to_tmp_dir(fig, fig_name)
-    mse_div = f"<div class='box'><img src='{path}'></div>"
-    return mse_div
+
+    mse_div_list = []
+    for i, fig in enumerate(figs):
+        fig_name = f"mse_analytical_{i}"
+        fig.update_layout(width=600, height=600)
+        fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
+        path = _save_fig_to_tmp_dir(fig, fig_name)
+
+        if i % 2 == 0:
+            mse_div_list.append("<div>")
+
+        mse_div = f"<div class='box'><img src='{path}'></div>"
+        mse_div_list.append(mse_div)
+
+        if i % 2 == 1 or i + 1 == len(figs):
+            mse_div_list.append("</div>")
+    return "".join(mse_div_list)
 
 
 def generate_empi_dist_mse_div(
