@@ -558,7 +558,6 @@ def _make_graphs_sum_unphysical_eigenvalues(
     n_unphysical = len([q for q in estimated_qobjects if not q.is_physical(atol_cp=0)])
     # Figure 1
     xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
-    # n_unphysical = len(less_list)
 
     fig = make_prob_dist_histogram(
         less_list,
@@ -567,14 +566,12 @@ def _make_graphs_sum_unphysical_eigenvalues(
         annotation_vlines=[expected_values[0]],
         xaxis_title_text=xaxis_title_text,
         title=f"N={num_data}, Nrep={n_rep}",
-        # additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
-        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}<br>デバッグ用: ヒストグラム上の値の個数={len(less_list)}",
+        additional_title_text=f"<br>Number of negative estimates={n_unphysical}",
     )
     figs.append(fig)
 
     # Figure 2
-    xaxis_title_text = f"Sum of unphysical eigenvalues (>{expected_values[1]})"
-    # n_unphysical = len(greater_list)
+    xaxis_title_text = f"Sum of non-negative eigenvalues (>{expected_values[1]})"
     fig = make_prob_dist_histogram(
         greater_list,
         bin_size=bin_size,
@@ -582,8 +579,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
         annotation_vlines=[expected_values[1]],
         xaxis_title_text=xaxis_title_text,
         title=f"N={num_data}, Nrep={n_rep}",
-        # additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
-        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}<br>デバッグ用: ヒストグラム上の値の個数={len(greater_list)}",
+        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
 
     figs.append(fig)
