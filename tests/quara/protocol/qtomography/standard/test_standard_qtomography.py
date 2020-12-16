@@ -428,7 +428,7 @@ class TestStandardQTomography:
         # Act
         actual = qst.calc_cramer_rao_bound(state, N, weights)
         # Assert
-        expected = 0.037500002
+        expected = 0.37500001999999977
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Case 2: qst, on_par_eq_constraint = False
@@ -441,7 +441,7 @@ class TestStandardQTomography:
         # Act
         actual = qst.calc_cramer_rao_bound(state, N, weights)
         # Assert
-        expected = 0.051785715992614
+        expected = 0.5178571598881306
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_calc_cramer_rao_bound_var(self):
@@ -454,7 +454,7 @@ class TestStandardQTomography:
         # Act
         actual = qst.calc_cramer_rao_bound(var, N, weights)
         # Assert
-        expected = 0.037500002
+        expected = 0.37500001999999977
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Case 2: qst, on_par_eq_constraint = False
@@ -466,5 +466,5 @@ class TestStandardQTomography:
         # Act
         actual = qst.calc_cramer_rao_bound(var, N, weights)
         # Assert
-        expected = 0.051785715992614
+        expected = 0.5178571598881306
         npt.assert_almost_equal(actual, expected, decimal=15)
