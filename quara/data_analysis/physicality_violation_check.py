@@ -39,14 +39,14 @@ def get_sorted_eigenvalues_list(
         # TODO: function name
         sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_qobjects)
     else:
-        message = f"estimated_qobjects must be a list of State, Povm, or Gate, not {type(qobject_type)}"
+        message = f"estimated_qobjects must be a list of State, Povm, or Gate, not {qobject_type}"
         raise TypeError(message)
 
     return sorted_eigenvalues_list
 
 
 def get_sum_of_eigenvalues_violation(
-    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1),
+    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1), eps=0
 ) -> Tuple[List[float], List[float]]:
     expected_values = sorted(expected_values)
     if len(expected_values) != 2:
@@ -56,8 +56,7 @@ def get_sum_of_eigenvalues_violation(
     sum_eig_less_list = []
     sum_eig_greater_list = []
 
-    eps = Settings.get_atol()
-    for _, values in enumerate(sorted_eigenvalues_list):
+    for i, values in enumerate(sorted_eigenvalues_list):
         less_list = []
         greater_list = []
         for v in values:
@@ -65,6 +64,7 @@ def get_sum_of_eigenvalues_violation(
                 less_list.append(v)
             else:
                 greater_list.append(v)
+
         # TODO: remove
         check_flag_1 = False
         check_flag_2 = False
@@ -75,13 +75,15 @@ def get_sum_of_eigenvalues_violation(
             check_flag_2 = True
             sum_eig_greater_list.append(np.sum(greater_list))
 
-        # if check_flag_1 != check_flag_2:
-        #     message = f"invalid: values={values}"
-        #     message += f"\nless_list={less_list}"
-        #     message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
-        #     warnings.warn(message)
+        if check_flag_1 != check_flag_2:
+            message = f"i={i}: invalid: values={values}"
+            message += f"\nless_list={less_list}"
+            message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
+            warnings.warn(message)
     if len(sum_eig_less_list) != len(sum_eig_greater_list):
-        message = "sum_eig_less_list and sum_eig_greater_list lengths do not match."
+        message = (
+            "i={i}: sum_eig_less_list and sum_eig_greater_list lengths do not match."
+        )
         message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
         message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
         warnings.warn(message)
@@ -555,9 +557,10 @@ def _make_graphs_sum_unphysical_eigenvalues(
 
     n_rep = len(sorted_eigenvalues_list)
     figs = []
+    n_unphysical = len([q for q in estimated_qobjects if not q.is_physical()])
     # Figure 1
     xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
-    n_unphysical = len(less_list)
+    # n_unphysical = len(less_list)
 
     fig = make_prob_dist_histogram(
         less_list,
@@ -566,13 +569,14 @@ def _make_graphs_sum_unphysical_eigenvalues(
         annotation_vlines=[expected_values[0]],
         xaxis_title_text=xaxis_title_text,
         title=f"N={num_data}, Nrep={n_rep}",
-        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
+        # additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
+        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}<br>デバッグ用: ヒストグラム上の値の個数={len(less_list)}",
     )
     figs.append(fig)
 
     # Figure 2
     xaxis_title_text = f"Sum of unphysical eigenvalues (>{expected_values[1]})"
-    n_unphysical = len(greater_list)
+    # n_unphysical = len(greater_list)
     fig = make_prob_dist_histogram(
         greater_list,
         bin_size=bin_size,
@@ -580,7 +584,8 @@ def _make_graphs_sum_unphysical_eigenvalues(
         annotation_vlines=[expected_values[1]],
         xaxis_title_text=xaxis_title_text,
         title=f"N={num_data}, Nrep={n_rep}",
-        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
+        # additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
+        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}<br>デバッグ用: ヒストグラム上の値の個数={len(greater_list)}",
     )
 
     figs.append(fig)

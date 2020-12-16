@@ -390,7 +390,7 @@ class Povm(QOperation):
         bool
             True where each element is positive semidifinite, False otherwise.
         """
-        atol = atol if atol else Settings.get_atol()
+        atol = Settings.get_atol() if atol is None else atol
 
         for m in self.matrices():
             if not mutil.is_positive_semidefinite(m, atol):

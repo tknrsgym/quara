@@ -318,7 +318,7 @@ class State(QOperation):
         bool
             True where trace of density matrix is one, False otherwise.
         """
-        atol = atol if atol else Settings.get_atol()
+        atol = Settings.get_atol() if atol is None else atol
         tr = np.trace(self.to_density_matrix())
         return np.isclose(tr, 1, atol=atol)
 

@@ -136,7 +136,7 @@ class Gate(QOperation):
         bool
             whether the gate is physically correct.
         """
-        return self.is_tp() and self.is_cp()
+        return self.is_tp() and self.is_cp(atol=0)
 
     def set_zero(self):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)
@@ -256,7 +256,7 @@ class Gate(QOperation):
         bool
             True where the gate is TP, False otherwise.
         """
-        atol = atol if atol else Settings.get_atol()
+        atol = Settings.get_atol() if atol is None else atol
 
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
         for index, basis in enumerate(self.composite_system.basis()):
@@ -299,7 +299,7 @@ class Gate(QOperation):
         bool
             True where gate is CP, False otherwise.
         """
-        atol = atol if atol else Settings.get_atol()
+        atol = Settings.get_atol() if atol is None else atol
 
         # "A is CP"  <=> "C(A) >= 0"
         return mutil.is_positive_semidefinite(self.to_choi_matrix(), atol=atol)
@@ -637,7 +637,7 @@ def is_hp(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
         True where gate is EP, False otherwise.
     """
 
-    atol = atol if atol else Settings.get_atol()
+    atol = Settings.get_atol() if atol is None else atol
 
     # convert Hermitian basis(Pauli basis)
     hs_converted = convert_hs(hs, basis, get_normalized_pauli_basis())
