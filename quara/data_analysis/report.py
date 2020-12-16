@@ -711,14 +711,16 @@ def generate_case_table(
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
     case_dict = dict(
         Name=case_name_list,
-        Parameterization=para_list,
+        Param=para_list,
         Tomography=[t.__class__.__name__ for t in qtomography_list],
-        Estimator=[e.__class__.__name__ for e in estimator_list],
+        Estimator=[
+            e.__class__.__name__.replace("Estimator", "") for e in estimator_list
+        ],
     )
     case_df = pd.DataFrame(case_dict)
     styles = [
         dict(selector=".col0", props=[("width", "400px")]),
-        dict(selector=".col1", props=[("width", "200px")]),
+        dict(selector=".col1", props=[("width", "180px")]),
         dict(selector=".col2", props=[("width", "200px")]),
     ]
     case_table = case_df.style.set_table_styles(styles).render()
@@ -776,7 +778,6 @@ def generate_consistency_check_table(
         "Estimator": type_estimator_values,
         "Result": [str(r) for r in result_list],
     }
-    print(f"{result_dict=}")
 
     styles = [
         dict(selector=".col0", props=[("width", "500px")]),
