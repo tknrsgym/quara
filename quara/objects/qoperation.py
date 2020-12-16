@@ -344,13 +344,17 @@ class QOperation:
         """
         raise NotImplementedError()
 
-    def func_calc_proj_eq_constraint(self) -> Callable[[np.array], np.array]:
+    def func_calc_proj_eq_constraint(
+        self, on_para_eq_constraint: bool
+    ) -> Callable[[np.array], np.array]:
         qobj_empty = self.generate_zero_obj()
 
         def _func_proj(var: np.array) -> np.array:
-            qobj_tmp = qobj_empty.generate_from_var(var, on_para_eq_constraint=False)
+            qobj_tmp = qobj_empty.generate_from_var(
+                var, on_para_eq_constraint=on_para_eq_constraint
+            )
             qobj_result = qobj_tmp.calc_proj_eq_constraint()
-            return qobj_result.to_stacked_vector()
+            return qobj_result.to_var()
 
         return _func_proj
 
@@ -365,13 +369,17 @@ class QOperation:
         """
         raise NotImplementedError()
 
-    def func_calc_proj_ineq_constraint(self) -> Callable[[np.array], np.array]:
+    def func_calc_proj_ineq_constraint(
+        self, on_para_eq_constraint: bool
+    ) -> Callable[[np.array], np.array]:
         qobj_empty = self.generate_zero_obj()
 
         def _func_proj(var: np.array) -> np.array:
-            qobj_tmp = qobj_empty.generate_from_var(var, on_para_eq_constraint=False)
+            qobj_tmp = qobj_empty.generate_from_var(
+                var, on_para_eq_constraint=on_para_eq_constraint
+            )
             qobj_result = qobj_tmp.calc_proj_ineq_constraint()
-            return qobj_result.to_stacked_vector()
+            return qobj_result.to_var()
 
         return _func_proj
 
@@ -655,13 +663,17 @@ class QOperation:
         )
         return result, error_value
 
-    def func_calc_proj_physical(self) -> Callable[[np.array], np.array]:
+    def func_calc_proj_physical(
+        self, on_para_eq_constraint: bool
+    ) -> Callable[[np.array], np.array]:
         qobj_empty = self.generate_zero_obj()
 
         def _func_proj(var: np.array) -> np.array:
-            qobj_tmp = qobj_empty.generate_from_var(var, on_para_eq_constraint=False)
+            qobj_tmp = qobj_empty.generate_from_var(
+                var, on_para_eq_constraint=on_para_eq_constraint
+            )
             qobj_result = qobj_tmp.calc_proj_physical()
-            return qobj_result.to_stacked_vector()
+            return qobj_result.to_var()
 
         return _func_proj
 
