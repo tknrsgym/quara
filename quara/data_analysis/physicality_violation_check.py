@@ -81,9 +81,7 @@ def get_sum_of_eigenvalues_violation(
             message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
             warnings.warn(message)
     if len(sum_eig_less_list) != len(sum_eig_greater_list):
-        message = (
-            "i={i}: sum_eig_less_list and sum_eig_greater_list lengths do not match."
-        )
+        message = f"sum_eig_less_list and sum_eig_greater_list lengths do not match."
         message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
         message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
         warnings.warn(message)
@@ -557,7 +555,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
 
     n_rep = len(sorted_eigenvalues_list)
     figs = []
-    n_unphysical = len([q for q in estimated_qobjects if not q.is_physical()])
+    n_unphysical = len([q for q in estimated_qobjects if not q.is_physical(atol_cp=0)])
     # Figure 1
     xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
     # n_unphysical = len(less_list)
