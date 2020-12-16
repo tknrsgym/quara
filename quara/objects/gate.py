@@ -123,7 +123,7 @@ class Gate(QOperation):
         """
         return self._hs
 
-    def is_physical(self) -> bool:
+    def is_physical(self, atol_cp: float = None) -> bool:
         """returns whether the gate is physically correct.
 
         all of the following conditions are ``True``, the gate is physically correct:
@@ -136,7 +136,7 @@ class Gate(QOperation):
         bool
             whether the gate is physically correct.
         """
-        return self.is_tp() and self.is_cp(atol=0)
+        return self.is_tp() and self.is_cp(atol=atol_cp)
 
     def set_zero(self):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)

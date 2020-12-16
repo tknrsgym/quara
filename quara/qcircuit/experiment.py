@@ -169,6 +169,7 @@ class Experiment:
                     error_message += f"Type of parameter passed: List of {type_names}"
                 else:
                     error_message += f"Type of parameter passed: {type(target)}"
+                    error_message += f"\n{target.__str__()}"
 
                 raise TypeError(error_message)
 

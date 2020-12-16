@@ -126,6 +126,8 @@ def _convert_html2pdf(source_html: str, output_path: str):
     # TODO: make parent directory
     # TODO: check file extension
     httpConfig.save_keys("nosslcheck", True)
+    # print(f"{output_path=}")
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w+b") as f:
         pisa_status = pisa.CreatePDF(source_html, dest=f)
     return pisa_status.err
@@ -750,6 +752,7 @@ def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
     estimator_list: List["Estimator"],
     true_object: "QOperation",
+    case_name_list: List[str],
 ):
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
@@ -762,18 +765,28 @@ def generate_consistency_check_table(
         result_list.append(diff)
 
     type_tomography_values = [qt.__class__.__name__ for qt in qtomography_list]
-    type_estimator_values = [e.__class__.__name__ for e in estimator_list]
+    type_estimator_values = [
+        e.__class__.__name__.replace("Estimator", "") for e in estimator_list
+    ]
 
     result_dict = {
+        "Name": case_name_list,
         "Type of tomography": type_tomography_values,
-        "Parametorization": para_list,
+        "Param": para_list,
         "Estimator": type_estimator_values,
-        "Result": result_list,
+        "Result": [str(r) for r in result_list],
     }
+    print(f"{result_dict=}")
 
-    consistency_check_table = pd.DataFrame(result_dict).to_html(
-        classes="consistency_check_table", escape=False
-    )
+    styles = [
+        dict(selector=".col0", props=[("width", "500px")]),
+        dict(selector=".col1", props=[("width", "380px")]),
+        dict(selector=".col2", props=[("width", "180px")]),
+        dict(selector=".col3", props=[("width", "300px")]),
+        dict(selector=".col4", props=[("width", "400px")]),
+    ]
+    table_df = pd.DataFrame(result_dict)
+    consistency_check_table = table_df.style.set_table_styles(styles).render()
     return consistency_check_table
 
 
@@ -958,7 +971,7 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        qtomography_list, estimator_list, true_object,
+        qtomography_list, estimator_list, true_object, case_name_list
     )
 
     # MSE
