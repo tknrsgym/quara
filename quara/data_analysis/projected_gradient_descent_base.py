@@ -198,17 +198,23 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             setting_info.on_algo_eq_constraint == True
             and setting_info.on_algo_ineq_constraint == True
         ):
-            self._func_proj = setting_info.func_calc_proj_physical()
+            self._func_proj = setting_info.func_calc_proj_physical(
+                setting_info.on_para_eq_constraint
+            )
         elif (
             setting_info.on_algo_eq_constraint == True
             and setting_info.on_algo_ineq_constraint == False
         ):
-            self._func_proj = setting_info.func_calc_proj_eq_constraint()
+            self._func_proj = setting_info.func_calc_proj_eq_constraint(
+                setting_info.on_para_eq_constraint
+            )
         elif (
             setting_info.on_algo_eq_constraint == False
             and setting_info.on_algo_ineq_constraint == True
         ):
-            self._func_proj = setting_info.func_calc_proj_ineq_constraint()
+            self._func_proj = setting_info.func_calc_proj_ineq_constraint(
+                setting_info.on_para_eq_constraint
+            )
         else:
             self._func_proj = func_proj.proj_to_self()
 
@@ -314,7 +320,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             x_prev = (
                 self._qt.generate_empty_estimation_obj_with_setting_info()
                 .generate_origin_obj()
-                .to_stacked_vector()
+                .to_var()
             )
         else:
             x_prev = algorithm_option.var_start
