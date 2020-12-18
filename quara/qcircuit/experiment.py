@@ -356,6 +356,13 @@ class Experiment:
         gates = copy.copy(self.gates)
         povms = copy.copy(self.povms)
         schedules = copy.copy(self.schedules)
+
+        # TODO: remove
+        # print(f"{states=}")
+        # print("-----------------------")
+        # print(f"{povms=}")
+        # print("-----------------------")
+        # print(f"{gates=}")
         experiment = Experiment(
             states=states, gates=gates, povms=povms, schedules=schedules
         )
