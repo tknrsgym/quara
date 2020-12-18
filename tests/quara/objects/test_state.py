@@ -796,7 +796,7 @@ class TestState:
         c_sys = CompositeSystem([e_sys])
         vec = np.array([1, 0, 0, 0], dtype=np.float64)
         state = State(c_sys, vec, is_physicality_required=False)
-        func = state.func_calc_proj_eq_constraint()
+        func = state.func_calc_proj_eq_constraint(False)
 
         # case1: var = [1, 0, 0, 0]/sqrt(2)
         var = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
@@ -829,7 +829,7 @@ class TestState:
         c_sys = CompositeSystem([e_sys])
         vec = np.array([1, 2, 0, 0], dtype=np.float64) / np.sqrt(2)
         state = State(c_sys, vec, is_physicality_required=False)
-        func = state.func_calc_proj_ineq_constraint()
+        func = state.func_calc_proj_ineq_constraint(False)
 
         # case1: var = [1, 2, 0, 0]/sqrt(2)
         var = np.array([1, 2, 0, 0], dtype=np.float64) / np.sqrt(2)
@@ -1629,7 +1629,7 @@ class TestState:
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
-        func = state.func_calc_proj_physical()
+        func = state.func_calc_proj_physical(False)
 
         # z0 -> z0
         var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)

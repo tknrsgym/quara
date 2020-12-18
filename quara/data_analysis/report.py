@@ -14,6 +14,8 @@ from quara.data_analysis import (
     data_analysis,
     consistency_check,
 )
+from quara.data_analysis import simulation
+from quara.data_analysis.simulation import SimulationSetting
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
 
@@ -434,17 +436,28 @@ def generate_mse_analytical_div(
     true_object: "QOperation",
     estimator_list: list,
 ) -> str:
-    fig = data_analysis.make_mses_graph_analytical(
+    figs = data_analysis.make_mses_graph_analytical(
         estimation_results_list=estimation_results_list,
         true_object=true_object,
         estimator_list=estimator_list,
     )
-    fig.update_layout(width=600, height=600)
-    fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
-    fig_name = f"mse_analytical"
-    path = _save_fig_to_tmp_dir(fig, fig_name)
-    mse_div = f"<div class='box'><img src='{path}'></div>"
-    return mse_div
+
+    mse_div_list = []
+    for i, fig in enumerate(figs):
+        fig_name = f"mse_analytical_{i}"
+        fig.update_layout(width=600, height=600)
+        fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
+        path = _save_fig_to_tmp_dir(fig, fig_name)
+
+        if i % 2 == 0:
+            mse_div_list.append("<div>")
+
+        mse_div = f"<div class='box'><img src='{path}'></div>"
+        mse_div_list.append(mse_div)
+
+        if i % 2 == 1 or i + 1 == len(figs):
+            mse_div_list.append("</div>")
+    return "".join(mse_div_list)
 
 
 def generate_empi_dist_mse_div(
@@ -752,40 +765,56 @@ def generate_condition_table(
 
 def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
-    estimator_list: List["Estimator"],
+    simulation_settings: List[SimulationSetting],
     true_object: "QOperation",
-    case_name_list: List[str],
 ):
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
-    for i, qtomo in enumerate(qtomography_list):
-        estimator = estimator_list[i]
+    for i, s in enumerate(simulation_settings):
         diff = consistency_check.calc_mse_of_true_estimated(
-            true_object=true_object, qtomography=qtomo, estimator=estimator
+            true_object=true_object,
+            qtomography=qtomography_list[i],
+            estimator=s.estimator,
+            loss=s.loss,
+            loss_option=s.loss_option,
+            algo=s.algo,
+            algo_option=s.algo_option,
         )
         result_list.append(diff)
 
     type_tomography_values = [qt.__class__.__name__ for qt in qtomography_list]
     type_estimator_values = [
-        e.__class__.__name__.replace("Estimator", "") for e in estimator_list
+        s.estimator.__class__.__name__.replace("Estimator", "")
+        for s in simulation_settings
+    ]
+    type_loss_values = [
+        s.loss.__class__.__name__ if s.loss else "None" for s in simulation_settings
+    ]
+    type_algo_values = [
+        s.algo.__class__.__name__ if s.algo else "None" for s in simulation_settings
     ]
 
     result_dict = {
-        "Name": case_name_list,
+        "Name": [s.name for s in simulation_settings],
         "Type of tomography": type_tomography_values,
         "Param": para_list,
         "Estimator": type_estimator_values,
+        "Loss": type_loss_values,
+        "Algo": type_algo_values,
         "Result": [str(r) for r in result_list],
     }
 
     styles = [
-        dict(selector=".col0", props=[("width", "500px")]),
-        dict(selector=".col1", props=[("width", "380px")]),
-        dict(selector=".col2", props=[("width", "180px")]),
-        dict(selector=".col3", props=[("width", "300px")]),
-        dict(selector=".col4", props=[("width", "400px")]),
+        dict(selector=".col0", props=[("width", "450px"), ("font-size", "10px")]),
+        dict(selector=".col1", props=[("width", "250px"), ("font-size", "10px")]),
+        dict(selector=".col2", props=[("width", "180px"), ("font-size", "10px")]),
+        dict(selector=".col3", props=[("width", "300px"), ("font-size", "10px")]),
+        dict(selector=".col4", props=[("width", "300px"), ("font-size", "10px")]),
+        dict(selector=".col5", props=[("width", "300px"), ("font-size", "10px")]),
+        dict(selector=".col6", props=[("width", "400px"), ("font-size", "10px")]),
     ]
+
     table_df = pd.DataFrame(result_dict)
     consistency_check_table = table_df.style.set_table_styles(styles).render()
     return consistency_check_table
@@ -925,10 +954,15 @@ def generate_figs_div(func, **kwargs):
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
-    case_name_list: List[str],
-    estimator_list: List["Estimator"],
+    simulation_settings: List[SimulationSetting],
+    # case_name_list: List[str],
+    # estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
+    # loss_list: List["ProbabilityBasedLossFunction"] = None,
+    # loss_option_list: List["ProbabilityBasedLossFunctionOption"] = None,
+    # algo_list: List["MinimizationAlgorithm"] = None,
+    # algo_option_list: List["MinimizationAlgorithmOption"] = None,
     seed: Optional[int] = None,
     computation_time: Optional[float] = None,
     keep_tmp_files: bool = False,
@@ -941,6 +975,10 @@ def export_report(
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
     qtomography_list = [results[0].qtomography for results in estimation_results_list]
+
+    # TODO: remove
+    case_name_list = [s.name for s in simulation_settings]
+    estimator_list = [s.estimator for s in simulation_settings]
 
     # Computation Time
     print("​Generating table of computation time ...")
@@ -972,7 +1010,7 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        qtomography_list, estimator_list, true_object, case_name_list
+        qtomography_list, simulation_settings, true_object
     )
 
     # MSE
