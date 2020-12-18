@@ -89,7 +89,7 @@ def get_sum_of_eigenvalues_violation(
     return sum_eig_less_list, sum_eig_greater_list
 
 
-def get_sum_of_eigenvalues_violation_povm(
+def get_sum_of_eigenvalues_violation_for_povm(
     estimated_povms: List["Povm"], eps=0
 ) -> Dict[int, List[float]]:
 
@@ -558,7 +558,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
         [q for q in estimated_qobjects if not q.is_physical(atol_ineq_const=0)]
     )
     # Figure 1
-    xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
+    xaxis_title_text = f"Sum of negative eigenvalues (<{expected_values[0]})"
 
     fig = make_prob_dist_histogram(
         less_list,
@@ -567,7 +567,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
         annotation_vlines=[expected_values[0]],
         xaxis_title_text=xaxis_title_text,
         title=f"N={num_data}, Nrep={n_rep}",
-        additional_title_text=f"<br>Number of negative estimates={n_unphysical}",
+        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
     )
     figs.append(fig)
 
@@ -593,9 +593,11 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
 ) -> List["Figure"]:
     figs = []
     n_rep = len(estimated_povms)
-    minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
+    minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_for_povm(estimated_povms)
     measurement_n = len(estimated_povms[0].vecs)
-    unphysical_n = len([estimated for estimated in estimated_povms if not estimated.is_physical()])
+    unphysical_n = len(
+        [estimated for estimated in estimated_povms if not estimated.is_physical()]
+    )
 
     xaxis_title_text = f"Sum of negative eigenvalues (<0)"
     for x_i in range(measurement_n):

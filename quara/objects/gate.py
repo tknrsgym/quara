@@ -145,7 +145,7 @@ class Gate(QOperation):
         bool
             whether the gate is physically correct.
         """
-        return self.is_tp(atol_eq_const) and self.is_cp(atol=atol_ineq_const)
+        return self.is_tp(atol=atol_eq_const) and self.is_cp(atol=atol_ineq_const)
 
     def set_zero(self):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)
