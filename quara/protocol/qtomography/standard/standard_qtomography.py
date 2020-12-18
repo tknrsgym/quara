@@ -383,7 +383,8 @@ class StandardQTomography(QTomography):
     def _calc_cramer_rao_bound(
         self, var: Union[QOperation, np.array], N: int, list_N: List[int]
     ) -> np.array:
-        fisher = self.calc_fisher_matrix_total(var, list_N)
+        weights = [tmp_N / N for tmp_N in list_N]
+        fisher = self.calc_fisher_matrix_total(var, weights)
         val = np.trace(np.linalg.inv(fisher)) / N
         return val
 
