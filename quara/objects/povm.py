@@ -139,14 +139,19 @@ class Povm(QOperation):
         """
         return self._measurements
 
-    def is_physical(self) -> bool:
+    def is_physical(self, atol_ineq_const: float = None) -> bool:
         """returns whether the POVM is physically correct.
 
         all of the following conditions are ``True``, the POVM is physically correct:
 
         - It is a set of Hermitian matrices.
         - It is a set of positive semidefinite matrices.
-        - The sum the elements of is the identity matrix.
+        - The sum of the elements is the identity matrix.
+
+        Parameters
+        ----------
+        atol_ineq_const : float, optional
+            Error tolerance used to determine if the set is Hermitian and positive semidefinite. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
         Returns
         -------
@@ -155,7 +160,10 @@ class Povm(QOperation):
         """
         # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
         # therefore, do not call the `is_hermitian` function explicitly.
-        return self.is_positive_semidefinite() and self.is_identity_sum()
+        return (
+            self.is_positive_semidefinite(atol=atol_ineq_const)
+            and self.is_identity_sum()
+        )
 
     def set_zero(self):
         size = self.dim ** 2

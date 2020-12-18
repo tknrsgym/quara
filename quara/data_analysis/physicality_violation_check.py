@@ -90,7 +90,7 @@ def get_sum_of_eigenvalues_violation(
 
 
 def get_sum_of_eigenvalues_violation_povm(
-    estimated_povms: List["Povm"],
+    estimated_povms: List["Povm"], eps=0
 ) -> Dict[int, List[float]]:
 
     minus_eigenvalues_dict = defaultdict(lambda: [])
@@ -102,7 +102,6 @@ def get_sum_of_eigenvalues_violation_povm(
             eigs = sorted(eigs, reverse=True)
             sorted_eigenvalues.append(eigs)
 
-        eps = Settings.get_atol()
         for x_i, values in enumerate(sorted_eigenvalues):
             for e in values:
                 if e.imag >= Settings.get_atol():
@@ -333,7 +332,7 @@ def make_graphs_sum_unphysical_eigenvalues(
             estimated_qoperations, n_data, bin_size, expected_values=(0, 1)
         )
     elif type(sample_object) == Povm:
-        figs = _make_graphs_sum_unphysical_eigenvalues_povm(
+        figs = _make_graphs_sum_unphysical_eigenvalues_for_povm(
             estimated_qoperations, n_data, bin_size
         )
     elif type(sample_object) == Gate:
@@ -555,7 +554,9 @@ def _make_graphs_sum_unphysical_eigenvalues(
 
     n_rep = len(sorted_eigenvalues_list)
     figs = []
-    n_unphysical = len([q for q in estimated_qobjects if not q.is_physical(atol_cp=0)])
+    n_unphysical = len(
+        [q for q in estimated_qobjects if not q.is_physical(atol_ineq_const=0)]
+    )
     # Figure 1
     xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
 
@@ -587,22 +588,23 @@ def _make_graphs_sum_unphysical_eigenvalues(
     return figs
 
 
-def _make_graphs_sum_unphysical_eigenvalues_povm(
+def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     estimated_povms: List["Povm"], num_data: int, bin_size: float = 0.0001
 ) -> List["Figure"]:
     figs = []
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
     measurement_n = len(estimated_povms[0].vecs)
+    unphysical_n = len([estimated for estimated in estimated_povms if not estimated.is_physical()])
 
-    xaxis_title_text = f"Sum of unphysical eigenvalues (<0)"
+    xaxis_title_text = f"Sum of negative eigenvalues (<0)"
     for x_i in range(measurement_n):
         value_list = []
         if x_i in minus_eigenvalues_dict:
             value_list = minus_eigenvalues_dict[x_i]
 
         title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
-        title += f"<br>Number of unphysical estimates={len(value_list)}"
+        title += f"<br>Number of unphysical estimates={unphysical_n}"
         fig = make_prob_dist_histogram(
             value_list,
             bin_size=bin_size,

@@ -123,7 +123,9 @@ class Gate(QOperation):
         """
         return self._hs
 
-    def is_physical(self, atol_cp: float = None) -> bool:
+    def is_physical(
+        self, atol_eq_const: float = None, atol_ineq_const: float = None
+    ) -> bool:
         """returns whether the gate is physically correct.
 
         all of the following conditions are ``True``, the gate is physically correct:
@@ -131,12 +133,19 @@ class Gate(QOperation):
         - gate is TP(trace-preserving map).
         - gate is CP(Complete-Positivity-Preserving).
 
+        Parameters
+        ----------
+        atol_eq_const : float, optional
+            Error tolerance used to determine if the Gate is TP(trace-preserving map). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        atol_ineq_const : float, optional
+            Error tolerance used to determine if the Gate is CP(Complete-Positivity-Preserving). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+
         Returns
         -------
         bool
             whether the gate is physically correct.
         """
-        return self.is_tp() and self.is_cp(atol=atol_cp)
+        return self.is_tp(atol_eq_const) and self.is_cp(atol=atol_ineq_const)
 
     def set_zero(self):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)
