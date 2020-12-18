@@ -136,7 +136,8 @@ class StandardPovmt(StandardQTomography):
             matS = self._generate_matS()
 
             # calcurates val_2nd_term = Tr[S F^{-1} S^T]/N
-            fisher = self.calc_fisher_matrix_total(var, list_N)
+            weights = [tmp_N / N for tmp_N in list_N]
+            fisher = self.calc_fisher_matrix_total(var, weights)
             ScovST = matrix_util.calc_conjugate(matS, np.linalg.inv(fisher))
             val_2nd_term = np.trace(ScovST) / N
             val = val_1st_term + val_2nd_term
