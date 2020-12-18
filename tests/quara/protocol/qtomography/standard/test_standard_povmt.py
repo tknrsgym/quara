@@ -323,7 +323,7 @@ class TestStandardPovmt:
 
         # Act
         actual = povmt.calc_cramer_rao_bound(
-            true_object, 100, [1] * len(tester_objects)
+            true_object, 100, [100] * len(tester_objects)
         )
 
         # Assert
@@ -340,7 +340,7 @@ class TestStandardPovmt:
         # Act
         print(povmt.calc_fisher_matrix_total(true_object, [1, 1, 1, 1]))
         actual = povmt.calc_cramer_rao_bound(
-            true_object, 100, [1] * len(tester_objects)
+            true_object, 100, [100] * len(tester_objects)
         )
 
         # Assert
