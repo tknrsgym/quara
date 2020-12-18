@@ -47,8 +47,8 @@ import pickle
 # In[2]:
 
 
-get_ipython().run_line_magic('reload_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
+# get_ipython().run_line_magic('reload_ext', 'autoreload')
+# get_ipython().run_line_magic('autoreload', '2')
 
 
 # In[3]:
@@ -80,7 +80,9 @@ true_object = get_z0_1q(c_sys)
 true_objects.append(true_object)
 
 # Case 2:
-vec = np.array([1/np.sqrt(2), 1/np.sqrt(6), 1/np.sqrt(6), 1/np.sqrt(6)],dtype=np.float64)
+vec = np.array(
+    [1 / np.sqrt(2), 1 / np.sqrt(6), 1 / np.sqrt(6), 1 / np.sqrt(6)], dtype=np.float64
+)
 true_object = State(c_sys, vec)
 true_objects.append(true_object)
 
@@ -89,7 +91,7 @@ vec = np.array([1 / np.sqrt(2), 0, 0, 0], dtype=np.float64)
 true_object = State(c_sys, vec)
 true_objects.append(true_object)
 
-true_object_names = ["case_0", "case_1", "case_2"]
+true_object_names = ["軸上", "軸から一番離れた表面", "原点"]
 
 
 # In[6]:
@@ -143,7 +145,7 @@ for true_idx, true_object in enumerate(true_objects):
     for i, name in enumerate(case_name_list):
         qtomography = qtomography_list[i]
         estimator = estimator_list[i]
-    
+
         start = time.time()
         print(f"Case {i}: {name}")
         print(f"Parametorization: {para_list[i]}")
@@ -151,18 +153,18 @@ for true_idx, true_object in enumerate(true_objects):
         print(f"Estimator: {estimator.__class__.__name__}")
 
         estimation_results = data_analysis.estimate(
-       qtomography=qtomography,
-       true_object=true_object,
-       num_data=num_data,
-       estimator=estimator,
-       iteration=n_rep,
-    )
+            qtomography=qtomography,
+            true_object=true_object,
+            num_data=num_data,
+            estimator=estimator,
+            iteration=n_rep,
+        )
         estimation_results_list.append(estimation_results)
-    
+
         elapsed_time = time.time() - start
         print("elapsed_time:{0}".format(elapsed_time / 60) + "[min]\n")
         elapsed_times.append(elapsed_time)
-        
+
     result = dict(
         estimation_results_list=estimation_results_list,
         true_object=true_object,
@@ -187,7 +189,7 @@ for true_idx, true_object in enumerate(true_objects):
         result["true_object"],
         tester_objects,
         seed=seed,
-        computation_time=sum(result["elapsed_times"])
+        computation_time=sum(result["elapsed_times"]),
     )
     # Fig
     fig = data_analysis.make_mses_graph_estimation_results(
@@ -217,7 +219,4 @@ print("elapsed_time:{0}".format(elapsed_time / 60) + "[min]\n")
 
 
 # In[ ]:
-
-
-
 

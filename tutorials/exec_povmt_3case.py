@@ -36,9 +36,7 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
-from quara.objects.povm import (
-    Povm,get_x_measurement
-)
+from quara.objects.povm import Povm, get_x_measurement
 from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
@@ -50,8 +48,8 @@ from quara.protocol.qtomography.standard.projected_linear_estimator import (
 # In[3]:
 
 
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
+# get_ipython().run_line_magic('load_ext', 'autoreload')
+# get_ipython().run_line_magic('autoreload', '2')
 
 
 # In[4]:
@@ -200,9 +198,7 @@ for true_idx, true_object in enumerate(true_objects):
     ) as f:
         pickle.dump(result, f)
     # PDF report
-    path = (
-        f"{output_dir}/pdf/sample_povmt_case{true_idx}_{true_object_names[true_idx]}.pdf"
-    )
+    path = f"{output_dir}/pdf/sample_povmt_case{true_idx}_{true_object_names[true_idx]}.pdf"
     report.export_report(
         path,
         result["estimation_results_list"],
@@ -221,9 +217,7 @@ for true_idx, true_object in enumerate(true_objects):
         show_analytical_results=True,
         estimator_list=estimator_list,
     )
-    path = (
-        f"{output_dir}/mse/sample_povmt_case{true_idx}_{true_object_names[true_idx]}.html"
-    )
+    path = f"{output_dir}/mse/sample_povmt_case{true_idx}_{true_object_names[true_idx]}.html"
     fig.write_html(path)
 
 
@@ -234,7 +228,4 @@ print("Completed.")
 
 
 # In[ ]:
-
-
-
 
