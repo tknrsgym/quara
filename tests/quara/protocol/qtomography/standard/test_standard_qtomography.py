@@ -423,12 +423,12 @@ class TestStandardQTomography:
         # Arrange
         qst, c_sys = get_test_data_qst()
         state = get_z0_1q(c_sys)
-        weights = [4, 2, 1]
+        list_N = [4, 2, 1]
         N = 10
         # Act
-        actual = qst.calc_cramer_rao_bound(state, N, weights)
+        actual = qst.calc_cramer_rao_bound(state, N, list_N)
         # Assert
-        expected = 0.037500002
+        expected = 0.37500001999999977
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Case 2: qst, on_par_eq_constraint = False
@@ -436,12 +436,12 @@ class TestStandardQTomography:
         qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
         vec = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
         state = State(c_sys, vec, on_para_eq_constraint=False)
-        weights = [4, 2, 1]
+        list_N = [4, 2, 1]
         N = 10
         # Act
-        actual = qst.calc_cramer_rao_bound(state, N, weights)
+        actual = qst.calc_cramer_rao_bound(state, N, list_N)
         # Assert
-        expected = 0.051785715992614
+        expected = 0.5178571598881306
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_calc_cramer_rao_bound_var(self):
@@ -449,22 +449,22 @@ class TestStandardQTomography:
         # Arrange
         qst, c_sys = get_test_data_qst()
         var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        weights = [4, 2, 1]
+        list_N = [4, 2, 1]
         N = 10
         # Act
-        actual = qst.calc_cramer_rao_bound(var, N, weights)
+        actual = qst.calc_cramer_rao_bound(var, N, list_N)
         # Assert
-        expected = 0.037500002
+        expected = 0.37500001999999977
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # Case 2: qst, on_par_eq_constraint = False
         # Arrange
         qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
         var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        weights = [4, 2, 1]
+        list_N = [4, 2, 1]
         N = 10
         # Act
-        actual = qst.calc_cramer_rao_bound(var, N, weights)
+        actual = qst.calc_cramer_rao_bound(var, N, list_N)
         # Assert
-        expected = 0.051785715992614
+        expected = 0.5178571598881306
         npt.assert_almost_equal(actual, expected, decimal=15)
