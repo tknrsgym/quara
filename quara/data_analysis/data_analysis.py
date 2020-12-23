@@ -591,12 +591,6 @@ def make_mses_graph_analytical(
     return figs
 
 
-# def make_mses_graphs_estimator(
-#     estimation_results_list: List["EstimationResult"],
-#     case_names: List[str],
-#     true_object,
-#     estimator_list: List["Estimator"],
-# ) -> list:
 def make_mses_graphs_estimator(
     estimation_results_list: List["EstimationResult"],
     simulation_settings: List["SimulationSetting"],
@@ -630,14 +624,25 @@ def make_mses_graphs_estimator(
     figs = []
 
     for key, target_dict in data_dict.items():
+        style = "font-size: 14px;"
+        additional_title_text = (
+            f'<span style="{style}">Estimator={key.estimator.replace("Estimator", "")}'
+        )
+        if key.loss is not None:
+            additional_title_text += f"<br>Loss={key.loss}"
+        if key.algo is not None:
+            additional_title_text += f"<br>Algo={key.algo}"
+        additional_title_text += "</span>"
+
         fig = make_mses_graph_estimation_results(
             target_dict["estimation_results"],
             target_dict["case_names"],
             true_object,
-            additional_title_text=f"estimator={key}",
+            additional_title_text=additional_title_text,
             show_analytical_results=True,
             estimator_list=target_dict["estimators"],
         )
+        fig.update_layout(title=dict(yanchor="bottom", y=0.96))
 
         figs.append(fig)
     return figs
