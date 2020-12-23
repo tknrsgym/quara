@@ -141,7 +141,9 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
             q = self.prob_dists_q[index]
             p = self.func_prob_dists[index](var)
             if self.weights:
-                val += self.weights[index] * relative_entropy(q, p)
+                val += self.weights[index] * relative_entropy(
+                    q, p, is_valid_required=False
+                )
             else:
                 val += relative_entropy(q, p)
 

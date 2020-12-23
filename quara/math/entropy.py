@@ -6,7 +6,10 @@ from quara.settings import Settings
 
 
 def round_varz(
-    z: Union[float, np.float64], eps: Union[float, np.float64], atol: float = None
+    z: Union[float, np.float64],
+    eps: Union[float, np.float64],
+    is_valid_required: bool = True,
+    atol: float = None,
 ) -> np.float64:
     """returns max{z , eps}.
     
@@ -19,6 +22,8 @@ def round_varz(
         variable z.
     eps : Union[float, np.float64]
         variable eps.
+    is_valid_required : bool, optional
+        if is_valid_required is True, then check whetever z is a negative number, uses True by default.
     atol : float, optional
         the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
@@ -45,7 +50,7 @@ def round_varz(
         raise ValueError(
             f"z must be a real number(float or np.float64). dtype of z is {type(z)}"
         )
-    if not np.isclose(z, 0, atol=atol, rtol=0.0) and z < 0:
+    if is_valid_required and not np.isclose(z, 0, atol=atol, rtol=0.0) and z < 0:
         raise ValueError(f"z must be a non-negative number. z is {z}")
     if type(eps) != float and type(z) != np.float64:
         raise ValueError(
@@ -64,6 +69,7 @@ def relative_entropy(
     prob_dist_p: np.array,
     eps_q: float = None,
     eps_p: float = None,
+    is_valid_required: bool = True,
     atol: float = None,
 ) -> float:
     """returns relative entropy of probability distributions q and p.
@@ -78,6 +84,8 @@ def relative_entropy(
         a parameter to avoid divergence about q, by default 1e-10
     eps_p : float, optional
         a parameter to avoid divergence about p, by default 1e-10
+    is_valid_required : bool, optional
+        if is_valid_required is True, then check whetever the entries of prob_dist_p is a negative number, uses True by default.
     atol : float, optional
         the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
@@ -95,7 +103,9 @@ def relative_entropy(
     for q, p in zip(prob_dist_q, prob_dist_p):
         if q >= eps_q:
             q_round = round_varz(q, eps_q, atol=atol)
-            p_round = round_varz(p, eps_p, atol=atol)
+            p_round = round_varz(
+                p, eps_p, is_valid_required=is_valid_required, atol=atol
+            )
             q_div_p_round = round_varz(q_round / p_round, eps_p, atol=atol)
             val += q_round * np.log(q_div_p_round)
 
@@ -108,6 +118,7 @@ def gradient_relative_entropy_2nd(
     gradient_prob_dist_ps: np.array,
     eps_q: float = None,
     eps_p: float = None,
+    is_valid_required: bool = True,
     atol: float = None,
 ) -> np.array:
     """returns gradient of relative entropy of probability distributions q and p.
@@ -124,6 +135,8 @@ def gradient_relative_entropy_2nd(
         a parameter to avoid divergence about q, by default 1e-10
     eps_p : float, optional
         a parameter to avoid divergence about p, by default 1e-10
+    is_valid_required : bool, optional
+        if is_valid_required is True, then check whetever the entries of prob_dist_p is a negative number, uses True by default.
     atol : float, optional
         the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
@@ -140,7 +153,9 @@ def gradient_relative_entropy_2nd(
     val = np.zeros(gradient_prob_dist_ps.shape[1], dtype=np.float64)
     for q, p, grad_p in zip(prob_dist_q, prob_dist_p, gradient_prob_dist_ps):
         if q >= eps_q:
-            p_round = round_varz(p, eps_p, atol=atol)
+            p_round = round_varz(
+                p, eps_p, is_valid_required=is_valid_required, atol=atol
+            )
             val += -q * grad_p / p_round
 
     return val
@@ -153,6 +168,7 @@ def hessian_relative_entropy_2nd(
     hessian_prob_dist_ps: np.array,
     eps_q: float = None,
     eps_p: float = None,
+    is_valid_required: bool = True,
     atol: float = None,
 ) -> float:
     """returns Hessian of relative entropy of probability distributions q and p.
@@ -171,6 +187,8 @@ def hessian_relative_entropy_2nd(
         a parameter to avoid divergence about q, by default 1e-10
     eps_p : float, optional
         a parameter to avoid divergence about p, by default 1e-10
+    is_valid_required : bool, optional
+        if is_valid_required is True, then check whetever the entries of prob_dist_p is a negative number, uses True by default.
     atol : float, optional
         the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
@@ -189,7 +207,9 @@ def hessian_relative_entropy_2nd(
         prob_dist_q, prob_dist_p, gradient_prob_dist_ps, hessian_prob_dist_ps
     ):
         if q >= eps_q:
-            p_round = round_varz(p, eps_p, atol=atol)
+            p_round = round_varz(
+                p, eps_p, is_valid_required=is_valid_required, atol=atol
+            )
             mat_grad_p = np.array([grad_p], dtype=np.float64)
             val += (
                 -q * hess_p / p_round + (q / p_round ** 2) * mat_grad_p.T @ mat_grad_p
