@@ -28,22 +28,34 @@ _temp_dir_path = ""
 
 _css = f"""
 body {{color: #666666;}}
-h1 {{margin-top: 60px;
+h1 {{
+    line-height: 100%;
     border-top: 2px #dcdcdc solid;
-    padding-top: 10px;
-    font-size: 25px}}
-h2 {{font-size: 20px}}
+    padding: 20px 0 0 0;
+    font-size: 25px;}}
+h2 {{font-size: 20px;
+line-height:90%;
+padding: 5px 0 5px 0;
+margin: 10px 0 0 0;}}
 h3 {{font-size: 15px;
-    color: #618CBC;}}
+    color: #618CBC;
+    line-height:90%;
+    padding: 5px 0 5px 0;
+    margin: 2px 0 0 0;}}
 h4 {{color:#EB9348;
 font-size: 15px;
 -pdf-outline: false;
+line-height:90%;
+padding: 5px 0 5px 0;
+margin: 0 0 0 0;
 }}
 h5 {{color:#666666;
 font-size: 13px;
 -pdf-outline: false;
 padding: 0 0 0 0;
-margin: 0 0 0 0;}}
+margin: 0 0 0 0;
+line-height:90%;
+vertical-align: text-bottom;}}
 h6 {{color:#666666;
 font-size: 13px;
 font-style:italic;
@@ -118,6 +130,11 @@ _inline_block_css = """
  width: 190px;
  padding: 0;
 }
+
+.div_line{
+    padding: 0 0 0 0;
+    margin: 0 0 35px 0;
+}
 """
 
 _col2_fig_width = 500
@@ -139,6 +156,8 @@ def _save_fig_to_tmp_dir(fig: "Figure", fig_name: str) -> str:
     dir_path = Path(_temp_dir_path)
     path = str(dir_path / f"{fig_name}.png")
     dir_path.mkdir(exist_ok=True)
+    # TODO: remove
+    # fig.update_layout(paper_bgcolor="rgba(1,1,1,1)")
     fig.write_image(path)
 
     return path
@@ -157,6 +176,7 @@ def _make_graph_trace_seq(
 
         fig_name = f"case={case_id}_trace_num={num}_0"
         fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
+
         path = _save_fig_to_tmp_dir(fig, fig_name)
 
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
@@ -168,7 +188,7 @@ def _generate_trace_div(fig_info_list: List[dict]) -> str:
     for fig_info in fig_info_list:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
         graph_block_html += graph_subblock
-
+    graph_block_html = f"<div class='div_line'>{graph_block_html}</div>"
     return graph_block_html
 
 
@@ -225,10 +245,10 @@ def _generate_fig_info_list_list_div(
                 f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
             )
             if i % col_n == col_n - 1:
-                div_lines.append(f"<div>{div_line}</div>")
+                div_lines.append(f"<div class='div_line'>{div_line}</div>")
                 div_line = ""
         else:
-            div_lines.append(f"<div>{div_line}</div>")
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
         graph_block_html_all += graph_block_html + "".join(div_lines)
 
     return graph_block_html_all
@@ -416,7 +436,7 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
             )
             graph_block_html += graph_subblock
 
-        graph_block_html_all += graph_block_html
+        graph_block_html_all += f"<div class='div_line'>{graph_block_html}</div>"
 
     return graph_block_html_all
 
@@ -783,18 +803,35 @@ def generate_consistency_check_table(
         )
         result_list.append(diff)
 
-    type_tomography_values = [qt.__class__.__name__ for qt in qtomography_list]
+    def _insert_white_space(text: str) -> str:
+        # If there is an upper case, insert a half-width space.
+        # Before: LossMinimization
+        # After: Loss Minimization
+        # Line breaks are not applied if there is no half-width space.
+        converted = text[0]
+        for char in text[1:]:
+            if char.isupper():
+                converted += f" {char}"
+            else:
+                converted += char
+        return converted
+
+    type_tomography_values = [
+        _insert_white_space(qt.__class__.__name__) for qt in qtomography_list
+    ]
     type_estimator_values = [
-        s.estimator.__class__.__name__.replace("Estimator", "")
+        _insert_white_space(s.estimator.__class__.__name__.replace("Estimator", ""))
         for s in simulation_settings
     ]
+
     type_loss_values = [
-        s.loss.__class__.__name__ if s.loss else "None" for s in simulation_settings
+        _insert_white_space(s.loss.__class__.__name__) if s.loss else "None"
+        for s in simulation_settings
     ]
     type_algo_values = [
-        s.algo.__class__.__name__ if s.algo else "None" for s in simulation_settings
+        _insert_white_space(s.algo.__class__.__name__) if s.algo else "None"
+        for s in simulation_settings
     ]
-
     result_dict = {
         "Name": [s.name for s in simulation_settings],
         "Type of tomography": type_tomography_values,
@@ -802,17 +839,17 @@ def generate_consistency_check_table(
         "Estimator": type_estimator_values,
         "Loss": type_loss_values,
         "Algo": type_algo_values,
-        "Result": [str(r) for r in result_list],
+        "Result": [f"{r:.2e}" for r in result_list],
     }
 
     styles = [
-        dict(selector=".col0", props=[("width", "450px"), ("font-size", "10px")]),
+        dict(selector=".col0", props=[("width", "400px"), ("font-size", "10px")]),
         dict(selector=".col1", props=[("width", "250px"), ("font-size", "10px")]),
-        dict(selector=".col2", props=[("width", "180px"), ("font-size", "10px")]),
-        dict(selector=".col3", props=[("width", "300px"), ("font-size", "10px")]),
+        dict(selector=".col2", props=[("width", "150px"), ("font-size", "10px")]),
+        dict(selector=".col3", props=[("width", "250px"), ("font-size", "10px")]),
         dict(selector=".col4", props=[("width", "300px"), ("font-size", "10px")]),
         dict(selector=".col5", props=[("width", "300px"), ("font-size", "10px")]),
-        dict(selector=".col6", props=[("width", "400px"), ("font-size", "10px")]),
+        dict(selector=".col6", props=[("width", "150px"), ("font-size", "10px")]),
     ]
 
     table_df = pd.DataFrame(result_dict)
@@ -846,7 +883,7 @@ def _make_graphs_mses(make_graphs_func, mse_type: "str", **kwargs) -> list:
     for i, fig in enumerate(figs):
         fig_name = f"mse_type={mse_type}_{i}"
         fig.update_layout(width=600, height=600)
-        fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
+        fig.update_layout(legend=dict(yanchor="top", y=-0.1, xanchor="left", x=0))
         path = _save_fig_to_tmp_dir(fig, fig_name)
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
     return fig_info_list
@@ -920,11 +957,11 @@ def _generate_figs_div(fig_info_list: List[dict], col_n: int = 2) -> str:
     for i, block in enumerate(subblock_list):
         div_line += block
         if i % col_n == col_n - 1:
-            div_lines.append(f"<div>{div_line}</div>")
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
             div_line = ""
     else:
         if div_line:
-            div_lines.append(f"<div>{div_line}</div>")
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
 
     graph_block_html = "".join(div_lines)
     return graph_block_html
@@ -955,14 +992,8 @@ def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
     simulation_settings: List[SimulationSetting],
-    # case_name_list: List[str],
-    # estimator_list: List["Estimator"],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
-    # loss_list: List["ProbabilityBasedLossFunction"] = None,
-    # loss_option_list: List["ProbabilityBasedLossFunctionOption"] = None,
-    # algo_list: List["MinimizationAlgorithm"] = None,
-    # algo_option_list: List["MinimizationAlgorithmOption"] = None,
     seed: Optional[int] = None,
     computation_time: Optional[float] = None,
     keep_tmp_files: bool = False,
@@ -1026,9 +1057,8 @@ def export_report(
         make_graphs_func=data_analysis.make_mses_graphs_estimator,
         mse_type="estimator",
         estimation_results_list=estimation_results_list,
-        case_names=case_name_list,
+        simulation_settings=simulation_settings,
         true_object=true_object,
-        estimator_list=estimator_list,
     )
     # 3. Comparison of estimators
     mse_est_div = generate_figs_div(
