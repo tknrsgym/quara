@@ -142,10 +142,8 @@ _col2_fig_height = 400
 
 
 def _convert_html2pdf(source_html: str, output_path: str):
-    # TODO: make parent directory
     # TODO: check file extension
     httpConfig.save_keys("nosslcheck", True)
-    # print(f"{output_path=}")
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w+b") as f:
         pisa_status = pisa.CreatePDF(source_html, dest=f)
@@ -156,8 +154,6 @@ def _save_fig_to_tmp_dir(fig: "Figure", fig_name: str) -> str:
     dir_path = Path(_temp_dir_path)
     path = str(dir_path / f"{fig_name}.png")
     dir_path.mkdir(exist_ok=True)
-    # TODO: remove
-    # fig.update_layout(paper_bgcolor="rgba(1,1,1,1)")
     fig.write_image(path)
 
     return path
