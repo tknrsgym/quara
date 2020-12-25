@@ -328,21 +328,37 @@ def _generate_eigenvalues_div(
     return graph_block_html_all
 
 
-def _generate_eigenvalues_div_3loop(fig_info_list3: List[List[List[dict]]]) -> str:
+def _generate_eigenvalues_div_3loop(
+    fig_info_list3: List[List[List[dict]]], col_n: int
+) -> str:
+    # TODO: 今
     graph_block_html_all = ""
+    fig_n = fig_info_list3[0][0]
+    col_n = len(fig_n) if len(fig_n) <= 4 else 4
+    css_class = f"box_col{col_n}"
+
     for fig_info_list2 in fig_info_list3:  # num_data
         num = fig_info_list2[0][0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
 
         for fig_info_list in fig_info_list2:  # measurement
             x_i = fig_info_list[0]["x"]
-            sub_graph_block_html = f"<h6>x={x_i}</h6>"
-            for fig_info in fig_info_list:
-                graph_subblock = (
-                    f"<div class='box'><img src={fig_info['image_path']}></div>"
+            div_lines = []
+            div_line = ""
+
+            for i, fig_info in enumerate(fig_info_list):
+                div_line += (
+                    f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
                 )
-                sub_graph_block_html += graph_subblock
-            graph_block_html += sub_graph_block_html
+
+                if i % col_n == col_n - 1:
+                    div_lines.append(f"<div class='div_line'>{div_line}</div>")
+                    div_line = ""
+            else:
+                if div_line:
+                    div_lines.append(f"<div class='div_line'>{div_line}</div>")
+
+            graph_block_html += f"<h6>x={x_i}</h6>" + "".join(div_lines)
 
         graph_block_html_all += graph_block_html
 

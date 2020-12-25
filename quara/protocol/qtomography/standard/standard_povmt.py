@@ -58,10 +58,11 @@ class StandardPovmt(StandardQTomography):
         super().__init__(experiment, set_qoperations)
 
         # validate
-        if not self.is_valid_experiment():
-            raise ValueError(
-                "the experiment is not valid. all povms must have same CompositeSystem."
-            )
+        # TODO: revert
+        # if not self.is_valid_experiment():
+        #     raise ValueError(
+        #         "the experiment is not valid. all povms must have same CompositeSystem."
+        #     )
 
         # TODO:
         if on_para_eq_constraint:
