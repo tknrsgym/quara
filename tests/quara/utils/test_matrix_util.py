@@ -326,14 +326,14 @@ def test_calc_fisher_matrix():
         util.calc_fisher_matrix(prob_dist, grad_prob_dist, eps=eps)
 
 
-def test_replace_entry():
+def test_replace_prob_dist():
     # case1: p >= eps
     # Arrange
     prob_dist = np.array([0.9, 0.1], dtype=np.float64)
     eps = 0.1
 
     # Act
-    actual = util._replace_entry(prob_dist, eps)
+    actual = util.replace_prob_dist(prob_dist, eps)
 
     # Assert
     expected = np.array([0.9, 0.1], dtype=np.float64)
@@ -345,7 +345,7 @@ def test_replace_entry():
     eps = 0.1
 
     # Act
-    actual = util._replace_entry(prob_dist, eps)
+    actual = util.replace_prob_dist(prob_dist, eps)
 
     # Assert
     expected = np.array([0.89, 0.1], dtype=np.float64)
