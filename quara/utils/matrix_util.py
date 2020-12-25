@@ -361,7 +361,7 @@ def calc_fisher_matrix(
         raise ValueError(f"eps must be a positive number. eps={eps}")
 
     # replace
-    replaced_prob_dist = _replace_entry(prob_dist, eps)
+    replaced_prob_dist = replace_prob_dist(prob_dist, eps)
 
     ### calculate
     size_var = grad_prob_dist[0].shape[0]
@@ -372,7 +372,9 @@ def calc_fisher_matrix(
     return matrix
 
 
-def _replace_entry(prob_dist: np.array, eps: float) -> np.array:
+def replace_prob_dist(prob_dist: np.array, eps: float = None) -> np.array:
+    eps = eps if eps is not None else 1e-8
+
     size_prob_dist = prob_dist.shape[0]
     count_replace = np.count_nonzero(prob_dist < eps)
     replaced = np.zeros(size_prob_dist)
