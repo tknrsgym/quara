@@ -75,16 +75,16 @@ def get_sum_of_eigenvalues_violation(
             check_flag_2 = True
             sum_eig_greater_list.append(np.sum(greater_list))
 
-        if check_flag_1 != check_flag_2:
-            message = f"i={i}: invalid: values={values}"
-            message += f"\nless_list={less_list}"
-            message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
-            warnings.warn(message)
-    if len(sum_eig_less_list) != len(sum_eig_greater_list):
-        message = f"sum_eig_less_list and sum_eig_greater_list lengths do not match."
-        message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
-        message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
-        warnings.warn(message)
+        # if check_flag_1 != check_flag_2:
+        #     message = f"i={i}: invalid: values={values}"
+        #     message += f"\nless_list={less_list}"
+        #     message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
+        #     warnings.warn(message)
+    # if len(sum_eig_less_list) != len(sum_eig_greater_list):
+    #     message = f"sum_eig_less_list and sum_eig_greater_list lengths do not match."
+    #     message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
+    #     message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
+    #     warnings.warn(message)
 
     return sum_eig_less_list, sum_eig_greater_list
 
