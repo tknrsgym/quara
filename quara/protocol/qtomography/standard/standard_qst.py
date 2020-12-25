@@ -77,10 +77,11 @@ class StandardQst(StandardQTomography):
         super().__init__(experiment, set_qoperations)
 
         # validate
-        if not self.is_valid_experiment():
-            raise ValueError(
-                "the experiment is not valid. all povms must have same CompositeSystem."
-            )
+        # TODO: revert
+        # if not self.is_valid_experiment():
+        #     raise ValueError(
+        #         "the experiment is not valid. all povms must have same CompositeSystem."
+        #     )
 
         # calc num_variables
         if on_para_eq_constraint:
@@ -100,7 +101,6 @@ class StandardQst(StandardQTomography):
     @property
     def on_para_eq_constraint(self):  # read only
         return self._on_para_eq_constraint
-
 
     def _set_coeffs(
         self, experiment: Experiment, on_para_eq_constraint: bool, dim: int
