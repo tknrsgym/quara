@@ -125,6 +125,18 @@ _inline_block_css = """
  width: 400px;
 }
 
+.box_col2{
+ display: inline-block;
+ width: 400px;
+ padding: 0;
+}
+
+.box_col3{
+ display: inline-block;
+ width: 250px;
+ padding: 0;
+}
+
 .box_col4{
  display: inline-block;
  width: 190px;
@@ -180,11 +192,21 @@ def _make_graph_trace_seq(
 
 
 def _generate_trace_div(fig_info_list: List[dict]) -> str:
-    graph_block_html = ""
-    for fig_info in fig_info_list:
-        graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
-        graph_block_html += graph_subblock
-    graph_block_html = f"<div class='div_line'>{graph_block_html}</div>"
+    col_n = len(fig_info_list) if len(fig_info_list) <= 4 else 4
+    css_class = f"box_col{col_n}"
+    div_lines = []
+    div_line = ""
+    for i, fig_info in enumerate(fig_info_list):
+        div_line += f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
+
+        if i % col_n == col_n - 1:
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
+            div_line = ""
+    else:
+        if div_line:
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
+
+    graph_block_html = f"<div class='div_line'>{''.join(div_lines)}</div>"
     return graph_block_html
 
 
@@ -532,6 +554,16 @@ def _generate_physicality_violation_test_div_for_state(
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_trace_div(estimation_results, case_id=case_id)
+        # div = generate_figs_div(
+        #     func=_make_fig_info_list,
+        #     estimation_results=estimation_results,
+        #     case_id=case_id,
+        #     fig_type="trace",
+        #     size=(_col2_fig_width, _col2_fig_height),
+        #     make_graphs_func=physicality_violation_check.make_graph_trace,
+        #     col_n=4,
+        # )
+
         # <h5> is dummy
         test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -957,8 +989,11 @@ def _make_fig_info_list_list(
 def _generate_figs_div(fig_info_list: List[dict], col_n: int = 2) -> str:
     graph_block_html = ""
     subblock_list = []
+    css_class = "box" if col_n <= 2 else "box_col4"  # TODO: adjust
     for fig_info in fig_info_list:
-        graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
+        graph_subblock = (
+            f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
+        )
         subblock_list.append(graph_subblock)
 
     div_line = ""
