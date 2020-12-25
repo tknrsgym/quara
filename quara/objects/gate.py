@@ -123,7 +123,9 @@ class Gate(QOperation):
         """
         return self._hs
 
-    def is_physical(self) -> bool:
+    def is_physical(
+        self, atol_eq_const: float = None, atol_ineq_const: float = None
+    ) -> bool:
         """returns whether the gate is physically correct.
 
         all of the following conditions are ``True``, the gate is physically correct:
@@ -131,12 +133,19 @@ class Gate(QOperation):
         - gate is TP(trace-preserving map).
         - gate is CP(Complete-Positivity-Preserving).
 
+        Parameters
+        ----------
+        atol_eq_const : float, optional
+            Error tolerance used to determine if the Gate is TP(trace-preserving map). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        atol_ineq_const : float, optional
+            Error tolerance used to determine if the Gate is CP(Complete-Positivity-Preserving). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+
         Returns
         -------
         bool
             whether the gate is physically correct.
         """
-        return self.is_tp() and self.is_cp()
+        return self.is_tp(atol=atol_eq_const) and self.is_cp(atol=atol_ineq_const)
 
     def set_zero(self):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)
@@ -256,7 +265,7 @@ class Gate(QOperation):
         bool
             True where the gate is TP, False otherwise.
         """
-        atol = atol if atol else Settings.get_atol()
+        atol = Settings.get_atol() if atol is None else atol
 
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
         for index, basis in enumerate(self.composite_system.basis()):
@@ -299,7 +308,7 @@ class Gate(QOperation):
         bool
             True where gate is CP, False otherwise.
         """
-        atol = atol if atol else Settings.get_atol()
+        atol = Settings.get_atol() if atol is None else atol
 
         # "A is CP"  <=> "C(A) >= 0"
         return mutil.is_positive_semidefinite(self.to_choi_matrix(), atol=atol)
@@ -637,7 +646,7 @@ def is_hp(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
         True where gate is EP, False otherwise.
     """
 
-    atol = atol if atol else Settings.get_atol()
+    atol = Settings.get_atol() if atol is None else atol
 
     # convert Hermitian basis(Pauli basis)
     hs_converted = convert_hs(hs, basis, get_normalized_pauli_basis())

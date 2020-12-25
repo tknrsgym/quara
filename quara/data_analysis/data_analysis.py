@@ -607,38 +607,56 @@ def make_mses_graph_analytical(
 
 def make_mses_graphs_estimator(
     estimation_results_list: List["EstimationResult"],
-    case_names: List[str],
+    simulation_settings: List["SimulationSetting"],
     true_object,
-    estimator_list: List["Estimator"],
 ) -> list:
     data_dict = {}
 
-    for i, estimator in enumerate(estimator_list):
-        estimator_name = estimator.__class__.__name__
+    Category = namedtuple("Category", ["estimator", "loss", "algo"])
+    for i, s in enumerate(simulation_settings):
+        estimator_name = s.estimator.__class__.__name__
+        loss_name = s.loss.__class__.__name__ if s.loss else None
+        algo_name = s.algo.__class__.__name__ if s.algo else None
         results = estimation_results_list[i]
-        case_name = case_names[i]
+        case_name = s.name
+        category = Category(estimator_name, loss_name, algo_name)
 
-        if estimator_name in data_dict:
-            data_dict[estimator_name]["estimation_results"].append(results)
-            data_dict[estimator_name]["case_names"].append(case_name)
-            data_dict[estimator_name]["estimators"].append(estimator)
+        if category in data_dict:
+            data_dict[category]["estimation_results"].append(results)
+            data_dict[category]["case_names"].append(case_name)
+            data_dict[category]["estimators"].append(estimator_name)
+            data_dict[category]["losses"].append(loss_name)
+            data_dict[category]["algos"].append(algo_name)
         else:
-            data_dict[estimator_name] = dict(
+            data_dict[category] = dict(
                 estimation_results=[results],
-                case_names=[case_name],
-                estimators=[estimator],
+                case_names=[s.name],
+                estimators=[s.estimator],
+                losses=[s.loss],
+                algos=[s.algo],
             )
-
     figs = []
+
     for key, target_dict in data_dict.items():
+        style = "font-size: 14px;"
+        additional_title_text = (
+            f'<span style="{style}">Estimator={key.estimator.replace("Estimator", "")}'
+        )
+        if key.loss is not None:
+            additional_title_text += f"<br>Loss={key.loss}"
+        if key.algo is not None:
+            additional_title_text += f"<br>Algo={key.algo}"
+        additional_title_text += "</span>"
+
         fig = make_mses_graph_estimation_results(
             target_dict["estimation_results"],
             target_dict["case_names"],
             true_object,
-            additional_title_text=f"estimator={key}",
+            additional_title_text=additional_title_text,
             show_analytical_results=True,
             estimator_list=target_dict["estimators"],
         )
+        fig.update_layout(title=dict(yanchor="bottom", y=0.96))
 
         figs.append(fig)
     return figs

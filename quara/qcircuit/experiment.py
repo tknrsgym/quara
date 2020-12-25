@@ -169,6 +169,7 @@ class Experiment:
                     error_message += f"Type of parameter passed: List of {type_names}"
                 else:
                     error_message += f"Type of parameter passed: {type(target)}"
+                    error_message += f"\n{target.__str__()}"
 
                 raise TypeError(error_message)
 
@@ -355,6 +356,13 @@ class Experiment:
         gates = copy.copy(self.gates)
         povms = copy.copy(self.povms)
         schedules = copy.copy(self.schedules)
+
+        # TODO: remove
+        # print(f"{states=}")
+        # print("-----------------------")
+        # print(f"{povms=}")
+        # print("-----------------------")
+        # print(f"{gates=}")
         experiment = Experiment(
             states=states, gates=gates, povms=povms, schedules=schedules
         )

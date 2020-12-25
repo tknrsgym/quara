@@ -23,9 +23,9 @@ def is_hermitian(matrix: np.ndarray, atol: float = None) -> bool:
     bool
         True where ``matrix`` is Hermitian, False otherwise.
     """
-    atol = atol if atol else Settings.get_atol()
-
+    atol = Settings.get_atol() if atol is None else atol
     rows, columns = matrix.shape
+
     if rows != columns:
         return False
 
@@ -48,7 +48,7 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
     bool
         True where ``matrix`` is positive semidifinite, False otherwise.
     """
-    atol = atol if atol else Settings.get_atol()
+    atol = Settings.get_atol() if atol is None else atol
 
     if is_hermitian(matrix, atol):
         # ignore eigvals close zero
@@ -111,7 +111,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     bool
         True where ``matrix`` is TP, False otherwise.
     """
-    atol = atol if atol else Settings.get_atol()
+    atol = Settings.get_atol() if atol is None else atol
     p_trace = partial_trace1(matrix, dim)
     identity = np.eye(dim, dtype=np.complex128).reshape(dim, dim)
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)

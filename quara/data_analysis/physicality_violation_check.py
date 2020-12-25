@@ -39,14 +39,14 @@ def get_sorted_eigenvalues_list(
         # TODO: function name
         sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_qobjects)
     else:
-        message = f"estimated_qobjects must be a list of State, Povm, or Gate, not {type(qobject_type)}"
+        message = f"estimated_qobjects must be a list of State, Povm, or Gate, not {qobject_type}"
         raise TypeError(message)
 
     return sorted_eigenvalues_list
 
 
 def get_sum_of_eigenvalues_violation(
-    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1),
+    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1), eps=0
 ) -> Tuple[List[float], List[float]]:
     expected_values = sorted(expected_values)
     if len(expected_values) != 2:
@@ -56,8 +56,7 @@ def get_sum_of_eigenvalues_violation(
     sum_eig_less_list = []
     sum_eig_greater_list = []
 
-    eps = Settings.get_atol()
-    for _, values in enumerate(sorted_eigenvalues_list):
+    for i, values in enumerate(sorted_eigenvalues_list):
         less_list = []
         greater_list = []
         for v in values:
@@ -65,6 +64,7 @@ def get_sum_of_eigenvalues_violation(
                 less_list.append(v)
             else:
                 greater_list.append(v)
+
         # TODO: remove
         check_flag_1 = False
         check_flag_2 = False
@@ -75,13 +75,13 @@ def get_sum_of_eigenvalues_violation(
             check_flag_2 = True
             sum_eig_greater_list.append(np.sum(greater_list))
 
-        # if check_flag_1 != check_flag_2:
-        #     message = f"invalid: values={values}"
-        #     message += f"\nless_list={less_list}"
-        #     message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
-        #     warnings.warn(message)
+        if check_flag_1 != check_flag_2:
+            message = f"i={i}: invalid: values={values}"
+            message += f"\nless_list={less_list}"
+            message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
+            warnings.warn(message)
     if len(sum_eig_less_list) != len(sum_eig_greater_list):
-        message = "sum_eig_less_list and sum_eig_greater_list lengths do not match."
+        message = f"sum_eig_less_list and sum_eig_greater_list lengths do not match."
         message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
         message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
         warnings.warn(message)
@@ -89,8 +89,8 @@ def get_sum_of_eigenvalues_violation(
     return sum_eig_less_list, sum_eig_greater_list
 
 
-def get_sum_of_eigenvalues_violation_povm(
-    estimated_povms: List["Povm"],
+def get_sum_of_eigenvalues_violation_for_povm(
+    estimated_povms: List["Povm"], eps=0
 ) -> Dict[int, List[float]]:
 
     minus_eigenvalues_dict = defaultdict(lambda: [])
@@ -102,7 +102,6 @@ def get_sum_of_eigenvalues_violation_povm(
             eigs = sorted(eigs, reverse=True)
             sorted_eigenvalues.append(eigs)
 
-        eps = Settings.get_atol()
         for x_i, values in enumerate(sorted_eigenvalues):
             for e in values:
                 if e.imag >= Settings.get_atol():
@@ -333,7 +332,7 @@ def make_graphs_sum_unphysical_eigenvalues(
             estimated_qoperations, n_data, bin_size, expected_values=(0, 1)
         )
     elif type(sample_object) == Povm:
-        figs = _make_graphs_sum_unphysical_eigenvalues_povm(
+        figs = _make_graphs_sum_unphysical_eigenvalues_for_povm(
             estimated_qoperations, n_data, bin_size
         )
     elif type(sample_object) == Gate:
@@ -555,9 +554,11 @@ def _make_graphs_sum_unphysical_eigenvalues(
 
     n_rep = len(sorted_eigenvalues_list)
     figs = []
+    n_unphysical = len(
+        [q for q in estimated_qobjects if not q.is_physical(atol_ineq_const=0)]
+    )
     # Figure 1
-    xaxis_title_text = f"Sum of unphysical eigenvalues (<{expected_values[0]})"
-    n_unphysical = len(less_list)
+    xaxis_title_text = f"Sum of negative eigenvalues (<{expected_values[0]})"
 
     fig = make_prob_dist_histogram(
         less_list,
@@ -571,8 +572,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
     figs.append(fig)
 
     # Figure 2
-    xaxis_title_text = f"Sum of unphysical eigenvalues (>{expected_values[1]})"
-    n_unphysical = len(greater_list)
+    xaxis_title_text = f"Sum of non-negative eigenvalues (>{expected_values[1]})"
     fig = make_prob_dist_histogram(
         greater_list,
         bin_size=bin_size,
@@ -588,22 +588,25 @@ def _make_graphs_sum_unphysical_eigenvalues(
     return figs
 
 
-def _make_graphs_sum_unphysical_eigenvalues_povm(
+def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     estimated_povms: List["Povm"], num_data: int, bin_size: float = 0.0001
 ) -> List["Figure"]:
     figs = []
     n_rep = len(estimated_povms)
-    minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_povm(estimated_povms)
+    minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_for_povm(estimated_povms)
     measurement_n = len(estimated_povms[0].vecs)
+    unphysical_n = len(
+        [estimated for estimated in estimated_povms if not estimated.is_physical()]
+    )
 
-    xaxis_title_text = f"Sum of unphysical eigenvalues (<0)"
+    xaxis_title_text = f"Sum of negative eigenvalues (<0)"
     for x_i in range(measurement_n):
         value_list = []
         if x_i in minus_eigenvalues_dict:
             value_list = minus_eigenvalues_dict[x_i]
 
         title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
-        title += f"<br>Number of unphysical estimates={len(value_list)}"
+        title += f"<br>Number of unphysical estimates={unphysical_n}"
         fig = make_prob_dist_histogram(
             value_list,
             bin_size=bin_size,

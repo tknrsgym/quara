@@ -14,6 +14,8 @@ from quara.data_analysis import (
     data_analysis,
     consistency_check,
 )
+from quara.data_analysis import simulation
+from quara.data_analysis.simulation import SimulationSetting
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
 
@@ -26,22 +28,34 @@ _temp_dir_path = ""
 
 _css = f"""
 body {{color: #666666;}}
-h1 {{margin-top: 60px;
+h1 {{
+    line-height: 100%;
     border-top: 2px #dcdcdc solid;
-    padding-top: 10px;
-    font-size: 25px}}
-h2 {{font-size: 20px}}
+    padding: 20px 0 0 0;
+    font-size: 25px;}}
+h2 {{font-size: 20px;
+line-height:90%;
+padding: 5px 0 5px 0;
+margin: 10px 0 0 0;}}
 h3 {{font-size: 15px;
-    color: #618CBC;}}
+    color: #618CBC;
+    line-height:90%;
+    padding: 5px 0 5px 0;
+    margin: 2px 0 0 0;}}
 h4 {{color:#EB9348;
 font-size: 15px;
 -pdf-outline: false;
+line-height:90%;
+padding: 5px 0 5px 0;
+margin: 0 0 0 0;
 }}
 h5 {{color:#666666;
 font-size: 13px;
 -pdf-outline: false;
 padding: 0 0 0 0;
-margin: 0 0 0 0;}}
+margin: 0 0 0 0;
+line-height:90%;
+vertical-align: text-bottom;}}
 h6 {{color:#666666;
 font-size: 13px;
 font-style:italic;
@@ -116,6 +130,11 @@ _inline_block_css = """
  width: 190px;
  padding: 0;
 }
+
+.div_line{
+    padding: 0 0 0 0;
+    margin: 0 0 35px 0;
+}
 """
 
 _col2_fig_width = 500
@@ -123,9 +142,9 @@ _col2_fig_height = 400
 
 
 def _convert_html2pdf(source_html: str, output_path: str):
-    # TODO: make parent directory
     # TODO: check file extension
     httpConfig.save_keys("nosslcheck", True)
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w+b") as f:
         pisa_status = pisa.CreatePDF(source_html, dest=f)
     return pisa_status.err
@@ -153,6 +172,7 @@ def _make_graph_trace_seq(
 
         fig_name = f"case={case_id}_trace_num={num}_0"
         fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
+
         path = _save_fig_to_tmp_dir(fig, fig_name)
 
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
@@ -164,7 +184,7 @@ def _generate_trace_div(fig_info_list: List[dict]) -> str:
     for fig_info in fig_info_list:
         graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
         graph_block_html += graph_subblock
-
+    graph_block_html = f"<div class='div_line'>{graph_block_html}</div>"
     return graph_block_html
 
 
@@ -221,10 +241,10 @@ def _generate_fig_info_list_list_div(
                 f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
             )
             if i % col_n == col_n - 1:
-                div_lines.append(f"<div>{div_line}</div>")
+                div_lines.append(f"<div class='div_line'>{div_line}</div>")
                 div_line = ""
         else:
-            div_lines.append(f"<div>{div_line}</div>")
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
         graph_block_html_all += graph_block_html + "".join(div_lines)
 
     return graph_block_html_all
@@ -412,7 +432,7 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
             )
             graph_block_html += graph_subblock
 
-        graph_block_html_all += graph_block_html
+        graph_block_html_all += f"<div class='div_line'>{graph_block_html}</div>"
 
     return graph_block_html_all
 
@@ -728,14 +748,16 @@ def generate_case_table(
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
     case_dict = dict(
         Name=case_name_list,
-        Parameterization=para_list,
+        Param=para_list,
         Tomography=[t.__class__.__name__ for t in qtomography_list],
-        Estimator=[e.__class__.__name__ for e in estimator_list],
+        Estimator=[
+            e.__class__.__name__.replace("Estimator", "") for e in estimator_list
+        ],
     )
     case_df = pd.DataFrame(case_dict)
     styles = [
         dict(selector=".col0", props=[("width", "400px")]),
-        dict(selector=".col1", props=[("width", "200px")]),
+        dict(selector=".col1", props=[("width", "180px")]),
         dict(selector=".col2", props=[("width", "200px")]),
     ]
     case_table = case_df.style.set_table_styles(styles).render()
@@ -767,47 +789,75 @@ def generate_condition_table(
 
 def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
-    estimator_list: List["Estimator"],
+    simulation_settings: List[SimulationSetting],
     true_object: "QOperation",
-    loss_list: List["ProbabilityBasedLossFunction"] = None,
-    loss_option_list: List["ProbabilityBasedLossFunctionOption"] = None,
-    algo_list: List["MinimizationAlgorithm"] = None,
-    algo_option_list: List["MinimizationAlgorithmOption"] = None,
 ):
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
-    for i, qtomo in enumerate(qtomography_list):
-        estimator = estimator_list[i]
-        loss = loss_list[i] if loss_list else None
-        loss_option = loss_option_list[i] if loss_option_list else None
-        algo = algo_list[i] if algo_list else None
-        algo_option = algo_option_list[i] if algo_option_list else None
-
+    for i, s in enumerate(simulation_settings):
         diff = consistency_check.calc_mse_of_true_estimated(
             true_object=true_object,
-            qtomography=qtomo,
-            estimator=estimator,
-            loss=loss,
-            loss_option=loss_option,
-            algo=algo,
-            algo_option=algo_option,
+            qtomography=qtomography_list[i],
+            estimator=s.estimator,
+            loss=s.loss,
+            loss_option=s.loss_option,
+            algo=s.algo,
+            algo_option=s.algo_option,
         )
         result_list.append(diff)
 
-    type_tomography_values = [qt.__class__.__name__ for qt in qtomography_list]
-    type_estimator_values = [e.__class__.__name__ for e in estimator_list]
+    def _insert_white_space(text: str) -> str:
+        # If there is an upper case, insert a half-width space.
+        # Before: LossMinimization
+        # After: Loss Minimization
+        # Line breaks are not applied if there is no half-width space.
+        converted = text[0]
+        for char in text[1:]:
+            if char.isupper():
+                converted += f" {char}"
+            else:
+                converted += char
+        return converted
 
+    type_tomography_values = [
+        _insert_white_space(qt.__class__.__name__) for qt in qtomography_list
+    ]
+    type_estimator_values = [
+        _insert_white_space(s.estimator.__class__.__name__.replace("Estimator", ""))
+        for s in simulation_settings
+    ]
+
+    type_loss_values = [
+        _insert_white_space(s.loss.__class__.__name__) if s.loss else "None"
+        for s in simulation_settings
+    ]
+    type_algo_values = [
+        _insert_white_space(s.algo.__class__.__name__) if s.algo else "None"
+        for s in simulation_settings
+    ]
     result_dict = {
+        "Name": [s.name for s in simulation_settings],
         "Type of tomography": type_tomography_values,
-        "Parametorization": para_list,
+        "Param": para_list,
         "Estimator": type_estimator_values,
-        "Result": result_list,
+        "Loss": type_loss_values,
+        "Algo": type_algo_values,
+        "Result": [f"{r:.2e}" for r in result_list],
     }
 
-    consistency_check_table = pd.DataFrame(result_dict).to_html(
-        classes="consistency_check_table", escape=False
-    )
+    styles = [
+        dict(selector=".col0", props=[("width", "400px"), ("font-size", "10px")]),
+        dict(selector=".col1", props=[("width", "250px"), ("font-size", "10px")]),
+        dict(selector=".col2", props=[("width", "150px"), ("font-size", "10px")]),
+        dict(selector=".col3", props=[("width", "250px"), ("font-size", "10px")]),
+        dict(selector=".col4", props=[("width", "300px"), ("font-size", "10px")]),
+        dict(selector=".col5", props=[("width", "300px"), ("font-size", "10px")]),
+        dict(selector=".col6", props=[("width", "150px"), ("font-size", "10px")]),
+    ]
+
+    table_df = pd.DataFrame(result_dict)
+    consistency_check_table = table_df.style.set_table_styles(styles).render()
     return consistency_check_table
 
 
@@ -837,6 +887,7 @@ def _make_graphs_mses(make_graphs_func, mse_type: "str", **kwargs) -> list:
     for i, fig in enumerate(figs):
         fig_name = f"mse_type={mse_type}_{i}"
         fig.update_layout(width=600, height=600)
+        # fig.update_layout(legend=dict(yanchor="top", y=-0.1, xanchor="left", x=0))
         num_legend = len(fig.data)
         legend_y = _calc_legend_y(num_legend)
         fig.update_layout(
@@ -915,11 +966,11 @@ def _generate_figs_div(fig_info_list: List[dict], col_n: int = 2) -> str:
     for i, block in enumerate(subblock_list):
         div_line += block
         if i % col_n == col_n - 1:
-            div_lines.append(f"<div>{div_line}</div>")
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
             div_line = ""
     else:
         if div_line:
-            div_lines.append(f"<div>{div_line}</div>")
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
 
     graph_block_html = "".join(div_lines)
     return graph_block_html
@@ -949,14 +1000,9 @@ def generate_figs_div(func, **kwargs):
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
-    case_name_list: List[str],
-    estimator_list: List["Estimator"],
+    simulation_settings: List[SimulationSetting],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
-    loss_list: List["ProbabilityBasedLossFunction"] = None,
-    loss_option_list: List["ProbabilityBasedLossFunctionOption"] = None,
-    algo_list: List["MinimizationAlgorithm"] = None,
-    algo_option_list: List["MinimizationAlgorithmOption"] = None,
     seed: Optional[int] = None,
     computation_time: Optional[float] = None,
     keep_tmp_files: bool = False,
@@ -969,6 +1015,10 @@ def export_report(
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
     qtomography_list = [results[0].qtomography for results in estimation_results_list]
+
+    # TODO: remove
+    case_name_list = [s.name for s in simulation_settings]
+    estimator_list = [s.estimator for s in simulation_settings]
 
     # Computation Time
     print("​Generating table of computation time ...")
@@ -1000,13 +1050,7 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        qtomography_list,
-        estimator_list,
-        true_object,
-        loss_list=loss_list,
-        loss_option_list=loss_option_list,
-        algo_list=algo_list,
-        algo_option_list=algo_option_list,
+        qtomography_list, simulation_settings, true_object
     )
 
     # MSE
@@ -1022,9 +1066,8 @@ def export_report(
         make_graphs_func=data_analysis.make_mses_graphs_estimator,
         mse_type="estimator",
         estimation_results_list=estimation_results_list,
-        case_names=case_name_list,
+        simulation_settings=simulation_settings,
         true_object=true_object,
-        estimator_list=estimator_list,
     )
     # 3. Comparison of estimators
     mse_est_div = generate_figs_div(
