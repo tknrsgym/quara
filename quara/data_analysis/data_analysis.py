@@ -429,6 +429,10 @@ def make_mses_graph_estimation_results(
         error_bar_values = [sigma / np.sqrt(n_rep) for sigma in sds]
         error_bar_values_list.append(error_bar_values)
 
+    # debug
+    for display_case_name, mses in zip(display_case_names, mses_list):
+        print(f"  {display_case_name}={mses}")
+
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
@@ -513,6 +517,8 @@ def _make_data_for_graphs_mses_analytical(
 
         mses_list.append(true_mses)
         short_name = estimator_name.replace("Estimator", "")
+        if short_name == "LossMinimization":
+            short_name = "Cramer-Rao bound"
         display_case_names.append(f"Analytical result ({short_name}, {parameter})")
         short_names.append(short_name)
         parameters.append(parameter)
@@ -556,12 +562,20 @@ def make_mses_graph_analytical(
             )
 
     for key, target_dict in data_dict.items():
-        fig = make_mses_graph(
-            num_data,
-            target_dict["mses"],
-            names=target_dict["display_case_names"],
-            additional_title_text=f"Analytical result<br>estimator={key}",
-        )
+        if key == "Cramer-Rao bound":
+            fig = make_mses_graph(
+                num_data,
+                target_dict["mses"],
+                names=target_dict["display_case_names"],
+                additional_title_text=f"Analytical result<br>{key}",
+            )
+        else:
+            fig = make_mses_graph(
+                num_data,
+                target_dict["mses"],
+                names=target_dict["display_case_names"],
+                additional_title_text=f"Analytical result<br>estimator={key}",
+            )
         figs.append(fig)
 
     # make graphs by parameter

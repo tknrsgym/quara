@@ -447,6 +447,10 @@ def generate_sum_eigenvalues_div(
     return div_html
 
 
+def _calc_legend_y(num_legend):
+    return -0.07 * num_legend - 0.1
+
+
 def generate_mse_analytical_div(
     estimation_results_list: List[List[EstimationResult]],
     true_object: "QOperation",
@@ -462,7 +466,11 @@ def generate_mse_analytical_div(
     for i, fig in enumerate(figs):
         fig_name = f"mse_analytical_{i}"
         fig.update_layout(width=600, height=600)
-        fig.update_layout(legend=dict(yanchor="bottom", y=-0.5, xanchor="left", x=0))
+        num_legend = len(fig.data)
+        legend_y = _calc_legend_y(num_legend)
+        fig.update_layout(
+            legend=dict(yanchor="bottom", y=legend_y, xanchor="left", x=0)
+        )
         path = _save_fig_to_tmp_dir(fig, fig_name)
 
         if i % 2 == 0:
@@ -879,7 +887,12 @@ def _make_graphs_mses(make_graphs_func, mse_type: "str", **kwargs) -> list:
     for i, fig in enumerate(figs):
         fig_name = f"mse_type={mse_type}_{i}"
         fig.update_layout(width=600, height=600)
-        fig.update_layout(legend=dict(yanchor="top", y=-0.1, xanchor="left", x=0))
+        # fig.update_layout(legend=dict(yanchor="top", y=-0.1, xanchor="left", x=0))
+        num_legend = len(fig.data)
+        legend_y = _calc_legend_y(num_legend)
+        fig.update_layout(
+            legend=dict(yanchor="bottom", y=legend_y, xanchor="left", x=0)
+        )
         path = _save_fig_to_tmp_dir(fig, fig_name)
         fig_info_list.append(dict(image_path=path, fig=fig, fig_name=fig_name))
     return fig_info_list
