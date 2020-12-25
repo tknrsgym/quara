@@ -18,15 +18,6 @@ def calc_mse_of_true_estimated(
     for prob_dist in true_prob_dists:
         tmp_prob_dists.append((1, prob_dist))
 
-    # TODO
-    """
-    true_estimated = estimator.calc_estimate_sequence(
-        qtomography=qtomography,
-        empi_dists_sequence=[tmp_prob_dists],
-        is_computation_time_required=True,
-    )
-    """
-
     if isinstance(estimator, LossMinimizationEstimator):
         true_estimated = estimator.calc_estimate_sequence(
             qtomography,
@@ -42,6 +33,8 @@ def calc_mse_of_true_estimated(
             qtomography, [tmp_prob_dists], is_computation_time_required=True,
         )
 
-    mses, *_ = data_analysis.convert_to_series([true_estimated], true_object)
+    mse = data_analysis.calc_mse_qoperations(
+        [true_estimated.estimated_qoperation], [true_object], with_std=False
+    )
 
-    return mses[0]
+    return mse

@@ -122,7 +122,7 @@ def calc_covariance_matrix_of_prob_dists(
 
 
 def _calc_mse_linear_analytical_mode_qoperation(
-    xs: List[QOperation], ys: List[QOperation]
+    xs: List[QOperation], ys: List[QOperation], with_std: bool = True
 ) -> np.float64:
     points = []
     for x, y in zip(xs, ys):
@@ -132,8 +132,11 @@ def _calc_mse_linear_analytical_mode_qoperation(
         points.append(point)
 
     mse = np.mean(points, dtype=np.float64)
-    std = np.std(points, dtype=np.float64, ddof=1)
-    return mse, std
+    if with_std:
+        std = np.std(points, dtype=np.float64, ddof=1)
+        return mse, std
+    else:
+        return mse
 
 
 def _calc_mse_linear_analytical_mode_var(
@@ -145,16 +148,15 @@ def _calc_mse_linear_analytical_mode_var(
 # common
 # statistical quantity
 def calc_mse_qoperations(
-    xs: List[QOperation], ys: List[QOperation], mode: str = "qoperation"
+    xs: List[QOperation], ys: List[QOperation], mode: str = "qoperation", with_std: bool=True
 ) -> np.float64:
     if mode == "qoperation":
-        mse, std = _calc_mse_linear_analytical_mode_qoperation(xs, ys)
+        return _calc_mse_linear_analytical_mode_qoperation(xs, ys, with_std=with_std)
     elif mode == "var":
-        mse, std = _calc_mse_linear_analytical_mode_var(xs, ys)
+        return _calc_mse_linear_analytical_mode_var(xs, ys)
     else:
         error_message = "​The argument `mode` must be `qoperation` or `var`"
         raise ValueError(error_message)
-    return mse, std
 
 
 # common(StandardQTomography)
