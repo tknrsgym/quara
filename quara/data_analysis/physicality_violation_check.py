@@ -379,11 +379,9 @@ def make_graphs_sum_vecs(
     estimated_povms = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-
-    vlines_list = [np.sqrt(true_object.dim), 0, 0, 0]
+    vlines_list = [np.sqrt(true_object.dim)] + [0] * (true_object.dim ** 2 - 1)
     sum_vecs = get_sum_vecs(estimated_povms)
     fig_list = []
-
     for i, value_list in enumerate(sum_vecs):
         min_x, max_x = min(value_list), min(value_list)
         xbins = make_xbins(
