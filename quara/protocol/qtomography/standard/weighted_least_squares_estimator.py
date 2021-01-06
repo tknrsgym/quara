@@ -84,8 +84,7 @@ class WeightedLeastSquaresEstimator(LossMinimizationEstimator):
             # weight_matrices
             weight_matrices = []
             for (num_data, empi_dist) in empi_dists:
-                # TODO
-                empi_dist = matrix_util.replace_prob_dist(empi_dist, eps=1e-12)
+                empi_dist = matrix_util.replace_prob_dist(empi_dist)
 
                 # calc covariance matrix
                 if mode_covariance == "scm":
@@ -103,7 +102,9 @@ class WeightedLeastSquaresEstimator(LossMinimizationEstimator):
                 if mode_inverse == "extraction":
                     weight_matrix = np.zeros(covariance_mat.shape)
                     (row, col) = covariance_mat.shape
-                    extracted_mat = covariance_mat[:-1, :-1]
+                    extracted_mat = covariance_mat[:-1, :-1] + np.eye(row - 1) / (
+                        num_data ** (3 / 2)
+                    )
 
                     extracted_mat_inv = np.linalg.inv(extracted_mat)
                     if row == 2 and col == 2:
