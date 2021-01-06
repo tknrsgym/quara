@@ -105,6 +105,30 @@ class TestLossWeightedLeastSquaresEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
         assert type(actual.computation_time) == float
 
+        # mode_covariance="ucm"
+        qst, _ = get_test_data(
+            on_para_eq_constraint=True,
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+        )
+        algo = ProjectedGradientDescentBase()
+        algo_option = ProjectedGradientDescentBaseOption()
+        estimator = WeightedLeastSquaresEstimator(3)
+
+        actual = estimator.calc_estimate(
+            qst,
+            empi_dists,
+            algo,
+            algo_option,
+            "ucm",
+            "extraction",
+            is_computation_time_required=True,
+        )
+        expected = [0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        assert type(actual.computation_time) == float
+
     def test_calc_estimate_sequence(self):
         qst, _ = get_test_data()
         empi_dists_seq = [
