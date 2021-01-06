@@ -57,6 +57,30 @@ class TestLossWeightedLeastSquaresEstimator:
             (10000, np.array([1, 0], dtype=np.float64)),
         ]
 
+        # on_para_eq_constraint=True
+        qst, _ = get_test_data(
+            on_para_eq_constraint=True,
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+        )
+        algo = ProjectedGradientDescentBase()
+        algo_option = ProjectedGradientDescentBaseOption()
+        estimator = WeightedLeastSquaresEstimator(3)
+
+        actual = estimator.calc_estimate(
+            qst,
+            empi_dists,
+            algo,
+            algo_option,
+            "scm",
+            "extraction",
+            is_computation_time_required=True,
+        )
+        expected = [0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        assert type(actual.computation_time) == float
+
         # on_para_eq_constraint=False
         qst, _ = get_test_data(
             on_para_eq_constraint=False,
@@ -78,10 +102,9 @@ class TestLossWeightedLeastSquaresEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        # npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
         assert type(actual.computation_time) == float
 
-    """
     def test_calc_estimate_sequence(self):
         qst, _ = get_test_data()
         empi_dists_seq = [
@@ -97,17 +120,24 @@ class TestLossWeightedLeastSquaresEstimator:
             ],
         ]
 
-        loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
-
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        # on_para_eq_constraint=False
+        qst, _ = get_test_data(
+            on_para_eq_constraint=False,
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+        )
         algo = ProjectedGradientDescentBase()
         algo_option = ProjectedGradientDescentBaseOption()
-
-        estimator = LossMinimizationEstimator()
+        estimator = WeightedLeastSquaresEstimator(4)
 
         actual = estimator.calc_estimate_sequence(
-            qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            qst,
+            empi_dists_seq,
+            algo,
+            algo_option,
+            "scm",
+            "extraction",
+            is_computation_time_required=True,
         )
 
         expected = [
@@ -116,35 +146,4 @@ class TestLossWeightedLeastSquaresEstimator:
         ]
         for a, e in zip(actual.estimated_qoperation_sequence, expected):
             assert a.is_physical()
-            npt.assert_almost_equal(a.to_stacked_vector(), e, decimal=15)
-    """
-
-
-if __name__ == "__main__":
-    empi_dists = [
-        (10000, np.array([0.5, 0.5], dtype=np.float64)),
-        (10000, np.array([0.5, 0.5], dtype=np.float64)),
-        (10000, np.array([1, 0], dtype=np.float64)),
-    ]
-
-    # on_para_eq_constraint=False
-    qst, _ = get_test_data(
-        on_para_eq_constraint=False,
-        on_algo_eq_constraint=True,
-        on_algo_ineq_constraint=True,
-    )
-    algo = ProjectedGradientDescentBase()
-    algo_option = ProjectedGradientDescentBaseOption()
-    estimator = WeightedLeastSquaresEstimator(4)
-
-    actual = estimator.calc_estimate(
-        qst,
-        empi_dists,
-        algo,
-        algo_option,
-        "scm",
-        "extraction",
-        is_computation_time_required=True,
-    )
-
-    print(f"actual {actual.estimated_var}")
+            npt.assert_almost_equal(a.to_stacked_vector(), e, decimal=10)
