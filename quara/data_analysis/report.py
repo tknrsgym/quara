@@ -125,6 +125,18 @@ _inline_block_css = """
  width: 400px;
 }
 
+.box_col2{
+ display: inline-block;
+ width: 400px;
+ padding: 0;
+}
+
+.box_col3{
+ display: inline-block;
+ width: 250px;
+ padding: 0;
+}
+
 .box_col4{
  display: inline-block;
  width: 190px;
@@ -180,11 +192,21 @@ def _make_graph_trace_seq(
 
 
 def _generate_trace_div(fig_info_list: List[dict]) -> str:
-    graph_block_html = ""
-    for fig_info in fig_info_list:
-        graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
-        graph_block_html += graph_subblock
-    graph_block_html = f"<div class='div_line'>{graph_block_html}</div>"
+    col_n = len(fig_info_list) if len(fig_info_list) <= 4 else 4
+    css_class = f"box_col{col_n}"
+    div_lines = []
+    div_line = ""
+    for i, fig_info in enumerate(fig_info_list):
+        div_line += f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
+
+        if i % col_n == col_n - 1:
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
+            div_line = ""
+    else:
+        if div_line:
+            div_lines.append(f"<div class='div_line'>{div_line}</div>")
+
+    graph_block_html = f"<div class='div_line'>{''.join(div_lines)}</div>"
     return graph_block_html
 
 
@@ -194,12 +216,12 @@ def generate_trace_div(estimation_results: List["EstimationResult"], case_id: in
     return div_html
 
 
-def generate_trace_error_div(
-    estimation_results: List["EstimationResult"], case_id: int
-):
-    fig_info_list = _make_graph_trace_error_seq(estimation_results, case_id=case_id)
-    div_html = _generate_trace_div(fig_info_list)
-    return div_html
+# def generate_trace_error_div(
+#     estimation_results: List["EstimationResult"], case_id: int
+# ):
+#     fig_info_list = _make_graph_trace_error_seq(estimation_results, case_id=case_id)
+#     div_html = _generate_trace_div(fig_info_list)
+#     return div_html
 
 
 def _make_graph_sum_vecs_seq(
@@ -231,6 +253,7 @@ def _generate_fig_info_list_list_div(
 ) -> str:
     graph_block_html_all = ""
     css_class = "box" if col_n <= 2 else "box_col4"  # TODO: adjust
+
     for fig_info_list in fig_info_list_list:  # num
         num = fig_info_list[0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
@@ -251,12 +274,15 @@ def _generate_fig_info_list_list_div(
 
 
 def generate_sum_vecs_div(
-    estimation_results: List["EstimationResult"], case_id: int, true_object: Povm,
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    true_object: Povm,
+    col_n: int,
 ):
     fig_info_list_list = _make_graph_sum_vecs_seq(
         estimation_results, case_id=case_id, true_object=true_object
     )
-    div_html = _generate_fig_info_list_list_div(fig_info_list_list)
+    div_html = _generate_fig_info_list_list_div(fig_info_list_list, col_n=col_n)
     return div_html
 
 
@@ -281,7 +307,6 @@ def _generate_graph_eigenvalues_seq(
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
             fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
-            # fig.update_layout(width=_col2_fig_width * 2, height=_col2_fig_height* 2)
 
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
@@ -306,21 +331,37 @@ def _generate_eigenvalues_div(
     return graph_block_html_all
 
 
-def _generate_eigenvalues_div_3loop(fig_info_list3: List[List[List[dict]]]) -> str:
+def _generate_eigenvalues_div_3loop(
+    fig_info_list3: List[List[List[dict]]], col_n: int
+) -> str:
+    # TODO: 今
     graph_block_html_all = ""
+    fig_n = fig_info_list3[0][0]
+    col_n = len(fig_n) if len(fig_n) <= 4 else 4
+    css_class = f"box_col{col_n}"
+
     for fig_info_list2 in fig_info_list3:  # num_data
         num = fig_info_list2[0][0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
 
         for fig_info_list in fig_info_list2:  # measurement
             x_i = fig_info_list[0]["x"]
-            sub_graph_block_html = f"<h6>x={x_i}</h6>"
-            for fig_info in fig_info_list:
-                graph_subblock = (
-                    f"<div class='box'><img src={fig_info['image_path']}></div>"
+            div_lines = []
+            div_line = ""
+
+            for i, fig_info in enumerate(fig_info_list):
+                div_line += (
+                    f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
                 )
-                sub_graph_block_html += graph_subblock
-            graph_block_html += sub_graph_block_html
+
+                if i % col_n == col_n - 1:
+                    div_lines.append(f"<div class='div_line'>{div_line}</div>")
+                    div_line = ""
+            else:
+                if div_line:
+                    div_lines.append(f"<div class='div_line'>{div_line}</div>")
+
+            graph_block_html += f"<h6>x={x_i}</h6>" + "".join(div_lines)
 
         graph_block_html_all += graph_block_html
 
@@ -380,7 +421,9 @@ def generate_eigenvalues_div(
         fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
             estimation_results, case_id=case_id, true_object=true_object,
         )
-        div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
+        vals = true_object.calc_eigenvalues()
+        col_n = 2 if len(vals[0]) <= 2 else 4
+        div_html = _generate_eigenvalues_div_3loop(fig_info_list3, col_n=col_n)
     elif type(true_object) == Gate:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results, case_id=case_id, true_object=true_object,
@@ -532,6 +575,16 @@ def _generate_physicality_violation_test_div_for_state(
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_trace_div(estimation_results, case_id=case_id)
+        # div = generate_figs_div(
+        #     func=_make_fig_info_list,
+        #     estimation_results=estimation_results,
+        #     case_id=case_id,
+        #     fig_type="trace",
+        #     size=(_col2_fig_width, _col2_fig_height),
+        #     make_graphs_func=physicality_violation_check.make_graph_trace,
+        #     col_n=4,
+        # )
+
         # <h5> is dummy
         test_eq_const_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -573,7 +626,7 @@ def _generate_physicality_violation_test_div_for_state(
 def _generate_physicality_violation_test_div_for_povm(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    true_object: State,
+    true_object: Povm,
 ):
     test_eq_const_divs = ""
     test_ineq_const_eigenvalues_divs = ""
@@ -585,7 +638,7 @@ def _generate_physicality_violation_test_div_for_povm(
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_sum_vecs_div(
-            estimation_results, case_id=case_id, true_object=true_object
+            estimation_results, case_id=case_id, true_object=true_object, col_n=4
         )
         # <h5> is dummy
         test_eq_const_divs += f"""
@@ -957,8 +1010,11 @@ def _make_fig_info_list_list(
 def _generate_figs_div(fig_info_list: List[dict], col_n: int = 2) -> str:
     graph_block_html = ""
     subblock_list = []
+    css_class = "box" if col_n <= 2 else "box_col4"  # TODO: adjust
     for fig_info in fig_info_list:
-        graph_subblock = f"<div class='box'><img src={fig_info['image_path']}></div>"
+        graph_subblock = (
+            f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
+        )
         subblock_list.append(graph_subblock)
 
     div_line = ""

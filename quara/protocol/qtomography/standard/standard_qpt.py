@@ -58,7 +58,7 @@ class StandardQpt(StandardQTomography):
         # validate
         if not self.is_valid_experiment():
             raise ValueError(
-                "the experiment is not valid. all povms must have same CompositeSystem."
+                "the experiment is not valid. all CompositeSystem of testers must have same ElementalSystems."
             )
 
         if on_para_eq_constraint:
@@ -78,18 +78,21 @@ class StandardQpt(StandardQTomography):
     def on_para_eq_constraint(self):  # read only
         return self._on_para_eq_constraint
 
-    def is_valid_experiment(self) -> bool:
-        # TODO: povmのチェックも追加する
-        states = self._experiment.states
-        if len(states) <= 1:
+    def _is_all_same_composite_systems(self, targets):
+        if len(targets) <= 1:
             return True
 
         checks = [
-            states[0]._composite_system is state._composite_system
-            for state in states[1:]
+            targets[0]._composite_system == target._composite_system
+            for target in targets[1:]
         ]
-
         return all(checks)
+
+    def is_valid_experiment(self) -> bool:
+        is_ok_states =  self._is_all_same_composite_systems(self._experiment.states)
+        is_ok_povms =  self._is_all_same_composite_systems(self._experiment.povms)
+
+        return is_ok_states and is_ok_povms
 
     def generate_empi_dists_sequence(
         self, gate: Povm, num_sums: List[int]

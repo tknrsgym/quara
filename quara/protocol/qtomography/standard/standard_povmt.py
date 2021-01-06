@@ -60,7 +60,7 @@ class StandardPovmt(StandardQTomography):
         # validate
         if not self.is_valid_experiment():
             raise ValueError(
-                "the experiment is not valid. all povms must have same CompositeSystem."
+                "the experiment is not valid. all CompositeSystem of testers must have same ElementalSystems."
             )
 
         # TODO:
@@ -87,7 +87,7 @@ class StandardPovmt(StandardQTomography):
             return True
 
         checks = [
-            states[0]._composite_system is state._composite_system
+            states[0]._composite_system == state._composite_system
             for state in states[1:]
         ]
         return all(checks)
