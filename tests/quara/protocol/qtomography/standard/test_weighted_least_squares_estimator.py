@@ -105,7 +105,7 @@ class TestLossWeightedLeastSquaresEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
         assert type(actual.computation_time) == float
 
-        # mode_covariance="ucm"
+        # on_para_eq_constraint=True, mode_covariance="ucm"
         qst, _ = get_test_data(
             on_para_eq_constraint=True,
             on_algo_eq_constraint=True,
