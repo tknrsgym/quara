@@ -75,16 +75,16 @@ def get_sum_of_eigenvalues_violation(
             check_flag_2 = True
             sum_eig_greater_list.append(np.sum(greater_list))
 
-        if check_flag_1 != check_flag_2:
-            message = f"i={i}: invalid: values={values}"
-            message += f"\nless_list={less_list}"
-            message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
-            warnings.warn(message)
-    if len(sum_eig_less_list) != len(sum_eig_greater_list):
-        message = f"sum_eig_less_list and sum_eig_greater_list lengths do not match."
-        message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
-        message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
-        warnings.warn(message)
+        # if check_flag_1 != check_flag_2:
+        #     message = f"i={i}: invalid: values={values}"
+        #     message += f"\nless_list={less_list}"
+        #     message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
+        #     warnings.warn(message)
+    # if len(sum_eig_less_list) != len(sum_eig_greater_list):
+    #     message = f"sum_eig_less_list and sum_eig_greater_list lengths do not match."
+    #     message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
+    #     message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
+    #     warnings.warn(message)
 
     return sum_eig_less_list, sum_eig_greater_list
 
@@ -379,11 +379,9 @@ def make_graphs_sum_vecs(
     estimated_povms = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-
-    vlines_list = [np.sqrt(true_object.dim), 0, 0, 0]
+    vlines_list = [np.sqrt(true_object.dim)] + [0] * (true_object.dim ** 2 - 1)
     sum_vecs = get_sum_vecs(estimated_povms)
     fig_list = []
-
     for i, value_list in enumerate(sum_vecs):
         min_x, max_x = min(value_list), min(value_list)
         xbins = make_xbins(

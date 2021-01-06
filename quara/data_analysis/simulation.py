@@ -21,9 +21,9 @@ class SimulationSetting:
 
     def __str__(self):
         desc = f"Name: {self.name}"
-        desc += f"Estimator: {self.estimator.__class__.__name__}"
+        desc += f"\nEstimator: {self.estimator.__class__.__name__}"
         loss = None if self.loss is None else self.loss.__class__.__name__
-        desc += f"Loss: {loss}"
+        desc += f"\nLoss: {loss}"
         algo = None if self.algo is None else self.algo.__class__.__name__
-        desc += f"Algo: {algo}"
+        desc += f"\nAlgo: {algo}"
         return desc
