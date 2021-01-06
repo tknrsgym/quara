@@ -216,12 +216,12 @@ def generate_trace_div(estimation_results: List["EstimationResult"], case_id: in
     return div_html
 
 
-def generate_trace_error_div(
-    estimation_results: List["EstimationResult"], case_id: int
-):
-    fig_info_list = _make_graph_trace_error_seq(estimation_results, case_id=case_id)
-    div_html = _generate_trace_div(fig_info_list)
-    return div_html
+# def generate_trace_error_div(
+#     estimation_results: List["EstimationResult"], case_id: int
+# ):
+#     fig_info_list = _make_graph_trace_error_seq(estimation_results, case_id=case_id)
+#     div_html = _generate_trace_div(fig_info_list)
+#     return div_html
 
 
 def _make_graph_sum_vecs_seq(
@@ -253,6 +253,7 @@ def _generate_fig_info_list_list_div(
 ) -> str:
     graph_block_html_all = ""
     css_class = "box" if col_n <= 2 else "box_col4"  # TODO: adjust
+
     for fig_info_list in fig_info_list_list:  # num
         num = fig_info_list[0]["num"]
         graph_block_html = f"<h5>N={num}</h5>"
@@ -273,12 +274,15 @@ def _generate_fig_info_list_list_div(
 
 
 def generate_sum_vecs_div(
-    estimation_results: List["EstimationResult"], case_id: int, true_object: Povm,
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    true_object: Povm,
+    col_n: int,
 ):
     fig_info_list_list = _make_graph_sum_vecs_seq(
         estimation_results, case_id=case_id, true_object=true_object
     )
-    div_html = _generate_fig_info_list_list_div(fig_info_list_list)
+    div_html = _generate_fig_info_list_list_div(fig_info_list_list, col_n=col_n)
     return div_html
 
 
@@ -303,7 +307,6 @@ def _generate_graph_eigenvalues_seq(
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_eigenvalues_num={num_data_index}_i={i}"
             fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
-            # fig.update_layout(width=_col2_fig_width * 2, height=_col2_fig_height* 2)
 
             path = _save_fig_to_tmp_dir(fig, fig_name)
 
@@ -418,7 +421,9 @@ def generate_eigenvalues_div(
         fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
             estimation_results, case_id=case_id, true_object=true_object,
         )
-        div_html = _generate_eigenvalues_div_3loop(fig_info_list3)
+        vals = true_object.calc_eigenvalues()
+        col_n = 2 if len(vals[0]) <= 2 else 4
+        div_html = _generate_eigenvalues_div_3loop(fig_info_list3, col_n=col_n)
     elif type(true_object) == Gate:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results, case_id=case_id, true_object=true_object,
@@ -621,7 +626,7 @@ def _generate_physicality_violation_test_div_for_state(
 def _generate_physicality_violation_test_div_for_povm(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
-    true_object: State,
+    true_object: Povm,
 ):
     test_eq_const_divs = ""
     test_ineq_const_eigenvalues_divs = ""
@@ -633,7 +638,7 @@ def _generate_physicality_violation_test_div_for_povm(
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_sum_vecs_div(
-            estimation_results, case_id=case_id, true_object=true_object
+            estimation_results, case_id=case_id, true_object=true_object, col_n=4
         )
         # <h5> is dummy
         test_eq_const_divs += f"""
