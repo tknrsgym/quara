@@ -8,8 +8,10 @@ from quara.protocol.qtomography.standard.standard_qtomography import StandardQTo
 
 
 class ProbabilityBasedLossFunctionOption(LossFunctionOption):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, mode_weight: str, weights: List = None, weight_name: str = None):
+        super().__init__(
+            mode_weight=mode_weight, weights=weights, weight_name=weight_name
+        )
 
 
 class ProbabilityBasedLossFunction(LossFunction):

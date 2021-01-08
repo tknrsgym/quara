@@ -7,6 +7,47 @@ import pytest
 from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
 
 
+class TestLossFunctionOption:
+    def test_access_mode_weight(self):
+        loss_option = LossFunctionOption()
+        assert loss_option.mode_weight == None
+
+        loss_option = LossFunctionOption(
+            mode_weight="mode", weights=[1, 2, 3], weight_name="name"
+        )
+        assert loss_option.mode_weight == "mode"
+
+        # Test that "mode_weight" cannot be updated
+        with pytest.raises(AttributeError):
+            loss_option.mode_weight = "mode"
+
+    def test_access_weights(self):
+        loss_option = LossFunctionOption()
+        assert loss_option.weights == None
+
+        loss_option = LossFunctionOption(
+            mode_weight="mode", weights=[1, 2, 3], weight_name="name"
+        )
+        assert loss_option.weights == [1, 2, 3]
+
+        # Test that "weights" cannot be updated
+        with pytest.raises(AttributeError):
+            loss_option.weights = [1, 2, 3]
+
+    def test_access_weight_name(self):
+        loss_option = LossFunctionOption()
+        assert loss_option.weight_name == None
+
+        loss_option = LossFunctionOption(
+            mode_weight="mode", weights=[1, 2, 3], weight_name="name"
+        )
+        assert loss_option.weight_name == "name"
+
+        # Test that "weight_name" cannot be updated
+        with pytest.raises(AttributeError):
+            loss_option.weight_name = "name"
+
+
 class TestLossFunction:
     def test_access_num_var(self):
         loss_func = LossFunction(4)

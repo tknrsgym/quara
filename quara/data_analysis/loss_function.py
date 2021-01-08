@@ -1,10 +1,62 @@
 from abc import abstractmethod
+from typing import List, Tuple
 
 import numpy as np
 
+from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
+
 
 class LossFunctionOption:
-    pass
+    def __init__(
+        self, mode_weight: str = None, weights: List = None, weight_name: str = None
+    ):
+        """Constructor
+
+        Parameters
+        ----------
+        mode_weight : str, optional
+            mode weight, by default None
+        weights : List, optional
+            list of weight, by default None
+        weight_name : str, optional
+            weight name for reporting, by default None
+        """
+        self._mode_weight: str = mode_weight
+        self._weights: List = weights
+        self._weight_name: str = weight_name
+
+    @property
+    def mode_weight(self) -> str:
+        """returns mode weight.
+
+        Returns
+        -------
+        str
+            mode weight.
+        """
+        return self._mode_weight
+
+    @property
+    def weights(self) -> List:
+        """returns weights.
+
+        Returns
+        -------
+        List
+            list of weight.
+        """
+        return self._weights
+
+    @property
+    def weight_name(self) -> str:
+        """returns weight name for reporting.
+
+        Returns
+        -------
+        str
+            weight name for reporting.
+        """
+        return self._weight_name
 
 
 class LossFunction:
@@ -231,6 +283,14 @@ class LossFunction:
             whether the option is sufficient.
         """
         return True
+
+    def set_from_standard_qtomography_option_data(
+        self,
+        qtomography: StandardQTomography,
+        option: LossFunctionOption,
+        data: List[Tuple[int, np.array]],
+    ) -> None:
+        pass
 
     @abstractmethod
     def value(self, var: np.array) -> np.float64:
