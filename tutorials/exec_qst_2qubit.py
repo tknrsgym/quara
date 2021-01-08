@@ -107,7 +107,7 @@ true_object = tensor_product(get_z0_1q(c_sys_1), get_z0_1q(c_sys_2))
 
 
 num_data = [100, 1000]
-n_rep = 2
+n_rep = 10
 
 case_name_list = [
     "Linear(True)",
@@ -178,7 +178,9 @@ data = {
     "seed": seed,
 }
 
-path = "output_qst_2qubit_nrep=1000/qst_2qubit_estimation_results_nrep=1000_all.pickle"
+path = (
+    f"output_qst_2qubit_nrep={n_rep}/qst_2qubit_estimation_results_nrep=1000_all.pickle"
+)
 Path(path).parent.mkdir(exist_ok=True)
 with open(path, "wb") as f:
     pickle.dump(data, f)
@@ -200,3 +202,6 @@ report.export_report(
 
 # In[ ]:
 
+start_all = time.time()
+all_elapsed_time = time.time() - start_all
+print("elapsed_time(All): {0}".format(all_elapsed_time / 60) + "[min]\n")

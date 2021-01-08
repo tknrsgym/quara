@@ -5,6 +5,7 @@ import shutil
 from typing import List, Tuple, Optional
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from xhtml2pdf import pisa
 from xhtml2pdf.config.httpconfig import httpConfig
@@ -428,7 +429,9 @@ def generate_eigenvalues_div(
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results, case_id=case_id, true_object=true_object,
         )
-        div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=2)
+        v, _ = np.linalg.eig(true_object.to_choi_matrix())
+        col_n = 2 if len(v) <= 2 else 4
+        div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
     else:
         raise TypeError()
     return div_html
@@ -704,7 +707,11 @@ def _generate_physicality_violation_test_div_for_gate(
             <h5></h5>
             {div}
             """
-
+        # TODO: remove
+        print("1")
+        print("=====================")
+        num_data_len = len(estimation_results_list[0][0].num_data)
+        col_n = num_data_len if num_data_len <= 4 else 4
         div = generate_figs_div(
             func=_make_fig_info_list,
             estimation_results=estimation_results,
@@ -712,8 +719,9 @@ def _generate_physicality_violation_test_div_for_gate(
             fig_type="physicality-violation-eq-trace-sum-error",
             size=(_col2_fig_width, _col2_fig_height),
             make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
-            col_n=4,
+            col_n=col_n,
         )
+        print("2")
 
         test_eq_const_error_sum_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -807,6 +815,7 @@ def generate_case_table(
             e.__class__.__name__.replace("Estimator", "") for e in estimator_list
         ],
     )
+
     case_df = pd.DataFrame(case_dict)
     styles = [
         dict(selector=".col0", props=[("width", "400px")]),
@@ -1049,7 +1058,14 @@ def generate_fig_list_list_div(
 
 def generate_figs_div(func, **kwargs):
     fig_info_list = func(**kwargs)
-    div_html = _generate_figs_div(fig_info_list)
+
+    print(kwargs)
+    if "col_n" in kwargs:
+        col_n = kwargs["col_n"]
+        print(f"generate_figs_div: {col_n=}")
+        div_html = _generate_figs_div(fig_info_list, col_n=col_n)
+    else:
+        div_html = _generate_figs_div(fig_info_list)
     return div_html
 
 
