@@ -103,6 +103,37 @@ def get_test_qst(on_para_eq_constraint=True):
     return qst
 
 
+class TestWeightedProbabilityBasedSquaredErrorOption:
+    def test_access_mode_weight(self):
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
+        assert loss_option.mode_weight == "identity"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="custom")
+        assert loss_option.mode_weight == "custom"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(weights=[1, 2, 3])
+        assert loss_option.mode_weight == "custom"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="inverse_sample_covariance"
+        )
+        assert loss_option.mode_weight == "inverse_sample_covariance"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="inverse_unbiased_covariance"
+        )
+        assert loss_option.mode_weight == "inverse_unbiased_covariance"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="unbiased_inverse_covariance"
+        )
+        assert loss_option.mode_weight == "unbiased_inverse_covariance"
+
+        # Test that "mode_weight" is not specified
+        with pytest.raises(ValueError):
+            loss_option = WeightedProbabilityBasedSquaredErrorOption()
+
+
 class TestWeightedProbabilityBasedSquaredErrorFunction:
     def test_access_weight_matrices(self):
         # success(dtype=float)
