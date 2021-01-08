@@ -41,6 +41,13 @@ class WeightedLeastSquaresEstimationResult(LossMinimizationEstimationResult):
 
 class WeightedLeastSquaresEstimator(LossMinimizationEstimator):
     def __init__(self, num_var: int):
+        """Constructor
+
+        Parameters
+        ----------
+        num_var : int
+            number of variables.
+        """
         super().__init__()
         self._num_var = num_var
 
@@ -54,6 +61,42 @@ class WeightedLeastSquaresEstimator(LossMinimizationEstimator):
         mode_inverse: str,
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
+        """calculates estimate variables by weighted least squares.
+
+        Notice: this function updates ``algo`` properties.
+
+        Parameters
+        ----------
+        qtomography : StandardQTomography
+            StandardQTomography to calculates estimate variables. 
+        empi_dists : List[Tuple[int, np.array]]
+            empirical distributions to calculates estimate variables. 
+        algo : MinimizationAlgorithm
+            MinimizationAlgorithm to calculates estimate variables.
+        algo_option : MinimizationAlgorithmOption
+            MinimizationAlgorithmOption to calculates estimate variables.
+        mode_covariance : str
+            mode to calculate covariance. 
+            if mode_covariance is "scm" then uses Sample Covariance Matrix Estimator.
+            if mode_covariance is "ucm" then uses Unbiased Covariance Matrix Estimator.
+        mode_inverse : str
+            mode to calculate inverse matrix for weights. 
+            if mode_inverse is "extraction" then extracts rows and columns from a matrix.
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
+
+        Returns
+        -------
+        StandardQTomographyEstimationResult
+            estimation result.
+
+        Raises
+        ------
+        ValueError
+            when mode_covariance is unsupported.
+        ValueError
+            when mode_inverse is unsupported.
+        """
         result = self.calc_estimate_sequence(
             qtomography,
             [empi_dists],
@@ -76,7 +119,42 @@ class WeightedLeastSquaresEstimator(LossMinimizationEstimator):
         mode_inverse: str,
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
+        """calculates estimate variables by weighted least squares.
 
+        Notice: this function updates ``algo`` properties.
+
+        Parameters
+        ----------
+        qtomography : StandardQTomography
+            StandardQTomography to calculates estimate variables. 
+        empi_dists_sequence : List[List[Tuple[int, np.array]]]
+            sequence of empirical distributions to calculates estimate variables.
+        algo : MinimizationAlgorithm
+            MinimizationAlgorithm to calculates estimate variables.
+        algo_option : MinimizationAlgorithmOption
+            MinimizationAlgorithmOption to calculates estimate variables.
+        mode_covariance : str
+            mode to calculate covariance. 
+            if mode_covariance is "scm" then uses Sample Covariance Matrix Estimator.
+            if mode_covariance is "ucm" then uses Unbiased Covariance Matrix Estimator.
+        mode_inverse : str
+            mode to calculate inverse matrix for weights. 
+            if mode_inverse is "extraction" then extracts rows and columns from a matrix.
+        is_computation_time_required : bool, optional
+            whether to include computation time in the return value or not, by default False.
+
+        Returns
+        -------
+        StandardQTomographyEstimationResult
+            estimation result.
+
+        Raises
+        ------
+        ValueError
+            when mode_covariance is unsupported.
+        ValueError
+            when mode_inverse is unsupported.
+        """
         estimated_var_sequence = []
         computation_times = []
 
