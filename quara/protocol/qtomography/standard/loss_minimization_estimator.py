@@ -43,7 +43,9 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         algo_option: MinimizationAlgorithmOption,
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
-        """StandardQTomography to calculates estimate variables. 
+        """calculates estimate variables.
+
+        Notice: this function updates ``loss`` and ``algo`` properties.
 
         Parameters
         ----------
@@ -102,7 +104,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
     ) -> StandardQTomographyEstimationResult:
         """calculates sequence of estimate variables.
 
-        Notice: this function updates ``loss`` and ``algo properties``.
+        Notice: this function updates ``loss`` and ``algo`` properties.
 
         Parameters
         ----------
