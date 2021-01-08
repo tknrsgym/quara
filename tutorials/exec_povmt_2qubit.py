@@ -221,3 +221,5 @@ report.export_report(
 
 # In[ ]:
 
+all_elapsed_time = time.time() - start_all
+print("elapsed_time(All): {0}".format(all_elapsed_time / 60) + "[min]\n")
