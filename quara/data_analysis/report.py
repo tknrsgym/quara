@@ -1062,7 +1062,6 @@ def generate_figs_div(func, **kwargs):
     print(kwargs)
     if "col_n" in kwargs:
         col_n = kwargs["col_n"]
-        print(f"generate_figs_div: {col_n=}")
         div_html = _generate_figs_div(fig_info_list, col_n=col_n)
     else:
         div_html = _generate_figs_div(fig_info_list)
