@@ -22,7 +22,7 @@ class SimpleQuadraticLossFunction(LossFunction):
         Parameters
         ----------
         var_ref : np.array
-            [description]
+            variables
         """
         super().__init__(var_ref.size)
         self._on_value = True
