@@ -147,12 +147,13 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
                 start_time = time.time()
 
             # set loss settings
-            loss.set_from_option(loss_option)
-            empi_dists_tmp = [empi_dist[1] for empi_dist in empi_dists]
-            loss.set_prob_dists_q(empi_dists_tmp)
-            loss.set_func_prob_dists_from_standard_qt(qtomography)
-            loss.set_func_gradient_prob_dists_from_standard_qt(qtomography)
-            loss.set_func_hessian_prob_dists_from_standard_qt(qtomography)
+            loss.set_from_standard_qtomography_option_data(
+                qtomography,
+                loss_option,
+                empi_dists,
+                algo.is_gradient_required,
+                algo.is_hessian_required,
+            )
 
             # set algorithm settings
             algo.set_from_option(algo_option)
