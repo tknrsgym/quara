@@ -180,12 +180,20 @@ class StandardPovmt(StandardQTomography):
         m = self._measurement_n
 
         # Create C
+        c_list = []
+        a_prime_list = []
+        c_prime_list = []
+        c_prime_tile_list = []
         for schedule_index, schedule in enumerate(self._experiment.schedules):
             state_index = schedule[STATE_ITEM_INDEX][1]
             state = self._experiment.states[state_index]
             vec_size = state.vec.shape[0]
             dim = np.sqrt(vec_size)
+            print("==============================")
+            print(f"{schedule_index=}")
             for m_index in range(m):
+                print("------------------------------------")
+                print(f"{m_index=}")
                 pre_zeros = np.zeros((1, m_index * vec_size)).flatten()
                 post_zeros = np.zeros((1, ((m - 1) - m_index) * vec_size)).flatten()
 
@@ -196,10 +204,17 @@ class StandardPovmt(StandardQTomography):
                 if post_zeros.size != 0:
                     stack_list.append(post_zeros)
                 c = np.hstack(stack_list)
+                c_list.append(c)
 
                 if on_para_eq_constraint:
                     a_prime, c_prime = np.split(c, [vec_size * (m - 1)])
                     a = a_prime - np.tile(c_prime, m - 1)
+
+                    # TODO: remove
+                    a_prime_list.append(a_prime)  # for debug
+                    c_prime_list.append(c_prime)  # for debug
+                    c_prime_tile_list.append(np.tile(c_prime, m - 1))  # for debug
+
                     self._coeffs_1st[(schedule_index, m_index)] = a
                     self._coeffs_0th[(schedule_index, m_index)] = (
                         np.sqrt(dim) * c_prime[0]
@@ -207,6 +222,12 @@ class StandardPovmt(StandardQTomography):
                 else:
                     self._coeffs_1st[(schedule_index, m_index)] = c
                     self._coeffs_0th[(schedule_index, m_index)] = 0
+
+        # TODO: remove
+        # self._debug_c = np.vstack(c_list)
+        # self._debug_a_prime = np.vstack(a_prime_list)
+        # self._debug_c_prime = np.vstack(c_prime_list)
+        # self._debug_c_prime_tile = np.vstack(c_prime_tile_list)
 
     def convert_var_to_qoperation(self, var: np.array) -> Povm:
         template = self._set_qoperations.povms[0]
