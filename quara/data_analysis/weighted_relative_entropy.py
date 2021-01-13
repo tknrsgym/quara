@@ -16,8 +16,34 @@ from quara.utils import matrix_util
 
 
 class WeightedRelativeEntropyOption(ProbabilityBasedLossFunctionOption):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, mode_weight = None: str, weights: List = None, weight_name: str = None):
+        """Constructor
+
+        mode_weight should be the following value:
+        - "identity" then uses identity matrices for weights.
+        - "custom" then uses user custom matrices for weights.
+
+        Parameters
+        ----------
+        mode_weight : str, optional
+            mode weight, by default None
+        weights : List, optional
+            list of weight, by default None
+        weight_name : str, optional
+            weight name for reporting, by default None
+        """
+        if weights is not None:
+            mode_weight = "custom"
+
+        if not mode_weight in [
+            "identity",
+            "custom",
+        ]:
+            raise ValueError(f"unsupported mode_weight={mode_weight}")
+
+        super().__init__(
+            mode_weight=mode_weight, weights=weights, weight_name=weight_name
+        )
 
 
 class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
@@ -94,6 +120,14 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         """
         self._validate_weights(weights)
         self._weights = weights
+
+    def _sets_weight_by_mode(
+        self, mode_weight: str, data: List[Tuple[int, np.array]]
+    ) -> None:
+        if mode_weight == "identity":
+            pass
+        elif mode_weight == "custom":
+            self.set_weight_matrices(self.option.weights)
 
     def _update_on_value_true(self) -> bool:
         """validates and updates ``on_value`` to True.
