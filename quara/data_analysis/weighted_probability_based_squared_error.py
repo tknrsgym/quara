@@ -1,13 +1,15 @@
 from abc import abstractmethod
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import numpy as np
 
+from quara.data_analysis.loss_function import LossFunctionOption
 from quara.data_analysis.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )
 from quara.math.matrix import multiply_veca_vecb, multiply_veca_vecb_matc
+from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.utils import matrix_util
 
 
@@ -15,6 +17,28 @@ class WeightedProbabilityBasedSquaredErrorOption(ProbabilityBasedLossFunctionOpt
     def __init__(
         self, mode_weight: str = None, weights: List = None, weight_name: str = None
     ):
+        """Constructor
+
+        mode_weight should be the following value:
+        - "identity" then uses identity matrices for weights.
+        - "custom" then uses user custom matrices for weights.
+        - "inverse_sample_covariance" then uses inverse matrices of Sample Covariance Matrices.
+        - "inverse_unbiased_covariance" then uses inverse matrices of Unbiased Covariance Matrices.
+
+        Parameters
+        ----------
+        mode_weight : str, optional
+            [description], by default None
+        weights : List, optional
+            [description], by default None
+        weight_name : str, optional
+            [description], by default None
+
+        Raises
+        ------
+        ValueError
+            [description]
+        """
         if weights is not None:
             mode_weight = "custom"
 
@@ -112,6 +136,47 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         """
         self._validate_weight_matrices(weight_matrices)
         self._weight_matrices = weight_matrices
+
+    def _set_weights_by_mode(
+        self, mode_weight: str, data: List[Tuple[int, np.array]]
+    ) -> None:
+        if mode_weight == "identity":
+            pass
+        elif mode_weight == "custom":
+            self.set_weight_matrices(self.option.weights)
+        elif (
+            mode_weight == "inverse_sample_covariance"
+            or mode_weight == "inverse_unbiased_covariance"
+        ):
+            weight_matrices = []
+            for (num_data, empi_dist_original) in data:
+                empi_dist = matrix_util.replace_prob_dist(empi_dist_original)
+
+                # calc covariance matrix
+                if mode_weight == "inverse_sample_covariance":
+                    covariance_mat = matrix_util.calc_covariance_mat(
+                        empi_dist, num_data
+                    )
+                else:
+                    covariance_mat = matrix_util.calc_covariance_mat(
+                        empi_dist, num_data - 1
+                    )
+
+                # calc inverse of covariance matrix
+                weight_matrix = np.zeros(covariance_mat.shape)
+                (row, col) = covariance_mat.shape
+                extracted_mat = covariance_mat[:-1, :-1] + np.eye(row - 1) / (
+                    num_data ** (3 / 2)
+                )
+
+                extracted_mat_inv = np.linalg.inv(extracted_mat)
+                if row == 2 and col == 2:
+                    weight_matrix[0, 0] = extracted_mat_inv[0, 0]
+                else:
+                    weight_matrix[:row, :col] = extracted_mat_inv
+                weight_matrices.append(weight_matrix)
+
+            self.set_weight_matrices(weight_matrices)
 
     def _update_on_value_true(self) -> bool:
         """validates and updates ``on_value`` to True.
