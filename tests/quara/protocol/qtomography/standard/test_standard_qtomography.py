@@ -12,7 +12,7 @@ from quara.objects.povm import (
     get_z_measurement,
 )
 from quara.objects.qoperations import SetQOperations
-from quara.objects.state import get_z0_1q, State
+from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q, get_z1_1q
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.qcircuit.experiment import Experiment
@@ -50,6 +50,27 @@ def get_test_data_qst(on_para_eq_constraint=True):
     qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
 
     return qst, c_sys
+
+
+def get_test_data_povmt(on_para_eq_constraint=True):
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # |+><+|
+    state_x0 = get_x0_1q(c_sys)
+    # |+i><+i|
+    state_y0 = get_y0_1q(c_sys)
+    # |0><0|
+    state_z0 = get_z0_1q(c_sys)
+    # |1><1|
+    state_z1 = get_z1_1q(c_sys)
+    tester_objects = [state_x0, state_y0, state_z0, state_z1]
+
+    povmt = StandardQst(
+        tester_objects, on_para_eq_constraint=on_para_eq_constraint, seed=777
+    )
+
+    return povmt, c_sys
 
 
 class TestStandardQTomography:
