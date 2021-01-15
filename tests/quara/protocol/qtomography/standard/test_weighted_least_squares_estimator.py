@@ -5,9 +5,9 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.projected_gradient_descent_base import (
-    ProjectedGradientDescentBase,
-    ProjectedGradientDescentBaseOption,
+from quara.data_analysis.projected_gradient_descent_backtracking import (
+    ProjectedGradientDescentBacktracking,
+    ProjectedGradientDescentBacktrackingOption,
 )
 from quara.math import func_proj
 from quara.objects.composite_system import CompositeSystem
@@ -63,8 +63,8 @@ class TestLossWeightedLeastSquaresEstimator:
             on_algo_eq_constraint=True,
             on_algo_ineq_constraint=True,
         )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(3)
 
         actual = estimator.calc_estimate(
@@ -87,8 +87,8 @@ class TestLossWeightedLeastSquaresEstimator:
             on_algo_eq_constraint=True,
             on_algo_ineq_constraint=True,
         )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(4)
 
         actual = estimator.calc_estimate(
@@ -111,8 +111,8 @@ class TestLossWeightedLeastSquaresEstimator:
             on_algo_eq_constraint=True,
             on_algo_ineq_constraint=True,
         )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(3)
 
         actual = estimator.calc_estimate(
@@ -150,8 +150,8 @@ class TestLossWeightedLeastSquaresEstimator:
             on_algo_eq_constraint=True,
             on_algo_ineq_constraint=True,
         )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(4)
 
         actual = estimator.calc_estimate_sequence(

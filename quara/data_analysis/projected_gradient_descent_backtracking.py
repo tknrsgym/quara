@@ -15,7 +15,7 @@ from quara.protocol.qtomography.standard.standard_qtomography import StandardQTo
 from quara.settings import Settings
 
 
-class ProjectedGradientDescentBaseResult(MinimizationResult):
+class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
     def __init__(
         self,
         value: np.array,
@@ -89,7 +89,7 @@ class ProjectedGradientDescentBaseResult(MinimizationResult):
         return self._alpha
 
 
-class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
+class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
     def __init__(
         self,
         var_start: np.array = None,
@@ -154,7 +154,7 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         return self._eps
 
 
-class ProjectedGradientDescentBase(MinimizationAlgorithm):
+class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
     def __init__(self, func_proj: Callable[[np.array], np.array] = None):
         """Constructor
 
@@ -279,9 +279,9 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         self,
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
-        algorithm_option: ProjectedGradientDescentBaseOption,
+        algorithm_option: ProjectedGradientDescentBacktrackingOption,
         on_iteration_history: bool = False,
-    ) -> ProjectedGradientDescentBaseResult:
+    ) -> ProjectedGradientDescentBacktrackingResult:
         """optimizes using specified parameters.
 
         Parameters
@@ -375,7 +375,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
 
         if on_iteration_history:
             computation_time = time.time() - start_time
-            result = ProjectedGradientDescentBaseResult(
+            result = ProjectedGradientDescentBacktrackingResult(
                 x_next,
                 computation_time=computation_time,
                 k=k,
@@ -386,7 +386,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             )
             return result
         else:
-            result = ProjectedGradientDescentBaseResult(x_next)
+            result = ProjectedGradientDescentBacktrackingResult(x_next)
             return result
 
     def _is_doing_for_alpha(
