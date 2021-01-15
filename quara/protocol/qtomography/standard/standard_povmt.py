@@ -178,7 +178,6 @@ class StandardPovmt(StandardQTomography):
         self._coeffs_1st = dict()  # α
         STATE_ITEM_INDEX = 0
         m = self._measurement_n
-        print(f"{m=}")
 
         # Create C
         c_list = []
@@ -191,11 +190,7 @@ class StandardPovmt(StandardQTomography):
             state = self._experiment.states[state_index]
             vec_size = state.vec.shape[0]
             dim = np.sqrt(vec_size)
-            # print("==============================")
-            # print(f"{schedule_index=}")
             for m_index in range(m):
-                # print("------------------------------------")
-                # print(f"{m_index=}")
                 pre_zeros = np.zeros((1, m_index * vec_size)).flatten()
                 post_zeros = np.zeros((1, ((m - 1) - m_index) * vec_size)).flatten()
 
@@ -209,23 +204,14 @@ class StandardPovmt(StandardQTomography):
                 c_list.append(c)
 
                 if on_para_eq_constraint:
-                    # print(f"ifの中: {m=}")
-                    # print(f"{vec_size=}")
                     a_prime, c_prime = np.split(c, [vec_size * (m - 1)])
                     a = a_prime - np.tile(c_prime, m - 1)
                     b = np.sqrt(dim) * c_prime[0]
-
-                    # print(f"{c=}")
-                    # print(f"{a_prime=}")
-                    # print(f"{c_prime=}")
-                    # print(f"{b=}")
 
                     # TODO: remove
                     a_prime_list.append(a_prime)  # for debug
                     c_prime_list.append(c_prime)  # for debug
                     c_prime_tile_list.append(np.tile(c_prime, m - 1))  # for debug
-                    a.flags.writeable = False
-                    # b.flags.writeable = False
 
                     self._coeffs_1st[(schedule_index, m_index)] = a
                     self._coeffs_0th[(schedule_index, m_index)] = b

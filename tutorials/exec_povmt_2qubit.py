@@ -197,9 +197,7 @@ data = {
     "seed": seed,
 }
 
-path = (
-    "output_povmt_2qubit_nrep=1000/povmt_2qubit_estimation_results_nrep=1000_all.pickle"
-)
+path = f"output_povmt_2qubit_nrep={n_rep}/povmt_2qubit_estimation_results_nrep={n_rep}_all.pickle"
 Path(path).parent.mkdir(exist_ok=True)
 with open(path, "wb") as f:
     pickle.dump(data, f)
@@ -209,7 +207,7 @@ with open(path, "wb") as f:
 
 
 report.export_report(
-    "povmt_2qubit.pdf",
+    f"povmt_2qubit_nrep={n_rep}.pdf",
     estimation_results_list,
     simulation_settings,
     true_object,
