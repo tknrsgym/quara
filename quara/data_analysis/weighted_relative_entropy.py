@@ -16,9 +16,7 @@ from quara.utils import matrix_util
 
 
 class WeightedRelativeEntropyOption(ProbabilityBasedLossFunctionOption):
-    def __init__(
-        self, mode_weight: str = None, weights: List = None, weight_name: str = None
-    ):
+    def __init__(self, mode_weight = None: str, weights: List = None, weight_name: str = None):
         """Constructor
 
         mode_weight should be the following value:
