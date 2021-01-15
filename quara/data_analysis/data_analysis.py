@@ -148,7 +148,10 @@ def _calc_mse_linear_analytical_mode_var(
 # common
 # statistical quantity
 def calc_mse_qoperations(
-    xs: List[QOperation], ys: List[QOperation], mode: str = "qoperation", with_std: bool=True
+    xs: List[QOperation],
+    ys: List[QOperation],
+    mode: str = "qoperation",
+    with_std: bool = True,
 ) -> np.float64:
     if mode == "qoperation":
         return _calc_mse_linear_analytical_mode_qoperation(xs, ys, with_std=with_std)
