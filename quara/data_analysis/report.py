@@ -1067,6 +1067,19 @@ def generate_figs_div(func, **kwargs):
         div_html = _generate_figs_div(fig_info_list)
     return div_html
 
+def generate_computation_time_of_estimators_table()->str:
+    pass
+
+def generate_computation_time_of_estimators_graph()->str:
+    pass
+
+def generate_computation_time_of_estimators_div(
+    estimation_results_list: List[List["EstimationResult"]],
+) -> str:
+    # 表を作成する
+
+    # ヒストグラムを作成する
+    return "TODO"
 
 
 def export_report(
@@ -1085,19 +1098,19 @@ def export_report(
     Parameters
     ----------
     path : str
-        [description]
+        pdf file path.
     estimation_results_list : List[List[
-        [description]
+        List containing a list of estimated results for each simulation.
     simulation_settings : List[SimulationSetting]
-        [description]
+        Settings for each simulation.
     true_object : QOperation
-        [description]
+        True object
     tester_objects : List[
-        [description]
+        Tester object. If there are more than one kind of QOperation, pass them in concatenation.
     seed : Optional[int], optional
-        [description], by default None
+        seed value, by default None
     computation_time : Optional[float], optional
-        [description], by default None
+        Computation time, by default None
     keep_tmp_files : bool, optional
         [description], by default False
     show_physicality_violation_check : bool, optional
@@ -1136,6 +1149,13 @@ def export_report(
     # Cases
     print("Generating case list ...")
     case_table = generate_case_table(case_name_list, qtomography_list, estimator_list)
+
+    # Computation time of estimators
+    print("Computation time of estimators ...")
+    # TODO:
+    comp_time_of_est_div = generate_computation_time_of_estimators_div(
+        estimation_results_list
+    )
 
     # MSE of Empirical Distributions
     print("​​Generating MSE of empirical distributions blocks ...")
@@ -1217,7 +1237,7 @@ def export_report(
     <h1>Table of contents</h1>
     <pdf:toc />
 </div>
-<h1>Computation time</h1>
+<h1>Computation time in total</h1>
     <div>
         {computation_time_table}
     </div>
@@ -1237,6 +1257,8 @@ def export_report(
     <div>
         {case_table}
     </div>
+<h1>Computation time of estimators</h1>
+    <div>{comp_time_of_est_div}</div>
 <h1>MSE of empirical distributions</h1>
     <div>{empi_dists_mse_div}</div>
 <h1>Consistency test</h1>
