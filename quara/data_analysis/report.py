@@ -1068,6 +1068,7 @@ def generate_figs_div(func, **kwargs):
     return div_html
 
 
+
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
@@ -1079,6 +1080,30 @@ def export_report(
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
+    """[summary]
+
+    Parameters
+    ----------
+    path : str
+        [description]
+    estimation_results_list : List[List[
+        [description]
+    simulation_settings : List[SimulationSetting]
+        [description]
+    true_object : QOperation
+        [description]
+    tester_objects : List[
+        [description]
+    seed : Optional[int], optional
+        [description], by default None
+    computation_time : Optional[float], optional
+        [description], by default None
+    keep_tmp_files : bool, optional
+        [description], by default False
+    show_physicality_violation_check : bool, optional
+        [description], by default True
+    """
+
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
     _temp_dir_path = Path(temp_dir_path)

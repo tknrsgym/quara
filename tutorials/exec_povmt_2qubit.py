@@ -119,7 +119,7 @@ true_object = tensor_product(get_z_measurement(c_sys_1), get_z_measurement(c_sys
 # In[7]:
 
 
-num_data = [100, 1000, 10000]
+num_data = [100, 1000]
 n_rep = 2
 measurement_n = len(true_object.vecs)  # 測定値の数
 
