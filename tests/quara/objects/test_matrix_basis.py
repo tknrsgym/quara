@@ -433,6 +433,7 @@ def test_get_comp_basis():
 
 
 def test_get_pauli_basis():
+    # 1 qubit(use default value)
     basis = matrix_basis.get_pauli_basis()
     assert basis.dim == 2
     assert basis._is_squares() == True
@@ -449,6 +450,107 @@ def test_get_pauli_basis():
     assert np.all(basis[3] == np.array([[1, 0], [0, -1]], dtype=np.complex128))
     assert basis.size() == (2, 2)
     assert len(basis) == 4
+
+    # 1 qubit
+    basis = matrix_basis.get_pauli_basis(n_qubit=1)
+    assert basis.dim == 2
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == False  # Pauli basis: False
+    assert basis.is_hermitian() == True
+    assert basis.is_0thpropI() == True
+    assert basis.is_trace_less() == True
+    assert np.all(basis[0] == np.array([[1, 0], [0, 1]], dtype=np.complex128))
+    assert np.all(basis[1] == np.array([[0, 1], [1, 0]], dtype=np.complex128))
+    assert np.all(basis[2] == np.array([[0, -1j], [1j, 0]], dtype=np.complex128))
+    assert np.all(basis[3] == np.array([[1, 0], [0, -1]], dtype=np.complex128))
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    # 2 qubits
+    basis = matrix_basis.get_pauli_basis(n_qubit=2)
+    assert basis.dim == 4
+    assert basis._is_squares() == True
+    assert basis._is_same_size() == True
+    assert basis._is_basis() == True
+    assert basis.is_orthogonal() == True
+    assert basis.is_normal() == False  # Pauli basis: False
+    assert basis.is_hermitian() == True
+    assert basis.is_0thpropI() == True
+    assert basis.is_trace_less() == True
+    assert basis.size() == (4, 4)
+    assert len(basis) == 16
+
+    expected = [
+        np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, -1j, 0], [0, 0, 0, -1j], [1j, 0, 0, 0], [0, 1j, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, -1j], [0, 0, -1j, 0], [0, 1j, 0, 0], [1j, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, -1], [0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, -1j, 0], [0, 0, 0, 1j], [1j, 0, 0, 0], [0, -1j, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, -1], [0, 0, -1, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, 1j], [0, 0, -1j, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]],
+            dtype=np.complex128,
+        ),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_normalized_pauli_basis():
@@ -655,7 +757,116 @@ def test_get_normalized_gell_mann_basis():
     assert basis.is_trace_less() == True
 
 
-def test_get_generalized_gell_mann_basis():
+def test_get_generalized_gell_mann_basis_n_qubit():
+    # case: n_qubit = default value(1)
+    basis = matrix_basis.get_generalized_gell_mann_basis()
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # case: n_qubit = 1
+    basis = matrix_basis.get_generalized_gell_mann_basis(n_qubit=1)
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # case: n_qubit = 2
+    basis = matrix_basis.get_generalized_gell_mann_basis(n_qubit=2)
+    assert basis.dim == 4
+    assert basis.size() == (4, 4)
+    assert len(basis) == 16
+
+    expected = [
+        np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, -1j, 0], [0, 0, 0, -1j], [1j, 0, 0, 0], [0, 1j, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, -1j], [0, 0, -1j, 0], [0, 1j, 0, 0], [1j, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, 0, -1], [0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 0, -1j, 0], [0, 0, 0, 1j], [1j, 0, 0, 0], [0, -1j, 0, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, -1], [0, 0, -1, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, 1j], [0, 0, -1j, 0]],
+            dtype=np.complex128,
+        ),
+        np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]],
+            dtype=np.complex128,
+        ),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_generalized_gell_mann_basis_dim():
     # case: dim = default value(2)
     basis = matrix_basis.get_generalized_gell_mann_basis()
 
@@ -673,7 +884,7 @@ def test_get_generalized_gell_mann_basis():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 2
-    basis = matrix_basis.get_generalized_gell_mann_basis(2)
+    basis = matrix_basis.get_generalized_gell_mann_basis(dim=2)
 
     assert basis.dim == 2
     assert basis.size() == (2, 2)
@@ -694,7 +905,7 @@ def test_get_generalized_gell_mann_basis():
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     # case: dim = 3
-    basis = matrix_basis.get_generalized_gell_mann_basis(3)
+    basis = matrix_basis.get_generalized_gell_mann_basis(dim=3)
     assert basis.dim == 3
     assert basis.size() == (3, 3)
     assert len(basis) == 9
@@ -721,7 +932,132 @@ def test_get_generalized_gell_mann_basis():
         npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_get_normalized_generalized_gell_mann_basis():
+def test_get_normalized_generalized_gell_mann_basis_n_qubit():
+    # case: n_qubit = default value(1)
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis()
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # case: n_qubit = 1
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(n_qubit=1)
+
+    assert basis.dim == 2
+    assert basis.size() == (2, 2)
+    assert len(basis) == 4
+
+    expected = [
+        np.array([[1, 0], [0, 1]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+    # case: n_qubit = 2
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(n_qubit=2)
+    assert basis.dim == 4
+    assert basis.size() == (4, 4)
+    assert len(basis) == 16
+
+    expected = [
+        np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, -1j, 0], [0, 0, 0, -1j], [1j, 0, 0, 0], [0, 1j, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, 0, -1j], [0, 0, -1j, 0], [0, 1j, 0, 0], [1j, 0, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, 0, -1], [0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 0, -1j, 0], [0, 0, 0, 1j], [1j, 0, 0, 0], [0, -1j, 0, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, -1], [0, 0, -1, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, 1j], [0, 0, -1j, 0]],
+            dtype=np.complex128,
+        )
+        / 2,
+        np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]],
+            dtype=np.complex128,
+        )
+        / 2,
+    ]
+    for i, a in enumerate(basis):
+        npt.assert_almost_equal(a, expected[i], decimal=15)
+
+
+def test_get_normalized_generalized_gell_mann_basis_dim():
     # case: dim = default value(2)
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis()
 
@@ -739,7 +1075,7 @@ def test_get_normalized_generalized_gell_mann_basis():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 2
-    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(2)
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(dim=2)
 
     assert basis.dim == 2
     assert basis.size() == (2, 2)
@@ -760,7 +1096,7 @@ def test_get_normalized_generalized_gell_mann_basis():
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     # case: dim = 3
-    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(3)
+    basis = matrix_basis.get_normalized_generalized_gell_mann_basis(dim=3)
     assert basis.dim == 3
     assert basis.size() == (3, 3)
     assert len(basis) == 9
