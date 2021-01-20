@@ -29,11 +29,7 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
 )
 
 
-def get_test_data(
-    on_para_eq_constraint=False,
-    on_algo_eq_constraint=False,
-    on_algo_ineq_constraint=False,
-):
+def get_test_data(on_para_eq_constraint=False):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
@@ -42,13 +38,7 @@ def get_test_data(
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(
-        povms,
-        on_para_eq_constraint=on_para_eq_constraint,
-        on_algo_eq_constraint=on_algo_eq_constraint,
-        on_algo_ineq_constraint=on_algo_ineq_constraint,
-        seed=7,
-    )
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
 
     return qst, c_sys
 
@@ -328,7 +318,7 @@ class TestLossMinimizationEstimator:
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
         algo_option = ProjectedGradientDescentBacktrackingOption()
 
@@ -370,7 +360,7 @@ class TestLossMinimizationEstimator:
         loss.is_option_sufficient = _is_option_sufficient
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
         algo_option = ProjectedGradientDescentBacktrackingOption()
 
@@ -385,7 +375,7 @@ class TestLossMinimizationEstimator:
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         def _is_loss_sufficient():
@@ -404,7 +394,7 @@ class TestLossMinimizationEstimator:
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         def _is_option_sufficient():
@@ -423,7 +413,7 @@ class TestLossMinimizationEstimator:
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         def _is_loss_and_option_sufficient():
