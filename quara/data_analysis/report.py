@@ -942,6 +942,22 @@ def generate_computation_time_table(
     return computation_time_table
 
 
+def generate_tolerance_table_div(tolerance: Optional[float] = None,) -> pd.DataFrame:
+    info = {
+        "Tolerance": [tolerance],
+    }
+
+    tolerance_table = pd.DataFrame(info).T.to_html(escape=False, header=False)
+    tolerance_table_div = f"""
+        <h1>Tolerance of physicality constraint violation</h1>
+    <div>
+        {tolerance_table}
+    </div>
+        """
+
+    return tolerance_table_div
+
+
 def _make_graphs_mses(make_graphs_func, mse_type: "str", **kwargs) -> list:
     figs = make_graphs_func(**kwargs)
     fig_info_list = []
@@ -1067,11 +1083,14 @@ def generate_figs_div(func, **kwargs):
         div_html = _generate_figs_div(fig_info_list)
     return div_html
 
-def generate_computation_time_of_estimators_table()->str:
+
+def generate_computation_time_of_estimators_table() -> str:
     pass
 
-def generate_computation_time_of_estimators_graph()->str:
+
+def generate_computation_time_of_estimators_graph() -> str:
     pass
+
 
 def generate_computation_time_of_estimators_div(
     estimation_results_list: List[List["EstimationResult"]],
@@ -1090,6 +1109,7 @@ def export_report(
     tester_objects: List["QOperation"],
     seed: Optional[int] = None,
     computation_time: Optional[float] = None,
+    tolerance: Optional[float] = None,
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
@@ -1132,6 +1152,12 @@ def export_report(
     # Computation Time
     print("​Generating table of computation time ...")
     computation_time_table = generate_computation_time_table(computation_time)
+
+    # Tolerance of physicality constraint violation
+    print("​Generating table of tolerance of physicality constraint violation ...")
+    tolerance_table_div = ""
+    if tolerance is not None:
+        tolerance_table_div = generate_tolerance_table_div(tolerance)
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")
@@ -1241,6 +1267,7 @@ def export_report(
     <div>
         {computation_time_table}
     </div>
+{tolerance_table_div}
 <h1>Experimental condition</h1>
     <div>
         {condition_table}
