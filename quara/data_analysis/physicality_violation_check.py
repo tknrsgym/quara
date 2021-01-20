@@ -553,7 +553,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
     n_rep = len(sorted_eigenvalues_list)
     figs = []
     n_unphysical = len(
-        [q for q in estimated_qobjects if not q.is_physical(atol_ineq_const=0)]
+        [q for q in estimated_qobjects if not q.is_physical()]
     )
     # Figure 1
     xaxis_title_text = f"Sum of negative eigenvalues (<{expected_values[0]})"
