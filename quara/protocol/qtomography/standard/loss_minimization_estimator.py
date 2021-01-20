@@ -153,7 +153,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
             loss.set_from_option(loss_option)
 
             # set algorithm settings
-            algo.set_constraint_from_standard_qt(qtomography)
+            algo.set_constraint_from_standard_qt_and_option(qtomography, algo_option)
             algo.set_from_loss(loss)
             algo.set_from_option(algo_option)
 
