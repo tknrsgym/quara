@@ -58,11 +58,14 @@ class TestProjectedGradientDescentBase:
         algo = ProjectedGradientDescentBacktracking(func_proj.proj_to_self)
         assert algo.func_proj is not None
 
-    def test_set_constraint_from_standard_qt(self):
+    def test_set_constraint_from_standard_qt_and_option(self):
         # case1: use func_calc_proj_physical() if on_algo_eq_constraint=True, on_algo_ineq_constraint=True
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
-        algo.set_constraint_from_standard_qt(qst)
+        option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True, on_algo_ineq_constraint=True
+        )
+        algo.set_constraint_from_standard_qt_and_option(qst, option)
         var = np.array([2, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
         actual = algo.func_proj(var)
         expected = np.array(
@@ -71,22 +74,24 @@ class TestProjectedGradientDescentBase:
         npt.assert_almost_equal(actual, expected, decimal=14)
 
         # case2: use func_calc_proj_physical() if on_algo_eq_constraint=True, on_algo_ineq_constraint=False
-        qst, _ = get_test_data(
+        qst, _ = get_test_data()
+        algo = ProjectedGradientDescentBacktracking()
+        option = ProjectedGradientDescentBacktrackingOption(
             on_algo_eq_constraint=True, on_algo_ineq_constraint=False
         )
-        algo = ProjectedGradientDescentBacktracking()
-        algo.set_constraint_from_standard_qt(qst)
+        algo.set_constraint_from_standard_qt_and_option(qst, option)
         var = np.array([2, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
         actual = algo.func_proj(var)
         expected = np.array([1, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
         npt.assert_almost_equal(actual, expected, decimal=14)
 
         # case3: use func_calc_proj_ineq_constraint() if on_algo_eq_constraint=False, on_algo_ineq_constraint=True
-        qst, _ = get_test_data(
+        qst, _ = get_test_data()
+        algo = ProjectedGradientDescentBacktracking()
+        option = ProjectedGradientDescentBacktrackingOption(
             on_algo_eq_constraint=False, on_algo_ineq_constraint=True
         )
-        algo = ProjectedGradientDescentBacktracking()
-        algo.set_constraint_from_standard_qt(qst)
+        algo.set_constraint_from_standard_qt_and_option(qst, option)
         var = np.array([1, 1.1, 0, 0], dtype=np.float64) / np.sqrt(2)
         actual = algo.func_proj(var)
         expected = np.array(
@@ -95,11 +100,12 @@ class TestProjectedGradientDescentBase:
         npt.assert_almost_equal(actual, expected, decimal=14)
 
         # case4: use proj_to_self() if on_algo_eq_constraint=False, on_algo_ineq_constraint=False
-        qst, _ = get_test_data(
+        qst, _ = get_test_data()
+        algo = ProjectedGradientDescentBacktracking()
+        option = ProjectedGradientDescentBacktrackingOption(
             on_algo_eq_constraint=False, on_algo_ineq_constraint=False
         )
-        algo = ProjectedGradientDescentBacktracking()
-        algo.set_constraint_from_standard_qt(qst)
+        algo.set_constraint_from_standard_qt_and_option(qst, option)
         var = np.array([2, 1, 1, 1], dtype=np.float64) / np.sqrt(2)
         actual = algo.func_proj(var)
         npt.assert_almost_equal(actual, var, decimal=14)
@@ -202,7 +208,7 @@ class TestProjectedGradientDescentBase:
 
         # self.option.var_start.shape[0] != self.loss.num_var
         var_ref1 = np.array([0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_ref1)
+        algo_option = ProjectedGradientDescentBacktrackingOption(var_start=var_ref1)
         var_ref2 = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
         loss = QuadraticLossFunction(var_ref2)
 
@@ -228,7 +234,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([1, 1], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=7)
 
@@ -251,7 +259,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([2, 0], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=7)
 
@@ -271,7 +281,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([1.5, 0.5], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=6)
 
@@ -291,7 +303,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([2, 1], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=7)
 
@@ -314,7 +328,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([1, 1], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=6)
 
@@ -332,7 +348,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([0, 0], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=15)
 
@@ -350,7 +368,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([1, 0], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=6)
 
@@ -368,7 +388,9 @@ class TestProjectedGradientDescentBase:
         expected = np.array([1, 0], dtype=np.float64)
 
         for var_start in var_starts:
-            algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+            algo_option = ProjectedGradientDescentBacktrackingOption(
+                var_start=var_start
+            )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=6)
 
@@ -384,7 +406,7 @@ class TestProjectedGradientDescentBase:
         var_start = np.array([3, 3], dtype=np.float64)
         expected = np.array([1, 1], dtype=np.float64)
 
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(var_start=var_start)
         actual = algo.optimize(
             loss, loss_option, algo_option, on_iteration_history=True
         )

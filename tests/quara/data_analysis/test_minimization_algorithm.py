@@ -12,6 +12,34 @@ from quara.data_analysis.quadratic_loss_function import (
 )
 
 
+class TestMinimizationAlgorithmOption:
+    def test_access_on_algo_eq_constraint(self):
+        # default = True
+        actual = MinimizationAlgorithmOption()
+        assert actual.on_algo_eq_constraint == True
+
+        # on_algo_eq_constraint = False
+        actual = MinimizationAlgorithmOption(on_algo_eq_constraint=False)
+        assert actual.on_algo_eq_constraint == False
+
+        # Test that the property cannot be updated
+        with pytest.raises(AttributeError):
+            actual.on_algo_eq_constraint = True
+
+    def test_access_on_algo_ineq_constraint(self):
+        # default = True
+        actual = MinimizationAlgorithmOption()
+        assert actual.on_algo_ineq_constraint == True
+
+        # on_algo_ineq_constraint = False
+        actual = MinimizationAlgorithmOption(on_algo_ineq_constraint=False)
+        assert actual.on_algo_ineq_constraint == False
+
+        # Test that the property cannot be updated
+        with pytest.raises(AttributeError):
+            actual.on_algo_ineq_constraint = True
+
+
 class TestMinimizationAlgorithm:
     def test_access_is_gradient_required(self):
         algo = MinimizationAlgorithm()
@@ -35,7 +63,6 @@ class TestMinimizationAlgorithm:
             algo.loss = True
 
     def test_set_from_loss(self):
-        loss_option = QuadraticLossFunctionOption()
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
         loss = QuadraticLossFunction(var_ref)
 
