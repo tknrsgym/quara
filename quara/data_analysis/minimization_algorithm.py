@@ -45,16 +45,47 @@ class MinimizationResult:
 
 class MinimizationAlgorithmOption:
     def __init__(
-        self, var_start: np.array = None,
+        self,
+        on_algo_eq_constraint: bool = True,
+        on_algo_ineq_constraint: bool = True,
+        var_start: np.array = None,
     ):
         """Constructor
 
         Parameters
         ----------
+        on_algo_eq_constraint : bool, optional
+            whether this algorithm needs on algorithm equality constraint, by default True
+        on_algo_ineq_constraint : bool, optional
+            whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.array, optional
             initial variable for the algorithm, by default None.
         """
+        self._on_algo_eq_constraint = on_algo_eq_constraint
+        self._on_algo_ineq_constraint = on_algo_ineq_constraint
         self._var_start: np.array = var_start
+
+    @property
+    def on_algo_eq_constraint(self) -> bool:  # read only
+        """returns whether this algorithm needs on algorithm equality constraint.
+
+        Returns
+        -------
+        bool
+            whether this algorithm needs on algorithm equality constraint.
+        """
+        return self._on_algo_eq_constraint
+
+    @property
+    def on_algo_ineq_constraint(self) -> bool:  # read only
+        """returns whether this QOperation is on algorithm inequality constraint.
+
+        Returns
+        -------
+        bool
+            whether this QOperation is on algorithm inequality constraint.
+        """
+        return self._on_algo_ineq_constraint
 
     @property
     def var_start(self) -> np.array:
@@ -162,13 +193,17 @@ class MinimizationAlgorithm:
         self.is_option_sufficient()
 
     @abstractmethod
-    def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
-        """sets constraint from StandardQTomography.
+    def set_constraint_from_standard_qt_and_option(
+        self, qt: StandardQTomography, option: MinimizationAlgorithmOption
+    ) -> None:
+        """sets constraint from StandardQTomography and Algorithm Option.
 
         Parameters
         ----------
         qt : StandardQTomography
             StandardQTomography to set constraint.
+        option : MinimizationAlgorithmOption
+            Algorithm Option.
 
         Raises
         ------
