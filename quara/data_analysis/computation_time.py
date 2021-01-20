@@ -89,7 +89,7 @@ def make_histogram(
 
 
 def make_computation_time_histogram(
-    estimation_results: List["EstimationResult"], num_data_index: int, unit: str = "min"
+    estimation_results: List["EstimationResult"], num_data_index: int, unit: str = "sec"
 ):
     time_unit = 1
     if unit == "min":
@@ -118,7 +118,7 @@ def make_computation_time_histogram(
 
 
 def make_computation_time_histograms(
-    estimation_results: List["EstimationResult"], unit: str = "min"
+    estimation_results: List["EstimationResult"], unit: str = "sec"
 ):
     num_data_len = len(estimation_results[0].num_data)
     figs = []
