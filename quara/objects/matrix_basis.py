@@ -305,6 +305,15 @@ def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
     return VectorizedMatrixBasis(source)
 
 
+def _calc_tensor_product_from_1q_basis(n_qubit: int, basis_1q: List[np.array]):
+    basis = basis_1q
+    for _ in range(1, n_qubit):
+        basis = [
+            np.kron(val1, val2) for val1, val2 in itertools.product(basis, basis_1q)
+        ]
+    return basis
+
+
 def get_comp_basis(dim: int = 2) -> MatrixBasis:
     """Returns computational basis.
     
@@ -328,8 +337,13 @@ def get_comp_basis(dim: int = 2) -> MatrixBasis:
     return comp_basis
 
 
-def get_pauli_basis() -> MatrixBasis:
+def get_pauli_basis(n_qubit: int = 1) -> MatrixBasis:
     """Returns Pauli basis.
+
+    Parameters
+    ----------
+    n_qubit : int, optional
+        number of qubit for Pauli basis, by default 1.
 
     Returns
     -------
@@ -340,9 +354,11 @@ def get_pauli_basis() -> MatrixBasis:
     pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
     pauli_y = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
     pauli_z = np.array([[1, 0], [0, -1]], dtype=np.complex128)
-    pauli_basis = MatrixBasis([identity, pauli_x, pauli_y, pauli_z])
+    basis_1q = [identity, pauli_x, pauli_y, pauli_z]
 
-    return pauli_basis
+    basis = _calc_tensor_product_from_1q_basis(n_qubit, basis_1q)
+    matrix_basis = MatrixBasis(basis)
+    return matrix_basis
 
 
 def get_normalized_pauli_basis(n_qubit: int = 1) -> MatrixBasis:
@@ -362,17 +378,11 @@ def get_normalized_pauli_basis(n_qubit: int = 1) -> MatrixBasis:
     pauli_x = 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
     pauli_y = 1 / np.sqrt(2) * np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
     pauli_z = 1 / np.sqrt(2) * np.array([[1, 0], [0, -1]], dtype=np.complex128)
-    pauli_basis_1q = [identity, pauli_x, pauli_y, pauli_z]
+    basis_1q = [identity, pauli_x, pauli_y, pauli_z]
 
-    basis = pauli_basis_1q
-    for _ in range(1, n_qubit):
-        basis = [
-            np.kron(val1, val2)
-            for val1, val2 in itertools.product(basis, pauli_basis_1q)
-        ]
-
-    pauli_basis = MatrixBasis(basis)
-    return pauli_basis
+    basis = _calc_tensor_product_from_1q_basis(n_qubit, basis_1q)
+    matrix_basis = MatrixBasis(basis)
+    return matrix_basis
 
 
 def get_hermitian_basis(dim: int = 2) -> MatrixBasis:
@@ -501,11 +511,13 @@ def get_normalized_gell_mann_basis() -> MatrixBasis:
     return gell_mann_basis
 
 
-def get_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
+def get_generalized_gell_mann_basis(n_qubit: int = 1, dim: int = 2) -> MatrixBasis:
     """Returns Generalized Gell-Mann matrices basis.
 
     Parameters
     ----------
+    n_qubit : int, optional
+        number of qubit for Generalized Gell-Mann matrices basis, by default 1.
     dim : int, optional
         dim of Generalized Gell-Mann matrices basis, by default 2.
 
@@ -515,20 +527,20 @@ def get_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
         Generalized Gell-Mann matrices basis.
         see https://mathworld.wolfram.com/GeneralizedGell-MannMatrix.html
     """
-    basis = []
+    basis_1q = []
     for col in range(dim):
         for row in range(col):
             # symmetric matrix
             matrix_real = np.zeros((dim, dim), dtype=np.complex128)
             matrix_real[row, col] = 1
             matrix_real[col, row] = 1
-            basis.append(matrix_real)
+            basis_1q.append(matrix_real)
 
             # antisymmetric matrix
             matrix_imag = np.zeros((dim, dim), dtype=np.complex128)
             matrix_imag[row, col] = -1j
             matrix_imag[col, row] = 1j
-            basis.append(matrix_imag)
+            basis_1q.append(matrix_imag)
 
         # diagonal matrix
         if col == 0:
@@ -539,17 +551,22 @@ def get_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
                 matrix_diag[diag, diag] = 1
             matrix_diag[col, col] = -col
             matrix_diag = np.sqrt(2 / (col * (col + 1))) * matrix_diag
-        basis.append(matrix_diag)
+        basis_1q.append(matrix_diag)
 
+    basis = _calc_tensor_product_from_1q_basis(n_qubit, basis_1q)
     matrix_basis = MatrixBasis(basis)
     return matrix_basis
 
 
-def get_normalized_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
+def get_normalized_generalized_gell_mann_basis(
+    n_qubit: int = 1, dim: int = 2
+) -> MatrixBasis:
     """Returns Normalized Generalized Gell-Mann matrices basis.
 
     Parameters
     ----------
+    n_qubit : int, optional
+        number of qubit for Normalized Generalized Gell-Mann matrices basis, by default 1.
     dim : int, optional
         dim of Normalized Generalized Gell-Mann matrices basis, by default 2.
 
@@ -559,20 +576,20 @@ def get_normalized_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
         Normalized Generalized Gell-Mann matrices basis.
         see https://mathworld.wolfram.com/GeneralizedGell-MannMatrix.html
     """
-    basis = []
+    basis_1q = []
     for col in range(dim):
         for row in range(col):
             # symmetric matrix
             matrix_real = np.zeros((dim, dim), dtype=np.complex128)
             matrix_real[row, col] = 1 / np.sqrt(2)
             matrix_real[col, row] = 1 / np.sqrt(2)
-            basis.append(matrix_real)
+            basis_1q.append(matrix_real)
 
             # antisymmetric matrix
             matrix_imag = np.zeros((dim, dim), dtype=np.complex128)
             matrix_imag[row, col] = -1j / np.sqrt(2)
             matrix_imag[col, row] = 1j / np.sqrt(2)
-            basis.append(matrix_imag)
+            basis_1q.append(matrix_imag)
 
         # diagonal matrix
         if col == 0:
@@ -583,8 +600,9 @@ def get_normalized_generalized_gell_mann_basis(dim: int = 2) -> MatrixBasis:
                 matrix_diag[diag, diag] = 1
             matrix_diag[col, col] = -col
             matrix_diag = np.sqrt(1 / (col * (col + 1))) * matrix_diag
-        basis.append(matrix_diag)
+        basis_1q.append(matrix_diag)
 
+    basis = _calc_tensor_product_from_1q_basis(n_qubit, basis_1q)
     matrix_basis = MatrixBasis(basis)
     return matrix_basis
 
