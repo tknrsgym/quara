@@ -98,6 +98,16 @@ table td{
   width: 400px;
   word-break: break-all;
 }
+
+.comp_time_table {
+    width: 380px;
+}
+.comp_time_table th{
+    width: 50px;
+}
+.comp_time_table td{
+    width: 100px;
+}
 """
 
 _table_contents_css = """
@@ -1084,8 +1094,41 @@ def generate_figs_div(func, **kwargs):
     return div_html
 
 
-def generate_computation_time_of_estimators_table() -> str:
-    pass
+def generate_computation_time_of_estimators_table(
+    estimation_results_list, simulation_settings
+) -> str:
+    def _generate_computation_time_df(estimation_results: list) -> pd.DataFrame:
+        num_list = []
+        mean_list = []
+        std_list = []
+        num_data = estimation_results[0].num_data
+        for i, num in enumerate(num_data):
+            comp_times = [result.computation_times[i] for result in estimation_results]
+            num_list.append(num)
+            mean_list.append(np.mean(comp_times) / 60)
+            std_list.append(np.std(comp_times) / 60)
+
+        data_dict = {
+            "N": num_list,
+            "Mean (min)": mean_list,
+            "Std (min)": std_list,
+        }
+        time_df = pd.DataFrame(data_dict)
+        return time_df
+
+    # styles = [dict(selector="", props=[("width", "50px"), ("background-color", "red")])]
+    div_list = []
+    for i, s in enumerate(simulation_settings):
+        item_title = f"Case {i}: {s.name}"
+        time_df = _generate_computation_time_df(estimation_results_list[i])
+        time_table = time_df.to_html(classes="comp_time_table", escape=False)
+        # time_table = time_df.style.set_table_styles(styles).render()
+        div = f"<div class='box'><h4>{item_title}</h4>{time_table}</div>"
+        div_list.append(div)
+
+    time_div = "".join(div_list)
+    time_div = f"<div><h2>Table</h2>{time_div}</div>"
+    return time_div
 
 
 def generate_computation_time_of_estimators_graph() -> str:
@@ -1093,12 +1136,14 @@ def generate_computation_time_of_estimators_graph() -> str:
 
 
 def generate_computation_time_of_estimators_div(
-    estimation_results_list: List[List["EstimationResult"]],
+    estimation_results_list: List[List["EstimationResult"]], simulation_settings: list
 ) -> str:
     # 表を作成する
-
+    div = generate_computation_time_of_estimators_table(
+        estimation_results_list, simulation_settings
+    )
     # ヒストグラムを作成する
-    return "TODO"
+    return div
 
 
 def export_report(
@@ -1178,9 +1223,8 @@ def export_report(
 
     # Computation time of estimators
     print("Computation time of estimators ...")
-    # TODO:
     comp_time_of_est_div = generate_computation_time_of_estimators_div(
-        estimation_results_list
+        estimation_results_list, simulation_settings
     )
 
     # MSE of Empirical Distributions
