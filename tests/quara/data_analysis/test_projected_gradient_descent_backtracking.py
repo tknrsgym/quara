@@ -23,11 +23,7 @@ from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.math import func_proj
 
 
-def get_test_data(
-    on_para_eq_constraint=False,
-    on_algo_eq_constraint=False,
-    on_algo_ineq_constraint=False,
-):
+def get_test_data(on_para_eq_constraint=False):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
@@ -36,13 +32,7 @@ def get_test_data(
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(
-        povms,
-        on_para_eq_constraint=on_para_eq_constraint,
-        on_algo_eq_constraint=on_algo_eq_constraint,
-        on_algo_ineq_constraint=on_algo_ineq_constraint,
-        seed=7,
-    )
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7,)
 
     return qst, c_sys
 
