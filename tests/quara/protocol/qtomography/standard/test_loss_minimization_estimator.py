@@ -63,9 +63,11 @@ class TestLossMinimizationEstimator:
         loss = WeightedProbabilityBasedSquaredError(4)
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
-        algo_option = ProjectedGradientDescentBacktrackingOption()
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True, on_algo_ineq_constraint=True
+        )
 
         estimator = LossMinimizationEstimator()
 
@@ -103,14 +105,18 @@ class TestLossMinimizationEstimator:
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
         # case1: on_algo_eq_constraint=True, on_algo_ineq_constraint=True
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            var_start=var_start,
+        )
 
         estimator = LossMinimizationEstimator()
 
@@ -122,16 +128,18 @@ class TestLossMinimizationEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
 
         # case2: on_algo_eq_constraint=True, on_algo_ineq_constraint=False
-        qst, _ = get_test_data(
-            on_algo_eq_constraint=True, on_algo_ineq_constraint=False
-        )
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=False,
+            var_start=var_start,
+        )
 
         estimator = LossMinimizationEstimator()
 
@@ -143,16 +151,18 @@ class TestLossMinimizationEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
 
         # case3: on_algo_eq_constraint=False, on_algo_ineq_constraint=True
-        qst, _ = get_test_data(
-            on_algo_eq_constraint=False, on_algo_ineq_constraint=True
-        )
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=False,
+            on_algo_ineq_constraint=True,
+            var_start=var_start,
+        )
 
         estimator = LossMinimizationEstimator()
 
@@ -164,16 +174,18 @@ class TestLossMinimizationEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
 
         # case4: on_algo_eq_constraint=False, on_algo_ineq_constraint=False
-        qst, _ = get_test_data(
-            on_algo_eq_constraint=False, on_algo_ineq_constraint=False
-        )
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=False,
+            on_algo_ineq_constraint=False,
+            var_start=var_start,
+        )
 
         estimator = LossMinimizationEstimator()
 
@@ -198,14 +210,18 @@ class TestLossMinimizationEstimator:
         loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
         # case1: func_proj=auto setting
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            var_start=var_start,
+        )
 
         estimator = LossMinimizationEstimator()
 
@@ -217,14 +233,18 @@ class TestLossMinimizationEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
 
         # case2: func_proj=func_proj.proj_to_self
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            var_start=var_start,
+        )
         loss = WeightedProbabilityBasedSquaredError(
             4, func_prob_dists=func_proj.proj_to_self
         )
@@ -239,14 +259,18 @@ class TestLossMinimizationEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
 
         # case3: func_proj=func_proj.proj_to_hyperplane
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            var_start=var_start,
+        )
         loss = WeightedProbabilityBasedSquaredError(
             4, func_prob_dists=func_proj.proj_to_hyperplane(var_start)
         )
@@ -261,14 +285,18 @@ class TestLossMinimizationEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
 
         # case4: func_proj=func_proj.proj_to_nonnegative
-        qst, _ = get_test_data(on_algo_eq_constraint=True, on_algo_ineq_constraint=True)
+        qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
 
         obj_start = (
             qst.generate_empty_estimation_obj_with_setting_info().generate_origin_obj()
         )
         var_start = obj_start.to_var()
-        algo_option = ProjectedGradientDescentBacktrackingOption(var_start)
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            var_start=var_start,
+        )
         loss = WeightedProbabilityBasedSquaredError(
             4, func_prob_dists=func_proj.proj_to_nonnegative
         )
