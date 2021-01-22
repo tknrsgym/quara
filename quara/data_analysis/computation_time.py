@@ -8,13 +8,13 @@ from tqdm import tqdm
 # TODO: 共通化
 def make_histogram(
     values: List[float],
-    bin_size: Union[int, float, List[float]],
     num_data: int,
     annotation_vlines: List[Union[float, int]] = None,
     xaxis_title_text: str = "Value",
     x_abs_min: float = 10 ** (-3),
     title: str = None,
     additional_title_text: str = None,
+    bin_n: int = 20,
 ):
     if list(values):
         x_min, x_max = min(values), max(values)
@@ -22,8 +22,7 @@ def make_histogram(
         x_min, x_max = None, None
 
     # Adjust size of bin
-    # TODO:
-    bin_size = abs(x_max - x_min) / 10
+    bin_size = abs(x_max - x_min) / bin_n
 
     if type(bin_size) in [int, float]:
         xbins = dict(size=bin_size)
@@ -119,7 +118,6 @@ def make_computation_time_histogram(
     fig = make_histogram(
         values,
         num_data=n,
-        bin_size=0.5,
         annotation_vlines=[np.mean(values)],
         x_abs_min=0.5,
         xaxis_title_text=f"Time ({unit})",
