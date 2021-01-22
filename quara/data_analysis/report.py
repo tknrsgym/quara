@@ -909,12 +909,12 @@ def generate_consistency_check_table(
 
 
 def generate_computation_time_table(
-    computation_time: Optional[float] = None,
+    estimation_results_list: List[List["EstimationResult"]]
 ) -> pd.DataFrame:
-    if computation_time is None:
-        computation_time_text = "None"
-    else:
-        computation_time_text = "{0}".format(computation_time / 60) + "min."
+    total_time = 0
+    for results in estimation_results_list:
+        total_time +=sum([sum(r.computation_times) for r in results])
+    computation_time_text = "{0}".format(total_time / 60) + "min."
 
     info = {
         "Total": [computation_time_text],
@@ -1185,7 +1185,6 @@ def export_report(
     true_object: "QOperation",
     tester_objects: List["QOperation"],
     seed: Optional[int] = None,
-    computation_time: Optional[float] = None,
     tolerance: Optional[float] = None,
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
@@ -1228,7 +1227,7 @@ def export_report(
 
     # Computation Time
     print("​Generating table of computation time ...")
-    computation_time_table = generate_computation_time_table(computation_time)
+    computation_time_table = generate_computation_time_table(estimation_results_list)
 
     # Tolerance of physicality constraint violation
     print("​Generating table of tolerance of physicality constraint violation ...")
