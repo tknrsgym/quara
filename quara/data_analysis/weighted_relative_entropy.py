@@ -145,7 +145,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
                     q, p, is_valid_required=False
                 )
             else:
-                val += relative_entropy(q, p)
+                val += relative_entropy(q, p, is_valid_required=False)
 
         return val
 
@@ -166,10 +166,12 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
             p = self.func_prob_dists[index](var)
             if self.weights:
                 grad += self.weights[index] * gradient_relative_entropy_2nd(
-                    q, p, grad_ps
+                    q, p, grad_ps, is_valid_required=False
                 )
             else:
-                grad += gradient_relative_entropy_2nd(q, p, grad_ps)
+                grad += gradient_relative_entropy_2nd(
+                    q, p, grad_ps, is_valid_required=False
+                )
 
         return grad
 
@@ -201,9 +203,11 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
             p = self.func_prob_dists[index](var)
             if self.weights:
                 hess += self.weights[index] * hessian_relative_entropy_2nd(
-                    q, p, grad_ps, hess_ps
+                    q, p, grad_ps, hess_ps, is_valid_required=False
                 )
             else:
-                hess += hessian_relative_entropy_2nd(q, p, grad_ps, hess_ps)
+                hess += hessian_relative_entropy_2nd(
+                    q, p, grad_ps, hess_ps, is_valid_required=False
+                )
 
         return hess
