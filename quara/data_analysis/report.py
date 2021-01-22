@@ -19,6 +19,7 @@ from quara.data_analysis import simulation
 from quara.data_analysis.simulation import SimulationSetting
 from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
 from quara.protocol.qtomography.estimator import EstimationResult
+from quara.data_analysis import computation_time as ctime
 
 from quara.objects.state import State
 from quara.objects.povm import Povm
@@ -97,6 +98,16 @@ table td{
   padding-right: 3px;
   width: 400px;
   word-break: break-all;
+}
+
+.comp_time_table {
+    width: 380px;
+}
+.comp_time_table th{
+    width: 50px;
+}
+.comp_time_table td{
+    width: 100px;
 }
 """
 
@@ -215,14 +226,6 @@ def generate_trace_div(estimation_results: List["EstimationResult"], case_id: in
     fig_info_list = _make_graph_trace_seq(estimation_results, case_id=case_id)
     div_html = _generate_trace_div(fig_info_list)
     return div_html
-
-
-# def generate_trace_error_div(
-#     estimation_results: List["EstimationResult"], case_id: int
-# ):
-#     fig_info_list = _make_graph_trace_error_seq(estimation_results, case_id=case_id)
-#     div_html = _generate_trace_div(fig_info_list)
-#     return div_html
 
 
 def _make_graph_sum_vecs_seq(
@@ -578,15 +581,6 @@ def _generate_physicality_violation_test_div_for_state(
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_trace_div(estimation_results, case_id=case_id)
-        # div = generate_figs_div(
-        #     func=_make_fig_info_list,
-        #     estimation_results=estimation_results,
-        #     case_id=case_id,
-        #     fig_type="trace",
-        #     size=(_col2_fig_width, _col2_fig_height),
-        #     make_graphs_func=physicality_violation_check.make_graph_trace,
-        #     col_n=4,
-        # )
 
         # <h5> is dummy
         test_eq_const_divs += f"""
@@ -707,9 +701,6 @@ def _generate_physicality_violation_test_div_for_gate(
             <h5></h5>
             {div}
             """
-        # TODO: remove
-        print("1")
-        print("=====================")
         num_data_len = len(estimation_results_list[0][0].num_data)
         col_n = num_data_len if num_data_len <= 4 else 4
         div = generate_figs_div(
@@ -721,7 +712,6 @@ def _generate_physicality_violation_test_div_for_gate(
             make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
             col_n=col_n,
         )
-        print("2")
 
         test_eq_const_error_sum_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -1084,21 +1074,94 @@ def generate_figs_div(func, **kwargs):
     return div_html
 
 
-def generate_computation_time_of_estimators_table() -> str:
-    pass
+def generate_computation_time_of_estimators_table(
+    estimation_results_list, simulation_settings, unit: str = "sec"
+) -> str:
+    def _generate_computation_time_df(estimation_results: list, unit) -> pd.DataFrame:
+        if unit == "min":
+            time_unit = 60
+        elif unit == "sec":
+            time_unit = 1
+        else:
+            # TODO: message
+            raise ValueError()
+
+        num_list = []
+        mean_list = []
+        std_list = []
+        num_data = estimation_results[0].num_data
+        for i, num in enumerate(num_data):
+            comp_times = [result.computation_times[i] for result in estimation_results]
+            num_list.append(num)
+            mean_list.append(np.mean(comp_times) / time_unit)
+            std_list.append(np.std(comp_times) / time_unit)
+
+        data_dict = {
+            "N": num_list,
+            f"Mean ({unit})": mean_list,
+            f"Std ({unit})": std_list,
+        }
+        time_df = pd.DataFrame(data_dict)
+        return time_df
+
+    # styles = [dict(selector="", props=[("width", "50px"), ("background-color", "red")])]
+    div_list = []
+    for i, s in enumerate(simulation_settings):
+        item_title = f"Case {i}: {s.name}"
+        time_df = _generate_computation_time_df(estimation_results_list[i], unit=unit)
+        time_table = time_df.to_html(classes="comp_time_table", escape=False)
+        # time_table = time_df.style.set_table_styles(styles).render()
+        div = f"<div class='box'><h4>{item_title}</h4>{time_table}</div>"
+        div_list.append(div)
+
+    time_div = "".join(div_list)
+    time_div = f"<div><h2>Table</h2>{time_div}</div>"
+    return time_div
 
 
-def generate_computation_time_of_estimators_graph() -> str:
-    pass
+def generate_computation_time_of_estimators_graph(
+    estimation_results_list: List[List["EstimationResult"]],
+    simulation_settings: List[SimulationSetting],
+) -> str:
+    all_divs = ""
+    graph_n = len(estimation_results_list[0][0].num_data)
+    col_n = graph_n if graph_n <= 4 else 4
+
+    for case_id, simulation_setting in enumerate(simulation_settings):
+        case_name = simulation_setting.name
+        estimation_results = estimation_results_list[case_id]
+        div = generate_figs_div(
+            func=_make_fig_info_list,
+            estimation_results=estimation_results,
+            case_id=case_id,
+            fig_type="computation_time",
+            size=(_col2_fig_width, _col2_fig_height),
+            make_graphs_func=ctime.make_computation_time_histograms,
+            col_n=col_n,
+        )
+
+        # <h5> is dummy
+        all_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            <h5></h5>
+            {div}
+        """
+    all_divs = f"<h2>Histogram</h2><div>{all_divs}</div>"
+    return all_divs
 
 
 def generate_computation_time_of_estimators_div(
-    estimation_results_list: List[List["EstimationResult"]],
+    estimation_results_list: List[List["EstimationResult"]], simulation_settings: list
 ) -> str:
     # 表を作成する
-
+    div = generate_computation_time_of_estimators_table(
+        estimation_results_list, simulation_settings
+    )
     # ヒストグラムを作成する
-    return "TODO"
+    div += generate_computation_time_of_estimators_graph(
+        estimation_results_list, simulation_settings
+    )
+    return div
 
 
 def export_report(
@@ -1178,9 +1241,8 @@ def export_report(
 
     # Computation time of estimators
     print("Computation time of estimators ...")
-    # TODO:
     comp_time_of_est_div = generate_computation_time_of_estimators_div(
-        estimation_results_list
+        estimation_results_list, simulation_settings
     )
 
     # MSE of Empirical Distributions
