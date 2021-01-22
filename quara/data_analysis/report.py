@@ -909,11 +909,11 @@ def generate_consistency_check_table(
 
 
 def generate_computation_time_table(
-    estimation_results_list: List[List["EstimationResult"]]
+    estimation_results_list: List[List["EstimationResult"]],
 ) -> pd.DataFrame:
     total_time = 0
     for results in estimation_results_list:
-        total_time +=sum([sum(r.computation_times) for r in results])
+        total_time += sum([sum(r.computation_times) for r in results])
     computation_time_text = "{0}".format(total_time / 60) + "min."
 
     info = {
@@ -1073,6 +1073,7 @@ def generate_computation_time_of_estimators_table(
     def _generate_computation_time_df(
         estimation_results: list, name, unit
     ) -> pd.DataFrame:
+        n_rep = len(estimation_results)
         if unit == "min":
             time_unit = 60
         elif unit == "sec":
@@ -1094,6 +1095,7 @@ def generate_computation_time_of_estimators_table(
         data_dict = {
             "Name": [name] + ['   "   '] * (len(num_list) - 1),
             "N": num_list,
+            "Nrep": [n_rep] * len(num_list),
             f"Mean ({unit})": mean_list,
             f"Std ({unit})": std_list,
         }
@@ -1116,21 +1118,9 @@ def generate_computation_time_of_estimators_table(
         df_list.append(time_df)
 
     time_df = pd.concat(df_list, axis=0).reset_index(drop=True)
-    # time_table = time_df.to_html(classes="comp_time_table", escape=False)
     time_table = time_df.style.set_table_styles(styles).render()
     time_div = f"<div><h2>Table</h2>{time_table}</div>"
     return time_div
-
-
-_table_test_css = """
-.dtable{
-display: table; /* ブロックレベル要素をtableと同じように表示にする */
-}
-.dtable_c{
-display: table-cell; /* ブロックレベル要素をtd(th)と同じように表示にする */
-border: 1px solid #666;
-}
-"""
 
 
 def generate_computation_time_of_estimators_graph(
@@ -1167,11 +1157,9 @@ def generate_computation_time_of_estimators_graph(
 def generate_computation_time_of_estimators_div(
     estimation_results_list: List[List["EstimationResult"]], simulation_settings: list
 ) -> str:
-    # 表を作成する
     div = generate_computation_time_of_estimators_table(
         estimation_results_list, simulation_settings
     )
-    # ヒストグラムを作成する
     div += generate_computation_time_of_estimators_graph(
         estimation_results_list, simulation_settings
     )
@@ -1205,8 +1193,6 @@ def export_report(
         Tester object. If there are more than one kind of QOperation, pass them in concatenation.
     seed : Optional[int], optional
         seed value, by default None
-    computation_time : Optional[float], optional
-        Computation time, by default None
     keep_tmp_files : bool, optional
         [description], by default False
     show_physicality_violation_check : bool, optional
@@ -1317,7 +1303,6 @@ def export_report(
             {_inline_block_css}
             {_table_css}
             {_table_contents_css}
-            {_table_test_css}
          -->
     </style>
     <style>
