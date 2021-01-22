@@ -22,6 +22,9 @@ def make_histogram(
         x_min, x_max = None, None
 
     # Adjust size of bin
+    # TODO:
+    bin_size = abs(x_max - x_min) / 10
+
     if type(bin_size) in [int, float]:
         xbins = dict(size=bin_size)
     elif type(bin_size) == go.histogram.XBins:
@@ -32,7 +35,13 @@ def make_histogram(
         )
         raise TypeError(error_message)
 
-    hist = go.Histogram(x=values, xbins=xbins, histnorm="probability",)
+    hist = go.Histogram(
+        x=values,
+        # autobinx=True,
+        # bins=np.arange(x_min, x_max, abs(x_max - x_min) / 10),
+        xbins=xbins,
+        histnorm="probability",
+    )
     layout = go.Layout()
     fig = go.Figure(hist, layout=layout)
 
@@ -83,7 +92,9 @@ def make_histogram(
 
     n_lines = title.count("<br>") + 1
     fig.update_layout(
-        title=title, margin={"t": 40 * n_lines, "b": 0},
+        title=title,
+        margin={"t": 40 * n_lines, "b": 0},
+        xaxis=dict(range=[0, x_max + bin_size]),
     )
     return fig
 
