@@ -20,8 +20,6 @@ class StandardQst(StandardQTomography):
         is_physicality_required: bool = False,
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
-        on_algo_eq_constraint: bool = False,
-        on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = None,
         seed: int = None,
     ):
@@ -37,10 +35,6 @@ class StandardQst(StandardQTomography):
             whether the QOperation is estimation object, by default False
         on_para_eq_constraint : bool, optional
             whether the parameters of QOperation are on equal constraint, by default False
-        on_algo_eq_constraint : bool, optional
-            whether the algorithm of estimate is on equal constraint, by default False
-        on_algo_ineq_constraint : bool, optional
-            whether the algorithm of estimate is on inequal constraint, by default False
         eps_proj_physical : float, optional
             threshold epsilon where the algorithm repeats the projection in order to make estimate object is physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
         seed : int, optional
@@ -67,8 +61,6 @@ class StandardQst(StandardQTomography):
             is_physicality_required=is_physicality_required,
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
-            on_algo_eq_constraint=on_algo_eq_constraint,
-            on_algo_ineq_constraint=on_algo_ineq_constraint,
             eps_proj_physical=eps_proj_physical,
         )
         set_qoperations = SetQOperations(states=[state], gates=[], povms=[])

@@ -186,8 +186,6 @@ class TestStandardPovmt:
         expected = np.array([0, 0, 0, 0, 0, 0, 0, 0])
         npt.assert_almost_equal(setting_info.to_stacked_vector(), expected, decimal=15)
         assert setting_info.on_para_eq_constraint == False
-        assert setting_info.on_algo_eq_constraint == False
-        assert setting_info.on_algo_ineq_constraint == False
 
     def test_calc_mse_linear_analytical_mode_qoperation(self):
         # setup system

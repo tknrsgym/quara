@@ -23,8 +23,6 @@ class StandardQpt(StandardQTomography):
         is_physicality_required: bool = False,
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
-        on_algo_eq_constraint: bool = False,
-        on_algo_ineq_constraint: bool = False,
         eps_proj_physical: float = None,
         seed: int = None,
     ):
@@ -47,8 +45,6 @@ class StandardQpt(StandardQTomography):
             is_physicality_required=is_physicality_required,
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
-            on_algo_eq_constraint=on_algo_eq_constraint,
-            on_algo_ineq_constraint=on_algo_ineq_constraint,
             eps_proj_physical=eps_proj_physical,
         )
         set_qoperations = SetQOperations(states=[], gates=[gate], povms=[])
@@ -89,8 +85,8 @@ class StandardQpt(StandardQTomography):
         return all(checks)
 
     def is_valid_experiment(self) -> bool:
-        is_ok_states =  self._is_all_same_composite_systems(self._experiment.states)
-        is_ok_povms =  self._is_all_same_composite_systems(self._experiment.povms)
+        is_ok_states = self._is_all_same_composite_systems(self._experiment.states)
+        is_ok_povms = self._is_all_same_composite_systems(self._experiment.povms)
 
         return is_ok_states and is_ok_povms
 
