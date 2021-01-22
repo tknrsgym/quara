@@ -25,10 +25,6 @@ import plotly.express as px
 from tqdm import tqdm
 
 from quara.data_analysis import data_analysis, physicality_violation_check, report
-from quara.data_analysis.projected_gradient_descent_base import (
-    ProjectedGradientDescentBase,
-    ProjectedGradientDescentBaseOption,
-)
 from quara.data_analysis.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
