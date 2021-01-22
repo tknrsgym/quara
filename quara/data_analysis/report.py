@@ -106,9 +106,6 @@ table td{
 .comp_time_table th{
     width: 50px;
 }
-.comp_time_table td{
-    width: 100px;
-}
 """
 
 _table_contents_css = """
@@ -630,8 +627,6 @@ def _generate_physicality_violation_test_div_for_povm(
     test_ineq_const_sum_eigenvalues_divs = ""
 
     for case_id, case_name in enumerate(case_name_list):
-        # print(f"len={len(estimation_results_list)}")
-        # print(f"{case_id=}")
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_sum_vecs_div(
@@ -1064,8 +1059,6 @@ def generate_fig_list_list_div(
 
 def generate_figs_div(func, **kwargs):
     fig_info_list = func(**kwargs)
-
-    print(kwargs)
     if "col_n" in kwargs:
         col_n = kwargs["col_n"]
         div_html = _generate_figs_div(fig_info_list, col_n=col_n)
@@ -1077,7 +1070,9 @@ def generate_figs_div(func, **kwargs):
 def generate_computation_time_of_estimators_table(
     estimation_results_list, simulation_settings, unit: str = "sec"
 ) -> str:
-    def _generate_computation_time_df(estimation_results: list, unit) -> pd.DataFrame:
+    def _generate_computation_time_df(
+        estimation_results: list, name, unit
+    ) -> pd.DataFrame:
         if unit == "min":
             time_unit = 60
         elif unit == "sec":
@@ -1097,6 +1092,7 @@ def generate_computation_time_of_estimators_table(
             std_list.append(np.std(comp_times) / time_unit)
 
         data_dict = {
+            "Name": [name] + ['   "   '] * (len(num_list) - 1),
             "N": num_list,
             f"Mean ({unit})": mean_list,
             f"Std ({unit})": std_list,
@@ -1104,19 +1100,37 @@ def generate_computation_time_of_estimators_table(
         time_df = pd.DataFrame(data_dict)
         return time_df
 
-    # styles = [dict(selector="", props=[("width", "50px"), ("background-color", "red")])]
-    div_list = []
-    for i, s in enumerate(simulation_settings):
-        item_title = f"Case {i}: {s.name}"
-        time_df = _generate_computation_time_df(estimation_results_list[i], unit=unit)
-        time_table = time_df.to_html(classes="comp_time_table", escape=False)
-        # time_table = time_df.style.set_table_styles(styles).render()
-        div = f"<div class='box'><h4>{item_title}</h4>{time_table}</div>"
-        div_list.append(div)
+    styles = [
+        dict(selector=".col0", props=[("width", "250px")]),
+        dict(selector=".col1", props=[("width", "100px")]),
+        dict(selector=".col2", props=[("width", "100px")]),
+        dict(selector=".col3", props=[("width", "100px")]),
+    ]
 
-    time_div = "".join(div_list)
-    time_div = f"<div><h2>Table</h2>{time_div}</div>"
+    # consistency_check_table = table_df.style.set_table_styles(styles).render()
+    df_list = []
+    for i, s in enumerate(simulation_settings):
+        time_df = _generate_computation_time_df(
+            estimation_results_list[i], s.name, unit=unit
+        )
+        df_list.append(time_df)
+
+    time_df = pd.concat(df_list, axis=0).reset_index(drop=True)
+    # time_table = time_df.to_html(classes="comp_time_table", escape=False)
+    time_table = time_df.style.set_table_styles(styles).render()
+    time_div = f"<div><h2>Table</h2>{time_table}</div>"
     return time_div
+
+
+_table_test_css = """
+.dtable{
+display: table; /* ブロックレベル要素をtableと同じように表示にする */
+}
+.dtable_c{
+display: table-cell; /* ブロックレベル要素をtd(th)と同じように表示にする */
+border: 1px solid #666;
+}
+"""
 
 
 def generate_computation_time_of_estimators_graph(
@@ -1304,6 +1318,7 @@ def export_report(
             {_inline_block_css}
             {_table_css}
             {_table_contents_css}
+            {_table_test_css}
          -->
     </style>
     <style>
