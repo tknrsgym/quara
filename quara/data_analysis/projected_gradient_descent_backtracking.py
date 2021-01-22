@@ -15,7 +15,7 @@ from quara.protocol.qtomography.standard.standard_qtomography import StandardQTo
 from quara.settings import Settings
 
 
-class ProjectedGradientDescentBaseResult(MinimizationResult):
+class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
     def __init__(
         self,
         value: np.array,
@@ -89,9 +89,11 @@ class ProjectedGradientDescentBaseResult(MinimizationResult):
         return self._alpha
 
 
-class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
+class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
     def __init__(
         self,
+        on_algo_eq_constraint: bool = True,
+        on_algo_ineq_constraint: bool = True,
         var_start: np.array = None,
         mu: float = None,
         gamma: float = 0.3,
@@ -101,6 +103,10 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
 
         Parameters
         ----------
+        on_algo_eq_constraint : bool, optional
+            whether this algorithm needs on algorithm equality constraint, by default True
+        on_algo_ineq_constraint : bool, optional
+            whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.array, optional
             initial variable for the algorithm, by default None
         mu : float, optional
@@ -110,7 +116,11 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         eps : float, optional
             algorithm option ``epsilon``, by default None
         """
-        super().__init__(var_start)
+        super().__init__(
+            on_algo_eq_constraint=on_algo_eq_constraint,
+            on_algo_ineq_constraint=on_algo_ineq_constraint,
+            var_start=var_start,
+        )
 
         if mu is None and var_start is not None:
             mu = 3 / (2 * np.sqrt(var_start.shape[0]))
@@ -154,7 +164,7 @@ class ProjectedGradientDescentBaseOption(MinimizationAlgorithmOption):
         return self._eps
 
 
-class ProjectedGradientDescentBase(MinimizationAlgorithm):
+class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
     def __init__(self, func_proj: Callable[[np.array], np.array] = None):
         """Constructor
 
@@ -180,13 +190,19 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         """
         return self._func_proj
 
-    def set_constraint_from_standard_qt(self, qt: StandardQTomography) -> None:
-        """sets constraint from StandardQTomography.
+    def set_constraint_from_standard_qt_and_option(
+        self,
+        qt: StandardQTomography,
+        option: ProjectedGradientDescentBacktrackingOption,
+    ) -> None:
+        """sets constraint from StandardQTomography and Algorithm Option.
 
         Parameters
         ----------
         qt : StandardQTomography
             StandardQTomography to set constraint.
+        option : ProjectedGradientDescentBacktrackingOption
+            Algorithm Option.
         """
         self._qt = qt
 
@@ -195,22 +211,22 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
 
         setting_info = self._qt.generate_empty_estimation_obj_with_setting_info()
         if (
-            setting_info.on_algo_eq_constraint == True
-            and setting_info.on_algo_ineq_constraint == True
+            option.on_algo_eq_constraint == True
+            and option.on_algo_ineq_constraint == True
         ):
             self._func_proj = setting_info.func_calc_proj_physical(
                 setting_info.on_para_eq_constraint
             )
         elif (
-            setting_info.on_algo_eq_constraint == True
-            and setting_info.on_algo_ineq_constraint == False
+            option.on_algo_eq_constraint == True
+            and option.on_algo_ineq_constraint == False
         ):
             self._func_proj = setting_info.func_calc_proj_eq_constraint(
                 setting_info.on_para_eq_constraint
             )
         elif (
-            setting_info.on_algo_eq_constraint == False
-            and setting_info.on_algo_ineq_constraint == True
+            option.on_algo_eq_constraint == False
+            and option.on_algo_ineq_constraint == True
         ):
             self._func_proj = setting_info.func_calc_proj_ineq_constraint(
                 setting_info.on_para_eq_constraint
@@ -279,9 +295,9 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
         self,
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
-        algorithm_option: ProjectedGradientDescentBaseOption,
+        algorithm_option: ProjectedGradientDescentBacktrackingOption,
         on_iteration_history: bool = False,
-    ) -> ProjectedGradientDescentBaseResult:
+    ) -> ProjectedGradientDescentBacktrackingResult:
         """optimizes using specified parameters.
 
         Parameters
@@ -375,7 +391,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
 
         if on_iteration_history:
             computation_time = time.time() - start_time
-            result = ProjectedGradientDescentBaseResult(
+            result = ProjectedGradientDescentBacktrackingResult(
                 x_next,
                 computation_time=computation_time,
                 k=k,
@@ -386,7 +402,7 @@ class ProjectedGradientDescentBase(MinimizationAlgorithm):
             )
             return result
         else:
-            result = ProjectedGradientDescentBaseResult(x_next)
+            result = ProjectedGradientDescentBacktrackingResult(x_next)
             return result
 
     def _is_doing_for_alpha(

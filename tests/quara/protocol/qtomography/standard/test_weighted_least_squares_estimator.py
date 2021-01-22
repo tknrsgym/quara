@@ -5,9 +5,9 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.projected_gradient_descent_base import (
-    ProjectedGradientDescentBase,
-    ProjectedGradientDescentBaseOption,
+from quara.data_analysis.projected_gradient_descent_backtracking import (
+    ProjectedGradientDescentBacktracking,
+    ProjectedGradientDescentBacktrackingOption,
 )
 from quara.math import func_proj
 from quara.objects.composite_system import CompositeSystem
@@ -25,11 +25,7 @@ from quara.protocol.qtomography.standard.weighted_least_squares_estimator import
 )
 
 
-def get_test_data(
-    on_para_eq_constraint=False,
-    on_algo_eq_constraint=False,
-    on_algo_ineq_constraint=False,
-):
+def get_test_data(on_para_eq_constraint=False):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
@@ -38,13 +34,7 @@ def get_test_data(
     povm_z = get_z_measurement(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(
-        povms,
-        on_para_eq_constraint=on_para_eq_constraint,
-        on_algo_eq_constraint=on_algo_eq_constraint,
-        on_algo_ineq_constraint=on_algo_ineq_constraint,
-        seed=7,
-    )
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7,)
 
     return qst, c_sys
 
@@ -58,13 +48,9 @@ class TestLossWeightedLeastSquaresEstimator:
         ]
 
         # on_para_eq_constraint=True
-        qst, _ = get_test_data(
-            on_para_eq_constraint=True,
-            on_algo_eq_constraint=True,
-            on_algo_ineq_constraint=True,
-        )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        qst, _ = get_test_data(on_para_eq_constraint=True)
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(3)
 
         actual = estimator.calc_estimate(
@@ -82,13 +68,9 @@ class TestLossWeightedLeastSquaresEstimator:
         assert type(actual.computation_time) == float
 
         # on_para_eq_constraint=False
-        qst, _ = get_test_data(
-            on_para_eq_constraint=False,
-            on_algo_eq_constraint=True,
-            on_algo_ineq_constraint=True,
-        )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        qst, _ = get_test_data(on_para_eq_constraint=False)
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(4)
 
         actual = estimator.calc_estimate(
@@ -106,13 +88,9 @@ class TestLossWeightedLeastSquaresEstimator:
         assert type(actual.computation_time) == float
 
         # on_para_eq_constraint=True, mode_covariance="ucm"
-        qst, _ = get_test_data(
-            on_para_eq_constraint=True,
-            on_algo_eq_constraint=True,
-            on_algo_ineq_constraint=True,
-        )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        qst, _ = get_test_data(on_para_eq_constraint=True)
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(3)
 
         actual = estimator.calc_estimate(
@@ -145,13 +123,9 @@ class TestLossWeightedLeastSquaresEstimator:
         ]
 
         # on_para_eq_constraint=False
-        qst, _ = get_test_data(
-            on_para_eq_constraint=False,
-            on_algo_eq_constraint=True,
-            on_algo_ineq_constraint=True,
-        )
-        algo = ProjectedGradientDescentBase()
-        algo_option = ProjectedGradientDescentBaseOption()
+        qst, _ = get_test_data(on_para_eq_constraint=False)
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption()
         estimator = WeightedLeastSquaresEstimator(4)
 
         actual = estimator.calc_estimate_sequence(
