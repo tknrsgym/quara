@@ -57,13 +57,6 @@ To test all the code, enter the following command:
 
    pytest
 
-Some tests depend on MATLAB.
-To skip MATLAB-dependent code and run tests, enter the following command:
-
-::
-
-   pytest -rfs -m "not matlab_dependent"
-
 To generate a coverage report, enter the following command:
 
 ::
