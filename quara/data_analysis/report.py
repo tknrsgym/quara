@@ -1,8 +1,7 @@
-from os import remove
 import tempfile
 import shutil
 
-from typing import List, Tuple, Optional
+from typing import List, Optional
 from pathlib import Path
 
 import numpy as np
@@ -15,9 +14,7 @@ from quara.data_analysis import (
     data_analysis,
     consistency_check,
 )
-from quara.data_analysis import simulation
-from quara.data_analysis.simulation import SimulationSetting
-from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
+from quara.data_analysis.simulation import StandardQTomographySimulationSetting
 from quara.protocol.qtomography.estimator import EstimationResult
 from quara.data_analysis import computation_time as ctime
 
@@ -843,7 +840,7 @@ def generate_condition_table(
 
 def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
-    simulation_settings: List[SimulationSetting],
+    simulation_settings: List[StandardQTomographySimulationSetting],
     true_object: "QOperation",
 ):
     result_list = []
@@ -1135,7 +1132,7 @@ def generate_computation_time_of_estimators_table(
 
 def generate_computation_time_of_estimators_graph(
     estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[SimulationSetting],
+    simulation_settings: List[StandardQTomographySimulationSetting],
 ) -> str:
     all_divs = ""
     graph_n = len(estimation_results_list[0][0].num_data)
@@ -1179,7 +1176,7 @@ def generate_computation_time_of_estimators_div(
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[SimulationSetting],
+    simulation_settings: List[StandardQTomographySimulationSetting],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
     seed: Optional[int] = None,
@@ -1195,7 +1192,7 @@ def export_report(
         pdf file path.
     estimation_results_list : List[List[
         List containing a list of estimated results for each simulation.
-    simulation_settings : List[SimulationSetting]
+    simulation_settings : List[StandardQTomographySimulationSetting]
         Settings for each simulation.
     true_object : QOperation
         True object
