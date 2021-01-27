@@ -612,7 +612,7 @@ def make_mses_graph_analytical(
 
 def make_mses_graphs_estimator(
     estimation_results_list: List["EstimationResult"],
-    simulation_settings: List["SimulationSetting"],
+    simulation_settings: List["StandardQTomographySimulationSetting"],
     true_object,
 ) -> list:
     data_dict = {}

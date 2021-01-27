@@ -139,7 +139,7 @@ class QOperation:
         return self._eps_proj_physical
 
     @abstractmethod
-    def is_physical(self, atol: float = None) -> bool:
+    def is_physical(self, atol_eq_const: float = None, atol_ineq_const: float = None) -> bool:
         """returns whether the state is physically correct.
 
         Parameters

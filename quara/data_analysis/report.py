@@ -1,8 +1,7 @@
-from os import remove
 import tempfile
 import shutil
 
-from typing import List, Tuple, Optional
+from typing import List, Optional
 from pathlib import Path
 
 import numpy as np
@@ -15,9 +14,7 @@ from quara.data_analysis import (
     data_analysis,
     consistency_check,
 )
-from quara.data_analysis import simulation
-from quara.data_analysis.simulation import SimulationSetting
-from quara.protocol.qtomography.qtomography_estimator import QTomographyEstimator
+from quara.data_analysis.simulation import StandardQTomographySimulationSetting
 from quara.protocol.qtomography.estimator import EstimationResult
 from quara.data_analysis import computation_time as ctime
 
@@ -446,6 +443,9 @@ def _generate_graph_sum_eigenvalues_seq(
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
             estimation_results, num_data_index=num_data_index,
         )
+        n_unphysical = physicality_violation_check.calc_unphysical_qobjects_n(
+            estimation_results, num_data_index=num_data_index
+        )
         fig_info_list = []
 
         for i, fig in enumerate(fig_list):
@@ -459,6 +459,7 @@ def _generate_graph_sum_eigenvalues_seq(
                     fig=fig,
                     fig_name=fig_name,
                     num=num_data[num_data_index],
+                    n_unphysical=n_unphysical,
                 )
             )
 
@@ -470,7 +471,10 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
         num = fig_info_list[0]["num"]
-        graph_block_html = f"<h5>N={num}</h5>"
+        n_unphysical = fig_info_list[0]["n_unphysical"]
+        graph_block_html = (
+            f"<h5>N={num}<br>Number of unphysical estimates={n_unphysical}</h5>"
+        )
 
         for fig_info in fig_info_list:
             graph_subblock = (
@@ -836,7 +840,7 @@ def generate_condition_table(
 
 def generate_consistency_check_table(
     qtomography_list: List["QTomography"],
-    simulation_settings: List[SimulationSetting],
+    simulation_settings: List[StandardQTomographySimulationSetting],
     true_object: "QOperation",
 ):
     result_list = []
@@ -909,11 +913,11 @@ def generate_consistency_check_table(
 
 
 def generate_computation_time_table(
-    estimation_results_list: List[List["EstimationResult"]]
+    estimation_results_list: List[List["EstimationResult"]],
 ) -> pd.DataFrame:
     total_time = 0
     for results in estimation_results_list:
-        total_time +=sum([sum(r.computation_times) for r in results])
+        total_time += sum([sum(r.computation_times) for r in results])
     computation_time_text = "{0}".format(total_time / 60) + "min."
 
     info = {
@@ -928,9 +932,12 @@ def generate_computation_time_table(
 
 
 def generate_tolerance_table_div(tolerance: Optional[float] = None,) -> pd.DataFrame:
-    info = {
-        "Tolerance": [tolerance],
-    }
+    info = {}
+    if tolerance is not None:
+        info["Tolerance at estimation"] = [tolerance]
+    info["Tolerance at physicality violation test"] = [
+        physicality_violation_check.get_ineq_const_eps()
+    ]
 
     tolerance_table = pd.DataFrame(info).T.to_html(escape=False, header=False)
     tolerance_table_div = f"""
@@ -1073,6 +1080,7 @@ def generate_computation_time_of_estimators_table(
     def _generate_computation_time_df(
         estimation_results: list, name, unit
     ) -> pd.DataFrame:
+        n_rep = len(estimation_results)
         if unit == "min":
             time_unit = 60
         elif unit == "sec":
@@ -1094,6 +1102,7 @@ def generate_computation_time_of_estimators_table(
         data_dict = {
             "Name": [name] + ['   "   '] * (len(num_list) - 1),
             "N": num_list,
+            "Nrep": [n_rep] * len(num_list),
             f"Mean ({unit})": mean_list,
             f"Std ({unit})": std_list,
         }
@@ -1116,26 +1125,14 @@ def generate_computation_time_of_estimators_table(
         df_list.append(time_df)
 
     time_df = pd.concat(df_list, axis=0).reset_index(drop=True)
-    # time_table = time_df.to_html(classes="comp_time_table", escape=False)
     time_table = time_df.style.set_table_styles(styles).render()
     time_div = f"<div><h2>Table</h2>{time_table}</div>"
     return time_div
 
 
-_table_test_css = """
-.dtable{
-display: table; /* ブロックレベル要素をtableと同じように表示にする */
-}
-.dtable_c{
-display: table-cell; /* ブロックレベル要素をtd(th)と同じように表示にする */
-border: 1px solid #666;
-}
-"""
-
-
 def generate_computation_time_of_estimators_graph(
     estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[SimulationSetting],
+    simulation_settings: List[StandardQTomographySimulationSetting],
 ) -> str:
     all_divs = ""
     graph_n = len(estimation_results_list[0][0].num_data)
@@ -1167,11 +1164,9 @@ def generate_computation_time_of_estimators_graph(
 def generate_computation_time_of_estimators_div(
     estimation_results_list: List[List["EstimationResult"]], simulation_settings: list
 ) -> str:
-    # 表を作成する
     div = generate_computation_time_of_estimators_table(
         estimation_results_list, simulation_settings
     )
-    # ヒストグラムを作成する
     div += generate_computation_time_of_estimators_graph(
         estimation_results_list, simulation_settings
     )
@@ -1181,7 +1176,7 @@ def generate_computation_time_of_estimators_div(
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[SimulationSetting],
+    simulation_settings: List[StandardQTomographySimulationSetting],
     true_object: "QOperation",
     tester_objects: List["QOperation"],
     seed: Optional[int] = None,
@@ -1197,7 +1192,7 @@ def export_report(
         pdf file path.
     estimation_results_list : List[List[
         List containing a list of estimated results for each simulation.
-    simulation_settings : List[SimulationSetting]
+    simulation_settings : List[StandardQTomographySimulationSetting]
         Settings for each simulation.
     true_object : QOperation
         True object
@@ -1205,8 +1200,6 @@ def export_report(
         Tester object. If there are more than one kind of QOperation, pass them in concatenation.
     seed : Optional[int], optional
         seed value, by default None
-    computation_time : Optional[float], optional
-        Computation time, by default None
     keep_tmp_files : bool, optional
         [description], by default False
     show_physicality_violation_check : bool, optional
@@ -1231,9 +1224,7 @@ def export_report(
 
     # Tolerance of physicality constraint violation
     print("​Generating table of tolerance of physicality constraint violation ...")
-    tolerance_table_div = ""
-    if tolerance is not None:
-        tolerance_table_div = generate_tolerance_table_div(tolerance)
+    tolerance_table_div = generate_tolerance_table_div(tolerance)
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")
@@ -1317,7 +1308,6 @@ def export_report(
             {_inline_block_css}
             {_table_css}
             {_table_contents_css}
-            {_table_test_css}
          -->
     </style>
     <style>
