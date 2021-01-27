@@ -2,9 +2,9 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.quadratic_loss_function import (
-    QuadraticLossFunction,
-    QuadraticLossFunctionOption,
+from quara.data_analysis.simple_quadratic_loss_function import (
+    SimpleQuadraticLossFunction,
+    SimpleQuadraticLossFunctionOption,
 )
 from quara.data_analysis.projected_gradient_descent_backtracking import (
     ProjectedGradientDescentBacktracking,
@@ -103,7 +103,7 @@ class TestProjectedGradientDescentBase:
     def test_is_loss_sufficient(self):
         # loss is not None
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
         algo = ProjectedGradientDescentBacktracking()
         algo.set_from_loss(loss)
         assert algo.is_loss_sufficient() == True
@@ -119,7 +119,7 @@ class TestProjectedGradientDescentBase:
 
         # loss.on_value is False
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
         loss._on_value = False
         algo = ProjectedGradientDescentBacktracking()
         algo.set_from_loss(loss)
@@ -127,7 +127,7 @@ class TestProjectedGradientDescentBase:
 
         # loss.on_gradient is False
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
         loss._on_gradient = False
         algo = ProjectedGradientDescentBacktracking()
         algo.set_from_loss(loss)
@@ -200,7 +200,7 @@ class TestProjectedGradientDescentBase:
         var_ref1 = np.array([0, 0, 0], dtype=np.float64) / np.sqrt(2)
         algo_option = ProjectedGradientDescentBacktrackingOption(var_start=var_ref1)
         var_ref2 = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        loss = QuadraticLossFunction(var_ref2)
+        loss = SimpleQuadraticLossFunction(var_ref2)
 
         algo = ProjectedGradientDescentBacktracking()
         algo.set_from_option(algo_option)
@@ -208,9 +208,9 @@ class TestProjectedGradientDescentBase:
         assert algo.is_loss_and_option_sufficient() == False
 
     def test_optimize_with_proj_to_self(self):
-        loss_option = QuadraticLossFunctionOption()
+        loss_option = SimpleQuadraticLossFunctionOption()
         var_ref = np.array([1, 1], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         proj = func_proj.proj_to_self()
         algo = ProjectedGradientDescentBacktracking(proj)
@@ -231,11 +231,11 @@ class TestProjectedGradientDescentBase:
             npt.assert_almost_equal(actual.value, expected, decimal=7)
 
     def test_optimize_with_proj_to_hyperplane(self):
-        loss_option = QuadraticLossFunctionOption()
+        loss_option = SimpleQuadraticLossFunctionOption()
 
         # case1: var_ref is multiple of var_a
         var_ref = np.array([1, 0], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         var_a = np.array([2, 0], dtype=np.float64)
         proj = func_proj.proj_to_hyperplane(var_a)
@@ -257,7 +257,7 @@ class TestProjectedGradientDescentBase:
 
         # case2: var_ref is NOT multiple of var_a
         var_ref = np.array([1, 0], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         var_a = np.array([1, 1], dtype=np.float64)
         proj = func_proj.proj_to_hyperplane(var_a)
@@ -279,7 +279,7 @@ class TestProjectedGradientDescentBase:
 
         # case3: var_ref is NOT multiple of var_a
         var_ref = np.array([1, 1], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         var_a = np.array([2, 0], dtype=np.float64)
         proj = func_proj.proj_to_hyperplane(var_a)
@@ -300,14 +300,14 @@ class TestProjectedGradientDescentBase:
             npt.assert_almost_equal(actual.value, expected, decimal=7)
 
     def test_optimize_with_proj_to_nonnegative(self):
-        loss_option = QuadraticLossFunctionOption()
+        loss_option = SimpleQuadraticLossFunctionOption()
 
         proj = func_proj.proj_to_nonnegative()
         algo = ProjectedGradientDescentBacktracking(proj)
 
         # case1: var_ref is inside constraint.
         var_ref = np.array([1, 1], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         var_starts = [
             np.array([3, 3], dtype=np.float64),
@@ -326,7 +326,7 @@ class TestProjectedGradientDescentBase:
 
         # case2: var_ref is outside constraint.
         var_ref = np.array([-1, 0], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         var_starts = [
             np.array([0, 0], dtype=np.float64),
@@ -346,7 +346,7 @@ class TestProjectedGradientDescentBase:
 
         # case3: var_ref is outside constraint.
         var_ref = np.array([1, -1], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         var_starts = [
             np.array([0, 0], dtype=np.float64),
@@ -366,7 +366,7 @@ class TestProjectedGradientDescentBase:
 
         # case3: var_ref is in boundary of constraint.
         var_ref = np.array([1, 0], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         var_starts = [
             np.array([0, 0], dtype=np.float64),
@@ -385,10 +385,10 @@ class TestProjectedGradientDescentBase:
             npt.assert_almost_equal(actual.value, expected, decimal=6)
 
     def test_optimize_on_iteration_history(self):
-        loss_option = QuadraticLossFunctionOption()
+        loss_option = SimpleQuadraticLossFunctionOption()
 
         var_ref = np.array([1, 1], dtype=np.float64)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         proj = func_proj.proj_to_self()
         algo = ProjectedGradientDescentBacktracking(proj)
@@ -412,7 +412,7 @@ class TestProjectedGradientDescentBase:
     def test_optimize_value_error(self):
         # loss.on_value is False
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
         loss._on_value = False
         algo = ProjectedGradientDescentBacktracking()
         algo.set_from_loss(loss)
@@ -421,7 +421,7 @@ class TestProjectedGradientDescentBase:
 
         # loss.on_gradient is False
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
         loss._on_gradient = False
         algo = ProjectedGradientDescentBacktracking()
         algo.set_from_loss(loss)
