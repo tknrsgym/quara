@@ -2,7 +2,7 @@ from typing import List
 import copy
 
 
-class SimulationSetting:
+class StandardQTomographySimulationSetting:
     def __init__(
         self,
         name: str,
