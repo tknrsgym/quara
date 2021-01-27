@@ -61,6 +61,6 @@ def execute_consistency_check(
     if show_detail:
         print(f"result={result}")
         print(f"eps={eps}")
-        print(f"result <= eps: {result <= eps}")
+        print(f"result < eps: {result < eps}")
 
-    return result <= eps
+    return result < eps
