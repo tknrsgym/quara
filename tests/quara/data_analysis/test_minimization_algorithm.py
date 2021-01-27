@@ -6,9 +6,9 @@ from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
 )
-from quara.data_analysis.quadratic_loss_function import (
-    QuadraticLossFunction,
-    QuadraticLossFunctionOption,
+from quara.data_analysis.simple_quadratic_loss_function import (
+    SimpleQuadraticLossFunction,
+    SimpleQuadraticLossFunctionOption,
 )
 
 
@@ -64,7 +64,7 @@ class TestMinimizationAlgorithm:
 
     def test_set_from_loss(self):
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
-        loss = QuadraticLossFunction(var_ref)
+        loss = SimpleQuadraticLossFunction(var_ref)
 
         algo = MinimizationAlgorithm()
         algo.set_from_loss(loss)

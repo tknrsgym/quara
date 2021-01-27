@@ -51,7 +51,7 @@ class TestLossMinimizationEstimator:
             (10000, np.array([1, 0], dtype=np.float64)),
         ]
         loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
@@ -92,7 +92,7 @@ class TestLossMinimizationEstimator:
             (10000, np.array([1, 0], dtype=np.float64)),
         ]
         loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         # case1: on_algo_eq_constraint=True, on_algo_ineq_constraint=True
         qst, _ = get_test_data()
@@ -197,7 +197,7 @@ class TestLossMinimizationEstimator:
             (10000, np.array([1, 0], dtype=np.float64)),
         ]
         loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         # case1: func_proj=auto setting
         qst, _ = get_test_data()
@@ -316,7 +316,7 @@ class TestLossMinimizationEstimator:
         ]
 
         loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
@@ -358,7 +358,7 @@ class TestLossMinimizationEstimator:
             return False
 
         loss.is_option_sufficient = _is_option_sufficient
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
@@ -373,7 +373,7 @@ class TestLossMinimizationEstimator:
 
         # algo.is_loss_sufficient() is False
         loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
@@ -392,7 +392,7 @@ class TestLossMinimizationEstimator:
 
         # algo.is_option_sufficient() is False
         loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
@@ -411,7 +411,7 @@ class TestLossMinimizationEstimator:
 
         # algo.is_loss_and_option_sufficient() is False
         loss = WeightedProbabilityBasedSquaredError(4)
-        loss_option = WeightedProbabilityBasedSquaredErrorOption()
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
 
         qst, _ = get_test_data()
         algo = ProjectedGradientDescentBacktracking()
