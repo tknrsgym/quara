@@ -83,6 +83,12 @@ prob_dists_q = [
     np.array([1.0, 0.0], dtype=np.float64),
 ]
 
+data = [
+    (10000, np.array([0.5, 0.5], dtype=np.float64)),
+    (10000, np.array([0.5, 0.5], dtype=np.float64)),
+    (10000, np.array([1.0, 0.0], dtype=np.float64)),
+]
+
 weight_matrices = [
     np.array([[1, 0], [0, 1]], dtype=np.float64),
     np.array([[1, 0], [0, 1]], dtype=np.float64),
@@ -101,6 +107,37 @@ def get_test_qst(on_para_eq_constraint=True):
 
     qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
     return qst
+
+
+class TestWeightedProbabilityBasedSquaredErrorOption:
+    def test_access_mode_weight(self):
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
+        assert loss_option.mode_weight == "identity"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="custom")
+        assert loss_option.mode_weight == "custom"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(weights=[1, 2, 3])
+        assert loss_option.mode_weight == "custom"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="inverse_sample_covariance"
+        )
+        assert loss_option.mode_weight == "inverse_sample_covariance"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="inverse_unbiased_covariance"
+        )
+        assert loss_option.mode_weight == "inverse_unbiased_covariance"
+
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="unbiased_inverse_covariance"
+        )
+        assert loss_option.mode_weight == "unbiased_inverse_covariance"
+
+        # Test that "mode_weight" is not specified
+        with pytest.raises(ValueError):
+            loss_option = WeightedProbabilityBasedSquaredErrorOption()
 
 
 class TestWeightedProbabilityBasedSquaredErrorFunction:
@@ -464,3 +501,61 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         assert loss_func.on_func_prob_dists == True
         assert loss_func.on_func_gradient_prob_dists == True
         assert loss_func.on_func_hessian_prob_dists == True
+
+    def test_set_weight_by_mode(self):
+        qt = get_test_qst(on_para_eq_constraint=True)
+        func = WeightedProbabilityBasedSquaredError(4)
+
+        # case: mode_weight="identity"
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
+        func.set_from_standard_qtomography_option_data(
+            qt, loss_option, data, True, True
+        )
+
+        assert func.weight_matrices == None
+
+        # case: mode_weight="custom"
+        weights = [
+            np.array([[1, 2], [2, 3]], dtype=np.float64),
+            np.array([[4, 5], [5, 6]], dtype=np.float64),
+            np.array([[7, 8], [8, 9]], dtype=np.float64),
+        ]
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="custom", weights=weights
+        )
+        func.set_from_standard_qtomography_option_data(
+            qt, loss_option, data, True, True
+        )
+
+        npt.assert_almost_equal(func.weight_matrices, weights, decimal=15)
+
+        # case: mode_weight="inverse_sample_covariance"
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="inverse_sample_covariance"
+        )
+        func.set_from_standard_qtomography_option_data(
+            qt, loss_option, data, True, True
+        )
+
+        expected = [
+            np.array([[38461.53846153846, 0], [0, 0]], dtype=np.float64),
+            np.array([[38461.53846153846, 0], [0, 0]], dtype=np.float64),
+            np.array([[999999.0000010062, 0], [0, 0]], dtype=np.float64),
+        ]
+        npt.assert_almost_equal(func.weight_matrices, expected, decimal=15)
+
+        # case: mode_weight="inverse_unbiased_covariance"
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="inverse_unbiased_covariance"
+        )
+        func.set_from_standard_qtomography_option_data(
+            qt, loss_option, data, True, True
+        )
+
+        expected = [
+            np.array([[38457.84022246239, 0], [0, 0]], dtype=np.float64),
+            np.array([[38457.84022246239, 0], [0, 0]], dtype=np.float64),
+            np.array([[999998.9999009963, 0], [0, 0]], dtype=np.float64),
+        ]
+        npt.assert_almost_equal(func.weight_matrices, expected, decimal=15)
+

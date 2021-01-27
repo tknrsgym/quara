@@ -5,12 +5,12 @@ import numpy as np
 from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
 
 
-class QuadraticLossFunctionOption(LossFunctionOption):
+class SimpleQuadraticLossFunctionOption(LossFunctionOption):
     def __init__(self):
         super().__init__()
 
 
-class QuadraticLossFunction(LossFunction):
+class SimpleQuadraticLossFunction(LossFunction):
     def __init__(self, var_ref: np.array):
         """Constructor
 
@@ -22,7 +22,7 @@ class QuadraticLossFunction(LossFunction):
         Parameters
         ----------
         var_ref : np.array
-            [description]
+            variables
         """
         super().__init__(var_ref.size)
         self._on_value = True

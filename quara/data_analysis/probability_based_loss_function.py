@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 import numpy as np
 
@@ -8,8 +8,10 @@ from quara.protocol.qtomography.standard.standard_qtomography import StandardQTo
 
 
 class ProbabilityBasedLossFunctionOption(LossFunctionOption):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, mode_weight: str, weights: List = None, weight_name: str = None):
+        super().__init__(
+            mode_weight=mode_weight, weights=weights, weight_name=weight_name
+        )
 
 
 class ProbabilityBasedLossFunction(LossFunction):
@@ -307,3 +309,53 @@ class ProbabilityBasedLossFunction(LossFunction):
             func = self._generate_func_hessian_prob_dist(size_prob_dist, index)
             func_hessian_prob_dists.append(func)
         self.set_func_hessian_prob_dists(func_hessian_prob_dists)
+
+    def _set_weights_by_mode(
+        self, mode_weight: str, data: List[Tuple[int, np.array]]
+    ) -> None:
+        """sets weights of loss function.
+
+        This function does not do anything by default.
+        If necessary, implement this function in a subclass.
+
+        Parameters
+        ----------
+        mode_weight : str
+            mode for weights.
+        data : List[Tuple[int, np.array]]
+            empirical distributions.
+        """
+        pass
+
+    def set_from_standard_qtomography_option_data(
+        self,
+        qtomography: StandardQTomography,
+        option: LossFunctionOption,
+        data: List[Tuple[int, np.array]],
+        is_gradient_required: bool,
+        is_hessian_required: bool,
+    ) -> None:
+        """sets settings of loss function.
+
+        Parameters
+        ----------
+        qtomography : StandardQTomography
+            StandardQTomography for settings of loss function.
+        option : LossFunctionOption
+            ProbabilityBasedLossFunctionOption for settings of loss function.
+        data : List[Tuple[int, np.array]]
+            empirical distributions for settings of loss function.
+        is_gradient_required : bool
+            whether or not to require gradient.
+        is_hessian_required : bool
+            whether or not to require Hessian.
+        """
+        self.set_from_option(option)
+        empi_dists = [empi_dist_tmp[1] for empi_dist_tmp in data]
+        self.set_prob_dists_q(empi_dists)
+        self.set_func_prob_dists_from_standard_qt(qtomography)
+        if is_gradient_required:
+            self.set_func_gradient_prob_dists_from_standard_qt(qtomography)
+        if is_hessian_required:
+            self.set_func_hessian_prob_dists_from_standard_qt(qtomography)
+        self._set_weights_by_mode(option.mode_weight, data)
