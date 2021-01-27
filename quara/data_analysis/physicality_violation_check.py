@@ -8,10 +8,23 @@ import numpy as np
 from tqdm import tqdm
 
 from quara.protocol.qtomography.estimator import EstimationResult
+from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.settings import Settings
+
+
+__eq_const_eps = Settings.get_atol()
+__ineq_const_eps = 10 ** (-9)
+
+
+def set_ineq_const_eps(eps: float) -> None:
+    global __ineq_const_eps
+    __ineq_const_eps = eps
+
+def get_ineq_const_eps() -> float:
+    return __ineq_const_eps
 
 
 def _get_sorted_eigenvalues_list_for_state(estimated_states: List["State"],):
@@ -46,12 +59,14 @@ def get_sorted_eigenvalues_list(
 
 
 def get_sum_of_eigenvalues_violation(
-    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1), eps=0
+    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1),
 ) -> Tuple[List[float], List[float]]:
     expected_values = sorted(expected_values)
     if len(expected_values) != 2:
         message = "`expected_values` must be a tuple of length 2."
         raise ValueError(message)
+
+    eps = __ineq_const_eps
 
     sum_eig_less_list = []
     sum_eig_greater_list = []
@@ -65,34 +80,18 @@ def get_sum_of_eigenvalues_violation(
             else:
                 greater_list.append(v)
 
-        # TODO: remove
-        check_flag_1 = False
-        check_flag_2 = False
         if less_list:
-            check_flag_1 = True
             sum_eig_less_list.append(np.sum(less_list))
         if np.sum(greater_list) > expected_values[1] + eps:
-            check_flag_2 = True
             sum_eig_greater_list.append(np.sum(greater_list))
-
-        # if check_flag_1 != check_flag_2:
-        #     message = f"i={i}: invalid: values={values}"
-        #     message += f"\nless_list={less_list}"
-        #     message += f"\nsum={np.sum(greater_list)}, greater_list={greater_list}"
-        #     warnings.warn(message)
-    # if len(sum_eig_less_list) != len(sum_eig_greater_list):
-    #     message = f"sum_eig_less_list and sum_eig_greater_list lengths do not match."
-    #     message += f"len(sum_eig_less_list)={len(sum_eig_less_list)}, "
-    #     message += f"len(sum_eig_greater_list)={len(sum_eig_greater_list)}"
-    #     warnings.warn(message)
 
     return sum_eig_less_list, sum_eig_greater_list
 
 
 def get_sum_of_eigenvalues_violation_for_povm(
-    estimated_povms: List["Povm"], eps=0
+    estimated_povms: List["Povm"],
 ) -> Dict[int, List[float]]:
-
+    eps = __ineq_const_eps
     minus_eigenvalues_dict = defaultdict(lambda: [])
 
     for est in tqdm(estimated_povms):
@@ -124,8 +123,8 @@ def get_trace_list(estimated_state_list: List["State"],) -> List[float]:
     for estimated_state in estimated_state_list:
         tr = np.trace(estimated_state.to_density_matrix())
         value = tr.real
-        if tr.imag >= 10 ** -14:
-            message = "Imaginary number of trace >= 10 ** -14"
+        if tr.imag >= Settings.get_atol():
+            message = f"Imaginary number of trace >= {Settings.get_atol()}"
             warnings.warn(message)
         trace_list.append(value)
     return trace_list
@@ -537,12 +536,41 @@ def _make_graphs_eigenvalues_gate(
     return figs
 
 
+def calc_unphysical_qobjects_n(
+    source: Union[List[EstimationResult], List[QOperation]], num_data_index: int = None
+):
+    sample = source[0]
+    if isinstance(sample, EstimationResult):
+        if num_data_index is None:
+            # TODO: message
+            raise ValueError()
+        estimated_qoperations = _convert_result_to_qoperation(
+            source, num_data_index=num_data_index
+        )
+    elif isinstance(sample, QOperation):
+        estimated_qoperations = source
+    else:
+        # TODO: message
+        raise TypeError()
+    n_unphysical = len(
+        [
+            q
+            for q in estimated_qoperations
+            if not q.is_physical(
+                atol_eq_const=__eq_const_eps, atol_ineq_const=__ineq_const_eps
+            )
+        ]
+    )
+    return n_unphysical
+
+
 # only State and Gate
 def _make_graphs_sum_unphysical_eigenvalues(
     estimated_qobjects: List[Union[State, Gate]],
     num_data: int,
     bin_size: float = 0.0001,
     expected_values=(0, 1),
+    show_n_unphysical: bool = False,
 ) -> List["Figure"]:
     expected_values = list(sorted(expected_values))
     sorted_eigenvalues_list = get_sorted_eigenvalues_list(estimated_qobjects)
@@ -552,8 +580,22 @@ def _make_graphs_sum_unphysical_eigenvalues(
 
     n_rep = len(sorted_eigenvalues_list)
     figs = []
-    n_unphysical = len(
-        [q for q in estimated_qobjects if not q.is_physical()]
+    n_unphysical = calc_unphysical_qobjects_n(estimated_qobjects)
+    # TODO: remove
+    _n_unphysical = len(
+        [
+            q
+            for q in estimated_qobjects
+            if not q.is_physical(
+                atol_eq_const=__eq_const_eps, atol_ineq_const=__ineq_const_eps
+            )
+        ]
+    )
+    assert n_unphysical == _n_unphysical
+    additional_title_text = (
+        f"<br>Number of unphysical estimates={n_unphysical}"
+        if show_n_unphysical
+        else None
     )
     # Figure 1
     xaxis_title_text = f"Sum of negative eigenvalues (<{expected_values[0]})"
@@ -565,7 +607,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
         annotation_vlines=[expected_values[0]],
         xaxis_title_text=xaxis_title_text,
         title=f"N={num_data}, Nrep={n_rep}",
-        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
+        additional_title_text=additional_title_text,
     )
     figs.append(fig)
 
@@ -578,7 +620,7 @@ def _make_graphs_sum_unphysical_eigenvalues(
         annotation_vlines=[expected_values[1]],
         xaxis_title_text=xaxis_title_text,
         title=f"N={num_data}, Nrep={n_rep}",
-        additional_title_text=f"<br>Number of unphysical estimates={n_unphysical}",
+        additional_title_text=additional_title_text,
     )
 
     figs.append(fig)
@@ -593,9 +635,19 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_for_povm(estimated_povms)
     measurement_n = len(estimated_povms[0].vecs)
-    unphysical_n = len(
-        [estimated for estimated in estimated_povms if not estimated.is_physical()]
+
+    n_unphysical = calc_unphysical_qobjects_n(estimated_povms)
+    # TODO: remove
+    _n_unphysical = len(
+        [
+            estimated
+            for estimated in estimated_povms
+            if not estimated.is_physical(
+                atol_eq_const == __eq_const_eps, atol_ineq_const=__ineq_const_eps
+            )
+        ]
     )
+    assert _n_unphysical == n_unphysical
 
     xaxis_title_text = f"Sum of negative eigenvalues (<0)"
     for x_i in range(measurement_n):

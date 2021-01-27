@@ -139,7 +139,9 @@ class Povm(QOperation):
         """
         return self._measurements
 
-    def is_physical(self, atol_ineq_const: float = None) -> bool:
+    def is_physical(
+        self, atol_eq_const: float= None, atol_ineq_const: float = None
+    ) -> bool:
         """returns whether the POVM is physically correct.
 
         all of the following conditions are ``True``, the POVM is physically correct:
@@ -160,10 +162,9 @@ class Povm(QOperation):
         """
         # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
         # therefore, do not call the `is_hermitian` function explicitly.
-        return (
-            self.is_positive_semidefinite(atol=atol_ineq_const)
-            and self.is_identity_sum()
-        )
+        return self.is_positive_semidefinite(
+            atol=atol_ineq_const
+        ) and self.is_identity_sum(atol=atol_eq_const)
 
     def set_zero(self):
         size = self.dim ** 2
@@ -405,7 +406,7 @@ class Povm(QOperation):
 
         return True
 
-    def is_identity_sum(self) -> bool:
+    def is_identity_sum(self, atol: float = None) -> bool:
         """Returns whether the sum of the elements ``_vecs`` is an identity matrix.
 
         Returns
@@ -414,9 +415,10 @@ class Povm(QOperation):
             If the sum of the elements ``_vecs`` is an identity matrix,
             otherwise it returns False.
         """
+        atol = Settings.get_atol() if atol is None else atol
         sum_matrix = self._sum_matrix()
         identity = np.identity(self.dim, dtype=np.complex128)
-        return np.allclose(sum_matrix, identity)
+        return np.allclose(sum_matrix, identity, atol=atol)
 
     def _sum_matrix(self):
         size = [self.dim, self.dim]
