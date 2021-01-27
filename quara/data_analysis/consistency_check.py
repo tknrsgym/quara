@@ -1,4 +1,5 @@
-from quara.data_analysis import data_analysis
+from typing import List
+from quara.data_analysis import data_analysis, simulation
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
@@ -38,3 +39,28 @@ def calc_mse_of_true_estimated(
     )
 
     return mse
+
+
+def execute_consistency_check(
+    simulation_setting: "StandardQTomographySimulation",
+    estimation_results: List["EstimationResult"],
+    eps=None,
+    show_detail: bool = True,
+) -> bool:
+    eps = 10 ** (-16) if eps is None else eps
+    result = calc_mse_of_true_estimated(
+        true_object=simulation_setting.true_object,
+        qtomography=estimation_results[0].qtomography,
+        estimator=simulation_setting.estimator,
+        loss=simulation_setting.loss,
+        loss_option=simulation_setting.loss_option,
+        algo=simulation_setting.algo,
+        algo_option=simulation_setting.algo_option,
+    )
+
+    if show_detail:
+        print(f"result={result}")
+        print(f"eps={eps}")
+        print(f"result <= eps: {result <= eps}")
+
+    return result <= eps
