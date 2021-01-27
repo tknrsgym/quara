@@ -446,6 +446,9 @@ def _generate_graph_sum_eigenvalues_seq(
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
             estimation_results, num_data_index=num_data_index,
         )
+        n_unphysical = physicality_violation_check.calc_unphysical_qobjects_n(
+            estimation_results, num_data_index=num_data_index
+        )
         fig_info_list = []
 
         for i, fig in enumerate(fig_list):
@@ -459,6 +462,7 @@ def _generate_graph_sum_eigenvalues_seq(
                     fig=fig,
                     fig_name=fig_name,
                     num=num_data[num_data_index],
+                    n_unphysical=n_unphysical,
                 )
             )
 
@@ -470,7 +474,10 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
     for fig_info_list in fig_info_list_list:
         num = fig_info_list[0]["num"]
-        graph_block_html = f"<h5>N={num}</h5>"
+        n_unphysical = fig_info_list[0]["n_unphysical"]
+        graph_block_html = (
+            f"<h5>N={num}<br>Number of unphysical estimates={n_unphysical}</h5>"
+        )
 
         for fig_info in fig_info_list:
             graph_subblock = (
@@ -928,9 +935,12 @@ def generate_computation_time_table(
 
 
 def generate_tolerance_table_div(tolerance: Optional[float] = None,) -> pd.DataFrame:
-    info = {
-        "Tolerance": [tolerance],
-    }
+    info = {}
+    if tolerance is not None:
+        info["Tolerance at estimation"] = [tolerance]
+    info["Tolerance at physicality violation test"] = [
+        physicality_violation_check.get_ineq_const_eps()
+    ]
 
     tolerance_table = pd.DataFrame(info).T.to_html(escape=False, header=False)
     tolerance_table_div = f"""
@@ -1217,9 +1227,7 @@ def export_report(
 
     # Tolerance of physicality constraint violation
     print("​Generating table of tolerance of physicality constraint violation ...")
-    tolerance_table_div = ""
-    if tolerance is not None:
-        tolerance_table_div = generate_tolerance_table_div(tolerance)
+    tolerance_table_div = generate_tolerance_table_div(tolerance)
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")
