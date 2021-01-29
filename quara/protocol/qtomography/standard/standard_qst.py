@@ -93,6 +93,9 @@ class StandardQst(StandardQTomography):
     def on_para_eq_constraint(self):  # read only
         return self._on_para_eq_constraint
 
+    def estimation_object_type(self) -> type:
+        return State
+
     def _set_coeffs(
         self, experiment: Experiment, on_para_eq_constraint: bool, dim: int
     ):
