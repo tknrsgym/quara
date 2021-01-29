@@ -441,8 +441,9 @@ def make_mses_graph_estimation_results(
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
-            # TODO
+            # TODO error massage
             raise ValueError()
+
         (
             analytical_mses,
             analytical_case_names,

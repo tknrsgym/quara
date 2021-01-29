@@ -2,6 +2,15 @@ from typing import List
 from quara.data_analysis import data_analysis
 from quara.utils import matrix_util
 
+from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
+from quara.protocol.qtomography.standard.projected_linear_estimator import (
+    ProjectedLinearEstimator,
+)
+from quara.data_analysis.weighted_relative_entropy import WeightedRelativeEntropy
+from quara.protocol.qtomography.standard.loss_minimization_estimator import (
+    LossMinimizationEstimator,
+)
+
 
 def check_mse_of_empirical_distributions(
     simulation_setting, estimation_results, show_detail: bool = True
@@ -52,7 +61,136 @@ def check_mse_of_empirical_distributions(
     else:
         return True
 
-def check_mse_of_estimators(simulation_setting: "StandardQTomographySimulation",
-    estimation_results: List["EstimationResult"], show_detail: bool=True) -> bool:
-    
-    pass
+
+def check_mse_of_estimators(
+    simulation_setting: "StandardQTomographySimulation",
+    estimation_results: List["EstimationResult"],
+    show_detail: bool = True,
+) -> bool:
+    def _is_maximum_likelihood(simulation_setting) -> bool:
+        if (type(simulation_setting.estimator) == LossMinimizationEstimator) and (
+            type(simulation_setting.loss) == WeightedRelativeEntropy
+        ):
+            return True
+        return False
+
+    if type(simulation_setting.estimator) == LinearEstimator:
+        result = compare_to_analytical(
+            simulation_setting, estimation_results, show_detail
+        )
+    elif type(
+        simulation_setting.estimator
+    ) == ProjectedLinearEstimator or _is_maximum_likelihood(simulation_setting):
+        result = compare_to_linear(simulation_setting, estimation_results, show_detail)
+    else:
+        message = f"Estimator must be LinearEstimator, ProjectedLinearEstimator, or Maximum-likelihood."
+        raise TypeError(message)
+
+    return result
+
+
+def compare_to_analytical(
+    simulation_setting,
+    estimation_results: List["EstimationResult"],
+    show_detail: bool = True,
+) -> bool:
+    if type(simulation_setting.estimator) != LinearEstimator:
+        raise TypeError(
+            f"simulation_setting.estimator must be LinearEstimator, not {type(simulation_setting.estimator)}"
+        )
+
+    num_data = estimation_results[0].num_data
+
+    # MSE_Linear
+    mses, sds, _ = data_analysis.convert_to_series(
+        estimation_results, simulation_setting.true_object
+    )
+
+    # MSE_Analytical
+    qtomo = estimation_results[0].qtomography
+    parameter = qtomo.on_para_eq_constraint
+    analytical_mses = []
+    for num in num_data:
+        true_object_copied = data_analysis._recreate_qoperation(
+            simulation_setting.true_object, on_para_eq_constraint=parameter
+        )
+        analytical_mse = qtomo.calc_mse_linear_analytical(
+            true_object_copied, [num] * qtomo.num_schedules
+        )
+        analytical_mses.append(analytical_mse)
+
+    results = []
+    for i in range(len(num_data)):
+        mse_linear = mses[i]
+        sigma = sds[i]
+        mse_analytical = analytical_mses[i]
+        eps = 3 * sigma
+
+        result = abs(mse_linear - mse_analytical) < eps
+        results.append(result)
+
+        if show_detail:
+            result_text = "OK" if result else "NG"
+            text = f"[{result_text}] N={num_data[i]}"
+            text += (
+                f"\n|MSE_Linear - MSE_Analytical| = {abs(mse_linear - mse_analytical)}"
+            )
+            text += f"\neps = {eps}"
+            print(text)
+
+    if False in results:
+        return False
+    else:
+        return True
+
+
+def compare_to_linear(
+    simulation_setting, estimation_results, show_detail: bool = True
+) -> bool:
+    # calc mse
+    mses, *_ = data_analysis.convert_to_series(
+        estimation_results, simulation_setting.true_object
+    )
+
+    # calc mse of LinearEstimator
+    num_data = estimation_results[0].num_data
+    n_rep = len(estimation_results)
+    qtomo = estimation_results[0].qtomography
+    parameter = qtomo.on_para_eq_constraint
+    true_object_copied = data_analysis._recreate_qoperation(
+        simulation_setting.true_object, on_para_eq_constraint=parameter
+    )
+
+    # estimate
+    linear_estimator = LinearEstimator()
+    linear_estimation_results = data_analysis.estimate(
+        qtomography=qtomo,
+        true_object=true_object_copied,
+        num_data=num_data,
+        estimator=linear_estimator,
+        iteration=n_rep,
+    )
+    # calc
+    linear_mses, *_ = data_analysis.convert_to_series(
+        linear_estimation_results, true_object_copied
+    )
+
+    # compare
+    results = []
+    for i in range(len(num_data)):
+        mse = mses[i]
+        linear_mse = linear_mses[i]
+        result = mse <= linear_mse
+        results.append(result)
+
+        if show_detail:
+            result_text = "OK" if result else "NG"
+            text = f"[{result_text}] N={num_data[i]}"
+            estimator_name = simulation_setting.estimator.__class__.__name__
+            text += f"\nMSE_Linear - MSE_{estimator_name} = {linear_mse - mse}"
+            print(text)
+
+    if False in results:
+        return False
+    else:
+        return True
