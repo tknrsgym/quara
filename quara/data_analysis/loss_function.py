@@ -289,7 +289,27 @@ class LossFunction:
         qtomography: StandardQTomography,
         option: LossFunctionOption,
         data: List[Tuple[int, np.array]],
+        is_gradient_required: bool,
+        is_hessian_required: bool,
     ) -> None:
+        """sets settings of loss function.
+
+        This implementation is empty by default.
+        If necessary, implement it in subclasses.
+
+        Parameters
+        ----------
+        qtomography : StandardQTomography
+            StandardQTomography for settings of loss function.
+        option : LossFunctionOption
+            ProbabilityBasedLossFunctionOption for settings of loss function.
+        data : List[Tuple[int, np.array]]
+            empirical distributions for settings of loss function.
+        is_gradient_required : bool
+            whether or not to require gradient.
+        is_hessian_required : bool
+            whether or not to require Hessian.
+        """
         pass
 
     @abstractmethod

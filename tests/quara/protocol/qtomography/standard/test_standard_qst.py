@@ -11,7 +11,7 @@ from quara.objects.povm import (
     get_y_measurement,
     get_z_measurement,
 )
-from quara.objects.state import get_z0_1q
+from quara.objects.state import State, get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 
 
@@ -149,6 +149,10 @@ class TestStandardQst:
         # is_valid_experiment == False
         with pytest.raises(ValueError):
             StandardQst(povms, on_para_eq_constraint=False)
+
+    def test_estimation_object_type(self):
+        qst, _ = get_test_data()
+        assert qst.estimation_object_type() == State
 
     def test_is_valid_experiment(self):
         qst, _ = get_test_data()
