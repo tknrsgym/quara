@@ -136,10 +136,3 @@ class TestLossFunction:
         with pytest.raises(ValueError):
             loss_func._validate_var_shape(var)
 
-    def test_xxx(self):
-        loss_option = LossFunctionOption()
-        print(type(loss_option))
-        print(type(type(loss_option)))
-        print(LossFunctionOption)
-        print(type(LossFunctionOption))
-        assert False
