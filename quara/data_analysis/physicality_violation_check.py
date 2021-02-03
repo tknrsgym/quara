@@ -763,21 +763,8 @@ def make_graphs_trace_error_sum(
 
 
 def is_eq_constraint_satisfied_all(estimation_results) -> bool:
-    # qtomo = estimation_results[0].qtomography
-    # qoperation_type = estimation_results[0].estimated_qoperation.__class__.__name__
-    # type2method = {
-    #     "State": "is_trace_one",
-    #     "Povm": "is_identity_sum",
-    #     "Gate": "is_tp",
-    # }
     all_check_results = []
     for result in estimation_results:
-
-        # def _f(qope):
-        #     method = eval(f"qope.{type2method[qoperation_type]}")
-        #     return method(atol=__eq_const_eps)
-
-        # check_results = [_f(qope) for qope in result.estimated_qoperation_sequence]
         check_results = [
             qope.is_eq_constraint_satisfied(__eq_const_eps)
             for qope in result.estimated_qoperation_sequence

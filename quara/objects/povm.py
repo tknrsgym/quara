@@ -426,13 +426,11 @@ class Povm(QOperation):
         size = [self._dim, self._dim]
         if index is not None:
             v = self.matrices()[index]
-            # matrix = np.reshape(v, size)
             w = np.linalg.eigvals(v)
             return w
         else:
             w_list = []
             for v in self.matrices():
-                # matrix = np.reshape(v, size)
                 w = np.linalg.eigvals(v)
                 w_list.append(w)
             return w_list
