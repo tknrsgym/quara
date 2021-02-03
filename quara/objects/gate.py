@@ -185,7 +185,7 @@ class Gate(QOperation):
 
     def calc_proj_ineq_constraint(self) -> "Gate":
         choi_matrix = self.to_choi_matrix()
-        eigenvals, eigenvecs = np.linalg.eig(choi_matrix)
+        eigenvals, eigenvecs = np.linalg.eigh(choi_matrix)
 
         # project
         for index in range(len(eigenvals)):

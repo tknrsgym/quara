@@ -31,20 +31,47 @@ class StandardQTomographySimulationCheck:
         self.estimation_results = estimation_results
 
     def execute_all(
-        self, consistency_check_eps: float = None, show_detail: bool = True
+        self,
+        consistency_check_eps: float = None,
+        show_summary: bool = True,
+        show_detail: bool = True,
     ) -> bool:
         results = []
-        results.append(
-            self.execute_mse_of_empirical_distribution_check(show_detail=show_detail)
+        test_names = []
+
+        # MSE of Empirical Distributions
+        test_names.append("MSE of Empirical Distributions")
+        result = self.execute_mse_of_empirical_distribution_check(
+            show_detail=show_detail
         )
-        results.append(
-            self.execute_consistency_check(
-                eps=consistency_check_eps, show_detail=show_detail
-            )
+        results.append(result)
+
+        # Consistency
+        test_names.append("Consistency")
+        result = self.execute_consistency_check(
+            eps=consistency_check_eps, show_detail=show_detail
         )
-        results.append(self.execute_mse_of_estimators_check(show_detail=show_detail))
-        results.append(self.execute_mse_of_estimators_check(show_detail=show_detail))
-        results.append(self.execute_physicality_violation_check())
+        results.append(result)
+
+        # MSE of estimators
+        test_names.append("MSE of estimators")
+        result = self.execute_mse_of_estimators_check(show_detail=show_detail)
+        results.append(result)
+
+        # Pysicality Violation
+        test_names.append("Physicality Violation")
+        result = self.execute_physicality_violation_check()
+        results.append(result)
+
+        # Show summary
+        if show_summary:
+            lines = [
+                f"{name}: {'OK' if r else 'NG'}" for name, r in zip(test_names, results)
+            ]
+            summary = "========== Summary ============\n"
+            summary += "\n".join(lines)
+            print(summary)
+
         if False in results:
             return False
         else:
