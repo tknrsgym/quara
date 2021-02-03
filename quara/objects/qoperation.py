@@ -139,7 +139,25 @@ class QOperation:
         return self._eps_proj_physical
 
     @abstractmethod
-    def is_physical(self, atol_eq_const: float = None, atol_ineq_const: float = None) -> bool:
+    def estimation_object_type(self) -> type:
+        """returns type of estimation object.
+
+        Returns
+        -------
+        type
+            type of estimation object.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def is_physical(
+        self, atol_eq_const: float = None, atol_ineq_const: float = None
+    ) -> bool:
         """returns whether the state is physically correct.
 
         Parameters
