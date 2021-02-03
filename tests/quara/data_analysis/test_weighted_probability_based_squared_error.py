@@ -2,6 +2,10 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
+from quara.data_analysis.projected_gradient_descent_backtracking import (
+    ProjectedGradientDescentBacktracking,
+    ProjectedGradientDescentBacktrackingOption,
+)
 from quara.data_analysis.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
@@ -16,6 +20,9 @@ from quara.objects.povm import (
     get_z_measurement,
 )
 from quara.objects.state import get_z0_1q
+from quara.protocol.qtomography.standard.loss_minimization_estimator import (
+    LossMinimizationEstimator,
+)
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 
 
@@ -559,3 +566,34 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         ]
         npt.assert_almost_equal(func.weight_matrices, expected, decimal=15)
 
+    def test_calc_estimate(self):
+        empi_dists = [
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([1, 0], dtype=np.float64)),
+        ]
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(
+            mode_weight="inverse_sample_covariance"
+        )
+
+        qst = get_test_qst(on_para_eq_constraint=False)
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True, on_algo_ineq_constraint=True
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        actual = estimator.calc_estimate(
+            qst,
+            empi_dists,
+            loss,
+            loss_option,
+            algo,
+            algo_option,
+            is_computation_time_required=True,
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
