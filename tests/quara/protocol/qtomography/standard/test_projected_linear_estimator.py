@@ -49,7 +49,6 @@ class TestProjectedLinearEstimator:
         actual = estimator.calc_estimate(
             qst, empi_dists, is_computation_time_required=True
         )
-        print(actual.estimated_var)
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
@@ -76,7 +75,6 @@ class TestProjectedLinearEstimator:
         actual = estimator.calc_estimate(
             qst, empi_dists, is_computation_time_required=True
         )
-        print(actual.estimated_var)
         expected = [
             0.707106781186547,
             0.405390585996068,
@@ -84,7 +82,7 @@ class TestProjectedLinearEstimator:
             0.397200877188066,
         ]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert type(actual.computation_time) == float
 
     def test_calc_estimate_sequence(self):
@@ -156,14 +154,13 @@ class TestProjectedLinearEstimator:
             calc_se(result, [true_object.vec[1:]] * len(result)) / len(result)
             for result in result_sequences_tmp
         ]
-        print(f"mse={actual}")
         expected = [
             0.00367945828346161,
             0.00055245044790706,
             6.635211672514839e-05,
             6.13382544367555e-06,
         ]
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=10)
 
     def test_scenario_on_para_eq_constraint_False(self):
         qst, c_sys = get_test_data()
@@ -176,6 +173,7 @@ class TestProjectedLinearEstimator:
         result_sequence = []
 
         for _ in range(iterations):
+
             empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
 
             estimator = ProjectedLinearEstimator()
@@ -191,11 +189,10 @@ class TestProjectedLinearEstimator:
             calc_se(result, [true_object.vec] * len(result)) / len(result)
             for result in result_sequences_tmp
         ]
-        print(f"mse={actual}")
         expected = [
             0.00367945828346161,
             0.000552450447907059,
             6.635211672514742e-05,
             6.133825443675581e-06,
         ]
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=10)
