@@ -1414,11 +1414,13 @@ class TestState:
         ) / np.sqrt(2)
         npt.assert_almost_equal(actual.vec, expected, decimal=4)
         assert actual.is_physical(actual.eps_proj_physical) == True
-        assert len(history["p"]) == 54
-        assert len(history["q"]) == 54
-        assert len(history["x"]) == 54
-        assert len(history["y"]) == 54
-        assert len(history["error_value"]) == 53
+        assert len(history["p"]) == 28
+        assert len(history["q"]) == 28
+        assert len(history["x"]) == 28
+        assert len(history["y"]) == 28
+        assert len(history["error_value"]) == 27
+        assert history["y"][0] == None
+        assert history["error_value"][0] == None
 
     def test_calc_stopping_criterion_birgin_raydan_vectors(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1438,7 +1440,7 @@ class TestState:
             p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
         )
 
-        assert value == np.float64(608)
+        assert value == np.float64(-352)
 
     def test_is_satisfied_stopping_criterion_birgin_raydan_vectors(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1478,11 +1480,10 @@ class TestState:
         p_next = np.array([5, 6, 7, 8], dtype=np.float64)
         q_prev = np.array([11, 12, 13, 14], dtype=np.float64)
         q_next = np.array([15, 16, 17, 18], dtype=np.float64)
-        x_prev = np.array([21, 22, 23, 24], dtype=np.float64)
-        x_next = np.array([25, 26, 27, 28], dtype=np.float64)
-        y_prev = np.array([31, 32, 33, 34], dtype=np.float64)
-        y_next = np.array([35, 36, 37, 38], dtype=np.float64)
-        eps_proj_physical = 10 ** (-4)
+        x_prev = np.array([25, 26, 27, 28], dtype=np.float64)
+        x_next = np.array([21, 22, 23, 24], dtype=np.float64)
+        y_prev = np.array([35, 36, 37, 38], dtype=np.float64)
+        y_next = np.array([31, 32, 33, 34], dtype=np.float64)
 
         (
             is_stopping,
@@ -1589,24 +1590,25 @@ class TestState:
         )
         x_prev = State(
             c_sys,
-            np.array([21, 22, 23, 24], dtype=np.float64),
+            np.array([25, 26, 27, 28], dtype=np.float64),
             is_physicality_required=False,
         )
         x_next = State(
             c_sys,
-            np.array([25, 26, 27, 28], dtype=np.float64),
+            np.array([21, 22, 23, 24], dtype=np.float64),
             is_physicality_required=False,
         )
         y_prev = State(
             c_sys,
-            np.array([31, 32, 33, 34], dtype=np.float64),
+            np.array([35, 36, 37, 38], dtype=np.float64),
             is_physicality_required=False,
         )
         y_next = State(
             c_sys,
-            np.array([35, 36, 37, 38], dtype=np.float64),
+            np.array([31, 32, 33, 34], dtype=np.float64),
             is_physicality_required=False,
         )
+        eps_proj_physical = 10 ** (-15)
 
         (
             is_stopping,
@@ -1643,7 +1645,7 @@ class TestState:
         var = np.array([1, 0, 0, 1], dtype=np.float64)
         actual = func(var)
         expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
-        npt.assert_almost_equal(actual, expected, decimal=14)
+        npt.assert_almost_equal(actual, expected, decimal=7)
         actual_qobj = State(c_sys, actual)
         assert actual_qobj.is_physical() == True
 
