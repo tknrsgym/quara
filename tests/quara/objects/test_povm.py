@@ -158,6 +158,11 @@ class TestPovm:
         # Assert
         assert actual is True
 
+        # Act
+        actual = povm.is_ineq_constraint_satisfied()
+        # Assert
+        assert actual is True
+
     def test_validate_is_positive_semidefinite_ng(self):
         # Arrange
         ps = np.array([1, 0, 0, 2], dtype=np.float64)
@@ -185,6 +190,11 @@ class TestPovm:
         povm = Povm(c_sys=c_sys, vecs=vecs, is_physicality_required=False)
         actual = povm.is_positive_semidefinite()
 
+        # Assert
+        assert actual is False
+
+        # Act
+        actual = povm.is_ineq_constraint_satisfied()
         # Assert
         assert actual is False
 

@@ -858,6 +858,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_trace_one() == True
+        assert state.is_eq_constraint_satisfied() == True
 
         # case: False
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -868,6 +869,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_trace_one() == False
+        assert state.is_eq_constraint_satisfied() == False
 
         # case: specify atol
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -878,6 +880,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_trace_one(atol=1e-2) == True
+        assert state.is_eq_constraint_satisfied(atol=1e-2) == True
 
     def test_is_hermitian(self):
         # case: True
@@ -912,6 +915,7 @@ class TestState:
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
         assert state.is_positive_semidefinite() == True
+        assert state.is_ineq_constraint_satisfied() == True
 
         # case: False
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -922,6 +926,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_positive_semidefinite() == False
+        assert state.is_ineq_constraint_satisfied() == False
 
         # case: specify atol
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -932,6 +937,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_positive_semidefinite(atol=1e-2) == True
+        assert state.is_ineq_constraint_satisfied(atol=1e-2) == True
 
     def test_calc_eigenvalues(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

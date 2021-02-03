@@ -292,6 +292,7 @@ class TestGate:
         # case: TP
         z = get_z(c_sys)
         assert z.is_tp() == True
+        assert z.is_eq_constraint_satisfied() == True
 
         # case: not TP
         hs = np.array(
@@ -299,6 +300,7 @@ class TestGate:
         )
         gate = Gate(c_sys, hs, is_physicality_required=False)
         assert gate.is_tp() == False
+        assert gate.is_eq_constraint_satisfied() == False
 
     def test_is_cp(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -307,10 +309,15 @@ class TestGate:
         # case: CP
         x = get_x(c_sys)
         assert x.is_cp() == True
+        assert x.is_ineq_constraint_satisfied() == True
+
         y = get_y(c_sys)
         assert y.is_cp() == True
+        assert y.is_ineq_constraint_satisfied() == True
+
         z = get_z(c_sys)
         assert z.is_cp() == True
+        assert z.is_ineq_constraint_satisfied() == True
 
         # case: not CP
         hs = np.array(
@@ -318,6 +325,7 @@ class TestGate:
         )
         gate = Gate(c_sys, hs, is_physicality_required=False)
         assert gate.is_cp() == False
+        assert gate.is_ineq_constraint_satisfied() == False
 
     def test_convert_basis(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
