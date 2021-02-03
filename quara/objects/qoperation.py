@@ -139,25 +139,34 @@ class QOperation:
         return self._eps_proj_physical
 
     @abstractmethod
-    def is_physical(self, atol_eq_const: float = None, atol_ineq_const: float = None) -> bool:
-        """returns whether the state is physically correct.
+    def is_eq_constraint_satisfied(self, atol: float = None):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def is_ineq_constraint_satisfied(self, atol: float = None):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def is_physical(
+        self, atol_eq_const: float = None, atol_ineq_const: float = None
+    ) -> bool:
+        """returns whether the qoperation is physically correct.
 
         Parameters
         ----------
-        atol : float, optional
-            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        atol_eq_const : float, optional
+            Error tolerance used to determine if the equality constraint is satisfied. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        atol_ineq_const : float, optional
+            Error tolerance used to determine if the inequality constraint is satisfied. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
         Returns
         -------
         bool
-            whether the state is physically correct.
-
-        Raises
-        ------
-        NotImplementedError
-            this function does not be implemented in the subclass.
+            whether the qoperation is physically correct.
         """
-        raise NotImplementedError()
+        return self.is_eq_constraint_satisfied(
+            atol_eq_const
+        ) and self.is_ineq_constraint_satisfied(atol_ineq_const)
 
     @abstractmethod
     def set_zero(self):
