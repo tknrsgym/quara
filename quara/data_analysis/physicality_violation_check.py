@@ -23,6 +23,7 @@ def set_ineq_const_eps(eps: float) -> None:
     global __ineq_const_eps
     __ineq_const_eps = eps
 
+
 def get_ineq_const_eps() -> float:
     return __ineq_const_eps
 
@@ -536,6 +537,26 @@ def _make_graphs_eigenvalues_gate(
     return figs
 
 
+def is_physical_qobjects_all(
+    estimation_results: List["EstimatiuonResult"], show_detail: bool = True
+) -> bool:
+    check_results = []
+    for i, num in enumerate(estimation_results[0].num_data):
+        unphysical_n = calc_unphysical_qobjects_n(estimation_results, num_data_index=i)
+        result = unphysical_n == 0
+        check_results.append(result)
+        if show_detail:
+            message = (
+                f"[{'OK' if result else 'NG'}] N={num} physicality violation check"
+            )
+            print(message)
+
+    if False in check_results:
+        return False
+    else:
+        return True
+
+
 def calc_unphysical_qobjects_n(
     source: Union[List[EstimationResult], List[QOperation]], num_data_index: int = None
 ):
@@ -739,3 +760,46 @@ def make_graphs_trace_error_sum(
         )
         figs.append(fig)
     return figs
+
+
+def is_eq_constraint_satisfied_all(estimation_results) -> bool:
+    # qtomo = estimation_results[0].qtomography
+    # qoperation_type = estimation_results[0].estimated_qoperation.__class__.__name__
+    # type2method = {
+    #     "State": "is_trace_one",
+    #     "Povm": "is_identity_sum",
+    #     "Gate": "is_tp",
+    # }
+    all_check_results = []
+    for result in estimation_results:
+
+        # def _f(qope):
+        #     method = eval(f"qope.{type2method[qoperation_type]}")
+        #     return method(atol=__eq_const_eps)
+
+        # check_results = [_f(qope) for qope in result.estimated_qoperation_sequence]
+        check_results = [
+            qope.is_eq_constraint_satisfied(__eq_const_eps)
+            for qope in result.estimated_qoperation_sequence
+        ]
+        all_check_results += check_results
+
+    if False in all_check_results:
+        return False
+    else:
+        return True
+
+
+def is_ineq_constraint_satisfied_all(estimation_results) -> bool:
+    all_check_results = []
+    for result in estimation_results:
+        check_results = [
+            qope.is_ineq_constraint_satisfied(__ineq_const_eps)
+            for qope in result.estimated_qoperation_sequence
+        ]
+        all_check_results += check_results
+
+    if False in all_check_results:
+        return False
+    else:
+        return True

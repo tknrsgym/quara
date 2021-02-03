@@ -1,5 +1,8 @@
 from typing import List
+import warnings
+
 from quara.data_analysis import simulation
+from quara.data_analysis import physicality_violation_check
 
 from quara.data_analysis.simulation import StandardQTomographySimulationSetting
 from quara.data_analysis.consistency_check import execute_consistency_check
@@ -7,7 +10,7 @@ from quara.data_analysis.mean_squared_error import (
     check_mse_of_empirical_distributions,
     check_mse_of_estimators,
 )
-from quara.data_analysis.physicality_violation_check import physicality_violation_check
+from quara.data_analysis.physicality_violation_check import calc_unphysical_qobjects_n
 
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.protocol.qtomography.standard.projected_linear_estimator import (
@@ -26,6 +29,26 @@ class StandardQTomographySimulationCheck:
     ) -> None:
         self.simulation_setting = simulation_setting
         self.estimation_results = estimation_results
+
+    def execute_all(
+        self, consistency_check_eps: float = None, show_detail: bool = True
+    ) -> bool:
+        results = []
+        results.append(
+            self.execute_mse_of_empirical_distribution_check(show_detail=show_detail)
+        )
+        results.append(
+            self.execute_consistency_check(
+                eps=consistency_check_eps, show_detail=show_detail
+            )
+        )
+        results.append(self.execute_mse_of_estimators_check(show_detail=show_detail))
+        results.append(self.execute_mse_of_estimators_check(show_detail=show_detail))
+        results.append(self.execute_physicality_violation_check())
+        if False in results:
+            return False
+        else:
+            return True
 
     def execute_mse_of_empirical_distribution_check(
         self, show_detail: bool = True
@@ -49,26 +72,87 @@ class StandardQTomographySimulationCheck:
         return result
 
     def execute_mse_of_estimators_check(self, show_detail: bool = True):
-        result = check_mse_of_estimators(
-            simulation_setting=self.simulation_setting,
-            estimation_results=self.estimation_results,
-            eps=eps,
-            show_detail=show_detail,
-        )
+        try:
+            result = check_mse_of_estimators(
+                simulation_setting=self.simulation_setting,
+                estimation_results=self.estimation_results,
+                show_detail=show_detail,
+            )
+        except TypeError as e:
+            import traceback
+
+            t = traceback.format_exception_only(type(e), e)
+            if "Estimator must be LinearEstimator, " in t[0]:
+
+                warnings.warn(
+                    "Estimator MSE is not checked except for LinearEstimator, ProjectedLinearEstimator, Maximum-likelihood."
+                )
+                return True
+            else:
+                raise
+
         return result
 
-    def execute_physicality_violation_check(self):
+    def execute_physicality_violation_check(self, show_detail: bool = True) -> bool:
         if type(self.simulation_setting.estimator) == ProjectedLinearEstimator:
-            n = physicality_violation_check.calc_unphysical_qobjects_n(
-                self.estimation_results
+            return physicality_violation_check.is_physical_qobjects_all(
+                self.estimation_results, show_detail
             )
-            return n == 0
         elif type(self.simulation_setting.estimator) == LinearEstimator:
-            para == self.estimation_results[0].qtomography.on_para_eq_constraint
-            # TODO:
-            raise NotImplementedError()
+            para = self.estimation_results[0].estimated_qoperation.on_para_eq_constraint
+            if para:
+                return physicality_violation_check.is_eq_constraint_satisfied_all(
+                    self.estimation_results
+                )
+            else:
+                warnings.warn(
+                    "If on_para_eq_constraint is False in Linear Estimator, nothing is checked"
+                )
+                return True
         elif type(self.simulation_setting.estimator) == LossMinimizationEstimator:
-            raise NotImplementedError()
+            if self.simulation_setting.algo_option:
+                on_algo_eq_constraint = (
+                    self.simulation_setting.algo_option.on_algo_eq_constraint
+                )
+                on_algo_ineq_constraint = (
+                    self.simulation_setting.algo_option.on_algo_ineq_constraint
+                )
+
+                results = []
+                if on_algo_eq_constraint:
+                    result = physicality_violation_check.is_eq_constraint_satisfied_all(
+                        self.estimation_results
+                    )
+                    results.append(result)
+                    if show_detail:
+                        message = f"[{'OK' if result else 'NG'}] is_eq_constraint_satisfied_all"
+                        print(message)
+
+                if on_algo_ineq_constraint:
+                    result = physicality_violation_check.is_ineq_constraint_satisfied_all(
+                        self.estimation_results
+                    )
+                    results.append(result)
+                    if show_detail:
+                        message = f"[{'OK' if result else 'NG'}] is_ineq_constraint_satisfied_all"
+                        print(message)
+
+                if not results:
+                    warnings.warn(
+                        "If both on_algo_eq_constraint and on_algo_ineq_constraint of algo_option are False in LossMinimizationEstimator, nothing is checked"
+                    )
+                if False in results:
+                    return False
+                else:
+                    return True
+            else:
+                warnings.warn(
+                    "If algo_option is None in LossMinimizationEstimator, nothing is checked"
+                )
+                return True
         else:
-            # TODO: message
-            raise TypeError()
+            warnings.warn(
+                "Check nothing except LinearEstimator, ProjectedLinearEstimator and LossMinimizationEstimator."
+            )
+            return True
+
