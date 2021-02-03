@@ -1177,8 +1177,8 @@ def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
     simulation_settings: List[StandardQTomographySimulationSetting],
-    true_object: "QOperation",
-    tester_objects: List["QOperation"],
+    # true_object: "QOperation",
+    # tester_objects: List["QOperation"],
     seed: Optional[int] = None,
     tolerance: Optional[float] = None,
     keep_tmp_files: bool = False,
@@ -1209,6 +1209,9 @@ def export_report(
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
     _temp_dir_path = Path(temp_dir_path)
+
+    true_object = simulation_settings[0].true_object
+    tester_objects = simulation_settings[0].tester_objects
 
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])

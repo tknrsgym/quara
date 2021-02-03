@@ -20,12 +20,17 @@ def check_mse_of_empirical_distributions(
     num_schedules = qtomography.num_schedules
     n_rep = len(estimation_results)
 
+    parameter = qtomography.on_para_eq_constraint
+    true_object_copied = data_analysis._recreate_qoperation(
+        simulation_setting.true_object, on_para_eq_constraint=parameter
+    )
+
     # MSE of Empirical Distributions
     empi_dists = data_analysis.extract_empi_dists(estimation_results)
     xs_list_list = empi_dists
-    ys_list_list = [
-        [qtomography.calc_prob_dists(simulation_setting.true_object)] * n_rep
-    ] * len(num_data)
+    ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
+        num_data
+    )
 
     empi_dist_mses = []
     sigma_list = []
@@ -38,7 +43,7 @@ def check_mse_of_empirical_distributions(
     analytical_mses = []
     for num in num_data:
         analytical_mse = qtomography.calc_mse_empi_dists_analytical(
-            simulation_setting.true_object, [num] * num_schedules
+            true_object_copied, [num] * num_schedules
         )
         analytical_mses.append(analytical_mse)
 
@@ -101,19 +106,20 @@ def compare_to_analytical(
 
     num_data = estimation_results[0].num_data
 
+    qtomo = estimation_results[0].qtomography
+    parameter = qtomo.on_para_eq_constraint
+    true_object_copied = data_analysis._recreate_qoperation(
+        simulation_setting.true_object, on_para_eq_constraint=parameter
+    )
+
     # MSE_Linear
     mses, sds, _ = data_analysis.convert_to_series(
-        estimation_results, simulation_setting.true_object
+        estimation_results, true_object_copied
     )
 
     # MSE_Analytical
-    qtomo = estimation_results[0].qtomography
-    parameter = qtomo.on_para_eq_constraint
     analytical_mses = []
     for num in num_data:
-        true_object_copied = data_analysis._recreate_qoperation(
-            simulation_setting.true_object, on_para_eq_constraint=parameter
-        )
         analytical_mse = qtomo.calc_mse_linear_analytical(
             true_object_copied, [num] * qtomo.num_schedules
         )
