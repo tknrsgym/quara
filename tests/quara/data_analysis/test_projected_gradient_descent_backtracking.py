@@ -61,7 +61,7 @@ class TestProjectedGradientDescentBase:
         expected = np.array(
             [1, 1 / np.sqrt(3), 1 / np.sqrt(3), 1 / np.sqrt(3)], dtype=np.float64
         ) / np.sqrt(2)
-        npt.assert_almost_equal(actual, expected, decimal=14)
+        npt.assert_almost_equal(actual, expected, decimal=7)
 
         # case2: use func_calc_proj_physical() if on_algo_eq_constraint=True, on_algo_ineq_constraint=False
         qst, _ = get_test_data()

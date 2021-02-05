@@ -135,3 +135,4 @@ class TestLossFunction:
         var = np.array([1, 2, 3, 4, 5], dtype=np.float64)
         with pytest.raises(ValueError):
             loss_func._validate_var_shape(var)
+
