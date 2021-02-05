@@ -380,10 +380,21 @@ class Gate(QOperation):
 
         # step2. calc Kraus representaion.
         #   K_{\alpha} = \sqrt{c_{\alpha}} unvec(|c_{\alpha}>)
-        kraus = [
+        _kraus = [
             np.sqrt(eigen_val) * eigen_vec.reshape((2, 2))
             for (eigen_val, eigen_vec) in eigens
         ]
+
+        # step3:
+        # kraus = []
+        # for k in _kraus:
+        #     k_00 = k[0][0]
+        #     if k_00 < 0:
+        #         e_i_theta = k_00 / abs(k_00)
+        #         kraus.append((1 / e_i_theta) * k)
+        #     else:
+        #         kraus.append(k)
+        kraus = _kraus
 
         return kraus
 
