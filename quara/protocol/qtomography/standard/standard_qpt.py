@@ -74,6 +74,9 @@ class StandardQpt(StandardQTomography):
     def on_para_eq_constraint(self):  # read only
         return self._on_para_eq_constraint
 
+    def estimation_object_type(self) -> type:
+        return Gate
+
     def _is_all_same_composite_systems(self, targets):
         if len(targets) <= 1:
             return True

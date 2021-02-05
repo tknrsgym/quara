@@ -147,6 +147,22 @@ class QOperation:
         raise NotImplementedError()
 
     @abstractmethod
+    def estimation_object_type(self) -> type:
+        """returns type of estimation object.
+
+        Returns
+        -------
+        type
+            type of estimation object.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def is_physical(
         self, atol_eq_const: float = None, atol_ineq_const: float = None
     ) -> bool:
@@ -510,14 +526,16 @@ class QOperation:
                 "error_value": list of opject ``error_value``,
             }
 
+            When step=0, "y" and "error_value" are not calculated, so None is set.
+
         """
         p_prev = self.generate_zero_obj()
         q_prev = self.generate_zero_obj()
         x_prev = self.copy()
-
         x_prev._is_physicality_required = False
         x_prev._is_estimation_object = False
-        y_prev = x_prev.calc_proj_ineq_constraint()
+        y_prev = None
+
         p_next = x_next = q_next = y_next = None
 
         # variables for debug
@@ -543,10 +561,10 @@ class QOperation:
                 x_prev = x_next
                 y_prev = y_next
 
-            p_next = x_prev + p_prev - y_prev
-            x_next = (y_prev + q_prev).calc_proj_eq_constraint()
-            q_next = y_prev + q_prev - x_next
-            y_next = (x_next + p_next).calc_proj_ineq_constraint()
+            y_next = (x_prev + p_prev).calc_proj_eq_constraint()
+            p_next = x_prev + p_prev - y_next
+            x_next = (y_next + q_prev).calc_proj_ineq_constraint()
+            q_next = y_next + q_prev - x_next
 
             # logging
             if logger.isEnabledFor(logging.DEBUG):
@@ -563,28 +581,35 @@ class QOperation:
                 logger.debug(
                     f"y_prev={y_prev.to_stacked_vector()}, y_next={y_next.to_stacked_vector()}"
                 )
-            k += 1
 
-            (
-                is_stopping,
-                error_value,
-            ) = self._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
-                p_prev,
-                p_next,
-                q_prev,
-                q_next,
-                x_prev,
-                x_next,
-                y_prev,
-                y_next,
-                self.eps_proj_physical,
-            )
+            # check satisfied stopping criterion
+            if k >= 1:
+                (
+                    is_stopping,
+                    error_value,
+                ) = self._is_satisfied_stopping_criterion_birgin_raydan_qoperations(
+                    p_prev,
+                    p_next,
+                    q_prev,
+                    q_next,
+                    x_prev,
+                    x_next,
+                    y_prev,
+                    y_next,
+                    self.eps_proj_physical,
+                )
+            else:
+                error_value = None
+
             if is_iteration_history:
                 ps.append(p_next)
                 qs.append(q_next)
                 xs.append(x_next)
                 ys.append(y_next)
                 error_values.append(error_value)
+
+            # increase step
+            k += 1
 
         if is_iteration_history:
             history = {
@@ -611,8 +636,8 @@ class QOperation:
     ) -> float:
         val = (
             np.sum((p_prev - p_next) ** 2 + (q_prev - q_next) ** 2)
-            + 2 * np.abs(np.dot(p_prev, x_prev - x_next))
-            + 2 * np.abs(np.dot(q_prev, y_prev - y_next))
+            - 2 * np.dot(p_prev, y_next - y_prev)
+            - 2 * np.dot(q_prev, x_next - x_prev)
         )
 
         logger.debug(f"result of _calc_stopping_criterion_birgin_raydan_vectors={val}")

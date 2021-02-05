@@ -73,7 +73,7 @@ class TestLossMinimizationEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert type(actual.computation_time) == float
 
         # is_computation_time_required=False
@@ -82,7 +82,7 @@ class TestLossMinimizationEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert actual.computation_time == None
 
     def test_calc_estimate__on_algo_xx_constraint(self):
@@ -115,7 +115,7 @@ class TestLossMinimizationEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
 
         # case2: on_algo_eq_constraint=True, on_algo_ineq_constraint=False
         qst, _ = get_test_data()
@@ -220,7 +220,7 @@ class TestLossMinimizationEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
 
         # case2: func_proj=func_proj.proj_to_self
         qst, _ = get_test_data()
@@ -246,7 +246,7 @@ class TestLossMinimizationEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
 
         # case3: func_proj=func_proj.proj_to_hyperplane
         qst, _ = get_test_data()
@@ -272,7 +272,7 @@ class TestLossMinimizationEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
 
         # case4: func_proj=func_proj.proj_to_nonnegative
         qst, _ = get_test_data()
@@ -298,7 +298,7 @@ class TestLossMinimizationEstimator:
         )
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
-        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
 
     def test_calc_estimate_sequence(self):
         qst, _ = get_test_data()
@@ -334,7 +334,7 @@ class TestLossMinimizationEstimator:
         ]
         for a, e in zip(actual.estimated_qoperation_sequence, expected):
             assert a.is_physical()
-            npt.assert_almost_equal(a.to_stacked_vector(), e, decimal=15)
+            npt.assert_almost_equal(a.to_stacked_vector(), e, decimal=7)
 
     def test_calc_estimate_sequence_value_error(self):
         qst, _ = get_test_data()
