@@ -385,25 +385,30 @@ class Gate(QOperation):
             for (eigen_val, eigen_vec) in eigens
         ]
 
-        # step3:
+        # step3: fix phase
         kraus = []
         for k in _kraus:
-            k_00 = k[0][0]
+            # k_00 = k[0][0]
 
             # ang = np.angle(k_00)
             # _k = (np.e ** (-1j * ang)) * k
             # kraus.append(_k)
+            for i, value in enumerate(k.flatten()):
+                if value == 0:
+                    continue
+                elif value < 0:
+                    print(f"debug: k[{i}] value < 0")
+                    e_i_theta = value / abs(value)
+                    _k = (1 / e_i_theta) * k
 
-            if k_00 < 0:
-                print("debug: k_00 < 0")
-                e_i_theta = k_00 / abs(k_00)
-                _k = (1 / e_i_theta) * k
-
-                # _k = (np.e ** (-1j * ang)) * k
-                kraus.append(_k)
+                    # _k = (np.e ** (-1j * ang)) * k
+                    kraus.append(_k)
+                    break
+                else:
+                    kraus.append(k)
+                    break
             else:
                 kraus.append(k)
-
         return kraus
 
     def to_process_matrix(self) -> np.array:

@@ -451,12 +451,11 @@ class TestGate:
         npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye2, decimal=14)
 
         # for Z
-        # actual = get_z(c_sys).to_kraus_matrices()
-        # # expected = [np.array([[-1, 0], [0, 1]], dtype=np.complex128)]
-        # expected = [np.array([[-1, 0], [0, 1]], dtype=np.complex128)]
-        # assert len(actual) == 1
-        # npt.assert_almost_equal(actual[0], expected[0], decimal=15)
-        # npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye2, decimal=14)
+        actual = get_z(c_sys).to_kraus_matrices()
+        expected = [np.array([[1, 0], [0, -1]], dtype=np.complex128)]
+        assert len(actual) == 1
+        npt.assert_almost_equal(actual[0], expected[0], decimal=15)
+        npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye2, decimal=14)
 
         # for H
         actual = get_h(c_sys).to_kraus_matrices()
