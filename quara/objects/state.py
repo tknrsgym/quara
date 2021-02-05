@@ -248,7 +248,7 @@ class State(QOperation):
         """
         # calc engenvalues and engenvectors
         density_matrix_orig = self.to_density_matrix()
-        eigenvals, eigenvecs = np.linalg.eig(density_matrix_orig)
+        eigenvals, eigenvecs = np.linalg.eigh(density_matrix_orig)
 
         # project
         for index in range(len(eigenvals)):

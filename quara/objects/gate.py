@@ -364,7 +364,7 @@ class Gate(QOperation):
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
         choi = self.to_choi_matrix()
-        eigen_vals, eigen_vecs = np.linalg.eig(choi)
+        eigen_vals, eigen_vecs = np.linalg.eigh(choi)
         eigens = [
             (eigen_vals[index], eigen_vecs[:, index])
             for index in range(len(eigen_vals))
@@ -386,15 +386,23 @@ class Gate(QOperation):
         ]
 
         # step3:
-        # kraus = []
-        # for k in _kraus:
-        #     k_00 = k[0][0]
-        #     if k_00 < 0:
-        #         e_i_theta = k_00 / abs(k_00)
-        #         kraus.append((1 / e_i_theta) * k)
-        #     else:
-        #         kraus.append(k)
-        kraus = _kraus
+        kraus = []
+        for k in _kraus:
+            k_00 = k[0][0]
+
+            # ang = np.angle(k_00)
+            # _k = (np.e ** (-1j * ang)) * k
+            # kraus.append(_k)
+
+            if k_00 < 0:
+                print("debug: k_00 < 0")
+                e_i_theta = k_00 / abs(k_00)
+                _k = (1 / e_i_theta) * k
+
+                # _k = (np.e ** (-1j * ang)) * k
+                kraus.append(_k)
+            else:
+                kraus.append(k)
 
         return kraus
 
