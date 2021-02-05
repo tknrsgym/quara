@@ -214,7 +214,7 @@ class TestPovm:
         # Assert
         expected = [
             np.array([1, 0], dtype=np.float64),
-            np.array([0, 1], dtype=np.float64),
+            np.array([1, 0], dtype=np.float64),
         ]
 
         assert len(actual) == len(expected)
@@ -243,7 +243,7 @@ class TestPovm:
         actual = povm.calc_eigenvalues(1)
 
         # Assert
-        expected = np.array([0, 1], dtype=np.float64)
+        expected = np.array([1, 0], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     # def test_validate_dim_ng(self):
