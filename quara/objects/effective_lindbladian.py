@@ -5,11 +5,10 @@ from operator import add
 from typing import List, Tuple, Optional
 
 import numpy as np
-from scipy.linalg import expm
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.gate import Gate, convert_hs
+from quara.objects.gate import Gate
 from quara.objects.matrix_basis import (
     MatrixBasis,
     get_comp_basis,
@@ -62,8 +61,7 @@ class EffectiveLindbladian(Gate):
             ``is_physicality_required`` is ``True`` and the gate is not physically correct.
         """
         super().__init__(
-            c_sys,
-            hs,
+            c_sys=c_sys,
             is_physicality_required=is_physicality_required,
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
@@ -71,93 +69,84 @@ class EffectiveLindbladian(Gate):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             eps_proj_physical=eps_proj_physical,
         )
+        self._hs: np.ndarray = hs
 
-        # whether the EffectiveLindbladian is physically correct
+        # whether HS representation is square matrix
+        size = self._hs.shape
+        if size[0] != size[1]:
+            raise ValueError(f"HS must be square matrix. size of HS is {size}")
+
+        # whether dim of HS representation is square number
+        self._dim: int = int(np.sqrt(size[0]))
+        if self._dim ** 2 != size[0]:
+            raise ValueError(f"dim of HS must be square number. dim of HS is {size[0]}")
+
+        # whether HS representation is real matrix
+        if self._hs.dtype != np.float64:
+            raise ValueError(f"HS must be real matrix. dtype of HS is {self._hs.dtype}")
+
+        # whether dim of HS equals dim of CompositeSystem
+        if self._dim != self.composite_system.dim:
+            raise ValueError(
+                f"dim of HS must equal dim of CompositeSystem.  dim of HS is {self._dim}. dim of CompositeSystem is {self.composite_system.dim}"
+            )
+
+        # whether the gate is physically correct
         if self.is_physicality_required and not self.is_physical():
-            raise ValueError("the EffectiveLindbladian is not phsically correct.")
+            raise ValueError("the gate is not physically correct.")
 
-    # TODO delete
-    def is_physical(self):
-        return True
+    def _info(self):
+        info = {}
+        info["Type"] = self.__class__.__name__
+        info["Dim"] = self.dim
+        info["HS"] = self.hs
+        return info
 
-    def calc_h(self) -> np.array:
-        basis = self.composite_system.basis()
-        comp_basis = self.composite_system.comp_basis()
-        lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
-        identity = np.eye(self.dim)
+    @property
+    def dim(self):
+        """returns dim of gate.
 
-        tmp_h_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
-        for B_alpha in basis:
-            trace = np.trace(
-                lindbladian_cb
-                @ (np.kron(B_alpha, identity) - np.kron(identity, B_alpha.conj()))
-            )
-            h_alpha = 1j / (2 * self.dim) * trace
-            tmp_h_mat += h_alpha * B_alpha
+        Returns
+        -------
+        int
+            dim of gate.
+        """
+        return self._dim
 
-        # TODO h_mat is float64
-        return tmp_h_mat
+    @property
+    def hs(self):
+        """returns HS representation of gate.
 
-    def calc_j(self) -> np.array:
-        basis = self.composite_system.basis()
-        comp_basis = self.composite_system.comp_basis()
-        lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
-        identity = np.eye(self.dim)
+        Returns
+        -------
+        np.array
+            HS representation of gate.
+        """
+        return self._hs
 
-        tmp_j_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
-        for alpha, B_alpha in enumerate(basis[1:]):
-            trace = np.trace(
-                lindbladian_cb
-                @ (np.kron(B_alpha, identity) + np.kron(identity, B_alpha.conj()))
-            )
-            delta = 1 if alpha == 0 else 0
-            j_alpha = 1 / (2 * self.dim * (1 + delta)) * trace
-            tmp_j_mat += j_alpha * B_alpha
+    def is_physical(
+        self, atol_eq_const: float = None, atol_ineq_const: float = None
+    ) -> bool:
+        """returns whether the gate is physically correct.
 
-        # TODO j_mat is float64
-        return tmp_j_mat
+        all of the following conditions are ``True``, the gate is physically correct:
 
-    def calc_k(self) -> np.array:
-        basis = self.composite_system.basis()
-        comp_basis = self.composite_system.comp_basis()
-        lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
+        - gate is TP(trace-preserving map).
+        - gate is CP(Complete-Positivity-Preserving).
 
-        tmp_k_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
-        for alpha, B_alpha in enumerate(basis[1:]):
-            for beta, B_beta in enumerate(basis[1:]):
-                tmp_k_mat[alpha, beta] = np.trace(
-                    lindbladian_cb @ np.kron(B_alpha, B_beta.conj())
-                )
+        Parameters
+        ----------
+        atol_eq_const : float, optional
+            Error tolerance used to determine if the Gate is TP(trace-preserving map). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        atol_ineq_const : float, optional
+            Error tolerance used to determine if the Gate is CP(Complete-Positivity-Preserving). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
-        return tmp_k_mat
-
-    def calc_h_part(self) -> np.array:
-        h_mat = self.calc_h()
-        h_part = _calc_h_part_from_h_mat(h_mat)
-        return h_part
-
-    def calc_j_part(self) -> np.array:
-        j_mat = self.calc_j()
-        j_part = _calc_j_part_from_j_mat(j_mat)
-        return j_part
-
-    def calc_k_part(self) -> np.array:
-        k_mat = self.calc_k()
-        k_part = _calc_k_part_from_k_mat(k_mat, self.composite_system)
-        return k_part
-
-    def calc_d_part(self) -> np.array:
-        d_part = self.calc_j_part() + self.calc_k_part()
-        return d_part
-
-    def is_eq_constraint_satisfied(self, atol_eq_const: float = None) -> bool:
-        atol_eq_const = Settings.get_atol() if atol_eq_const is None else atol_eq_const
-        # TODO implement
-        return np.allclose(self.hs[0], 0, atol=atol_eq_const, rtol=0.0)
-
-    def is_ineq_constraint_satisfied(self, atol_ineq_const: float = None) -> bool:
-        # TODO implement
-        return True
+        Returns
+        -------
+        bool
+            whether the gate is physically correct.
+        """
+        return self.is_tp(atol=atol_eq_const) and self.is_cp(atol=atol_ineq_const)
 
     def set_zero(self):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)
@@ -168,19 +157,21 @@ class EffectiveLindbladian(Gate):
         return new_hs
 
     def _generate_origin_obj(self):
-        # TODO modify for EffectiveLindbladian
         size = self.hs.shape
         new_hs = np.zeros(size)
         new_hs[0][0] = 1
         return new_hs
 
     def to_var(self) -> np.array:
-        # TODO modify for EffectiveLindbladian
+        # TODO modify
         return convert_gate_to_var(
             c_sys=self.composite_system,
             hs=self.hs,
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
+
+    def to_stacked_vector(self) -> np.array:
+        return self.hs.flatten()
 
     def calc_gradient(self, var_index: int) -> "Gate":
         gate = calc_gradient_from_gate(
@@ -196,7 +187,7 @@ class EffectiveLindbladian(Gate):
         return gate
 
     def calc_proj_eq_constraint(self) -> "Gate":
-        # TODO modify for EffectiveLindbladian
+        # TODO modify
         hs = copy.deepcopy(self.hs)
         hs[0][0] = 1
         hs[0][1:] = 0
@@ -214,7 +205,7 @@ class EffectiveLindbladian(Gate):
         return new_gate
 
     def calc_proj_ineq_constraint(self) -> "Gate":
-        # TODO modify for EffectiveLindbladian
+        # TODO modify
         choi_matrix = self.to_choi_matrix()
         eigenvals, eigenvecs = np.linalg.eig(choi_matrix)
 
@@ -238,7 +229,6 @@ class EffectiveLindbladian(Gate):
 
         return new_gate
 
-    # TOOD 見直し
     def _add_vec(self, other) -> np.array:
         new_hs = self.hs + other.hs
         return new_hs
@@ -443,6 +433,21 @@ class EffectiveLindbladian(Gate):
 
     def _copy(self):
         return copy.deepcopy(self.hs)
+
+
+def hs_from_choi(choi, c_sys: CompositeSystem) -> np.array:
+    basis_no = len(c_sys.basis().basis)
+    hs = np.zeros((basis_no, basis_no), dtype=np.float64)
+    basis = copy.deepcopy(c_sys.basis().basis)
+
+    for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+        b_alpha = np.conjugate(basis[alpha].T)
+        b_beta = basis[beta].T
+        hs[alpha, beta] = (np.trace(np.kron(b_alpha, b_beta) @ choi)).real.astype(
+            np.float64
+        )
+
+    return hs
 
 
 def convert_var_index_to_gate_index(
@@ -657,140 +662,679 @@ def is_hp(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
     return np.allclose(hs_converted.imag, zero_matrix, atol=atol, rtol=0.0)
 
 
-def _check_h_mat(h_mat: np.array, dim: int) -> None:
-    # whetever h_mat is Hermitian
-    if not mutil.is_hermitian(h_mat):
-        raise ValueError("h_mat must be Hermitian. h_mat={h_mat}")
+def calc_agf(g: Gate, u: Gate) -> np.float64:
+    """returns AGF(Average Gate Fidelity) and ``g`` and ``u``.
 
-    # whether dim of h_mat equals dim of CompositeSystem
-    size = h_mat.shape[0]
-    if dim != size:
-        raise ValueError(
-            f"dim of h_mat must equal dim of CompositeSystem.  dim of h_mat is {size}. dim of CompositeSystem is {dim}"
-        )
+    Parameters
+    ----------
+    g : Gate
+        L-TP-CP map.
+    u : Gate
+        unitary gate.
 
+    Returns
+    -------
+    np.float64
+        AGF.
 
-def _calc_h_part_from_h_mat(h_mat: np.array) -> np.array:
-    identity = np.eye(h_mat.shape[0])
-    return -1j * (np.kron(h_mat, identity) - np.kron(identity, h_mat.conj()))
+    Raises
+    ------
+    ValueError
+        HS representation of ``u`` is not Hermitian.
+    """
+    # u: unitary gate <=> HS(u) is Hermitian
+    # whetever HS(u) is Hermitian
+    if not mutil.is_hermitian(u.hs):
+        raise ValueError("gate u must be unitary")
 
-
-def _check_j_mat(j_mat: np.array, dim: int) -> None:
-    # whetever j_mat is Hermitian
-    if not mutil.is_hermitian(j_mat):
-        raise ValueError("j_mat must be Hermitian. j_mat={j_mat}")
-
-    # whether dim of j_mat equals dim of CompositeSystem
-    size = j_mat.shape[0]
-    if dim != size:
-        raise ValueError(
-            f"dim of j_mat must equal dim of CompositeSystem.  dim of j_mat is {size}. dim of CompositeSystem is {dim}"
-        )
-
-
-def _calc_j_part_from_j_mat(j_mat: np.array) -> np.array:
-    identity = np.eye(j_mat.shape[0])
-    return np.kron(j_mat, identity) - np.kron(identity, j_mat.conj())
+    # let trace = Tr[HS(u)^{\dagger}HS(g)]
+    # AGF = 1-\frac{d^2-trace}{d(d+1)}
+    d = u.dim
+    trace = np.vdot(u.hs, g.hs)
+    agf = 1 - (d ** 2 - trace) / (d * (d + 1))
+    return agf
 
 
-def _check_k_mat(k_mat: np.array, dim: int) -> None:
-    # whetever k_mat is Hermitian
-    if not mutil.is_hermitian(k_mat):
-        raise ValueError("k_mat must be Hermitian. k_mat={k_mat}")
-
-    # whether dim of k_mat equals dim of CompositeSystem
-    size = k_mat.shape[0]
-    if dim ** 2 - 1 != size:
-        raise ValueError(
-            f"dim of k_mat must equal 'dim of CompositeSystem' ** 2 -1 .  dim of k_mat is {size}. dim of CompositeSystem is {dim}"
-        )
-
-
-def _calc_k_part_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> np.array:
-    basis = c_sys.basis()
-    k_part = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.complex128)
-    for row in range(k_mat.shape[0]):
-        for col in range(k_mat.shape[0]):
-            term = k_mat[row, col] * np.kron(basis[row + 1], basis[col + 1].conj())
-            k_part += term
-
-    return k_part
-
-
-def generate_hs_from_hjk(
-    c_sys: CompositeSystem,
-    h_mat: np.ndarray,
-    j_mat: np.ndarray,
-    k_mat: np.ndarray,
-    eps_proj_physical: float = None,
+def convert_hs(
+    from_hs: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
 ) -> np.array:
-    dim = c_sys.dim
+    """returns HS representation for ``to_basis``
 
-    # calculate h_part
-    _check_h_mat(h_mat, dim)
-    h_part = _calc_h_part_from_h_mat(h_mat)
+    Parameters
+    ----------
+    from_hs : np.array
+        HS representation before convert.
+    from_basis : MatrixBasis
+        basis before convert.
+    to_basis : MatrixBasis
+        basis after convert.
 
-    # calculate j_part
-    _check_j_mat(j_mat, dim)
-    j_part = _calc_j_part_from_j_mat(j_mat)
+    Returns
+    -------
+    np.array
+        HS representation for ``to_basis``.
 
-    # calculate k_part
-    _check_j_mat(j_mat, dim)
-    k_part = _calc_k_part_from_k_mat(k_mat, c_sys)
+    Raises
+    ------
+    ValueError
+        ``from_hs`` is not square matrix.
+    ValueError
+        dim of ``from_hs`` is not square number.
+    ValueError
+        dim of ``from_basis`` does not equal dim of ``to_basis``.
+    ValueError
+        length of ``from_basis`` does not equal length of ``to_basis``.
+    """
+    ### parameter check
 
-    print(f"h_part={h_part}")
-    print(f"j_part={j_part}")
-    print(f"k_part={k_part}")
+    # whether HS is square matrix
+    size = from_hs.shape
+    if size[0] != size[1]:
+        raise ValueError(f"HS must be square matrix. size of HS is {size}")
 
-    ### calculate hs(=Lindbladian for Hermitian basis)
-    lindbladian_comp_basis = h_part + j_part + k_part
-    tmp_lindladian = convert_hs(
-        lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    # whether dim of HS is square number
+    dim: int = int(np.sqrt(size[0]))
+    if dim ** 2 != size[0]:
+        raise ValueError(f"dim of HS must be square number. dim of HS is {size[0]}")
+
+    # whether dim of from_basis equals dim of to_basis
+    if from_basis.dim != to_basis.dim:
+        raise ValueError(
+            f"dim of from_basis must equal dim of to_basis.  dim of from_basis is {from_basis.dim}. dim of to_basis is {to_basis.dim}"
+        )
+
+    # whether length of from_basis equals length of to_basis
+    if len(from_basis) != len(to_basis):
+        raise ValueError(
+            f"length of from_basis must equal length of to_basis.  length of from_basis is {len(from_basis)}. length of to_basis is {len(to_basis)}"
+        )
+
+    ### main logic
+
+    # U_{\alpha,\bata} := Tr[to_basis_{\alpha}^{\dagger} @ from_basis_{\beta}]
+    trans_matrix = [
+        np.vdot(B_alpha, B_beta)
+        for B_alpha, B_beta in itertools.product(to_basis, from_basis)
+    ]
+    U = np.array(trans_matrix).reshape(from_basis.dim ** 2, from_basis.dim ** 2)
+    to_hs = U @ from_hs @ U.conj().T
+    return to_hs
+
+
+def _get_1q_gate_from_hs_on_pauli_basis(
+    matrix: np.array, c_sys: CompositeSystem
+) -> Gate:
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    # convert "HS representation in Pauli basis" to "HS representation in basis of CompositeSystem"
+    hs = convert_hs(matrix, get_normalized_pauli_basis(), c_sys.basis())
+    gate = Gate(c_sys, hs.real.astype(np.float64))
+    return gate
+
+
+def get_i(c_sys: CompositeSystem) -> Gate:
+    """returns identity gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        identity gate.
+    """
+    hs = np.eye(c_sys.dim ** 2, dtype=np.float64)
+    gate = Gate(c_sys, hs)
+    return gate
+
+
+def get_x(c_sys: CompositeSystem) -> Gate:
+    """returns Pauli X gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        Pauli X gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
-    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
-        tmp_lindladian, eps_proj_physical
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_y(c_sys: CompositeSystem) -> Gate:
+    """returns Pauli Y gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        Pauli Y gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_z(c_sys: CompositeSystem) -> Gate:
+    """returns Pauli Z gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        Pauli Z gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]], dtype=np.float64
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_h(c_sys: CompositeSystem) -> Gate:
+    """returns H gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        H gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, -1, 0], [0, 1, 0, 0]], dtype=np.float64
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_root_x(c_sys: CompositeSystem) -> Gate:
+    """returns root of X gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        root of X gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]], dtype=np.float64
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_root_y(c_sys: CompositeSystem) -> Gate:
+    """returns root of Y gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        root of Y gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, -1, 0, 0]], dtype=np.float64
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_s(c_sys: CompositeSystem) -> Gate:
+    """returns S gate(root of Z).
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        S gate(root of Z).
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], dtype=np.float64
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_sdg(c_sys: CompositeSystem) -> Gate:
+    """returns dagger of S gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        dagger of S gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]], dtype=np.float64
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_t(c_sys: CompositeSystem) -> Gate:
+    """returns T gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        T gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 1quit.
+    ValueError
+        dim of CompositeSystem does not equal 2
+    """
+    # whether CompositeSystem is 1 qubit
+    size = len(c_sys._elemental_systems)
+    if size != 1:
+        raise ValueError(f"CompositeSystem must be 1 qubit. it is {size} qubits")
+
+    matrix = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1 / np.sqrt(2), -1 / np.sqrt(2), 0],
+            [0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0],
+            [0, 0, 0, 1],
+        ],
+        dtype=np.float64,
+    )
+    gate = _get_1q_gate_from_hs_on_pauli_basis(matrix, c_sys)
+    return gate
+
+
+def get_cnot(c_sys: CompositeSystem, control: ElementalSystem) -> Gate:
+    """returns CNOT gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+    control : ElementalSystem
+        ElementalSystem of control qubit.
+
+    Returns
+    -------
+    Gate
+        CNOT gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quits.
+    ValueError
+        dim of CompositeSystem does not equal 4.
+    """
+    # whether CompositeSystem is 2 qubits
+    size = len(c_sys._elemental_systems)
+    if size != 2:
+        raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
+
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    if control.name == c_sys.elemental_systems[0].name:
+        # control bit is 1st qubit
+        hs_comp_basis = np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            ],
+            dtype=np.float64,
+        )
+    else:
+        # control bit is 2nd qubit
+        hs_comp_basis = np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ],
+            dtype=np.float64,
+        )
+
+    hs_for_c_sys = convert_hs(
+        hs_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    ).real.astype(np.float64)
+    gate = Gate(c_sys, hs_for_c_sys)
+    return gate
+
+
+def get_cz(c_sys: CompositeSystem) -> Gate:
+    """returns CZ gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        CZ gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quits.
+    ValueError
+        dim of CompositeSystem does not equal 4.
+    """
+    # whether CompositeSystem is 2 qubits
+    size = len(c_sys._elemental_systems)
+    if size != 2:
+        raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
+
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    hs_comp_basis = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        ],
+        dtype=np.float64,
     )
 
-    return lindbladian_hermitian_basis
+    hs_for_c_sys = convert_hs(
+        hs_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    ).real.astype(np.float64)
+    gate = Gate(c_sys, hs_for_c_sys)
+    return gate
 
 
-def generate_effective_lindbladian_from_hjk(
-    c_sys: CompositeSystem,
-    h_mat: np.ndarray,
-    j_mat: np.ndarray,
-    k_mat: np.ndarray,
-    is_physicality_required: bool = True,
-    is_estimation_object: bool = True,
-    on_para_eq_constraint: bool = True,
-    on_algo_eq_constraint: bool = True,
-    on_algo_ineq_constraint: bool = True,
-    eps_proj_physical: float = None,
-):
-    # generate HS
-    hs = generate_hs_from_hjk(c_sys, h_mat, j_mat, k_mat)
-    print(f"lind hs={hs}")
+def get_swap(c_sys: CompositeSystem) -> Gate:
+    """returns SWAP gate.
 
-    # init
-    effective_lindbladian = EffectiveLindbladian(
-        c_sys,
-        hs,
-        is_physicality_required=is_physicality_required,
-        is_estimation_object=is_estimation_object,
-        on_para_eq_constraint=on_para_eq_constraint,
-        on_algo_eq_constraint=on_algo_eq_constraint,
-        on_algo_ineq_constraint=on_algo_ineq_constraint,
-        eps_proj_physical=eps_proj_physical,
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        SWAP gate.
+
+    Raises
+    ------
+    ValueError
+        CompositeSystem is not 2quits.
+    ValueError
+        dim of CompositeSystem does not equal 4
+    """
+    # whether CompositeSystem is 2 qubits
+    size = len(c_sys._elemental_systems)
+    if size != 2:
+        raise ValueError(f"CompositeSystem must be 2 qubits. it is {size} qubits")
+
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    hs_comp_basis = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        ],
+        dtype=np.float64,
     )
-    return effective_lindbladian
+
+    hs_for_c_sys = convert_hs(
+        hs_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    ).real.astype(np.float64)
+    gate = Gate(c_sys, hs_for_c_sys)
+    return gate
 
 
-# TODO generate_hs_from_h
-# TODO generate_effective_lindbladian_from_h
+def get_depolarizing_channel(p: float, c_sys: Optional[CompositeSystem] = None) -> Gate:
+    hs = np.diag(np.array([1, 1 - p, 1 - p, 1 - p], dtype=np.float64))
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
 
-# TODO generate_hs_from_hk
-# TODO generate_effective_lindbladian_from_hk
 
-# TODO generate_hs_from_k
-# TODO generate_effective_lindbladian_from_k
+def get_x_rotation(theta: float, c_sys: Optional[CompositeSystem] = None) -> Gate:
+    hs = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, np.cos(theta), -np.sin(theta)],
+            [0, 0, np.sin(theta), np.cos(theta)],
+        ],
+        dtype=np.float64,
+    )
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
 
+
+def get_amplitutde_damping_channel(
+    gamma: float, c_sys: Optional[CompositeSystem] = None
+) -> Gate:
+    hs = np.array(
+        [
+            [1, 0, 0, 0],
+            [0, np.sqrt(1 - gamma), 0, 0],
+            [0, 0, np.sqrt(1 - gamma), 0],
+            [gamma, 0, 0, 1 - gamma],
+        ],
+        dtype=np.float64,
+    )
+    if not c_sys:
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+    gate = Gate(hs=hs, c_sys=c_sys)
+    return gate
