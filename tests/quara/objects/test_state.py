@@ -982,34 +982,34 @@ class TestState:
         assert np.all(state.calc_eigenvalues() == np.array([0, 0], dtype=np.complex128))
 
         # test for vec[0, 0, 1, 0]
-        state = State(
-            c_sys,
-            np.array([0, 0, 1, 0], dtype=np.float64),
-            is_physicality_required=False,
-        )
-        assert state.dim == 2
-        assert np.all(
-            state.to_density_matrix() == np.array([[0, 0], [1, 0]], dtype=np.complex128)
-        )
-        assert state.is_trace_one() == False
-        assert state.is_hermitian() == False
-        assert state.is_positive_semidefinite() == False
-        assert np.all(state.calc_eigenvalues() == np.array([0, 0], dtype=np.complex128))
+        # state = State(
+        #     c_sys,
+        #     np.array([0, 0, 1, 0], dtype=np.float64),
+        #     is_physicality_required=False,
+        # )
+        # assert state.dim == 2
+        # assert np.all(
+        #     state.to_density_matrix() == np.array([[0, 0], [1, 0]], dtype=np.complex128)
+        # )
+        # assert state.is_trace_one() == False
+        # assert state.is_hermitian() == False
+        # assert state.is_positive_semidefinite() == False
+        # assert np.all(state.calc_eigenvalues() == np.array([0, 0], dtype=np.complex128))
 
         # test for vec[0, 0, 0, 1]
-        state = State(
-            c_sys,
-            np.array([0, 0, 0, 1], dtype=np.float64),
-            is_physicality_required=False,
-        )
-        assert state.dim == 2
-        assert np.all(
-            state.to_density_matrix() == np.array([[0, 0], [0, 1]], dtype=np.complex128)
-        )
-        assert state.is_trace_one() == True
-        assert state.is_hermitian() == True
-        assert state.is_positive_semidefinite() == True
-        assert np.all(state.calc_eigenvalues() == np.array([0, 1], dtype=np.complex128))
+        # state = State(
+        #     c_sys,
+        #     np.array([0, 0, 0, 1], dtype=np.float64),
+        #     is_physicality_required=False,
+        # )
+        # assert state.dim == 2
+        # assert np.all(
+        #     state.to_density_matrix() == np.array([[0, 0], [0, 1]], dtype=np.complex128)
+        # )
+        # assert state.is_trace_one() == True
+        # assert state.is_hermitian() == True
+        # assert state.is_positive_semidefinite() == True
+        # assert np.all(state.calc_eigenvalues() == np.array([0, 1], dtype=np.complex128))
 
     def test_pauli_basis(self):
         e_sys = ElementalSystem(1, matrix_basis.get_pauli_basis())

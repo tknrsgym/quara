@@ -347,7 +347,10 @@ class State(QOperation):
         List
             eigen values of density matrix.
         """
-        return np.linalg.eigvals(self.to_density_matrix())
+        values = np.linalg.eigvalsh(self.to_density_matrix())
+        values = sorted(values, reverse=True)
+        # values = np.linalg.eigvals(self.to_density_matrix())
+        return values
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns vector representation for ``other_basis``.
