@@ -894,7 +894,7 @@ def generate_consistency_check_table(
         "Estimator": type_estimator_values,
         "Loss": type_loss_values,
         "Algo": type_algo_values,
-        "Result": [f"{r:.2e}" for r in result_list],
+        "Squared Error to True": [f"{r:.2e}" for r in result_list],
     }
 
     styles = [
