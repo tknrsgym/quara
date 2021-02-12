@@ -549,6 +549,9 @@ def is_physical_qobjects_all(
             message = (
                 f"[{'OK' if result else 'NG'}] N={num} physicality violation check"
             )
+            message += (
+                f"\nTrue={len(estimation_results)-unphysical_n}, False={unphysical_n}"
+            )
             print(message)
 
     if False in check_results:
@@ -563,16 +566,16 @@ def calc_unphysical_qobjects_n(
     sample = source[0]
     if isinstance(sample, EstimationResult):
         if num_data_index is None:
-            # TODO: message
-            raise ValueError()
+            message = "If `source` is list of EstimationResult, `num_data_index` must be specified."
+            raise ValueError(message)
         estimated_qoperations = _convert_result_to_qoperation(
             source, num_data_index=num_data_index
         )
     elif isinstance(sample, QOperation):
         estimated_qoperations = source
     else:
-        # TODO: message
-        raise TypeError()
+        message = f"`source` must be list of EstimationResult or QOperation, not {type(source)}"
+        raise TypeError(message)
     n_unphysical = len(
         [
             q
@@ -755,41 +758,47 @@ def is_eq_constraint_satisfied_all(
     estimation_results, show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    for result in estimation_results:
+    num_data = estimation_results[0].num_data
+    for num_data_index, num in enumerate(num_data):
         check_results = [
-            qope.is_eq_constraint_satisfied(__eq_const_eps)
-            for qope in result.estimated_qoperation_sequence
+            result.estimated_qoperation_sequence[
+                num_data_index
+            ].is_eq_constraint_satisfied(__eq_const_eps)
+            for result in estimation_results
         ]
-        all_check_results += check_results
+        result = False not in check_results
+        all_check_results.append(result)
+        if show_detail:
+            counter = Counter(check_results)
+            message = (
+                f"[{'OK' if result else 'NG'}] N={num} is_eq_constraint_satisfied_all"
+            )
+            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={__eq_const_eps}"
+            print(message)
 
-    if show_detail:
-        counter = Counter(all_check_results)
-        print(
-            f"is_eq_constraint_satisfied_all: True={counter['False']}, False={counter['False']}"
-        )
-    if False in all_check_results:
-        return False
-    else:
-        return True
+    return False not in all_check_results
 
 
 def is_ineq_constraint_satisfied_all(
     estimation_results, show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    for result in estimation_results:
+    num_data = estimation_results[0].num_data
+    for num_data_index, num in enumerate(num_data):
         check_results = [
-            qope.is_ineq_constraint_satisfied(__ineq_const_eps)
-            for qope in result.estimated_qoperation_sequence
+            result.estimated_qoperation_sequence[
+                num_data_index
+            ].is_ineq_constraint_satisfied(__ineq_const_eps)
+            for result in estimation_results
         ]
-        all_check_results += check_results
-    if show_detail:
-        counter = Counter(all_check_results)
-        print(
-            f"is_ineq_constraint_satisfied_all: True={counter['False']}, False={counter['False']}"
-        )
+        result = False not in check_results
+        all_check_results.append(result)
+        if show_detail:
+            counter = Counter(check_results)
+            message = (
+                f"[{'OK' if result else 'NG'}] N={num} is_ineq_constraint_satisfied_all"
+            )
+            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={__ineq_const_eps}"
+            print(message)
 
-    if False in all_check_results:
-        return False
-    else:
-        return True
+    return False not in all_check_results
