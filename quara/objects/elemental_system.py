@@ -37,7 +37,7 @@ class ElementalSystem:
         self._system_id: int = id(self)
         self._dim: int = basis.dim
         self._basis: MatrixBasis = basis
-        self._is_hermitian =  self._basis.is_hermitian()
+        self._is_hermitian = self._basis.is_hermitian()
         self._is_orthonormal_hermitian_0thpropI = (
             self._basis.is_normal()
             and self._basis.is_orthogonal()
@@ -107,7 +107,7 @@ class ElementalSystem:
     def __str__(self):
         desc = f"name: {self.name} \n"
         desc += f"system_id: {self.system_id} \n"
-        desc += f"basis: {self._basis}"
+        desc += f"basis: {self.basis}"
         return desc
 
     def __repr__(self):
