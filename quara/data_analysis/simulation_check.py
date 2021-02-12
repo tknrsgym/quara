@@ -129,7 +129,7 @@ class StandardQTomographySimulationCheck:
             para = self.estimation_results[0].estimated_qoperation.on_para_eq_constraint
             if para:
                 return physicality_violation_check.is_eq_constraint_satisfied_all(
-                    self.estimation_results
+                    self.estimation_results, show_detail=show_detail
                 )
             else:
                 warnings.warn(
@@ -148,7 +148,7 @@ class StandardQTomographySimulationCheck:
                 results = []
                 if on_algo_eq_constraint:
                     result = physicality_violation_check.is_eq_constraint_satisfied_all(
-                        self.estimation_results
+                        self.estimation_results, show_detail=show_detail
                     )
                     results.append(result)
                     if show_detail:
@@ -157,7 +157,7 @@ class StandardQTomographySimulationCheck:
 
                 if on_algo_ineq_constraint:
                     result = physicality_violation_check.is_ineq_constraint_satisfied_all(
-                        self.estimation_results
+                        self.estimation_results, show_detail=show_detail
                     )
                     results.append(result)
                     if show_detail:
