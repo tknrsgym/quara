@@ -47,7 +47,9 @@ def execute_consistency_check(
     eps=None,
     show_detail: bool = True,
 ) -> bool:
-    eps = 10 ** (-16) if eps is None else eps
+    if eps is None:
+        para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
+        eps = 10 ** (-16) if para else 10 ** (-12)
     result = calc_mse_of_true_estimated(
         true_object=simulation_setting.true_object,
         qtomography=estimation_results[0].qtomography,
