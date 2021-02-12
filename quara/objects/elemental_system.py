@@ -36,7 +36,6 @@ class ElementalSystem:
         # But just in case, implement ``system_id``.
         self._system_id: int = id(self)
         self._dim: int = basis.dim
-        self._comp_basis: MatrixBasis = get_comp_basis(self._dim)
         self._hemirtian_basis: MatrixBasis = basis
         self._is_orthonormal_hermitian_0thpropI = (
             self._hemirtian_basis.is_normal()
@@ -83,7 +82,7 @@ class ElementalSystem:
 
     @property
     def comp_basis(self) -> MatrixBasis:  # read only
-        return self._comp_basis
+        return get_comp_basis(self._dim)
 
     @property
     def hemirtian_basis(self) -> MatrixBasis:  # read only
