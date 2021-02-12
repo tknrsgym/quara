@@ -97,9 +97,9 @@ class CompositeSystem:
         basis_tmp: MatrixBasis
 
         if len(self._elemental_systems) == 1:
-            basis_tmp = self._elemental_systems[0].hemirtian_basis
+            basis_tmp = self._elemental_systems[0].basis
         else:
-            basis_list = [e_sys.hemirtian_basis for e_sys in self._elemental_systems]
+            basis_list = [e_sys.basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
             for elem in basis_list[1:]:
                 temp = [
