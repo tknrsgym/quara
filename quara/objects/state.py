@@ -340,16 +340,21 @@ class State(QOperation):
 
         this function uses numpy API.
         see this URL for details:
-        https://numpy.org/doc/1.18/reference/generated/numpy.linalg.eigvals.html
+        https://numpy.org/doc/1.18/reference/generated/numpy.linalg.eigvalsh.html
 
         Returns
         -------
         List
             eigen values of density matrix.
         """
-        values = np.linalg.eigvalsh(self.to_density_matrix())
+        if self.composite_system.is_hermitian:
+
+            print("eigvalsh")
+            values = np.linalg.eigvalsh(self.to_density_matrix())
+        else:
+            print("eigvals")
+            values = np.linalg.eigvals(self.to_density_matrix())
         values = sorted(values, reverse=True)
-        # values = np.linalg.eigvals(self.to_density_matrix())
         return values
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
