@@ -21,6 +21,7 @@ from quara.data_analysis import computation_time as ctime
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.data_analysis import simulation_check
 
 
 _temp_dir_path = ""
@@ -839,10 +840,12 @@ def generate_condition_table(
 
 
 def generate_consistency_check_table(
-    qtomography_list: List["QTomography"],
+    estimation_results_list: List[List["EstimationResult"]],
     simulation_settings: List[StandardQTomographySimulationSetting],
     true_object: "QOperation",
 ):
+    qtomography_list = [results[0].qtomography for results in estimation_results_list]
+    diff_list = []
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
@@ -856,7 +859,11 @@ def generate_consistency_check_table(
             algo=s.algo,
             algo_option=s.algo_option,
         )
-        result_list.append(diff)
+        result = simulation_check.execute_consistency_check(
+            s, estimation_results_list[i], show_detail=False
+        )
+        diff_list.append(diff)
+        result_list.append(result)
 
     def _insert_white_space(text: str) -> str:
         # If there is an upper case, insert a half-width space.
@@ -894,7 +901,8 @@ def generate_consistency_check_table(
         "Estimator": type_estimator_values,
         "Loss": type_loss_values,
         "Algo": type_algo_values,
-        "Squared Error to True": [f"{r:.2e}" for r in result_list],
+        "Squared Error to True": [f"{d:.2e}" for d in diff_list],
+        "Result": [f"{'OK' if r else 'NG'}" for r in result_list],
     }
 
     styles = [
@@ -905,6 +913,7 @@ def generate_consistency_check_table(
         dict(selector=".col4", props=[("width", "300px"), ("font-size", "10px")]),
         dict(selector=".col5", props=[("width", "300px"), ("font-size", "10px")]),
         dict(selector=".col6", props=[("width", "150px"), ("font-size", "10px")]),
+        dict(selector=".col7", props=[("width", "100px"), ("font-size", "10px")]),
     ]
 
     table_df = pd.DataFrame(result_dict)
@@ -1261,7 +1270,7 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        qtomography_list, simulation_settings, true_object
+        estimation_results_list, simulation_settings, true_object
     )
 
     # MSE

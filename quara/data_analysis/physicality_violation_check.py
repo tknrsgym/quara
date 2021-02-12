@@ -658,17 +658,6 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     measurement_n = len(estimated_povms[0].vecs)
 
     n_unphysical = calc_unphysical_qobjects_n(estimated_povms)
-    # TODO: remove
-    _n_unphysical = len(
-        [
-            estimated
-            for estimated in estimated_povms
-            if not estimated.is_physical(
-                atol_eq_const == __eq_const_eps, atol_ineq_const=__ineq_const_eps
-            )
-        ]
-    )
-    assert _n_unphysical == n_unphysical
 
     xaxis_title_text = f"Sum of negative eigenvalues (<0)"
     for x_i in range(measurement_n):
@@ -677,7 +666,7 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
             value_list = minus_eigenvalues_dict[x_i]
 
         title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
-        title += f"<br>Number of unphysical estimates={unphysical_n}"
+        title += f"<br>Number of unphysical estimates={n_unphysical}"
         fig = make_prob_dist_histogram(
             value_list,
             bin_size=bin_size,
