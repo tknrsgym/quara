@@ -1,6 +1,6 @@
 import warnings
 from typing import List, Tuple, Dict, Any, Union, Optional
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -751,7 +751,9 @@ def make_graphs_trace_error_sum(
     return figs
 
 
-def is_eq_constraint_satisfied_all(estimation_results) -> bool:
+def is_eq_constraint_satisfied_all(
+    estimation_results, show_detail: bool = True
+) -> bool:
     all_check_results = []
     for result in estimation_results:
         check_results = [
@@ -760,13 +762,20 @@ def is_eq_constraint_satisfied_all(estimation_results) -> bool:
         ]
         all_check_results += check_results
 
+    if show_detail:
+        counter = Counter(all_check_results)
+        print(
+            f"is_eq_constraint_satisfied_all: True={counter['False']}, False={counter['False']}"
+        )
     if False in all_check_results:
         return False
     else:
         return True
 
 
-def is_ineq_constraint_satisfied_all(estimation_results) -> bool:
+def is_ineq_constraint_satisfied_all(
+    estimation_results, show_detail: bool = True
+) -> bool:
     all_check_results = []
     for result in estimation_results:
         check_results = [
@@ -774,6 +783,11 @@ def is_ineq_constraint_satisfied_all(estimation_results) -> bool:
             for qope in result.estimated_qoperation_sequence
         ]
         all_check_results += check_results
+    if show_detail:
+        counter = Counter(all_check_results)
+        print(
+            f"is_ineq_constraint_satisfied_all: True={counter['False']}, False={counter['False']}"
+        )
 
     if False in all_check_results:
         return False
