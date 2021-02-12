@@ -36,12 +36,12 @@ class ElementalSystem:
         # But just in case, implement ``system_id``.
         self._system_id: int = id(self)
         self._dim: int = basis.dim
-        self._hemirtian_basis: MatrixBasis = basis
+        self._basis: MatrixBasis = basis
         self._is_orthonormal_hermitian_0thpropI = (
-            self._hemirtian_basis.is_normal()
-            and self._hemirtian_basis.is_orthogonal()
-            and self._hemirtian_basis.is_hermitian()
-            and self._hemirtian_basis.is_0thpropI()
+            self._basis.is_normal()
+            and self._basis.is_orthogonal()
+            and self._basis.is_hermitian()
+            and self._basis.is_0thpropI()
         )
 
     @property
@@ -85,8 +85,8 @@ class ElementalSystem:
         return get_comp_basis(self._dim)
 
     @property
-    def hemirtian_basis(self) -> MatrixBasis:  # read only
-        return self._hemirtian_basis
+    def basis(self) -> MatrixBasis:  # read only
+        return self._basis
 
     @property
     def is_orthonormal_hermitian_0thpropI(self) -> bool:  # read only
@@ -102,9 +102,9 @@ class ElementalSystem:
     def __str__(self):
         desc = f"name: {self.name} \n"
         desc += f"system_id: {self.system_id} \n"
-        desc += f"hemirtian_basis: {self._hemirtian_basis}"
+        desc += f"basis: {self._basis}"
         return desc
 
     def __repr__(self):
         return f"{self.__class__.__name__}(name={repr(self.name)}, \
-            basis={repr(self._hemirtian_basis)})"
+            basis={repr(self.basis)})"
