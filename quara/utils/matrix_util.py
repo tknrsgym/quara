@@ -117,6 +117,23 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
 
 
+def trancate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64:
+    eps = Settings.get_atol() if eps is None else eps
+
+    if np.any(matrix >= eps):
+        raise ValueError(f"some entries of matrix >= eps")
+
+    trancated_mat = np.where(np.abs(matrix.imag) < eps, matrix.real, matrix)
+    return trancated_mat.real.astype(np.float64)
+
+
+def trancate_computational_fluctuation(
+    matrix: np.ndarray, eps: float = None
+) -> np.float64:
+    eps = Settings.get_atol() if eps is None else eps
+    return np.where(np.abs(matrix) < eps, 0.0, matrix)
+
+
 def calc_se(xs: List[np.array], ys: List[np.array]) -> np.float64:
     """calculates Squared Error of ``xs`` and ``ys``.
 
