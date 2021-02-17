@@ -123,29 +123,11 @@ class Gate(QOperation):
         """
         return self._hs
 
-    def is_physical(
-        self, atol_eq_const: float = None, atol_ineq_const: float = None
-    ) -> bool:
-        """returns whether the gate is physically correct.
+    def is_eq_constraint_satisfied(self, atol: float = None):
+        return self.is_tp(atol)
 
-        all of the following conditions are ``True``, the gate is physically correct:
-
-        - gate is TP(trace-preserving map).
-        - gate is CP(Complete-Positivity-Preserving).
-
-        Parameters
-        ----------
-        atol_eq_const : float, optional
-            Error tolerance used to determine if the Gate is TP(trace-preserving map). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
-        atol_ineq_const : float, optional
-            Error tolerance used to determine if the Gate is CP(Complete-Positivity-Preserving). The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
-
-        Returns
-        -------
-        bool
-            whether the gate is physically correct.
-        """
-        return self.is_tp(atol=atol_eq_const) and self.is_cp(atol=atol_ineq_const)
+    def is_ineq_constraint_satisfied(self, atol: float = None):
+        return self.is_cp(atol)
 
     def set_zero(self):
         self._hs = np.zeros(self._hs.shape, dtype=np.float64)
@@ -203,7 +185,7 @@ class Gate(QOperation):
 
     def calc_proj_ineq_constraint(self) -> "Gate":
         choi_matrix = self.to_choi_matrix()
-        eigenvals, eigenvecs = np.linalg.eig(choi_matrix)
+        eigenvals, eigenvecs = np.linalg.eigh(choi_matrix)
 
         # project
         for index in range(len(eigenvals)):
@@ -382,7 +364,7 @@ class Gate(QOperation):
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
         choi = self.to_choi_matrix()
-        eigen_vals, eigen_vecs = np.linalg.eig(choi)
+        eigen_vals, eigen_vecs = np.linalg.eigh(choi)
         eigens = [
             (eigen_vals[index], eigen_vecs[:, index])
             for index in range(len(eigen_vals))
@@ -398,11 +380,35 @@ class Gate(QOperation):
 
         # step2. calc Kraus representaion.
         #   K_{\alpha} = \sqrt{c_{\alpha}} unvec(|c_{\alpha}>)
-        kraus = [
+        _kraus = [
             np.sqrt(eigen_val) * eigen_vec.reshape((2, 2))
             for (eigen_val, eigen_vec) in eigens
         ]
 
+        # step3: fix phase
+        kraus = []
+        for k in _kraus:
+            # k_00 = k[0][0]
+
+            # ang = np.angle(k_00)
+            # _k = (np.e ** (-1j * ang)) * k
+            # kraus.append(_k)
+            for i, value in enumerate(k.flatten()):
+                if value == 0:
+                    continue
+                elif value < 0:
+                    print(f"debug: k[{i}] value < 0")
+                    e_i_theta = value / abs(value)
+                    _k = (1 / e_i_theta) * k
+
+                    # _k = (np.e ** (-1j * ang)) * k
+                    kraus.append(_k)
+                    break
+                else:
+                    kraus.append(k)
+                    break
+            else:
+                kraus.append(k)
         return kraus
 
     def to_process_matrix(self) -> np.array:

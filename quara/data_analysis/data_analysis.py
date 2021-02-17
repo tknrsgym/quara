@@ -409,6 +409,7 @@ def _recreate_qoperation(
             on_para_eq_constraint=on_para_eq_constraint,
         )
     else:
+        print(type(true_object))
         message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
         raise TypeError(message)
     return true_object_copied
@@ -441,8 +442,9 @@ def make_mses_graph_estimation_results(
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
-            # TODO
+            # TODO error massage
             raise ValueError()
+
         (
             analytical_mses,
             analytical_case_names,

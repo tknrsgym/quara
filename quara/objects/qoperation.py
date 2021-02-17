@@ -52,6 +52,10 @@ class QOperation:
         if eps_proj_physical < 0:
             raise ValueError("'eps_proj_physical' must be non-negative.")
 
+        # if not c_sys.is_basis_hermitian:
+        #     message = "`c_sys.is_basis_hermitian` is False. Basis must be Hermitian."
+        #     raise ValueError(message)
+
         # Set
         self._composite_system: CompositeSystem = c_sys
         self._is_physicality_required = is_physicality_required
@@ -139,6 +143,14 @@ class QOperation:
         return self._eps_proj_physical
 
     @abstractmethod
+    def is_eq_constraint_satisfied(self, atol: float = None):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def is_ineq_constraint_satisfied(self, atol: float = None):
+        raise NotImplementedError()
+
+    @abstractmethod
     def estimation_object_type(self) -> type:
         """returns type of estimation object.
 
@@ -158,24 +170,23 @@ class QOperation:
     def is_physical(
         self, atol_eq_const: float = None, atol_ineq_const: float = None
     ) -> bool:
-        """returns whether the state is physically correct.
+        """returns whether the qoperation is physically correct.
 
         Parameters
         ----------
-        atol : float, optional
-            the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        atol_eq_const : float, optional
+            Error tolerance used to determine if the equality constraint is satisfied. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        atol_ineq_const : float, optional
+            Error tolerance used to determine if the inequality constraint is satisfied. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
 
         Returns
         -------
         bool
-            whether the state is physically correct.
-
-        Raises
-        ------
-        NotImplementedError
-            this function does not be implemented in the subclass.
+            whether the qoperation is physically correct.
         """
-        raise NotImplementedError()
+        return self.is_eq_constraint_satisfied(
+            atol_eq_const
+        ) and self.is_ineq_constraint_satisfied(atol_ineq_const)
 
     @abstractmethod
     def set_zero(self):

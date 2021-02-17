@@ -8,7 +8,7 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis
-from quara.objects.povm import get_z_measurement
+from quara.objects.povm import get_z_povm
 from quara.objects.state import (
     State,
     convert_var_index_to_state_index,
@@ -262,7 +262,7 @@ class TestState:
 
         # Case 1: different type
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -352,7 +352,7 @@ class TestState:
 
         # Case 1: different type
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -494,7 +494,7 @@ class TestState:
 
         # Case 1: different type(POVM)
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -590,7 +590,7 @@ class TestState:
 
         # Case 1: different type(POVM)
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -705,7 +705,7 @@ class TestState:
 
         # Case 1: different type(POVM)
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -858,6 +858,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_trace_one() == True
+        assert state.is_eq_constraint_satisfied() == True
 
         # case: False
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -868,6 +869,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_trace_one() == False
+        assert state.is_eq_constraint_satisfied() == False
 
         # case: specify atol
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -878,6 +880,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_trace_one(atol=1e-2) == True
+        assert state.is_eq_constraint_satisfied(atol=1e-2) == True
 
     def test_is_hermitian(self):
         # case: True
@@ -912,6 +915,7 @@ class TestState:
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
         assert state.is_positive_semidefinite() == True
+        assert state.is_ineq_constraint_satisfied() == True
 
         # case: False
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -922,6 +926,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_positive_semidefinite() == False
+        assert state.is_ineq_constraint_satisfied() == False
 
         # case: specify atol
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
@@ -932,6 +937,7 @@ class TestState:
             is_physicality_required=False,
         )
         assert state.is_positive_semidefinite(atol=1e-2) == True
+        assert state.is_ineq_constraint_satisfied(atol=1e-2) == True
 
     def test_calc_eigenvalues(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -976,6 +982,7 @@ class TestState:
         assert np.all(state.calc_eigenvalues() == np.array([0, 0], dtype=np.complex128))
 
         # test for vec[0, 0, 1, 0]
+        # TODO: ElementalSystem is not hermitian
         state = State(
             c_sys,
             np.array([0, 0, 1, 0], dtype=np.float64),
@@ -1003,7 +1010,7 @@ class TestState:
         assert state.is_trace_one() == True
         assert state.is_hermitian() == True
         assert state.is_positive_semidefinite() == True
-        assert np.all(state.calc_eigenvalues() == np.array([0, 1], dtype=np.complex128))
+        assert np.all(state.calc_eigenvalues() == np.array([1, 0], dtype=np.complex128))
 
     def test_pauli_basis(self):
         e_sys = ElementalSystem(1, matrix_basis.get_pauli_basis())
