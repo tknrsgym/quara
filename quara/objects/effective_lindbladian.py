@@ -690,7 +690,11 @@ def _check_j_mat(j_mat: np.array, dim: int) -> None:
 
 def _calc_j_part_from_j_mat(j_mat: np.array) -> np.array:
     identity = np.eye(j_mat.shape[0])
+<<<<<<< HEAD
     return np.kron(j_mat, identity) + np.kron(identity, j_mat.conj())
+=======
+    return np.kron(j_mat, identity) - np.kron(identity, j_mat.conj())
+>>>>>>> 2c7277707fb1db0c77487aa0295126b8459f2241
 
 
 def _check_k_mat(k_mat: np.array, dim: int) -> None:
