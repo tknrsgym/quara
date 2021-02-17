@@ -618,7 +618,7 @@ def test_tensor_product_Povm_Povm_3vecs():
 
     # Act
     povm21 = tensor_product(povm2, povm1)
-    actual = povm21.measurements
+    actual = povm21.num_outcomes
 
     # Assert
     expected = [len(vecs1), len(vecs2)]

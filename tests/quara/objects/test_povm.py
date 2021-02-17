@@ -306,7 +306,7 @@ class TestPovm:
         povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
-        actual = povm1.measurements
+        actual = povm1.num_outcomes
 
         # Assert
         expected = [2]
@@ -316,8 +316,8 @@ class TestPovm:
 
         # Case 2:
         # Act
-        povm1._measurements = [1, 2]
-        actual = povm1.measurements
+        povm1._num_outcomes = [1, 2]
+        actual = povm1.num_outcomes
         # Assert
         expected = [1, 2]
         assert len(actual) == len(expected)
