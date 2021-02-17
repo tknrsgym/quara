@@ -324,7 +324,7 @@ class TestPovm:
         for a, e in zip(actual, expected):
             assert a == e
 
-    def test_get_measurement(self):
+    def test_vec(self):
         # Case 1:
         # Arrange
         basis1 = get_comp_basis()
@@ -337,10 +337,10 @@ class TestPovm:
         povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
-        actual0 = povm1.get_measurement(0)
-        actual1 = povm1.get_measurement(1)
-        actual2 = povm1.get_measurement((0))
-        actual3 = povm1.get_measurement((1))
+        actual0 = povm1.vec(0)
+        actual1 = povm1.vec(1)
+        actual2 = povm1.vec((0))
+        actual3 = povm1.vec((1))
 
         # Assert
         assert np.all(actual0 == vecs1[0])
@@ -348,7 +348,7 @@ class TestPovm:
         assert np.all(actual2 == vecs1[0])
         assert np.all(actual3 == vecs1[1])
 
-        # Case2: argument of get_measurement is type tuple
+        # Case2: type of argument is tuple
         # Arrange
         basis2 = get_comp_basis()
         e_sys2 = esys.ElementalSystem(2, basis2)
@@ -362,10 +362,10 @@ class TestPovm:
 
         # Act
         actual = [
-            povm12.get_measurement((0, 0)),
-            povm12.get_measurement((0, 1)),
-            povm12.get_measurement((1, 0)),
-            povm12.get_measurement((1, 1)),
+            povm12.vec((0, 0)),
+            povm12.vec((0, 1)),
+            povm12.vec((1, 0)),
+            povm12.vec((1, 1)),
         ]
 
         # Assert
@@ -377,13 +377,13 @@ class TestPovm:
         for a, e in zip(actual, expected):
             assert np.all(a == e)
 
-        # Case3: argument of get_measurement is type int
+        # Case3: type of argument is int
         # Act
         actual = [
-            povm12.get_measurement(0),
-            povm12.get_measurement(1),
-            povm12.get_measurement(2),
-            povm12.get_measurement(3),
+            povm12.vec(0),
+            povm12.vec(1),
+            povm12.vec(2),
+            povm12.vec(3),
         ]
 
         # Assert
@@ -395,7 +395,7 @@ class TestPovm:
         for a, e in zip(actual, expected):
             assert np.all(a == e)
 
-    def test_get_measurement_unexpected(self):
+    def test_vec_unexpected(self):
         # Arrange
         basis1 = get_comp_basis()
         e_sys1 = esys.ElementalSystem(1, basis1)
@@ -410,13 +410,13 @@ class TestPovm:
         # Act & Assert
         with pytest.raises(ValueError):
             # ValueError: length of tuple does not equal length of the list of measurements.
-            _ = povm1.get_measurement((0, 0))
+            _ = povm1.vec((0, 0))
 
         # Case 2:
         # Act & Assert
         with pytest.raises(IndexError):
             # IndexError: specified index does not exist in the list of measurements.
-            _ = povm1.get_measurement(2)
+            _ = povm1.vec(2)
 
     def test_is_physical(self):
         e_sys = esys.ElementalSystem(1, get_comp_basis())
