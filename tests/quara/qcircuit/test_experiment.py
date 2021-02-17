@@ -10,13 +10,13 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
 from quara.objects.povm import (
     Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
-    get_xx_measurement,
-    get_xy_measurement,
-    get_yy_measurement,
-    get_zz_measurement,
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
+    get_xx_povm,
+    get_xy_povm,
+    get_yy_povm,
+    get_zz_povm,
 )
 from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q
 from quara.qcircuit.experiment import (
@@ -38,8 +38,8 @@ class TestExperiment:
         states = [state_0, state_1]
 
         # POVM
-        povm_0 = get_x_measurement(c_sys)
-        povm_1 = get_x_measurement(c_sys)
+        povm_0 = get_x_povm(c_sys)
+        povm_1 = get_x_povm(c_sys)
         povms = [povm_0, povm_1]
         # Gate
         gate_0 = get_i(c_sys)
@@ -54,7 +54,7 @@ class TestExperiment:
 
         state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
         gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        povm_list = [get_x_povm(c_sys1), get_y_povm(c_sys1)]
         schedules = [
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 0), ("gate", 0), ("povm", 1)],
@@ -83,10 +83,10 @@ class TestExperiment:
         cz = get_cz(c_sys12)
 
         # POVM
-        povm_xx = get_xx_measurement(c_sys12)
-        povm_xy = get_xy_measurement(c_sys12)
-        povm_yy = get_yy_measurement(c_sys12)
-        povm_zz = get_zz_measurement(c_sys12)
+        povm_xx = get_xx_povm(c_sys12)
+        povm_xy = get_xy_povm(c_sys12)
+        povm_yy = get_yy_povm(c_sys12)
+        povm_zz = get_zz_povm(c_sys12)
 
         # State
         state1 = get_z0_1q(c_sys1)
@@ -135,9 +135,9 @@ class TestExperiment:
         state12 = tensor_product(state1, state2)
 
         # POVM
-        povm_xx = get_xx_measurement(c_sys12)
-        povm_xy = get_xy_measurement(c_sys12)
-        povm_yy = get_yy_measurement(c_sys12)
+        povm_xx = get_xx_povm(c_sys12)
+        povm_xy = get_xy_povm(c_sys12)
+        povm_yy = get_yy_povm(c_sys12)
 
         state_list = [state12]
         povm_list = [povm_xx, povm_xy, povm_yy]
@@ -164,9 +164,9 @@ class TestExperiment:
 
         states = [get_z0_1q(c_sys)]
         gates = [get_x(c_sys)]
-        povm_x = get_x_measurement(c_sys)
-        povm_y = get_y_measurement(c_sys)
-        povm_z = get_z_measurement(c_sys)
+        povm_x = get_x_povm(c_sys)
+        povm_y = get_y_povm(c_sys)
+        povm_z = get_z_povm(c_sys)
         povms = [povm_x, povm_y, povm_z]
         schedules = [
             [("state", 0), ("povm", 0)],
@@ -197,9 +197,9 @@ class TestExperiment:
 
         states = [get_z0_1q(c_sys)]
         gates = [get_x(c_sys)]
-        povm_x = get_x_measurement(c_sys)
-        povm_y = get_y_measurement(c_sys)
-        povm_z = get_z_measurement(c_sys)
+        povm_x = get_x_povm(c_sys)
+        povm_y = get_y_povm(c_sys)
+        povm_z = get_z_povm(c_sys)
         povms = [povm_x, povm_y, povm_z]
         schedules = [
             [("state", 0), ("povm", 0)],
@@ -263,7 +263,7 @@ class TestExperiment:
 
         state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
         gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        povm_list = [get_x_povm(c_sys1), get_y_povm(c_sys1)]
         schedules = [
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 0), ("gate", 0), ("povm", 1)],
@@ -296,7 +296,7 @@ class TestExperiment:
 
         state_list = [None, get_y0_1q(c_sys1)]
         gate_list = [get_i(c_sys1), get_x(c_sys1)]
-        povm_list = [get_x_measurement(c_sys1), get_y_measurement(c_sys1)]
+        povm_list = [get_x_povm(c_sys1), get_y_povm(c_sys1)]
         schedules = [
             [("state", 0), ("gate", 0), ("povm", 0)],
             [("state", 0), ("gate", 0), ("povm", 1)],

@@ -1,6 +1,6 @@
 import warnings
 from typing import List, Tuple, Dict, Any, Union, Optional
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -22,6 +22,7 @@ __ineq_const_eps = 10 ** (-9)
 def set_ineq_const_eps(eps: float) -> None:
     global __ineq_const_eps
     __ineq_const_eps = eps
+
 
 def get_ineq_const_eps() -> float:
     return __ineq_const_eps
@@ -536,22 +537,45 @@ def _make_graphs_eigenvalues_gate(
     return figs
 
 
+def is_physical_qobjects_all(
+    estimation_results: List["EstimatiuonResult"], show_detail: bool = True
+) -> bool:
+    check_results = []
+    for i, num in enumerate(estimation_results[0].num_data):
+        unphysical_n = calc_unphysical_qobjects_n(estimation_results, num_data_index=i)
+        result = unphysical_n == 0
+        check_results.append(result)
+        if show_detail:
+            message = (
+                f"[{'OK' if result else 'NG'}] N={num} physicality violation check"
+            )
+            message += (
+                f"\nTrue={len(estimation_results)-unphysical_n}, False={unphysical_n}"
+            )
+            print(message)
+
+    if False in check_results:
+        return False
+    else:
+        return True
+
+
 def calc_unphysical_qobjects_n(
     source: Union[List[EstimationResult], List[QOperation]], num_data_index: int = None
 ):
     sample = source[0]
     if isinstance(sample, EstimationResult):
         if num_data_index is None:
-            # TODO: message
-            raise ValueError()
+            message = "If `source` is list of EstimationResult, `num_data_index` must be specified."
+            raise ValueError(message)
         estimated_qoperations = _convert_result_to_qoperation(
             source, num_data_index=num_data_index
         )
     elif isinstance(sample, QOperation):
         estimated_qoperations = source
     else:
-        # TODO: message
-        raise TypeError()
+        message = f"`source` must be list of EstimationResult or QOperation, not {type(source)}"
+        raise TypeError(message)
     n_unphysical = len(
         [
             q
@@ -637,17 +661,6 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     measurement_n = len(estimated_povms[0].vecs)
 
     n_unphysical = calc_unphysical_qobjects_n(estimated_povms)
-    # TODO: remove
-    _n_unphysical = len(
-        [
-            estimated
-            for estimated in estimated_povms
-            if not estimated.is_physical(
-                atol_eq_const == __eq_const_eps, atol_ineq_const=__ineq_const_eps
-            )
-        ]
-    )
-    assert _n_unphysical == n_unphysical
 
     xaxis_title_text = f"Sum of negative eigenvalues (<0)"
     for x_i in range(measurement_n):
@@ -656,7 +669,7 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
             value_list = minus_eigenvalues_dict[x_i]
 
         title = f"N={num_data}, Nrep={n_rep}, x={x_i}"
-        title += f"<br>Number of unphysical estimates={unphysical_n}"
+        title += f"<br>Number of unphysical estimates={n_unphysical}"
         fig = make_prob_dist_histogram(
             value_list,
             bin_size=bin_size,
@@ -739,3 +752,53 @@ def make_graphs_trace_error_sum(
         )
         figs.append(fig)
     return figs
+
+
+def is_eq_constraint_satisfied_all(
+    estimation_results, show_detail: bool = True
+) -> bool:
+    all_check_results = []
+    num_data = estimation_results[0].num_data
+    for num_data_index, num in enumerate(num_data):
+        check_results = [
+            result.estimated_qoperation_sequence[
+                num_data_index
+            ].is_eq_constraint_satisfied(__eq_const_eps)
+            for result in estimation_results
+        ]
+        result = False not in check_results
+        all_check_results.append(result)
+        if show_detail:
+            counter = Counter(check_results)
+            message = (
+                f"[{'OK' if result else 'NG'}] N={num} is_eq_constraint_satisfied_all"
+            )
+            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={__eq_const_eps}"
+            print(message)
+
+    return False not in all_check_results
+
+
+def is_ineq_constraint_satisfied_all(
+    estimation_results, show_detail: bool = True
+) -> bool:
+    all_check_results = []
+    num_data = estimation_results[0].num_data
+    for num_data_index, num in enumerate(num_data):
+        check_results = [
+            result.estimated_qoperation_sequence[
+                num_data_index
+            ].is_ineq_constraint_satisfied(__ineq_const_eps)
+            for result in estimation_results
+        ]
+        result = False not in check_results
+        all_check_results.append(result)
+        if show_detail:
+            counter = Counter(check_results)
+            message = (
+                f"[{'OK' if result else 'NG'}] N={num} is_ineq_constraint_satisfied_all"
+            )
+            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={__ineq_const_eps}"
+            print(message)
+
+    return False not in all_check_results

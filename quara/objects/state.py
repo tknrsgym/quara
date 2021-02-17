@@ -128,34 +128,11 @@ class State(QOperation):
         """
         return self._dim
 
-    def is_physical(
-        self, atol_eq_const: float = None, atol_ineq_const: float = None
-    ) -> bool:
-        """returns whether the state is physically correct.
+    def is_eq_constraint_satisfied(self, atol: float = None):
+        return self.is_trace_one(atol)
 
-        all of the following conditions are ``True``, the state is physically correct:
-
-        - trace of density matrix equals 1.
-        - density matrix is Hermitian.
-        - density matrix is positive semidefinite.
-
-        Parameters
-        ----------
-        atol_eq_const : float, optional
-            Error tolerance used to determine if the trace of the density matrix is equal to 1. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
-        atol_ineq_const : float, optional
-            Error tolerance used to determine if the density matrix is Hermitian and positive semidefinite. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
-
-        Returns
-        -------
-        bool
-            whether the state is physically correct.
-        """
-        # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
-        # therefore, do not call the `is_hermitian` function explicitly.
-        return self.is_trace_one(atol_eq_const) and self.is_positive_semidefinite(
-            atol_ineq_const
-        )
+    def is_ineq_constraint_satisfied(self, atol: float = None):
+        return self.is_positive_semidefinite(atol)
 
     def set_zero(self):
         """sets parameters to zero.
@@ -271,7 +248,7 @@ class State(QOperation):
         """
         # calc engenvalues and engenvectors
         density_matrix_orig = self.to_density_matrix()
-        eigenvals, eigenvecs = np.linalg.eig(density_matrix_orig)
+        eigenvals, eigenvecs = np.linalg.eigh(density_matrix_orig)
 
         # project
         for index in range(len(eigenvals)):
@@ -363,14 +340,19 @@ class State(QOperation):
 
         this function uses numpy API.
         see this URL for details:
-        https://numpy.org/doc/1.18/reference/generated/numpy.linalg.eigvals.html
+        https://numpy.org/doc/1.18/reference/generated/numpy.linalg.eigvalsh.html
 
         Returns
         -------
         List
             eigen values of density matrix.
         """
-        return np.linalg.eigvals(self.to_density_matrix())
+        if self.composite_system.is_basis_hermitian:
+            values = np.linalg.eigvalsh(self.to_density_matrix())
+        else:
+            values = np.linalg.eigvals(self.to_density_matrix())
+        values = sorted(values, reverse=True)
+        return values
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns vector representation for ``other_basis``.

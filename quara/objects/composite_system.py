@@ -62,6 +62,9 @@ class CompositeSystem:
             is_orthonormal_hermitian_0thpropIs
         )
 
+        is_hermitian_list = [e_sys.is_hermitian for e_sys in self._elemental_systems]
+        self._is_basis_hermitian = all(is_hermitian_list)
+
     def comp_basis(self) -> MatrixBasis:
         """returns computational basis of CompositeSystem.
 
@@ -97,9 +100,9 @@ class CompositeSystem:
         basis_tmp: MatrixBasis
 
         if len(self._elemental_systems) == 1:
-            basis_tmp = self._elemental_systems[0].hemirtian_basis
+            basis_tmp = self._elemental_systems[0].basis
         else:
-            basis_list = [e_sys.hemirtian_basis for e_sys in self._elemental_systems]
+            basis_list = [e_sys.basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
             for elem in basis_list[1:]:
                 temp = [
@@ -184,6 +187,10 @@ class CompositeSystem:
             whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop I.
         """
         return self._is_orthonormal_hermitian_0thpropI
+
+    @property
+    def is_basis_hermitian(self) -> bool:
+        return self._is_basis_hermitian
 
     def __len__(self) -> int:
         return len(self._elemental_systems)

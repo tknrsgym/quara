@@ -74,7 +74,7 @@ class Povm(QOperation):
         for b in self._vecs:
             b.setflags(write=False)
 
-        self._measurements = [len(self._vecs)]
+        self._num_outcomes = [len(self._vecs)]
 
         # Validation
         size = vecs[0].shape
@@ -129,42 +129,21 @@ class Povm(QOperation):
         return self._dim
 
     @property
-    def measurements(self) -> List[int]:
-        """Property to get numbers of measurements for each ElementalSystem.
+    def num_outcomes(self) -> List[int]:
+        """Property to get the number of POVM elements.
 
         Returns
         -------
         List[int]
-            numbers of measurements for each ElementalSystem.
+            the number of POVM elements.
         """
-        return self._measurements
+        return self._num_outcomes
 
-    def is_physical(
-        self, atol_eq_const: float= None, atol_ineq_const: float = None
-    ) -> bool:
-        """returns whether the POVM is physically correct.
+    def is_eq_constraint_satisfied(self, atol: float = None):
+        return self.is_identity_sum(atol)
 
-        all of the following conditions are ``True``, the POVM is physically correct:
-
-        - It is a set of Hermitian matrices.
-        - It is a set of positive semidefinite matrices.
-        - The sum of the elements is the identity matrix.
-
-        Parameters
-        ----------
-        atol_ineq_const : float, optional
-            Error tolerance used to determine if the set is Hermitian and positive semidefinite. The absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
-
-        Returns
-        -------
-        bool
-            whether the POVM is physically correct.
-        """
-        # in `is_positive_semidefinite` function, the state is checked whether it is Hermitian.
-        # therefore, do not call the `is_hermitian` function explicitly.
-        return self.is_positive_semidefinite(
-            atol=atol_ineq_const
-        ) and self.is_identity_sum(atol=atol_eq_const)
+    def is_ineq_constraint_satisfied(self, atol: float = None):
+        return self.is_positive_semidefinite(atol)
 
     def set_zero(self):
         size = self.dim ** 2
@@ -296,7 +275,7 @@ class Povm(QOperation):
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
 
-    def get_measurement(self, index: Union[int, Tuple]) -> np.ndarray:
+    def vec(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns vec of measurement by index.
 
         Parameters
@@ -319,9 +298,9 @@ class Povm(QOperation):
         """
         if type(index) == tuple:
             # whether size of tuple equals length of the list of measurements
-            if len(index) != len(self._measurements):
+            if len(index) != len(self.num_outcomes):
                 raise ValueError(
-                    f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self._measurements)}"
+                    f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self.num_outcomes)}"
                 )
 
             # calculate index in _vecs by traversing the tuple from the back.
@@ -332,7 +311,7 @@ class Povm(QOperation):
             temp_len = 1
             for position, local_index in enumerate(reversed(index)):
                 temp_grobal_index += local_index * temp_len
-                temp_len = temp_len * (self._measurements[position])
+                temp_len = temp_len * (self.num_outcomes[position])
             return self._vecs[temp_grobal_index]
         else:
             return self._vecs[index]
@@ -368,7 +347,7 @@ class Povm(QOperation):
         np.ndarray
             matrix of measurement.
         """
-        vec = self.get_measurement(index)
+        vec = self.vec(index)
 
         size = (self.dim, self.dim)
         matrix = np.zeros(size, dtype=np.complex128)
@@ -447,14 +426,14 @@ class Povm(QOperation):
         size = [self._dim, self._dim]
         if index is not None:
             v = self.matrices()[index]
-            matrix = np.reshape(v, size)
-            w = np.linalg.eigvals(matrix)
+            w = np.linalg.eigvalsh(v)
+            w = sorted(w, reverse=True)
             return w
         else:
             w_list = []
             for v in self.matrices():
-                matrix = np.reshape(v, size)
-                w = np.linalg.eigvals(matrix)
+                w = np.linalg.eigvalsh(v)
+                w = sorted(w, reverse=True)
                 w_list.append(w)
             return w_list
 
@@ -749,7 +728,7 @@ def _get_1q_povm_from_vecs_on_pauli_basis(
     return povm
 
 
-def _get_x_measurement_vecs() -> List[np.array]:
+def _get_x_povm_vecs() -> List[np.array]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64),
@@ -757,7 +736,7 @@ def _get_x_measurement_vecs() -> List[np.array]:
     return vecs
 
 
-def _get_y_measurement_vecs() -> List[np.array]:
+def _get_y_povm_vecs() -> List[np.array]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
@@ -765,7 +744,7 @@ def _get_y_measurement_vecs() -> List[np.array]:
     return vecs
 
 
-def _get_z_measurement_vecs() -> List[np.array]:
+def _get_z_povm_vecs() -> List[np.array]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
@@ -773,7 +752,7 @@ def _get_z_measurement_vecs() -> List[np.array]:
     return vecs
 
 
-def get_x_measurement(c_sys: CompositeSystem) -> Povm:
+def get_x_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of X measurement.
 
     Parameters
@@ -793,11 +772,11 @@ def get_x_measurement(c_sys: CompositeSystem) -> Povm:
     ValueError
         dim of CompositeSystem does not equal 2
     """
-    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_x_measurement_vecs())
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_x_povm_vecs())
     return povm
 
 
-def get_y_measurement(c_sys: CompositeSystem) -> Povm:
+def get_y_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of Y measurement.
 
     Parameters
@@ -817,11 +796,11 @@ def get_y_measurement(c_sys: CompositeSystem) -> Povm:
     ValueError
         dim of CompositeSystem does not equal 2
     """
-    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_y_measurement_vecs())
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_y_povm_vecs())
     return povm
 
 
-def get_z_measurement(c_sys: CompositeSystem) -> Povm:
+def get_z_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of Z measurement.
 
     Parameters
@@ -841,7 +820,7 @@ def get_z_measurement(c_sys: CompositeSystem) -> Povm:
     ValueError
         dim of CompositeSystem does not equal 2
     """
-    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_z_measurement_vecs())
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_z_povm_vecs())
     return povm
 
 
@@ -873,7 +852,7 @@ def _get_2q_povm_from_vecs_on_pauli_basis(
     return povm
 
 
-def get_xx_measurement(c_sys: CompositeSystem) -> Povm:
+def get_xx_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XX measurement.
 
     Parameters
@@ -894,12 +873,12 @@ def get_xx_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_x_measurement_vecs(), _get_x_measurement_vecs()
+        c_sys, _get_x_povm_vecs(), _get_x_povm_vecs()
     )
     return povm
 
 
-def get_xy_measurement(c_sys: CompositeSystem) -> Povm:
+def get_xy_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XY measurement.
 
     Parameters
@@ -920,12 +899,12 @@ def get_xy_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_x_measurement_vecs(), _get_y_measurement_vecs()
+        c_sys, _get_x_povm_vecs(), _get_y_povm_vecs()
     )
     return povm
 
 
-def get_xz_measurement(c_sys: CompositeSystem) -> Povm:
+def get_xz_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XZ measurement.
 
     Parameters
@@ -946,12 +925,12 @@ def get_xz_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_x_measurement_vecs(), _get_z_measurement_vecs()
+        c_sys, _get_x_povm_vecs(), _get_z_povm_vecs()
     )
     return povm
 
 
-def get_yx_measurement(c_sys: CompositeSystem) -> Povm:
+def get_yx_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YX measurement.
 
     Parameters
@@ -972,12 +951,12 @@ def get_yx_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_y_measurement_vecs(), _get_x_measurement_vecs()
+        c_sys, _get_y_povm_vecs(), _get_x_povm_vecs()
     )
     return povm
 
 
-def get_yy_measurement(c_sys: CompositeSystem) -> Povm:
+def get_yy_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YY measurement.
 
     Parameters
@@ -998,12 +977,12 @@ def get_yy_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_y_measurement_vecs(), _get_y_measurement_vecs()
+        c_sys, _get_y_povm_vecs(), _get_y_povm_vecs()
     )
     return povm
 
 
-def get_yz_measurement(c_sys: CompositeSystem) -> Povm:
+def get_yz_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YZ measurement.
 
     Parameters
@@ -1024,12 +1003,12 @@ def get_yz_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_y_measurement_vecs(), _get_z_measurement_vecs()
+        c_sys, _get_y_povm_vecs(), _get_z_povm_vecs()
     )
     return povm
 
 
-def get_zx_measurement(c_sys: CompositeSystem) -> Povm:
+def get_zx_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZX measurement.
 
     Parameters
@@ -1050,12 +1029,12 @@ def get_zx_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_z_measurement_vecs(), _get_x_measurement_vecs()
+        c_sys, _get_z_povm_vecs(), _get_x_povm_vecs()
     )
     return povm
 
 
-def get_zy_measurement(c_sys: CompositeSystem) -> Povm:
+def get_zy_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZY measurement.
 
     Parameters
@@ -1076,12 +1055,12 @@ def get_zy_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_z_measurement_vecs(), _get_y_measurement_vecs()
+        c_sys, _get_z_povm_vecs(), _get_y_povm_vecs()
     )
     return povm
 
 
-def get_zz_measurement(c_sys: CompositeSystem) -> Povm:
+def get_zz_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZZ measurement.
 
     Parameters
@@ -1102,6 +1081,6 @@ def get_zz_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_z_measurement_vecs(), _get_z_measurement_vecs()
+        c_sys, _get_z_povm_vecs(), _get_z_povm_vecs()
     )
     return povm

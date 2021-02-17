@@ -215,8 +215,8 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # permutation the tensor product matrix according to the position of the sorted ElementalSystem
     # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
     tmp_e_sys_list = copy.copy(e_sys_list)
-    tmp_num_of_vecs_list = copy.copy(povm1.measurements)
-    tmp_num_of_vecs_list.extend(povm2.measurements)
+    tmp_num_of_vecs_list = copy.copy(povm1.num_outcomes)
+    tmp_num_of_vecs_list.extend(povm2.num_outcomes)
     position = _check_cross_elemental_system_position(tmp_e_sys_list)
     while not position is None:
         dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
@@ -248,7 +248,7 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     tensor_povm = Povm(
         c_sys, tensor_vecs, is_physicality_required=is_physicality_required
     )
-    tensor_povm._measurements = tmp_num_of_vecs_list
+    tensor_povm._num_outcomes = tmp_num_of_vecs_list
     return tensor_povm
 
 
