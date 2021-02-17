@@ -52,6 +52,10 @@ class QOperation:
         if eps_proj_physical < 0:
             raise ValueError("'eps_proj_physical' must be non-negative.")
 
+        # if not c_sys.is_basis_hermitian:
+        #     message = "`c_sys.is_basis_hermitian` is False. Basis must be Hermitian."
+        #     raise ValueError(message)
+
         # Set
         self._composite_system: CompositeSystem = c_sys
         self._is_physicality_required = is_physicality_required
