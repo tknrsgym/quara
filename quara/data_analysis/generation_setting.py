@@ -1,5 +1,5 @@
 from typing import Union
-
+import numpy as np
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
@@ -53,3 +53,26 @@ class QOperationGenerationSetting:
     @abstractmethod
     def generate_gate(self):
         raise NotImplementedError()
+
+
+class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
+    def __init__(self, c_sys, qoperation_base, error_rate: float) -> None:
+        if error_rate <= 0:
+            message = "`error_rate` must be positive value."
+            raise ValueError(message)
+
+        super.__init__(c_sys=c_sys, qoperation_base=qoperation_base)
+        self._error_rate = error_rate
+
+    def generate_state(self):
+        raise NotImplementedError()
+
+    def generate_povm(self):
+        raise NotImplementedError()
+
+    def generate_gate(self):
+        raise NotImplementedError()
+
+
+def generate_gate_deporising(c_sys: "CompositeSystem", hs: np.ndarray) -> Gate:
+    pass
