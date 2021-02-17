@@ -81,18 +81,18 @@ class TestElementalSystem:
         assert np.all(actual[7] == expected[7])
         assert np.all(actual[8] == expected[8])
 
-    def test_access_hemirtian_basis(self):
+    def test_access_basis(self):
         m_basis = get_comp_basis()
         e1 = esys.ElementalSystem(1, m_basis)
 
-        assert id(m_basis) == id(e1.hemirtian_basis)
+        assert id(m_basis) == id(e1.basis)
 
-        # Test that "hemirtian_basis" cannot be updated
+        # Test that "basis" cannot be updated
         with pytest.raises(AttributeError):
-            e1.hemirtian_basis = 1
+            e1.basis = 1
 
         with pytest.raises(AttributeError):
-            e1.hemirtian_basis.basis = 1
+            e1.basis.basis = 1
 
     def test_access_is_orthonormal_hermitian_0thpropI(self):
         # case: True
