@@ -74,7 +74,7 @@ class Povm(QOperation):
         for b in self._vecs:
             b.setflags(write=False)
 
-        self._measurements = [len(self._vecs)]
+        self._num_outcomes = [len(self._vecs)]
 
         # Validation
         size = vecs[0].shape
@@ -129,7 +129,7 @@ class Povm(QOperation):
         return self._dim
 
     @property
-    def measurements(self) -> List[int]:
+    def num_outcomes(self) -> List[int]:
         """Property to get numbers of measurements for each ElementalSystem.
 
         Returns
@@ -137,7 +137,7 @@ class Povm(QOperation):
         List[int]
             numbers of measurements for each ElementalSystem.
         """
-        return self._measurements
+        return self._num_outcomes
 
     def is_eq_constraint_satisfied(self, atol: float = None):
         return self.is_identity_sum(atol)
@@ -298,9 +298,9 @@ class Povm(QOperation):
         """
         if type(index) == tuple:
             # whether size of tuple equals length of the list of measurements
-            if len(index) != len(self._measurements):
+            if len(index) != len(self.num_outcomes):
                 raise ValueError(
-                    f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self._measurements)}"
+                    f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self.num_outcomes)}"
                 )
 
             # calculate index in _vecs by traversing the tuple from the back.
@@ -311,7 +311,7 @@ class Povm(QOperation):
             temp_len = 1
             for position, local_index in enumerate(reversed(index)):
                 temp_grobal_index += local_index * temp_len
-                temp_len = temp_len * (self._measurements[position])
+                temp_len = temp_len * (self.num_outcomes[position])
             return self._vecs[temp_grobal_index]
         else:
             return self._vecs[index]
