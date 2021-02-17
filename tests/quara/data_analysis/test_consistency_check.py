@@ -19,9 +19,9 @@ def test_calc_mse_of_true_estimated():
     # Arrange
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    povm_x = povm.get_x_measurement(c_sys)
-    povm_y = povm.get_y_measurement(c_sys)
-    povm_z = povm.get_z_measurement(c_sys)
+    povm_x = povm.get_x_povm(c_sys)
+    povm_y = povm.get_y_povm(c_sys)
+    povm_z = povm.get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
     vec = np.array([1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)])

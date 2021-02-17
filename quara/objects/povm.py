@@ -728,7 +728,7 @@ def _get_1q_povm_from_vecs_on_pauli_basis(
     return povm
 
 
-def _get_x_measurement_vecs() -> List[np.array]:
+def _get_x_povm_vecs() -> List[np.array]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64),
@@ -736,7 +736,7 @@ def _get_x_measurement_vecs() -> List[np.array]:
     return vecs
 
 
-def _get_y_measurement_vecs() -> List[np.array]:
+def _get_y_povm_vecs() -> List[np.array]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
@@ -744,7 +744,7 @@ def _get_y_measurement_vecs() -> List[np.array]:
     return vecs
 
 
-def _get_z_measurement_vecs() -> List[np.array]:
+def _get_z_povm_vecs() -> List[np.array]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
@@ -752,7 +752,7 @@ def _get_z_measurement_vecs() -> List[np.array]:
     return vecs
 
 
-def get_x_measurement(c_sys: CompositeSystem) -> Povm:
+def get_x_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of X measurement.
 
     Parameters
@@ -772,11 +772,11 @@ def get_x_measurement(c_sys: CompositeSystem) -> Povm:
     ValueError
         dim of CompositeSystem does not equal 2
     """
-    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_x_measurement_vecs())
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_x_povm_vecs())
     return povm
 
 
-def get_y_measurement(c_sys: CompositeSystem) -> Povm:
+def get_y_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of Y measurement.
 
     Parameters
@@ -796,11 +796,11 @@ def get_y_measurement(c_sys: CompositeSystem) -> Povm:
     ValueError
         dim of CompositeSystem does not equal 2
     """
-    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_y_measurement_vecs())
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_y_povm_vecs())
     return povm
 
 
-def get_z_measurement(c_sys: CompositeSystem) -> Povm:
+def get_z_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of Z measurement.
 
     Parameters
@@ -820,7 +820,7 @@ def get_z_measurement(c_sys: CompositeSystem) -> Povm:
     ValueError
         dim of CompositeSystem does not equal 2
     """
-    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_z_measurement_vecs())
+    povm = _get_1q_povm_from_vecs_on_pauli_basis(c_sys, _get_z_povm_vecs())
     return povm
 
 
@@ -852,7 +852,7 @@ def _get_2q_povm_from_vecs_on_pauli_basis(
     return povm
 
 
-def get_xx_measurement(c_sys: CompositeSystem) -> Povm:
+def get_xx_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XX measurement.
 
     Parameters
@@ -873,12 +873,12 @@ def get_xx_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_x_measurement_vecs(), _get_x_measurement_vecs()
+        c_sys, _get_x_povm_vecs(), _get_x_povm_vecs()
     )
     return povm
 
 
-def get_xy_measurement(c_sys: CompositeSystem) -> Povm:
+def get_xy_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XY measurement.
 
     Parameters
@@ -899,12 +899,12 @@ def get_xy_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_x_measurement_vecs(), _get_y_measurement_vecs()
+        c_sys, _get_x_povm_vecs(), _get_y_povm_vecs()
     )
     return povm
 
 
-def get_xz_measurement(c_sys: CompositeSystem) -> Povm:
+def get_xz_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of XZ measurement.
 
     Parameters
@@ -925,12 +925,12 @@ def get_xz_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_x_measurement_vecs(), _get_z_measurement_vecs()
+        c_sys, _get_x_povm_vecs(), _get_z_povm_vecs()
     )
     return povm
 
 
-def get_yx_measurement(c_sys: CompositeSystem) -> Povm:
+def get_yx_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YX measurement.
 
     Parameters
@@ -951,12 +951,12 @@ def get_yx_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_y_measurement_vecs(), _get_x_measurement_vecs()
+        c_sys, _get_y_povm_vecs(), _get_x_povm_vecs()
     )
     return povm
 
 
-def get_yy_measurement(c_sys: CompositeSystem) -> Povm:
+def get_yy_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YY measurement.
 
     Parameters
@@ -977,12 +977,12 @@ def get_yy_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_y_measurement_vecs(), _get_y_measurement_vecs()
+        c_sys, _get_y_povm_vecs(), _get_y_povm_vecs()
     )
     return povm
 
 
-def get_yz_measurement(c_sys: CompositeSystem) -> Povm:
+def get_yz_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of YZ measurement.
 
     Parameters
@@ -1003,12 +1003,12 @@ def get_yz_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_y_measurement_vecs(), _get_z_measurement_vecs()
+        c_sys, _get_y_povm_vecs(), _get_z_povm_vecs()
     )
     return povm
 
 
-def get_zx_measurement(c_sys: CompositeSystem) -> Povm:
+def get_zx_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZX measurement.
 
     Parameters
@@ -1029,12 +1029,12 @@ def get_zx_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_z_measurement_vecs(), _get_x_measurement_vecs()
+        c_sys, _get_z_povm_vecs(), _get_x_povm_vecs()
     )
     return povm
 
 
-def get_zy_measurement(c_sys: CompositeSystem) -> Povm:
+def get_zy_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZY measurement.
 
     Parameters
@@ -1055,12 +1055,12 @@ def get_zy_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_z_measurement_vecs(), _get_y_measurement_vecs()
+        c_sys, _get_z_povm_vecs(), _get_y_povm_vecs()
     )
     return povm
 
 
-def get_zz_measurement(c_sys: CompositeSystem) -> Povm:
+def get_zz_povm(c_sys: CompositeSystem) -> Povm:
     """returns POVM of ZZ measurement.
 
     Parameters
@@ -1081,6 +1081,6 @@ def get_zz_measurement(c_sys: CompositeSystem) -> Povm:
         dim of CompositeSystem does not equal 4
     """
     povm = _get_2q_povm_from_vecs_on_pauli_basis(
-        c_sys, _get_z_measurement_vecs(), _get_z_measurement_vecs()
+        c_sys, _get_z_povm_vecs(), _get_z_povm_vecs()
     )
     return povm
