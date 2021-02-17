@@ -347,7 +347,10 @@ class State(QOperation):
         List
             eigen values of density matrix.
         """
-        values = np.linalg.eigvalsh(self.to_density_matrix())
+        if self.composite_system.is_basis_hermitian:
+            values = np.linalg.eigvalsh(self.to_density_matrix())
+        else:
+            values = np.linalg.eigvals(self.to_density_matrix())
         values = sorted(values, reverse=True)
         return values
 
