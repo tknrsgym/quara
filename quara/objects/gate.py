@@ -682,6 +682,12 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
     ValueError
         HS representation of ``u`` is not Hermitian.
     """
+    # check type
+    if type(g) != Gate or type(u) != Gate:
+        raise ValueError(
+            f"type of g and u must be Gate. type of g={type(g)}, type of u={type(u)}"
+        )
+
     # u: unitary gate <=> HS(u) is Hermitian
     # whetever HS(u) is Hermitian
     if not mutil.is_hermitian(u.hs):
