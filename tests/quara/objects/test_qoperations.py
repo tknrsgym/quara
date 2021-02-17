@@ -10,13 +10,13 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
 from quara.objects.povm import (
     Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
-    get_xx_measurement,
-    get_xy_measurement,
-    get_yy_measurement,
-    get_zz_measurement,
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
+    get_xx_povm,
+    get_xy_povm,
+    get_yy_povm,
+    get_zz_povm,
 )
 from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q, get_bell_2q
 from quara.objects import qoperations as qope
@@ -33,9 +33,9 @@ class TestSetQOperations:
         states = [state_0, state_1]
 
         # POVM
-        povm_0 = get_x_measurement(c_sys)
-        povm_1 = get_x_measurement(c_sys)
-        povm_2 = get_x_measurement(c_sys)
+        povm_0 = get_x_povm(c_sys)
+        povm_1 = get_x_povm(c_sys)
+        povm_2 = get_x_povm(c_sys)
         povms = [povm_0, povm_1, povm_2]
 
         # Gate
@@ -654,8 +654,8 @@ class TestSetQOperations:
         gates = [gate_2q, gate_1q]
 
         # POVM
-        povm_1q = get_x_measurement(c_sys_1q)
-        povm_2q = get_xx_measurement(c_sys_2q)
+        povm_1q = get_x_povm(c_sys_1q)
+        povm_2q = get_xx_povm(c_sys_2q)
 
         povms = [povm_2q, povm_2q, povm_1q]
 

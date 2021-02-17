@@ -7,9 +7,9 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects.povm import (
     Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
 )
 from quara.objects.qoperations import SetQOperations
 from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q, get_z1_1q
@@ -22,9 +22,9 @@ def get_test_data():
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
-    povm_x = get_x_measurement(c_sys)
-    povm_y = get_y_measurement(c_sys)
-    povm_z = get_z_measurement(c_sys)
+    povm_x = get_x_povm(c_sys)
+    povm_y = get_y_povm(c_sys)
+    povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
     schedules = []
@@ -42,9 +42,9 @@ def get_test_data_qst(on_para_eq_constraint=True):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
-    povm_x = get_x_measurement(c_sys)
-    povm_y = get_y_measurement(c_sys)
-    povm_z = get_z_measurement(c_sys)
+    povm_x = get_x_povm(c_sys)
+    povm_y = get_y_povm(c_sys)
+    povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
     qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)

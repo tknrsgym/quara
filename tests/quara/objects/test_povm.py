@@ -24,18 +24,18 @@ from quara.objects.povm import (
     convert_var_to_povm,
     convert_povm_to_var,
     calc_gradient_from_povm,
-    get_x_measurement,
-    get_xx_measurement,
-    get_xy_measurement,
-    get_xz_measurement,
-    get_y_measurement,
-    get_yx_measurement,
-    get_yy_measurement,
-    get_yz_measurement,
-    get_z_measurement,
-    get_zx_measurement,
-    get_zy_measurement,
-    get_zz_measurement,
+    get_x_povm,
+    get_xx_povm,
+    get_xy_povm,
+    get_xz_povm,
+    get_y_povm,
+    get_yx_povm,
+    get_yy_povm,
+    get_yz_povm,
+    get_z_povm,
+    get_zx_povm,
+    get_zy_povm,
+    get_zz_povm,
 )
 from quara.objects.state import get_x0_1q
 from quara.settings import Settings
@@ -711,7 +711,7 @@ class TestPovm:
         # Arrange
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
-        povm = get_x_measurement(c_sys)
+        povm = get_x_povm(c_sys)
         old_povm = copy.copy(povm)
         # Act
         povm.set_zero()
@@ -1158,7 +1158,7 @@ class TestPovm:
         # Case 1:
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
-        povm = get_x_measurement(c_sys)
+        povm = get_x_povm(c_sys)
 
         # Act
         actual = povm.calc_proj_eq_constraint()
@@ -1183,7 +1183,7 @@ class TestPovm:
         # Case 1:
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
-        povm = get_x_measurement(c_sys)
+        povm = get_x_povm(c_sys)
 
         # Act
         actual = povm.calc_proj_ineq_constraint()
@@ -1600,13 +1600,13 @@ def test_calc_gradient_from_povm():
         npt.assert_almost_equal(a, e, decimal=15)
 
 
-def test_get_x_measurement():
+def test_get_x_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
     c_sys1 = csys.CompositeSystem([e_sys1])
 
     # Act
-    actual = get_x_measurement(c_sys1)
+    actual = get_x_povm(c_sys1)
 
     # Assert
     expected = [
@@ -1621,22 +1621,22 @@ def test_get_x_measurement():
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys2 = csys.CompositeSystem([e_sys1, e_sys2])
     with pytest.raises(ValueError):
-        get_x_measurement(c_sys2)
+        get_x_povm(c_sys2)
 
     # Test that not 2-dim CompositeSystem
     e_sys3 = esys.ElementalSystem(3, get_gell_mann_basis())
     c_sys3 = csys.CompositeSystem([e_sys3])
     with pytest.raises(ValueError):
-        get_x_measurement(c_sys3)
+        get_x_povm(c_sys3)
 
 
-def test_get_y_measurement():
+def test_get_y_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     c_sys1 = csys.CompositeSystem([e_sys1])
 
     # Act
-    actual = get_y_measurement(c_sys1)
+    actual = get_y_povm(c_sys1)
 
     # Assert
     expected = [
@@ -1651,22 +1651,22 @@ def test_get_y_measurement():
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys2 = csys.CompositeSystem([e_sys1, e_sys2])
     with pytest.raises(ValueError):
-        get_y_measurement(c_sys2)
+        get_y_povm(c_sys2)
 
     # Test that not 2-dim CompositeSystem
     e_sys3 = esys.ElementalSystem(3, get_gell_mann_basis())
     c_sys3 = csys.CompositeSystem([e_sys3])
     with pytest.raises(ValueError):
-        get_y_measurement(c_sys3)
+        get_y_povm(c_sys3)
 
 
-def test_get_z_measurement():
+def test_get_z_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
     c_sys1 = csys.CompositeSystem([e_sys1])
 
     # Act
-    actual = get_z_measurement(c_sys1)
+    actual = get_z_povm(c_sys1)
 
     # Assert
     expected = [
@@ -1681,23 +1681,23 @@ def test_get_z_measurement():
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys2 = csys.CompositeSystem([e_sys1, e_sys2])
     with pytest.raises(ValueError):
-        get_z_measurement(c_sys2)
+        get_z_povm(c_sys2)
 
     # Test that not 2-dim CompositeSystem
     e_sys3 = esys.ElementalSystem(3, get_gell_mann_basis())
     c_sys3 = csys.CompositeSystem([e_sys3])
     with pytest.raises(ValueError):
-        get_z_measurement(c_sys3)
+        get_z_povm(c_sys3)
 
 
-def test_get_xx_measurement():
+def test_get_xx_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_xx_measurement(c_sys)
+    actual = get_xx_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1714,14 +1714,14 @@ def test_get_xx_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_xy_measurement():
+def test_get_xy_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
     e_sys2 = esys.ElementalSystem(2, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_xy_measurement(c_sys)
+    actual = get_xy_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1738,14 +1738,14 @@ def test_get_xy_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_xz_measurement():
+def test_get_xz_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_xz_measurement(c_sys)
+    actual = get_xz_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1762,14 +1762,14 @@ def test_get_xz_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_yx_measurement():
+def test_get_yx_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_yx_measurement(c_sys)
+    actual = get_yx_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1786,14 +1786,14 @@ def test_get_yx_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_yy_measurement():
+def test_get_yy_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     e_sys2 = esys.ElementalSystem(2, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_yy_measurement(c_sys)
+    actual = get_yy_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1810,14 +1810,14 @@ def test_get_yy_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_yz_measurement():
+def test_get_yz_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_yz_measurement(c_sys)
+    actual = get_yz_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1834,14 +1834,14 @@ def test_get_yz_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_zx_measurement():
+def test_get_zx_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_zx_measurement(c_sys)
+    actual = get_zx_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1858,14 +1858,14 @@ def test_get_zx_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_zy_measurement():
+def test_get_zy_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_normalized_pauli_basis())
     e_sys2 = esys.ElementalSystem(2, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_zy_measurement(c_sys)
+    actual = get_zy_povm(c_sys)
 
     # Assert
     vecs1 = [
@@ -1882,14 +1882,14 @@ def test_get_zy_measurement():
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
-def test_get_zz_measurement():
+def test_get_zz_povm():
     # Arrange
     e_sys1 = esys.ElementalSystem(1, get_comp_basis())
     e_sys2 = esys.ElementalSystem(2, get_comp_basis())
     c_sys = csys.CompositeSystem([e_sys1, e_sys2])
 
     # Act
-    actual = get_zz_measurement(c_sys)
+    actual = get_zz_povm(c_sys)
 
     # Assert
     vecs1 = [

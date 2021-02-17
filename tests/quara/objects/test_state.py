@@ -8,7 +8,7 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis
-from quara.objects.povm import get_z_measurement
+from quara.objects.povm import get_z_povm
 from quara.objects.state import (
     State,
     convert_var_index_to_state_index,
@@ -262,7 +262,7 @@ class TestState:
 
         # Case 1: different type
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -352,7 +352,7 @@ class TestState:
 
         # Case 1: different type
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -494,7 +494,7 @@ class TestState:
 
         # Case 1: different type(POVM)
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -590,7 +590,7 @@ class TestState:
 
         # Case 1: different type(POVM)
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):
@@ -705,7 +705,7 @@ class TestState:
 
         # Case 1: different type(POVM)
         # Arrange
-        povm = get_z_measurement(c_sys)
+        povm = get_z_povm(c_sys)
 
         # Act & Assert
         with pytest.raises(TypeError):

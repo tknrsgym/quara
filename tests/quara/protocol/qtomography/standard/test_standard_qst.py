@@ -7,9 +7,9 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects.povm import (
     Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
 )
 from quara.objects.state import State, get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
@@ -19,9 +19,9 @@ def get_test_data():
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
-    povm_x = get_x_measurement(c_sys)
-    povm_y = get_y_measurement(c_sys)
-    povm_z = get_z_measurement(c_sys)
+    povm_x = get_x_povm(c_sys)
+    povm_y = get_y_povm(c_sys)
+    povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
     qst = StandardQst(povms, on_para_eq_constraint=False, seed=7)
@@ -34,9 +34,9 @@ class TestStandardQst:
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
-        povm_x = get_x_measurement(c_sys)
-        povm_y = get_y_measurement(c_sys)
-        povm_z = get_z_measurement(c_sys)
+        povm_x = get_x_povm(c_sys)
+        povm_y = get_y_povm(c_sys)
+        povm_z = get_z_povm(c_sys)
         povms = [povm_x, povm_y, povm_z]
 
         qst = StandardQst(povms, on_para_eq_constraint=True)
@@ -141,9 +141,9 @@ class TestStandardQst:
         e_sys1 = ElementalSystem(1, get_normalized_pauli_basis())
         c_sys1 = CompositeSystem([e_sys1])
 
-        povm_x = get_x_measurement(c_sys0)
-        povm_y = get_y_measurement(c_sys0)
-        povm_z = get_z_measurement(c_sys1)
+        povm_x = get_x_povm(c_sys0)
+        povm_y = get_y_povm(c_sys0)
+        povm_z = get_z_povm(c_sys1)
         povms = [povm_x, povm_y, povm_z]
 
         # is_valid_experiment == False
