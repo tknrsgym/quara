@@ -130,12 +130,12 @@ class Povm(QOperation):
 
     @property
     def num_outcomes(self) -> List[int]:
-        """Property to get numbers of measurements for each ElementalSystem.
+        """Property to get the number of POVM elements.
 
         Returns
         -------
         List[int]
-            numbers of measurements for each ElementalSystem.
+            the number of POVM elements.
         """
         return self._num_outcomes
 
