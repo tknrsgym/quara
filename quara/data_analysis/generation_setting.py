@@ -57,8 +57,8 @@ class QOperationGenerationSetting:
 
 class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
     def __init__(self, c_sys, qoperation_base, error_rate: float) -> None:
-        if error_rate <= 0:
-            message = "`error_rate` must be positive value."
+        if not (0 <= error_rate <= 1):
+            message = "`error_rate` must be between 0 and 1."
             raise ValueError(message)
 
         super.__init__(c_sys=c_sys, qoperation_base=qoperation_base)
