@@ -709,12 +709,27 @@ def _check_k_mat(k_mat: np.array, dim: int) -> None:
 def _calc_k_part_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> np.array:
     basis = c_sys.basis()
     k_part = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.complex128)
-    for row in range(k_mat.shape[0]):
-        for col in range(k_mat.shape[0]):
+    for row in range(c_sys.dim ** 2 - 1):
+        for col in range(c_sys.dim ** 2 - 1):
             term = k_mat[row, col] * np.kron(basis[row + 1], basis[col + 1].conj())
             k_part += term
 
     return k_part
+
+
+def _convert_from_comp_basis_to_general_basis(
+    c_sys: CompositeSystem,
+    lindbladian_comp_basis: np.ndarray,
+    eps_proj_physical: float = None,
+) -> np.array:
+    tmp_lindladian = convert_hs(
+        lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    )
+    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
+    lindbladian_general_basis = mutil.trancate_computational_fluctuation(
+        tmp_lindladian, eps_proj_physical
+    )
+    return lindbladian_general_basis
 
 
 def generate_hs_from_hjk(
@@ -737,10 +752,6 @@ def generate_hs_from_hjk(
     # calculate k_part
     _check_j_mat(j_mat, dim)
     k_part = _calc_k_part_from_k_mat(k_mat, c_sys)
-
-    print(f"h_part={h_part}")
-    print(f"j_part={j_part}")
-    print(f"k_part={k_part}")
 
     ### calculate hs(=Lindbladian for Hermitian basis)
     lindbladian_comp_basis = h_part + j_part + k_part
@@ -769,7 +780,6 @@ def generate_effective_lindbladian_from_hjk(
 ):
     # generate HS
     hs = generate_hs_from_hjk(c_sys, h_mat, j_mat, k_mat)
-    print(f"lind hs={hs}")
 
     # init
     effective_lindbladian = EffectiveLindbladian(
@@ -783,6 +793,28 @@ def generate_effective_lindbladian_from_hjk(
         eps_proj_physical=eps_proj_physical,
     )
     return effective_lindbladian
+
+
+def generate_hs_from_h(
+    c_sys: CompositeSystem, h_mat: np.ndarray, eps_proj_physical: float = None,
+) -> np.array:
+    dim = c_sys.dim
+
+    # calculate h_part
+    _check_h_mat(h_mat, dim)
+    h_part = _calc_h_part_from_h_mat(h_mat)
+
+    ### calculate hs(=Lindbladian for Hermitian basis)
+    lindbladian_comp_basis = h_part + j_part + k_part
+    tmp_lindladian = convert_hs(
+        lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    )
+    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
+    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
+        tmp_lindladian, eps_proj_physical
+    )
+
+    return lindbladian_hermitian_basis
 
 
 # TODO generate_hs_from_h
