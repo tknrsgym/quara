@@ -33,9 +33,9 @@ from quara.objects.state import (
 )
 from quara.objects.povm import (
     Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
 )
 from quara.objects.gate import (
     Gate,
@@ -82,9 +82,9 @@ tester_states = [state_x0, state_y0, state_z0, state_z1]
 
 
 tester_povms = [
-    get_x_measurement(c_sys),
-    get_y_measurement(c_sys),
-    get_z_measurement(c_sys),
+    get_x_povm(c_sys),
+    get_y_povm(c_sys),
+    get_z_povm(c_sys),
 ]
 
 

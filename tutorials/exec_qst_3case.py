@@ -29,9 +29,9 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects.povm import (
     Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
 )
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State, get_z0_1q, get_z1_1q, get_x0_1q
@@ -64,9 +64,9 @@ start_all = time.time()
 e_sys = ElementalSystem(0, get_normalized_pauli_basis())
 c_sys = CompositeSystem([e_sys])
 
-povm_x = get_x_measurement(c_sys)
-povm_y = get_y_measurement(c_sys)
-povm_z = get_z_measurement(c_sys)
+povm_x = get_x_povm(c_sys)
+povm_y = get_y_povm(c_sys)
+povm_z = get_z_povm(c_sys)
 tester_objects = [povm_x, povm_y, povm_z]
 
 

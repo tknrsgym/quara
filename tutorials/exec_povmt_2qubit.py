@@ -45,7 +45,7 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
-from quara.objects.povm import Povm, get_x_measurement, get_z_measurement
+from quara.objects.povm import Povm, get_x_povm, get_z_povm
 from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
@@ -109,7 +109,7 @@ for i, funcs in enumerate(itertools.product(func_list, func_list)):
 # In[5]:
 
 
-true_object = tensor_product(get_z_measurement(c_sys_1), get_z_measurement(c_sys_2))
+true_object = tensor_product(get_z_povm(c_sys_1), get_z_povm(c_sys_2))
 
 
 # In[7]:
