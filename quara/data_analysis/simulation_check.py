@@ -69,6 +69,7 @@ class StandardQTomographySimulationCheck:
                 f"{name}: {'OK' if r else 'NG'}" for name, r in zip(test_names, results)
             ]
             summary = "========== Summary ============\n"
+            summary += f"Name: {self.simulation_setting.name}\n"
             summary += "\n".join(lines)
             print(summary)
 
