@@ -24,9 +24,6 @@ class EffectiveLindbladian(Gate):
         self,
         c_sys: CompositeSystem,
         hs: np.ndarray,
-        # h_mat: np.ndarray = None,
-        # j_mat: np.ndarray = None,
-        # k_mat: np.ndarray = None,
         is_physicality_required: bool = True,
         is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
@@ -64,35 +61,6 @@ class EffectiveLindbladian(Gate):
         ValueError
             ``is_physicality_required`` is ``True`` and the gate is not physically correct.
         """
-
-        """
-        dim = c_sys.dim
-
-        # calculate h_part
-        self._check_h_mat(h_mat, dim)
-        h_part = self._calc_h_part_from_h_mat(h_mat)
-
-        # calculate j_part
-        self._check_j_mat(j_mat, dim)
-        j_part = self._calc_j_part_from_j_mat(j_mat)
-
-        # calculate k_part
-        self._check_j_mat(j_mat, dim)
-        k_part = self._calc_k_part_from_k_mat(k_mat, c_sys)
-
-        print(f"h_part={h_part}")
-        print(f"j_part={j_part}")
-        print(f"k_part={k_part}")
-
-        ### calculate hs_mat
-        lindbladian_cb = h_part + j_part + k_part
-        tmp_lindladian = convert_hs(lindbladian_cb, c_sys.comp_basis(), c_sys.basis())
-        tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian)
-        lindbladian_gb = mutil.trancate_computational_fluctuation(tmp_lindladian)
-        print(f"lindbladian_gb={lindbladian_gb}")
-        """
-
-        # init super class
         super().__init__(
             c_sys,
             hs,
@@ -113,38 +81,74 @@ class EffectiveLindbladian(Gate):
         return True
 
     def calc_h(self) -> np.array:
-        lindbladian_cb = convert_hs(
-            self.hs, self.composite_system.basis(), self.composite_system.comp_basis()
-        )
+        basis = self.composite_system.basis()
+        comp_basis = self.composite_system.comp_basis()
+        lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
         identity = np.eye(self.dim)
 
         tmp_h_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
-        for basis in self.composite_system.basis():
+        for B_alpha in basis:
             trace = np.trace(
                 lindbladian_cb
-                @ (np.kron(basis, identity) + np.kron(identity, basis.conj()))
+                @ (np.kron(B_alpha, identity) - np.kron(identity, B_alpha.conj()))
             )
-            tmp_h_mat += trace * basis
+            h_alpha = 1j / (2 * self.dim) * trace
+            tmp_h_mat += h_alpha * B_alpha
 
-        h_mat = 1j / (2 * self.dim) * tmp_h_mat
-        return h_mat
+        # TODO h_mat is float64
+        return tmp_h_mat
 
     def calc_j(self) -> np.array:
-        lindbladian_cb = convert_hs(
-            self.hs, self.composite_system.basis(), self.composite_system.comp_basis()
-        )
+        basis = self.composite_system.basis()
+        comp_basis = self.composite_system.comp_basis()
+        lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
         identity = np.eye(self.dim)
 
-        tmp_h_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
-        for basis in self.composite_system.basis():
+        tmp_j_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
+        for alpha, B_alpha in enumerate(basis[1:]):
             trace = np.trace(
                 lindbladian_cb
-                @ (np.kron(basis, identity) + np.kron(identity, basis.conj()))
+                @ (np.kron(B_alpha, identity) + np.kron(identity, B_alpha.conj()))
             )
-            tmp_h_mat += trace * basis
+            delta = 1 if alpha == 0 else 0
+            j_alpha = 1 / (2 * self.dim * (1 + delta)) * trace
+            tmp_j_mat += j_alpha * B_alpha
 
-        h_mat = 1j / (2 * self.dim) * tmp_h_mat
-        return h_mat
+        # TODO j_mat is float64
+        return tmp_j_mat
+
+    def calc_k(self) -> np.array:
+        basis = self.composite_system.basis()
+        comp_basis = self.composite_system.comp_basis()
+        lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
+
+        tmp_k_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
+        for alpha, B_alpha in enumerate(basis[1:]):
+            for beta, B_beta in enumerate(basis[1:]):
+                tmp_k_mat[alpha, beta] = np.trace(
+                    lindbladian_cb @ np.kron(B_alpha, B_beta.conj())
+                )
+
+        return tmp_k_mat
+
+    def calc_h_part(self) -> np.array:
+        h_mat = self.calc_h()
+        h_part = _calc_h_part_from_h_mat(h_mat)
+        return h_part
+
+    def calc_j_part(self) -> np.array:
+        j_mat = self.calc_j()
+        j_part = _calc_j_part_from_j_mat(j_mat)
+        return j_part
+
+    def calc_k_part(self) -> np.array:
+        k_mat = self.calc_k()
+        k_part = _calc_k_part_from_k_mat(k_mat, self.composite_system)
+        return k_part
+
+    def calc_d_part(self) -> np.array:
+        d_part = self.calc_j_part() + self.calc_k_part()
+        return d_part
 
     def is_eq_constraint_satisfied(self, atol_eq_const: float = None) -> bool:
         atol_eq_const = Settings.get_atol() if atol_eq_const is None else atol_eq_const
@@ -234,6 +238,7 @@ class EffectiveLindbladian(Gate):
 
         return new_gate
 
+    # TOOD 見直し
     def _add_vec(self, other) -> np.array:
         new_hs = self.hs + other.hs
         return new_hs
@@ -763,7 +768,8 @@ def generate_effective_lindbladian_from_hjk(
     eps_proj_physical: float = None,
 ):
     # generate HS
-    hs = generate_hs_from_hjk(c_sys, h_mat, h_mat, j_mat, k_mat)
+    hs = generate_hs_from_hjk(c_sys, h_mat, j_mat, k_mat)
+    print(f"lind hs={hs}")
 
     # init
     effective_lindbladian = EffectiveLindbladian(
@@ -777,3 +783,14 @@ def generate_effective_lindbladian_from_hjk(
         eps_proj_physical=eps_proj_physical,
     )
     return effective_lindbladian
+
+
+# TODO generate_hs_from_h
+# TODO generate_effective_lindbladian_from_h
+
+# TODO generate_hs_from_hk
+# TODO generate_effective_lindbladian_from_hk
+
+# TODO generate_hs_from_k
+# TODO generate_effective_lindbladian_from_k
+
