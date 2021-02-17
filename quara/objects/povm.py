@@ -275,7 +275,7 @@ class Povm(QOperation):
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
 
-    def get_measurement(self, index: Union[int, Tuple]) -> np.ndarray:
+    def vec(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns vec of measurement by index.
 
         Parameters
@@ -347,7 +347,7 @@ class Povm(QOperation):
         np.ndarray
             matrix of measurement.
         """
-        vec = self.get_measurement(index)
+        vec = self.vec(index)
 
         size = (self.dim, self.dim)
         matrix = np.zeros(size, dtype=np.complex128)
