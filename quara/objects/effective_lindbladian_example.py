@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 
@@ -46,7 +46,7 @@ def generate_matrix_identity_gate_unitary(dim: int) -> np.array:
 def generate_vec_identity_gate_hamiltonian(dim: int) -> np.array:
     """Return the vector representation for the Hamiltonian of an identity gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
-    The result is the real zero vector with size dim.
+    The result is the real zero vector with size dim^2.
 
     Parameters
     ----------
@@ -58,7 +58,7 @@ def generate_vec_identity_gate_hamiltonian(dim: int) -> np.array:
     np.array
         The real vector representation of the Hamiltonian of the gate.
     """
-    vec = np.zeros(dim, dtype=np.float64)
+    vec = np.zeros(dim * dim, dtype=np.float64)
     return vec
 
 
@@ -83,7 +83,7 @@ def generate_matrix_identity_gate_lindbladian(dim: int) -> np.array:
 
 
 def generate_effective_lindbladian_identity_gate(
-    c_sys: CompositeSystem,
+    c_sys: "CompositeSystem",
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the identity gate on the composite system.
 
