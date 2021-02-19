@@ -49,9 +49,9 @@ from quara.objects.state import (
 )
 from quara.objects.povm import (
     Povm,
-    get_x_measurement,
-    get_y_measurement,
-    get_z_measurement,
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
 )
 from quara.objects.gate import (
     Gate,
@@ -114,7 +114,7 @@ for i, funcs in enumerate(itertools.product(func_list, func_list)):
 # Tester POVMs
 tester_povms = []
 
-func_list = [get_x_measurement, get_y_measurement, get_z_measurement]
+func_list = [get_x_povm, get_y_povm, get_z_povm]
 
 for i, funcs in enumerate(itertools.product(func_list, func_list)):
     povm1 = funcs[0](c_sys_1)

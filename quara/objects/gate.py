@@ -1302,10 +1302,15 @@ def get_swap(c_sys: CompositeSystem) -> Gate:
 
 
 def get_depolarizing_channel(p: float, c_sys: Optional[CompositeSystem] = None) -> Gate:
-    hs = np.diag(np.array([1, 1 - p, 1 - p, 1 - p], dtype=np.float64))
+    if not (0 <= p <= 1):
+        message = "`p` must be between 0 and 1."
+        raise ValueError(message)
     if not c_sys:
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
+    # 1, 1-p, 1-p, ... 1-p
+    source = np.array([1] + [1 - p] * (c_sys.dim ** 2 - 1), dtype=np.float64)
+    hs = np.diag(source)
     gate = Gate(hs=hs, c_sys=c_sys)
     return gate
 

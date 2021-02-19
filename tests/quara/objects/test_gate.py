@@ -1590,6 +1590,46 @@ def test_get_depolarizing_channel():
     expected = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
     npt.assert_almost_equal(actual.hs, expected, decimal=16)
 
+    # Array
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # Act
+    actual = get_depolarizing_channel(p=0.05, c_sys=c_sys)
+    # Assert
+    expected = np.array(
+        [[1, 0, 0, 0], [0, 0.95, 0, 0], [0, 0, 0.95, 0], [0, 0, 0, 0.95]]
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=16)
+    assert actual.composite_system is c_sys
+
+    # 2qubit
+    # Arange
+    e_sys_1 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys_2 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys_2q = CompositeSystem([e_sys_1, e_sys_2])
+    # Act
+    actual = get_depolarizing_channel(0.1, c_sys_2q)
+    # Assert
+    expected = np.diag([0.9] * 16)
+    expected[0][0] = 1
+    npt.assert_almost_equal(actual.hs, expected, decimal=16)
+    assert actual.composite_system is c_sys_2q
+
+
+def test_get_depolarizing_channel_unexpected():
+    # Array
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        _ = get_depolarizing_channel(p=-0.1, c_sys=c_sys)
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        _ = get_depolarizing_channel(p=1.1, c_sys=c_sys)
+
 
 def test_get_x_rotation():
     # Act
