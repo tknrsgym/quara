@@ -1617,6 +1617,20 @@ def test_get_depolarizing_channel():
     assert actual.composite_system is c_sys_2q
 
 
+def test_get_depolarizing_channel_unexpected():
+    # Array
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        _ = get_depolarizing_channel(p=-0.1, c_sys=c_sys)
+
+    # Act & Assert
+    with pytest.raises(ValueError):
+        _ = get_depolarizing_channel(p=1.1, c_sys=c_sys)
+
+
 def test_get_x_rotation():
     # Act
     actual = get_x_rotation(theta=np.pi / 2)
