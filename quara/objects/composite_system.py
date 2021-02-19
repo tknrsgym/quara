@@ -6,7 +6,7 @@ import numpy as np
 
 from quara.objects import elemental_system
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
 
 
 class CompositeSystem:
@@ -79,6 +79,7 @@ class CompositeSystem:
         if len(self._elemental_systems) == 1:
             basis_tmp = self._elemental_systems[0].comp_basis
         else:
+            """
             basis_list = [e_sys.comp_basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
             for elem in basis_list[1:]:
@@ -86,6 +87,8 @@ class CompositeSystem:
                     np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
                 ]
             basis_tmp = MatrixBasis(temp)
+            """
+            basis_tmp = get_comp_basis(self.dim)
         return basis_tmp
 
     def basis(self) -> MatrixBasis:
