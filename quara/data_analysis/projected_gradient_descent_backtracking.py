@@ -25,6 +25,7 @@ class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
         x: List[np.array] = None,
         y: List[np.array] = None,
         alpha: List[float] = None,
+        error_values: List[float] = None,
     ):
         super().__init__(value, computation_time)
         self._k: int = k
@@ -32,6 +33,7 @@ class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
         self._x: List[np.array] = x
         self._y: List[np.array] = y
         self._alpha: List[float] = alpha
+        self._error_values: List[float] = error_values
 
     @property
     def k(self) -> int:
@@ -88,6 +90,17 @@ class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
         """
         return self._alpha
 
+    @property
+    def error_values(self) -> List[np.array]:
+        """return the error_values per iteration.
+
+        Returns
+        -------
+        List[np.array]
+            the error_values per iteration.
+        """
+        return self._error_values
+
 
 class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
     def __init__(
@@ -97,6 +110,8 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         var_start: np.array = None,
         mu: float = None,
         gamma: float = 0.3,
+        mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
+        num_history_stopping_criterion_gradient_descent: int = 1,
         eps: float = None,
     ):
         """Constructor
@@ -113,6 +128,11 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
             algorithm option ``mu``, by default None
         gamma : float, optional
             algorithm option ``gamma``, by default 0.3
+        mode_stopping_criterion_gradient_descent : str, optional
+            mode of stopping criterion for gradient descent, by default "single_difference_loss"
+        num_history_stopping_criterion_gradient_descent : int, optional
+            number of history to be used stopping criterion for gradient descent, by default 1
+            this must be a integer and greater than or equal to 1.
         eps : float, optional
             algorithm option ``epsilon``, by default None
         """
@@ -125,7 +145,34 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         if mu is None and var_start is not None:
             mu = 3 / (2 * np.sqrt(var_start.shape[0]))
         self._mu: float = mu
+
         self._gamma: float = gamma
+
+        if not mode_stopping_criterion_gradient_descent in [
+            "single_difference_loss",
+            "sum_absolute_difference_loss",
+            "sum_absolute_difference_variable",
+            "sum_absolute_difference_projected_gradient",
+        ]:
+            raise ValueError(
+                f"unsupported 'mode_stopping_criterion_gradient_descent'={mode_stopping_criterion_gradient_descent}"
+            )
+        self._mode_stopping_criterion_gradient_descent = (
+            mode_stopping_criterion_gradient_descent
+        )
+
+        if type(num_history_stopping_criterion_gradient_descent) != int:
+            raise ValueError(
+                f"type(num_history_stopping_criterion_gradient_descent) is not int. type={type(num_history_stopping_criterion_gradient_descent)}"
+            )
+        if num_history_stopping_criterion_gradient_descent < 1:
+            raise ValueError(
+                f"num_history_stopping_criterion_gradient_descent must be greater than or equal to 1. num_history_stopping_criterion_gradient_descent={num_history_stopping_criterion_gradient_descent}"
+            )
+        self._num_history_stopping_criterion_gradient_descent = (
+            num_history_stopping_criterion_gradient_descent
+        )
+
         if eps is None:
             eps = Settings.get_atol() / 10.0
         self._eps: float = eps
@@ -151,6 +198,28 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
             algorithm option ``gamma``.
         """
         return self._gamma
+
+    @property
+    def mode_stopping_criterion_gradient_descent(self) -> str:
+        """returns mode of stopping criterion for gradient descent.
+
+        Returns
+        -------
+        str
+            mode of stopping criterion for gradient descent.
+        """
+        return self._mode_stopping_criterion_gradient_descent
+
+    @property
+    def num_history_stopping_criterion_gradient_descent(self) -> int:
+        """returns number of history to be used stopping criterion for gradient descent.
+
+        Returns
+        -------
+        int
+            number of history to be used stopping criterion for gradient descent.
+        """
+        return self._num_history_stopping_criterion_gradient_descent
 
     @property
     def eps(self) -> float:
@@ -360,6 +429,7 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             xs = [x_prev]
             ys = []
             alphas = []
+        error_values = []
 
         k = 0
         is_doing = True
@@ -379,8 +449,40 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             x_next = x_prev + alpha * y_prev
             k += 1
 
-            val = loss_function.value(x_prev) - loss_function.value(x_next)
-            is_doing = True if val > eps else False
+            # calc error value depend on "mode_stopping_criterion_gradient_descent"
+            if (
+                algorithm_option.mode_stopping_criterion_gradient_descent
+                == "single_difference_loss"
+            ):
+                error_value = loss_function.value(x_prev) - loss_function.value(x_next)
+            elif (
+                algorithm_option.mode_stopping_criterion_gradient_descent
+                == "sum_absolute_difference_loss"
+            ):
+                error_value = np.abs(
+                    loss_function.value(x_prev) - loss_function.value(x_next)
+                )
+            elif (
+                algorithm_option.mode_stopping_criterion_gradient_descent
+                == "sum_absolute_difference_variable"
+            ):
+                error_value = np.sqrt(np.sum((x_prev - x_next) ** 2))
+            elif (
+                algorithm_option.mode_stopping_criterion_gradient_descent
+                == "sum_absolute_difference_projected_gradient"
+            ):
+                error_value = np.sqrt(np.sum(y_prev ** 2))
+            error_values.append(error_value)
+
+            # calc sum of error values
+            # if num_history_stopping_criterion_gradient_descent = 1, then this is single sum
+            sum_range = min(
+                len(error_values),
+                algorithm_option.num_history_stopping_criterion_gradient_descent,
+            )
+            value = np.sum(error_values[-sum_range:])
+
+            is_doing = True if value > eps else False
 
             # variables for iteration history
             if on_iteration_history:
@@ -399,6 +501,7 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
                 x=xs,
                 y=ys,
                 alpha=alphas,
+                error_values=error_values,
             )
             return result
         else:
