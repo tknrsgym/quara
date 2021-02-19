@@ -707,10 +707,10 @@ def get_bell_2q(c_sys: CompositeSystem) -> State:
             f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
         )
 
-    # \frac{1}{2}(|00>+|11>)(<00|+<11|) = \frac{1}{2}(|0><0|\otimes|0><0| + |0><1|\otimes|0><1| + |1><0|\otimes|1><0| + |1><1|\otimes|1><1|)
+    # \frac{1}{2}(|00>+|11>)(<00|+<11|)
     # convert "vec in comp basis" to "vec in basis of CompositeSystem"
     from_vec = (
-        np.array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], dtype=np.float64) / 2
+        np.array([1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1], dtype=np.float64) / 2
     )
     to_vec = convert_vec(from_vec, c_sys.comp_basis(), c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
