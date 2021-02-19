@@ -61,6 +61,7 @@ class EffectiveLindbladian(Gate):
         ValueError
             ``is_physicality_required`` is ``True`` and the gate is not physically correct.
         """
+        # TODO check the basis is a orthonormal Hermitian matrix basis with B_0 = I/sqrt(d)
         super().__init__(
             c_sys,
             hs,
@@ -75,10 +76,6 @@ class EffectiveLindbladian(Gate):
         # whether the EffectiveLindbladian is physically correct
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the EffectiveLindbladian is not phsically correct.")
-
-    # TODO delete
-    def is_physical(self):
-        return True
 
     def calc_h(self) -> np.array:
         basis = self.composite_system.basis()
@@ -122,7 +119,9 @@ class EffectiveLindbladian(Gate):
         comp_basis = self.composite_system.comp_basis()
         lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
 
-        tmp_k_mat = np.zeros((self.dim, self.dim), dtype=np.complex128)
+        tmp_k_mat = np.zeros(
+            (self.dim ** 2 - 1, self.dim ** 2 - 1), dtype=np.complex128
+        )
         for alpha, B_alpha in enumerate(basis[1:]):
             for beta, B_beta in enumerate(basis[1:]):
                 tmp_k_mat[alpha, beta] = np.trace(
@@ -149,23 +148,6 @@ class EffectiveLindbladian(Gate):
     def calc_d_part(self) -> np.array:
         d_part = self.calc_j_part() + self.calc_k_part()
         return d_part
-
-    def is_eq_constraint_satisfied(self, atol_eq_const: float = None) -> bool:
-        atol_eq_const = Settings.get_atol() if atol_eq_const is None else atol_eq_const
-        # TODO implement
-        return np.allclose(self.hs[0], 0, atol=atol_eq_const, rtol=0.0)
-
-    def is_ineq_constraint_satisfied(self, atol_ineq_const: float = None) -> bool:
-        # TODO implement
-        return True
-
-    def set_zero(self):
-        self._hs = np.zeros(self._hs.shape, dtype=np.float64)
-        self._is_physicality_required = False
-
-    def _generate_zero_obj(self):
-        new_hs = np.zeros(self.hs.shape, dtype=np.float64)
-        return new_hs
 
     def _generate_origin_obj(self):
         # TODO modify for EffectiveLindbladian
@@ -195,9 +177,8 @@ class EffectiveLindbladian(Gate):
         )
         return gate
 
-    def calc_proj_eq_constraint(self) -> "Gate":
+    def calc_proj_eq_constraint(self) -> "EffectiveLindbladian":
         # TODO modify for EffectiveLindbladian
-        hs = copy.deepcopy(self.hs)
         hs[0][0] = 1
         hs[0][1:] = 0
         new_gate = Gate(
@@ -213,21 +194,24 @@ class EffectiveLindbladian(Gate):
 
         return new_gate
 
-    def calc_proj_ineq_constraint(self) -> "Gate":
+    def calc_proj_ineq_constraint(self) -> "EffectiveLindbladian":
         # TODO modify for EffectiveLindbladian
-        choi_matrix = self.to_choi_matrix()
-        eigenvals, eigenvecs = np.linalg.eig(choi_matrix)
+        h_mat = self.calc_h()
+        j_mat = self.calc_j()
+        k_mat = self.calc_k()
 
-        # project
+        # project k_mat
+        eigenvals, eigenvecs = np.linalg.eig(k_mat)
         for index in range(len(eigenvals)):
             if eigenvals[index] < 0:
                 eigenvals[index] = 0
+        new_k_mat = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
 
-        new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
-        new_hs = hs_from_choi(new_choi_matrix, self.composite_system)
-        new_gate = Gate(
-            c_sys=self.composite_system,
-            hs=new_hs,
+        new_lindbladian = generate_effective_lindbladian_from_hjk(
+            self.composite_system,
+            h_mat,
+            j_mat,
+            new_k_mat,
             is_physicality_required=self.is_physicality_required,
             is_estimation_object=self.is_estimation_object,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -236,7 +220,7 @@ class EffectiveLindbladian(Gate):
             eps_proj_physical=self.eps_proj_physical,
         )
 
-        return new_gate
+        return new_lindbladian
 
     # TOOD 見直し
     def _add_vec(self, other) -> np.array:
@@ -255,19 +239,8 @@ class EffectiveLindbladian(Gate):
         new_hs = self.hs / other
         return new_hs
 
-    def get_basis(self) -> MatrixBasis:
-        """returns MatrixBasis of gate.
-
-        Returns
-        -------
-        MatrixBasis
-            MatrixBasis of gate.
-        """
-        return self.composite_system.basis()
-
     def is_tp(self, atol: float = None) -> bool:
-        # TODO modify
-        """returns whether the gate is TP(trace-preserving map).
+        """returns whether the effective Lindbladian is TP(trace-preserving map).
 
         Parameters
         ----------
@@ -278,40 +251,15 @@ class EffectiveLindbladian(Gate):
         Returns
         -------
         bool
-            True where the gate is TP, False otherwise.
+            True where the effective Lindbladian is TP, False otherwise.
         """
         atol = Settings.get_atol() if atol is None else atol
 
-        # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
-        for index, basis in enumerate(self.composite_system.basis()):
-            # calculate Tr[B_\alpha]
-            trace_before_mapped = np.trace(basis)
-
-            # calculate Tr[A(B_\alpha)]
-            vec = np.zeros((self._dim ** 2))
-            vec[index] = 1
-            vec_after_mapped = self.hs @ vec
-
-            density = np.zeros((self._dim, self._dim), dtype=np.complex128)
-            for coefficient, basis in zip(
-                vec_after_mapped, self.composite_system.basis()
-            ):
-                density += coefficient * basis
-
-            trace_after_mapped = np.trace(density)
-
-            # check Tr[A(B_\alpha)] = Tr[B_\alpha]
-            tp_for_basis = np.isclose(
-                trace_after_mapped, trace_before_mapped, atol=atol, rtol=0.0
-            )
-            if not tp_for_basis:
-                return False
-
-        return True
+        # for A:L^{gb}, "A is TP" <=> "1st row of A is zeros"
+        return np.allclose(self.hs[0], 0, atol=atol, rtol=0.0)
 
     def is_cp(self, atol: float = None) -> bool:
-        # TODO modify
-        """returns whether gate is CP(Complete-Positivity-Preserving).
+        """returns whether effective Lindbladian is CP(Complete-Positivity-Preserving).
 
         Parameters
         ----------
@@ -322,12 +270,12 @@ class EffectiveLindbladian(Gate):
         Returns
         -------
         bool
-            True where gate is CP, False otherwise.
+            True where the effective Lindbladian is CP, False otherwise.
         """
         atol = Settings.get_atol() if atol is None else atol
 
-        # "A is CP"  <=> "C(A) >= 0"
-        return mutil.is_positive_semidefinite(self.to_choi_matrix(), atol=atol)
+        # for A:L^{gb}, "A is CP"  <=> "k >= 0"
+        return mutil.is_positive_semidefinite(self.calc_k(), atol=atol)
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.array:
         """returns HS representation for ``other_basis``.
@@ -623,38 +571,6 @@ def calc_gradient_from_gate(
         eps_proj_physical=eps_proj_physical,
     )
     return gate
-
-
-def is_hp(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
-    """returns whether gate is HP(Hermiticity-Preserving).
-
-    HP <=> HS on Hermitian basis is real matrix.
-    therefore converts input basis to Pauli basis, and checks whetever converted HS is real matrix.
-
-    Parameters
-    ----------
-    hs : np.array
-        HS representation of gate.
-    basis : MatrixBasis
-        basis of HS representation.
-    atol : float, optional
-        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
-        this function checks ``absolute(imaginary part of matrix - zero matrix) <= atol``.
-
-    Returns
-    -------
-    bool
-        True where gate is EP, False otherwise.
-    """
-
-    atol = Settings.get_atol() if atol is None else atol
-
-    # convert Hermitian basis(Pauli basis)
-    hs_converted = convert_hs(hs, basis, get_normalized_pauli_basis())
-
-    # whetever converted HS is real matrix(imaginary part is zero matrix)
-    zero_matrix = np.zeros(hs_converted.shape)
-    return np.allclose(hs_converted.imag, zero_matrix, atol=atol, rtol=0.0)
 
 
 def _check_h_mat(h_mat: np.array, dim: int) -> None:
