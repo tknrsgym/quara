@@ -1,9 +1,11 @@
 from typing import Union
-import numpy as np
+from abc import abstractmethod
+
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
-from quara.objects.gate import Gate
+from quara.objects.gate import Gate, get_depolarizing_channel
+from quara.objects.operators import composite
 
 
 class QOperationGenerationSetting:
@@ -61,18 +63,31 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
             message = "`error_rate` must be between 0 and 1."
             raise ValueError(message)
 
-        super.__init__(c_sys=c_sys, qoperation_base=qoperation_base)
+        super().__init__(c_sys=c_sys, qoperation_base=qoperation_base)
         self._error_rate = error_rate
 
+    @property
+    def error_rate(self):
+        return self._error_rate
+
     def generate_state(self):
-        raise NotImplementedError()
+        dp = get_depolarizing_channel(
+            p=self.error_rate, c_sys=self.qoperation_base.composite_system
+        )
+        new_object = composite(dp, self.qoperation_base)
+        return new_object
 
     def generate_povm(self):
-        raise NotImplementedError()
+        dp = get_depolarizing_channel(
+            p=self.error_rate, c_sys=self.qoperation_base.composite_system
+        )
+        new_object = composite(self.qoperation_base, dp)
+        return new_object
 
     def generate_gate(self):
-        raise NotImplementedError()
+        dp = get_depolarizing_channel(
+            p=self.error_rate, c_sys=self.qoperation_base.composite_system
+        )
+        new_object = composite(dp, self.qoperation_base)
+        return new_object
 
-
-def generate_gate_deporising(c_sys: "CompositeSystem", hs: np.ndarray) -> Gate:
-    pass
