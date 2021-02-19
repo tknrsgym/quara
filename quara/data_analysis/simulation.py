@@ -25,7 +25,7 @@ class StandardQTomographySimulationSetting:
 
     def __str__(self):
         desc = f"Name: {self.name}"
-        desc += f"True Object: {self.true_object}"
+        desc += f"\nTrue Object: {self.true_object}"
         # TODO: add tester_object info
         desc += f"\nEstimator: {self.estimator.__class__.__name__}"
         loss = None if self.loss is None else self.loss.__class__.__name__
