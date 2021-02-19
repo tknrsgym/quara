@@ -37,6 +37,89 @@ def get_test_data(on_para_eq_constraint=False):
     return qst, c_sys
 
 
+class TestProjectedGradientDescentBacktrackingOption:
+    def test_access_mode_stopping_criterion_gradient_descent(self):
+        # default
+        option = ProjectedGradientDescentBacktrackingOption()
+        assert (
+            option.mode_stopping_criterion_gradient_descent == "single_difference_loss"
+        )
+
+        # mode_stopping_criterion_gradient_descent = "single_difference_loss"
+        option = ProjectedGradientDescentBacktrackingOption(
+            mode_stopping_criterion_gradient_descent="single_difference_loss"
+        )
+        assert (
+            option.mode_stopping_criterion_gradient_descent == "single_difference_loss"
+        )
+
+        # mode_stopping_criterion_gradient_descent = "sum_absolute_difference_loss"
+        option = ProjectedGradientDescentBacktrackingOption(
+            mode_stopping_criterion_gradient_descent="sum_absolute_difference_loss"
+        )
+        assert (
+            option.mode_stopping_criterion_gradient_descent
+            == "sum_absolute_difference_loss"
+        )
+
+        # mode_stopping_criterion_gradient_descent = "sum_absolute_difference_variable"
+        option = ProjectedGradientDescentBacktrackingOption(
+            mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable"
+        )
+        assert (
+            option.mode_stopping_criterion_gradient_descent
+            == "sum_absolute_difference_variable"
+        )
+
+        # mode_stopping_criterion_gradient_descent = "sum_absolute_difference_projected_gradient"
+        option = ProjectedGradientDescentBacktrackingOption(
+            mode_stopping_criterion_gradient_descent="sum_absolute_difference_projected_gradient"
+        )
+        assert (
+            option.mode_stopping_criterion_gradient_descent
+            == "sum_absolute_difference_projected_gradient"
+        )
+
+        # unsupported string
+        with pytest.raises(ValueError):
+            ProjectedGradientDescentBacktrackingOption(
+                mode_stopping_criterion_gradient_descent="unsupported_string"
+            )
+
+        # Test that "mode_stopping_criterion_gradient_descent" cannot be updated
+        with pytest.raises(AttributeError):
+            option = ProjectedGradientDescentBacktrackingOption()
+            option.mode_stopping_criterion_gradient_descent = "single_difference_loss"
+
+    def test_access_num_history_stopping_criterion_gradient_descent(self):
+        # default
+        option = ProjectedGradientDescentBacktrackingOption()
+        assert option.num_history_stopping_criterion_gradient_descent == 1
+
+        # num_history_stopping_criterion_gradient_descent = 2
+        option = ProjectedGradientDescentBacktrackingOption(
+            num_history_stopping_criterion_gradient_descent=2
+        )
+        assert option.num_history_stopping_criterion_gradient_descent == 2
+
+        # not int
+        with pytest.raises(ValueError):
+            ProjectedGradientDescentBacktrackingOption(
+                num_history_stopping_criterion_gradient_descent=1.0
+            )
+
+        # <1
+        with pytest.raises(ValueError):
+            ProjectedGradientDescentBacktrackingOption(
+                num_history_stopping_criterion_gradient_descent=0
+            )
+
+        # Test that "num_history_stopping_criterion_gradient_descent" cannot be updated
+        with pytest.raises(AttributeError):
+            option = ProjectedGradientDescentBacktrackingOption()
+            option.num_history_stopping_criterion_gradient_descent = 1
+
+
 class TestProjectedGradientDescentBase:
     def test_access_func_proj(self):
         algo = ProjectedGradientDescentBacktracking()
