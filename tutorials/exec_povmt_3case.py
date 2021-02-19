@@ -36,7 +36,7 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
-from quara.objects.povm import Povm, get_x_measurement
+from quara.objects.povm import Povm, get_x_povm
 from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator

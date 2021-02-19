@@ -65,8 +65,15 @@ class StandardQTomographySimulationCheck:
 
         # Show summary
         if show_summary:
+            start_red = "\033[31m"
+            start_green = "\033[32m"
+            end_color = "\033[0m"
+            ok_text = f"{start_green}OK{end_color}"
+            ng_text = f"{start_red}NG{end_color}"
+
             lines = [
-                f"{name}: {'OK' if r else 'NG'}" for name, r in zip(test_names, results)
+                f"{name}: {ok_text if r else ng_text}"
+                for name, r in zip(test_names, results)
             ]
             summary = "========== Summary ============\n"
             summary += f"Name: {self.simulation_setting.name}\n"
