@@ -427,3 +427,113 @@ class TestLossMinimizationEstimator:
             estimator.calc_estimate_sequence(
                 qst, empi_dists_seq, loss, loss_option, algo, algo_option,
             )
+
+    def test_calc_estimate__pgdb_opton__sum_absolute_difference_loss(self):
+        empi_dists = [
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([1, 0], dtype=np.float64)),
+        ]
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
+
+        qst, _ = get_test_data()
+        algo = ProjectedGradientDescentBacktracking()
+        # mode_stopping_criterion_gradient_descent="sum_absolute_difference_loss"
+        # num_history_stopping_criterion_gradient_descent=10
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            mode_stopping_criterion_gradient_descent="sum_absolute_difference_loss",
+            num_history_stopping_criterion_gradient_descent=10,
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        # is_computation_time_required=True
+        actual = estimator.calc_estimate(
+            qst,
+            empi_dists,
+            loss,
+            loss_option,
+            algo,
+            algo_option,
+            is_computation_time_required=True,
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=11)
+
+    def test_calc_estimate__pgdb_opton__sum_absolute_difference_variable(self):
+        empi_dists = [
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([1, 0], dtype=np.float64)),
+        ]
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
+
+        qst, _ = get_test_data()
+        algo = ProjectedGradientDescentBacktracking()
+        # mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable"
+        # num_history_stopping_criterion_gradient_descent=10
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+            num_history_stopping_criterion_gradient_descent=10,
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        # is_computation_time_required=True
+        actual = estimator.calc_estimate(
+            qst,
+            empi_dists,
+            loss,
+            loss_option,
+            algo,
+            algo_option,
+            is_computation_time_required=True,
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
+
+    def test_calc_estimate__pgdb_opton__sum_absolute_difference_projected_gradient(
+        self,
+    ):
+        empi_dists = [
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([1, 0], dtype=np.float64)),
+        ]
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
+
+        qst, _ = get_test_data()
+        algo = ProjectedGradientDescentBacktracking()
+        # mode_stopping_criterion_gradient_descent="sum_absolute_difference_projected_gradient"
+        # num_history_stopping_criterion_gradient_descent=10
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True,
+            on_algo_ineq_constraint=True,
+            mode_stopping_criterion_gradient_descent="sum_absolute_difference_projected_gradient",
+            num_history_stopping_criterion_gradient_descent=10,
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        # is_computation_time_required=True
+        actual = estimator.calc_estimate(
+            qst,
+            empi_dists,
+            loss,
+            loss_option,
+            algo,
+            algo_option,
+            is_computation_time_required=True,
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
