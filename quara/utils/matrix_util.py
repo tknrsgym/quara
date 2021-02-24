@@ -1,5 +1,6 @@
 """utility package about matrix."""
-from typing import List, Tuple
+import copy
+from typing import List, Tuple, Union
 from functools import reduce
 from operator import add
 
@@ -470,3 +471,82 @@ def calc_fisher_matrix_total(
         )
 
     return matrix
+
+
+def _U(dim1, dim2, i, j):
+    matrix = np.zeros((dim1, dim2))
+    matrix[i, j] = 1
+    return matrix
+
+
+def _K(dim1: int, dim2: int) -> np.array:
+    matrix = np.zeros((dim1 * dim2, dim1 * dim2))
+    for row in range(dim1):
+        for col in range(dim2):
+            matrix += np.kron(_U(dim1, dim2, row, col), _U(dim2, dim1, col, row))
+
+    return matrix
+
+
+def _left_permutation_matrix(position: int, size_list: List[int]) -> np.array:
+    # identity matrix for head of permutation matrix
+    if position < 2:
+        I_head = np.eye(1)
+    else:
+        size = reduce(add, size_list[: position - 1])
+        I_head = np.eye(size)
+
+    # create matrix K
+    K_matrix = _K(size_list[position], size_list[position - 1])
+
+    # identity matrix for tail of permutation matrix
+    if position < len(size_list) - 1:
+        size = reduce(add, size_list[position + 1 :])
+        I_tail = np.eye(size)
+    else:
+        I_tail = np.eye(1)
+
+    # calculate permutation matrix
+    left_perm_matrix = np.kron(np.kron(I_head, K_matrix), I_tail)
+    return left_perm_matrix
+
+
+def _check_cross_system_position(system_order: List[int],) -> Union[int, None]:
+    # check cross system position
+    # for example, if [0, 10, 5] is a list of names of ElementalSystem, then this functions returns 2(position of value 5)
+    former_name = None
+    for current_position, system_name in enumerate(system_order):
+        current_name = system_name
+        if not former_name is None and former_name > current_name:
+            return current_position
+        else:
+            former_name = current_name
+
+    # if cross ElementalSystem position does not exist, returns None
+    return None
+
+
+def calc_permutation_matrix(system_order: List[int], size_list: List[int]) -> np.array:
+    tmp_system_order = copy.copy(system_order)
+    tmp_size_list = copy.copy(size_list)
+    total_dim = np.prod(size_list)
+    perm_matrix = np.eye(total_dim)
+
+    # calc permutation matrix
+    position = _check_cross_system_position(tmp_system_order)
+    while not position is None:
+        left_perm = _left_permutation_matrix(position, tmp_size_list)
+        perm_matrix = left_perm @ perm_matrix
+        # swap tmp_system_order
+        tmp_system_order[position - 1], tmp_system_order[position] = (
+            tmp_system_order[position],
+            tmp_system_order[position - 1],
+        )
+        # swap size_list
+        tmp_size_list[position - 1], tmp_size_list[position] = (
+            tmp_size_list[position],
+            tmp_size_list[position - 1],
+        )
+        position = _check_cross_system_position(tmp_system_order)
+
+    return perm_matrix
