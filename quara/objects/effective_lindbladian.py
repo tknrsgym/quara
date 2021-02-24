@@ -606,6 +606,17 @@ def _check_j_mat(j_mat: np.array, dim: int) -> None:
         )
 
 
+def _calc_j_mat_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> None:
+    basis = c_sys.basis()
+    j_mat = np.zeros((c_sys.dim, c_sys.dim), dtype=np.complex128)
+    for row in range(k_mat.shape[0]):
+        for col in range(k_mat.shape[1]):
+            term = k_mat[row, col] * basis[col + 1].conj() @ basis[row + 1]
+            j_mat += term
+
+    return -1 / 2 * j_mat
+
+
 def _calc_j_part_from_j_mat(j_mat: np.array) -> np.array:
     identity = np.eye(j_mat.shape[0])
     return np.kron(j_mat, identity) + np.kron(identity, j_mat.conj())
@@ -653,7 +664,7 @@ def generate_hs_from_hjk(
     j_part = _calc_j_part_from_j_mat(j_mat)
 
     # calculate k_part
-    _check_j_mat(j_mat, dim)
+    _check_k_mat(k_mat, dim)
     k_part = _calc_k_part_from_k_mat(k_mat, c_sys)
 
     # calculate hs(=Lindbladian for Hermitian basis)
@@ -683,7 +694,6 @@ def generate_effective_lindbladian_from_hjk(
 ):
     # generate HS
     hs = generate_hs_from_hjk(c_sys, h_mat, j_mat, k_mat)
-    print(f"lind hs={hs}")
 
     # init
     effective_lindbladian = EffectiveLindbladian(
@@ -733,7 +743,6 @@ def generate_effective_lindbladian_from_h(
 ):
     # generate HS
     hs = generate_hs_from_h(c_sys, h_mat)
-    print(f"lind hs={hs}")
 
     # init
     effective_lindbladian = EffectiveLindbladian(
@@ -749,9 +758,115 @@ def generate_effective_lindbladian_from_h(
     return effective_lindbladian
 
 
-# TODO generate_hs_from_hk
-# TODO generate_effective_lindbladian_from_hk
+def generate_hs_from_hk(
+    c_sys: CompositeSystem,
+    h_mat: np.ndarray,
+    k_mat: np.ndarray,
+    eps_proj_physical: float = None,
+) -> np.array:
+    dim = c_sys.dim
 
-# TODO generate_hs_from_k
-# TODO generate_effective_lindbladian_from_k
+    # calculate h_part
+    _check_h_mat(h_mat, dim)
+    h_part = _calc_h_part_from_h_mat(h_mat)
 
+    # calculate k_part
+    _check_k_mat(k_mat, dim)
+    k_part = _calc_k_part_from_k_mat(k_mat, c_sys)
+
+    # calculate j_part
+    j_mat = _calc_j_mat_from_k_mat(k_mat, c_sys)
+    j_part = _calc_j_part_from_j_mat(j_mat)
+
+    # calculate hs(=Lindbladian for Hermitian basis)
+    lindbladian_comp_basis = h_part + j_part + k_part
+    tmp_lindladian = convert_hs(
+        lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    )
+    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
+    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
+        tmp_lindladian, eps_proj_physical
+    )
+
+    return lindbladian_hermitian_basis
+
+
+def generate_effective_lindbladian_from_hk(
+    c_sys: CompositeSystem,
+    h_mat: np.ndarray,
+    k_mat: np.ndarray,
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = None,
+):
+    # generate HS
+    hs = generate_hs_from_hk(c_sys, h_mat, k_mat)
+
+    # init
+    effective_lindbladian = EffectiveLindbladian(
+        c_sys,
+        hs,
+        is_physicality_required=is_physicality_required,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
+    return effective_lindbladian
+
+
+def generate_hs_from_k(
+    c_sys: CompositeSystem, k_mat: np.ndarray, eps_proj_physical: float = None,
+) -> np.array:
+    dim = c_sys.dim
+
+    # calculate k_part
+    _check_k_mat(k_mat, dim)
+    k_part = _calc_k_part_from_k_mat(k_mat, c_sys)
+
+    # calculate j_part
+    j_mat = _calc_j_mat_from_k_mat(k_mat, c_sys)
+    j_part = _calc_j_part_from_j_mat(j_mat)
+
+    # calculate hs(=Lindbladian for Hermitian basis)
+    lindbladian_comp_basis = j_part + k_part
+    tmp_lindladian = convert_hs(
+        lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
+    )
+    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
+    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
+        tmp_lindladian, eps_proj_physical
+    )
+
+    return lindbladian_hermitian_basis
+
+
+def generate_effective_lindbladian_from_k(
+    c_sys: CompositeSystem,
+    k_mat: np.ndarray,
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    eps_proj_physical: float = None,
+):
+    # generate HS
+    hs = generate_hs_from_k(c_sys, k_mat)
+
+    # init
+    effective_lindbladian = EffectiveLindbladian(
+        c_sys,
+        hs,
+        is_physicality_required=is_physicality_required,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        eps_proj_physical=eps_proj_physical,
+    )
+    return effective_lindbladian
