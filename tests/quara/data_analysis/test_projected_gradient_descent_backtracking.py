@@ -119,6 +119,28 @@ class TestProjectedGradientDescentBacktrackingOption:
             option = ProjectedGradientDescentBacktrackingOption()
             option.num_history_stopping_criterion_gradient_descent = 1
 
+    def test_access_mode_proj_order(self):
+        # default
+        option = ProjectedGradientDescentBacktrackingOption()
+        assert option.mode_proj_order == "eq_ineq"
+
+        # eq_ineq
+        option = ProjectedGradientDescentBacktrackingOption(mode_proj_order="eq_ineq")
+        assert option.mode_proj_order == "eq_ineq"
+
+        # ineq_eq
+        option = ProjectedGradientDescentBacktrackingOption(mode_proj_order="ineq_eq")
+        assert option.mode_proj_order == "ineq_eq"
+
+        # unsupported value
+        with pytest.raises(ValueError):
+            ProjectedGradientDescentBacktrackingOption(mode_proj_order="unsupported")
+
+        # Test that "mode_proj_order" cannot be updated
+        with pytest.raises(AttributeError):
+            option = ProjectedGradientDescentBacktrackingOption()
+            option.mode_proj_order = "eq_ineq"
+
 
 class TestProjectedGradientDescentBase:
     def test_access_func_proj(self):

@@ -29,6 +29,7 @@ class EffectiveLindbladian(Gate):
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
+        mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
     ):
         """Constructor
@@ -70,6 +71,7 @@ class EffectiveLindbladian(Gate):
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
+            mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
         )
 
