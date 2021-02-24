@@ -419,7 +419,9 @@ def generate_matrix_x_gate_unitary() -> np.array:
     np.array
         The unitary matrix, which is a complex matrix.
     """
-    u = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    u = b[1]
     return u
 
 
@@ -714,6 +716,127 @@ def generate_effective_lindbladian_y180_gate(
     return el
 
 
+# Y gate on 1-qubit
+
+
+def generate_vec_y_gate_hamiltonian() -> np.array:
+    """Return the vector representation for the Hamiltonian of a Y gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a real vector with size 4.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real vector representation of the Hamiltonian of the gate.
+    """
+    dim = 2
+    coeff = 0.5 * math.pi * np.sqrt(2)
+    vec = np.zeros(dim * dim, dtype=np.float64)
+    vec[0] = -coeff
+    vec[2] = coeff
+    return vec
+
+
+def generate_matrix_y_gate_hamiltonian() -> np.array:
+    """Return Hamiltonian for a Y gate.
+
+    The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * Y.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The Hamiltonian, which is a complex matrix.
+    """
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    coeff = 0.5 * math.pi
+    mat = -coeff * b[0]
+    mat += coeff * b[2]
+    return mat
+
+
+def generate_matrix_y_gate_unitary() -> np.array:
+    """Return the unitary matrix for a Y gate.
+
+    The result is the 2 times 2 complex matrix, Y.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix, which is a complex matrix.
+    """
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    u = b[2]
+    return u
+
+
+def generate_matrix_y_gate_lindbladian() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Y gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
+    """
+    l = [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, -1, 0, 0]]
+    coeff = math.pi
+    mat = coeff * np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_matrix_y_gate() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for a Y gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_effective_lindbladian_y_gate(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the Y180 gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    hs = generate_hsmatrix_y_gate_lindbladian()
+    el = EffectiveLindbladian(c_sys, hs)
+    return el
+
+
 # Z90 gate on 1-qubit
 
 
@@ -932,6 +1055,127 @@ def generate_effective_lindbladian_z180_gate(
     c_sys: "CompositeSystem",
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Z180 gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    hs = generate_hsmatrix_z180_gate_lindbladian()
+    el = EffectiveLindbladian(c_sys, hs)
+    return el
+
+
+# Z gate on 1-qubit
+
+
+def generate_vec_z_gate_hamiltonian() -> np.array:
+    """Return the vector representation for the Hamiltonian of a Z gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a real vector with size 4.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real vector representation of the Hamiltonian of the gate.
+    """
+    dim = 2
+    coeff = 0.5 * math.pi * np.sqrt(2)
+    vec = np.zeros(dim * dim, dtype=np.float64)
+    vec[0] = -coeff
+    vec[3] = coeff
+    return vec
+
+
+def generate_matrix_z_gate_hamiltonian() -> np.array:
+    """Return Hamiltonian for a Z gate.
+
+    The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * Z.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The Hamiltonian, which is a complex matrix.
+    """
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    coeff = 0.5 * math.pi
+    mat = -coeff * b[0]
+    mat += coeff * b[3]
+    return mat
+
+
+def generate_matrix_z_gate_unitary() -> np.array:
+    """Return the unitary matrix for a Z gate.
+
+    The result is the 2 times 2 complex matrix, Z.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix, which is a complex matrix.
+    """
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    u = b[3]
+    return u
+
+
+def generate_matrix_z_gate_lindbladian() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Z gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
+    """
+    l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
+    coeff = math.pi
+    mat = coeff * np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_matrix_z_gate() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for a Z gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_effective_lindbladian_z_gate(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the Z gate on the composite system.
 
     Parameters
     ----------
