@@ -139,3 +139,28 @@ class TestSetQOperation:
         # Test that the property cannot be updated
         with pytest.raises(AttributeError):
             actual.eps_proj_physical = 10 ** (-2)
+
+    def test_access_mode_proj_order(self):
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # default
+        actual = QOperation(c_sys=c_sys)
+        assert actual.mode_proj_order == "eq_ineq"
+
+        # eq_ineq
+        actual = QOperation(c_sys=c_sys, mode_proj_order="eq_ineq")
+        assert actual.mode_proj_order == "eq_ineq"
+
+        # ineq_eq
+        actual = QOperation(c_sys=c_sys, mode_proj_order="ineq_eq")
+        assert actual.mode_proj_order == "ineq_eq"
+
+        # unsupported value
+        with pytest.raises(ValueError):
+            QOperation(c_sys=c_sys, mode_proj_order="unsupported")
+
+        # updated mode_proj_order
+        actual = QOperation(c_sys=c_sys)
+        actual.set_mode_proj_order("ineq_eq")
+        assert actual.mode_proj_order == "ineq_eq"
