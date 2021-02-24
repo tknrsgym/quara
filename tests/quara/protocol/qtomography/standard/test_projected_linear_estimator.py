@@ -54,7 +54,7 @@ class TestProjectedLinearEstimator:
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=15)
         assert type(actual.computation_time) == float
 
-        is_computation_time_required = False
+        # is_computation_time_required = False
         actual = estimator.calc_estimate(qst, empi_dists)
         expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
         assert actual.estimated_qoperation.is_physical()
@@ -82,6 +82,30 @@ class TestProjectedLinearEstimator:
             0.397200877188066,
         ]
         assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
+        assert type(actual.computation_time) == float
+
+    def test_calc_estimate_mode_proj_order(self):
+        qst, _ = get_test_data()
+        empi_dists = [
+            (1000, np.array([0.797, 0.203], dtype=np.float64)),
+            (1000, np.array([0.809, 0.191], dtype=np.float64)),
+            (1000, np.array([0.791, 0.209], dtype=np.float64)),
+        ]
+
+        estimator = ProjectedLinearEstimator(mode_proj_order="ineq_eq")
+
+        # is_computation_time_required=True
+        actual = estimator.calc_estimate(
+            qst, empi_dists, is_computation_time_required=True
+        )
+        expected = [
+            0.707106781186547,
+            0.405390585996068,
+            0.421770003612071,
+            0.397200877188066,
+        ]
+        # assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert type(actual.computation_time) == float
 
