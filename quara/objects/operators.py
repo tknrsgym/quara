@@ -1,7 +1,7 @@
 import copy
 import itertools
 from functools import reduce
-from operator import add, mul
+from operator import add, mul, itemgetter
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -12,6 +12,7 @@ from quara.objects.gate import Gate
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import Povm
 from quara.objects.state import State
+from quara.utils import matrix_util
 
 
 def tensor_product(*elements) -> Union[MatrixBasis, State, Povm, Gate]:
@@ -165,20 +166,10 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
 
     # permutation the tensor product matrix according to the position of the sorted ElementalSystem
     # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
-    tmp_e_sys_list = copy.copy(e_sys_list)
-    position = _check_cross_elemental_system_position(tmp_e_sys_list)
-    while not position is None:
-        dim_list = [e_sys.dim ** 2 for e_sys in tmp_e_sys_list]
-        # in case of vec, only left permutation matrix should be used.
-        left_perm, _ = _permutation_matrix(position, dim_list)
-        # B \otimes A = left_perm @ (A \otimes B)
-        tensor_vec = left_perm @ tensor_vec
-        # swap tmp_e_sys_list
-        tmp_e_sys_list[position - 1], tmp_e_sys_list[position] = (
-            tmp_e_sys_list[position],
-            tmp_e_sys_list[position - 1],
-        )
-        position = _check_cross_elemental_system_position(tmp_e_sys_list)
+    system_order = [e_sys.name for e_sys in e_sys_list]
+    size_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
+    perm_matrix = matrix_util.calc_permutation_matrix(system_order, size_list)
+    tensor_vec = perm_matrix @ tensor_vec
 
     # create State
     is_physicality_required = (
@@ -188,6 +179,7 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     return state
 
 
+"""
 def _convert_list_by_permutation_matrix(old_list: List, perm: np.array) -> List:
     # this function executes "perm @ old_list"-like operation.
     # for example, if old_list = [a, b] and perm = np.array([[0, 1], [1, 0]]), then this function returns [b, a].
@@ -200,6 +192,7 @@ def _convert_list_by_permutation_matrix(old_list: List, perm: np.array) -> List:
                 new_list[row] = old_list[col]
                 break
     return new_list
+"""
 
 
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
@@ -214,6 +207,21 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
 
     # permutation the tensor product matrix according to the position of the sorted ElementalSystem
     # see "Matrix Algebra From a Statistician's Perspective" section 16.3.
+    system_order = [e_sys.name for e_sys in e_sys_list]
+    size_list = [e_sys.dim ** 2 for e_sys in e_sys_list]
+    perm_matrix = matrix_util.calc_permutation_matrix(system_order, size_list)
+    tensor_vecs = [perm_matrix @ tensor_vec for tensor_vec in tensor_vecs]
+
+    # sort num_outcomes
+    num_outcomes = copy.copy(povm1.num_outcomes)
+    num_outcomes.extend(povm2.num_outcomes)
+    system_outcomes = [
+        (system_name, num_outcome)
+        for system_name, num_outcome in zip(system_order, num_outcomes)
+    ]
+    system_outcomes = sorted(system_outcomes, key=itemgetter(0))
+    new_num_outcomes = [system_outcome[1] for system_outcome in system_outcomes]
+    """
     tmp_e_sys_list = copy.copy(e_sys_list)
     tmp_num_of_vecs_list = copy.copy(povm1.num_outcomes)
     tmp_num_of_vecs_list.extend(povm2.num_outcomes)
@@ -240,6 +248,7 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
             tmp_num_of_vecs_list[position - 1],
         )
         position = _check_cross_elemental_system_position(tmp_e_sys_list)
+    """
 
     # create Povm
     is_physicality_required = (
@@ -248,7 +257,7 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     tensor_povm = Povm(
         c_sys, tensor_vecs, is_physicality_required=is_physicality_required
     )
-    tensor_povm._num_outcomes = tmp_num_of_vecs_list
+    tensor_povm._num_outcomes = new_num_outcomes
     return tensor_povm
 
 
