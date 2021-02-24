@@ -27,6 +27,7 @@ class Gate(QOperation):
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
+        mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
     ):
         """Constructor
@@ -66,6 +67,7 @@ class Gate(QOperation):
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
+            mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
         )
         self._hs: np.ndarray = hs
@@ -162,6 +164,7 @@ class Gate(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return gate
@@ -178,6 +181,7 @@ class Gate(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
 
@@ -202,6 +206,7 @@ class Gate(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
 
@@ -519,6 +524,7 @@ def convert_var_to_gate(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ) -> Gate:
     """converts vec of variables to gate.
@@ -555,6 +561,7 @@ def convert_var_to_gate(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return gate
@@ -591,6 +598,7 @@ def calc_gradient_from_gate(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ) -> Gate:
     """calculates gradient from gate.
@@ -625,6 +633,7 @@ def calc_gradient_from_gate(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return gate

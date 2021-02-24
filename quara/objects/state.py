@@ -27,6 +27,7 @@ class State(QOperation):
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
+        mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
     ):
         """Constructor
@@ -67,6 +68,7 @@ class State(QOperation):
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
+            mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
         )
         self._vec: np.ndarray = vec
@@ -212,6 +214,7 @@ class State(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return state
@@ -234,6 +237,7 @@ class State(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return state
@@ -271,6 +275,7 @@ class State(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return state
@@ -426,6 +431,7 @@ def convert_var_to_state(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = 10 ** (-4),
 ) -> State:
     """converts vec of variables to state.
@@ -453,6 +459,7 @@ def convert_var_to_state(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return state
@@ -489,6 +496,7 @@ def calc_gradient_from_state(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = 10 ** (-4),
 ) -> State:
     """calculates gradient from State.
@@ -521,6 +529,7 @@ def calc_gradient_from_state(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return state
