@@ -112,6 +112,7 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         gamma: float = 0.3,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
         num_history_stopping_criterion_gradient_descent: int = 1,
+        mode_proj_order: str = "eq_ineq",
         eps: float = None,
     ):
         """Constructor
@@ -133,6 +134,8 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         num_history_stopping_criterion_gradient_descent : int, optional
             number of history to be used stopping criterion for gradient descent, by default 1
             this must be a integer and greater than or equal to 1.
+        mode_proj_order : str, optional
+            the order in which the projections are performed, by default "eq_ineq".
         eps : float, optional
             algorithm option ``epsilon``, by default None
         """
@@ -172,6 +175,10 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         self._num_history_stopping_criterion_gradient_descent = (
             num_history_stopping_criterion_gradient_descent
         )
+
+        if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
+            raise ValueError(f"unsupported mode_proj_order={mode_proj_order}")
+        self._mode_proj_order: str = mode_proj_order
 
         if eps is None:
             eps = Settings.get_atol() / 10.0
@@ -220,6 +227,17 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
             number of history to be used stopping criterion for gradient descent.
         """
         return self._num_history_stopping_criterion_gradient_descent
+
+    @property
+    def mode_proj_order(self) -> str:
+        """returns the order in which the projections are performed.
+
+        Returns
+        -------
+        str
+            the order in which the projections are performed.
+        """
+        return self._mode_proj_order
 
     @property
     def eps(self) -> float:
@@ -284,7 +302,8 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             and option.on_algo_ineq_constraint == True
         ):
             self._func_proj = setting_info.func_calc_proj_physical(
-                setting_info.on_para_eq_constraint
+                on_para_eq_constraint=setting_info.on_para_eq_constraint,
+                mode_proj_order=option.mode_proj_order,
             )
         elif (
             option.on_algo_eq_constraint == True
