@@ -694,6 +694,8 @@ def make_mses_graphs_para(
     # Make figure
     figs = []
     for target_dict in [true_dict, false_dict]:
+        if not target_dict["case_names"]:
+            continue
         fig = make_mses_graph_estimation_results(
             target_dict["estimation_results"],
             target_dict["case_names"],
