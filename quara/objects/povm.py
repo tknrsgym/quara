@@ -30,6 +30,7 @@ class Povm(QOperation):
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
+        mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
     ):
         """Constructor
@@ -66,6 +67,7 @@ class Povm(QOperation):
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
+            mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
         )
 
@@ -191,6 +193,7 @@ class Povm(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return povm
@@ -223,6 +226,7 @@ class Povm(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_povm
@@ -255,6 +259,7 @@ class Povm(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
 
@@ -565,6 +570,7 @@ def convert_var_to_povm(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ) -> Povm:
     """converts vec of variables to povm.
@@ -622,6 +628,7 @@ def convert_var_to_povm(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return povm
@@ -661,6 +668,7 @@ def calc_gradient_from_povm(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ) -> Povm:
     """calculates gradient from gate.
@@ -698,6 +706,7 @@ def calc_gradient_from_povm(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return povm

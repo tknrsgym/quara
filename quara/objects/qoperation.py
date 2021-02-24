@@ -19,6 +19,7 @@ class QOperation:
         on_para_eq_constraint: bool = True,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
+        mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
     ):
         """Constructor
@@ -37,6 +38,8 @@ class QOperation:
             whether this QOperation is on algorithm equality constraint, by default True
         on_algo_ineq_constraint : bool, optional
             whether this QOperation is on algorithm inequality constraint, by default True
+        mode_proj_order : str, optional
+            the order in which the projections are performed, by default "eq_ineq"
         eps_proj_physical : float, optional
             epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
 
@@ -56,6 +59,9 @@ class QOperation:
         #     message = "`c_sys.is_basis_hermitian` is False. Basis must be Hermitian."
         #     raise ValueError(message)
 
+        if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
+            raise ValueError(f"unsupported mode_proj_order={mode_proj_order}")
+
         # Set
         self._composite_system: CompositeSystem = c_sys
         self._is_physicality_required = is_physicality_required
@@ -63,6 +69,7 @@ class QOperation:
         self._on_para_eq_constraint: bool = on_para_eq_constraint
         self._on_algo_eq_constraint: bool = on_algo_eq_constraint
         self._on_algo_ineq_constraint: bool = on_algo_ineq_constraint
+        self._mode_proj_order: str = mode_proj_order
         self._eps_proj_physical = eps_proj_physical
 
     @property
@@ -130,6 +137,17 @@ class QOperation:
             whether this QOperation is on algorithm inequality constraint.
         """
         return self._on_algo_ineq_constraint
+
+    @property
+    def mode_proj_order(self) -> str:  # read only
+        """returns the order in which the projections are performed.
+
+        Returns
+        -------
+        str
+            the order in which the projections are performed.
+        """
+        return self._mode_proj_order
 
     @property
     def eps_proj_physical(self) -> float:  # read only
@@ -218,6 +236,7 @@ class QOperation:
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qoperation
@@ -252,6 +271,7 @@ class QOperation:
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qoperation
@@ -286,6 +306,7 @@ class QOperation:
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qoperation
@@ -430,6 +451,7 @@ class QOperation:
         on_para_eq_constraint: bool = None,
         on_algo_eq_constraint: bool = None,
         on_algo_ineq_constraint: bool = None,
+        mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
     ) -> "QOperation":
         """generates QOperation from variables.
@@ -452,6 +474,8 @@ class QOperation:
         on_algo_ineq_constraint : bool, optional
             whether this QOperation is on algorithm inequality constraint, by default None.
             if this parameter is None, the value of this instance is set.
+        mode_proj_order : str, optional
+            the order in which the projections are performed, by default "eq_ineq".
         eps_proj_physical : float, optional
             epsiron that is projection algorithm error threshold for being physical, by default None.
             if this parameter is None, the value of this instance is set.
@@ -501,6 +525,7 @@ class QOperation:
             on_para_eq_constraint=on_para_eq_constraint,
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
+            mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
         )
         return new_qoperation
@@ -565,10 +590,16 @@ class QOperation:
                 x_prev = x_next
                 y_prev = y_next
 
-            y_next = (x_prev + p_prev).calc_proj_eq_constraint()
-            p_next = x_prev + p_prev - y_next
-            x_next = (y_next + q_prev).calc_proj_ineq_constraint()
-            q_next = y_next + q_prev - x_next
+            if self.mode_proj_order == "eq_ineq":
+                y_next = (x_prev + p_prev).calc_proj_eq_constraint()
+                p_next = x_prev + p_prev - y_next
+                x_next = (y_next + q_prev).calc_proj_ineq_constraint()
+                q_next = y_next + q_prev - x_next
+            else:
+                y_next = (x_prev + p_prev).calc_proj_ineq_constraint()
+                p_next = x_prev + p_prev - y_next
+                x_next = (y_next + q_prev).calc_proj_eq_constraint()
+                q_next = y_next + q_prev - x_next
 
             # logging
             if logger.isEnabledFor(logging.DEBUG):
@@ -708,7 +739,7 @@ class QOperation:
         return result, error_value
 
     def func_calc_proj_physical(
-        self, on_para_eq_constraint: bool = None
+        self, on_para_eq_constraint: bool = None, mode_proj_order: str = "eq_ineq",
     ) -> Callable[[np.array], np.array]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
@@ -717,7 +748,9 @@ class QOperation:
 
         def _func_proj(var: np.array) -> np.array:
             qobj_tmp = qobj_empty.generate_from_var(
-                var, on_para_eq_constraint=on_para_eq_constraint
+                var,
+                on_para_eq_constraint=on_para_eq_constraint,
+                mode_proj_order=mode_proj_order,
             )
             qobj_result = qobj_tmp.calc_proj_physical()
             return qobj_result.to_var()
@@ -742,6 +775,7 @@ class QOperation:
             or (self.on_para_eq_constraint != other.on_para_eq_constraint)
             or (self.on_algo_eq_constraint != other.on_algo_eq_constraint)
             or (self.on_algo_ineq_constraint != other.on_algo_ineq_constraint)
+            or (self.mode_proj_order != other.mode_proj_order)
             or (self.eps_proj_physical != other.eps_proj_physical)
         ):
             # TODO: error message
@@ -759,6 +793,7 @@ class QOperation:
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qobject
@@ -783,6 +818,7 @@ class QOperation:
             or (self.on_para_eq_constraint != other.on_para_eq_constraint)
             or (self.on_algo_eq_constraint != other.on_algo_eq_constraint)
             or (self.on_algo_ineq_constraint != other.on_algo_ineq_constraint)
+            or (self.mode_proj_order != other.mode_proj_order)
             or (self.eps_proj_physical != other.eps_proj_physical)
         ):
             message = "'-' not supported between instances with different configration."
@@ -807,6 +843,7 @@ class QOperation:
                     self.on_algo_ineq_constraint,
                     other.on_algo_ineq_constraint,
                 ),
+                mode_proj_order=(self.mode_proj_order, other.mode_proj_order,),
                 eps_proj_physical=(self.eps_proj_physical, other.eps_proj_physical,),
             )
             for k, v in config_dict.items():
@@ -826,6 +863,7 @@ class QOperation:
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qobject
@@ -850,6 +888,7 @@ class QOperation:
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qobject
@@ -879,6 +918,7 @@ class QOperation:
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
         return new_qobject
