@@ -759,11 +759,14 @@ def is_eq_constraint_satisfied_all(
 ) -> bool:
     all_check_results = []
     num_data = estimation_results[0].num_data
+    para = estimation_results[0].estimation_qoperation.on_para_eq_constraint
+    eps = __eq_const_eps if para else 10 ** (-5)
+
     for num_data_index, num in enumerate(num_data):
         check_results = [
             result.estimated_qoperation_sequence[
                 num_data_index
-            ].is_eq_constraint_satisfied(__eq_const_eps)
+            ].is_eq_constraint_satisfied(eps)
             for result in estimation_results
         ]
         result = False not in check_results
@@ -773,7 +776,7 @@ def is_eq_constraint_satisfied_all(
             message = (
                 f"[{'OK' if result else 'NG'}] N={num} is_eq_constraint_satisfied_all"
             )
-            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={__eq_const_eps}"
+            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={eps}"
             print(message)
 
     return False not in all_check_results
