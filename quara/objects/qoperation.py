@@ -59,8 +59,7 @@ class QOperation:
         #     message = "`c_sys.is_basis_hermitian` is False. Basis must be Hermitian."
         #     raise ValueError(message)
 
-        if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
-            raise ValueError(f"unsupported mode_proj_order={mode_proj_order}")
+        self._validate_mode_proj_order(mode_proj_order)
 
         # Set
         self._composite_system: CompositeSystem = c_sys
@@ -71,6 +70,10 @@ class QOperation:
         self._on_algo_ineq_constraint: bool = on_algo_ineq_constraint
         self._mode_proj_order: str = mode_proj_order
         self._eps_proj_physical = eps_proj_physical
+
+    def _validate_mode_proj_order(self, mode_proj_order):
+        if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
+            raise ValueError(f"unsupported mode_proj_order={mode_proj_order}")
 
     @property
     def composite_system(self) -> CompositeSystem:  # read only
@@ -148,6 +151,17 @@ class QOperation:
             the order in which the projections are performed.
         """
         return self._mode_proj_order
+
+    def set_mode_proj_order(self, mode_proj_order: str) -> None:
+        """sets the order in which the projections are performed.
+
+        Parameters
+        ----------
+        str
+            the order in which the projections are performed.
+        """
+        self._validate_mode_proj_order(mode_proj_order)
+        self._mode_proj_order = mode_proj_order
 
     @property
     def eps_proj_physical(self) -> float:  # read only
