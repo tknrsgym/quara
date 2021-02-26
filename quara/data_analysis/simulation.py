@@ -9,6 +9,8 @@ class StandardQTomographySimulationSetting:
         true_object,
         tester_objects,
         estimator: "Estimator",
+        seed: int,
+        n_rep: int,
         loss=None,
         loss_option=None,
         algo=None,
@@ -22,6 +24,9 @@ class StandardQTomographySimulationSetting:
         self.loss_option = loss_option
         self.algo = copy.copy(algo)
         self.algo_option = algo_option
+
+        self.seed = seed
+        self.n_rep = n_rep
 
     def __str__(self):
         desc = f"Name: {self.name}"
