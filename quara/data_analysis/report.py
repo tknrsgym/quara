@@ -940,15 +940,27 @@ def generate_computation_time_table(
     return computation_time_table
 
 
-def generate_tolerance_table_div(tolerance: Optional[float] = None,) -> pd.DataFrame:
-    info = {}
-    if tolerance is not None:
-        info["Tolerance at estimation"] = [tolerance]
-    info["Tolerance at physicality violation test"] = [
-        physicality_violation_check.get_ineq_const_eps()
+def generate_tolerance_table_div() -> pd.DataFrame:
+    data = [
+        [
+            physicality_violation_check.get_eq_const_eps(True),
+            physicality_violation_check.get_eq_const_eps(False),
+        ],
+        [physicality_violation_check.get_ineq_const_eps()] * 2,
+    ]
+    first_index = "Tolerance at physicality violation test"
+    index = [[first_index] * 2, ["equality constraint", "inequality constraint"]]
+    columns = ["True", "False"]
+    df = pd.DataFrame(data, index=index, columns=columns)
+    df = df.applymap(lambda x: f"{x:.2e}")
+
+    styles = [
+        dict(selector=".col0", props=[("width", "100px")]),
+        dict(selector=".col1", props=[("width", "100px")]),
     ]
 
-    tolerance_table = pd.DataFrame(info).T.to_html(escape=False, header=False)
+    tolerance_table = df.style.set_table_styles(styles).render()
+
     tolerance_table_div = f"""
         <h1>Tolerance of physicality constraint violation</h1>
     <div>
@@ -1189,7 +1201,6 @@ def export_report(
     # true_object: "QOperation",
     # tester_objects: List["QOperation"],
     seed: Optional[int] = None,
-    tolerance: Optional[float] = None,
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
@@ -1236,7 +1247,7 @@ def export_report(
 
     # Tolerance of physicality constraint violation
     print("​Generating table of tolerance of physicality constraint violation ...")
-    tolerance_table_div = generate_tolerance_table_div(tolerance)
+    tolerance_table_div = generate_tolerance_table_div()
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")
