@@ -694,6 +694,8 @@ def make_mses_graphs_para(
     # Make figure
     figs = []
     for target_dict in [true_dict, false_dict]:
+        if not target_dict["case_names"]:
+            continue
         fig = make_mses_graph_estimation_results(
             target_dict["estimation_results"],
             target_dict["case_names"],
@@ -809,10 +811,13 @@ def make_empi_dists_mse_graph(
 
     # Data
     display_names = ["Empirical distributions"]
-
+    para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
+    true_object_copied = _recreate_qoperation(true_object, para)
     empi_dists = extract_empi_dists(estimation_results)
     xs_list_list = empi_dists
-    ys_list_list = [[qtomography.calc_prob_dists(true_object)] * n_rep] * len(num_data)
+    ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
+        num_data
+    )
 
     mses = []
     error_bar_values = []
@@ -829,7 +834,7 @@ def make_empi_dists_mse_graph(
     true_mses = []
     for num in num_data:
         true_mse = qtomography.calc_mse_empi_dists_analytical(
-            true_object, [num] * num_schedules
+            true_object_copied, [num] * num_schedules
         )
         true_mses.append(true_mse)
 
