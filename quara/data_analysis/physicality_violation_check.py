@@ -576,12 +576,17 @@ def calc_unphysical_qobjects_n(
     else:
         message = f"`source` must be list of EstimationResult or QOperation, not {type(source)}"
         raise TypeError(message)
+
+    eq_const_eps = (
+        __eq_const_eps if estimated_qoperations[0].on_para_eq_constraint else 10 ** (-5)
+    )
+
     n_unphysical = len(
         [
             q
             for q in estimated_qoperations
             if not q.is_physical(
-                atol_eq_const=__eq_const_eps, atol_ineq_const=__ineq_const_eps
+                atol_eq_const=eq_const_eps, atol_ineq_const=__ineq_const_eps
             )
         ]
     )
@@ -605,17 +610,6 @@ def _make_graphs_sum_unphysical_eigenvalues(
     n_rep = len(sorted_eigenvalues_list)
     figs = []
     n_unphysical = calc_unphysical_qobjects_n(estimated_qobjects)
-    # TODO: remove
-    _n_unphysical = len(
-        [
-            q
-            for q in estimated_qobjects
-            if not q.is_physical(
-                atol_eq_const=__eq_const_eps, atol_ineq_const=__ineq_const_eps
-            )
-        ]
-    )
-    assert n_unphysical == _n_unphysical
     additional_title_text = (
         f"<br>Number of unphysical estimates={n_unphysical}"
         if show_n_unphysical
