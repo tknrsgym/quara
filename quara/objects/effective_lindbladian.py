@@ -656,7 +656,9 @@ def generate_effective_lindbladian_from_hjk(
 
 
 def generate_hs_from_h(
-    c_sys: CompositeSystem, h_mat: np.ndarray, eps_proj_physical: float = None,
+    c_sys: CompositeSystem,
+    h_mat: np.ndarray,
+    eps_proj_physical: float = None,
 ) -> np.array:
     dim = c_sys.dim
 
@@ -701,7 +703,6 @@ def generate_effective_lindbladian_from_h(
     return effective_lindbladian
 
 
-<<<<<<< HEAD
 def generate_hs_from_hk(
     c_sys: CompositeSystem,
     h_mat: np.ndarray,
@@ -761,7 +762,9 @@ def generate_effective_lindbladian_from_hk(
 
 
 def generate_hs_from_k(
-    c_sys: CompositeSystem, k_mat: np.ndarray, eps_proj_physical: float = None,
+    c_sys: CompositeSystem,
+    k_mat: np.ndarray,
+    eps_proj_physical: float = None,
 ) -> np.array:
     dim = c_sys.dim
 
@@ -808,7 +811,3 @@ def generate_effective_lindbladian_from_k(
         eps_proj_physical=eps_proj_physical,
     )
     return effective_lindbladian
-=======
-# TODO generate_hs_from_k
-# TODO generate_effective_lindbladian_from_k
->>>>>>> erased strange lines
