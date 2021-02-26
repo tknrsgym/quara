@@ -859,9 +859,10 @@ def generate_consistency_check_table(
             algo=s.algo,
             algo_option=s.algo_option,
         )
-        result = simulation_check.execute_consistency_check(
-            s, estimation_results_list[i], show_detail=False
+        sim_check = simulation_check.StandardQTomographySimulationCheck(
+            estimation_results=estimation_results_list[i], simulation_setting=s
         )
+        result = sim_check.execute_consistency_check(show_detail=False, mode="both")
         diff_list.append(diff)
         result_list.append(result)
 
@@ -902,18 +903,22 @@ def generate_consistency_check_table(
         "Loss": type_loss_values,
         "Algo": type_algo_values,
         "Squared Error to True": [f"{d:.2e}" for d in diff_list],
-        "Result": [f"{'OK' if r else 'NG'}" for r in result_list],
+        "Possibly OK": [f"{'OK' if r['possibly_ok'] else 'NG'}" for r in result_list],
+        "To be checked": [
+            f"{'True' if r['to_be_checked'] else ''}" for r in result_list
+        ],
     }
 
     styles = [
         dict(selector=".col0", props=[("width", "400px"), ("font-size", "10px")]),
         dict(selector=".col1", props=[("width", "250px"), ("font-size", "10px")]),
-        dict(selector=".col2", props=[("width", "150px"), ("font-size", "10px")]),
-        dict(selector=".col3", props=[("width", "250px"), ("font-size", "10px")]),
+        dict(selector=".col2", props=[("width", "120px"), ("font-size", "10px")]),
+        dict(selector=".col3", props=[("width", "200px"), ("font-size", "10px")]),
         dict(selector=".col4", props=[("width", "300px"), ("font-size", "10px")]),
         dict(selector=".col5", props=[("width", "300px"), ("font-size", "10px")]),
         dict(selector=".col6", props=[("width", "150px"), ("font-size", "10px")]),
-        dict(selector=".col7", props=[("width", "100px"), ("font-size", "10px")]),
+        dict(selector=".col7", props=[("width", "150px"), ("font-size", "10px")]),
+        dict(selector=".col8", props=[("width", "150px"), ("font-size", "10px")]),
     ]
 
     table_df = pd.DataFrame(result_dict)
@@ -940,15 +945,27 @@ def generate_computation_time_table(
     return computation_time_table
 
 
-def generate_tolerance_table_div(tolerance: Optional[float] = None,) -> pd.DataFrame:
-    info = {}
-    if tolerance is not None:
-        info["Tolerance at estimation"] = [tolerance]
-    info["Tolerance at physicality violation test"] = [
-        physicality_violation_check.get_ineq_const_eps()
+def generate_tolerance_table_div() -> pd.DataFrame:
+    data = [
+        [
+            physicality_violation_check.get_eq_const_eps(True),
+            physicality_violation_check.get_eq_const_eps(False),
+        ],
+        [physicality_violation_check.get_ineq_const_eps()] * 2,
+    ]
+    first_index = "Tolerance at physicality violation test"
+    index = [[first_index] * 2, ["equality constraint", "inequality constraint"]]
+    columns = ["True", "False"]
+    df = pd.DataFrame(data, index=index, columns=columns)
+    df = df.applymap(lambda x: f"{x:.2e}")
+
+    styles = [
+        dict(selector=".col0", props=[("width", "100px")]),
+        dict(selector=".col1", props=[("width", "100px")]),
     ]
 
-    tolerance_table = pd.DataFrame(info).T.to_html(escape=False, header=False)
+    tolerance_table = df.style.set_table_styles(styles).render()
+
     tolerance_table_div = f"""
         <h1>Tolerance of physicality constraint violation</h1>
     <div>
@@ -1125,7 +1142,6 @@ def generate_computation_time_of_estimators_table(
         dict(selector=".col3", props=[("width", "100px")]),
     ]
 
-    # consistency_check_table = table_df.style.set_table_styles(styles).render()
     df_list = []
     for i, s in enumerate(simulation_settings):
         time_df = _generate_computation_time_df(
@@ -1189,7 +1205,6 @@ def export_report(
     # true_object: "QOperation",
     # tester_objects: List["QOperation"],
     seed: Optional[int] = None,
-    tolerance: Optional[float] = None,
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
@@ -1236,7 +1251,7 @@ def export_report(
 
     # Tolerance of physicality constraint violation
     print("​Generating table of tolerance of physicality constraint violation ...")
-    tolerance_table_div = generate_tolerance_table_div(tolerance)
+    tolerance_table_div = generate_tolerance_table_div()
 
     # Experiment Condition
     print("​Generating table of experimental conditions ...")

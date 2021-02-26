@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import warnings
 
 from quara.data_analysis import simulation
@@ -49,7 +49,7 @@ class StandardQTomographySimulationCheck:
         # Consistency
         test_names.append("Consistency")
         result = self.execute_consistency_check(
-            eps=consistency_check_eps, show_detail=show_detail
+            eps=consistency_check_eps, show_detail=show_detail, mode="both"
         )
         results.append(result)
 
@@ -67,17 +67,22 @@ class StandardQTomographySimulationCheck:
         if show_summary:
             start_red = "\033[31m"
             start_green = "\033[32m"
+            start_yellow_bg = "\033[43m"
             end_color = "\033[0m"
             ok_text = f"{start_green}OK{end_color}"
             ng_text = f"{start_red}NG{end_color}"
 
-            lines = [
-                f"{name}: {ok_text if r else ng_text}"
-                for name, r in zip(test_names, results)
-            ]
+            text_lines = ""
+            for name, result in zip(test_names, results):
+                if name == "Consistency":
+                    to_be_checked_text = f"{start_yellow_bg}to_be_checked=True{end_color}" if result['to_be_checked'] else "to_be_checked=False"
+                    text_lines += f"{name}: {ok_text if result['possibly_ok'] else ng_text} ({to_be_checked_text})\n"
+                else:
+                    text_lines += f"{name}: {ok_text if result else ng_text}\n"
+
             summary = "========== Summary ============\n"
             summary += f"Name: {self.simulation_setting.name}\n"
-            summary += "\n".join(lines)
+            summary += text_lines
             print(summary)
 
         if False in results:
@@ -96,15 +101,32 @@ class StandardQTomographySimulationCheck:
         return result
 
     def execute_consistency_check(
-        self, eps: float = None, show_detail: bool = True
-    ) -> bool:
+        self, eps: float = None, show_detail: bool = True, mode="possibly_ok"
+    ) -> Union[bool, dict]:
+        expected_mode = ["possibly_ok", "to_be_checked", "both"]
+        if mode not in expected_mode:
+            message = f"The mode must be one of the following values: {expected_mode}"
+            raise ValueError(message)
+
         result = execute_consistency_check(
             simulation_setting=self.simulation_setting,
             estimation_results=self.estimation_results,
             eps=eps,
             show_detail=show_detail,
         )
-        return result
+        param = self.estimation_results[0].estimated_qoperation.on_para_eq_constraint
+        possibly_ok = result
+        to_be_checked = not result if param else False
+
+        if mode == "possibly_ok":
+            return possibly_ok
+        elif mode == "to_be_checked":
+            return to_be_checked
+        else:
+            data = dict()
+            data["possibly_ok"] = possibly_ok
+            data["to_be_checked"] = to_be_checked
+            return data
 
     def execute_mse_of_estimators_check(self, show_detail: bool = True):
         try:
