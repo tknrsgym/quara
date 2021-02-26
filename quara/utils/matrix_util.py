@@ -473,6 +473,40 @@ def calc_fisher_matrix_total(
     return matrix
 
 
+def convert_list_by_permutation_matrix(
+    old_list: List, permutation_matrix: np.array
+) -> List:
+    """converts list by permutation_matrix.
+
+    this function executes "permutation_matrix @ old_list"-like operation.
+    for example, if old_list = [a, b] and permutation_matrix = np.array([[0, 1], [1, 0]]), then this function returns [b, a].
+
+    Parameters
+    ----------
+    old_list : List
+        a list before permutation.
+    permutation_matrix : np.array
+        permutation_matrix to permutate a list.
+
+    Returns
+    -------
+    List
+        [description]
+    """
+    # this function executes "permutation_matrix @ old_list"-like operation.
+    # for example, if old_list = [a, b] and permutation_matrix = np.array([[0, 1], [1, 0]]), then this function returns [b, a].
+    row_size, col_size = permutation_matrix.shape
+    new_list = [True] * row_size
+    for row in range(row_size):
+        # find new_list[row]
+        for col in range(col_size):
+            if permutation_matrix[row, col] == 1:
+                new_list[row] = old_list[col]
+                break
+    print(f"new_list={new_list}")
+    return new_list
+
+
 def _U(dim1, dim2, i, j):
     matrix = np.zeros((dim1, dim2))
     matrix[i, j] = 1
@@ -527,6 +561,22 @@ def _check_cross_system_position(system_order: List[int],) -> Union[int, None]:
 
 
 def calc_permutation_matrix(system_order: List[int], size_list: List[int]) -> np.array:
+    """calculate permutation matrix.
+    
+    permutation matrix can reorder the system order to [0, 1,..., n].
+
+    Parameters
+    ----------
+    system_order : List[int]
+        system_order before permutation.
+    size_list : List[int]
+        size of systems.
+
+    Returns
+    -------
+    np.array
+        permutation matrix.
+    """
     tmp_system_order = copy.copy(system_order)
     tmp_size_list = copy.copy(size_list)
     total_dim = np.prod(size_list)
