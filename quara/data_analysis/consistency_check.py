@@ -48,8 +48,6 @@ def execute_consistency_check(
     show_detail: bool = True,
 ) -> bool:
     if eps is None:
-        para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
-        # eps = 10 ** (-16) if para else 10 ** (-12)
         eps = 10 ** (-10)
     result = calc_mse_of_true_estimated(
         true_object=simulation_setting.true_object,
