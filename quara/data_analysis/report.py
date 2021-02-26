@@ -859,9 +859,10 @@ def generate_consistency_check_table(
             algo=s.algo,
             algo_option=s.algo_option,
         )
-        result = simulation_check.execute_consistency_check(
-            s, estimation_results_list[i], show_detail=False
+        sim_check = simulation_check.StandardQTomographySimulationCheck(
+            estimation_results=estimation_results_list[i], simulation_setting=s
         )
+        result = sim_check.execute_consistency_check(show_detail=False, mode="both")
         diff_list.append(diff)
         result_list.append(result)
 
@@ -902,18 +903,22 @@ def generate_consistency_check_table(
         "Loss": type_loss_values,
         "Algo": type_algo_values,
         "Squared Error to True": [f"{d:.2e}" for d in diff_list],
-        "Result": [f"{'OK' if r else 'NG'}" for r in result_list],
+        "Possibly OK": [f"{'OK' if r['possibly_ok'] else 'NG'}" for r in result_list],
+        "To be checked": [
+            f"{'True' if r['to_be_checked'] else ''}" for r in result_list
+        ],
     }
 
     styles = [
         dict(selector=".col0", props=[("width", "400px"), ("font-size", "10px")]),
         dict(selector=".col1", props=[("width", "250px"), ("font-size", "10px")]),
-        dict(selector=".col2", props=[("width", "150px"), ("font-size", "10px")]),
-        dict(selector=".col3", props=[("width", "250px"), ("font-size", "10px")]),
+        dict(selector=".col2", props=[("width", "120px"), ("font-size", "10px")]),
+        dict(selector=".col3", props=[("width", "200px"), ("font-size", "10px")]),
         dict(selector=".col4", props=[("width", "300px"), ("font-size", "10px")]),
         dict(selector=".col5", props=[("width", "300px"), ("font-size", "10px")]),
         dict(selector=".col6", props=[("width", "150px"), ("font-size", "10px")]),
-        dict(selector=".col7", props=[("width", "100px"), ("font-size", "10px")]),
+        dict(selector=".col7", props=[("width", "150px"), ("font-size", "10px")]),
+        dict(selector=".col8", props=[("width", "150px"), ("font-size", "10px")]),
     ]
 
     table_df = pd.DataFrame(result_dict)
@@ -1137,7 +1142,6 @@ def generate_computation_time_of_estimators_table(
         dict(selector=".col3", props=[("width", "100px")]),
     ]
 
-    # consistency_check_table = table_df.style.set_table_styles(styles).render()
     df_list = []
     for i, s in enumerate(simulation_settings):
         time_df = _generate_computation_time_df(
