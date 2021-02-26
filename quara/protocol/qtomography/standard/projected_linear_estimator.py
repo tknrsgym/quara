@@ -25,8 +25,25 @@ class ProjectedLinearEstimationResult(LinearEstimationResult):
 
 
 class ProjectedLinearEstimator(LinearEstimator):
-    def __init__(self):
+    def __init__(
+        self, mode_proj_order: str = "eq_ineq",
+    ):
         super().__init__()
+
+        if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
+            raise ValueError(f"unsupported mode_proj_order={mode_proj_order}")
+        self._mode_proj_order: str = mode_proj_order
+
+    @property
+    def mode_proj_order(self) -> str:
+        """returns the order in which the projections are performed.
+
+        Returns
+        -------
+        str
+            the order in which the projections are performed.
+        """
+        return self._mode_proj_order
 
     def calc_estimate(
         self,
@@ -68,6 +85,7 @@ class ProjectedLinearEstimator(LinearEstimator):
             if is_computation_time_required:
                 start_time = time.time()
 
+            linear_estimate.set_mode_proj_order(self.mode_proj_order)
             proj_estimate = linear_estimate.calc_proj_physical(
                 is_iteration_history=is_computation_time_required
             )
