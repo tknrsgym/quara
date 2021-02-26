@@ -94,7 +94,6 @@ class EffectiveLindbladian(Gate):
             h_alpha = 1j / (2 * self.dim) * trace
             tmp_h_mat += h_alpha * B_alpha
 
-        # TODO h_mat is float64
         return tmp_h_mat
 
     def calc_j(self) -> np.array:
@@ -113,7 +112,6 @@ class EffectiveLindbladian(Gate):
             j_alpha = 1 / (2 * self.dim * (1 + delta)) * trace
             tmp_j_mat += j_alpha * B_alpha
 
-        # TODO j_mat is float64
         return tmp_j_mat
 
     def calc_k(self) -> np.array:
@@ -158,14 +156,6 @@ class EffectiveLindbladian(Gate):
         new_hs[0][0] = 1
         return new_hs
 
-    def to_var(self) -> np.array:
-        # TODO modify for EffectiveLindbladian
-        return convert_gate_to_var(
-            c_sys=self.composite_system,
-            hs=self.hs,
-            on_para_eq_constraint=self.on_para_eq_constraint,
-        )
-
     def calc_gradient(self, var_index: int) -> "Gate":
         gate = calc_gradient_from_gate(
             self.composite_system,
@@ -180,12 +170,11 @@ class EffectiveLindbladian(Gate):
         return gate
 
     def calc_proj_eq_constraint(self) -> "EffectiveLindbladian":
-        # TODO modify for EffectiveLindbladian
-        hs[0][0] = 1
-        hs[0][1:] = 0
-        new_gate = Gate(
+        new_hs = self._copy()
+        new_hs[0, :] = 0
+        new_lindbladian = EffectiveLindbladian(
             c_sys=self.composite_system,
-            hs=hs,
+            hs=new_hs,
             is_physicality_required=self.is_physicality_required,
             is_estimation_object=self.is_estimation_object,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -194,10 +183,9 @@ class EffectiveLindbladian(Gate):
             eps_proj_physical=self.eps_proj_physical,
         )
 
-        return new_gate
+        return new_lindbladian
 
     def calc_proj_ineq_constraint(self) -> "EffectiveLindbladian":
-        # TODO modify for EffectiveLindbladian
         h_mat = self.calc_h()
         j_mat = self.calc_j()
         k_mat = self.calc_k()
@@ -223,23 +211,6 @@ class EffectiveLindbladian(Gate):
         )
 
         return new_lindbladian
-
-    # TOOD 以下、見直し
-    def _add_vec(self, other) -> np.array:
-        new_hs = self.hs + other.hs
-        return new_hs
-
-    def _sub_vec(self, other) -> np.array:
-        new_hs = self.hs - other.hs
-        return new_hs
-
-    def _mul_vec(self, other):
-        new_hs = self.hs * other
-        return new_hs
-
-    def _truediv_vec(self, other):
-        new_hs = self.hs / other
-        return new_hs
 
     def is_tp(self, atol: float = None) -> bool:
         """returns whether the effective Lindbladian is TP(trace-preserving map).
@@ -278,35 +249,6 @@ class EffectiveLindbladian(Gate):
 
         # for A:L^{gb}, "A is CP"  <=> "k >= 0"
         return mutil.is_positive_semidefinite(self.calc_k(), atol=atol)
-
-    def convert_basis(self, other_basis: MatrixBasis) -> np.array:
-        """returns HS representation for ``other_basis``.
-
-        Parameters
-        ----------
-        other_basis : MatrixBasis
-            basis.
-
-        Returns
-        -------
-        np.array
-            HS representation for ``other_basis``.
-        """
-        converted_hs = convert_hs(self.hs, self.composite_system.basis(), other_basis)
-        return converted_hs
-
-    def convert_to_comp_basis(self) -> np.array:
-        """returns HS representation for computational basis.
-
-        Returns
-        -------
-        np.array
-            HS representation for computational basis.
-        """
-        converted_hs = convert_hs(
-            self.hs, self.composite_system.basis(), self.composite_system.comp_basis()
-        )
-        return converted_hs
 
     def to_choi_matrix(self) -> np.array:
         """returns Choi matrix of gate.
@@ -390,9 +332,6 @@ class EffectiveLindbladian(Gate):
 
     def _generate_from_var_func(self):
         return convert_var_to_gate
-
-    def _copy(self):
-        return copy.deepcopy(self.hs)
 
 
 def convert_var_index_to_gate_index(

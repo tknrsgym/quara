@@ -4,6 +4,7 @@ import pytest
 
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import (
     Gate,
@@ -1200,6 +1201,22 @@ def test_calc_agf():
     gate = Gate(c_sys, hs, is_physicality_required=False)
     with pytest.raises(ValueError):
         calc_agf(z.hs, gate)
+
+    # case: g is not Gate
+    hs = np.array(
+        [[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
+    )
+    lind = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
+    with pytest.raises(ValueError):
+        calc_agf(lind, i)
+
+    # case: u is not Gate
+    hs = np.array(
+        [[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
+    )
+    lind = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
+    with pytest.raises(ValueError):
+        calc_agf(i, lind)
 
 
 def test_convert_hs():
