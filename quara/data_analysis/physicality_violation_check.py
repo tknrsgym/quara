@@ -15,7 +15,8 @@ from quara.objects.gate import Gate
 from quara.settings import Settings
 
 
-__eq_const_eps = Settings.get_atol()
+__eq_const_eps_true = Settings.get_atol()
+__eq_const_eps_false = 10 ** (-5)
 __ineq_const_eps = 10 ** (-5)
 
 
@@ -26,6 +27,10 @@ def set_ineq_const_eps(eps: float) -> None:
 
 def get_ineq_const_eps() -> float:
     return __ineq_const_eps
+
+
+def get_eq_const_eps(para) -> float:
+    return __eq_const_eps_true if para else __eq_const_eps_false
 
 
 def _get_sorted_eigenvalues_list_for_state(estimated_states: List["State"],):
@@ -67,7 +72,7 @@ def get_sum_of_eigenvalues_violation(
         message = "`expected_values` must be a tuple of length 2."
         raise ValueError(message)
 
-    eps = __ineq_const_eps
+    eps = get_ineq_const_eps()
 
     sum_eig_less_list = []
     sum_eig_greater_list = []
@@ -92,7 +97,7 @@ def get_sum_of_eigenvalues_violation(
 def get_sum_of_eigenvalues_violation_for_povm(
     estimated_povms: List["Povm"],
 ) -> Dict[int, List[float]]:
-    eps = __ineq_const_eps
+    eps = get_ineq_const_eps()
     minus_eigenvalues_dict = defaultdict(lambda: [])
 
     for est in tqdm(estimated_povms):
@@ -574,19 +579,18 @@ def calc_unphysical_qobjects_n(
     elif isinstance(sample, QOperation):
         estimated_qoperations = source
     else:
-        message = f"`source` must be list of EstimationResult or QOperation, not {type(source)}"
+        message = f"`source` must be list of EstimationResult or QOperation, not list of {type(source)}"
+        print(f"type(source[0])={type(source[0])}")
         raise TypeError(message)
 
-    eq_const_eps = (
-        __eq_const_eps if estimated_qoperations[0].on_para_eq_constraint else 10 ** (-5)
-    )
+    eq_const_eps = get_eq_const_eps(estimated_qoperations[0].on_para_eq_constraint)
 
     n_unphysical = len(
         [
             q
             for q in estimated_qoperations
             if not q.is_physical(
-                atol_eq_const=eq_const_eps, atol_ineq_const=__ineq_const_eps
+                atol_eq_const=eq_const_eps, atol_ineq_const=get_ineq_const_eps()
             )
         ]
     )
@@ -753,8 +757,8 @@ def is_eq_constraint_satisfied_all(
 ) -> bool:
     all_check_results = []
     num_data = estimation_results[0].num_data
-    para = estimation_results[0].estimation_qoperation.on_para_eq_constraint
-    eps = __eq_const_eps if para else 10 ** (-5)
+    para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
+    eps = get_eq_const_eps(para)
 
     for num_data_index, num in enumerate(num_data):
         check_results = [
@@ -786,7 +790,7 @@ def is_ineq_constraint_satisfied_all(
         check_results = [
             result.estimated_qoperation_sequence[
                 num_data_index
-            ].is_ineq_constraint_satisfied(__ineq_const_eps)
+            ].is_ineq_constraint_satisfied(get_ineq_const_eps())
             for result in estimation_results
         ]
         result = False not in check_results
@@ -796,7 +800,7 @@ def is_ineq_constraint_satisfied_all(
             message = (
                 f"[{'OK' if result else 'NG'}] N={num} is_ineq_constraint_satisfied_all"
             )
-            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={__ineq_const_eps}"
+            message += f"\nTrue={counter[True]}, False={counter[False]}, eps={get_ineq_const_eps()}"
             print(message)
 
     return False not in all_check_results
