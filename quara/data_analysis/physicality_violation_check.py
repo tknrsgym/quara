@@ -16,7 +16,7 @@ from quara.settings import Settings
 
 
 __eq_const_eps = Settings.get_atol()
-__ineq_const_eps = 10 ** (-9)
+__ineq_const_eps = 10 ** (-5)
 
 
 def set_ineq_const_eps(eps: float) -> None:
@@ -784,6 +784,7 @@ def is_ineq_constraint_satisfied_all(
 ) -> bool:
     all_check_results = []
     num_data = estimation_results[0].num_data
+
     for num_data_index, num in enumerate(num_data):
         check_results = [
             result.estimated_qoperation_sequence[
