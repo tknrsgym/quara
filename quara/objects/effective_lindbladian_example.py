@@ -13,8 +13,15 @@ from quara.objects.effective_lindbladian import EffectiveLindbladian
 # Unified functions
 
 
-def gate_names() -> List[str]:
+def get_gate_names() -> List[str]:
     """Return the list of valid gate names."""
+    names = []
+    names.extend(get_gate_names_1qubit())
+    return names
+
+
+def get_gate_names_1qubit() -> List[str]:
+    """Return the list of valid gate names of 1-qubit gates."""
     names = []
     names.append("identity")
     names.append("x90")

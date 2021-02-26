@@ -6,36 +6,115 @@ from typing import List
 from scipy.linalg import expm
 
 from quara.objects import matrix_basis
+from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 
 from quara.objects.effective_lindbladian_example import (
-    generate_vec_identity_gate_hamiltonian,
-    generate_matrix_identity_gate_hamiltonian,
-    generate_matrix_identity_gate_unitary,
-    generate_matrix_identity_gate_lindbladian,
-    generate_matrix_identity_gate,
-    generate_effective_lindbladian_identity_gate,
+    get_gate_names_1qubit,
+    object_names,
+    generate_gate_object_from_gate_name_object_name,
 )
 
 
 def _test_generate_gate_objects(
-    c_sys: CompositeSystem, gate_name: str, ids: List[int] = []
+    gate_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
 ):
-    assert c_sys.is_orthonormal_hermitian_0thpropI == True
-    b = c_sys.basis
+    if c_sys.is_orthonormal_hermitian_0thpropI == False:
+        raise ValueError(
+            f"All matrix bases in c_sys must be orthonormal, Hermitian, and 0th element proportional to the identity matrix."
+        )
 
-    _test_validity_hamiltonian_vec_hamiltonian_mat(gate_name, b)
-    _test_validity_hamiltonian_mat_unitary_mat(gate_name)
-    _test_validity_effective_lindladian_mat_gate_mat(gate_name)
+    _test_validity_hamiltonian_vec_hamiltonian_mat(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
+    _test_validity_hamiltonian_mat_unitary_mat(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
+    _test_validity_effective_lindladian_mat_gate_mat(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
 
-    _test_generate_effective_lindbladian_from_h(c_sys, gate_name, ids)
-    _test_calc_h(c_sys, gate_name, ids)
+    _test_generate_effective_lindbladian_from_h(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
+    _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
+
+
+def _test_validity_hamiltonian_vec_hamiltonian_mat(
+    gate_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+):
+    object_name = "hamiltonian_vec"
+    h_vec = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+    object_name = "hamiltonian_mat"
+    h_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+
+    dim_sys = c_sys.dim
+    b = c_sys.basis()
+    if dim_sys * dim_sys != h_vec.size:
+        raise ValueError(f"dimensions of c_sys and h_vec are inconsistent.")
+    h_mat_from_vec = np.zeros((dim_sys, dim_sys), dtype=np.complex128)
+    for i, bi in enumerate(b):
+        h_mat_from_vec += h_vec[i] * bi
+
+    actual = h_mat_from_vec
+    expected = h_mat
+    # The case of decimal=16 below returns AssertionError.
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def _test_validity_hamiltonian_mat_unitary_mat(
+    gate_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+):
+    pass
+
+
+def _test_validity_effective_lindladian_mat_gate_mat(
+    gate_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+):
+    pass
 
 
 def _test_generate_effective_lindbladian_from_h(
-    c_sys: CompositeSystem, gate_name: str
-) -> bool:
+    gate_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+):
     pass
+
+
+def _test_calc_h(
+    gate_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+):
+    pass
+
+
+def test_generate_gate_object_1qubit_01():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    dims = [2]
+    gate_name_list = get_gate_names_1qubit()
+    for gate_name in gate_name_list:
+        _test_generate_gate_objects(gate_name=gate_name, dims=dims, c_sys=c_sys)
