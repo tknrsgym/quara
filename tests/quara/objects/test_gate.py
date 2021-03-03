@@ -472,6 +472,23 @@ class TestGate:
         actual = Gate(c_sys, hs, is_physicality_required=False).to_kraus_matrices()
         assert len(actual) == 0
 
+        # for swap
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys1, e_sys2])
+        eye4 = np.eye(4, dtype=np.complex128)
+
+        actual = get_swap(c_sys).to_kraus_matrices()
+        expected = [
+            np.array(
+                [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
+                dtype=np.complex128,
+            )
+        ]
+        assert len(actual) == 1
+        npt.assert_almost_equal(actual[0], expected[0], decimal=15)
+        npt.assert_almost_equal(TestGate.calc_sum_of_kraus(actual), eye4, decimal=14)
+
     def test_is_hp(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
