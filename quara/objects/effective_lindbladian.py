@@ -2,6 +2,7 @@ import copy
 import itertools
 from functools import reduce
 from operator import add
+import sys
 from typing import List, Tuple, Optional
 
 import numpy as np
@@ -9,7 +10,13 @@ from scipy.linalg import expm
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
-from quara.objects.gate import Gate, convert_hs
+from quara.objects.gate import (
+    Gate,
+    convert_hs,
+    convert_var_index_to_gate_index,
+    convert_gate_index_to_var_index,
+    convert_gate_to_var,
+)
 from quara.objects.matrix_basis import (
     MatrixBasis,
     get_comp_basis,
@@ -62,7 +69,20 @@ class EffectiveLindbladian(Gate):
         ValueError
             ``is_physicality_required`` is ``True`` and the gate is not physically correct.
         """
-        # TODO check the basis is a orthonormal Hermitian matrix basis with B_0 = I/sqrt(d)
+        # check the basis is a orthonormal Hermitian matrix basis with B_0 = I/sqrt(d)
+        if c_sys.is_orthonormal_hermitian_0thpropI == False:
+            raise ValueError(
+                "basis is not a orthonormal Hermitian matrix basis and 0th prop I."
+            )
+        dim = c_sys.dim
+        expected_B0 = np.eye(dim) / np.sqrt(dim)
+        if not np.allclose(
+            c_sys.basis()[0], expected_B0, atol=Settings.get_atol(), rtol=0.0
+        ):
+            raise ValueError(
+                "0th basis is not I/sqrt(dim). basis[0]={c_sys.basis()[0]}"
+            )
+
         super().__init__(
             c_sys,
             hs,
@@ -94,7 +114,8 @@ class EffectiveLindbladian(Gate):
             h_alpha = 1j / (2 * self.dim) * trace
             tmp_h_mat += h_alpha * B_alpha
 
-        return tmp_h_mat
+        h_mat = _trancate_hs(tmp_h_mat)
+        return h_mat
 
     def calc_j(self) -> np.array:
         basis = self.composite_system.basis()
@@ -112,7 +133,8 @@ class EffectiveLindbladian(Gate):
             j_alpha = 1 / (2 * self.dim * (1 + delta)) * trace
             tmp_j_mat += j_alpha * B_alpha
 
-        return tmp_j_mat
+        j_mat = _trancate_hs(tmp_j_mat)
+        return j_mat
 
     def calc_k(self) -> np.array:
         basis = self.composite_system.basis()
@@ -128,7 +150,8 @@ class EffectiveLindbladian(Gate):
                     lindbladian_cb @ np.kron(B_alpha, B_beta.conj())
                 )
 
-        return tmp_k_mat
+        k_mat = _trancate_hs(tmp_k_mat, is_zero_imaginary_part_required=False)
+        return k_mat
 
     def calc_h_part(self) -> np.array:
         h_mat = self.calc_h()
@@ -150,14 +173,15 @@ class EffectiveLindbladian(Gate):
         return d_part
 
     def _generate_origin_obj(self):
-        # TODO modify for EffectiveLindbladian
-        size = self.hs.shape
-        new_hs = np.zeros(size)
-        new_hs[0][0] = 1
+        min = sys.float_info.min_exp
+        diag_values = [1]
+        for index in range(self.dim ** 2 - 1):
+            diag_values.append(min)
+        new_hs = np.diag(diag_values).astype(np.float64)
         return new_hs
 
-    def calc_gradient(self, var_index: int) -> "Gate":
-        gate = calc_gradient_from_gate(
+    def calc_gradient(self, var_index: int) -> "EffectiveLindbladian":
+        lindbladian = calc_gradient_from_effective_lindbladian(
             self.composite_system,
             self.hs,
             var_index,
@@ -167,7 +191,7 @@ class EffectiveLindbladian(Gate):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             eps_proj_physical=self.eps_proj_physical,
         )
-        return gate
+        return lindbladian
 
     def calc_proj_eq_constraint(self) -> "EffectiveLindbladian":
         new_hs = self._copy()
@@ -250,30 +274,8 @@ class EffectiveLindbladian(Gate):
         # for A:L^{gb}, "A is CP"  <=> "k >= 0"
         return mutil.is_positive_semidefinite(self.calc_k(), atol=atol)
 
-    def to_choi_matrix(self) -> np.array:
-        """returns Choi matrix of gate.
-
-        Returns
-        -------
-        np.array
-            Choi matrix of gate.
-        """
-        # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
-        tmp_list = []
-        basis = self.composite_system.basis()
-        indexed_basis = list(zip(range(len(basis)), basis))
-        for B_alpha, B_beta in itertools.product(indexed_basis, indexed_basis):
-            tmp = self._hs[B_alpha[0]][B_beta[0]] * np.kron(
-                B_alpha[1], B_beta[1].conj()
-            )
-            tmp_list.append(tmp)
-
-        # summing
-        choi = reduce(add, tmp_list)
-        return choi
-
     def to_kraus_matrices(self) -> List[np.array]:
-        """returns Kraus matrices of gate.
+        """returns Kraus matrices of EffectiveLindbladian.
 
         this function returns Kraus matrices as list of ``np.array`` with ``dtype=np.complex128``.
         the list is sorted large eigenvalue order.
@@ -281,11 +283,12 @@ class EffectiveLindbladian(Gate):
 
         Returns
         -------
-        List[np.array]
+        List[Tuple(np.float64, np.array)]
             Kraus matrices of gate.
         """
-        if not self.is_cp():
-            return []
+        # TODO delete?
+        # if not self.is_cp():
+        #    return []
 
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
@@ -295,6 +298,7 @@ class EffectiveLindbladian(Gate):
             (eigen_vals[index], eigen_vecs[:, index])
             for index in range(len(eigen_vals))
         ]
+        # TODO delete?
         # filter positive eigen values
         eigens = [
             (eigen_val, eigen_vec)
@@ -304,45 +308,43 @@ class EffectiveLindbladian(Gate):
         # sort large eigenvalue order
         eigens = sorted(eigens, key=lambda x: x[0], reverse=True)
 
-        # step2. calc Kraus representaion.
-        #   K_{\alpha} = \sqrt{c_{\alpha}} unvec(|c_{\alpha}>)
+        # step2. convert to Kraus representaion.
+        #   K_{\alpha} = {\sqrt{c_{\alpha}}, unvec(|c_{\alpha}>)}
         kraus = [
-            np.sqrt(eigen_val) * eigen_vec.reshape((2, 2))
+            (np.sqrt(eigen_val), eigen_vec.reshape((self.dim, self.dim)))
             for (eigen_val, eigen_vec) in eigens
         ]
 
         return kraus
 
-    def to_process_matrix(self) -> np.array:
-        """returns process matrix of gate.
-
-        Returns
-        -------
-        np.array
-            process matrix of gate.
-        """
-        # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
-        hs_comp = self.convert_to_comp_basis()
-        comp_basis = self.composite_system.comp_basis()
-        process_matrix = [
-            np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
-            for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
-        ]
-        return np.array(process_matrix).reshape((4, 4))
-
     def _generate_from_var_func(self):
-        return convert_var_to_gate
+        return convert_var_to_effective_lindbladian
+
+    def to_gate(self) -> Gate:
+        new_hs = expm(self.hs)
+        gate = Gate(
+            self.composite_system,
+            new_hs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return gate
 
 
-def convert_var_index_to_gate_index(
+def convert_var_index_to_effective_lindbladian_index(
     c_sys: CompositeSystem, var_index: int, on_para_eq_constraint: bool = True
 ) -> Tuple[int, int]:
-    """converts variable index to gate index.
+    """converts variable index to EffectiveLindbladian index.
 
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this gate.
+        CompositeSystem of this EffectiveLindbladian.
     var_index : int
         variable index.
     on_para_eq_constraint : bool, optional
@@ -351,32 +353,30 @@ def convert_var_index_to_gate_index(
     Returns
     -------
     Tuple[int, int]
-        gate index.
-        first value of tuple is row number of HS representation of this gate.
-        second value of tuple is column number of HS representation of this gate.
+        index of EffectiveLindbladian.
+        first value of tuple is row number of HS representation of this EffectiveLindbladian.
+        second value of tuple is column number of HS representation of this EffectiveLindbladian.
     """
-    dim = c_sys.dim
-    (row, col) = divmod(var_index, dim ** 2)
-    if on_para_eq_constraint:
-        row += 1
-    return (row, col)
+    return convert_var_index_to_gate_index(
+        c_sys, var_index, on_para_eq_constraint=on_para_eq_constraint
+    )
 
 
-def convert_gate_index_to_var_index(
+def convert_effective_lindbladian_index_to_var_index(
     c_sys: CompositeSystem,
-    gate_index: Tuple[int, int],
+    effective_lindbladian_index: Tuple[int, int],
     on_para_eq_constraint: bool = True,
 ) -> int:
-    """converts gate index to variable index.
+    """converts effective_lindbladian_index index to variable index.
 
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this gate.
-    gate_index : Tuple[int, int]
-        gate index.
-        first value of tuple is row number of HS representation of this gate.
-        second value of tuple is column number of HS representation of this gate.
+        CompositeSystem of this EffectiveLindbladian.
+    effective_lindbladian_index : Tuple[int, int]
+        index of EffectiveLindbladian.
+        first value of tuple is row number of HS representation of this EffectiveLindbladian.
+        second value of tuple is column number of HS representation of this EffectiveLindbladian.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
@@ -385,17 +385,12 @@ def convert_gate_index_to_var_index(
     int
         variable index.
     """
-    dim = c_sys.dim
-    (row, col) = gate_index
-    var_index = (
-        (dim ** 2) * (row - 1) + col
-        if on_para_eq_constraint
-        else (dim ** 2) * row + col
+    return convert_gate_index_to_var_index(
+        c_sys, effective_lindbladian_index, on_para_eq_constraint=on_para_eq_constraint
     )
-    return var_index
 
 
-def convert_var_to_gate(
+def convert_var_to_effective_lindbladian(
     c_sys: CompositeSystem,
     var: np.ndarray,
     is_physicality_required: bool = True,
@@ -404,13 +399,13 @@ def convert_var_to_gate(
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
     eps_proj_physical: float = None,
-) -> Gate:
-    """converts vec of variables to gate.
+) -> EffectiveLindbladian:
+    """converts vec of variables to EffectiveLindbladian.
 
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this gate.
+        CompositeSystem of this EffectiveLindbladian.
     var : np.ndarray
         vec of variables.
     on_para_eq_constraint : bool, optional
@@ -418,8 +413,8 @@ def convert_var_to_gate(
 
     Returns
     -------
-    Gate
-        converted gate.
+    EffectiveLindbladian
+        converted EffectiveLindbladian.
     """
     dim = c_sys.dim
 
@@ -431,7 +426,7 @@ def convert_var_to_gate(
         if on_para_eq_constraint
         else reshaped
     )
-    gate = Gate(
+    lindbladian = EffectiveLindbladian(
         c_sys,
         hs,
         is_physicality_required=is_physicality_required,
@@ -441,20 +436,20 @@ def convert_var_to_gate(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         eps_proj_physical=eps_proj_physical,
     )
-    return gate
+    return lindbladian
 
 
-def convert_gate_to_var(
+def convert_effective_lindbladian_to_var(
     c_sys: CompositeSystem, hs: np.ndarray, on_para_eq_constraint: bool = True
 ) -> np.array:
-    """converts hs of gate to vec of variables.
+    """converts hs of EffectiveLindbladian to vec of variables.
 
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this gate.
+        CompositeSystem of this EffectiveLindbladian.
     hs : np.ndarray
-        HS representation of this gate.
+        HS representation of this EffectiveLindbladian.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
@@ -463,11 +458,10 @@ def convert_gate_to_var(
     np.array
         vec of variables.
     """
-    var = np.delete(hs, 0, axis=0).flatten() if on_para_eq_constraint else hs.flatten()
-    return var
+    return convert_gate_to_var(c_sys, hs, on_para_eq_constraint=on_para_eq_constraint)
 
 
-def calc_gradient_from_gate(
+def calc_gradient_from_effective_lindbladian(
     c_sys: CompositeSystem,
     hs: np.ndarray,
     var_index: int,
@@ -476,8 +470,8 @@ def calc_gradient_from_gate(
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
     eps_proj_physical: float = None,
-) -> Gate:
-    """calculates gradient from gate.
+) -> EffectiveLindbladian:
+    """calculates gradient from EffectiveLindbladian.
 
     Parameters
     ----------
@@ -492,16 +486,16 @@ def calc_gradient_from_gate(
 
     Returns
     -------
-    Gate
-        Gate with gradient as hs.
+    EffectiveLindbladian
+        EffectiveLindbladian with gradient as hs.
     """
     gradient = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.float64)
-    gate_index = convert_var_index_to_gate_index(
+    gate_index = convert_var_index_to_effective_lindbladian_index(
         c_sys, var_index, on_para_eq_constraint
     )
     gradient[gate_index] = 1
 
-    gate = Gate(
+    lindbladian = EffectiveLindbladian(
         c_sys,
         gradient,
         is_physicality_required=False,
@@ -511,7 +505,7 @@ def calc_gradient_from_gate(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         eps_proj_physical=eps_proj_physical,
     )
-    return gate
+    return lindbladian
 
 
 def _check_h_mat(h_mat: np.array, dim: int) -> None:
@@ -585,6 +579,22 @@ def _calc_k_part_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> np.array
     return k_part
 
 
+def _trancate_hs(
+    hs: np.array,
+    eps_proj_physical: float = None,
+    is_zero_imaginary_part_required: bool = True,
+) -> np.array:
+    tmp_hs = mutil.trancate_imaginary_part(hs, eps_proj_physical)
+
+    if is_zero_imaginary_part_required == True and np.any(tmp_hs.imag != 0):
+        raise ValueError(
+            f"some imaginary parts of entries of matrix != 0. converted hs={tmp_hs}"
+        )
+
+    trancated_hs = mutil.trancate_computational_fluctuation(tmp_hs, eps_proj_physical)
+    return trancated_hs
+
+
 def generate_hs_from_hjk(
     c_sys: CompositeSystem,
     h_mat: np.ndarray,
@@ -608,13 +618,10 @@ def generate_hs_from_hjk(
 
     # calculate hs(=Lindbladian for Hermitian basis)
     lindbladian_comp_basis = h_part + j_part + k_part
-    tmp_lindladian = convert_hs(
+    lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
-    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
-        tmp_lindladian, eps_proj_physical
-    )
+    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
@@ -659,13 +666,10 @@ def generate_hs_from_h(
 
     # calculate hs(=Lindbladian for Hermitian basis)
     lindbladian_comp_basis = h_part
-    tmp_lindladian = convert_hs(
+    lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
-    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
-        tmp_lindladian, eps_proj_physical
-    )
+    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
@@ -719,13 +723,10 @@ def generate_hs_from_hk(
 
     # calculate hs(=Lindbladian for Hermitian basis)
     lindbladian_comp_basis = h_part + j_part + k_part
-    tmp_lindladian = convert_hs(
+    lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
-    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
-        tmp_lindladian, eps_proj_physical
-    )
+    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
@@ -773,13 +774,10 @@ def generate_hs_from_k(
 
     # calculate hs(=Lindbladian for Hermitian basis)
     lindbladian_comp_basis = j_part + k_part
-    tmp_lindladian = convert_hs(
+    lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    tmp_lindladian = mutil.trancate_imaginary_part(tmp_lindladian, eps_proj_physical)
-    lindbladian_hermitian_basis = mutil.trancate_computational_fluctuation(
-        tmp_lindladian, eps_proj_physical
-    )
+    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
