@@ -44,17 +44,17 @@ class EffectiveLindbladian(Gate):
         Parameters
         ----------
         c_sys : CompositeSystem
-            CompositeSystem of this gate.
+            CompositeSystem of this EffectiveLindbladian.
         hs : np.ndarray
-            HS representation of this gate.
+            HS representation of this EffectiveLindbladian.
         is_physicality_required : bool, optional
-            checks whether the gate is physically wrong, by default True.
-            if at least one of the following conditions is ``False``, the gate is physically wrong:
+            checks whether the EffectiveLindbladian is physically wrong, by default True.
+            if at least one of the following conditions is ``False``, the EffectiveLindbladian is physically wrong:
 
-            - gate is TP(trace-preserving map).
-            - gate is CP(Complete-Positivity-Preserving).
+            - EffectiveLindbladian is TP(trace-preserving map).
+            - EffectiveLindbladian is CP(Complete-Positivity-Preserving).
 
-            If you want to ignore the above requirements and create a Gate object, set ``is_physicality_required`` to ``False``.
+            If you want to ignore the above requirements and create a EffectiveLindbladian object, set ``is_physicality_required`` to ``False``.
 
         Raises
         ------
@@ -100,6 +100,13 @@ class EffectiveLindbladian(Gate):
             raise ValueError("the EffectiveLindbladian is not phsically correct.")
 
     def calc_h_mat(self) -> np.array:
+        """calculates h matrix of this EffectiveLindbladian.
+
+        Returns
+        -------
+        np.array
+            h matrix of this EffectiveLindbladian.
+        """
         basis = self.composite_system.basis()
         comp_basis = self.composite_system.comp_basis()
         lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
@@ -117,6 +124,13 @@ class EffectiveLindbladian(Gate):
         return tmp_h_mat
 
     def calc_j_mat(self) -> np.array:
+        """calculates j matrix of this EffectiveLindbladian.
+
+        Returns
+        -------
+        np.array
+            j matrix of this EffectiveLindbladian.
+        """
         basis = self.composite_system.basis()
         comp_basis = self.composite_system.comp_basis()
         lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
@@ -135,6 +149,13 @@ class EffectiveLindbladian(Gate):
         return tmp_j_mat
 
     def calc_k_mat(self) -> np.array:
+        """calculates k matrix of this EffectiveLindbladian.
+
+        Returns
+        -------
+        np.array
+            k matrix of this EffectiveLindbladian.
+        """
         basis = self.composite_system.basis()
         comp_basis = self.composite_system.comp_basis()
         lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
@@ -155,6 +176,22 @@ class EffectiveLindbladian(Gate):
             raise ValueError(f"unsupported mode_basis={mode_basis}")
 
     def calc_h_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        """calculates h part of this EffectiveLindbladian.
+
+        mode_basis allows the following values:
+        - hermitian_basis
+        - comp_basis
+
+        Parameters
+        ----------
+        mode_basis : str, optional
+            basis for calculating h part, by default "hermitian_basis"
+
+        Returns
+        -------
+        np.array
+            h part of this EffectiveLindbladian.
+        """
         self._check_mode_basis(mode_basis)
         h_mat = self.calc_h_mat()
         h_part = _calc_h_part_from_h_mat(h_mat)
@@ -170,6 +207,22 @@ class EffectiveLindbladian(Gate):
         return h_part
 
     def calc_j_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        """calculates j part of this EffectiveLindbladian.
+
+        mode_basis allows the following values:
+        - hermitian_basis
+        - comp_basis
+
+        Parameters
+        ----------
+        mode_basis : str, optional
+            basis for calculating j part, by default "hermitian_basis"
+
+        Returns
+        -------
+        np.array
+            j part of this EffectiveLindbladian.
+        """
         self._check_mode_basis(mode_basis)
         j_mat = self.calc_j_mat()
         j_part = _calc_j_part_from_j_mat(j_mat)
@@ -185,6 +238,22 @@ class EffectiveLindbladian(Gate):
         return j_part
 
     def calc_k_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        """calculates k part of this EffectiveLindbladian.
+
+        mode_basis allows the following values:
+        - hermitian_basis
+        - comp_basis
+
+        Parameters
+        ----------
+        mode_basis : str, optional
+            basis for calculating k part, by default "hermitian_basis"
+
+        Returns
+        -------
+        np.array
+            k part of this EffectiveLindbladian.
+        """
         self._check_mode_basis(mode_basis)
         k_mat = self.calc_k_mat()
         k_part = _calc_k_part_from_k_mat(k_mat, self.composite_system)
@@ -200,6 +269,22 @@ class EffectiveLindbladian(Gate):
         return k_part
 
     def calc_d_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        """calculates d part of this EffectiveLindbladian.
+
+        mode_basis allows the following values:
+        - hermitian_basis
+        - comp_basis
+
+        Parameters
+        ----------
+        mode_basis : str, optional
+            basis for calculating d part, by default "hermitian_basis"
+
+        Returns
+        -------
+        np.array
+            d part of this EffectiveLindbladian.
+        """
         self._check_mode_basis(mode_basis)
         d_part = self.calc_j_part(mode_basis="comp_basis") + self.calc_k_part(
             mode_basis="comp_basis"
@@ -321,7 +406,6 @@ class EffectiveLindbladian(Gate):
 
         this function returns Kraus matrices as list of ``np.array`` with ``dtype=np.complex128``.
         the list is sorted large eigenvalue order.
-        if HS of gate is not CP, then returns empty list because Kraus matrices does not exist.
 
         Returns
         -------
@@ -358,6 +442,13 @@ class EffectiveLindbladian(Gate):
         return convert_var_to_effective_lindbladian
 
     def to_gate(self) -> Gate:
+        """returns the Gate corresponding to this EffectiveLindbladian.
+
+        Returns
+        -------
+        Gate
+            the Gate corresponding to this EffectiveLindbladian.
+        """
         new_hs = expm(self.hs)
         gate = Gate(
             self.composite_system,
@@ -642,6 +733,24 @@ def generate_hs_from_hjk(
     k_mat: np.ndarray,
     eps_proj_physical: float = None,
 ) -> np.array:
+    """generates HS matrix of EffectiveLindbladian from h matrix, j matrix and k matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    h_mat : np.ndarray
+        h matrix.
+    j_mat : np.ndarray
+        j matrix.
+    k_mat : np.ndarray
+        k matrix.
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     dim = c_sys.dim
 
     # calculate h_part
@@ -676,8 +785,41 @@ def generate_effective_lindbladian_from_hjk(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
+    """generates HS matrix of EffectiveLindbladian from h matrix, j matrix and k matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    h_mat : np.ndarray
+        h matrix.
+    j_mat : np.ndarray
+        j matrix.
+    k_mat : np.ndarray
+        k matrix.
+    is_physicality_required : bool, optional
+        whether this QOperation is physicality required, by default True
+    is_estimation_object : bool, optional
+        whether this QOperation is estimation object, by default True
+    on_para_eq_constraint : bool, optional
+        whether this QOperation is on parameter equality constraint, by default True
+    on_algo_eq_constraint : bool, optional
+        whether this QOperation is on algorithm equality constraint, by default True
+    on_algo_ineq_constraint : bool, optional
+        whether this QOperation is on algorithm inequality constraint, by default True
+    mode_proj_order : str, optional
+        the order in which the projections are performed, by default "eq_ineq"
+    eps_proj_physical : float, optional
+        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     # generate HS
     hs = generate_hs_from_hjk(c_sys, h_mat, j_mat, k_mat)
 
@@ -690,6 +832,7 @@ def generate_effective_lindbladian_from_hjk(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return effective_lindbladian
@@ -698,6 +841,20 @@ def generate_effective_lindbladian_from_hjk(
 def generate_hs_from_h(
     c_sys: CompositeSystem, h_mat: np.ndarray, eps_proj_physical: float = None,
 ) -> np.array:
+    """generates HS matrix of EffectiveLindbladian from h matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    h_mat : np.ndarray
+        h matrix.
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     dim = c_sys.dim
 
     # calculate h_part
@@ -722,8 +879,37 @@ def generate_effective_lindbladian_from_h(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
+    """generates HS matrix of EffectiveLindbladian from h matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    h_mat : np.ndarray
+        h matrix.
+    is_physicality_required : bool, optional
+        whether this QOperation is physicality required, by default True
+    is_estimation_object : bool, optional
+        whether this QOperation is estimation object, by default True
+    on_para_eq_constraint : bool, optional
+        whether this QOperation is on parameter equality constraint, by default True
+    on_algo_eq_constraint : bool, optional
+        whether this QOperation is on algorithm equality constraint, by default True
+    on_algo_ineq_constraint : bool, optional
+        whether this QOperation is on algorithm inequality constraint, by default True
+    mode_proj_order : str, optional
+        the order in which the projections are performed, by default "eq_ineq"
+    eps_proj_physical : float, optional
+        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     # generate HS
     hs = generate_hs_from_h(c_sys, h_mat)
 
@@ -736,6 +922,7 @@ def generate_effective_lindbladian_from_h(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return effective_lindbladian
@@ -747,6 +934,24 @@ def generate_hs_from_hk(
     k_mat: np.ndarray,
     eps_proj_physical: float = None,
 ) -> np.array:
+    """generates HS matrix of EffectiveLindbladian from h matrix and k matrix.
+
+    j matrix is calculated from k matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    h_mat : np.ndarray
+        h matrix.
+    k_mat : np.ndarray
+        k matrix.
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     dim = c_sys.dim
 
     # calculate h_part
@@ -780,8 +985,41 @@ def generate_effective_lindbladian_from_hk(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
+    """generates HS matrix of EffectiveLindbladian from h matrix and k matrix.
+
+    j matrix is calculated from k matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    h_mat : np.ndarray
+        h matrix.
+    k_mat : np.ndarray
+        k matrix.
+    is_physicality_required : bool, optional
+        whether this QOperation is physicality required, by default True
+    is_estimation_object : bool, optional
+        whether this QOperation is estimation object, by default True
+    on_para_eq_constraint : bool, optional
+        whether this QOperation is on parameter equality constraint, by default True
+    on_algo_eq_constraint : bool, optional
+        whether this QOperation is on algorithm equality constraint, by default True
+    on_algo_ineq_constraint : bool, optional
+        whether this QOperation is on algorithm inequality constraint, by default True
+    mode_proj_order : str, optional
+        the order in which the projections are performed, by default "eq_ineq"
+    eps_proj_physical : float, optional
+        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     # generate HS
     hs = generate_hs_from_hk(c_sys, h_mat, k_mat)
 
@@ -794,6 +1032,7 @@ def generate_effective_lindbladian_from_hk(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return effective_lindbladian
@@ -802,6 +1041,22 @@ def generate_effective_lindbladian_from_hk(
 def generate_hs_from_k(
     c_sys: CompositeSystem, k_mat: np.ndarray, eps_proj_physical: float = None,
 ) -> np.array:
+    """generates HS matrix of EffectiveLindbladian from k matrix.
+
+    j matrix is calculated from k matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    k_mat : np.ndarray
+        k matrix.
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     dim = c_sys.dim
 
     # calculate k_part
@@ -830,8 +1085,39 @@ def generate_effective_lindbladian_from_k(
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
+    """generates HS matrix of EffectiveLindbladian from k matrix.
+
+    j matrix is calculated from k matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    k_mat : np.ndarray
+        k matrix.
+    is_physicality_required : bool, optional
+        whether this QOperation is physicality required, by default True
+    is_estimation_object : bool, optional
+        whether this QOperation is estimation object, by default True
+    on_para_eq_constraint : bool, optional
+        whether this QOperation is on parameter equality constraint, by default True
+    on_algo_eq_constraint : bool, optional
+        whether this QOperation is on algorithm equality constraint, by default True
+    on_algo_ineq_constraint : bool, optional
+        whether this QOperation is on algorithm inequality constraint, by default True
+    mode_proj_order : str, optional
+        the order in which the projections are performed, by default "eq_ineq"
+    eps_proj_physical : float, optional
+        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+
+    Returns
+    -------
+    np.array
+        HS matrix of EffectiveLindbladian.
+    """
     # generate HS
     hs = generate_hs_from_k(c_sys, k_mat)
 
@@ -844,6 +1130,7 @@ def generate_effective_lindbladian_from_k(
         on_para_eq_constraint=on_para_eq_constraint,
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
     )
     return effective_lindbladian
