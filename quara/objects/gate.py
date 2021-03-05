@@ -374,11 +374,11 @@ class Gate(QOperation):
             (eigen_vals[index], eigen_vecs[:, index])
             for index in range(len(eigen_vals))
         ]
-        # filter positive eigen values
+        # filter non-zero eigen values
         eigens = [
             (eigen_val, eigen_vec)
             for (eigen_val, eigen_vec) in eigens
-            if eigen_val > 0 and not np.isclose(eigen_val, 0, atol=Settings.get_atol())
+            if not np.isclose(eigen_val, 0, atol=Settings.get_atol())
         ]
         # sort large eigenvalue order
         eigens = sorted(eigens, key=lambda x: x[0], reverse=True)
