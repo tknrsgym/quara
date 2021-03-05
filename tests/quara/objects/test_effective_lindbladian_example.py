@@ -4,6 +4,7 @@ import pytest
 
 from typing import List
 from scipy.linalg import expm
+import math
 
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis
@@ -11,12 +12,39 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate
 from quara.objects.effective_lindbladian import EffectiveLindbladian
+from quara.objects.effective_lindbladian import (
+    generate_effective_lindbladian_from_h,
+)
 
 from quara.objects.effective_lindbladian_example import (
     get_gate_names_1qubit,
-    object_names,
+    get_object_names,
     generate_gate_object_from_gate_name_object_name,
 )
+
+
+def project_to_traceless_matrix(A: np.array) -> np.array:
+    """Calculate a matrix projected to a trace-less matrix subspace.
+
+    Parameters
+    ----------
+    A : np.array
+        Square matrix
+
+    Returns
+    ----------
+    B : np.array
+        Square matrix, B = A - Tr[b0 @ A] b0, b0 = I/sqrt(d).
+
+    """
+    if A.shape[0] != A.shape[1]:
+        raise ValueError(f"A must be square matrix.")
+
+    d = A.shape[0]
+    b0 = np.eye(d) / math.sqrt(d)
+    tr = np.trace(b0 @ A)
+    B = A - tr * b0
+    return B
 
 
 def _test_generate_gate_objects(
@@ -81,7 +109,18 @@ def _test_validity_hamiltonian_mat_unitary_mat(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
-    pass
+    object_name = "hamiltonian_mat"
+    h_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+    object_name = "unitary_mat"
+    u_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+
+    actual = expm(-1j * h_mat)
+    expected = u_mat
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def _test_validity_effective_lindladian_mat_gate_mat(
@@ -90,7 +129,18 @@ def _test_validity_effective_lindladian_mat_gate_mat(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
-    pass
+    object_name = "effective_lindbladian_mat"
+    el_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+    object_name = "gate_mat"
+    g_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+
+    actual = expm(el_mat)
+    expected = g_mat
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def _test_generate_effective_lindbladian_from_h(
@@ -99,7 +149,19 @@ def _test_generate_effective_lindbladian_from_h(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
-    pass
+    object_name = "hamiltonian_mat"
+    h_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+    object_name = "effective_lindbladian_mat"
+    el_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+
+    el_from_h = generate_effective_lindbladian_from_h(c_sys, h_mat)
+    actual = el_from_h.hs
+    expected = el_mat
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def _test_calc_h(
@@ -108,7 +170,15 @@ def _test_calc_h(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
-    pass
+    object_name = "hamiltonian_mat"
+    h_mat = generate_gate_object_from_gate_name_object_name(
+        gate_name, object_name, dims, ids, c_sys
+    )
+
+    el_from_h = generate_effective_lindbladian_from_h(c_sys, h_mat)
+    actual = el_from_h.calc_h()
+    expected = project_to_traceless_matrix(h_mat)
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_generate_gate_object_1qubit_01():
