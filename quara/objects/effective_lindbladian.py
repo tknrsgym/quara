@@ -170,12 +170,11 @@ class EffectiveLindbladian(Gate):
         return d_part
 
     def _generate_origin_obj(self):
+        # return HS matrix of the origin = diag(0, min, min,..,min) in R^{{dim ** 2}x{dim ** 2}}
         min = sys.float_info.min_exp
-        diag_values = [1]
-        for index in range(self.dim ** 2 - 1):
-            diag_values.append(min)
-        new_hs = np.diag(diag_values).astype(np.float64)
-        return new_hs
+        diag_values = [0] + [min] * (self.dim ** 2 - 1)
+        origin_hs = np.diag(diag_values).astype(np.float64)
+        return origin_hs
 
     def calc_gradient(self, var_index: int) -> "EffectiveLindbladian":
         lindbladian = calc_gradient_from_effective_lindbladian(
@@ -283,10 +282,6 @@ class EffectiveLindbladian(Gate):
         List[Tuple(np.float64, np.array)]
             Kraus matrices of gate.
         """
-        # TODO delete?
-        # if not self.is_cp():
-        #    return []
-
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
         choi = self.to_choi_matrix()
@@ -295,12 +290,11 @@ class EffectiveLindbladian(Gate):
             (eigen_vals[index], eigen_vecs[:, index])
             for index in range(len(eigen_vals))
         ]
-        # TODO delete?
-        # filter positive eigen values
+        # filter non-zero eigen values
         eigens = [
             (eigen_val, eigen_vec)
             for (eigen_val, eigen_vec) in eigens
-            if eigen_val > 0 and not np.isclose(eigen_val, 0, atol=Settings.get_atol())
+            if not np.isclose(eigen_val, 0, atol=Settings.get_atol())
         ]
         # sort large eigenvalue order
         eigens = sorted(eigens, key=lambda x: x[0], reverse=True)

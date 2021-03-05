@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import numpy.testing as npt
 import pytest
+from scipy.linalg import expm
 
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
@@ -135,14 +136,18 @@ class TestEffectiveLindbladian:
         # Act
         actual = lindbladian.generate_origin_obj()
 
-        # Assert
+        # Assert HS
         min = sys.float_info.min_exp
         expected = np.array(
-            [[1, 0, 0, 0], [0, min, 0, 0], [0, 0, min, 0], [0, 0, 0, min]],
+            [[0, 0, 0, 0], [0, min, 0, 0], [0, 0, min, 0], [0, 0, 0, min]],
             dtype=np.float64,
         )
         assert type(actual) == EffectiveLindbladian
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+        # Assert e^L = diag(1,0,...0)
+        expected_exp = np.diag([1, 0, 0, 0])
+        npt.assert_almost_equal(expm(actual.hs), expected_exp, decimal=13)
 
     def test_calc_gradient(self):
         # Arrange
@@ -342,6 +347,39 @@ class TestEffectiveLindbladian:
             c_sys, k_mat, is_physicality_required=False
         )
         assert actual.is_cp() == False
+
+    @classmethod
+    def calc_sum_of_kraus(cls, kraus):
+        # calc \sum_{\alpha} K__{\alpha} K_{\alpha}^{\dagger}
+        sum = np.zeros((len(kraus[0]), len(kraus[0])), dtype=np.complex128)
+        for (eigenval, eigenvec) in kraus:
+            sum += eigenval * (eigenvec @ eigenvec.conj().T)
+            print(f"term={eigenval}, {eigenval * (eigenvec @ eigenvec.conj().T)}")
+        print(f"sum={sum}")
+        return sum
+
+    # TODO
+    """
+    def test_to_kraus_matrices(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        eye2 = np.eye(2, dtype=np.complex128)
+
+        # k=I
+        k_mat = np.eye(3)
+        lindbladian = lind.generate_effective_lindbladian_from_k(
+            c_sys, k_mat, is_physicality_required=False
+        )
+        print(f"HS={lindbladian.hs}")
+        actual = lindbladian.to_kraus_matrices()
+
+        expected = [np.array([[1, 0], [0, 1]], dtype=np.complex128)]
+        assert len(actual) == 4
+        # npt.assert_almost_equal(actual[0], expected[0], decimal=15)
+        npt.assert_almost_equal(
+            TestEffectiveLindbladian.calc_sum_of_kraus(actual), eye2, decimal=14
+        )
+    """
 
     def test_to_gate(self):
         # Arrange
