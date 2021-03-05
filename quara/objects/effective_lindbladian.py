@@ -415,7 +415,6 @@ class EffectiveLindbladian(Gate):
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
         choi = self.to_choi_matrix()
-        print(f"choi={choi}")
         eigen_vals, eigen_vecs = np.linalg.eig(choi)
         eigens = [
             (eigen_vals[index], eigen_vecs[:, index])
