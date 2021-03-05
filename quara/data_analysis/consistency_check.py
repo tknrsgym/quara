@@ -49,7 +49,7 @@ def execute_consistency_check(
 ) -> bool:
     if eps is None:
         eps = 10 ** (-10)
-    result = calc_mse_of_true_estimated(
+    value = calc_mse_of_true_estimated(
         true_object=simulation_setting.true_object,
         qtomography=estimation_results[0].qtomography,
         estimator=simulation_setting.estimator,
@@ -58,11 +58,12 @@ def execute_consistency_check(
         algo=simulation_setting.algo,
         algo_option=simulation_setting.algo_option,
     )
-
+    # numpy.bool_ -> bool to serialize to json
+    result = bool(value < eps)
     if show_detail:
-        print(f"[{'OK' if result < eps else 'NG'}] Consistency Check")
-        print(f"result={result}")
+        print(f"[{'OK' if result else 'NG'}] Consistency Check")
+        print(f"value={value}")
         print(f"eps={eps}")
-        print(f"result < eps: {result < eps}")
+        print(f"result(value < eps): {result}")
 
-    return result < eps
+    return result
