@@ -105,6 +105,8 @@ class StandardQTomographySimulationCheck:
         results.append(_to_result_dict(name, result))
 
         total_result = np.all([r["result"] for r in results])
+        # numpy.bool_ -> bool to serialize to json
+        total_result = bool(total_result)
         all_result_dict = {
             "name": self.simulation_setting.name,
             "total_result": total_result,
