@@ -121,8 +121,7 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
 def trancate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64:
     eps = Settings.get_atol() if eps is None else eps
 
-    trancated_mat = np.where(np.abs(matrix.imag) < eps, matrix.real, matrix)
-    return trancated_mat.real.astype(np.float64)
+    return np.where(np.abs(matrix.imag) < eps, matrix.real, matrix)
 
 
 def trancate_computational_fluctuation(

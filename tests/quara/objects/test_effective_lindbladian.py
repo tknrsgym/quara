@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import numpy.testing as npt
 import pytest
+from scipy.linalg import expm
 
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
@@ -72,7 +73,25 @@ class TestEffectiveLindbladian:
             [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]], dtype=np.float64,
         ) / np.sqrt(2)
         lindbladian = EffectiveLindbladian(c_sys, hs)
+
+        # mode_basis=default("hermitian_basis")
         actual = lindbladian.calc_h_part()
+        expected = np.array(
+            [[0, 0, 0, 0], [0, 0, -np.sqrt(2), 0], [0, np.sqrt(2), 0, 0], [0, 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="hermitian_basis"
+        actual = lindbladian.calc_h_part(mode_basis="hermitian_basis")
+        expected = np.array(
+            [[0, 0, 0, 0], [0, 0, -np.sqrt(2), 0], [0, np.sqrt(2), 0, 0], [0, 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="comp_basis"
+        actual = lindbladian.calc_h_part(mode_basis="comp_basis")
         expected = np.array(
             [[0, 0, 0, 0], [0, -2j, 0, 0], [0, 0, 2j, 0], [0, 0, 0, 0]],
             dtype=np.complex128,
@@ -87,7 +106,25 @@ class TestEffectiveLindbladian:
             [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]], dtype=np.float64,
         ) / np.sqrt(2)
         lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
+
+        # mode_basis=default("hermitian_basis")
         actual = lindbladian.calc_j_part()
+        expected = np.array(
+            [[0, 0, 0, np.sqrt(2)], [0, 0, 0, 0], [0, 0, 0, 0], [np.sqrt(2), 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="hermitian_basis"
+        actual = lindbladian.calc_j_part(mode_basis="hermitian_basis")
+        expected = np.array(
+            [[0, 0, 0, np.sqrt(2)], [0, 0, 0, 0], [0, 0, 0, 0], [np.sqrt(2), 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="comp_basis"
+        actual = lindbladian.calc_j_part(mode_basis="comp_basis")
         expected = np.array(
             [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]],
             dtype=np.complex128,
@@ -102,7 +139,25 @@ class TestEffectiveLindbladian:
         lindbladian = lind.generate_effective_lindbladian_from_k(
             c_sys, k_mat, is_physicality_required=False
         )
+
+        # mode_basis=default("hermitian_basis")
         actual = lindbladian.calc_k_part()
+        expected = np.array(
+            [[3 / 2, 0, 0, 0], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [0, 0, 0, -1 / 2]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="hermitian_basis"
+        actual = lindbladian.calc_k_part(mode_basis="hermitian_basis")
+        expected = np.array(
+            [[3 / 2, 0, 0, 0], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [0, 0, 0, -1 / 2]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="comp_basis"
+        actual = lindbladian.calc_k_part(mode_basis="comp_basis")
         expected = np.array(
             [[1 / 2, 0, 0, 1], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [1, 0, 0, 1 / 2]],
             dtype=np.complex128,
@@ -135,14 +190,18 @@ class TestEffectiveLindbladian:
         # Act
         actual = lindbladian.generate_origin_obj()
 
-        # Assert
+        # Assert HS
         min = sys.float_info.min_exp
         expected = np.array(
-            [[1, 0, 0, 0], [0, min, 0, 0], [0, 0, min, 0], [0, 0, 0, min]],
+            [[0, 0, 0, 0], [0, min, 0, 0], [0, 0, min, 0], [0, 0, 0, min]],
             dtype=np.float64,
         )
         assert type(actual) == EffectiveLindbladian
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+        # Assert e^L = diag(1,0,...0)
+        expected_exp = np.diag([1, 0, 0, 0])
+        npt.assert_almost_equal(expm(actual.hs), expected_exp, decimal=13)
 
     def test_calc_gradient(self):
         # Arrange
@@ -343,6 +402,22 @@ class TestEffectiveLindbladian:
         )
         assert actual.is_cp() == False
 
+    def test_to_kraus_matrices(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        eye2 = np.eye(2, dtype=np.complex128)
+
+        hs = np.array(
+            [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
+        lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
+        actual = lindbladian.to_kraus_matrices()
+
+        expected = np.array([[1 / 2, 1 / 2], [1 / 2, 1 / 2]], dtype=np.complex128)
+        assert len(actual) == 1
+        npt.assert_almost_equal(actual[0][0], np.sqrt(2), decimal=15)
+        npt.assert_almost_equal(actual[0][1], expected, decimal=15)
+
     def test_to_gate(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -525,7 +600,6 @@ def test_generate_effective_lindbladian_from_hk():
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # TODO is_physicality_required=False?
     # h=I/sqrt(2), k=I
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
     k_mat = np.eye(3, dtype=np.complex128)
@@ -548,7 +622,6 @@ def test_generate_effective_lindbladian_from_k():
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # TODO is_physicality_required=False?
     # k=I
     k_mat = np.eye(3, dtype=np.complex128)
     actual = lind.generate_effective_lindbladian_from_k(
