@@ -563,7 +563,6 @@ def test_generate_effective_lindbladian_from_hk():
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # TODO is_physicality_required=False?
     # h=I/sqrt(2), k=I
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
     k_mat = np.eye(3, dtype=np.complex128)
@@ -586,7 +585,6 @@ def test_generate_effective_lindbladian_from_k():
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
-    # TODO is_physicality_required=False?
     # k=I
     k_mat = np.eye(3, dtype=np.complex128)
     actual = lind.generate_effective_lindbladian_from_k(
