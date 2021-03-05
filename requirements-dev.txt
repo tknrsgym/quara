@@ -15,4 +15,4 @@ plotly-express
 tqdm
 xhtml2pdf
 psutil
-kaleido
+kaleido==0.1.0
