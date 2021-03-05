@@ -17,36 +17,13 @@ from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.effective_lindbladian import (
     generate_effective_lindbladian_from_h,
 )
-
-from quara.objects.effective_lindbladian_typical import (
+from quara.objects.gate_typical import (
     get_gate_names_1qubit,
+)
+from quara.objects.qoperation_typical import (
     get_object_names,
     generate_gate_object_from_gate_name_object_name,
 )
-
-
-def _test_generate_gate_objects(
-    gate_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
-    c_sys: CompositeSystem = None,
-):
-    assert c_sys.is_orthonormal_hermitian_0thpropI == True
-
-    _test_validity_hamiltonian_vec_hamiltonian_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
-    _test_validity_hamiltonian_mat_unitary_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
-    _test_validity_effective_lindladian_mat_gate_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
-
-    _test_generate_effective_lindbladian_from_h(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
-    _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
 
 
 def _test_validity_hamiltonian_vec_hamiltonian_mat(
@@ -167,17 +144,88 @@ def _test_calc_h(
 
     el_from_h = generate_effective_lindbladian_from_h(c_sys, h_mat)
     # Act
-    actual = el_from_h.calc_h_mat()
+    actual = project_to_traceless_matrix(el_from_h.calc_h_mat())
     # Assert
     expected = project_to_traceless_matrix(h_mat)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_generate_gate_object_1qubit_01():
+# Tests for 1-qubit system
+
+
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
+)
+def test_validity_hamiltonian_vec_hamiltonian_mat_1qubit(gate_name):
     # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     dims = [2]
-    gate_name_list = get_gate_names_1qubit()
-    for gate_name in gate_name_list:
-        _test_generate_gate_objects(gate_name=gate_name, dims=dims, c_sys=c_sys)
+    ids = []
+
+    _test_validity_hamiltonian_vec_hamiltonian_mat(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
+
+
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
+)
+def test_validity_hamiltonian_mat_unitary_mat_1qubit(gate_name):
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    dims = [2]
+    ids = []
+
+    _test_validity_hamiltonian_mat_unitary_mat(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
+
+
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
+)
+def test_validity_effective_lindladian_mat_gate_mat_1qubit(gate_name):
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    dims = [2]
+    ids = []
+
+    _test_validity_effective_lindladian_mat_gate_mat(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
+
+
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
+)
+def test_generate_effective_lindbladian_from_h_1qubit(gate_name):
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    dims = [2]
+    ids = []
+
+    _test_generate_effective_lindbladian_from_h(
+        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+    )
+
+
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
+)
+def test_calc_h_1qubit(gate_name):
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    dims = [2]
+    ids = []
+
+    _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
