@@ -402,38 +402,21 @@ class TestEffectiveLindbladian:
         )
         assert actual.is_cp() == False
 
-    @classmethod
-    def calc_sum_of_kraus(cls, kraus):
-        # calc \sum_{\alpha} K__{\alpha} K_{\alpha}^{\dagger}
-        sum = np.zeros((len(kraus[0]), len(kraus[0])), dtype=np.complex128)
-        for (eigenval, eigenvec) in kraus:
-            sum += eigenval * (eigenvec @ eigenvec.conj().T)
-            print(f"term={eigenval}, {eigenval * (eigenvec @ eigenvec.conj().T)}")
-        print(f"sum={sum}")
-        return sum
-
-    # TODO
-    """
     def test_to_kraus_matrices(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         eye2 = np.eye(2, dtype=np.complex128)
 
-        # k=I
-        k_mat = np.eye(3)
-        lindbladian = lind.generate_effective_lindbladian_from_k(
-            c_sys, k_mat, is_physicality_required=False
+        hs = np.array(
+            [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
         )
-        print(f"HS={lindbladian.hs}")
+        lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
         actual = lindbladian.to_kraus_matrices()
 
-        expected = [np.array([[1, 0], [0, 1]], dtype=np.complex128)]
-        assert len(actual) == 4
-        # npt.assert_almost_equal(actual[0], expected[0], decimal=15)
-        npt.assert_almost_equal(
-            TestEffectiveLindbladian.calc_sum_of_kraus(actual), eye2, decimal=14
-        )
-    """
+        expected = np.array([[1 / 2, 1 / 2], [1 / 2, 1 / 2]], dtype=np.complex128)
+        assert len(actual) == 1
+        npt.assert_almost_equal(actual[0][0], np.sqrt(2), decimal=15)
+        npt.assert_almost_equal(actual[0][1], expected, decimal=15)
 
     def test_to_gate(self):
         # Arrange
