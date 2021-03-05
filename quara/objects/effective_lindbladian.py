@@ -582,6 +582,9 @@ def _trancate_hs(
             f"some imaginary parts of entries of matrix != 0. converted hs={tmp_hs}"
         )
 
+    if is_zero_imaginary_part_required == True:
+        tmp_hs = tmp_hs.astype(np.float64)
+
     trancated_hs = mutil.trancate_computational_fluctuation(tmp_hs, eps_proj_physical)
     return trancated_hs
 
