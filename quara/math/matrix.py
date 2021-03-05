@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 
 def multiply_veca_vecb(vec_a: np.array, vec_b: np.array) -> float:
@@ -77,3 +78,27 @@ def multiply_veca_vecb_matc(vec_a: np.array, vec_b: np.array, mat_c: np.array) -
 
     val = np.dot(vec_a, mat_c @ vec_b)
     return val
+
+
+def project_to_traceless_matrix(A: np.array) -> np.array:
+    """returns a matrix projected to a trace-less matrix subspace.
+
+    Parameters
+    ----------
+    A : np.array
+        Square matrix
+
+    Returns
+    ----------
+    B : np.array
+        Square matrix, B = A - Tr[b0 @ A] b0, b0 = I/sqrt(d).
+
+    """
+    if A.shape[0] != A.shape[1]:
+        raise ValueError(f"A must be square matrix.")
+
+    d = A.shape[0]
+    b0 = np.eye(d) / math.sqrt(d)
+    tr = np.trace(b0 @ A)
+    B = A - tr * b0
+    return B

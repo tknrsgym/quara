@@ -4,8 +4,10 @@ import pytest
 
 from typing import List
 from scipy.linalg import expm
-import math
 
+from quara.math.matrix import (
+    project_to_traceless_matrix,
+)
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.composite_system import CompositeSystem
@@ -21,30 +23,6 @@ from quara.objects.effective_lindbladian_example import (
     get_object_names,
     generate_gate_object_from_gate_name_object_name,
 )
-
-
-def project_to_traceless_matrix(A: np.array) -> np.array:
-    """Calculate a matrix projected to a trace-less matrix subspace.
-
-    Parameters
-    ----------
-    A : np.array
-        Square matrix
-
-    Returns
-    ----------
-    B : np.array
-        Square matrix, B = A - Tr[b0 @ A] b0, b0 = I/sqrt(d).
-
-    """
-    if A.shape[0] != A.shape[1]:
-        raise ValueError(f"A must be square matrix.")
-
-    d = A.shape[0]
-    b0 = np.eye(d) / math.sqrt(d)
-    tr = np.trace(b0 @ A)
-    B = A - tr * b0
-    return B
 
 
 def _test_generate_gate_objects(
