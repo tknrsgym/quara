@@ -73,7 +73,25 @@ class TestEffectiveLindbladian:
             [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]], dtype=np.float64,
         ) / np.sqrt(2)
         lindbladian = EffectiveLindbladian(c_sys, hs)
+
+        # mode_basis=default("hermitian_basis")
         actual = lindbladian.calc_h_part()
+        expected = np.array(
+            [[0, 0, 0, 0], [0, 0, -np.sqrt(2), 0], [0, np.sqrt(2), 0, 0], [0, 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="hermitian_basis"
+        actual = lindbladian.calc_h_part(mode_basis="hermitian_basis")
+        expected = np.array(
+            [[0, 0, 0, 0], [0, 0, -np.sqrt(2), 0], [0, np.sqrt(2), 0, 0], [0, 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="comp_basis"
+        actual = lindbladian.calc_h_part(mode_basis="comp_basis")
         expected = np.array(
             [[0, 0, 0, 0], [0, -2j, 0, 0], [0, 0, 2j, 0], [0, 0, 0, 0]],
             dtype=np.complex128,
@@ -88,7 +106,25 @@ class TestEffectiveLindbladian:
             [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]], dtype=np.float64,
         ) / np.sqrt(2)
         lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
+
+        # mode_basis=default("hermitian_basis")
         actual = lindbladian.calc_j_part()
+        expected = np.array(
+            [[0, 0, 0, np.sqrt(2)], [0, 0, 0, 0], [0, 0, 0, 0], [np.sqrt(2), 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="hermitian_basis"
+        actual = lindbladian.calc_j_part(mode_basis="hermitian_basis")
+        expected = np.array(
+            [[0, 0, 0, np.sqrt(2)], [0, 0, 0, 0], [0, 0, 0, 0], [np.sqrt(2), 0, 0, 0]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="comp_basis"
+        actual = lindbladian.calc_j_part(mode_basis="comp_basis")
         expected = np.array(
             [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]],
             dtype=np.complex128,
@@ -103,7 +139,25 @@ class TestEffectiveLindbladian:
         lindbladian = lind.generate_effective_lindbladian_from_k(
             c_sys, k_mat, is_physicality_required=False
         )
+
+        # mode_basis=default("hermitian_basis")
         actual = lindbladian.calc_k_part()
+        expected = np.array(
+            [[3 / 2, 0, 0, 0], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [0, 0, 0, -1 / 2]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="hermitian_basis"
+        actual = lindbladian.calc_k_part(mode_basis="hermitian_basis")
+        expected = np.array(
+            [[3 / 2, 0, 0, 0], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [0, 0, 0, -1 / 2]],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=14)
+
+        # mode_basis="comp_basis"
+        actual = lindbladian.calc_k_part(mode_basis="comp_basis")
         expected = np.array(
             [[1 / 2, 0, 0, 1], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [1, 0, 0, 1 / 2]],
             dtype=np.complex128,

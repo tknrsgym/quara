@@ -150,23 +150,69 @@ class EffectiveLindbladian(Gate):
 
         return tmp_k_mat
 
-    def calc_h_part(self) -> np.array:
+    def _check_mode_basis(self, mode_basis: str):
+        if not mode_basis in ["hermitian_basis", "comp_basis"]:
+            raise ValueError(f"unsupported mode_basis={mode_basis}")
+
+    def calc_h_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        self._check_mode_basis(mode_basis)
         h_mat = self.calc_h_mat()
         h_part = _calc_h_part_from_h_mat(h_mat)
+
+        if mode_basis == "hermitian_basis":
+            h_part = convert_hs(
+                h_part,
+                self.composite_system.comp_basis(),
+                self.composite_system.basis(),
+            )
+            h_part = _trancate_hs(h_part, self.eps_proj_physical)
+
         return h_part
 
-    def calc_j_part(self) -> np.array:
+    def calc_j_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        self._check_mode_basis(mode_basis)
         j_mat = self.calc_j_mat()
         j_part = _calc_j_part_from_j_mat(j_mat)
+
+        if mode_basis == "hermitian_basis":
+            j_part = convert_hs(
+                j_part,
+                self.composite_system.comp_basis(),
+                self.composite_system.basis(),
+            )
+            j_part = _trancate_hs(j_part, self.eps_proj_physical)
+
         return j_part
 
-    def calc_k_part(self) -> np.array:
+    def calc_k_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        self._check_mode_basis(mode_basis)
         k_mat = self.calc_k_mat()
         k_part = _calc_k_part_from_k_mat(k_mat, self.composite_system)
+
+        if mode_basis == "hermitian_basis":
+            k_part = convert_hs(
+                k_part,
+                self.composite_system.comp_basis(),
+                self.composite_system.basis(),
+            )
+            k_part = _trancate_hs(k_part, self.eps_proj_physical)
+
         return k_part
 
-    def calc_d_part(self) -> np.array:
-        d_part = self.calc_j_part() + self.calc_k_part()
+    def calc_d_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+        self._check_mode_basis(mode_basis)
+        d_part = self.calc_j_part(mode_basis="comp_basis") + self.calc_k_part(
+            mode_basis="comp_basis"
+        )
+
+        if mode_basis == "hermitian_basis":
+            d_part = convert_hs(
+                d_part,
+                self.composite_system.comp_basis(),
+                self.composite_system.basis(),
+            )
+            d_part = _trancate_hs(d_part, self.eps_proj_physical)
+
         return d_part
 
     def _generate_origin_obj(self):
