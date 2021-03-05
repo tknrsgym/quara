@@ -37,7 +37,7 @@ def get_gate_names_1qubit() -> List[str]:
     return names
 
 
-def object_names() -> List[str]:
+def get_object_names() -> List[str]:
     """Return the list of valid object names for generate_object_of_gate_from_gate_name_object_name()."""
     names = []
     names.append("hamiltonian_vec")
