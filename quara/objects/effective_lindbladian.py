@@ -401,20 +401,21 @@ class EffectiveLindbladian(Gate):
         # for A:L^{gb}, "A is CP"  <=> "k >= 0"
         return mutil.is_positive_semidefinite(self.calc_k_mat(), atol=atol)
 
-    def to_kraus_matrices(self) -> List[np.array]:
+    def to_kraus_matrices(self) -> List[Tuple[np.float64, np.array]]:
         """returns Kraus matrices of EffectiveLindbladian.
 
-        this function returns Kraus matrices as list of ``np.array`` with ``dtype=np.complex128``.
-        the list is sorted large eigenvalue order.
+        if A is Hermitian preserve matrix, then A(X) = \sum_i a_i A_i X A_i^{\dagger}, where a_i are real numbers and A_i are complex square matrices.
+        this function returns the list of (a_i, A_i) sorted in descending order by a_i.
 
         Returns
         -------
-        List[Tuple(np.float64, np.array)]
-            Kraus matrices of gate.
+        List[Tuple[np.float64, np.array]]
+            Kraus matrices of EffectiveLindbladian.
         """
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
         choi = self.to_choi_matrix()
+        print(f"choi={choi}")
         eigen_vals, eigen_vecs = np.linalg.eig(choi)
         eigens = [
             (eigen_vals[index], eigen_vecs[:, index])
