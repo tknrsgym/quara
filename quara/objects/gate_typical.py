@@ -11,6 +11,7 @@ from quara.objects.gate import Gate
 def get_gate_names() -> List[str]:
     """Return the list of valid gate names."""
     names = []
+    names.extend(["identity"])
     names.extend(get_gate_names_1qubit())
     return names
 
@@ -18,7 +19,6 @@ def get_gate_names() -> List[str]:
 def get_gate_names_1qubit() -> List[str]:
     """Return the list of valid gate names of 1-qubit gates."""
     names = []
-    names.append("identity")
     names.append("x90")
     names.append("x180")
     names.append("x")
@@ -60,107 +60,126 @@ def _dim_total_from_dims(dims: List[int]) -> int:
 def generate_unitary_mat_from_gate_name(
     gate_name: str, dims: List[int] = [], ids: List[int] = []
 ):
+    """returns the unitary matrix of a gate.
+
+    Parameters
+    ----------
+    gate_name : str
+        name of gate
+
+    dims : List[int]
+        list of dimentions of elemental systems that the gate acts on.
+
+    ids : List[int] (optional)
+        list of ids for elemental systems
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix of the gate, to be complex.
+    """
     _is_valid_dims_ids(dims, ids)
+    assert gate_name in get_gate_names()
+
+    method_name = "generate_gate_" + gate_name + "_unitary_mat"
+    method = eval(method_name)
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
         if dim_total <= 1:
             raise ValueError(f"dim_total must be larger than 1.")
-        vec = generate_gate_identity_unitary_mat(dim_total)
+        u = method(dim_total)
     # 1-qubit gate
-    elif gate_name == "x90":
-        vec = generate_gate_x90_unitary_mat()
-    elif gate_name == "x180":
-        vec = generate_gate_x180_unitary_mat()
-    elif gate_name == "x":
-        vec = generate_gate_x_unitary_mat()
-    elif gate_name == "y90":
-        vec = generate_gate_y90_unitary_mat()
-    elif gate_name == "y180":
-        vec = generate_gate_y180_unitary_mat()
-    elif gate_name == "y":
-        vec = generate_gate_y_unitary_mat()
-    elif gate_name == "z90":
-        vec = generate_gate_z90_unitary_mat()
-    elif gate_name == "z180":
-        vec = generate_gate_z180_unitary_mat()
-    elif gate_name == "z":
-        vec = generate_gate_z_unitary_mat()
+    elif gate_name in get_gate_names_1qubit():
+        u = method()
     # 2-qubit gate
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
 
-    return vec
+    return u
 
 
 def generate_gate_mat_from_gate_name(
     gate_name: str, dims: List[int] = [], ids: List[int] = []
-):
+) -> np.array:
+    """returns the Hilbert-Schmidt representation matrix of a gate.
+
+    Parameters
+    ----------
+    gate_name : str
+        name of gate
+
+    dims : List[int]
+        list of dimentions of elemental systems that the gate acts on.
+
+    ids : List[int] (optional)
+        list of ids for elemental systems
+
+    Returns
+    ----------
+    np.array
+        The HS matrix of the gate, to be real.
+    """
+
     _is_valid_dims_ids(dims, ids)
+    assert gate_name in get_gate_names()
+
+    method_name = "generate_gate_" + gate_name + "_mat"
+    method = eval(method_name)
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
         if dim_total <= 1:
             raise ValueError(f"dim_total must be larger than 1.")
-        vec = generate_gate_identity_mat(dim_total)
+        mat = method(dim_total)
     # 1-qubit gate
-    elif gate_name == "x90":
-        vec = generate_gate_x90_mat()
-    elif gate_name == "x180":
-        vec = generate_gate_x180_mat()
-    elif gate_name == "x":
-        vec = generate_gate_x_mat()
-    elif gate_name == "y90":
-        vec = generate_gate_y90_mat()
-    elif gate_name == "y180":
-        vec = generate_gate_y180_mat()
-    elif gate_name == "y":
-        vec = generate_gate_y_mat()
-    elif gate_name == "z90":
-        vec = generate_gate_z90_mat()
-    elif gate_name == "z180":
-        vec = generate_gate_z180_mat()
-    elif gate_name == "z":
-        vec = generate_gate_z_mat()
+    elif gate_name in get_gate_names_1qubit():
+        mat = method()
     # 2-qubit gate
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
 
-    return vec
+    return mat
 
 
 def generate_gate_from_gate_name(
     gate_name: str, c_sys: CompositeSystem, ids: List[int] = []
-):
+) -> "Gate":
+    """returns gate class.
+
+    Parameters
+    ----------
+    gate_name : str
+        name of gate
+
+    c_sys : CompositeSystem
+
+    ids : List[int] (optional)
+        list of ids for elemental systems
+
+    Returns
+    ----------
+    Gate
+        The gate class for the input
+    """
+    assert gate_name in get_gate_names()
+
+    method_name = "generate_gate_" + gate_name
+    method = eval(method_name)
+
     if gate_name == "identity":
-        vec = generate_gate_identity(c_sys)
+        gate = method(c_sys)
     # 1-qubit gate
-    elif gate_name == "x90":
-        vec = generate_gate_x90(c_sys)
-    elif gate_name == "x180":
-        vec = generate_gate_x180(c_sys)
-    elif gate_name == "x":
-        vec = generate_gate_x(c_sys)
-    elif gate_name == "y90":
-        vec = generate_gate_y90(c_sys)
-    elif gate_name == "y180":
-        vec = generate_gate_y180(c_sys)
-    elif gate_name == "y":
-        vec = generate_gate_y(c_sys)
-    elif gate_name == "z90":
-        vec = generate_gate_z90(c_sys)
-    elif gate_name == "z180":
-        vec = generate_gate_z180(c_sys)
-    elif gate_name == "z":
-        vec = generate_gate_z(c_sys)
+    elif gate_name in get_gate_names_1qubit():
+        gate = method()
     # 2-qubit gate
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
 
-    return vec
+    return gate
 
 
 # Identity gate
