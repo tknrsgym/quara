@@ -31,36 +31,36 @@ class TestEffectiveLindbladian:
         with pytest.raises(ValueError):
             EffectiveLindbladian(c_sys, hs)
 
-    def test_calc_h(self):
+    def test_calc_h_mat(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         hs = np.array(
             [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
         )
         lindbladian = EffectiveLindbladian(c_sys, hs)
-        actual = lindbladian.calc_h()
+        actual = lindbladian.calc_h_mat()
         expected = np.array([[0, 0], [0, 0]], dtype=np.complex128)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-    def test_calc_j(self):
+    def test_calc_j_mat(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         hs = np.array(
             [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
         )
         lindbladian = EffectiveLindbladian(c_sys, hs)
-        actual = lindbladian.calc_j()
+        actual = lindbladian.calc_j_mat()
         expected = np.array([[0, 0], [0, 0]], dtype=np.complex128)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-    def test_calc_k(self):
+    def test_calc_k_mat(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         hs = np.array(
             [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
         )
         lindbladian = EffectiveLindbladian(c_sys, hs)
-        actual = lindbladian.calc_k()
+        actual = lindbladian.calc_k_mat()
         expected = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]], dtype=np.complex128)
         npt.assert_almost_equal(actual, expected, decimal=15)
 

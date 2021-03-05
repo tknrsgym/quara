@@ -99,7 +99,7 @@ class EffectiveLindbladian(Gate):
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the EffectiveLindbladian is not phsically correct.")
 
-    def calc_h(self) -> np.array:
+    def calc_h_mat(self) -> np.array:
         basis = self.composite_system.basis()
         comp_basis = self.composite_system.comp_basis()
         lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
@@ -114,10 +114,9 @@ class EffectiveLindbladian(Gate):
             h_alpha = 1j / (2 * self.dim) * trace
             tmp_h_mat += h_alpha * B_alpha
 
-        h_mat = _trancate_hs(tmp_h_mat)
-        return h_mat
+        return tmp_h_mat
 
-    def calc_j(self) -> np.array:
+    def calc_j_mat(self) -> np.array:
         basis = self.composite_system.basis()
         comp_basis = self.composite_system.comp_basis()
         lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
@@ -133,10 +132,9 @@ class EffectiveLindbladian(Gate):
             j_alpha = 1 / (2 * self.dim * (1 + delta)) * trace
             tmp_j_mat += j_alpha * B_alpha
 
-        j_mat = _trancate_hs(tmp_j_mat)
-        return j_mat
+        return tmp_j_mat
 
-    def calc_k(self) -> np.array:
+    def calc_k_mat(self) -> np.array:
         basis = self.composite_system.basis()
         comp_basis = self.composite_system.comp_basis()
         lindbladian_cb = convert_hs(self.hs, basis, comp_basis)
@@ -150,21 +148,20 @@ class EffectiveLindbladian(Gate):
                     lindbladian_cb @ np.kron(B_alpha, B_beta.conj())
                 )
 
-        k_mat = _trancate_hs(tmp_k_mat, is_zero_imaginary_part_required=False)
-        return k_mat
+        return tmp_k_mat
 
     def calc_h_part(self) -> np.array:
-        h_mat = self.calc_h()
+        h_mat = self.calc_h_mat()
         h_part = _calc_h_part_from_h_mat(h_mat)
         return h_part
 
     def calc_j_part(self) -> np.array:
-        j_mat = self.calc_j()
+        j_mat = self.calc_j_mat()
         j_part = _calc_j_part_from_j_mat(j_mat)
         return j_part
 
     def calc_k_part(self) -> np.array:
-        k_mat = self.calc_k()
+        k_mat = self.calc_k_mat()
         k_part = _calc_k_part_from_k_mat(k_mat, self.composite_system)
         return k_part
 
@@ -210,9 +207,9 @@ class EffectiveLindbladian(Gate):
         return new_lindbladian
 
     def calc_proj_ineq_constraint(self) -> "EffectiveLindbladian":
-        h_mat = self.calc_h()
-        j_mat = self.calc_j()
-        k_mat = self.calc_k()
+        h_mat = self.calc_h_mat()
+        j_mat = self.calc_j_mat()
+        k_mat = self.calc_k_mat()
 
         # project k_mat
         eigenvals, eigenvecs = np.linalg.eig(k_mat)
@@ -272,7 +269,7 @@ class EffectiveLindbladian(Gate):
         atol = Settings.get_atol() if atol is None else atol
 
         # for A:L^{gb}, "A is CP"  <=> "k >= 0"
-        return mutil.is_positive_semidefinite(self.calc_k(), atol=atol)
+        return mutil.is_positive_semidefinite(self.calc_k_mat(), atol=atol)
 
     def to_kraus_matrices(self) -> List[np.array]:
         """returns Kraus matrices of EffectiveLindbladian.
@@ -656,9 +653,7 @@ def generate_effective_lindbladian_from_hjk(
 
 
 def generate_hs_from_h(
-    c_sys: CompositeSystem,
-    h_mat: np.ndarray,
-    eps_proj_physical: float = None,
+    c_sys: CompositeSystem, h_mat: np.ndarray, eps_proj_physical: float = None,
 ) -> np.array:
     dim = c_sys.dim
 
@@ -762,9 +757,7 @@ def generate_effective_lindbladian_from_hk(
 
 
 def generate_hs_from_k(
-    c_sys: CompositeSystem,
-    k_mat: np.ndarray,
-    eps_proj_physical: float = None,
+    c_sys: CompositeSystem, k_mat: np.ndarray, eps_proj_physical: float = None,
 ) -> np.array:
     dim = c_sys.dim
 
