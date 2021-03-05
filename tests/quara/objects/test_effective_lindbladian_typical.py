@@ -18,7 +18,7 @@ from quara.objects.effective_lindbladian import (
     generate_effective_lindbladian_from_h,
 )
 
-from quara.objects.effective_lindbladian_example import (
+from quara.objects.effective_lindbladian_typical import (
     get_gate_names_1qubit,
     get_object_names,
     generate_gate_object_from_gate_name_object_name,
@@ -31,10 +31,7 @@ def _test_generate_gate_objects(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
-    if c_sys.is_orthonormal_hermitian_0thpropI == False:
-        raise ValueError(
-            f"All matrix bases in c_sys must be orthonormal, Hermitian, and 0th element proportional to the identity matrix."
-        )
+    assert c_sys.is_orthonormal_hermitian_0thpropI == True
 
     _test_validity_hamiltonian_vec_hamiltonian_mat(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
@@ -58,6 +55,7 @@ def _test_validity_hamiltonian_vec_hamiltonian_mat(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
+    # Arrange
     object_name = "hamiltonian_vec"
     h_vec = generate_gate_object_from_gate_name_object_name(
         gate_name, object_name, dims, ids, c_sys
@@ -75,7 +73,10 @@ def _test_validity_hamiltonian_vec_hamiltonian_mat(
     for i, bi in enumerate(b):
         h_mat_from_vec += h_vec[i] * bi
 
+    # Act
     actual = h_mat_from_vec
+
+    # Assert
     expected = h_mat
     # The case of decimal=16 below returns AssertionError.
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -87,6 +88,7 @@ def _test_validity_hamiltonian_mat_unitary_mat(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
+    # Arrange
     object_name = "hamiltonian_mat"
     h_mat = generate_gate_object_from_gate_name_object_name(
         gate_name, object_name, dims, ids, c_sys
@@ -96,7 +98,10 @@ def _test_validity_hamiltonian_mat_unitary_mat(
         gate_name, object_name, dims, ids, c_sys
     )
 
+    # Act
     actual = expm(-1j * h_mat)
+
+    # Assert
     expected = u_mat
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -107,6 +112,7 @@ def _test_validity_effective_lindladian_mat_gate_mat(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
+    # Arrange
     object_name = "effective_lindbladian_mat"
     el_mat = generate_gate_object_from_gate_name_object_name(
         gate_name, object_name, dims, ids, c_sys
@@ -116,7 +122,9 @@ def _test_validity_effective_lindladian_mat_gate_mat(
         gate_name, object_name, dims, ids, c_sys
     )
 
+    # Act
     actual = expm(el_mat)
+    # Assert
     expected = g_mat
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -127,6 +135,7 @@ def _test_generate_effective_lindbladian_from_h(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
+    # Arrange
     object_name = "hamiltonian_mat"
     h_mat = generate_gate_object_from_gate_name_object_name(
         gate_name, object_name, dims, ids, c_sys
@@ -137,7 +146,9 @@ def _test_generate_effective_lindbladian_from_h(
     )
 
     el_from_h = generate_effective_lindbladian_from_h(c_sys, h_mat)
+    # Act
     actual = el_from_h.hs
+    # Assert
     expected = el_mat
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -148,18 +159,22 @@ def _test_calc_h(
     ids: List[int] = [],
     c_sys: CompositeSystem = None,
 ):
+    # Arrange
     object_name = "hamiltonian_mat"
     h_mat = generate_gate_object_from_gate_name_object_name(
         gate_name, object_name, dims, ids, c_sys
     )
 
     el_from_h = generate_effective_lindbladian_from_h(c_sys, h_mat)
-    actual = el_from_h.calc_h()
+    # Act
+    actual = el_from_h.calc_h_mat()
+    # Assert
     expected = project_to_traceless_matrix(h_mat)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_generate_gate_object_1qubit_01():
+    # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     dims = [2]
