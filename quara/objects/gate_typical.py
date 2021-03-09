@@ -28,6 +28,11 @@ def get_gate_names_1qubit() -> List[str]:
     names.append("z90")
     names.append("z180")
     names.append("z")
+    names.append("phase")
+    names.append("phase_daggered")
+    #    names.append("piover8")
+    #    names.append("piover8_daggered")
+    #    names.append("hadamard")
 
     return names
 
@@ -739,5 +744,115 @@ def generate_gate_z(c_sys: CompositeSystem) -> "Gate":
         The Gate class for the Z gate on the composite system.
     """
     hs = generate_gate_z_mat()
+    gate = Gate(c_sys=c_sys, hs=hs)
+    return gate
+
+
+# Phase (S) gate on 1-qubit
+
+
+def generate_gate_phase_unitary_mat() -> np.array:
+    """Return the unitary matrix for a Phase (S) gate.
+
+    The result is the 2 times 2 complex matrix, S.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix, which is a complex matrix.
+    """
+    u = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
+    return u
+
+
+def generate_gate_phase_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for a Phase (S) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_phase(c_sys: CompositeSystem) -> "Gate":
+    """Return the Gate class for the Phase (S) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys: CompositeSystem
+
+    Returns
+    ----------
+    Gate
+        The Gate class for the Phase (S) gate on the composite system.
+    """
+    hs = generate_gate_phase_mat()
+    gate = Gate(c_sys=c_sys, hs=hs)
+    return gate
+
+
+# Phase daggered (S^dagger) gate on 1-qubit
+
+
+def generate_gate_phase_daggered_unitary_mat() -> np.array:
+    """Return the unitary matrix for a Phase daggerd (S^dagger) gate.
+
+    The result is the 2 times 2 complex matrix, S^dagger.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix, which is a complex matrix.
+    """
+    u = np.array([[1, 0], [0, -1j]], dtype=np.complex128)
+    return u
+
+
+def generate_gate_phase_daggered_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for a Phase daggerd (S^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_phase(c_sys: CompositeSystem) -> "Gate":
+    """Return the Gate class for the Phase (S) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys: CompositeSystem
+
+    Returns
+    ----------
+    Gate
+        The Gate class for the Phase (S) gate on the composite system.
+    """
+    hs = generate_gate_phase_daggerd_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
