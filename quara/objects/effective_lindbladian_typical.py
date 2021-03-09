@@ -343,6 +343,7 @@ def generate_gate_x90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_x90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -425,6 +426,7 @@ def generate_gate_x180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_x180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -509,6 +511,7 @@ def generate_gate_x_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_x_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -591,6 +594,7 @@ def generate_gate_y90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_y90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -673,6 +677,7 @@ def generate_gate_y180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_y180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -757,6 +762,7 @@ def generate_gate_y_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_y_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -839,6 +845,7 @@ def generate_gate_z90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_z90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -921,6 +928,7 @@ def generate_gate_z180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_z180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1005,6 +1013,7 @@ def generate_gate_z_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_z_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1089,6 +1098,7 @@ def generate_gate_phase_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_phase_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1173,6 +1183,7 @@ def generate_gate_phase_daggered_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_phase_daggered_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1257,6 +1268,7 @@ def generate_gate_piover8_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_piover8_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1341,6 +1353,7 @@ def generate_gate_piover8_daggered_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_piover8_daggered_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1427,6 +1440,7 @@ def generate_gate_hadamard_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
+    assert len(c_sys.systems) == 1
     hs = generate_gate_hadamard_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1457,53 +1471,244 @@ def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.array:
     return l
 
 
+# HS matrices for commutator map and anti-commutator maps with 1-qubit Pauli matrix
+
+# Pauli commutator maps on 1-qubit
+def calc_hs_commutator_map_i() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = I."""
+    size = 4
+    mat = 2 * np.eye(size, dtype=np.float64)
+    return mat
+
+
+def calc_hs_commutator_map_x() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = X."""
+    l = [[0, 2, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def calc_hs_commutator_map_y() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = Y."""
+    l = [[0, 0, 2, 0], [0, 0, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def calc_hs_commutator_map_z() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = Z."""
+    l = [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+# Pauli annti-commutator map on 1-qubit
+
+
+def calc_hs_minus1j_anticommutator_map_i() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = I."""
+    size = 4
+    mat = np.zeros((size, size), dtype=np.float64)
+    return mat
+
+
+def calc_hs_minus1j_anticommutator_map_x() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = X."""
+    l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def calc_hs_minus1j_anticommutator_map_y() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = Y."""
+    l = [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 0], [0, -2, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def calc_hs_minus1j_anticommutator_map_z() -> np.array:
+    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = Z."""
+    l = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
 # 2-qubit system
 # HS matrix of effective Lindbladian for Hamiltonians in the form of Pauli tensor product
 
 
-def generate_effective_lindbladian_mat_for_hamiltonian_ix() -> np.array:
-    """Return HS matrix of effective lindbladian for Hamiltonian IX, which correspond to a linear map, f(A) := -i [ H, A ] with H = IX """
+def calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(
+    pauli_type: str,
+) -> np.array:
+    """Return the HS matrix of effective lindbladian for Hamiltonian with the form of tensor product of two Pauli matrices"""
+    assert len(pauli_type) == 2
+
+    pauli_type_0 = pauli_type[0]
+    pauli_type_1 = pauli_type[1]
+    pauli_types = ["i", "x", "y", "z"]
+    assert pauli_type_0 in pauli_types
+    assert pauli_type_1 in pauli_types
+
+    mat_anti_0 = eval("calc_hs_minus1j_anticommutator_map_" + pauli_type_0)()
+    mat_anti_1 = eval("calc_hs_minus1j_anticommutator_map_" + pauli_type_1)()
+    mat_comm_0 = eval("calc_hs_commutator_map_" + pauli_type_0)()
+    mat_comm_1 = eval("calc_hs_commutator_map_" + pauli_type_1)()
+
     size = 16
-    mat = np.zeros((16, 16), dtype=np.float64)
+    mat = np.zeros((size, size), np.float64)
+    mat += 0.50 * np.kron(mat_anti_0, mat_comm_1)
+    mat += 0.50 * np.kron(mat_comm_0, mat_anti_1)
+    return mat
 
-    # (IZ, IY)
-    icol = int("03", 4)
-    jrow = int("02", 4)
-    mat[icol, jrow] = +2
 
-    # (IY, IZ)
-    icol = int("02", 4)
-    jrow = int("03", 4)
-    mat[icol, jrow] = -2
+# Control-X gate on 2-qubit
 
-    # (XZ, XY)
-    icol = int("13", 4)
-    jrow = int("12", 4)
-    mat[icol, jrow] = +2
 
-    # (XY, XZ)
-    icol = int("12", 4)
-    jrow = int("13", 4)
-    mat[icol, jrow] = -2
+def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.array:
+    """Return the vector representation of the Hamiltonian of the Control-X gate. The Hamiltonian is H = (pi/4) * (- II + IX - ZI - ZX) for ids[0] < ids[1], and H = (pi/4) * (- II + XI - IZ - XZ) for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    assert len(ids) == 2
+    assert ids[0] != ids[1]
+    coeff = 0.5 * math.pi
+    # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
+    size = 16
+    vec = np.zeros(size, dtype=np.float64)
+    if ids[0] < ids[1]:
+        # II
+        i = int("00", 4)
+        vec[i] = -coeff
+        # IX
+        i = int("01", 4)
+        vec[i] = coeff
+        # ZI
+        i = int("30", 4)
+        vec[i] = -coeff
+        # ZX
+        i = int("31", 4)
+        vec[i] = -coeff
+    else:
+        # II
+        i = int("00", 4)
+        vec[i] = -coeff
+        # XI
+        i = int("10", 4)
+        vec[i] = coeff
+        # IZ
+        i = int("03", 4)
+        vec[i] = -coeff
+        # XZ
+        i = int("13", 4)
+        vec[i] = -coeff
 
-    # (YZ, YY)
-    icol = int("23", 4)
-    jrow = int("22", 4)
-    mat[icol, jrow] = +2
+    return vec
 
-    # (YY, YZ)
-    icol = int("22", 4)
-    jrow = int("23", 4)
-    mat[icol, jrow] = -2
 
-    # (ZZ, ZY)
-    icol = int("33", 4)
-    jrow = int("32", 4)
-    mat[icol, jrow] = +2
+def generate_gate_cx_hamiltonian_mat(ids: List[int]) -> np.array:
+    """Return the Hamiltonian of the Control-X gate. The Hamiltonian is H = (pi/4) * (- II + IX - ZI - ZX) for ids[0] < ids[1], and H = (pi/4) * (- II + XI - IZ - XZ) for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    assert len(ids) == 2
+    assert ids[0] != ids[1]
+    coeff = 0.25 * math.pi
+    num_qubit = 2
+    b = get_pauli_basis(num_qubit)
 
-    # (ZY, ZZ)
-    icol = int("32", 4)
-    jrow = int("33", 4)
-    mat[icol, jrow] = -2
+    size = 4
+    mat = np.zeros((size, size), dtype=np.complex128)
+    if ids[0] < ids[1]:
+        # II
+        i = int("00", 4)
+        mat += -coeff * b[i]
+        # IX
+        i = int("01", 4)
+        mat += coeff * b[i]
+        # ZI
+        i = int("30", 4)
+        mat += -coeff * b[i]
+        # ZX
+        i = int("31", 4)
+        mat += -coeff * b[i]
+    else:
+        # II
+        i = int("00", 4)
+        mat += -coeff * b[i]
+        # XI
+        i = int("10", 4)
+        mat += coeff * b[i]
+        # IZ
+        i = int("03", 4)
+        mat += -coeff * b[i]
+        # XZ
+        i = int("13", 4)
+        mat += -coeff * b[i]
 
     return mat
+
+
+def generate_gate_cx_effective_lindbladian_mat(ids: List[int]) -> np.array:
+    """Return the HS matrix of the effective lindbladian for a Control-X gate"""
+    assert len(ids) == 2
+    assert ids[0] != ids[1]
+    coeff = 0.25 * math.pi
+
+    size = 16
+    mat = np.zeros((size, size), dtype=np.float64)
+    if ids[0] < ids[1]:
+        # II
+        pauli_type = "ii"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += -coeff * m
+        # IX
+        pauli_type = "ix"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += coeff * m
+        # ZI
+        pauli_type = "zi"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += -coeff * m
+        # ZX
+        pauli_type = "zx"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += -coeff * m
+    else:
+        # II
+        pauli_type = "ii"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += -coeff * m
+        # XI
+        pauli_type = "xi"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += coeff * m
+        # IZ
+        pauli_type = "iz"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += -coeff * m
+        # XZ
+        pauli_type = "xz"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += -coeff * m
+
+    return mat
+
+
+def generate_gate_cx_effective_lindbladian(
+    c_sys: "CompositeSystem", ids: List[int]
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the Control-X gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    assert len(c_sys.systems) == 2
+    hs = generate_gate_cx_effective_lindbladian_mat(ids)
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# Control-Z gate on 2-qubit
+
+# SWAP gate on 2-qubit
