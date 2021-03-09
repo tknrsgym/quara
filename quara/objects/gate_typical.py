@@ -30,9 +30,19 @@ def get_gate_names_1qubit() -> List[str]:
     names.append("z")
     names.append("phase")
     names.append("phase_daggered")
-    #    names.append("piover8")
-    #    names.append("piover8_daggered")
-    #    names.append("hadamard")
+    names.append("piover8")
+    names.append("piover8_daggered")
+    names.append("hadamard")
+
+    return names
+
+
+def get_gate_names_2qubit() -> List[str]:
+    """Return the list of valid gate names of 2-qubit gates."""
+    names = []
+    # names.append("cz")
+    # names.append("cx")
+    # names.append("swap")
 
     return names
 
@@ -841,8 +851,8 @@ def generate_gate_phase_daggered_mat() -> np.array:
     return mat
 
 
-def generate_gate_phase(c_sys: CompositeSystem) -> "Gate":
-    """Return the Gate class for the Phase (S) gate on the composite system.
+def generate_gate_phase_daggered(c_sys: CompositeSystem) -> "Gate":
+    """Return the Gate class for the Phase daggered (S^dagger) gate on the composite system.
 
     Parameters
     ----------
@@ -851,8 +861,187 @@ def generate_gate_phase(c_sys: CompositeSystem) -> "Gate":
     Returns
     ----------
     Gate
-        The Gate class for the Phase (S) gate on the composite system.
+        The Gate class for the Phase daggered (S^dagger) gate on the composite system.
     """
-    hs = generate_gate_phase_daggerd_mat()
+    hs = generate_gate_phase_daggered_mat()
+    gate = Gate(c_sys=c_sys, hs=hs)
+    return gate
+
+
+# pi/8 (T) gate on 1-qubit
+
+
+def generate_gate_piover8_unitary_mat() -> np.array:
+    """Return the unitary matrix for a pi/8 (T) gate.
+
+    The result is the 2 times 2 complex matrix, T.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix, which is a complex matrix.
+    """
+    u = np.array(
+        [[1, 0], [0, 0.50 * np.sqrt(2) + 0.50 * np.sqrt(2) * 1j]], dtype=np.complex128
+    )
+    return u
+
+
+def generate_gate_piover8_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for a pi/8 (T) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [
+        [1, 0, 0, 0],
+        [0, 0.50 * np.sqrt(2), -0.50 * np.sqrt(2), 0],
+        [0, 0.50 * np.sqrt(2), 0.50 * np.sqrt(2), 0],
+        [0, 0, 0, 1],
+    ]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_piover8(c_sys: CompositeSystem) -> "Gate":
+    """Return the Gate class for the pi/8 (T) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys: CompositeSystem
+
+    Returns
+    ----------
+    Gate
+        The Gate class for the pi/8 (T) gate on the composite system.
+    """
+    hs = generate_gate_piover8_mat()
+    gate = Gate(c_sys=c_sys, hs=hs)
+    return gate
+
+
+# pi/8 daggered (T^dagger) gate on 1-qubit
+
+
+def generate_gate_piover8_daggered_unitary_mat() -> np.array:
+    """Return the unitary matrix for a pi/8 daggerd (T^dagger) gate.
+
+    The result is the 2 times 2 complex matrix, T^dagger.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix, which is a complex matrix.
+    """
+    u = np.array(
+        [[1, 0], [0, 0.50 * np.sqrt(2) - 1j * 0.50 * np.sqrt(2)]], dtype=np.complex128
+    )
+    return u
+
+
+def generate_gate_piover8_daggered_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for a pi/8 daggerd (T^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [
+        [1, 0, 0, 0],
+        [0, 0.50 * np.sqrt(2), 0.50 * np.sqrt(2), 0],
+        [0, -0.50 * np.sqrt(2), 0.50 * np.sqrt(2), 0],
+        [0, 0, 0, 1],
+    ]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_piover8(c_sys: CompositeSystem) -> "Gate":
+    """Return the Gate class for the pi/8 daggered (T^dagger) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys: CompositeSystem
+
+    Returns
+    ----------
+    Gate
+        The Gate class for the pi/8 daggered (T^dagger) gate on the composite system.
+    """
+    hs = generate_gate_piover8_daggerd_mat()
+    gate = Gate(c_sys=c_sys, hs=hs)
+    return gate
+
+
+# Hadamard (H) gate on 1-qubit
+
+
+def generate_gate_hadamard_unitary_mat() -> np.array:
+    """Return the unitary matrix for an Hadamard (H) gate.
+
+    The result is the 2 times 2 complex matrix, S.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The unitary matrix, which is a complex matrix.
+    """
+    u = 0.50 * np.sqrt(2) * np.array([[1, 1], [1, -1]], dtype=np.complex128)
+    return u
+
+
+def generate_gate_hadamard_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for an Hadamard (H) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, -1, 0], [0, 1, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_hadamard(c_sys: CompositeSystem) -> "Gate":
+    """Return the Gate class for the Hadamard (H) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys: CompositeSystem
+
+    Returns
+    ----------
+    Gate
+        The Gate class for the Hadamard (H) gate on the composite system.
+    """
+    hs = generate_gate_hadamard_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
