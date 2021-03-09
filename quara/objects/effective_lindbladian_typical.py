@@ -1121,7 +1121,7 @@ def generate_gate_phase_daggered_hamiltonian_vec() -> np.array:
 def generate_gate_phase_daggered_hamiltonian_mat() -> np.array:
     """Return Hamiltonian matrix for a Phase daggerd (S^dagger) gate.
 
-    The result is the 2 times 2 complex matrix, -0.25 * pi * I + 0.25 * pi * Z.
+    The result is the 2 times 2 complex matrix, 0.25 * pi * I - 0.25 * pi * Z.
 
     Parameters
     ----------
@@ -1174,5 +1174,259 @@ def generate_gate_phase_daggered_effective_lindbladian(
         The effective Lindbladian of the gate.
     """
     hs = generate_gate_phase_daggered_effective_lindbladian_mat()
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# pi/8 (T) gate on 1-qubit
+
+
+def generate_gate_piover8_hamiltonian_vec() -> np.array:
+    """Return the vector representation for the Hamiltonian of a pi/8 (T) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a real vector with size 4.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real vector representation of the Hamiltonian of the gate.
+    """
+    dim = 2
+    coeff = 0.125 * math.pi * np.sqrt(2)
+    vec = np.zeros(dim * dim, dtype=np.float64)
+    vec[0] = -coeff
+    vec[3] = coeff
+    return vec
+
+
+def generate_gate_piover8_hamiltonian_mat() -> np.array:
+    """Return Hamiltonian matrix for a pi/8 (T) gate.
+
+    The result is the 2 times 2 complex matrix, -(pi/8) * I + (pi/8) * Z.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The Hamiltonian, which is a complex matrix.
+    """
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    coeff = 0.125 * math.pi
+    mat = -coeff * b[0]
+    mat += coeff * b[3]
+    return mat
+
+
+def generate_gate_piover8_effective_lindbladian_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a pi/8 (T) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
+    """
+    l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
+    coeff = 0.25 * math.pi
+    mat = coeff * np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_piover8_effective_lindbladian(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the pi/8 (T) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    hs = generate_gate_piover8_effective_lindbladian_mat()
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# pi/8 daggered (T^dagger) gate on 1-qubit
+
+
+def generate_gate_piover8_daggered_hamiltonian_vec() -> np.array:
+    """Return the vector representation for the Hamiltonian of a pi/8 daggered (T^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a real vector with size 4.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real vector representation of the Hamiltonian of the gate.
+    """
+    dim = 2
+    coeff = 0.125 * math.pi * np.sqrt(2)
+    vec = np.zeros(dim * dim, dtype=np.float64)
+    vec[0] = coeff
+    vec[3] = -coeff
+    return vec
+
+
+def generate_gate_piover8_daggered_hamiltonian_mat() -> np.array:
+    """Return Hamiltonian matrix for a pi/8 daggerd (T^dagger) gate.
+
+    The result is the 2 times 2 complex matrix, (pi/8) * I - (pi/8) * Z.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The Hamiltonian, which is a complex matrix.
+    """
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    coeff = 0.125 * math.pi
+    mat = coeff * b[0]
+    mat -= coeff * b[3]
+    return mat
+
+
+def generate_gate_piover8_daggered_effective_lindbladian_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a pi/8 daggered (T^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
+    """
+    l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
+    coeff = -0.25 * math.pi
+    mat = coeff * np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_piover8_daggered_effective_lindbladian(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the pi/8 daggered (T^dagger) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    hs = generate_gate_piover8_daggered_effective_lindbladian_mat()
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# Hadamard (H) gate on 1-qubit
+
+
+def generate_gate_hadamard_hamiltonian_vec() -> np.array:
+    """Return the vector representation for the Hamiltonian of an Hadamard (H) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a real vector with size 4.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real vector representation of the Hamiltonian of the gate.
+    """
+    dim = 2
+    coeff = 0.5 * math.pi
+    vec = np.zeros(dim * dim, dtype=np.float64)
+    vec[0] = -coeff * np.sqrt(2)
+    vec[1] = coeff
+    vec[3] = coeff
+    return vec
+
+
+def generate_gate_hadamard_hamiltonian_mat() -> np.array:
+    """Return Hamiltonian matrix for an Hadamard (H) gate.
+
+    The result is the 2 times 2 complex matrix, -0.25 * pi * I + 0.25 * pi * X / sqrt(2)+ 0.25 * pi * Z / sqrt(2).
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The Hamiltonian, which is a complex matrix.
+    """
+    num_qubit = 1
+    b = get_pauli_basis(num_qubit)
+    coeff = 0.5 * math.pi
+    mat = -coeff * b[0]
+    mat += coeff * b[1] / np.sqrt(2)
+    mat += coeff * b[3] / np.sqrt(2)
+    return mat
+
+
+def generate_gate_hadamard_effective_lindbladian_mat() -> np.array:
+    """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of an Hadamard (H) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.array
+        The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
+    """
+    l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, -1], [0, 0, 1, 0]]
+    coeff = 0.50 * np.sqrt(2) * math.pi
+    mat = coeff * np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_hadamard_effective_lindbladian(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the Hadamard (H) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    hs = generate_gate_hadamard_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
