@@ -1430,3 +1430,80 @@ def generate_gate_hadamard_effective_lindbladian(
     hs = generate_gate_hadamard_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
+
+
+# 1-qubit system
+# HS matrix of effective Lindbladian for Hamiltonians in the form of a Pauli matrix
+
+
+def generate_effective_lindbladian_mat_for_hamiltonian_x() -> np.array:
+    """Return HS matrix of effective lindbladian for Hamiltonian X, which correspond to a linear map, f(A) := -i [ H, A ] with H = X """
+    l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return l
+
+
+def generate_effective_lindbladian_mat_for_hamiltonian_y() -> np.array:
+    """Return HS matrix of effective lindbladian for Hamiltonian Y, which correspond to a linear map, f(A) := -i [ H, A ] with H = Y """
+    l = [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 0], [0, -2, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return l
+
+
+def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.array:
+    """Return HS matrix of effective lindbladian for Hamiltonian Z, which correspond to a linear map, f(A) := -i [ H, A ] with H = Z """
+    l = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]]
+    mat = np.array(l, dtype=np.float64)
+    return l
+
+
+# 2-qubit system
+# HS matrix of effective Lindbladian for Hamiltonians in the form of Pauli tensor product
+
+
+def generate_effective_lindbladian_mat_for_hamiltonian_ix() -> np.array:
+    """Return HS matrix of effective lindbladian for Hamiltonian IX, which correspond to a linear map, f(A) := -i [ H, A ] with H = IX """
+    size = 16
+    mat = np.zeros((16, 16), dtype=np.float64)
+
+    # (IZ, IY)
+    icol = int("03", 4)
+    jrow = int("02", 4)
+    mat[icol, jrow] = +2
+
+    # (IY, IZ)
+    icol = int("02", 4)
+    jrow = int("03", 4)
+    mat[icol, jrow] = -2
+
+    # (XZ, XY)
+    icol = int("13", 4)
+    jrow = int("12", 4)
+    mat[icol, jrow] = +2
+
+    # (XY, XZ)
+    icol = int("12", 4)
+    jrow = int("13", 4)
+    mat[icol, jrow] = -2
+
+    # (YZ, YY)
+    icol = int("23", 4)
+    jrow = int("22", 4)
+    mat[icol, jrow] = +2
+
+    # (YY, YZ)
+    icol = int("22", 4)
+    jrow = int("23", 4)
+    mat[icol, jrow] = -2
+
+    # (ZZ, ZY)
+    icol = int("33", 4)
+    jrow = int("32", 4)
+    mat[icol, jrow] = +2
+
+    # (ZY, ZZ)
+    icol = int("32", 4)
+    jrow = int("33", 4)
+    mat[icol, jrow] = -2
+
+    return mat
