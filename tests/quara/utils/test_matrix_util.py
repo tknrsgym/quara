@@ -86,29 +86,29 @@ def test_is_tp():
     assert not util.is_tp(target_matrix, 2)
 
 
-def test_trancate_imaginary_part():
-    # trancate
+def test_truncate_imaginary_part():
+    # truncate
     target_matrix = np.array([[1, 1e-14 * 1j], [0, 1]], dtype=np.complex128,)
-    actual = util.trancate_imaginary_part(target_matrix)
+    actual = util.truncate_imaginary_part(target_matrix)
     expected = np.eye(2)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-    # not trancate
+    # not truncate
     target_matrix = np.array([[1, 1e-13 * 1j], [0, 1]], dtype=np.complex128,)
-    actual = util.trancate_imaginary_part(target_matrix)
+    actual = util.truncate_imaginary_part(target_matrix)
     npt.assert_almost_equal(actual, target_matrix, decimal=15)
 
 
-def test_trancate_computational_fluctuation():
-    # trancate
+def test_truncate_computational_fluctuation():
+    # truncate
     target_matrix = np.array([[1, 1e-14], [0, 1]], dtype=np.complex128,)
-    actual = util.trancate_computational_fluctuation(target_matrix)
+    actual = util.truncate_computational_fluctuation(target_matrix)
     expected = np.eye(2)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
-    # not trancate
+    # not truncate
     target_matrix = np.array([[1, 1e-13], [0, 1]], dtype=np.complex128,)
-    actual = util.trancate_computational_fluctuation(target_matrix)
+    actual = util.truncate_computational_fluctuation(target_matrix)
     npt.assert_almost_equal(actual, target_matrix, decimal=15)
 
 
