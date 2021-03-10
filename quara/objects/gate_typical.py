@@ -1,5 +1,6 @@
 import numpy as np
-from typing import List
+from typing import List, Dict, Tuple
+from itertools import product
 
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
@@ -1507,3 +1508,124 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> np.array:
     hs = generate_gate_zz90_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
+
+    # 1-qutrit
+
+    # Base of Hamiltonian
+
+
+def calc_base_matrix_1qutrit(axis: str, levels: List[int]) -> np.array:
+    """Return a base matrix for 1-qutrit Hamiltonian.
+
+    Parameters
+    ----------
+    axis : str
+        specifies "x", "y", or "z".
+
+    levels : List[int]
+        specifies levels for the axis, limited to [0,1], [1,2] or [0,2].
+
+    Returns
+    ----------
+    np.array((3,3), dtype=np.complex128)
+        The base matrix corresponding to the axis and levels, to be complex.
+    """
+    assert axis in ["x", "y", "z"]
+    assert len(levels) == 2
+    assert levels in [[0, 1], [1, 2], [0, 2]]
+
+    method_str = (
+        "calc_base_matrix_1qutrit_" + axis + "_" + str(levels[0]) + str(levels[1])
+    )
+    mat = eval(method_str)()
+    return mat
+
+
+def calc_base_matrix_1qutrit_x_01() -> np.array:
+    """Return the base matrix corresponding to the x-axis w.r.t. levels 0 and 1."""
+    l = [[0, 1, 0], [1, 0, 0], [0, 0, 0]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_y_01() -> np.array:
+    """Return the base matrix corresponding to the y-axis w.r.t. levels 0 and 1."""
+    l = [[0, -1j, 0], [1j, 0, 0], [0, 0, 0]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_z_01() -> np.array:
+    """Return the base matrix corresponding to the z-axis w.r.t. levels 0 and 1."""
+    l = [[1, 0, 0], [0, -1, 0], [0, 0, 0]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_x_12() -> np.array:
+    """Return the base matrix corresponding to the x-axis w.r.t. levels 1 and 2."""
+    l = [[0, 0, 0], [0, 0, 1], [0, 1, 0]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_y_12() -> np.array:
+    """Return the base matrix corresponding to the y-axis w.r.t. levels 1 and 2."""
+    l = [[0, 0, 0], [0, 0, -1j], [0, 1j, 0]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_z_12() -> np.array:
+    """Return the base matrix corresponding to the z-axis w.r.t. levels 1 and 2."""
+    l = [[0, 0, 0], [0, 1, 0], [0, 0, -1]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_x_02() -> np.array:
+    """Return the base matrix corresponding to the x-axis w.r.t. levels 0 and 2."""
+    l = [[0, 0, 1], [0, 0, 0], [1, 0, 0]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_y_02() -> np.array:
+    """Return the base matrix corresponding to the y-axis w.r.t. levels 0 and 2."""
+    l = [[0, 0, -1j], [0, 0, 0], [1j, 0, 0]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def calc_base_matrix_1qutrit_z_02() -> np.array:
+    """Return the base matrix corresponding to the z-axis w.r.t. levels 0 and 2."""
+    l = [[1, 0, 0], [0, 0, 0], [0, 0, -1]]
+    mat = np.array(l, dtype=np.complex128)
+    return mat
+
+
+def get_base_matrices_1qutrit() -> Dict[Tuple[str, str], np.array]:
+    """Return the dictionary object containing all base matrices for 1-qutrit Hamiltonian.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    Dict[Tuple[str, str], np.array]
+        The dictionary. The first string of the Tuple is for the axis, "x", "y", or "z". The second string of the Tuple is for the levels, "01", "12", or "02".
+        For example, dict[("x", "12")] is the base matrix for the x-axis w.r.t. the levels 1 and 2.
+    """
+    axis_list = ["x", "y", "z"]
+    levels_list = [[0, 1], [1, 2], [0, 2]]
+
+    l = []
+    for p in product(axis_list, levels_list):
+        axis = p[0]
+        levels = p[1]
+        mat = calc_base_matrix_1qutrit(axis, levels)
+        levels_str = str(levels[0]) + str(levels[1])
+        l.append(((axis, levels_str), mat))
+
+    d = dict(l)
+    return d
