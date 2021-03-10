@@ -119,6 +119,20 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
 
 
 def truncate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64:
+    """truncates the imaginary part of the matrix entries.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        matrix to truncate the imaginary part.
+    eps : float, optional
+        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.float64
+        truncated matrix.
+    """
     eps = Settings.get_atol() if eps is None else eps
 
     return np.where(np.abs(matrix.imag) < eps, matrix.real, matrix)
@@ -127,6 +141,20 @@ def truncate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64
 def truncate_computational_fluctuation(
     matrix: np.ndarray, eps: float = None
 ) -> np.float64:
+    """truncates the computational fluctuation (real part) of the matrix entries.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        matrix to truncate the computational fluctuation.
+    eps : float, optional
+        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.float64
+        truncated matrix.
+    """
     eps = Settings.get_atol() if eps is None else eps
     return np.where(np.abs(matrix) < eps, 0.0, matrix)
 
