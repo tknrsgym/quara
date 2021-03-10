@@ -136,6 +136,7 @@ def generate_unitary_mat_from_gate_name(
         else:
             u = method()
     # 3-qubit gate
+    # 1-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -185,6 +186,7 @@ def generate_gate_mat_from_gate_name(
         else:
             mat = method()
     # 3-qubit gate
+    # 1-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
