@@ -2,10 +2,15 @@ import numpy as np
 from typing import List
 
 from quara.objects.matrix_basis import (
+    get_comp_basis,
     get_pauli_basis,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
+from quara.objects.gate import (
+    convert_hs,
+    _truncate_hs,
+)
 
 
 def get_gate_names() -> List[str]:
@@ -195,6 +200,61 @@ def generate_gate_from_gate_name(
         raise ValueError(f"gate_name is out of range.")
 
     return gate
+
+
+def calc_gate_mat_from_unitary_mat(from_u: np.array, to_basis: MatrixBasis) -> np.array:
+    """Return the HS matrix for a gate represented by an unitary matrix.
+
+    Parameters
+    ----------
+    from_u : np.array((dim, dim), dtype=np.complex128)
+        The unitary matrix, to be square complex np.array.
+
+    to_basis : MatrixBasis
+        The matrix basis for representing the HS matrix, to be orthonormal.
+
+    Returns
+    ----------
+    np.array((dim^2, dim^2), dtype=np.complex128)
+        The HS matrix of the gate corresponding to the unitary matrix.
+    """
+    shape = from_u.shape
+    assert shape[0] == shape[1]
+    dim = shape[0]
+
+    assert to_basis.dim == dim
+    assert to_basis.is_orthogonal == True
+    assert to_basis.is_normal == True
+
+    hs_comp = np.kron(from_u, np.conjugate(from_u))
+    basis_comp = get_comp_basis(dim)
+    hs = convert_hs(from_hs=hs_comp, from_basis=basis_comp, to_basis=to_basis)
+
+    return hs
+
+
+def calc_gate_mat_from_unitary_mat_with_hermitian_basis(
+    from_u: np.array, to_basis: MatrixBasis
+) -> np.array:
+    """Return the HS matrix w.r.t. a Hermitian (orthonormal) matrix basis for a gate represented by an unitary matrix.
+
+    Parameters
+    ----------
+    from_u : np.array((dim, dim), dtype=np.complex128)
+        The unitary matrix, to be square complex np.array.
+
+    to_basis : MatrixBasis
+        The matrix basis for representing the HS matrix
+
+    Returns
+    ----------
+    np.array((dim^2, dim^2), dtype=np.float64)
+        The HS matrix of the gate corresponding to the unitary matrix, to be real.
+    """
+    assert to_basis.is_hermitian == True
+    hs_complex = calc_gate_mat_from_unitary_mat(from_u, to_basis)
+    hs = _truncate_hs(hs_complex)
+    return hs
 
 
 # Identity gate
