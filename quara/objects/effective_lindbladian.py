@@ -788,7 +788,7 @@ def generate_effective_lindbladian_from_hjk(
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
-    """generates HS matrix of EffectiveLindbladian from h matrix, j matrix and k matrix.
+    """generates EffectiveLindbladian from h matrix, j matrix and k matrix.
 
     Parameters
     ----------
@@ -813,12 +813,12 @@ def generate_effective_lindbladian_from_hjk(
     mode_proj_order : str, optional
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
-        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
 
     Returns
     -------
     np.array
-        HS matrix of EffectiveLindbladian.
+        EffectiveLindbladian.
     """
     # generate HS
     hs = generate_hs_from_hjk(c_sys, h_mat, j_mat, k_mat)
@@ -882,7 +882,7 @@ def generate_effective_lindbladian_from_h(
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
-    """generates HS matrix of EffectiveLindbladian from h matrix.
+    """generates EffectiveLindbladian from h matrix.
 
     Parameters
     ----------
@@ -903,12 +903,12 @@ def generate_effective_lindbladian_from_h(
     mode_proj_order : str, optional
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
-        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
 
     Returns
     -------
     np.array
-        HS matrix of EffectiveLindbladian.
+        EffectiveLindbladian.
     """
     # generate HS
     hs = generate_hs_from_h(c_sys, h_mat)
@@ -988,7 +988,7 @@ def generate_effective_lindbladian_from_hk(
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
-    """generates HS matrix of EffectiveLindbladian from h matrix and k matrix.
+    """generates EffectiveLindbladian from h matrix and k matrix.
 
     j matrix is calculated from k matrix.
 
@@ -1013,12 +1013,12 @@ def generate_effective_lindbladian_from_hk(
     mode_proj_order : str, optional
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
-        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
 
     Returns
     -------
     np.array
-        HS matrix of EffectiveLindbladian.
+        EffectiveLindbladian.
     """
     # generate HS
     hs = generate_hs_from_hk(c_sys, h_mat, k_mat)
@@ -1088,7 +1088,7 @@ def generate_effective_lindbladian_from_k(
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
 ):
-    """generates HS matrix of EffectiveLindbladian from k matrix.
+    """generates EffectiveLindbladian from k matrix.
 
     j matrix is calculated from k matrix.
 
@@ -1111,12 +1111,12 @@ def generate_effective_lindbladian_from_k(
     mode_proj_order : str, optional
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
-        epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
 
     Returns
     -------
     np.array
-        HS matrix of EffectiveLindbladian.
+        EffectiveLindbladian.
     """
     # generate HS
     hs = generate_hs_from_k(c_sys, k_mat)
@@ -1125,6 +1125,213 @@ def generate_effective_lindbladian_from_k(
     effective_lindbladian = EffectiveLindbladian(
         c_sys,
         hs,
+        is_physicality_required=is_physicality_required,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
+        eps_proj_physical=eps_proj_physical,
+    )
+    return effective_lindbladian
+
+
+def generate_j_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np.array:
+    """generates j part of EffectiveLindbladian from jump operators.
+
+    this j part is represented by computational basis.
+
+    Parameters
+    ----------
+    jump_operators : List[np.array]
+        jump operators to generate j part.
+
+    Returns
+    -------
+    np.array
+        j part of EffectiveLindbladian.
+    """
+    dim = jump_operators[0].shape[0]
+    identity = np.eye(dim)
+    terms = [
+        np.kron(opertor, identity) + np.kron(identity, opertor.conj())
+        for opertor in jump_operators
+    ]
+    j_part_cb = -1 / 2 * reduce(add, terms)
+    return j_part_cb
+
+
+def generate_j_part_gb_from_jump_operators(
+    jump_operators: List[np.array], basis: MatrixBasis, eps_proj_physical: float = None
+) -> np.array:
+    """generates j part of EffectiveLindbladian from jump operators.
+
+    this j part is represented by general basis.
+
+    Parameters
+    ----------
+    jump_operators : List[np.array]
+        jump operators to generate j part.
+    basis : MatrixBasis
+        MatrixBasis to present j part.
+    eps_proj_physical : float, optional
+        error threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.array
+        j part of EffectiveLindbladian.
+    """
+    j_part_cb = generate_j_part_cb_from_jump_operators(jump_operators)
+    j_part_gb = convert_hs(j_part_cb, get_comp_basis(basis.dim), basis)
+    j_part_gb = _truncate_hs(j_part_gb, eps_proj_physical)
+    return j_part_gb
+
+
+def generate_k_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np.array:
+    """generates k part of EffectiveLindbladian from jump operators.
+
+    this k part is represented by computational basis.
+
+    Parameters
+    ----------
+    jump_operators : List[np.array]
+        jump operators to generate k part.
+
+    Returns
+    -------
+    np.array
+        k part of EffectiveLindbladian.
+    """
+    terms = [np.kron(opertor, opertor.conj()) for opertor in jump_operators]
+    k_part_cb = reduce(add, terms)
+    return k_part_cb
+
+
+def generate_k_part_gb_from_jump_operators(
+    jump_operators: List[np.array], basis: MatrixBasis, eps_proj_physical: float = None
+) -> np.array:
+    """generates k part of EffectiveLindbladian from jump operators.
+
+    this k part is represented by general basis.
+
+    Parameters
+    ----------
+    jump_operators : List[np.array]
+        jump operators to generate k part.
+    basis : MatrixBasis
+        MatrixBasis to present k part.
+    eps_proj_physical : float, optional
+        error threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.array
+        k part of EffectiveLindbladian.
+    """
+    k_part_cb = generate_k_part_cb_from_jump_operators(jump_operators)
+    k_part_gb = convert_hs(k_part_cb, get_comp_basis(basis.dim), basis)
+    k_part_gb = _truncate_hs(k_part_gb, eps_proj_physical)
+    return k_part_gb
+
+
+def generate_d_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np.array:
+    """generates d part of EffectiveLindbladian from jump operators.
+
+    this d part is represented by computational basis.
+
+    Parameters
+    ----------
+    jump_operators : List[np.array]
+        jump_operators to generate d part.
+
+    Returns
+    -------
+    np.array
+        d part of EffectiveLindbladian.
+    """
+    d_part_cb = generate_j_part_cb_from_jump_operators(
+        jump_operators
+    ) + generate_k_part_cb_from_jump_operators(jump_operators)
+    return d_part_cb
+
+
+def generate_d_part_gb_from_jump_operators(
+    jump_operators: List[np.array], basis: MatrixBasis, eps_proj_physical: float = None
+) -> np.array:
+    """generates d part of EffectiveLindbladian from jump operators.
+
+    this d part is represented by general basis.
+
+    Parameters
+    ----------
+    jump_operators : List[np.array]
+        jump operators to generate d part.
+    basis : MatrixBasis
+        MatrixBasis to present d part.
+    eps_proj_physical : float, optional
+        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.array
+        d part of EffectiveLindbladian.
+    """
+    d_part_cb = generate_d_part_cb_from_jump_operators(jump_operators)
+    d_part_gb = convert_hs(d_part_cb, get_comp_basis(basis.dim), basis)
+    d_part_gb = _truncate_hs(d_part_gb, eps_proj_physical)
+    return d_part_gb
+
+
+def generate_effective_lindbladian_from_jump_operators(
+    c_sys: CompositeSystem,
+    jump_operators: List[np.array],
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
+    eps_proj_physical: float = None,
+):
+    """generates EffectiveLindbladian from jump operators.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this EffectiveLindbladian.
+    jump_operators : List[np.array]
+        jump operators to generate EffectiveLindbladian.
+    is_physicality_required : bool, optional
+        whether this QOperation is physicality required, by default True
+    is_estimation_object : bool, optional
+        whether this QOperation is estimation object, by default True
+    on_para_eq_constraint : bool, optional
+        whether this QOperation is on parameter equality constraint, by default True
+    on_algo_eq_constraint : bool, optional
+        whether this QOperation is on algorithm equality constraint, by default True
+    on_algo_ineq_constraint : bool, optional
+        whether this QOperation is on algorithm inequality constraint, by default True
+    mode_proj_order : str, optional
+        the order in which the projections are performed, by default "eq_ineq"
+    eps_proj_physical : float, optional
+        epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+
+    Returns
+    -------
+    np.array
+        EffectiveLindbladian.
+    """
+    # calculate hs(=Lindbladian for Hermitian basis)
+    lindbladian_tmp = generate_d_part_gb_from_jump_operators(
+        jump_operators, c_sys.basis()
+    )
+    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
+
+    # init
+    effective_lindbladian = EffectiveLindbladian(
+        c_sys,
+        lindbladian_hermitian_basis,
         is_physicality_required=is_physicality_required,
         is_estimation_object=is_estimation_object,
         on_para_eq_constraint=on_para_eq_constraint,
