@@ -118,13 +118,13 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
 
 
-def trancate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64:
+def truncate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64:
     eps = Settings.get_atol() if eps is None else eps
 
     return np.where(np.abs(matrix.imag) < eps, matrix.real, matrix)
 
 
-def trancate_computational_fluctuation(
+def truncate_computational_fluctuation(
     matrix: np.ndarray, eps: float = None
 ) -> np.float64:
     eps = Settings.get_atol() if eps is None else eps
