@@ -9,8 +9,8 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, convert_hs
+from quara.objects import effective_lindbladian as el
 from quara.objects.effective_lindbladian import EffectiveLindbladian
-from quara.objects import effective_lindbladian as lind
 from quara.objects.operators import composite, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
 from quara.settings import Settings
@@ -136,7 +136,7 @@ class TestEffectiveLindbladian:
         c_sys = CompositeSystem([e_sys])
         # k=I
         k_mat = np.eye(3, dtype=np.complex128)
-        lindbladian = lind.generate_effective_lindbladian_from_k(
+        lindbladian = el.generate_effective_lindbladian_from_k(
             c_sys, k_mat, is_physicality_required=False
         )
 
@@ -290,7 +290,7 @@ class TestEffectiveLindbladian:
         c_sys = CompositeSystem([e_sys])
 
         k_mat = -np.eye(3)
-        lindbladian = lind.generate_effective_lindbladian_from_k(
+        lindbladian = el.generate_effective_lindbladian_from_k(
             c_sys, k_mat, is_physicality_required=False
         )
 
@@ -307,7 +307,7 @@ class TestEffectiveLindbladian:
         # h=Z/sqrt(2), k=diag(1,1,-1)
         h_mat = np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2)
         k_mat = np.diag([1, 1, -1])
-        lindbladian = lind.generate_effective_lindbladian_from_hk(
+        lindbladian = el.generate_effective_lindbladian_from_hk(
             c_sys, h_mat, k_mat, is_physicality_required=False
         )
         actual = lindbladian.calc_proj_ineq_constraint()
@@ -390,14 +390,14 @@ class TestEffectiveLindbladian:
 
         # k=I
         k_mat = np.eye(3)
-        actual = lind.generate_effective_lindbladian_from_k(
+        actual = el.generate_effective_lindbladian_from_k(
             c_sys, k_mat, is_physicality_required=False
         )
         assert actual.is_cp() == True
 
         # k=-I
         k_mat = -np.eye(3)
-        actual = lind.generate_effective_lindbladian_from_k(
+        actual = el.generate_effective_lindbladian_from_k(
             c_sys, k_mat, is_physicality_required=False
         )
         assert actual.is_cp() == False
@@ -444,19 +444,19 @@ def test_calc_h_part_from_h_mat():
     # basis is normalized Pauli basis
     # h=0
     h_mat = np.zeros((2, 2), dtype=np.complex128)
-    actual = lind._calc_h_part_from_h_mat(h_mat)
+    actual = el._calc_h_part_from_h_mat(h_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # h=I/sqrt(2)
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_h_part_from_h_mat(h_mat)
+    actual = el._calc_h_part_from_h_mat(h_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # h=X/sqrt(2)
     h_mat = np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_h_part_from_h_mat(h_mat)
+    actual = el._calc_h_part_from_h_mat(h_mat)
     expected = np.array(
         [[0, 1j, -1j, 0], [1j, 0, 0, -1j], [-1j, 0, 0, 1j], [0, -1j, 1j, 0]],
         dtype=np.complex128,
@@ -465,7 +465,7 @@ def test_calc_h_part_from_h_mat():
 
     # h=Y/sqrt(2)
     h_mat = np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_h_part_from_h_mat(h_mat)
+    actual = el._calc_h_part_from_h_mat(h_mat)
     expected = np.array(
         [[0, -1, -1, 0], [1, 0, 0, -1], [1, 0, 0, -1], [0, 1, 1, 0]],
         dtype=np.complex128,
@@ -474,7 +474,7 @@ def test_calc_h_part_from_h_mat():
 
     # h=Z/sqrt(2)
     h_mat = np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_h_part_from_h_mat(h_mat)
+    actual = el._calc_h_part_from_h_mat(h_mat)
     expected = np.array(
         [[0, 0, 0, 0], [0, -2j, 0, 0], [0, 0, 2j, 0], [0, 0, 0, 0]],
         dtype=np.complex128,
@@ -486,19 +486,19 @@ def test_calc_j_part_from_j_mat():
     # basis is normalized Pauli basis
     # j=0
     j_mat = np.zeros((2, 2), dtype=np.complex128)
-    actual = lind._calc_j_part_from_j_mat(j_mat)
+    actual = el._calc_j_part_from_j_mat(j_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # j=I/sqrt(2)
     j_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_j_part_from_j_mat(j_mat)
+    actual = el._calc_j_part_from_j_mat(j_mat)
     expected = 2 * np.eye(4, dtype=np.float64) / np.sqrt(2)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # j=X/sqrt(2)
     j_mat = np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_j_part_from_j_mat(j_mat)
+    actual = el._calc_j_part_from_j_mat(j_mat)
     expected = np.array(
         [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], dtype=np.complex128,
     ) / np.sqrt(2)
@@ -506,7 +506,7 @@ def test_calc_j_part_from_j_mat():
 
     # j=Y/sqrt(2)
     j_mat = np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_j_part_from_j_mat(j_mat)
+    actual = el._calc_j_part_from_j_mat(j_mat)
     expected = np.array(
         [[0, 1j, -1j, 0], [-1j, 0, 0, -1j], [1j, 0, 0, 1j], [0, 1j, -1j, 0]],
         dtype=np.complex128,
@@ -515,7 +515,7 @@ def test_calc_j_part_from_j_mat():
 
     # j=Z/sqrt(2)
     j_mat = np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2)
-    actual = lind._calc_j_part_from_j_mat(j_mat)
+    actual = el._calc_j_part_from_j_mat(j_mat)
     expected = np.array(
         [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]], dtype=np.complex128,
     ) / np.sqrt(2)
@@ -529,13 +529,13 @@ def test_calc_k_part_from_k_mat():
 
     # k=0
     k_mat = np.zeros((3, 3), dtype=np.complex128)
-    actual = lind._calc_k_part_from_k_mat(k_mat, c_sys)
+    actual = el._calc_k_part_from_k_mat(k_mat, c_sys)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # k=I
     k_mat = np.eye(3, dtype=np.complex128)
-    actual = lind._calc_k_part_from_k_mat(k_mat, c_sys)
+    actual = el._calc_k_part_from_k_mat(k_mat, c_sys)
     expected = np.array(
         [[1 / 2, 0, 0, 1], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [1, 0, 0, 1 / 2]],
         dtype=np.complex128,
@@ -551,7 +551,7 @@ def test_generate_effective_lindbladian_from_hjk():
     h_mat = np.zeros((2, 2), dtype=np.complex128)
     j_mat = np.zeros((2, 2), dtype=np.complex128)
     k_mat = np.zeros((3, 3), dtype=np.complex128)
-    actual = lind.generate_effective_lindbladian_from_hjk(c_sys, h_mat, j_mat, k_mat)
+    actual = el.generate_effective_lindbladian_from_hjk(c_sys, h_mat, j_mat, k_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
@@ -559,7 +559,7 @@ def test_generate_effective_lindbladian_from_hjk():
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
     j_mat = np.zeros((2, 2), dtype=np.complex128)
     k_mat = np.zeros((3, 3), dtype=np.complex128)
-    actual = lind.generate_effective_lindbladian_from_hjk(c_sys, h_mat, j_mat, k_mat)
+    actual = el.generate_effective_lindbladian_from_hjk(c_sys, h_mat, j_mat, k_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
@@ -570,19 +570,19 @@ def test_generate_effective_lindbladian_from_h():
 
     # h=0
     h_mat = np.zeros((2, 2), dtype=np.complex128)
-    actual = lind.generate_effective_lindbladian_from_h(c_sys, h_mat)
+    actual = el.generate_effective_lindbladian_from_h(c_sys, h_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     # h=I/sqrt(2)
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
-    actual = lind.generate_effective_lindbladian_from_h(c_sys, h_mat)
+    actual = el.generate_effective_lindbladian_from_h(c_sys, h_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     # h=Z/sqrt(2)
     h_mat = np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2)
-    actual = lind.generate_effective_lindbladian_from_h(c_sys, h_mat)
+    actual = el.generate_effective_lindbladian_from_h(c_sys, h_mat)
     expected = np.array(
         [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]], dtype=np.float64,
     ) / np.sqrt(2)
@@ -596,14 +596,14 @@ def test_generate_effective_lindbladian_from_hk():
     # h=I/sqrt(2), k=0
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
     k_mat = np.zeros((3, 3), dtype=np.complex128)
-    actual = lind.generate_effective_lindbladian_from_hk(c_sys, h_mat, k_mat)
+    actual = el.generate_effective_lindbladian_from_hk(c_sys, h_mat, k_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     # h=I/sqrt(2), k=I
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
     k_mat = np.eye(3, dtype=np.complex128)
-    actual = lind.generate_effective_lindbladian_from_hk(
+    actual = el.generate_effective_lindbladian_from_hk(
         c_sys, h_mat, k_mat, is_physicality_required=False
     )
     expected = np.array(
@@ -618,16 +618,150 @@ def test_generate_effective_lindbladian_from_k():
 
     # k=0
     k_mat = np.zeros((3, 3), dtype=np.complex128)
-    actual = lind.generate_effective_lindbladian_from_k(c_sys, k_mat)
+    actual = el.generate_effective_lindbladian_from_k(c_sys, k_mat)
     expected = np.zeros((4, 4), dtype=np.float64)
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     # k=I
     k_mat = np.eye(3, dtype=np.complex128)
-    actual = lind.generate_effective_lindbladian_from_k(
+    actual = el.generate_effective_lindbladian_from_k(
         c_sys, k_mat, is_physicality_required=False
     )
     expected = np.array(
         [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64,
+    )
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+
+def test_generate_j_part_cb_from_jump_operators():
+    # Arrange
+    c0 = np.array([[0, 1], [0, 0]])
+    c1 = np.array([[0, 0], [1, 0]])
+    c2 = np.array([[1, 0], [0, -1]])
+    jump_operators = [c0, c1, c2]
+
+    # Act
+    actual = el.generate_j_part_cb_from_jump_operators(jump_operators)
+
+    # Assert
+    expected = np.array(
+        [[2, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, -2]], dtype=np.complex128,
+    ) * (-1 / 2)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_generate_j_part_gb_from_jump_operators():
+    # Arrange
+    basis = matrix_basis.get_normalized_pauli_basis()
+    c0 = np.array([[0, 1], [0, 0]])
+    c1 = np.array([[0, 0], [1, 0]])
+    c2 = np.array([[1, 0], [0, -1]])
+    jump_operators = [c0, c1, c2]
+
+    # Act
+    actual = el.generate_j_part_gb_from_jump_operators(jump_operators, basis)
+
+    # Assert
+    expected = np.array(
+        [[0, -1, 0, -1], [-1, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 0]], dtype=np.float64,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_generate_k_part_cb_from_jump_operators():
+    # Arrange
+    c0 = np.array([[0, 1], [0, 0]])
+    c1 = np.array([[0, 0], [1, 0]])
+    c2 = np.array([[1, 0], [0, -1]])
+    jump_operators = [c0, c1, c2]
+
+    # Act
+    actual = el.generate_k_part_cb_from_jump_operators(jump_operators)
+
+    # Assert
+    expected = np.array(
+        [[1, 0, 0, 1], [0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 1]], dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_generate_k_part_gb_from_jump_operators():
+    # Arrange
+    basis = matrix_basis.get_normalized_pauli_basis()
+    c0 = np.array([[0, 1], [0, 0]])
+    c1 = np.array([[0, 0], [1, 0]])
+    c2 = np.array([[1, 0], [0, -1]])
+    jump_operators = [c0, c1, c2]
+
+    # Act
+    actual = el.generate_k_part_gb_from_jump_operators(jump_operators, basis)
+
+    # Assert
+    expected = np.array(
+        [[2, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 0]], dtype=np.float64,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_generate_d_part_cb_from_jump_operators():
+    # Arrange
+    c0 = np.array([[0, 1], [0, 0]])
+    c1 = np.array([[0, 0], [1, 0]])
+    c2 = np.array([[1, 0], [0, -1]])
+    jump_operators = [c0, c1, c2]
+
+    # Act
+    actual = el.generate_d_part_cb_from_jump_operators(jump_operators)
+
+    # Assert
+    expected = np.array(
+        [
+            [0, -1 / 2, -1 / 2, 1],
+            [-1 / 2, -1, 0, -1 / 2],
+            [-1 / 2, 0, -1, -1 / 2],
+            [1, -1 / 2, -1 / 2, 2],
+        ],
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_generate_d_part_gb_from_jump_operators():
+    # Arrange
+    basis = matrix_basis.get_normalized_pauli_basis()
+    c0 = np.array([[0, 1], [0, 0]])
+    c1 = np.array([[0, 0], [1, 0]])
+    c2 = np.array([[1, 0], [0, -1]])
+    jump_operators = [c0, c1, c2]
+
+    # Act
+    actual = el.generate_d_part_gb_from_jump_operators(jump_operators, basis)
+
+    # Assert
+    expected = np.array(
+        [[2, -1, 0, -1], [-1, -1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0]],
+        dtype=np.float64,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_generate_effective_lindbladian_from_jump_operators():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    c0 = np.array([[0, 1], [0, 0]])
+    c1 = np.array([[0, 0], [1, 0]])
+    c2 = np.array([[1, 0], [0, -1]])
+    jump_operators = [c0, c1, c2]
+
+    # Act
+    actual = el.generate_effective_lindbladian_from_jump_operators(
+        c_sys, jump_operators, is_physicality_required=False
+    )
+
+    # Assert
+    expected = np.array(
+        [[2, -1, 0, -1], [-1, -1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0]],
+        dtype=np.float64,
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
