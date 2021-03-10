@@ -1202,9 +1202,6 @@ def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
     simulation_settings: List[StandardQTomographySimulationSetting],
-    # true_object: "QOperation",
-    # tester_objects: List["QOperation"],
-    seed: Optional[int] = None,
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
@@ -1236,6 +1233,7 @@ def export_report(
 
     true_object = simulation_settings[0].true_object
     tester_objects = simulation_settings[0].tester_objects
+    seed = simulation_settings[0].seed
 
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])

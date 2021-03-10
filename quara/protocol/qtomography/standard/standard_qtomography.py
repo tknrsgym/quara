@@ -406,7 +406,6 @@ class StandardQTomography(QTomography):
         for schedule_index in range(len(tmp_experiment.schedules)):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             getattr(tmp_experiment, attribute_name)[target_index] = true_object
-
         prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
 
         return prob_dists_sequence_tmp
