@@ -202,7 +202,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            h_part = _trancate_hs(h_part, self.eps_proj_physical)
+            h_part = _truncate_hs(h_part, self.eps_proj_physical)
 
         return h_part
 
@@ -233,7 +233,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            j_part = _trancate_hs(j_part, self.eps_proj_physical)
+            j_part = _truncate_hs(j_part, self.eps_proj_physical)
 
         return j_part
 
@@ -264,7 +264,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            k_part = _trancate_hs(k_part, self.eps_proj_physical)
+            k_part = _truncate_hs(k_part, self.eps_proj_physical)
 
         return k_part
 
@@ -296,7 +296,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            d_part = _trancate_hs(d_part, self.eps_proj_physical)
+            d_part = _truncate_hs(d_part, self.eps_proj_physical)
 
         return d_part
 
@@ -707,12 +707,12 @@ def _calc_k_part_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> np.array
     return k_part
 
 
-def _trancate_hs(
+def _truncate_hs(
     hs: np.array,
     eps_proj_physical: float = None,
     is_zero_imaginary_part_required: bool = True,
 ) -> np.array:
-    tmp_hs = mutil.trancate_imaginary_part(hs, eps_proj_physical)
+    tmp_hs = mutil.truncate_imaginary_part(hs, eps_proj_physical)
 
     if is_zero_imaginary_part_required == True and np.any(tmp_hs.imag != 0):
         raise ValueError(
@@ -722,8 +722,8 @@ def _trancate_hs(
     if is_zero_imaginary_part_required == True:
         tmp_hs = tmp_hs.astype(np.float64)
 
-    trancated_hs = mutil.trancate_computational_fluctuation(tmp_hs, eps_proj_physical)
-    return trancated_hs
+    truncated_hs = mutil.truncate_computational_fluctuation(tmp_hs, eps_proj_physical)
+    return truncated_hs
 
 
 def generate_hs_from_hjk(
@@ -770,7 +770,7 @@ def generate_hs_from_hjk(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
@@ -866,7 +866,7 @@ def generate_hs_from_h(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
@@ -971,7 +971,7 @@ def generate_hs_from_hk(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
@@ -1072,7 +1072,7 @@ def generate_hs_from_k(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _trancate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
 
     return lindbladian_hermitian_basis
 
