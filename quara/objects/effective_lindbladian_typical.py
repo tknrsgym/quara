@@ -12,6 +12,8 @@ from quara.objects.gate_typical import (
     _dim_total_from_dims,
     get_gate_names,
     get_gate_names_1qubit,
+    get_gate_names_2qubit,
+    get_gate_names_2qubit_asymmetric,
 )
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 
@@ -52,6 +54,11 @@ def generate_hamiltonian_vec_from_gate_name(
     elif gate_name in get_gate_names_1qubit():
         vec = method()
     # 2-qubit gate
+    elif gate_name in get_gate_names_2qubit():
+        if gate_name in get_gate_names_2qubit_asymmetric():
+            vec = method(ids)
+        else:
+            vec = method()
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
@@ -95,6 +102,11 @@ def generate_hamiltonian_mat_from_gate_name(
     elif gate_name in get_gate_names_1qubit():
         mat = method()
     # 2-qubit gate
+    elif gate_name in get_gate_names_2qubit():
+        if gate_name in get_gate_names_2qubit_asymmetric():
+            mat = method(ids)
+        else:
+            mat = method()
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
@@ -138,6 +150,11 @@ def generate_effective_lindbladian_mat_from_gate_name(
     elif gate_name in get_gate_names_1qubit():
         mat = method()
     # 2-qubit gate
+    elif gate_name in get_gate_names_2qubit():
+        if gate_name in get_gate_names_2qubit_asymmetric():
+            mat = method(ids)
+        else:
+            mat = method()
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
@@ -177,6 +194,11 @@ def generate_effective_lindbladian_from_gate_name(
     elif gate_name in get_gate_names_1qubit():
         el = method(c_sys)
     # 2-qubit gate
+    elif gate_name in get_gate_names_2qubit():
+        if gate_name in get_gate_names_2qubit_asymmetric():
+            el = method(ids)
+        else:
+            el = method()
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
@@ -1581,7 +1603,7 @@ def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.array:
         vec[i] = coeff
         # ZI
         i = int("30", 4)
-        vec[i] = -coeff
+        vec[i] = coeff
         # ZX
         i = int("31", 4)
         vec[i] = -coeff
@@ -1594,7 +1616,7 @@ def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.array:
         vec[i] = coeff
         # IZ
         i = int("03", 4)
-        vec[i] = -coeff
+        vec[i] = coeff
         # XZ
         i = int("13", 4)
         vec[i] = -coeff
@@ -1621,7 +1643,7 @@ def generate_gate_cx_hamiltonian_mat(ids: List[int]) -> np.array:
         mat += coeff * b[i]
         # ZI
         i = int("30", 4)
-        mat += -coeff * b[i]
+        mat += coeff * b[i]
         # ZX
         i = int("31", 4)
         mat += -coeff * b[i]
@@ -1634,7 +1656,7 @@ def generate_gate_cx_hamiltonian_mat(ids: List[int]) -> np.array:
         mat += coeff * b[i]
         # IZ
         i = int("03", 4)
-        mat += -coeff * b[i]
+        mat += coeff * b[i]
         # XZ
         i = int("13", 4)
         mat += -coeff * b[i]
@@ -1662,7 +1684,7 @@ def generate_gate_cx_effective_lindbladian_mat(ids: List[int]) -> np.array:
         # ZI
         pauli_type = "zi"
         m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
-        mat += -coeff * m
+        mat += coeff * m
         # ZX
         pauli_type = "zx"
         m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
@@ -1679,7 +1701,7 @@ def generate_gate_cx_effective_lindbladian_mat(ids: List[int]) -> np.array:
         # IZ
         pauli_type = "iz"
         m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
-        mat += -coeff * m
+        mat += coeff * m
         # XZ
         pauli_type = "xz"
         m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
@@ -1711,4 +1733,327 @@ def generate_gate_cx_effective_lindbladian(
 
 # Control-Z gate on 2-qubit
 
+
+def generate_gate_cz_hamiltonian_vec() -> np.array:
+    """Return the vector representation of the Hamiltonian of the Control-Z gate. The Hamiltonian is H = (pi/4) * (- II + IZ + ZI - ZZ)."""
+    coeff = 0.5 * math.pi
+    # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
+    size = 16
+    vec = np.zeros(size, dtype=np.float64)
+    # II
+    i = int("00", 4)
+    vec[i] = -coeff
+    # IZ
+    i = int("03", 4)
+    vec[i] = coeff
+    # ZI
+    i = int("30", 4)
+    vec[i] = coeff
+    # ZZ
+    i = int("33", 4)
+    vec[i] = -coeff
+
+    return vec
+
+
+def generate_gate_cz_hamiltonian_mat() -> np.array:
+    """Return the Hamiltonian of the Control-Z gate. The Hamiltonian is H = (pi/4) * (- II + IZ + ZI - ZZ)."""
+    coeff = 0.25 * math.pi
+    num_qubit = 2
+    b = get_pauli_basis(num_qubit)
+
+    size = 4
+    mat = np.zeros((size, size), dtype=np.complex128)
+    # II
+    i = int("00", 4)
+    mat += -coeff * b[i]
+    # IZ
+    i = int("03", 4)
+    mat += coeff * b[i]
+    # ZI
+    i = int("30", 4)
+    mat += coeff * b[i]
+    # ZZ
+    i = int("33", 4)
+    mat += -coeff * b[i]
+
+    return mat
+
+
+def generate_gate_cz_effective_lindbladian_mat() -> np.array:
+    """Return the HS matrix of the effective lindbladian for a Control-Z gate"""
+    coeff = 0.25 * math.pi
+    size = 16
+    mat = np.zeros((size, size), dtype=np.float64)
+
+    # II
+    pauli_type = "ii"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += -coeff * m
+    # IZ
+    pauli_type = "iz"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += coeff * m
+    # ZI
+    pauli_type = "zi"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += coeff * m
+    # ZZ
+    pauli_type = "zz"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += -coeff * m
+
+    return mat
+
+
+def generate_gate_cz_effective_lindbladian(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the Control-Z gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    assert len(c_sys.systems) == 2
+    hs = generate_gate_cz_effective_lindbladian_mat()
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
 # SWAP gate on 2-qubit
+
+
+def generate_gate_swap_hamiltonian_vec() -> np.array:
+    """Return the vector representation of the Hamiltonian of the SWAP gate. The Hamiltonian is H = (pi/4) * (- II + XX + YY + ZZ)."""
+    coeff = 0.5 * math.pi
+    # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
+    size = 16
+    vec = np.zeros(size, dtype=np.float64)
+    # II
+    i = int("00", 4)
+    vec[i] = -coeff
+    # XX
+    i = int("11", 4)
+    vec[i] = coeff
+    # YY
+    i = int("22", 4)
+    vec[i] = coeff
+    # ZZ
+    i = int("33", 4)
+    vec[i] = coeff
+
+    return vec
+
+
+def generate_gate_swap_hamiltonian_mat() -> np.array:
+    """Return the Hamiltonian of the SWAP gate. The Hamiltonian is H = (pi/4) * (- II + XX + YY + ZZ)."""
+    coeff = 0.25 * math.pi
+    num_qubit = 2
+    b = get_pauli_basis(num_qubit)
+
+    size = 4
+    mat = np.zeros((size, size), dtype=np.complex128)
+    # II
+    i = int("00", 4)
+    mat += -coeff * b[i]
+    # XX
+    i = int("11", 4)
+    mat += coeff * b[i]
+    # YY
+    i = int("22", 4)
+    mat += coeff * b[i]
+    # ZZ
+    i = int("33", 4)
+    mat += coeff * b[i]
+
+    return mat
+
+
+def generate_gate_swap_effective_lindbladian_mat() -> np.array:
+    """Return the HS matrix of the effective lindbladian for a SWAP gate"""
+    coeff = 0.25 * math.pi
+    size = 16
+    mat = np.zeros((size, size), dtype=np.float64)
+
+    # II
+    pauli_type = "ii"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += -coeff * m
+    # XX
+    pauli_type = "xx"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += coeff * m
+    # YY
+    pauli_type = "yy"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += coeff * m
+    # ZZ
+    pauli_type = "zz"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += coeff * m
+
+    return mat
+
+
+def generate_gate_swap_effective_lindbladian(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the SWAP gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    assert len(c_sys.systems) == 2
+    hs = generate_gate_swap_effective_lindbladian_mat()
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# ZX90 gate on 2-qubit system
+
+
+def generate_gate_zx90_hamiltonian_vec(ids: List[int]) -> np.array:
+    """Return the vector representation of the Hamiltonian of the ZX90 gate. The Hamiltonian is H = (pi/4) * ZX for ids[0] < ids[1], and H = (pi/4) * XZ for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    assert len(ids) == 2
+    assert ids[0] != ids[1]
+    coeff = 0.5 * math.pi
+    # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
+    size = 16
+    vec = np.zeros(size, dtype=np.float64)
+    if ids[0] < ids[1]:
+        # ZX
+        i = int("31", 4)
+        vec[i] = coeff
+    else:
+        # XZ
+        i = int("13", 4)
+        vec[i] = coeff
+
+    return vec
+
+
+def generate_gate_zx90_hamiltonian_mat(ids: List[int]) -> np.array:
+    """Return the Hamiltonian of the ZX90 gate. The Hamiltonian is H = (pi/4) * ZX for ids[0] < ids[1], and H = (pi/4) * XZ for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    assert len(ids) == 2
+    assert ids[0] != ids[1]
+    coeff = 0.25 * math.pi
+    num_qubit = 2
+    b = get_pauli_basis(num_qubit)
+
+    size = 4
+    mat = np.zeros((size, size), dtype=np.complex128)
+    if ids[0] < ids[1]:
+        # ZX
+        i = int("31", 4)
+        mat += coeff * b[i]
+    else:
+        # XZ
+        i = int("13", 4)
+        mat += coeff * b[i]
+
+    return mat
+
+
+def generate_gate_zx90_effective_lindbladian_mat(ids: List[int]) -> np.array:
+    """Return the HS matrix of the effective lindbladian for a ZX90 gate"""
+    assert len(ids) == 2
+    assert ids[0] != ids[1]
+    coeff = 0.25 * math.pi
+
+    size = 16
+    mat = np.zeros((size, size), dtype=np.float64)
+    if ids[0] < ids[1]:
+        # ZX
+        pauli_type = "zx"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += coeff * m
+    else:
+        # XZ
+        pauli_type = "xz"
+        m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+        mat += coeff * m
+
+    return mat
+
+
+def generate_gate_zx90_effective_lindbladian(
+    c_sys: "CompositeSystem", ids: List[int]
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the ZX90 gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    ids : List[int]
+        ids[0] for control system id, and ids[1] for target system id
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    assert len(c_sys.systems) == 2
+    hs = generate_gate_zx90_effective_lindbladian_mat(ids)
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# ZZ90 gate on 2-qubit system
+
+
+def generate_gate_zz90_hamiltonian_vec() -> np.array:
+    """Return the vector representation of the Hamiltonian of a ZZ90 gate. The Hamiltonian is H = (pi/4) * ZZ."""
+    coeff = 0.5 * math.pi
+    # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
+    size = 16
+    vec = np.zeros(size, dtype=np.float64)
+    # ZZ
+    i = int("33", 4)
+    vec[i] = coeff
+
+    return vec
+
+
+def generate_gate_zz90_hamiltonian_mat() -> np.array:
+    """Return the Hamiltonian of a ZZ90 gate. The Hamiltonian is H = (pi/4) * ZZ."""
+    coeff = 0.25 * math.pi
+    num_qubit = 2
+    b = get_pauli_basis(num_qubit)
+
+    size = 4
+    mat = np.zeros((size, size), dtype=np.complex128)
+    # ZZ
+    i = int("33", 4)
+    mat += coeff * b[i]
+
+    return mat
+
+
+def generate_gate_zz90_effective_lindbladian_mat() -> np.array:
+    """Return the HS matrix of the effective lindbladian for a ZZ90 gate"""
+    coeff = 0.25 * math.pi
+    size = 16
+    mat = np.zeros((size, size), dtype=np.float64)
+
+    # ZZ
+    pauli_type = "zz"
+    m = calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(pauli_type)
+    mat += coeff * m
+
+    return mat
