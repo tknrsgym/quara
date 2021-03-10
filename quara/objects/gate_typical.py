@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List
 
+from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
@@ -9,6 +10,8 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
 from quara.objects.gate import (
     convert_hs,
+)
+from quara.objects.effective_lindbladian import (
     _truncate_hs,
 )
 
@@ -223,8 +226,8 @@ def calc_gate_mat_from_unitary_mat(from_u: np.array, to_basis: MatrixBasis) -> n
     dim = shape[0]
 
     assert to_basis.dim == dim
-    assert to_basis.is_orthogonal == True
-    assert to_basis.is_normal == True
+    assert to_basis.is_orthogonal() == True
+    assert to_basis.is_normal() == True
 
     hs_comp = np.kron(from_u, np.conjugate(from_u))
     basis_comp = get_comp_basis(dim)
@@ -251,7 +254,7 @@ def calc_gate_mat_from_unitary_mat_with_hermitian_basis(
     np.array((dim^2, dim^2), dtype=np.float64)
         The HS matrix of the gate corresponding to the unitary matrix, to be real.
     """
-    assert to_basis.is_hermitian == True
+    assert to_basis.is_hermitian() == True
     hs_complex = calc_gate_mat_from_unitary_mat(from_u, to_basis)
     hs = _truncate_hs(hs_complex)
     return hs
