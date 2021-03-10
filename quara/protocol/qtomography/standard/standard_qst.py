@@ -1,5 +1,5 @@
 import itertools
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -22,6 +22,7 @@ class StandardQst(StandardQTomography):
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
         seed: int = None,
+        schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         """Constructor
 
@@ -46,13 +47,20 @@ class StandardQst(StandardQTomography):
             the experiment is not valid.
         """
         # create Experiment
-        schedules = []
-        for index in range(len(povms)):
-            schedule = [("state", 0), ("povm", index)]
-            schedules.append(schedule)
+        if type(schedules) == str:
+            self._validate_schedules_str(schedules)
+        if schedules == "all":
+            schedules = []
+            for index in range(len(povms)):
+                schedule = [("state", 0), ("povm", index)]
+                schedules.append(schedule)
+
         experiment = Experiment(
             states=[None], gates=[], povms=povms, schedules=schedules, seed=seed
         )
+
+        self._validate_schedules(schedules)
+        self._schedules = schedules
 
         # create SetQOperations
         state = State(
@@ -88,6 +96,18 @@ class StandardQst(StandardQTomography):
         self._set_coeffs(experiment, on_para_eq_constraint, state.dim)
 
         self._on_para_eq_constraint = on_para_eq_constraint
+
+    def _validate_schedules(self, schedules):
+        for i, schedule in enumerate(schedules):
+            if schedule[0][0] != "state" or schedule[1][0] != "povm":
+                message = f"schedules[{i}] is invalid. "
+                message += 'Schedule of Qst must be in format as \'[("state", 0), ("povm", povm_index)]\', '
+                message += f"not '{schedule}'."
+                raise ValueError(message)
+            if schedule[0][1] != 0:
+                message = "schedules[{i}] is invalid."
+                message += f"State index of schedule in Qst must be 0: {schedule}"
+                raise ValueError(message)
 
     @property
     def on_para_eq_constraint(self):  # read only
@@ -193,7 +213,11 @@ class StandardQst(StandardQTomography):
             tmp_experiment.states[state_index] = state
 
         num_sums = [num_sum] * self._num_schedules
-
+        # TODO: remove
+        print("=======schedules=======")
+        for i, schedule in tmp_experiment.schedules:
+            print(f"{i}: {schedule}")
+        print("=====================")
         empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums])
 
         empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
@@ -224,6 +248,12 @@ class StandardQst(StandardQTomography):
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
+
+        # TODO: remove
+        print("=======schedules=======")
+        for i, schedule in tmp_experiment.schedules:
+            print(f"{i}: {schedule}")
+        print("=====================")
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
             list_num_sums_tmp
