@@ -69,6 +69,41 @@ def get_gate_names_2qubit_asymmetric() -> List[str]:
     return names
 
 
+def get_gate_names_1qutrit() -> List[str]:
+    """return the list of valid (implemented) gate names of 1-qutrit gates."""
+    names = []
+    # names.append(get_gate_names_1qutrit_single_gellmann())
+
+    return names
+
+
+def get_gate_names_1qutrit_single_gellmann() -> List[str]:
+    """return the list of valid (implemented) gate names of 1-qutrit single Gell-Mann gates."""
+    names = []
+    # angle = 90
+    names.append("01x90")
+    names.append("01y90")
+    names.append("01z90")
+    names.append("12x90")
+    names.append("12y90")
+    names.append("12z90")
+    names.append("02x90")
+    names.append("02y90")
+    names.append("02z90")
+    # angle = 180
+    names.append("01x180")
+    names.append("01y180")
+    names.append("01z180")
+    names.append("12x180")
+    names.append("12y180")
+    names.append("12z180")
+    names.append("02x180")
+    names.append("02y180")
+    names.append("02z180")
+
+    return names
+
+
 def _is_valid_dims_ids(dims: List[int], ids: List[int]) -> bool:
     res = True
 
@@ -1511,9 +1546,10 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> np.array:
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
 
-    # 1-qutrit
 
-    # Base of Hamiltonian
+# 1-qutrit
+
+# Base of Hamiltonian
 
 
 def calc_base_matrix_1qutrit(axis: str, levels: List[int]) -> np.array:
@@ -1631,3 +1667,26 @@ def get_base_matrices_1qutrit() -> Dict[Tuple[str, str], np.array]:
 
     d = dict(l)
     return d
+
+
+# gate_name -> {"levels", "axis", "angle"}
+def calc_levels_axis_angle_from_gate_name_1qutrit_single_gellmann(
+    gate_name: str,
+) -> Dict[str, str]:
+    """return dictionary object containing three information for specifying a 1-qutrit Gell-Mann gate.
+
+    Parameters
+    ----------
+    gate_name : str
+        A name of gate, e.g., "12x90".
+
+    Returns
+    ----------
+    Dict[str, str]
+        Example: {"levels": "12", "axis": "x", "angle": "90"}
+    """
+    levels = gate_name[0:2]
+    axis = gate_name[2]
+    angle = gate_name[3:]
+    res = {"levels": levels, "axis": axis, "angle": angle}
+    return res

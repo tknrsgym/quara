@@ -2,11 +2,19 @@ import math
 import numpy as np
 from typing import List, Union
 
+from quara.utils.matrix_util import (
+    is_hermitian,
+)
+from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
+    get_comp_basis,
     get_pauli_basis,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
+from quara.objects.gate import (
+    convert_hs,
+)
 from quara.objects.gate_typical import (
     _is_valid_dims_ids,
     _dim_total_from_dims,
@@ -16,12 +24,92 @@ from quara.objects.gate_typical import (
     get_gate_names_2qubit_asymmetric,
 )
 from quara.objects.effective_lindbladian import EffectiveLindbladian
+from quara.objects.effective_lindbladian import (
+    _truncate_hs,
+)
+
+
+def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h: np.array) -> np.array:
+    """return the HS matrix of an effective Lindbladian w.r.t. the computational basis from a given Hamiltonian.
+
+    Parameters
+    ----------
+    h : np.array((dim, dim), dtype=np.complex128)
+        A Hamiltonian, to be an Hermitian matrix.
+
+    Returns
+    ----------
+    np.array((dim^2, dim^2), dtype=np.complex128)
+        The HS matrix of an effective Lindbladian characterized by the Hamiltonian.
+    """
+    shape = h.shape
+    assert shape[0] == shape[1]
+    assert is_hermitian(h)
+
+    I = np.eye(shape[0], dtype=np.complex128)
+    L = -1j * np.kron(h, I) + 1j * np.kron(I, np.conjugate(h))
+    return L
+
+
+def calc_effective_lindbladian_mat_from_hamiltonian(
+    h: np.array, to_basis: MatrixBasis
+) -> np.array:
+    """return the HS matrix of an effective Lindbladian w.r.t. the given matrix basis from a given Hamiltonian.
+
+    Parameters
+    ----------
+    h : np.array((dim, dim), dtype=np.complex128)
+        A Hamiltonian, to be an Hermitian matrix.
+
+    bo_basis : MatrixBasis
+        An orthonormal matrix basis.
+
+    Returns
+    ----------
+    np.array((dim^2, dim^2), dtype=np.complex128)
+        The HS matrix of an effective Lindbladian characterized by the Hamiltonian.
+
+    """
+    shape = h.shape
+    dim = shape[0]
+    assert to_basis.dim == dim
+    assert to_basis.is_orthogonal() == True
+    assert to_basis.is_normal() == True
+
+    L_comp = calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h)
+    basis_comp = get_comp_basis(dim)
+    L = convert_hs(from_hs=L_comp, from_basis=basis_comp, to_basis=to_basis)
+    return L
+
+
+def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
+    h: np.array, to_basis: MatrixBasis
+) -> np.array:
+    """return the HS matrix of an effective Lindbladian w.r.t. the given Hermitian matrix basis from a given Hamiltonian.
+
+    Parameters
+    ----------
+    h : np.array((dim, dim), dtype=np.complex128)
+        A Hamiltonian, to be an Hermitian matrix.
+
+    bo_basis : MatrixBasis
+        An orthonormal Hermitian matrix basis.
+
+    Returns
+    ----------
+    np.array((dim^2, dim^2), dtype=np.float128)
+        The HS matrix of an effective Lindbladian characterized by the Hamiltonian.
+    """
+    assert to_basis.is_hermitian() == True
+    L_complex = calc_effective_lindbladian_mat_from_hamiltonian(h, to_basis)
+    L = _truncate_hs(L_complex)
+    return L
 
 
 def generate_hamiltonian_vec_from_gate_name(
     gate_name: str, dims: List[int] = [], ids: List[int] = []
 ) -> np.array:
-    """returns the vector representation of the Hamiltonian of a gate.
+    """return the vector representation of the Hamiltonian of a gate.
 
     Parameters
     ----------
