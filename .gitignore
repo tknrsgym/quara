@@ -141,3 +141,5 @@ docs/getting_started/
 
 # for debug
 debug.py
+quara/personal/
+.DS_Store

@@ -118,19 +118,43 @@ def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     return np.allclose(p_trace, identity, atol=atol, rtol=0.0)
 
 
-def trancate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64:
+def truncate_imaginary_part(matrix: np.ndarray, eps: float = None) -> np.float64:
+    """truncates the imaginary part of the matrix entries.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        matrix to truncate the imaginary part.
+    eps : float, optional
+        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.float64
+        truncated matrix.
+    """
     eps = Settings.get_atol() if eps is None else eps
 
-    if np.any(np.abs(matrix.imag) >= eps):
-        raise ValueError(f"some imaginary parts of entries of matrix >= eps")
-
-    trancated_mat = np.where(np.abs(matrix.imag) < eps, matrix.real, matrix)
-    return trancated_mat.real.astype(np.float64)
+    return np.where(np.abs(matrix.imag) < eps, matrix.real, matrix)
 
 
-def trancate_computational_fluctuation(
+def truncate_computational_fluctuation(
     matrix: np.ndarray, eps: float = None
 ) -> np.float64:
+    """truncates the computational fluctuation (real part) of the matrix entries.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        matrix to truncate the computational fluctuation.
+    eps : float, optional
+        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.float64
+        truncated matrix.
+    """
     eps = Settings.get_atol() if eps is None else eps
     return np.where(np.abs(matrix) < eps, 0.0, matrix)
 
