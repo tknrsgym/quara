@@ -237,26 +237,29 @@ class TestStandardQst:
         # Act
         qst = StandardQst(povms, on_para_eq_constraint=True)
         # Assert
-        assert len(qst._schedules) == 3
-        for i, actual in enumerate(qst._schedules):
+        actual = qst._experiment.schedules
+        assert len(actual) == 3
+        for i, a in enumerate(actual):
             expected = [("state", 0), ("povm", i)]
-            assert actual == expected
+            assert a == expected
 
         # Case 2:
         # Act
         qst = StandardQst(povms, on_para_eq_constraint=True, schedules="all")
         # Assert
-        assert len(qst._schedules) == 3
-        for i, actual in enumerate(qst._schedules):
+        actual = qst._experiment.schedules
+        assert len(actual) == 3
+        for i, a in enumerate(actual):
             expected = [("state", 0), ("povm", i)]
-            assert actual == expected
+            assert a == expected
 
         # Case 3:
         # Act
         schedules = [[("state", 0), ("povm", 2)], [("state", 0), ("povm", 1)]]
         qst = StandardQst(povms, on_para_eq_constraint=True, schedules=schedules)
         # Assert
-        assert qst._schedules == schedules
+        actual = qst._experiment.schedules
+        assert actual == schedules
 
         # Case 4:
         # Act
