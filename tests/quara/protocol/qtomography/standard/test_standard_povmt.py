@@ -33,7 +33,7 @@ class TestStandardPovmt:
 
         # Case 1: m = 2
         # Act
-        actual = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
+        actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=False)
         assert actual.num_variables == 4  # TODO
 
         # Assert
@@ -56,7 +56,7 @@ class TestStandardPovmt:
 
         # Case 1: m = 3
         # Act
-        actual = StandardPovmt(states, measurement_n=3, on_para_eq_constraint=False)
+        actual = StandardPovmt(states, num_outcomes=3, on_para_eq_constraint=False)
         assert actual.num_variables == 4  # TODO
 
         # Assert
@@ -98,7 +98,7 @@ class TestStandardPovmt:
 
         # Case 1: m = 2
         # Act
-        actual = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=True)
+        actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=True)
 
         # Assert
         assert actual.num_variables == 3  # TODO
@@ -122,7 +122,7 @@ class TestStandardPovmt:
 
         # Case 2: m = 3
         # Act
-        actual = StandardPovmt(states, measurement_n=3, on_para_eq_constraint=True)
+        actual = StandardPovmt(states, num_outcomes=3, on_para_eq_constraint=True)
 
         # Assert
         assert actual.num_variables == 3  # TODO
@@ -162,7 +162,7 @@ class TestStandardPovmt:
 
         # Act & Assert
         with pytest.raises(ValueError):
-            _ = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
+            _ = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=False)
 
     def test_estimation_object_type(self):
         # Array
@@ -181,7 +181,7 @@ class TestStandardPovmt:
 
         # Case 1: m = 2
         # Act
-        actual = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=True)
+        actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=True)
 
         # Act & Assert
         assert actual.estimation_object_type() == Povm
@@ -202,7 +202,7 @@ class TestStandardPovmt:
         states = [state_x0, state_y0, state_z0, state_z1]
 
         # Act
-        actual = StandardPovmt(states, measurement_n=2, on_para_eq_constraint=False)
+        actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=False)
         setting_info = actual.generate_empty_estimation_obj_with_setting_info()
 
         expected = np.array([0, 0, 0, 0, 0, 0, 0, 0])
@@ -232,9 +232,9 @@ class TestStandardPovmt:
         ### Case 1: on_par_eq_constraint = True
         # Arange
         true_object = Povm(vecs=[m1, m2], c_sys=c_sys, on_para_eq_constraint=True)
-        measurement_n = len(true_object.vecs)
+        num_outcomes = len(true_object.vecs)
         povmt = StandardPovmt(
-            tester_objects, measurement_n=measurement_n, on_para_eq_constraint=True
+            tester_objects, num_outcomes=num_outcomes, on_para_eq_constraint=True
         )
 
         # Act
@@ -248,9 +248,9 @@ class TestStandardPovmt:
         ### Case 2: on_par_eq_constraint = False
         # Arange
         true_object = Povm(vecs=[m1, m2], c_sys=c_sys, on_para_eq_constraint=False)
-        measurement_n = len(true_object.vecs)
+        num_outcomes = len(true_object.vecs)
         povmt = StandardPovmt(
-            tester_objects, measurement_n=measurement_n, on_para_eq_constraint=False
+            tester_objects, num_outcomes=num_outcomes, on_para_eq_constraint=False
         )
 
         # Act
@@ -284,9 +284,9 @@ class TestStandardPovmt:
         ### Case 1: on_par_eq_constraint = True
         # Arange
         true_object = Povm(vecs=[m1, m2], c_sys=c_sys, on_para_eq_constraint=True)
-        measurement_n = len(true_object.vecs)
+        num_outcomes = len(true_object.vecs)
         povmt = StandardPovmt(
-            tester_objects, measurement_n=measurement_n, on_para_eq_constraint=True
+            tester_objects, num_outcomes=num_outcomes, on_para_eq_constraint=True
         )
 
         # Act
@@ -300,9 +300,9 @@ class TestStandardPovmt:
         ### Case 2: on_par_eq_constraint = False
         # Arange
         true_object = Povm(vecs=[m1, m2], c_sys=c_sys, on_para_eq_constraint=False)
-        measurement_n = len(true_object.vecs)
+        num_outcomes = len(true_object.vecs)
         povmt = StandardPovmt(
-            tester_objects, measurement_n=measurement_n, on_para_eq_constraint=False
+            tester_objects, num_outcomes=num_outcomes, on_para_eq_constraint=False
         )
 
         # Act
@@ -336,9 +336,9 @@ class TestStandardPovmt:
         ### Case 1: on_par_eq_constraint = True
         # Arange
         true_object = Povm(vecs=[m1, m2], c_sys=c_sys, on_para_eq_constraint=True)
-        measurement_n = len(true_object.vecs)
+        num_outcomes = len(true_object.vecs)
         povmt = StandardPovmt(
-            tester_objects, measurement_n=measurement_n, on_para_eq_constraint=True
+            tester_objects, num_outcomes=num_outcomes, on_para_eq_constraint=True
         )
 
         # Act
@@ -352,9 +352,9 @@ class TestStandardPovmt:
         ### Case 2: on_par_eq_constraint = False
         # Arange
         true_object = Povm(vecs=[m1, m2], c_sys=c_sys, on_para_eq_constraint=False)
-        measurement_n = len(true_object.vecs)
+        num_outcomes = len(true_object.vecs)
         povmt = StandardPovmt(
-            tester_objects, measurement_n=measurement_n, on_para_eq_constraint=False
+            tester_objects, num_outcomes=num_outcomes, on_para_eq_constraint=False
         )
 
         # Act
@@ -382,7 +382,7 @@ class TestStandardPovmt:
 
         # Act
         povmt = StandardPovmt(
-            tester_objects, on_para_eq_constraint=True, measurement_n=2
+            tester_objects, on_para_eq_constraint=True, num_outcomes=2
         )
         # Assert
         actual = povmt._experiment._schedules
@@ -394,7 +394,7 @@ class TestStandardPovmt:
         # Case 2:
         # Act
         povmt = StandardPovmt(
-            tester_objects, on_para_eq_constraint=True, measurement_n=2, schedules="all"
+            tester_objects, on_para_eq_constraint=True, num_outcomes=2, schedules="all"
         )
         # Assert
         actual = povmt._experiment._schedules
@@ -409,7 +409,7 @@ class TestStandardPovmt:
         povmt = StandardPovmt(
             tester_objects,
             on_para_eq_constraint=True,
-            measurement_n=2,
+            num_outcomes=2,
             schedules=schedules,
         )
         # Assert
@@ -423,6 +423,6 @@ class TestStandardPovmt:
             _ = StandardPovmt(
                 tester_objects,
                 on_para_eq_constraint=True,
-                measurement_n=2,
+                num_outcomes=2,
                 schedules=invalid_schedules,
             )
