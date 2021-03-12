@@ -656,12 +656,12 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     figs = []
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_for_povm(estimated_povms)
-    measurement_n = len(estimated_povms[0].vecs)
+    num_outcomes = estimated_povms[0].num_outcomes
 
     n_unphysical = calc_unphysical_qobjects_n(estimated_povms)
 
     xaxis_title_text = f"Sum of negative eigenvalues (<0)"
-    for x_i in range(measurement_n):
+    for x_i in range(num_outcomes):
         value_list = []
         if x_i in minus_eigenvalues_dict:
             value_list = minus_eigenvalues_dict[x_i]
