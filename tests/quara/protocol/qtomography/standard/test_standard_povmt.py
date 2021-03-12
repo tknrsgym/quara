@@ -365,3 +365,64 @@ class TestStandardPovmt:
 
         # Assert
         npt.assert_almost_equal(actual, 0.07999999984703485, decimal=11)
+
+    def test_validate_schedules(self):
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # |+><+|
+        state_x0 = get_x0_1q(c_sys)
+        # |+i><+i|
+        state_y0 = get_y0_1q(c_sys)
+        # |0><0|
+        state_z0 = get_z0_1q(c_sys)
+        # |1><1|
+        state_z1 = get_z1_1q(c_sys)
+        tester_objects = [state_x0, state_y0, state_z0, state_z1]
+
+        # Act
+        povmt = StandardPovmt(
+            tester_objects, on_para_eq_constraint=True, measurement_n=2
+        )
+        # Assert
+        actual = povmt._experiment._schedules
+        assert len(actual) == 4
+        for i, a in enumerate(actual):
+            expected = [("state", i), ("povm", 0)]
+            assert a == expected
+
+        # Case 2:
+        # Act
+        povmt = StandardPovmt(
+            tester_objects, on_para_eq_constraint=True, measurement_n=2, schedules="all"
+        )
+        # Assert
+        actual = povmt._experiment._schedules
+        assert len(actual) == 4
+        for i, a in enumerate(actual):
+            expected = [("state", i), ("povm", 0)]
+            assert a == expected
+
+        # Case 3:
+        # Act
+        schedules = [[("state", 2), ("povm", 0)], [("state", 1), ("povm", 0)]]
+        povmt = StandardPovmt(
+            tester_objects,
+            on_para_eq_constraint=True,
+            measurement_n=2,
+            schedules=schedules,
+        )
+        # Assert
+        actual = povmt._experiment._schedules
+        assert actual == schedules
+
+        # Case 4:
+        # Act
+        invalid_schedules = "invalid str"
+        with pytest.raises(ValueError):
+            _ = StandardPovmt(
+                tester_objects,
+                on_para_eq_constraint=True,
+                measurement_n=2,
+                schedules=invalid_schedules,
+            )

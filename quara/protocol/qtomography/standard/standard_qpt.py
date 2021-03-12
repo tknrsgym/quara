@@ -1,5 +1,6 @@
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
-from typing import List, Tuple
+from typing import List, Tuple, Union
+from itertools import product
 
 import numpy as np
 
@@ -25,16 +26,20 @@ class StandardQpt(StandardQTomography):
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
         seed: int = None,
+        schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         # Make Experment with states
-        schedules = []
-        for i, _ in enumerate(states):
-            for j, _ in enumerate(povms):
+        if type(schedules) == str:
+            self._validate_schedules_str(schedules)
+        if schedules == "all":
+            schedules = []
+            for i, j in product(range(len(states)), range(len(povms))):
                 schedules.append([("state", i), ("gate", 0), ("povm", j)])
 
         experiment = Experiment(
             states=states, gates=[None], povms=povms, schedules=schedules, seed=seed
         )
+        self._validate_schedules(schedules)
 
         # Make SetQOperation
         size = states[0].dim ** 2
@@ -69,6 +74,22 @@ class StandardQpt(StandardQTomography):
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
         self._on_para_eq_constraint = on_para_eq_constraint
+
+    def _validate_schedules(self, schedules):
+        for i, schedule in enumerate(schedules):
+            if (
+                schedule[0][0] != "state"
+                or schedule[1][0] != "gate"
+                or schedule[2][0] != "povm"
+            ):
+                message = f"schedules[{i}] is invalid. "
+                message += 'Schedule of Qpt must be in format as \'[("state", state_index), ("gate", 0), ("povm", povm_index)]\', '
+                message += f"not '{schedule}'."
+                raise ValueError(message)
+            if schedule[1][1] != 0:
+                message = f"schedules[{i}] is invalid."
+                message += f"Gate index of schedule in Qpt must be 0: {schedule}"
+                raise ValueError(message)
 
     @property
     def on_para_eq_constraint(self):  # read only
@@ -106,7 +127,11 @@ class StandardQpt(StandardQTomography):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.gates[target_index] = gate
 
-
+        # TODO: remove
+        print("=======schedules=======")
+        for i, schedule in enumerate(tmp_experiment.schedules):
+            print(f"{i}: {schedule}")
+        print("=====================")
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
             list_num_sums_tmp

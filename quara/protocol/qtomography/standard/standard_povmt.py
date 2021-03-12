@@ -24,12 +24,18 @@ class StandardPovmt(StandardQTomography):
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
         seed: int = None,
+        schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         # Make Experment with states
-        schedules = [[("state", i), ("povm", 0)] for i in range(len(states))]
+        if type(schedules) == str:
+            self._validate_schedules_str(schedules)
+        if schedules == "all":
+            schedules = [[("state", i), ("povm", 0)] for i in range(len(states))]
+
         experiment = Experiment(
             states=states, gates=[], povms=[None], schedules=schedules, seed=seed
         )
+        self._validate_schedules(schedules)
 
         # Make SetQOperation
         # povmsはPovmを一つだけ持つ。
@@ -72,6 +78,18 @@ class StandardPovmt(StandardQTomography):
         # calc and set coeff0s, coeff1s, matA and vecB
         self._set_coeffs(experiment, on_para_eq_constraint)
         self._on_para_eq_constraint = on_para_eq_constraint
+
+    def _validate_schedules(self, schedules):
+        for i, schedule in enumerate(schedules):
+            if schedule[0][0] != "state" or schedule[1][0] != "povm":
+                message = f"schedules[{i}] is invalid. "
+                message += 'Schedule of Povmt must be in format as \'[("state", 0), ("povm", povm_index)]\', '
+                message += f"not '{schedule}'."
+                raise ValueError(message)
+            if schedule[1][1] != 0:
+                message = f"schedules[{i}] is invalid."
+                message += f"Povm index of schedule in Povmt must be 0: {schedule}"
+                raise ValueError(message)
 
     @property
     def on_para_eq_constraint(self):  # read only

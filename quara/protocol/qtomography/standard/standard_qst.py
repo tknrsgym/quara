@@ -50,17 +50,13 @@ class StandardQst(StandardQTomography):
         if type(schedules) == str:
             self._validate_schedules_str(schedules)
         if schedules == "all":
-            schedules = []
-            for index in range(len(povms)):
-                schedule = [("state", 0), ("povm", index)]
-                schedules.append(schedule)
+            schedules = [[("state", 0), ("povm", i)] for i in range(len(povms))]
 
         experiment = Experiment(
             states=[None], gates=[], povms=povms, schedules=schedules, seed=seed
         )
 
         self._validate_schedules(schedules)
-        self._schedules = schedules
 
         # create SetQOperations
         state = State(
@@ -105,7 +101,7 @@ class StandardQst(StandardQTomography):
                 message += f"not '{schedule}'."
                 raise ValueError(message)
             if schedule[0][1] != 0:
-                message = "schedules[{i}] is invalid."
+                message = f"schedules[{i}] is invalid."
                 message += f"State index of schedule in Qst must be 0: {schedule}"
                 raise ValueError(message)
 
