@@ -18,7 +18,7 @@ class StandardPovmt(StandardQTomography):
     def __init__(
         self,
         states: List[State],
-        measurement_n: int,
+        num_outcomes: int,
         is_physicality_required: bool = False,
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
@@ -41,10 +41,10 @@ class StandardPovmt(StandardQTomography):
         # povmsはPovmを一つだけ持つ。
         # そのPovmはStateと同じcomposite systemを持ち、vec以外の値は引数の設定を代入する。
         # gates, states, mprocessesの長さは0.
-        self._measurement_n = measurement_n
+        self._num_outcomes = num_outcomes
         vecs = [
             np.zeros(states[0].vec.shape, dtype=np.float64)
-            for _ in range(self._measurement_n)
+            for _ in range(self._num_outcomes)
         ]
         povm = Povm(
             c_sys=states[0].composite_system,
@@ -116,7 +116,7 @@ class StandardPovmt(StandardQTomography):
         state = self._experiment.states[state_index]
         squared_dim = state.vec.shape[0]
         I = np.eye(squared_dim, dtype=np.float64)
-        I_list = [I for _ in range(self._measurement_n - 1)]
+        I_list = [I for _ in range(self._num_outcomes - 1)]
         matS = np.hstack(I_list)
 
         return matS
@@ -194,7 +194,7 @@ class StandardPovmt(StandardQTomography):
         self._coeffs_0th = dict()  # b
         self._coeffs_1st = dict()  # α
         STATE_ITEM_INDEX = 0
-        m = self._measurement_n
+        m = self._num_outcomes
 
         # Create C
         c_list = []
