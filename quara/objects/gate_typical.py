@@ -257,9 +257,16 @@ def generate_gate_from_gate_name(
         gate = method(c_sys)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
-        gate = method()
+        gate = method(c_sys)
     # 2-qubit gate
+    elif gate_name in get_gate_names_2qubit():
+        if gate_name in get_gate_names_2qubit_asymmetric():
+            gate = method(c_sys, ids)
+        else:
+            gate = method(c_sys)
     # 3-qubit gate
+    # 1-qutrit gate
+    # 2-qutrit gate
     else:
         raise ValueError(f"gate_name is out of range.")
 
