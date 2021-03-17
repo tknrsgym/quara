@@ -17,10 +17,14 @@ from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
+    get_gate_names_1qutrit_single_gellmann,
     generate_unitary_mat_from_gate_name,
     calc_gate_mat_from_unitary_mat,
     calc_gate_mat_from_unitary_mat_with_hermitian_basis,
     generate_gate_mat_from_gate_name,
+)
+from quara.objects.effective_lindbladian_typical import (
+    generate_gate_1qutrit_single_gellmann_effective_linabladian,
 )
 
 
@@ -108,3 +112,18 @@ def test_gate_2qubit_case01(gate_name: str, decimal: int):
         _test_gate(
             gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
         )
+
+
+@pytest.mark.onequtrit
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qutrit_single_gellmann()],
+)
+def test_gate_1qutrit_case01(gate_name: str):
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())
+    c_sys = CompositeSystem([e_sys])
+    dims = [3]
+    ids = []
+    print("gate_name=", gate_name)
+    _test_gate(gate_name, dims, ids, c_sys)
