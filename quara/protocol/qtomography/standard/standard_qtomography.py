@@ -407,6 +407,17 @@ class StandardQTomography(QTomography):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             getattr(tmp_experiment, attribute_name)[target_index] = true_object
 
+        # TODO: remove
+        print("=======schedules=======")
+        for i, schedule in tmp_experiment.schedules:
+            print(f"{i}: {schedule}")
+        print("=====================")
         prob_dists_sequence_tmp = tmp_experiment.calc_prob_dists()
 
         return prob_dists_sequence_tmp
+
+    def _validate_schedules_str(self, schedules: str) -> None:
+        supported_schedule_strs = ["all"]
+        if schedules not in supported_schedule_strs:
+            message = f"The string specified in schedules must be one of the following, not '{schedules}': {supported_schedule_strs}"
+            raise ValueError(message)

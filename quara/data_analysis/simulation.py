@@ -1,16 +1,19 @@
-from typing import List
+from typing import List, Union
 import copy
+from collections import Counter
 
 
 class StandardQTomographySimulationSetting:
     def __init__(
         self,
         name: str,
-        true_object,
-        tester_objects,
+        true_object: "QOperation",
+        tester_objects: List["QOperation"],
         estimator: "Estimator",
         seed: int,
         n_rep: int,
+        num_data: List[int],
+        schedules: Union[str, List[List[int]]],
         loss=None,
         loss_option=None,
         algo=None,
@@ -27,11 +30,21 @@ class StandardQTomographySimulationSetting:
 
         self.seed = seed
         self.n_rep = n_rep
+        self.num_data = num_data
+
+        self.schedules = schedules
 
     def __str__(self):
         desc = f"Name: {self.name}"
         desc += f"\nTrue Object: {self.true_object}"
-        # TODO: add tester_object info
+
+        counter = Counter([t.__class__.__name__ for t in self.tester_objects])
+        desc += "\nTester Objects" + ", ".join(
+            [f"{k} x {v}" for k, v in counter.items()]
+        )
+
+        desc += f"\nn_rep: {self.n_rep}"
+        desc += f"\nnum_data: {self.num_data}"
         desc += f"\nEstimator: {self.estimator.__class__.__name__}"
         loss = None if self.loss is None else self.loss.__class__.__name__
         desc += f"\nLoss: {loss}"
