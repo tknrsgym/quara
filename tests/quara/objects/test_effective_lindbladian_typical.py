@@ -10,8 +10,8 @@ from quara.math.matrix import (
 )
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis
-from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
+from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.effective_lindbladian import (
@@ -282,31 +282,12 @@ def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case03(
                 ]
             ),
         ),
-        # (
-        #    [2, 2, 2],
-        #    CompositeSystem(
-        #        [
-        #            ElementalSystem(0, matrix_basis.get_normalized_pauli_basis()),
-        #            ElementalSystem(1, matrix_basis.get_normalized_pauli_basis()),
-        #            ElementalSystem(2, matrix_basis.get_normalized_pauli_basis()),
-        #        ]
-        #    ),
-        # ),
         (
             [3],
             CompositeSystem(
                 [ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())]
             ),
         ),
-        # (
-        #    [3, 3],
-        #    CompositeSystem(
-        #        [
-        #            ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis()),
-        #            ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis()),
-        #        ]
-        #    ),
-        # ),
         (
             [4],
             CompositeSystem(
@@ -405,31 +386,12 @@ def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case03(
                 ]
             ),
         ),
-        # (
-        #    [2, 2, 2],
-        #    CompositeSystem(
-        #        [
-        #            ElementalSystem(0, matrix_basis.get_normalized_pauli_basis()),
-        #            ElementalSystem(1, matrix_basis.get_normalized_pauli_basis()),
-        #            ElementalSystem(2, matrix_basis.get_normalized_pauli_basis()),
-        #        ]
-        #    ),
-        # ),
         (
             [3],
             CompositeSystem(
                 [ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())]
             ),
         ),
-        # (
-        #    [3, 3],
-        #    CompositeSystem(
-        #        [
-        #            ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis()),
-        #            ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis()),
-        #        ]
-        #    ),
-        # ),
         (
             [4],
             CompositeSystem(
@@ -469,15 +431,6 @@ def test_effective_lindladian_mat_gate_mat_identity_gate_case01(
                 ]
             ),
         ),
-        # (
-        #    [3, 3],
-        #    CompositeSystem(
-        #        [
-        #            ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis()),
-        #            ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis()),
-        #        ]
-        #    ),
-        # ),
     ],
 )
 def test_effective_lindladian_mat_gate_mat_identity_gate_case02(
@@ -582,15 +535,6 @@ def test_generate_effective_lindbladian_from_h_identity_gate_case01(
                 ]
             ),
         ),
-        # (
-        #    [3, 3],
-        #    CompositeSystem(
-        #        [
-        #            ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis()),
-        #            ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis()),
-        #        ]
-        #    ),
-        # ),
     ],
 )
 def test_generate_effective_lindbladian_from_h_identity_gate_case02(
