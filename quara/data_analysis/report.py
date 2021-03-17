@@ -1215,12 +1215,6 @@ def export_report(
         List containing a list of estimated results for each simulation.
     simulation_settings : List[StandardQTomographySimulationSetting]
         Settings for each simulation.
-    true_object : QOperation
-        True object
-    tester_objects : List[
-        Tester object. If there are more than one kind of QOperation, pass them in concatenation.
-    seed : Optional[int], optional
-        seed value, by default None
     keep_tmp_files : bool, optional
         [description], by default False
     show_physicality_violation_check : bool, optional
