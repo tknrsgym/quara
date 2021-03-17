@@ -19,9 +19,6 @@ from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
 )
-from quara.objects.composite_system import CompositeSystem
-from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.qoperation import QOperation
@@ -35,6 +32,7 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimationResult,
 )
 from quara.utils import matrix_util
+from quara.data_analysis.simulation import StandardQTomographySimulationSetting
 
 
 def calc_mse_general_norm(
@@ -246,6 +244,25 @@ def _estimate(
             qtomography, empi_dists_seq, is_computation_time_required=True,
         )
     return result
+
+
+# common
+def execute_simulation(
+    qtomography: "StandardQTomography",
+    simulation_setting: StandardQTomographySimulationSetting,
+) -> List[StandardQTomographyEstimationResult]:
+    estimation_results = estimate(
+        qtomography=qtomography,
+        true_object=simulation_setting.true_object,
+        num_data=simulation_setting.num_data,
+        estimator=simulation_setting.estimator,
+        loss=simulation_setting.loss,
+        loss_option=simulation_setting.loss_option,
+        algo=simulation_setting.algo,
+        algo_option=simulation_setting.algo_option,
+        iteration=simulation_setting.n_rep,
+    )
+    return estimation_results
 
 
 # common

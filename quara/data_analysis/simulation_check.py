@@ -1,6 +1,8 @@
 from typing import List, Union
 import warnings
 
+import numpy as np
+
 from quara.data_analysis import simulation
 from quara.data_analysis import physicality_violation_check
 
@@ -30,65 +32,95 @@ class StandardQTomographySimulationCheck:
         self.simulation_setting = simulation_setting
         self.estimation_results = estimation_results
 
+    def _print_summary(self, results) -> None:
+        start_red = "\033[31m"
+        start_green = "\033[32m"
+        start_yellow_bg = "\033[43m"
+        end_color = "\033[0m"
+        ok_text = f"{start_green}OK{end_color}"
+        ng_text = f"{start_red}NG{end_color}"
+
+        text_lines = ""
+        for result_dict in results:
+            name = result_dict["name"]
+            result = result_dict["result"]
+
+            if name == "Consistency":
+                detail = result_dict["detail"]
+                to_be_checked_text = f"to_be_checked={detail['to_be_checked']}"
+                if detail["to_be_checked"]:
+                    to_be_checked_text = (
+                        f"{start_yellow_bg}{to_be_checked_text}{end_color}"
+                    )
+                text_lines += f"{name}: {ok_text if detail['possibly_ok'] else ng_text} ({to_be_checked_text})\n"
+            else:
+                text_lines += f"{name}: {ok_text if result else ng_text}\n"
+
+        summary = "========== Summary ============\n"
+        summary += f"Name: {self.simulation_setting.name}\n"
+        summary += text_lines
+        summary += "==============================="
+        print(summary)
+
     def execute_all(
         self,
         consistency_check_eps: float = None,
         show_summary: bool = True,
         show_detail: bool = True,
-    ) -> bool:
+        with_detail: bool = False,
+    ) -> Union[bool, dict]:
         results = []
-        test_names = []
+
+        def _to_result_dict(name: str, result: bool, detail: dict = None) -> dict:
+            result_dict = {}
+            result_dict["name"] = name
+            result_dict["result"] = result
+            result_dict["detail"] = detail
+            return result_dict
 
         # MSE of Empirical Distributions
-        test_names.append("MSE of Empirical Distributions")
+        name = "MSE of Empirical Distributions"
         result = self.execute_mse_of_empirical_distribution_check(
             show_detail=show_detail
         )
-        results.append(result)
+        results.append(_to_result_dict(name, result))
 
         # Consistency
-        test_names.append("Consistency")
+        name = "Consistency"
         result = self.execute_consistency_check(
             eps=consistency_check_eps, show_detail=show_detail, mode="both"
         )
-        results.append(result)
+        detail = result
+        result = not detail["to_be_checked"]
+        results.append(_to_result_dict(name, result, detail))
 
         # MSE of estimators
-        test_names.append("MSE of estimators")
+        name = "MSE of estimators"
         result = self.execute_mse_of_estimators_check(show_detail=show_detail)
-        results.append(result)
+        results.append(_to_result_dict(name, result))
 
         # Pysicality Violation
-        test_names.append("Physicality Violation")
-        result = self.execute_physicality_violation_check()
-        results.append(result)
+        name = "Physicality Violation"
+        result = self.execute_physicality_violation_check(show_detail=show_detail)
+        results.append(_to_result_dict(name, result))
+
+        total_result = np.all([r["result"] for r in results])
+        # numpy.bool_ -> bool to serialize to json
+        total_result = bool(total_result)
+        all_result_dict = {
+            "name": self.simulation_setting.name,
+            "total_result": total_result,
+            "results": results,
+        }
 
         # Show summary
         if show_summary:
-            start_red = "\033[31m"
-            start_green = "\033[32m"
-            start_yellow_bg = "\033[43m"
-            end_color = "\033[0m"
-            ok_text = f"{start_green}OK{end_color}"
-            ng_text = f"{start_red}NG{end_color}"
+            self._print_summary(results)
 
-            text_lines = ""
-            for name, result in zip(test_names, results):
-                if name == "Consistency":
-                    to_be_checked_text = f"{start_yellow_bg}to_be_checked=True{end_color}" if result['to_be_checked'] else "to_be_checked=False"
-                    text_lines += f"{name}: {ok_text if result['possibly_ok'] else ng_text} ({to_be_checked_text})\n"
-                else:
-                    text_lines += f"{name}: {ok_text if result else ng_text}\n"
-
-            summary = "========== Summary ============\n"
-            summary += f"Name: {self.simulation_setting.name}\n"
-            summary += text_lines
-            print(summary)
-
-        if False in results:
-            return False
+        if with_detail:
+            return all_result_dict
         else:
-            return True
+            return all_result_dict["total_result"]
 
     def execute_mse_of_empirical_distribution_check(
         self, show_detail: bool = True

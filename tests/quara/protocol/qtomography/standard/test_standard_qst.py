@@ -224,3 +224,59 @@ class TestStandardQst:
         expected = np.array([0, 0, 0, 0])
         npt.assert_almost_equal(setting_info.to_stacked_vector(), expected, decimal=15)
         assert setting_info.on_para_eq_constraint == False
+
+    def test_validate_schedules(self):
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        povm_x = get_x_povm(c_sys)
+        povm_y = get_y_povm(c_sys)
+        povm_z = get_z_povm(c_sys)
+        povms = [povm_x, povm_y, povm_z]
+
+        # Act
+        qst = StandardQst(povms, on_para_eq_constraint=True)
+        # Assert
+        actual = qst._experiment.schedules
+        assert len(actual) == 3
+        for i, a in enumerate(actual):
+            expected = [("state", 0), ("povm", i)]
+            assert a == expected
+
+        # Case 2:
+        # Act
+        qst = StandardQst(povms, on_para_eq_constraint=True, schedules="all")
+        # Assert
+        actual = qst._experiment.schedules
+        assert len(actual) == 3
+        for i, a in enumerate(actual):
+            expected = [("state", 0), ("povm", i)]
+            assert a == expected
+
+        # Case 3:
+        # Act
+        schedules = [[("state", 0), ("povm", 2)], [("state", 0), ("povm", 1)]]
+        qst = StandardQst(povms, on_para_eq_constraint=True, schedules=schedules)
+        # Assert
+        actual = qst._experiment.schedules
+        assert actual == schedules
+
+        # Case 4:
+        # Act
+        invalid_schedules = "invalid str"
+        with pytest.raises(ValueError):
+            _ = StandardQst(
+                povms, on_para_eq_constraint=True, schedules=invalid_schedules
+            )
+
+        # Case 5:
+        # invalid_schedules = [[("state", 0), ("gate", 0), ("povm", 2)], [("state", 0), ("gate", 0), ("povm", 1)]]
+        # with pytest.raises(ValueError):
+        #     _ = StandardQst(
+        #         povms, on_para_eq_constraint=True, schedules=invalid_schedules
+        #     )
+
+        # Case 6:
+        # invalid_schedules = [[("state", 0), ("gate": 0), ("povm", 2)], [("state", 1), ("povm", 1)]]
+        # with pytest.raises(ValueError):
+        #     _ = StandardQst(povms, on_para_eq_constraint=True, schedules=invalid_schedules)
