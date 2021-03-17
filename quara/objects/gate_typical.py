@@ -10,12 +10,8 @@ from quara.objects.matrix_basis import (
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
-from quara.objects.gate import (
-    convert_hs,
-)
-from quara.objects.effective_lindbladian import (
-    _truncate_hs,
-)
+from quara.objects.gate import convert_hs
+from quara.objects.effective_lindbladian import _truncate_hs
 
 
 def get_gate_names() -> List[str]:
@@ -1291,8 +1287,7 @@ def generate_gate_cz_unitary_mat() -> np.array:
         The unitary matrix, which is a complex matrix.
     """
     mat = np.array(
-        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
-        dtype=np.complex128,
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.complex128,
     )
 
     return mat
@@ -1352,8 +1347,7 @@ def generate_gate_swap_unitary_mat() -> np.array:
         The unitary matrix, which is a complex matrix.
     """
     mat = np.array(
-        [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]],
-        dtype=np.complex128,
+        [[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], dtype=np.complex128,
     )
 
     return mat
