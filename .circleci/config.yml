@@ -24,7 +24,7 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            pytest -rfs -m "not matlab_dependent" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
   test-3.7:
