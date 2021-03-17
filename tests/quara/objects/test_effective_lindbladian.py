@@ -9,8 +9,8 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, convert_hs
-from quara.objects import effective_lindbladian as el
 from quara.objects.effective_lindbladian import EffectiveLindbladian
+from quara.objects import effective_lindbladian as el
 from quara.objects.operators import composite, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
 from quara.settings import Settings
@@ -701,67 +701,3 @@ def test_generate_k_part_gb_from_jump_operators():
         [[2, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 0]], dtype=np.float64,
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
-
-
-def test_generate_d_part_cb_from_jump_operators():
-    # Arrange
-    c0 = np.array([[0, 1], [0, 0]])
-    c1 = np.array([[0, 0], [1, 0]])
-    c2 = np.array([[1, 0], [0, -1]])
-    jump_operators = [c0, c1, c2]
-
-    # Act
-    actual = el.generate_d_part_cb_from_jump_operators(jump_operators)
-
-    # Assert
-    expected = np.array(
-        [
-            [0, -1 / 2, -1 / 2, 1],
-            [-1 / 2, -1, 0, -1 / 2],
-            [-1 / 2, 0, -1, -1 / 2],
-            [1, -1 / 2, -1 / 2, 2],
-        ],
-        dtype=np.complex128,
-    )
-    npt.assert_almost_equal(actual, expected, decimal=15)
-
-
-def test_generate_d_part_gb_from_jump_operators():
-    # Arrange
-    basis = matrix_basis.get_normalized_pauli_basis()
-    c0 = np.array([[0, 1], [0, 0]])
-    c1 = np.array([[0, 0], [1, 0]])
-    c2 = np.array([[1, 0], [0, -1]])
-    jump_operators = [c0, c1, c2]
-
-    # Act
-    actual = el.generate_d_part_gb_from_jump_operators(jump_operators, basis)
-
-    # Assert
-    expected = np.array(
-        [[2, -1, 0, -1], [-1, -1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0]],
-        dtype=np.float64,
-    )
-    npt.assert_almost_equal(actual, expected, decimal=15)
-
-
-def test_generate_effective_lindbladian_from_jump_operators():
-    # Arrange
-    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
-    c_sys = CompositeSystem([e_sys])
-    c0 = np.array([[0, 1], [0, 0]])
-    c1 = np.array([[0, 0], [1, 0]])
-    c2 = np.array([[1, 0], [0, -1]])
-    jump_operators = [c0, c1, c2]
-
-    # Act
-    actual = el.generate_effective_lindbladian_from_jump_operators(
-        c_sys, jump_operators, is_physicality_required=False
-    )
-
-    # Assert
-    expected = np.array(
-        [[2, -1, 0, -1], [-1, -1, 0, 0], [0, 0, -1, 0], [-1, 0, 0, 0]],
-        dtype=np.float64,
-    )
-    npt.assert_almost_equal(actual.hs, expected, decimal=15)

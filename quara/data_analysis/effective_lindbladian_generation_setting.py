@@ -12,6 +12,22 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         qoperation_base: Union[QOperation, str],
         lindbladian_base: Union[EffectiveLindbladian, str],
     ) -> None:
+        """Constructor
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem.
+        qoperation_base : Union[QOperation, str]
+            QOperation base of the random effective Lindbladian.
+        lindbladian_base : Union[EffectiveLindbladian, str]
+            effective Lindbladian base of the random effective Lindbladian.
+
+        Raises
+        ------
+        TypeError
+            If the type of argument `lindbladian_base` is not EffectiveLindbladian or str.
+        """
         super().__init__(c_sys, qoperation_base)
 
         if isinstance(lindbladian_base, EffectiveLindbladian):
@@ -20,9 +36,16 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
             # TODO
             raise NotImplementedError()
         else:
-            message = f"`lindbladian_base` must be EffectiveLindbladian or str, not {type(lindbladian_base)}"
+            message = f"type of `lindbladian_base` must be EffectiveLindbladian or str, type of `lindbladian_base` is {type(lindbladian_base)}"
             raise TypeError(message)
 
     @property
     def lindbladian_base(self) -> EffectiveLindbladian:
+        """returns effective Lindbladian base of the random effective Lindbladian.
+
+        Returns
+        -------
+        EffectiveLindbladian
+            effective Lindbladian base of the random effective Lindbladian.
+        """
         return self._lindbladian_base

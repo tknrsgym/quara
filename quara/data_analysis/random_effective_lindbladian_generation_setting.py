@@ -4,15 +4,20 @@ from operator import add
 from typing import Tuple, Union
 
 import numpy as np
+from scipy.stats import unitary_group
 
 from quara.data_analysis.effective_lindbladian_generation_setting import (
     EffectiveLindbladianGenerationSetting,
 )
 from quara.objects.effective_lindbladian import (
     EffectiveLindbladian,
-    generate_effective_lindbladian_from_h,
+    _calc_h_part_from_h_mat,
+    _calc_k_part_from_k_mat,
+    _calc_j_mat_from_k_mat,
+    _calc_j_part_from_j_mat,
+    _truncate_hs,
 )
-from quara.objects.gate import Gate
+from quara.objects.gate import Gate, convert_hs
 from quara.objects.operators import composite
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
@@ -30,105 +35,263 @@ class RandomEffectiveLindbladianGenerationSetting(
         strength_h_part: float,
         strength_k_part: float,
     ) -> None:
+        """Constructor
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem.
+        qoperation_base : Union[QOperation, str]
+            QOperation base of the random effective Lindbladian.
+        lindbladian_base : Union[EffectiveLindbladian, str]
+            effective Lindbladian base of the random effective Lindbladian.
+        strength_h_part : float
+            the strength of random variables for generating h part.
+        strength_k_part : float
+            the strength of random variables for generating k part.
+
+        Raises
+        ------
+        ValueError
+            strength_h_part is not non-negative number.
+        ValueError
+            strength_k_part is not non-negative number.
+        """
+        # validation
+        if strength_h_part < 0:
+            raise ValueError(
+                f"strength_h_part must be non-negative number. strength_h_part is {strength_h_part}"
+            )
+        if strength_k_part < 0:
+            raise ValueError(
+                f"strength_k_part must be non-negative number. strength_k_part is {strength_k_part}"
+            )
+
         super().__init__(c_sys, qoperation_base, lindbladian_base)
         self._strength_h_part = strength_h_part
         self._strength_k_part = strength_k_part
 
     @property
     def strength_h_part(self) -> float:
+        """returns the strength of random variables for generating h part.
+
+        Returns
+        -------
+        float
+            the strength of random variables for generating h part.
+        """
         return self._strength_h_part
 
     @property
     def strength_k_part(self) -> float:
+        """returns the strength of random variables for generating k part.
+
+        Returns
+        -------
+        float
+            the strength of random variables for generating k part.
+        """
         return self._strength_k_part
 
     def _generate_random_variables(self, strength: float):
         dim = self.composite_system.dim
         random_variables = np.random.randn(dim ** 2 - 1)
         normalized_factor = 1 / np.sqrt(np.sum(random_variables ** 2))
-        random_variables = strength * normalized_factor * random_variables
-        return random_variables
+        random_vector = strength * normalized_factor * random_variables
+        return random_vector, random_variables
 
-    def generate_random_effective_lindbladian_h_part(self) -> EffectiveLindbladian:
+    def generate_random_effective_lindbladian_h_part(self) -> Tuple[np.array, np.array]:
+        """generates random HS matrix on computational basis of h part of effective Lindbladian.
+
+        Returns
+        -------
+        Tuple[np.array, np.array]
+            tuple of random HS matrix and ramdom variables.
+        """
         # generate randum variables
-        random_variables = self._generate_random_variables(self.strength_h_part)
+        random_vector, random_variables = self._generate_random_variables(
+            self.strength_h_part
+        )
 
-        # generate EffectiveLindbladian
+        # calc random h mat
         basis = self.composite_system.basis()
         terms = []
-        for index, h_alpha in enumerate(random_variables):
+        for index, h_alpha in enumerate(random_vector):
             terms.append(h_alpha * basis[index + 1])
+        random_h_mat = reduce(add, terms)
 
-        delta_h_mat = reduce(add, terms)
-        random_el = generate_effective_lindbladian_from_h(
-            self.composite_system, delta_h_mat, is_physicality_required=False
+        # calc random h part
+        random_h_part_cb = _calc_h_part_from_h_mat(random_h_mat)
+
+        return random_h_part_cb, random_variables
+
+    def generate_random_effective_lindbladian_d_part(
+        self,
+    ) -> Tuple[np.array, np.array, np.array]:
+        """generates random HS matrix on computational basis of d part of effective Lindbladian.
+
+        Returns
+        -------
+        Tuple[np.array, np.array, np.array]
+            tuple of random HS matrix, ramdom variables and random unitary matrix.
+        """
+        # generate randum variables
+        random_vector, random_variables = self._generate_random_variables(
+            self.strength_k_part
         )
 
-        # calculate composite_qoperations
-        qoperation = composite(random_el, self.qoperation_base)
+        # generate randum variables
+        dim = self.composite_system.dim
+        random_unitary = unitary_group.rvs(dim ** 2 - 1)
 
-        return qoperation, random_variables
+        # calc random k mat
+        random_k_mat = random_unitary @ np.diag(random_vector) @ random_unitary.T.conj()
 
-    def generate_random_effective_lindbladian_j_part(self) -> EffectiveLindbladian:
-        pass
+        # calc random d part
+        random_j_part_cb = _calc_j_part_from_j_mat(
+            _calc_j_mat_from_k_mat(random_k_mat, self.composite_system)
+        )
+        random_k_part_cb = _calc_k_part_from_k_mat(random_k_mat, self.composite_system)
+        random_d_part_cb = random_j_part_cb + random_k_part_cb
 
-    def generate_random_effective_lindbladian_k_part(self) -> EffectiveLindbladian:
-        pass
+        return random_d_part_cb, random_variables, random_unitary
 
-    def generate_random_effective_lindbladian_d_part(self) -> EffectiveLindbladian:
-        pass
+    def generate_random_effective_lindbladian(
+        self,
+    ) -> Tuple[
+        EffectiveLindbladian, np.array, np.array, np.array, np.array,
+    ]:
+        """generates random effective Lindbladian and returns effective Lindbladian base + random effective Lindbladian.
 
-    def generate_random_effective_lindbladian(self) -> EffectiveLindbladian:
-        h_part, h_part_rv = self.generate_random_effective_lindbladian_h_part()
+        Returns
+        -------
+        Tuple[ EffectiveLindbladian, np.array, np.array, np.array, np.array, ]
+            tuple of effective Lindbladian, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
+        """
         (
-            d_part,
-            k_part_rv,
+            random_h_part_cb,
+            random_variables_h_part,
+        ) = self.generate_random_effective_lindbladian_h_part()
+        (
+            random_d_part_cb,
+            random_variables_k_part,
             random_unitary,
         ) = self.generate_random_effective_lindbladian_d_part()
-        el = h_part + d_part
-        return el, h_part_rv, k_part_rv, random_unitary
+        random_el_cb = random_h_part_cb + random_d_part_cb
 
-    def generate_state(self) -> State:
-        (
-            el,
-            h_part_rv,
-            k_part_rv,
-            random_unitary,
-        ) = self.generate_random_effective_lindbladian()
-        new_object = composite(el, self.qoperation_base)
-        return (
-            new_object,
-            h_part_rv,
-            k_part_rv,
-            random_unitary,
+        random_el_gb_tmp = convert_hs(
+            random_el_cb,
+            self.composite_system.comp_basis(),
+            self.composite_system.basis(),
+        )
+        random_el_gb = _truncate_hs(
+            random_el_gb_tmp, self.lindbladian_base.eps_proj_physical
         )
 
-    def generate_gate(self) -> Gate:
-        (
-            el,
-            h_part_rv,
-            k_part_rv,
-            random_unitary,
-        ) = self.generate_random_effective_lindbladian()
-        new_object = composite(el, self.qoperation_base)
-        return (
-            new_object,
-            h_part_rv,
-            k_part_rv,
-            random_unitary,
+        new_hs = self.lindbladian_base.hs + random_el_gb
+        el = EffectiveLindbladian(
+            self.composite_system,
+            new_hs,
+            is_physicality_required=False,
+            is_estimation_object=self.lindbladian_base.is_estimation_object,
+            on_para_eq_constraint=self.lindbladian_base.on_para_eq_constraint,
+            on_algo_eq_constraint=self.lindbladian_base.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.lindbladian_base.on_algo_ineq_constraint,
+            mode_proj_order=self.lindbladian_base.mode_proj_order,
+            eps_proj_physical=self.lindbladian_base.eps_proj_physical,
         )
 
-    def generate_povm(self) -> Povm:
+        return (
+            el,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el_gb,
+        )
+
+    def generate_state(
+        self,
+    ) -> Tuple[
+        State, np.array, np.array, np.array, np.array,
+    ]:
+        """generates random effective Lindbladian and returns state(composition of random effective Lindbladian and qoperation base).
+
+        Returns
+        -------
+        Tuple[ State, np.array, np.array, np.array, np.array, ]
+            tuple of state, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
+
+        """
         (
             el,
-            h_part_rv,
-            k_part_rv,
+            random_variables_h_part,
+            random_variables_k_part,
             random_unitary,
+            random_el,
         ) = self.generate_random_effective_lindbladian()
-        new_object = composite(self.qoperation_base, el)
+        new_object = composite(el.to_gate(), self.qoperation_base)
         return (
             new_object,
-            h_part_rv,
-            k_part_rv,
+            random_variables_h_part,
+            random_variables_k_part,
             random_unitary,
+            random_el,
+        )
+
+    def generate_gate(
+        self,
+    ) -> Tuple[
+        Gate, np.array, np.array, np.array, np.array,
+    ]:
+        """generates random effective Lindbladian and returns gate(composition of random effective Lindbladian and qoperation base).
+
+        Returns
+        -------
+        Tuple[ Gate, np.array, np.array, np.array, np.array, ]
+            tuple of gate, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
+
+        """
+        (
+            el,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = self.generate_random_effective_lindbladian()
+        new_object = composite(el.to_gate(), self.qoperation_base)
+        return (
+            new_object,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        )
+
+    def generate_povm(
+        self,
+    ) -> Tuple[
+        Povm, np.array, np.array, np.array, np.array,
+    ]:
+        """generates random effective Lindbladian and returns povm(composition of random effective Lindbladian and qoperation base).
+
+        Returns
+        -------
+        Tuple[ Povm, np.array, np.array, np.array, np.array, ]
+            tuple of povm, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
+
+        """
+        (
+            el,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = self.generate_random_effective_lindbladian()
+        new_object = composite(self.qoperation_base, el.to_gate())
+        return (
+            new_object,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
         )
