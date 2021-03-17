@@ -2,11 +2,14 @@ import numpy as np
 from typing import List, Dict, Tuple
 from itertools import product
 
+from scipy.linalg import expm
+
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
     get_normalized_pauli_basis,
+    get_normalized_gell_mann_basis,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
@@ -24,6 +27,9 @@ def get_gate_names() -> List[str]:
     names.extend(["identity"])
     names.extend(get_gate_names_1qubit())
     names.extend(get_gate_names_2qubit())
+    # names.extend(get_gate_names_3qubit())
+    names.extend(get_gate_names_1qutrit())
+    # names.extend(get_gate_names_2qutrit())
     return names
 
 
@@ -72,7 +78,7 @@ def get_gate_names_2qubit_asymmetric() -> List[str]:
 def get_gate_names_1qutrit() -> List[str]:
     """return the list of valid (implemented) gate names of 1-qutrit gates."""
     names = []
-    # names.append(get_gate_names_1qutrit_single_gellmann())
+    names.extend(get_gate_names_1qutrit_single_gellmann())
 
     return names
 
@@ -153,25 +159,34 @@ def generate_unitary_mat_from_gate_name(
     _is_valid_dims_ids(dims, ids)
     assert gate_name in get_gate_names()
 
-    method_name = "generate_gate_" + gate_name + "_unitary_mat"
-    method = eval(method_name)
-
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
         if dim_total <= 1:
             raise ValueError(f"dim_total must be larger than 1.")
+        method_name = "generate_gate_" + gate_name + "_unitary_mat"
+        method = eval(method_name)
         u = method(dim_total)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
+        method_name = "generate_gate_" + gate_name + "_unitary_mat"
+        method = eval(method_name)
         u = method()
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
+        method_name = "generate_gate_" + gate_name + "_unitary_mat"
+        method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
             u = method(ids)
         else:
             u = method()
     # 3-qubit gate
     # 1-qutrit
+    elif gate_name in get_gate_names_1qutrit():
+        if gate_name in get_gate_names_1qutrit_single_gellmann():
+            method_name = "generate_gate_1qutrit_single_gellmann_unitary_mat"
+            method = eval(method_name)
+            u = method(gate_name)
+    # 2-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -203,25 +218,34 @@ def generate_gate_mat_from_gate_name(
     _is_valid_dims_ids(dims, ids)
     assert gate_name in get_gate_names()
 
-    method_name = "generate_gate_" + gate_name + "_mat"
-    method = eval(method_name)
-
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
         if dim_total <= 1:
             raise ValueError(f"dim_total must be larger than 1.")
+        method_name = "generate_gate_" + gate_name + "_mat"
+        method = eval(method_name)
         mat = method(dim_total)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
+        method_name = "generate_gate_" + gate_name + "_mat"
+        method = eval(method_name)
         mat = method()
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
+        method_name = "generate_gate_" + gate_name + "_mat"
+        method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
             mat = method(ids)
         else:
             mat = method()
     # 3-qubit gate
     # 1-qutrit
+    elif gate_name in get_gate_names_1qutrit():
+        if gate_name in get_gate_names_1qutrit_single_gellmann():
+            method_name = "generate_gate_1qutrit_single_gellmann_mat"
+            method = eval(method_name)
+            mat = method(gate_name)
+    # 2-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -250,22 +274,30 @@ def generate_gate_from_gate_name(
     """
     assert gate_name in get_gate_names()
 
-    method_name = "generate_gate_" + gate_name
-    method = eval(method_name)
-
     if gate_name == "identity":
+        method_name = "generate_gate_" + gate_name
+        method = eval(method_name)
         gate = method(c_sys)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
+        method_name = "generate_gate_" + gate_name
+        method = eval(method_name)
         gate = method(c_sys)
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
+        method_name = "generate_gate_" + gate_name
+        method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
             gate = method(c_sys, ids)
         else:
             gate = method(c_sys)
     # 3-qubit gate
     # 1-qutrit gate
+    elif gate_name in get_gate_names_1qutrit():
+        if gate_name in get_gate_names_1qutrit_single_gellmann():
+            method_name = "generate_gate_1qutrit_single_gellmann"
+            method = eval(method_name)
+            gate = method(c_sys, gate_name)
     # 2-qutrit gate
     else:
         raise ValueError(f"gate_name is out of range.")
@@ -1554,12 +1586,15 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> np.array:
     return gate
 
 
-# 1-qutrit
+# 3-qubit gates
+
+
+# 1-qutrit gates
 
 # Base of Hamiltonian
 
 
-def calc_base_matrix_1qutrit(axis: str, levels: List[int]) -> np.array:
+def calc_base_matrix_1qutrit(levels: str, axis: str) -> np.array:
     """Return a base matrix for 1-qutrit Hamiltonian.
 
     Parameters
@@ -1567,8 +1602,8 @@ def calc_base_matrix_1qutrit(axis: str, levels: List[int]) -> np.array:
     axis : str
         specifies "x", "y", or "z".
 
-    levels : List[int]
-        specifies levels for the axis, limited to [0,1], [1,2] or [0,2].
+    levels : str
+        specifies levels for the axis, limited to ["01", "12", or "02"].
 
     Returns
     ----------
@@ -1577,11 +1612,9 @@ def calc_base_matrix_1qutrit(axis: str, levels: List[int]) -> np.array:
     """
     assert axis in ["x", "y", "z"]
     assert len(levels) == 2
-    assert levels in [[0, 1], [1, 2], [0, 2]]
+    assert levels in ["01", "12", "02"]
 
-    method_str = (
-        "calc_base_matrix_1qutrit_" + axis + "_" + str(levels[0]) + str(levels[1])
-    )
+    method_str = "calc_base_matrix_1qutrit_" + axis + "_" + levels
     mat = eval(method_str)()
     return mat
 
@@ -1658,19 +1691,18 @@ def get_base_matrices_1qutrit() -> Dict[Tuple[str, str], np.array]:
     Returns
     ----------
     Dict[Tuple[str, str], np.array]
-        The dictionary. The first string of the Tuple is for the axis, "x", "y", or "z". The second string of the Tuple is for the levels, "01", "12", or "02".
-        For example, dict[("x", "12")] is the base matrix for the x-axis w.r.t. the levels 1 and 2.
+        The dictionary. The first string of the Tuple is for the levels, "01", "12", or "02". The second string of the Tuple is for the axis, "x", "y", or "z".
+        For example, dict[("12", "x")] is the base matrix for the x-axis w.r.t. the levels 1 and 2.
     """
+    levels_list = ["01", "12", "02"]
     axis_list = ["x", "y", "z"]
-    levels_list = [[0, 1], [1, 2], [0, 2]]
 
     l = []
-    for p in product(axis_list, levels_list):
-        axis = p[0]
-        levels = p[1]
+    for p in product(levels_list, axis_list):
+        levels = p[0]
+        axis = p[1]
         mat = calc_base_matrix_1qutrit(axis, levels)
-        levels_str = str(levels[0]) + str(levels[1])
-        l.append(((axis, levels_str), mat))
+        l.append(((levels, axis), mat))
 
     d = dict(l)
     return d
@@ -1697,3 +1729,79 @@ def calc_levels_axis_angle_from_gate_name_1qutrit_single_gellmann(
     angle = gate_name[3:]
     res = {"levels": levels, "axis": axis, "angle": angle}
     return res
+
+
+# "angle" -> float
+def calc_angle_from_str_to_float(angle_str: str) -> float:
+    """return angle value from angle string"""
+    if angle_str == "90":
+        angle = 0.50 * np.pi
+    elif angle_str == "m90":
+        angle = -0.50 * np.pi
+    elif angle_str == "180":
+        angle = np.pi
+    elif angle_str == "m180":
+        angle = -np.pi
+    else:
+        raise ValueError(f"angle_str is invalid!")
+
+    return angle
+
+
+def calc_coeff_from_angle_str(angle_str: str) -> float:
+    "return coeff = 0.5 * angle from angle_str."
+    angle = calc_angle_from_str_to_float(angle_str)
+    return 0.50 * angle
+
+
+def calc_1qutrit_single_gellmann_hamiltonian_mat_from_levels_axis_angle(
+    levels: str, axis: str, angle: str
+) -> np.array:
+    """return a 1-qutrit Hamiltonian matrix for the axis, levels, and angle."""
+    assert axis in ["x", "y", "z"]
+    assert levels in ["01", "12", "02"]
+
+    mat = calc_base_matrix_1qutrit(levels, axis)
+    coeff = calc_coeff_from_angle_str(angle)
+    h = coeff * mat
+    return h
+
+
+def generate_gate_1qutrit_single_gellmann_hamiltonian_mat(gate_name: str) -> np.array:
+    """return a 1-qutrit Hamiltonian matrix for the gate name."""
+    res = calc_levels_axis_angle_from_gate_name_1qutrit_single_gellmann(gate_name)
+    levels = res["levels"]
+    axis = res["axis"]
+    angle = res["angle"]
+    h = calc_1qutrit_single_gellmann_hamiltonian_mat_from_levels_axis_angle(
+        levels=levels, axis=axis, angle=angle
+    )
+    return h
+
+
+def generate_gate_1qutrit_single_gellmann_unitary_mat(gate_name: str) -> np.array:
+    """return the unitary matrix for the gate."""
+    h = generate_gate_1qutrit_single_gellmann_hamiltonian_mat(gate_name)
+    u = expm(-1j * h)
+    return u
+
+
+def generate_gate_1qutrit_single_gellmann_mat(gate_name: str) -> np.array:
+    """return the HS matrix for the gate."""
+    u = generate_gate_1qutrit_single_gellmann_unitary_mat(gate_name)
+    to_basis = get_normalized_gell_mann_basis()
+    hs = calc_gate_mat_from_unitary_mat_with_hermitian_basis(
+        from_u=u, to_basis=to_basis
+    )
+    return hs
+
+
+def generate_gate_1qutrit_single_gellmann(
+    c_sys: CompositeSystem, gate_name: str
+) -> np.array:
+    """return the Gate for the gate."""
+    assert len(c_sys.elemental_systems) == 1
+    assert c_sys.dim == 3
+    hs = generate_gate_1qutrit_single_gellmann_mat(gate_name)
+    G = Gate(c_sys=c_sys, hs=hs)
+    return G
