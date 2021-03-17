@@ -438,7 +438,7 @@ def generate_gate_x90(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the X90 gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x90_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -494,7 +494,7 @@ def generate_gate_x180(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the identity gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x180_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -552,7 +552,7 @@ def generate_gate_x(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the X gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -608,7 +608,7 @@ def generate_gate_y90(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Y90 gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y90_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -664,7 +664,7 @@ def generate_gate_y180(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Y180 gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y180_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -722,7 +722,7 @@ def generate_gate_y(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Y gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -778,7 +778,7 @@ def generate_gate_z90(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Z90 gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z90_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -834,7 +834,7 @@ def generate_gate_z180(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Z180 gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z180_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -892,7 +892,7 @@ def generate_gate_z(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Z gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -948,7 +948,7 @@ def generate_gate_phase(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Phase (S) gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1004,7 +1004,7 @@ def generate_gate_phase_daggered(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Phase daggered (S^dagger) gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_daggered_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1067,7 +1067,7 @@ def generate_gate_piover8(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the pi/8 (T) gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1118,7 +1118,7 @@ def generate_gate_piover8_daggered_mat() -> np.array:
     return mat
 
 
-def generate_gate_piover8(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_piover8_daggered(c_sys: CompositeSystem) -> "Gate":
     """Return the Gate class for the pi/8 daggered (T^dagger) gate on the composite system.
 
     Parameters
@@ -1130,8 +1130,8 @@ def generate_gate_piover8(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the pi/8 daggered (T^dagger) gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
-    hs = generate_gate_piover8_daggerd_mat()
+    assert len(c_sys.elemental_systems) == 1
+    hs = generate_gate_piover8_daggered_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
 
@@ -1186,7 +1186,7 @@ def generate_gate_hadamard(c_sys: CompositeSystem) -> "Gate":
     Gate
         The Gate class for the Hadamard (H) gate on the composite system.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_hadamard_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1268,7 +1268,7 @@ def generate_gate_cx(c_sys: "CompositeSystem", ids: List[int]) -> np.array:
     Gate
         The Gate class for the Control-X (CX) gate on the composite system.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cx_mat(ids)
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1329,7 +1329,7 @@ def generate_gate_cz(c_sys: "CompositeSystem") -> np.array:
     Gate
         The Gate class for the Control-Z (CZ) gate on the composite system.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cz_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1390,7 +1390,7 @@ def generate_gate_swap(c_sys: "CompositeSystem") -> np.array:
     Gate
         The Gate class for the SWAP gate on the composite system.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_swap_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1478,7 +1478,7 @@ def generate_gate_zx90(c_sys: "CompositeSystem", ids: List[int]) -> np.array:
     Gate
         The Gate class for the ZX90 gate on the composite system.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zx90_mat(ids)
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate
@@ -1548,7 +1548,7 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> np.array:
     Gate
         The Gate class for the ZZ90 gate on the composite system.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zz90_mat()
     gate = Gate(c_sys=c_sys, hs=hs)
     return gate

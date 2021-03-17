@@ -284,9 +284,9 @@ def generate_effective_lindbladian_from_gate_name(
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
         if gate_name in get_gate_names_2qubit_asymmetric():
-            el = method(ids)
+            el = method(c_sys, ids)
         else:
-            el = method()
+            el = method(c_sys)
     # 3-qubit gate
     else:
         raise ValueError(f"gate_name is out of range.")
@@ -453,7 +453,7 @@ def generate_gate_x90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -536,7 +536,7 @@ def generate_gate_x180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -621,7 +621,7 @@ def generate_gate_x_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -704,7 +704,7 @@ def generate_gate_y90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -787,7 +787,7 @@ def generate_gate_y180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -872,7 +872,7 @@ def generate_gate_y_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -955,7 +955,7 @@ def generate_gate_z90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1038,7 +1038,7 @@ def generate_gate_z180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1123,7 +1123,7 @@ def generate_gate_z_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1208,7 +1208,7 @@ def generate_gate_phase_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1293,7 +1293,7 @@ def generate_gate_phase_daggered_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_daggered_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1378,7 +1378,7 @@ def generate_gate_piover8_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1463,7 +1463,7 @@ def generate_gate_piover8_daggered_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_daggered_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1550,7 +1550,7 @@ def generate_gate_hadamard_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_hadamard_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1813,7 +1813,7 @@ def generate_gate_cx_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cx_effective_lindbladian_mat(ids)
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1909,7 +1909,7 @@ def generate_gate_cz_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cz_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -2005,7 +2005,7 @@ def generate_gate_swap_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_swap_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -2096,7 +2096,7 @@ def generate_gate_zx90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zx90_effective_lindbladian_mat(ids)
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -2145,3 +2145,24 @@ def generate_gate_zz90_effective_lindbladian_mat() -> np.array:
     mat += coeff * m
 
     return mat
+
+
+def generate_gate_zz90_effective_lindbladian(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the ZZ90 gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    assert len(c_sys.elemental_systems) == 2
+    hs = generate_gate_zz90_effective_lindbladian_mat()
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
