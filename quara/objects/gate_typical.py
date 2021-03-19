@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 from itertools import product
 
 from scipy.linalg import expm
@@ -1594,28 +1594,36 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> np.array:
 # Base of Hamiltonian
 
 
-def calc_base_matrix_1qutrit(levels: str, axis: str) -> np.array:
+def calc_base_matrix_1qutrit(levels: Union[str, bool], axis: str) -> np.array:
     """Return a base matrix for 1-qutrit Hamiltonian.
 
     Parameters
     ----------
     axis : str
-        specifies "x", "y", or "z".
+        specifies "i", "x", "y", or "z".
 
     levels : str
-        specifies levels for the axis, limited to ["01", "12", or "02"].
+        specifies levels for the axis, limited to ["01", "12", or "02"] for axis = "x", "y", or "z". levels = None for "i".
 
     Returns
     ----------
     np.array((3,3), dtype=np.complex128)
         The base matrix corresponding to the axis and levels, to be complex.
     """
-    assert axis in ["x", "y", "z"]
-    assert len(levels) == 2
-    assert levels in ["01", "12", "02"]
-
-    method_str = "calc_base_matrix_1qutrit_" + axis + "_" + levels
+    assert axis in ["i", "x", "y", "z"]
+    if axis == "i":
+        assert levels == None
+        method_str = "calc_base_matrix_1qutrit_identity"
+    else:
+        assert levels in ["01", "12", "02"]
+        method_str = "calc_base_matrix_1qutrit_" + axis + "_" + levels
     mat = eval(method_str)()
+    return mat
+
+
+def calc_base_matrix_1qutrit_identity() -> np.array:
+    """Return the identity matrix on a 1-qutrit system."""
+    mat = np.eye(3, dtype=np.complex128)
     return mat
 
 
@@ -1682,7 +1690,7 @@ def calc_base_matrix_1qutrit_z_02() -> np.array:
     return mat
 
 
-def get_base_matrices_1qutrit() -> Dict[Tuple[str, str], np.array]:
+def get_base_matrices_1qutrit() -> Dict[Tuple[Union[str, bool], str], np.array]:
     """Return the dictionary object containing all base matrices for 1-qutrit Hamiltonian.
 
     Parameters
@@ -1698,10 +1706,14 @@ def get_base_matrices_1qutrit() -> Dict[Tuple[str, str], np.array]:
     axis_list = ["x", "y", "z"]
 
     l = []
+    # i
+    mat = calc_base_matrix_1qutrit_identity()
+    l.append(((None, "i"), mat))
+    # x, y, z
     for p in product(levels_list, axis_list):
         levels = p[0]
         axis = p[1]
-        mat = calc_base_matrix_1qutrit(axis, levels)
+        mat = calc_base_matrix_1qutrit(levels, axis)
         l.append(((levels, axis), mat))
 
     d = dict(l)
