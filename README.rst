@@ -4,7 +4,7 @@ Quara
 
 .. _start_of_about:
 
-Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.
+Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations.
 
 .. _end_of_about:
 
