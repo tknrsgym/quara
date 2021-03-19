@@ -112,6 +112,29 @@ def test_truncate_computational_fluctuation():
     npt.assert_almost_equal(actual, target_matrix, decimal=15)
 
 
+def test_truncate_hs():
+    # truncate
+    target_matrix = np.array([[1, 1e-14j], [0, 1]], dtype=np.complex128,)
+    actual = util.truncate_hs(target_matrix)
+    expected = np.eye(2)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # not truncate(ValueError)
+    target_matrix = np.array([[1, 1e-13j], [0, 1]], dtype=np.complex128,)
+    with pytest.raises(ValueError):
+        util.truncate_hs(target_matrix)
+
+    # not truncate(ValueError)
+    target_matrix = np.array([[1, 1e-13j], [0, 1]], dtype=np.complex128,)
+    with pytest.raises(ValueError):
+        util.truncate_hs(target_matrix, is_zero_imaginary_part_required=True)
+
+    # not truncate(not ValueError)
+    target_matrix = np.array([[1, 1e-13j], [0, 1]], dtype=np.complex128,)
+    actual = util.truncate_hs(target_matrix, is_zero_imaginary_part_required=False)
+    npt.assert_almost_equal(actual, target_matrix, decimal=15)
+
+
 def test_calc_se():
     # list of vectors
     xs = [

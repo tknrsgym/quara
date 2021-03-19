@@ -159,6 +159,45 @@ def truncate_computational_fluctuation(
     return np.where(np.abs(matrix) < eps, 0.0, matrix)
 
 
+def truncate_hs(
+    hs: np.array,
+    eps_proj_physical: float = None,
+    is_zero_imaginary_part_required: bool = True,
+) -> np.array:
+    """truncate HS matrix to a real matrix.
+    Parameters
+    ----------
+    hs : np.array
+        HS matrix to truncate.
+    eps_proj_physical : float, optional
+        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+    is_zero_imaginary_part_required : bool, optional
+        whether the imaginary part should be truncated to zero, by default True
+
+    Returns
+    -------
+    np.array
+        truncated real matrix.
+
+    Raises
+    ------
+    ValueError
+        `is_zero_imaginary_part_required` == True and some imaginary parts of entries of matrix != 0.
+    """
+    tmp_hs = truncate_imaginary_part(hs, eps_proj_physical)
+
+    if is_zero_imaginary_part_required == True and np.any(tmp_hs.imag != 0):
+        raise ValueError(
+            f"some imaginary parts of entries of matrix != 0. converted hs={tmp_hs}"
+        )
+
+    if is_zero_imaginary_part_required == True:
+        tmp_hs = tmp_hs.astype(np.float64)
+
+    truncated_hs = truncate_computational_fluctuation(tmp_hs, eps_proj_physical)
+    return truncated_hs
+
+
 def calc_se(xs: List[np.array], ys: List[np.array]) -> np.float64:
     """calculates Squared Error of ``xs`` and ``ys``.
 
@@ -569,9 +608,7 @@ def _left_permutation_matrix(position: int, size_list: List[int]) -> np.array:
     return left_perm_matrix
 
 
-def _check_cross_system_position(
-    system_order: List[int],
-) -> Union[int, None]:
+def _check_cross_system_position(system_order: List[int],) -> Union[int, None]:
     # check cross system position
     # for example, if [0, 10, 5] is a list of names of ElementalSystem, then this functions returns 2(position of value 5)
     former_name = None
