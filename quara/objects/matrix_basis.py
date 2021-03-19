@@ -294,6 +294,91 @@ class VectorizedMatrixBasis(Basis):
         return f"{self.__class__.__name__}(source=MatrixBasis(basis={repr(list(self._org_basis))}))"
 
 
+def calc_matrix_expansion_coefficient(
+    from_mat: np.array, basis: MatrixBasis
+) -> np.array:
+    """return expansion coefficients of a matrix w.r.t. the matrix basis.
+
+    Parameters
+    ----------
+    from_mat : np.array((dim, dim), np.complex128)
+        A square complex matrix
+
+    basis: MatrixBasis
+        A orthonormal matrix basis
+
+    Returns
+    ----------
+    np.array((dim * dim, 1), np.complex)
+    """
+    shape = from_mat.shape
+    assert shape[0] == shape[1]
+    assert basis.dim == shape[0]
+    assert basis.is_normal
+    assert basis.is_orthogonal
+
+    l = []
+    for bi in basis:
+        c = np.trace(np.conjugate(np.transpose(bi)) @ from_mat)
+        l.append(c)
+    coeff = np.array(l, np.complex128)
+    return coeff
+
+
+def calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
+    from_mat: np.array, basis: MatrixBasis
+) -> np.array:
+    """return expansion coefficients of an Hermitian matrix w.r.t. the Hermitian matrix basis.
+
+    Parameters
+    ----------
+    from_mat : np.array((dim, dim), np.complex128)
+        An Hermitian matrix
+
+    basis: MatrixBasis
+        An Hermitian orthonormal matrix basis
+
+    Returns
+    ----------
+    np.array((dim * dim, 1), np.float)
+    """
+    assert mutil.is_hermitian(from_mat)
+    assert basis.is_hermitian
+
+    coeff_comp = calc_matrix_expansion_coefficient(from_mat, basis)
+    coeff_real = coeff_comp.real
+    return coeff_real
+
+
+def calc_mat_from_coefficient_basis(coeff: np.array, basis: MatrixBasis) -> np.array:
+    """return a matrix corresponding to the coefficient and matrix basis.
+
+    Parameters
+    ----------
+    coeff : np.array((dim *dim, 1))
+        A coefficient vector
+
+    basis : MatrixBasis
+        A square matrix basis with dimension dim.
+
+    Returns
+    ----------
+    np.array((dim, dim))
+        A square matrix
+    """
+    dim = basis.dim
+    assert len(coeff.shape) == 1
+    assert coeff.shape[0] == dim * dim
+    assert basis.is_orthogonal
+
+    mat = np.zeros((dim, dim), dtype=np.complex128)
+    for i, bi in enumerate(basis):
+        ci = coeff[i]
+        mat += ci * bi
+
+    return mat
+
+
 def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
     """Convert MatrixBasis to VectorizedMatrixBasis
 
@@ -316,12 +401,12 @@ def _calc_tensor_product_from_1q_basis(n_qubit: int, basis_1q: List[np.array]):
 
 def get_comp_basis(dim: int = 2) -> MatrixBasis:
     """Returns computational basis.
-    
+
     Parameters
     ----------
     dim : int, optional
         dim of computational basis, by default 2.
-    
+
     Returns
     -------
     MatrixBasis

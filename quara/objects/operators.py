@@ -273,21 +273,38 @@ def _composite(elem1, elem2):
     if elem1.composite_system != elem2.composite_system:
         raise ValueError(f"Cannot composite different composite systems.")
 
+    # is_physicality_required
+    is_physicality_required = (
+        elem1.is_physicality_required and elem2.is_physicality_required
+    )
+
     # implement composite calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         # create Gate
         matrix = elem1.hs @ elem2.hs
-        gate = Gate(elem1.composite_system, matrix)
+        gate = Gate(
+            elem1.composite_system,
+            matrix,
+            is_physicality_required=is_physicality_required,
+        )
         return gate
     elif type(elem1) == Gate and type(elem2) == State:
         # create State
         vec = elem1.hs @ elem2.vec
-        state = State(elem1.composite_system, vec.real.astype(np.float64))
+        state = State(
+            elem1.composite_system,
+            vec.real.astype(np.float64),
+            is_physicality_required=is_physicality_required,
+        )
         return state
     elif type(elem1) == Povm and type(elem2) == Gate:
         # calculate Povm
         vecs = [povm_element.conjugate() @ elem2.hs for povm_element in elem1.vecs]
-        povm = Povm(elem1.composite_system, vecs)
+        povm = Povm(
+            elem1.composite_system,
+            vecs,
+            is_physicality_required=is_physicality_required,
+        )
         return povm
     elif type(elem1) == Povm and type(elem2) == State:
         # calculate probability distribution

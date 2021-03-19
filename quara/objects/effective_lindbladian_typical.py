@@ -9,6 +9,8 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
+    get_normalized_gell_mann_basis,
+    calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
@@ -22,6 +24,11 @@ from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
+    get_gate_names_1qutrit,
+    get_gate_names_1qutrit_single_gellmann,
+    calc_base_matrix_1qutrit,
+    calc_levels_axis_angle_from_gate_name_1qutrit_single_gellmann,
+    generate_gate_1qutrit_single_gellmann_hamiltonian_mat,
 )
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.effective_lindbladian import (
@@ -130,24 +137,34 @@ def generate_hamiltonian_vec_from_gate_name(
     _is_valid_dims_ids(dims, ids)
     assert gate_name in get_gate_names()
 
-    method_name = "generate_gate_" + gate_name + "_hamiltonian_vec"
-    method = eval(method_name)
-
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
         if dim_total <= 1:
             raise ValueError(f"dim_total must be larger than 1.")
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_vec"
+        method = eval(method_name)
         vec = method(dim_total)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_vec"
+        method = eval(method_name)
         vec = method()
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_vec"
+        method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
             vec = method(ids)
         else:
             vec = method()
     # 3-qubit gate
+    # 1-qutrit gate
+    elif gate_name in get_gate_names_1qutrit():
+        if gate_name in get_gate_names_1qutrit_single_gellmann():
+            method_name = "generate_gate_1qutrit_single_gellmann_hamiltonian_vec"
+            method = eval(method_name)
+            vec = method(gate_name)
+    # 2-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -178,24 +195,34 @@ def generate_hamiltonian_mat_from_gate_name(
     _is_valid_dims_ids(dims, ids)
     assert gate_name in get_gate_names()
 
-    method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
-    method = eval(method_name)
-
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
         if dim_total <= 1:
             raise ValueError(f"dim_total must be larger than 1.")
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
         mat = method(dim_total)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
         mat = method()
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
             mat = method(ids)
         else:
             mat = method()
     # 3-qubit gate
+    # 1-qutrit gate
+    elif gate_name in get_gate_names_1qutrit():
+        if gate_name in get_gate_names_1qutrit_single_gellmann():
+            method_name = "generate_gate_1qutrit_single_gellmann_hamiltonian_mat"
+            method = eval(method_name)
+            mat = method(gate_name)
+    # 2-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -226,24 +253,36 @@ def generate_effective_lindbladian_mat_from_gate_name(
     _is_valid_dims_ids(dims, ids)
     assert gate_name in get_gate_names()
 
-    method_name = "generate_gate_" + gate_name + "_effective_lindbladian_mat"
-    method = eval(method_name)
-
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
         if dim_total <= 1:
             raise ValueError(f"dim_total must be larger than 1.")
+        method_name = "generate_gate_" + gate_name + "_effective_lindbladian_mat"
+        method = eval(method_name)
         mat = method(dim_total)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
+        method_name = "generate_gate_" + gate_name + "_effective_lindbladian_mat"
+        method = eval(method_name)
         mat = method()
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
+        method_name = "generate_gate_" + gate_name + "_effective_lindbladian_mat"
+        method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
             mat = method(ids)
         else:
             mat = method()
     # 3-qubit gate
+    # 1-qutrit gate
+    elif gate_name in get_gate_names_1qutrit():
+        if gate_name in get_gate_names_1qutrit_single_gellmann():
+            method_name = (
+                "generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat"
+            )
+            method = eval(method_name)
+            mat = method(gate_name)
+    # 2-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -273,21 +312,31 @@ def generate_effective_lindbladian_from_gate_name(
     """
     assert gate_name in get_gate_names()
 
-    method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
-    method = eval(method_name)
-
     if gate_name == "identity":
+        method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
+        method = eval(method_name)
         el = method(c_sys)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
+        method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
+        method = eval(method_name)
         el = method(c_sys)
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
+        method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
+        method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
-            el = method(ids)
+            el = method(c_sys, ids)
         else:
-            el = method()
+            el = method(c_sys)
     # 3-qubit gate
+    # 1-qutrit gate
+    elif gate_name in get_gate_names_1qutrit():
+        if gate_name in get_gate_names_1qutrit_single_gellmann():
+            method_name = "generate_gate_1qutrit_single_gellmann_effective_linabladian"
+            method = eval(method_name)
+            el = method(c_sys, gate_name)
+    # 2-qutrit
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -453,7 +502,7 @@ def generate_gate_x90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -536,7 +585,7 @@ def generate_gate_x180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -621,7 +670,7 @@ def generate_gate_x_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -704,7 +753,7 @@ def generate_gate_y90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -787,7 +836,7 @@ def generate_gate_y180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -872,7 +921,7 @@ def generate_gate_y_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -955,7 +1004,7 @@ def generate_gate_z90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z90_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1038,7 +1087,7 @@ def generate_gate_z180_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z180_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1123,7 +1172,7 @@ def generate_gate_z_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1208,7 +1257,7 @@ def generate_gate_phase_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1293,7 +1342,7 @@ def generate_gate_phase_daggered_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_daggered_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1378,7 +1427,7 @@ def generate_gate_piover8_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1463,7 +1512,7 @@ def generate_gate_piover8_daggered_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_daggered_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1550,7 +1599,7 @@ def generate_gate_hadamard_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 1
+    assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_hadamard_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1813,7 +1862,7 @@ def generate_gate_cx_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cx_effective_lindbladian_mat(ids)
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -1909,7 +1958,7 @@ def generate_gate_cz_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cz_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -2005,7 +2054,7 @@ def generate_gate_swap_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_swap_effective_lindbladian_mat()
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -2096,7 +2145,7 @@ def generate_gate_zx90_effective_lindbladian(
     EffectiveLindbladian
         The effective Lindbladian of the gate.
     """
-    assert len(c_sys.systems) == 2
+    assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zx90_effective_lindbladian_mat(ids)
     el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
     return el
@@ -2145,3 +2194,62 @@ def generate_gate_zz90_effective_lindbladian_mat() -> np.array:
     mat += coeff * m
 
     return mat
+
+
+def generate_gate_zz90_effective_lindbladian(
+    c_sys: "CompositeSystem",
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the ZZ90 gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    assert len(c_sys.elemental_systems) == 2
+    hs = generate_gate_zz90_effective_lindbladian_mat()
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# 3-qubit gates
+
+
+# 1-qutrit gates
+
+
+def generate_gate_1qutrit_single_gellmann_hamiltonian_vec(gate_name: str) -> np.array:
+    """return the Hamiltonian vector for the gate."""
+    h = generate_gate_1qutrit_single_gellmann_hamiltonian_mat(gate_name)
+    basis = get_normalized_gell_mann_basis()
+    vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(h, basis)
+    return vec
+
+
+def generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(
+    gate_name: str,
+) -> np.array:
+    """return the effective Lindbladian matrix for the gate."""
+    h = generate_gate_1qutrit_single_gellmann_hamiltonian_mat(gate_name)
+    to_basis = get_normalized_gell_mann_basis()
+    hs = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(h, to_basis)
+    return hs
+
+
+def generate_gate_1qutrit_single_gellmann_effective_linabladian(
+    c_sys: CompositeSystem, gate_name: str
+) -> np.array:
+    """return the EffectiveLindbladian for the gate."""
+    assert len(c_sys.elemental_systems) == 1
+    assert c_sys.dim == 3
+    hs = generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(gate_name)
+    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    return el
+
+
+# 2-qutrit gates
