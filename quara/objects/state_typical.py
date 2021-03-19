@@ -73,16 +73,10 @@ def get_state_names_2qtrit() -> List[str]:
     return names
 
 
-def generate_state_from_state_name(
-    state_name: str, c_sys: CompositeSystem, ids: List[int] = None
-) -> "Gate":
-    ids = ids if ids else []
+def generate_state_from_state_name(state_name: str, c_sys: CompositeSystem) -> "Gate":
 
-    # TODO: validation
-    # is_valid_dims_ids()
     if state_name not in get_state_names():
         message = f"state_name is out of range."
-        # TODO: 指定可能な名前一覧を表示する
         raise ValueError(message)
 
     # 1qubit
@@ -90,21 +84,15 @@ def generate_state_from_state_name(
         method_name = f"generate_state_{state_name}"
         method = eval(method_name)
         return method(c_sys)
-    elif state_name in get_state_names_2qubit():
-        if state_name in _get_state_names_2qubit_typical():
-            raise NotImplementedError()
-        return generate_state_nqubit(state_name, c_sys)
-    elif state_name in get_state_names_3qubit():
-        if state_name in _get_state_names_3qubit_typical():
-            raise NotImplementedError()
-        return generate_state_nqubit(state_name, c_sys)
     elif state_name in get_state_names_1qtrit():
         raise NotImplementedError()
-    elif state_name in get_state_names_2qtrit():
+    elif state_name in _get_state_names_2qubit_typical():
         raise NotImplementedError()
 
+    return _generate_state_tensor_product(state_name, c_sys)
 
-def generate_state_nqubit(state_name: str, c_sys: CompositeSystem) -> State:
+
+def _generate_state_tensor_product(state_name: str, c_sys: CompositeSystem) -> State:
     name_items = state_name.split("_")
     c_sys_list = [CompositeSystem([e_sys]) for e_sys in c_sys._elemental_systems]
     state_1qubit_list = []
