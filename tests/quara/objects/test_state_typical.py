@@ -31,6 +31,18 @@ def get_state_names_2qubit():
     assert actual == expected
 
 
+def test_generate_state_from_state_name_exception():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    with pytest.raises(ValueError):
+        _ = generate_state_from_state_name("x", c_sys)
+    with pytest.raises(ValueError):
+        _ = generate_state_from_state_name("1", c_sys)
+    with pytest.raises(ValueError):
+        _ = generate_state_from_state_name("x1_", c_sys)
+
+
 def test_get_x0_1q():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
