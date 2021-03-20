@@ -3,7 +3,7 @@ import numpy.testing as npt
 import pytest
 
 from typing import List
-from itertools import product
+from itertools import product, permutations
 
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import (
@@ -18,6 +18,7 @@ from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
+    get_gate_names_3qubit,
     get_gate_names_1qutrit_single_gellmann,
     generate_unitary_mat_from_gate_name,
     calc_gate_mat_from_unitary_mat,
@@ -113,6 +114,26 @@ def test_gate_2qubit_case01(gate_name: str, decimal: int):
 
     if gate_name in get_gate_names_2qubit_asymmetric():
         ids = [1, 0]
+        _test_gate(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("gate_name", "decimal"),
+    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
+)
+def test_gate_3qubit_case01(gate_name: str, decimal: int):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
+    dims = [2, 2, 2]
+
+    ids_base = [0, 1, 2]
+    for ids in permutations(ids_base):
         _test_gate(
             gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
         )

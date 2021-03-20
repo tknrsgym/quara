@@ -9,6 +9,7 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
+    get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
@@ -24,6 +25,9 @@ from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
+    get_gate_names_3qubit,
+    generate_gate_toffoli_hamiltonian_mat,
+    generate_gate_fredkin_hamiltonian_mat,
     get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
     calc_base_matrix_1qutrit,
@@ -158,6 +162,14 @@ def generate_hamiltonian_vec_from_gate_name(
         else:
             vec = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        b = get_normalized_pauli_basis(n_qubit=3)
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        mat = method(ids)
+        vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
+            from_mat=mat, basis=b
+        )
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -216,6 +228,10 @@ def generate_hamiltonian_mat_from_gate_name(
         else:
             mat = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        mat = method(ids)
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -274,6 +290,14 @@ def generate_effective_lindbladian_mat_from_gate_name(
         else:
             mat = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        basis = get_normalized_pauli_basis(n_qubit=3)
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        h = method(ids)
+        mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
+            h=h, to_basis=basis
+        )
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -330,6 +354,15 @@ def generate_effective_lindbladian_from_gate_name(
         else:
             el = method(c_sys)
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        basis = get_normalized_pauli_basis(n_qubit=3)
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        h = method(ids)
+        mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
+            h=h, to_basis=basis
+        )
+        el = EffectiveLindbladian(c_sys=c_sys, hs=mat)
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():

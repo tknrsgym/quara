@@ -326,7 +326,7 @@ def generate_gate_from_gate_name(
         method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
         method = eval(method_name)
         h = method(ids)
-        mat = calc_gate_from_hamiltonian_mat(c_sys=c_sys, h=h)
+        gate = calc_gate_from_hamiltonian_mat(c_sys=c_sys, h=h)
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
