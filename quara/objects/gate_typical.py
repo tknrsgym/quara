@@ -4,12 +4,17 @@ from itertools import product
 
 from scipy.linalg import expm
 
+from quara.utils.matrix_util import (
+    is_hermitian,
+)
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
+    get_gell_mann_basis,
     get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
+    get_generalized_gell_mann_basis,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
@@ -75,6 +80,15 @@ def get_gate_names_2qubit_asymmetric() -> List[str]:
     return names
 
 
+def get_gate_names_3qubit() -> List[str]:
+    """Return the list of valid gate names of typical 3-qubit gates."""
+    names = []
+    names.append("toffoli")
+    names.append("fredkin")
+
+    return names
+
+
 def get_gate_names_1qutrit() -> List[str]:
     """return the list of valid (implemented) gate names of 1-qutrit gates."""
     names = []
@@ -108,6 +122,10 @@ def get_gate_names_1qutrit_single_gellmann() -> List[str]:
     names.append("02z180")
 
     return names
+
+
+def get_gate_names_2qutrit_single_gellmann() -> List[str]:
+    pass
 
 
 def _is_valid_dims_ids(dims: List[int], ids: List[int]) -> bool:
@@ -358,6 +376,64 @@ def calc_gate_mat_from_unitary_mat_with_hermitian_basis(
     hs_complex = calc_gate_mat_from_unitary_mat(from_u, to_basis)
     hs = _truncate_hs(hs_complex)
     return hs
+
+
+def calc_unitary_mat_from_hamiltonian_mat(h: np.array) -> np.array:
+    """return the unitary matrix for a given Hamiltonian matrix.
+
+    Parameters
+    ----------
+    h : np.array((dim, dim), dtype=np.complex128)
+        Hamiltonian matrix
+
+    Returns
+    ----------
+    np.array((dim dim), dtype=np.complex128), U = expm-(1j * h)
+    """
+    assert is_hermitian(h)
+    u = expm(-1j * h)
+    return u
+
+
+def calc_gate_mat_from_hamiltonian_mat(h: np.array, to_basis: MatrixBasis) -> np.array:
+    """return a HS matrix of a gate for a given Hamiltonian matrix.
+
+    Parameters
+    ----------
+    h : np.array((dim dim), dtype=np.complex128)
+        Hamiltonian matrix
+
+    to_basis : MatrixBasis, to be Hermitian
+
+    Returns
+    ----------
+    np.array((dim^2, dim^2), dtype=np.float64)
+
+    """
+    u = calc_unitary_mat_from_hamiltonian_mat(h)
+    hs = calc_gate_mat_from_unitary_mat_with_hermitian_basis(
+        from_u=u, to_basis=to_basis
+    )
+    return hs
+
+
+def calc_gate_from_hamiltonian_mat(c_sys: CompositeSystem, h: np.array) -> "Gate":
+    """return a Gate class object for a given Hamiltonian matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem, whose basis must be Hermitian.
+
+    h : np.array((dim, dim), dtype=np.complex128)
+
+    Returns
+    ----------
+    Gate
+    """
+    b = c_sys.basis()
+    hs = calc_gate_mat_from_hamiltonian_mat(h=h, to_basis=b)
+    g = Gate(c_sys=c_sys, hs=hs)
+    return g
 
 
 # Identity gate
@@ -1587,6 +1663,143 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> np.array:
 
 
 # 3-qubit gates
+
+
+def calc_quadrant_from_pauli_symbol(symbol: str) -> str:
+    """Return the quadrant corresponding to a given pauli symbol.
+
+    Parameters
+    ----------
+    symbol : str
+        Ex. i, x, yz, xyz.
+
+    Returns
+    ----------
+    str : Ex. 0, 1, 23, 123
+    """
+    q = ""
+    for si in symbol:
+        assert si in ["i", "x", "y", "z"]
+        if si == "i":
+            qi = "0"
+        elif si == "x":
+            qi = "1"
+        elif si == "y":
+            qi = "2"
+        elif si == "z":
+            qi = "3"
+        else:
+            raise ValueError(f"symbol is invalid!")
+
+        q = q + qi
+
+    return q
+
+
+def calc_decimal_number_from_pauli_symbol(symbol: str) -> int:
+    """Return the decimal number corresponding to a given pauli symbol.
+
+    Parameters
+    ----------
+    symbol : str
+        Ex. i, x, yz, xyz.
+
+    Returns
+    ----------
+    int : A decimal number
+        Ex. 0, 1, 11, 27
+    """
+    q = calc_quadrant_from_pauli_symbol(symbol)
+    n = int(q, 4)
+    return n
+
+
+def calc_pauli_symbol_from_quadrant(quadrant: str) -> str:
+    """Return the Pauli symbol from a given quadtant.
+
+    Parameters
+    ----------
+    quadrant : str
+        Ex. 0, 1, 23, 123.
+
+    Returns
+    ----------
+    str : Ex. i, x, yz, xyz.
+    """
+    s = ""
+    for qi in quadrant:
+        assert qi in ["0", "1", "2", "3"]
+        if qi == "0":
+            si = "i"
+        elif qi == "1":
+            si = "x"
+        elif qi == "2":
+            si = "y"
+        elif qi == "3":
+            si = "z"
+        else:
+            raise ValueError(f"symbol is invalid!")
+
+        s = s + si
+
+    return s
+
+
+def calc_quadrant_from_decimal_number(value: int) -> str:
+    """Return a quadrant (4-ary) from a given decimal number.
+
+    Parameters
+    ----------
+    value: int
+        a decimal number
+
+    Returns
+    ----------
+    str : a quadrant
+    """
+    base = 4
+    q = ""
+    tmp = int(value)
+    while tmp >= base:
+        q = str(tmp % base) + q
+        tmp = int(tmp / base)
+    q = str(tmp % base) + q
+    return q
+
+
+def calc_pauli_symbol_from_decimal_number(decimal_number: int, num_qubit: int) -> str:
+    """Return the Pauli symbol corresponding to a given decimal number and number of qubit.
+
+    Parameters
+    ----------
+    decimal_number : int
+
+    num_qubit: int
+
+    Returns
+    ----------
+    str: a Pauli symbol
+    """
+    quadrant0 = calc_quadrant_from_decimal_number(value=decimal_number)
+    len_diff = num_qubit - len(quadrant0)
+    assert len_diff >= 0
+    quadrant = quadrant0
+    for i in range(len_diff):
+        quadrant = "0" + quadrant
+
+    symbol = calc_pauli_symbol_from_quadrant(quadrant)
+    return symbol
+
+
+def generate_gate_toffoli_hamiltonian_mat() -> np.array:
+    """Return the Hamiltonian matrix of the Toffoli gate (Controlled-Controlled-NOT).
+
+    H = (pi/8) * (-III + IIX + IZI - IZX + ZII - ZIX - ZZI + ZZX)
+    """
+    h = np.zeros((9, 9), dtype=np.complex128)
+    b = get_generalized_gell_mann_basis(n_qubit=2, dim=3)
+
+    return h
 
 
 # 1-qutrit gates
