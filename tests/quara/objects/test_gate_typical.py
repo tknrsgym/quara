@@ -3,6 +3,7 @@ import numpy.testing as npt
 import pytest
 
 from typing import List
+from itertools import product, permutations
 
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import (
@@ -17,11 +18,15 @@ from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
+    get_gate_names_3qubit,
     get_gate_names_1qutrit_single_gellmann,
     generate_unitary_mat_from_gate_name,
     calc_gate_mat_from_unitary_mat,
     calc_gate_mat_from_unitary_mat_with_hermitian_basis,
     generate_gate_mat_from_gate_name,
+    calc_quadrant_from_pauli_symbol,
+    calc_decimal_number_from_pauli_symbol,
+    calc_pauli_symbol_from_decimal_number,
 )
 from quara.objects.effective_lindbladian_typical import (
     generate_gate_1qutrit_single_gellmann_effective_linabladian,
@@ -114,6 +119,26 @@ def test_gate_2qubit_case01(gate_name: str, decimal: int):
         )
 
 
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("gate_name", "decimal"),
+    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
+)
+def test_gate_3qubit_case01(gate_name: str, decimal: int):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
+    dims = [2, 2, 2]
+
+    ids_base = [0, 1, 2]
+    for ids in permutations(ids_base):
+        _test_gate(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
+
+
 @pytest.mark.onequtrit
 @pytest.mark.parametrize(
     ("gate_name"),
@@ -127,3 +152,107 @@ def test_gate_1qutrit_case01(gate_name: str):
     ids = []
     print("gate_name=", gate_name)
     _test_gate(gate_name, dims, ids, c_sys)
+
+
+@pytest.mark.parametrize(
+    ("num_qubit"),
+    [(1), (2), (3)],
+)
+def test_calc_decimal_number_from_pauli_symbol(num_qubit: int):
+    # Arrange
+    pauli_symbols = ["i", "x", "y", "z"]
+    p = product(pauli_symbols, repeat=num_qubit)
+    for i, pi in enumerate(p):
+        symbol = ""
+        for s in pi:
+            symbol = symbol + s
+        q = calc_quadrant_from_pauli_symbol(symbol)
+
+        # Act
+        n = calc_decimal_number_from_pauli_symbol(symbol)
+        actual = n
+
+        # Assert
+        expected = i
+        npt.assert_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("num_qubit"),
+    [(1), (2), (3)],
+)
+def test_calc_pauli_symbol_from_decimal_number(num_qubit: int):
+    # Arrange
+    pauli_symbols = ["i", "x", "y", "z"]
+    p = product(pauli_symbols, repeat=num_qubit)
+    for i, pi in enumerate(p):
+        symbol = ""
+        for s in pi:
+            symbol = symbol + s
+        q = calc_quadrant_from_pauli_symbol(symbol)
+        n = calc_decimal_number_from_pauli_symbol(symbol)
+
+        # Act
+        actual = symbol
+
+        # Assert
+        expected = calc_pauli_symbol_from_decimal_number(n, num_qubit)
+        npt.assert_equal(actual, expected)
+
+
+@pytest.mark.threequbit
+def test_generate_unitary_mat_from_gate_name_toffoli():
+    # Arrange
+    gate_name = "toffoli"
+    dims = [2, 2, 2]
+    ids = [0, 1, 2]
+
+    # Act
+    actual = generate_unitary_mat_from_gate_name(
+        gate_name=gate_name, dims=dims, ids=ids
+    )
+
+    # Assert
+    expected = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 1, 0],
+        ],
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.threequbit
+def test_generate_unitary_mat_from_gate_name_fredkin():
+    # Arrange
+    gate_name = "fredkin"
+    dims = [2, 2, 2]
+    ids = [0, 1, 2]
+
+    # Act
+    actual = generate_unitary_mat_from_gate_name(
+        gate_name=gate_name, dims=dims, ids=ids
+    )
+
+    # Assert
+    expected = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1],
+        ],
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected)
