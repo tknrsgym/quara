@@ -177,3 +177,61 @@ def test_calc_pauli_symbol_from_decimal_number(num_qubit: int):
         # Assert
         expected = calc_pauli_symbol_from_decimal_number(n, num_qubit)
         npt.assert_equal(actual, expected)
+
+
+@pytest.mark.threequbit
+def test_generate_unitary_mat_from_gate_name_toffoli():
+    # Arrange
+    gate_name = "toffoli"
+    dims = [2, 2, 2]
+    ids = [0, 1, 2]
+
+    # Act
+    actual = generate_unitary_mat_from_gate_name(
+        gate_name=gate_name, dims=dims, ids=ids
+    )
+
+    # Assert
+    expected = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 1, 0],
+        ],
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.threequbit
+def test_generate_unitary_mat_from_gate_name_fredkin():
+    # Arrange
+    gate_name = "fredkin"
+    dims = [2, 2, 2]
+    ids = [0, 1, 2]
+
+    # Act
+    actual = generate_unitary_mat_from_gate_name(
+        gate_name=gate_name, dims=dims, ids=ids
+    )
+
+    # Assert
+    expected = np.array(
+        [
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1],
+        ],
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected)

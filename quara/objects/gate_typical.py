@@ -6,6 +6,7 @@ from scipy.linalg import expm
 
 from quara.utils.matrix_util import (
     is_hermitian,
+    truncate_computational_fluctuation,
 )
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
@@ -32,7 +33,7 @@ def get_gate_names() -> List[str]:
     names.extend(["identity"])
     names.extend(get_gate_names_1qubit())
     names.extend(get_gate_names_2qubit())
-    # names.extend(get_gate_names_3qubit())
+    names.extend(get_gate_names_3qubit())
     names.extend(get_gate_names_1qutrit())
     # names.extend(get_gate_names_2qutrit())
     return names
@@ -198,6 +199,11 @@ def generate_unitary_mat_from_gate_name(
         else:
             u = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        h = method(ids)
+        u = calc_unitary_mat_from_hamiltonian_mat(h)
     # 1-qutrit
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -257,6 +263,12 @@ def generate_gate_mat_from_gate_name(
         else:
             mat = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        basis = get_normalized_pauli_basis(n_qubit=3)
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        h = method(ids)
+        mat = calc_gate_mat_from_hamiltonian_mat(h, to_basis=basis)
     # 1-qutrit
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -310,6 +322,11 @@ def generate_gate_from_gate_name(
         else:
             gate = method(c_sys)
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        h = method(ids)
+        mat = calc_gate_from_hamiltonian_mat(c_sys=c_sys, h=h)
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -391,7 +408,8 @@ def calc_unitary_mat_from_hamiltonian_mat(h: np.array) -> np.array:
     np.array((dim dim), dtype=np.complex128), U = expm-(1j * h)
     """
     assert is_hermitian(h)
-    u = expm(-1j * h)
+    u = truncate_computational_fluctuation(expm(-1j * h))
+
     return u
 
 
@@ -1665,6 +1683,64 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> np.array:
 # 3-qubit gates
 
 
+def convert_1qubit_pauli_symbol_to_pauli_index(
+    symbol: str, mode: str
+) -> Union[int, str]:
+    if mode == "int":
+        i = convert_1qubit_pauli_symbol_to_pauli_index_int(symbol)
+    elif mode == "str":
+        i = convert_1qubit_pauli_symbol_to_pauli_index_str(symbol)
+    else:
+        raise ValueError(f"mode is invalid.")
+
+    return i
+
+
+def convert_1qubit_pauli_symbol_to_pauli_index_int(symbol: str) -> int:
+    assert symbol in ["i", "x", "y", "z"]
+
+    if symbol == "i":
+        i = 0
+    elif symbol == "x":
+        i = 1
+    elif symbol == "y":
+        i = 2
+    elif symbol == "z":
+        i = 3
+
+    return i
+
+
+def convert_1qubit_pauli_symbol_to_pauli_index_str(symbol: str) -> str:
+    assert symbol in ["i", "x", "y", "z"]
+
+    if symbol == "i":
+        i = "0"
+    elif symbol == "x":
+        i = "1"
+    elif symbol == "y":
+        i = "2"
+    elif symbol == "z":
+        i = "3"
+
+    return i
+
+
+def convert_1qubit_pauli_index_to_pauli_symbol(index: Union[int, str]) -> str:
+    assert index in [0, 1, 2, 3] or index in ["0", "1", "2", "3"]
+
+    if index == 0 or index == "0":
+        s = "i"
+    elif index == 1 or index == "1":
+        s = "x"
+    elif index == 2 or index == "2":
+        s = "y"
+    elif index == 3 or index == "3":
+        s = "z"
+
+    return s
+
+
 def calc_quadrant_from_pauli_symbol(symbol: str) -> str:
     """Return the quadrant corresponding to a given pauli symbol.
 
@@ -1675,21 +1751,11 @@ def calc_quadrant_from_pauli_symbol(symbol: str) -> str:
 
     Returns
     ----------
-    str : Ex. 0, 1, 23, 123
+    str : Ex. "0", "1", "23", "123"
     """
     q = ""
     for si in symbol:
-        assert si in ["i", "x", "y", "z"]
-        if si == "i":
-            qi = "0"
-        elif si == "x":
-            qi = "1"
-        elif si == "y":
-            qi = "2"
-        elif si == "z":
-            qi = "3"
-        else:
-            raise ValueError(f"symbol is invalid!")
+        qi = convert_1qubit_pauli_symbol_to_pauli_index(symbol=si, mode="str")
 
         q = q + qi
 
@@ -1720,7 +1786,7 @@ def calc_pauli_symbol_from_quadrant(quadrant: str) -> str:
     Parameters
     ----------
     quadrant : str
-        Ex. 0, 1, 23, 123.
+        Ex. "0", "1", "23", "123".
 
     Returns
     ----------
@@ -1728,18 +1794,7 @@ def calc_pauli_symbol_from_quadrant(quadrant: str) -> str:
     """
     s = ""
     for qi in quadrant:
-        assert qi in ["0", "1", "2", "3"]
-        if qi == "0":
-            si = "i"
-        elif qi == "1":
-            si = "x"
-        elif qi == "2":
-            si = "y"
-        elif qi == "3":
-            si = "z"
-        else:
-            raise ValueError(f"symbol is invalid!")
-
+        si = convert_1qubit_pauli_index_to_pauli_symbol(qi)
         s = s + si
 
     return s
@@ -1791,14 +1846,191 @@ def calc_pauli_symbol_from_decimal_number(decimal_number: int, num_qubit: int) -
     return symbol
 
 
-def generate_gate_toffoli_hamiltonian_mat() -> np.array:
+def convert_string_to_strings(s: str) -> List[str]:
+    l = []
+    for si in s:
+        l.append(si)
+    return l
+
+
+def convert_strings_to_string(s_list: List[str]) -> str:
+    s = ""
+    for si in s_list:
+        s = s + si
+    return s
+
+
+def convert_pauli_symbol_to_pauli_indices(symbol: str) -> List[int]:
+    s_list = convert_string_to_strings(symbol)
+    indices = []
+    for s in s_list:
+        index = convert_1qubit_pauli_symbol_to_pauli_index(s, mode="int")
+        indices.append(index)
+    return indices
+
+
+def convert_pauli_indices_to_pauli_symbol(indices: List[int]) -> str:
+    symbol = ""
+    for index in indices:
+        s = convert_1qubit_pauli_index_to_pauli_symbol(index)
+        symbol = symbol + s
+    return symbol
+
+
+def is_no_duplication_list(l: List) -> bool:
+    res = True
+    for li in l:
+        if l.count(li) > 1:
+            res = False
+    return res
+
+
+def get_permutation_matrix_from_ascending_order(ids: List[int]) -> np.array:
+    """Return a permutation matrix that convert soarted(ids) to ids.
+
+    Parameters
+    ----------
+    ids : List[int]
+        A list of integers, to have no duplication.
+
+    Returns
+    ----------
+    np.array()
+        A permutation matrix that convert the sorted list in the ascending order, sorted(ids), to the original list, ids.
+    """
+    assert is_no_duplication_list(ids)
+
+    ids_sorted = sorted(ids)
+    n = len(ids)
+    matP = np.zeros((n, n), dtype=int)
+    for i_sorted, id_sorted in enumerate(ids_sorted):
+        for i_original, id_original in enumerate(ids):
+            if id_sorted == id_original:
+                matP[i_original, i_sorted] = 1
+                break
+
+    return matP
+
+
+def permute_pauli_symbol(symbol: str, ids: List[int]) -> str:
+    assert len(symbol) == len(ids)
+    pauli_indices = convert_pauli_symbol_to_pauli_indices(symbol)
+    matP = get_permutation_matrix_from_ascending_order(ids)
+    pauli_indices_permuted = matP @ np.array(pauli_indices)  # .to_list()
+    symbol_permuted = convert_pauli_indices_to_pauli_symbol(pauli_indices_permuted)
+    return symbol_permuted
+
+
+# Gate Toffoli on 3-qubit
+
+
+def generate_gate_toffoli_hamiltonian_mat(ids: List[int]) -> np.array:
     """Return the Hamiltonian matrix of the Toffoli gate (Controlled-Controlled-NOT).
 
     H = (pi/8) * (-III + IIX + IZI - IZX + ZII - ZIX - ZZI + ZZX)
     """
-    h = np.zeros((9, 9), dtype=np.complex128)
-    b = get_generalized_gell_mann_basis(n_qubit=2, dim=3)
+    h = np.zeros((8, 8), dtype=np.complex128)
+    b = get_pauli_basis(n_qubit=3)
+    # -III
+    s = "iii"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+    # + IIX
+    s = "iix"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
+    # + IZI
+    s = "izi"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
+    # - IZX
+    s = "izx"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+    # + ZII
+    s = "zii"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
+    # - ZIX
+    s = "zix"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+    # - ZZI
+    s = "zzi"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+    # + ZZX
+    s = "zzx"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
 
+    coeff = np.pi * 0.125
+    h = coeff * h
+    return h
+
+
+# Gate Fredkin on 3-qubit
+
+
+def generate_gate_fredkin_hamiltonian_mat(ids: List[int]) -> np.array:
+    """Return the Hamiltonian matrix of the Fredkin gate (Controlled-SWAP).
+
+    H = (pi/8) * (-III + IXX + IYY + IZZ + ZII - ZXX - ZYY - ZZZ)
+    """
+    h = np.zeros((8, 8), dtype=np.complex128)
+    b = get_pauli_basis(n_qubit=3)
+
+    # -III
+    s = "iii"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+    # + IXX
+    s = "ixx"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
+    # + IYY
+    s = "iyy"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
+    # + IZZ
+    s = "izz"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
+    # + ZII
+    s = "zii"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += b[i]
+    # - ZXX
+    s = "zxx"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+    # - ZYY
+    s = "zyy"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+    # - ZZZ
+    s = "zzz"
+    s2 = permute_pauli_symbol(s, ids)
+    i = calc_decimal_number_from_pauli_symbol(s2)
+    h += -b[i]
+
+    coeff = np.pi * 0.125
+    h = coeff * h
     return h
 
 
