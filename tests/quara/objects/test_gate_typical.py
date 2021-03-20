@@ -3,6 +3,7 @@ import numpy.testing as npt
 import pytest
 
 from typing import List
+from itertools import product
 
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import (
@@ -22,6 +23,9 @@ from quara.objects.gate_typical import (
     calc_gate_mat_from_unitary_mat,
     calc_gate_mat_from_unitary_mat_with_hermitian_basis,
     generate_gate_mat_from_gate_name,
+    calc_quadrant_from_pauli_symbol,
+    calc_decimal_number_from_pauli_symbol,
+    calc_pauli_symbol_from_decimal_number,
 )
 from quara.objects.effective_lindbladian_typical import (
     generate_gate_1qutrit_single_gellmann_effective_linabladian,
@@ -127,3 +131,49 @@ def test_gate_1qutrit_case01(gate_name: str):
     ids = []
     print("gate_name=", gate_name)
     _test_gate(gate_name, dims, ids, c_sys)
+
+
+@pytest.mark.parametrize(
+    ("num_qubit"),
+    [(1), (2), (3)],
+)
+def test_calc_decimal_number_from_pauli_symbol(num_qubit: int):
+    # Arrange
+    pauli_symbols = ["i", "x", "y", "z"]
+    p = product(pauli_symbols, repeat=num_qubit)
+    for i, pi in enumerate(p):
+        symbol = ""
+        for s in pi:
+            symbol = symbol + s
+        q = calc_quadrant_from_pauli_symbol(symbol)
+
+        # Act
+        n = calc_decimal_number_from_pauli_symbol(symbol)
+        actual = n
+
+        # Assert
+        expected = i
+        npt.assert_equal(actual, expected)
+
+
+@pytest.mark.parametrize(
+    ("num_qubit"),
+    [(1), (2), (3)],
+)
+def test_calc_pauli_symbol_from_decimal_number(num_qubit: int):
+    # Arrange
+    pauli_symbols = ["i", "x", "y", "z"]
+    p = product(pauli_symbols, repeat=num_qubit)
+    for i, pi in enumerate(p):
+        symbol = ""
+        for s in pi:
+            symbol = symbol + s
+        q = calc_quadrant_from_pauli_symbol(symbol)
+        n = calc_decimal_number_from_pauli_symbol(symbol)
+
+        # Act
+        actual = symbol
+
+        # Assert
+        expected = calc_pauli_symbol_from_decimal_number(n, num_qubit)
+        npt.assert_equal(actual, expected)
