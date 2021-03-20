@@ -1928,7 +1928,19 @@ def generate_gate_toffoli_hamiltonian_mat(ids: List[int]) -> np.array:
     """Return the Hamiltonian matrix of the Toffoli gate (Controlled-Controlled-NOT).
 
     H = (pi/8) * (-III + IIX + IZI - IZX + ZII - ZIX - ZZI + ZZX)
+
+    Parameters
+    ----------
+    ids : List[int]
+        ids[0] and ids[1] are for control, and ids[2] is for target.
+
+    Returns
+    ----------
+    np.array((8 8), dtype=np.complex128)
+        Hamiltonian matrix
     """
+    assert len(ids) == 3
+
     h = np.zeros((8, 8), dtype=np.complex128)
     b = get_pauli_basis(n_qubit=3)
     # -III
@@ -1984,7 +1996,19 @@ def generate_gate_fredkin_hamiltonian_mat(ids: List[int]) -> np.array:
     """Return the Hamiltonian matrix of the Fredkin gate (Controlled-SWAP).
 
     H = (pi/8) * (-III + IXX + IYY + IZZ + ZII - ZXX - ZYY - ZZZ)
+
+    Parameters
+    ----------
+    ids : List[int]
+        ids[0] is for control, and ids[1] and ids[2] are for target.
+
+    Returns
+    ----------
+    np.array((8 8), dtype=np.complex128)
+        Hamiltonian matrix
     """
+    assert len(ids) == 3
+
     h = np.zeros((8, 8), dtype=np.complex128)
     b = get_pauli_basis(n_qubit=3)
 
