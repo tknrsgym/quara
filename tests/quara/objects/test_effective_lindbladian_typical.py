@@ -3,6 +3,7 @@ import numpy.testing as npt
 import pytest
 
 from typing import List
+from itertools import permutations
 from scipy.linalg import expm
 
 from quara.math.matrix import (
@@ -21,6 +22,7 @@ from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
+    get_gate_names_3qubit,
     get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
 )
@@ -874,6 +876,109 @@ def test_calc_h_2qubit(gate_name, decimal):
 
     if gate_name in get_gate_names_2qubit_asymmetric():
         ids = [1, 0]
+        _test_calc_h(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
+
+
+# Tests for 3-qubit gates
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("gate_name", "decimal"),
+    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
+)
+def test_hamiltonian_vec_hamiltonian_mat_3qubit(gate_name, decimal):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
+    dims = [2, 2, 2]
+
+    ids_base = [0, 1, 2]
+    for ids in permutations(ids_base):
+        _test_hamiltonian_vec_hamiltonian_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("gate_name", "decimal"),
+    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
+)
+def test_hamiltonian_mat_unitary_mat_3qubit(gate_name, decimal):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
+    dims = [2, 2, 2]
+
+    ids_base = [0, 1, 2]
+    for ids in permutations(ids_base):
+        _test_hamiltonian_mat_unitary_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("gate_name", "decimal"),
+    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
+)
+def test_effective_lindladian_mat_gate_mat_3qubit(gate_name, decimal):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
+    dims = [2, 2, 2]
+
+    ids_base = [0, 1, 2]
+    for ids in permutations(ids_base):
+        _test_effective_lindladian_mat_gate_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("gate_name", "decimal"),
+    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
+)
+def test_generate_effective_lindbladian_from_h_3qubit(gate_name, decimal):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
+    dims = [2, 2, 2]
+
+    ids_base = [0, 1, 2]
+    for ids in permutations(ids_base):
+        _test_generate_effective_lindbladian_from_h(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("gate_name", "decimal"),
+    [(gate_name, 14) for gate_name in get_gate_names_3qubit()],
+)
+def test_calc_h_3qubit(gate_name, decimal):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
+    dims = [2, 2, 2]
+
+    ids_base = [0, 1, 2]
+    for ids in permutations(ids_base):
         _test_calc_h(
             gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
         )
