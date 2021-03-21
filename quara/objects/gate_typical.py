@@ -2286,3 +2286,25 @@ def generate_gate_1qutrit_single_gellmann(
     hs = generate_gate_1qutrit_single_gellmann_mat(gate_name)
     G = Gate(c_sys=c_sys, hs=hs)
     return G
+
+
+# 2-qutrit gates
+
+
+def get_base_matrix_symbols_1qutrit() -> List[str]:
+    l = ["i"]
+    levels = ["01", "12", "02"]
+    axis = ["x", "y", "z"]
+
+    p = product(levels, axis)
+    q = [pi[0] + pi[1] for pi in p]
+    l.extend(q)
+
+    return l
+
+
+def get_base_matrix_symbols_2qutrit() -> List[str]:
+    l = get_base_matrix_symbols_1qutrit()
+    p = product(l, repeat=2)
+    q = [pi[0] + pi[1] for pi in p]
+    return q
