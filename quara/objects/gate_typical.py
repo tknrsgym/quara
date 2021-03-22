@@ -16,6 +16,7 @@ from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
     get_generalized_gell_mann_basis,
+    get_normalized_generalized_gell_mann_basis,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
@@ -35,7 +36,7 @@ def get_gate_names() -> List[str]:
     names.extend(get_gate_names_2qubit())
     names.extend(get_gate_names_3qubit())
     names.extend(get_gate_names_1qutrit())
-    # names.extend(get_gate_names_2qutrit())
+    names.extend(get_gate_names_2qutrit())
     return names
 
 
@@ -125,8 +126,21 @@ def get_gate_names_1qutrit_single_gellmann() -> List[str]:
     return names
 
 
-def get_gate_names_2qutrit_single_gellmann() -> List[str]:
-    pass
+def get_gate_names_2qutrit() -> List[str]:
+    """return the list of valid (implemented) gate names of 2-qutrit gates."""
+    names = []
+    names.extend(get_gate_names_2qutrit_base_matrices())
+
+    return names
+
+
+def get_gate_names_2qutrit_base_matrices() -> List[str]:
+    """return the list of valid (implemented) gate names of 2-qutrit gates."""
+    names = []
+    names.extend(get_gate_names_2qutrit_single_base_matrix())
+    names.extend(get_gate_names_2qutrit_two_base_matrices())
+
+    return names
 
 
 def _is_valid_dims_ids(dims: List[int], ids: List[int]) -> bool:
@@ -211,6 +225,9 @@ def generate_unitary_mat_from_gate_name(
             method = eval(method_name)
             u = method(gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        h = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name)
+        u = calc_unitary_mat_from_hamiltonian_mat(h)
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -276,6 +293,10 @@ def generate_gate_mat_from_gate_name(
             method = eval(method_name)
             mat = method(gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        basis = get_normalized_generalized_gell_mann_basis(n_qubit=2, dim=3)
+        h = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name, ids)
+        mat = calc_gate_mat_from_hamiltonian_mat(h=h, to_basis=basis)
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -334,6 +355,9 @@ def generate_gate_from_gate_name(
             method = eval(method_name)
             gate = method(c_sys, gate_name)
     # 2-qutrit gate
+    elif gate_name in get_gate_names_2qutrit():
+        mat = generate_gate_mat_from_gate_name(gate_name, ids)
+        gate = Gate(c_sys=c_sys, hs=mat)
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -1928,7 +1952,19 @@ def generate_gate_toffoli_hamiltonian_mat(ids: List[int]) -> np.array:
     """Return the Hamiltonian matrix of the Toffoli gate (Controlled-Controlled-NOT).
 
     H = (pi/8) * (-III + IIX + IZI - IZX + ZII - ZIX - ZZI + ZZX)
+
+    Parameters
+    ----------
+    ids : List[int]
+        ids[0] and ids[1] are for control, and ids[2] is for target.
+
+    Returns
+    ----------
+    np.array((8 8), dtype=np.complex128)
+        Hamiltonian matrix
     """
+    assert len(ids) == 3
+
     h = np.zeros((8, 8), dtype=np.complex128)
     b = get_pauli_basis(n_qubit=3)
     # -III
@@ -1984,7 +2020,19 @@ def generate_gate_fredkin_hamiltonian_mat(ids: List[int]) -> np.array:
     """Return the Hamiltonian matrix of the Fredkin gate (Controlled-SWAP).
 
     H = (pi/8) * (-III + IXX + IYY + IZZ + ZII - ZXX - ZYY - ZZZ)
+
+    Parameters
+    ----------
+    ids : List[int]
+        ids[0] is for control, and ids[1] and ids[2] are for target.
+
+    Returns
+    ----------
+    np.array((8 8), dtype=np.complex128)
+        Hamiltonian matrix
     """
+    assert len(ids) == 3
+
     h = np.zeros((8, 8), dtype=np.complex128)
     b = get_pauli_basis(n_qubit=3)
 
@@ -2262,3 +2310,204 @@ def generate_gate_1qutrit_single_gellmann(
     hs = generate_gate_1qutrit_single_gellmann_mat(gate_name)
     G = Gate(c_sys=c_sys, hs=hs)
     return G
+
+
+# 2-qutrit gates
+
+
+def get_base_matrix_names_1qutrit() -> List[str]:
+    """Return a list of base matrix names for 1-qutrit system."""
+    l = ["i"]
+    levels = ["01", "12", "02"]
+    axis = ["x", "y", "z"]
+
+    p = product(levels, axis)
+    q = [pi[0] + pi[1] for pi in p]
+    l.extend(q)
+
+    return l
+
+
+def get_base_matrix_names_2qutrit() -> List[str]:
+    """Return a list of base matrix names for 2-qutrit system."""
+    l = get_base_matrix_names_1qutrit()
+    p = product(l, repeat=2)
+    q = [pi[0] + pi[1] for pi in p]
+    return q
+
+
+def get_angles_2qutrit() -> List[str]:
+    """Return a list of angles for 2-qutrit gates."""
+    l = []
+    l.append("90")
+    l.append("180")
+
+    return l
+
+
+def get_gate_names_2qutrit_single_base_matrix() -> List[str]:
+    """Return a list of gate names on 2-qutirt system whose Hamiltonian consists of single base matrix."""
+    base_names = get_base_matrix_names_2qutrit()
+    base_names.remove("ii")
+    angles = get_angles_2qutrit()
+    p = product(base_names, angles)
+    gate_names = []
+    for pi in p:
+        base_name = pi[0]
+        angle = pi[1]
+        gate_name = base_name + angle
+        gate_names.append(gate_name)
+
+    return gate_names
+
+
+def get_gate_names_2qutrit_two_base_matrices() -> List[str]:
+    """Return a list of gate names on 2-qutrit system whose Hamiltonian consists of two base matrices."""
+    gate_names_single = get_gate_names_2qutrit_single_base_matrix()
+    gate_names = []
+    for name1 in gate_names_single:
+        for name2 in gate_names_single:
+            if name1 != name2:
+                name = name1 + "_" + name2
+                gate_names.append(name)
+    return gate_names
+
+
+def split_gate_name_2qutrit_base_matrices(gate_name: str) -> List[str]:
+    """Return a list of gate names that are elements of a given gate name.
+
+    Ex. "01x02z90_12yi180" -> ["01x02z90", "12yi180"]
+    """
+    l = gate_name.split("_")
+    return l
+
+
+def split_gate_name_2qutrit_single_base_matrix_into_base_matrix_names_angle(
+    gate_name: str,
+) -> Dict[str, str]:
+    """Return base matrix names and angle for a given 2-qutrit single base matrix name.
+
+    Parameters
+    ----------
+    gate_names : str
+        Ex. "i01x90", "12yi180", "02z12y90"
+
+    Returns
+    ----------
+    Dict[str, str]
+        key = "base0", "base1", "angle".
+        Ex. {'base0': 'i', 'base1': '01x', 'angle':'90'}
+            {'base0': '12y', 'base1': 'i', 'angle':'180'}
+            {'base0': '02z', 'base1': '12y', 'angle':'90'}
+    """
+    l = []
+    a = ""
+    for s in gate_name:
+        if s in ["i", "x", "y", "z"]:
+            a = a + s
+            l.append(a)
+            a = ""
+        else:
+            a = a + s
+    l.append(a)
+
+    assert len(l) == 3
+    res = {"base0": l[0], "base1": l[1], "angle": l[2]}
+    return res
+
+
+def calc_hamiltonian_mat_from_gate_name_2qutrit_single_base_matrix(
+    gate_name: str,
+) -> np.array:
+    """Return a Hamiltonian matrix for a given name of gate on 2-qutrit system whose Hamiltonian consists of single base matrix.
+
+    Parameters
+    ----------
+    gate_name : str
+
+    Returns
+    ----------
+    np.array(shape=(9,9), dtype=np.complex128)
+    """
+    element = split_gate_name_2qutrit_single_base_matrix_into_base_matrix_names_angle(
+        gate_name
+    )
+    base0 = element["base0"]
+    base1 = element["base1"]
+    angle = element["angle"]
+
+    # base0
+    if base0 == "i":
+        axis = "i"
+        levels = None
+    else:
+        axis = base0[-1]
+        levels = base0.replace(axis, "")
+    base_mat0 = calc_base_matrix_1qutrit(levels=levels, axis=axis)
+
+    # base1
+    if base1 == "i":
+        axis = "i"
+        levels = None
+    else:
+        axis = base1[-1]
+        levels = base1.replace(axis, "")
+    base_mat1 = calc_base_matrix_1qutrit(levels=levels, axis=axis)
+
+    # angle
+    angle_coeff = calc_coeff_from_angle_str(angle)
+
+    # Hamiltonian
+    mat = angle_coeff * np.kron(base_mat0, base_mat1)
+
+    return mat
+
+
+def calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(
+    gate_name: str,
+) -> np.array:
+    """Return a Hamiltonian matrix that corresponds to a given name of 2-qutirt gate whose Hamiltonian consists of base matrices.
+
+    Parameters
+    ----------
+    gate_name : str
+        Ex. 01xi90, 12z01y180_
+
+    Returns
+    ----------
+    np.array((9, 9), dtype=np.complex128)
+        A Hamiltonian matrix on 2-qutrit system
+    """
+    mat = np.zeros(shape=(9, 9), dtype=np.complex128)
+    l = split_gate_name_2qutrit_base_matrices(gate_name)
+    for li in l:
+        mati = calc_hamiltonian_mat_from_gate_name_2qutrit_single_base_matrix(li)
+        mat = mat + mati
+    return mat
+
+
+def generate_gate_2qutrit_hamiltonian_mat_from_gate_name(
+    gate_name: str, ids: List[int] = []
+) -> np.array:
+    """Return a Hamiltonian of a 2-qutrit gate for a given gate name.
+
+    Parameters
+    ----------
+    gate_name : str
+
+    ids: List[int] = [], Optional
+        a list of elemental system ids, which specifies their roles such as control or target.
+
+    Returns
+    ----------
+    np.array(shape=(9, 9), dtype=np.complex128)
+    """
+    assert gate_name in get_gate_names_2qutrit()
+
+    if gate_name in get_gate_names_2qutrit_base_matrices():
+        h = calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(gate_name)
+    # add elif here when implement new gates on 2-qutrit
+    else:
+        raise ValueError(f"gate_name ias invalid.")
+
+    return h
