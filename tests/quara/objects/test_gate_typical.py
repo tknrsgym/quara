@@ -27,6 +27,7 @@ from quara.objects.gate_typical import (
     calc_quadrant_from_pauli_symbol,
     calc_decimal_number_from_pauli_symbol,
     calc_pauli_symbol_from_decimal_number,
+    calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices,
 )
 from quara.objects.effective_lindbladian_typical import (
     generate_gate_1qutrit_single_gellmann_effective_linabladian,
@@ -255,4 +256,83 @@ def test_generate_unitary_mat_from_gate_name_fredkin():
         ],
         dtype=np.complex128,
     )
+    npt.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.twoqutrit
+def test_calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices_case01():
+    # Arrange
+    gate_name = "i01x90"
+
+    # Act
+    actual = calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(gate_name)
+
+    # Expected
+    mat0 = np.eye(3, dtype=np.complex128)
+    mat1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    coeff = 0.25 * np.pi
+    expected = coeff * np.kron(mat0, mat1)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.twoqutrit
+def test_calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices_case02():
+    # Arrange
+    gate_name = "02yi180"
+
+    # Act
+    actual = calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(gate_name)
+
+    # Expected
+    mat0 = np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
+    mat1 = np.eye(3, dtype=np.complex128)
+    coeff = 0.5 * np.pi
+    expected = coeff * np.kron(mat0, mat1)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.twoqutrit
+def test_calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices_case03():
+    # Arrange
+    gate_name = "12z02y90"
+
+    # Act
+    actual = calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(gate_name)
+
+    # Expected
+    mat0 = np.array([[0, 0, 0], [0, 1, 0], [0, 0, -1]], dtype=np.complex128)
+    mat1 = np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
+    coeff = 0.25 * np.pi
+    expected = coeff * np.kron(mat0, mat1)
+
+    # Assert
+    npt.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.twoqutrit
+def test_calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices_case04():
+    # Arrange
+    gate_name = "i01x180_12z02y90"
+
+    # Act
+    actual = calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(gate_name)
+
+    # Expected
+    mat0 = np.eye(3, dtype=np.complex128)
+    mat1 = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]], dtype=np.complex128)
+    coeff = 0.5 * np.pi
+    h_first = coeff * np.kron(mat0, mat1)
+
+    mat0 = np.array([[0, 0, 0], [0, 1, 0], [0, 0, -1]], dtype=np.complex128)
+    mat1 = np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]], dtype=np.complex128)
+    coeff = 0.25 * np.pi
+    h_second = coeff * np.kron(mat0, mat1)
+
+    expected = h_first + h_second
+
+    # Assert
     npt.assert_almost_equal(actual, expected)
