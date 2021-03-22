@@ -125,10 +125,6 @@ def get_gate_names_1qutrit_single_gellmann() -> List[str]:
     return names
 
 
-def get_gate_names_2qutrit_single_gellmann() -> List[str]:
-    pass
-
-
 def _is_valid_dims_ids(dims: List[int], ids: List[int]) -> bool:
     res = True
 
@@ -2291,7 +2287,8 @@ def generate_gate_1qutrit_single_gellmann(
 # 2-qutrit gates
 
 
-def get_base_matrix_symbols_1qutrit() -> List[str]:
+def get_base_matrix_names_1qutrit() -> List[str]:
+    """Return a list of base matrix names for 1-qutrit system."""
     l = ["i"]
     levels = ["01", "12", "02"]
     axis = ["x", "y", "z"]
@@ -2303,8 +2300,159 @@ def get_base_matrix_symbols_1qutrit() -> List[str]:
     return l
 
 
-def get_base_matrix_symbols_2qutrit() -> List[str]:
-    l = get_base_matrix_symbols_1qutrit()
+def get_base_matrix_names_2qutrit() -> List[str]:
+    """Return a list of base matrix names for 2-qutrit system."""
+    l = get_base_matrix_names_1qutrit()
     p = product(l, repeat=2)
     q = [pi[0] + pi[1] for pi in p]
     return q
+
+
+def get_angles_2qutrit() -> List[str]:
+    """Return a list of angles for 2-qutrit gates."""
+    l = []
+    l.append("90")
+    l.append("180")
+
+    return l
+
+
+def get_gate_names_2qutrit_single_base_matrix() -> List[str]:
+    """Return a list of gate names on 2-qutirt system whose Hamiltonian consists of single base matrix."""
+    base_names = get_base_matrix_names_2qutrit()
+    base_names.remove("ii")
+    angles = get_angles_2qutrit()
+    p = product(base_names, angles)
+    gate_names = []
+    for pi in p:
+        base_name = pi[0]
+        angle = pi[1]
+        gate_name = base_name + angle
+        gate_names.append(gate_name)
+
+    return gate_names
+
+
+def get_gate_names_2qutrit_two_base_matrices() -> List[str]:
+    """Return a list of gate names on 2-qutrit system whose Hamiltonian consists of two base matrices."""
+    gate_names_single = get_gate_names_2qutrit_single_base_matrix()
+    gate_names = []
+    for name1 in gate_names_single:
+        for name2 in gate_names_single:
+            if name1 != name2:
+                name = name1 + "_" + name2
+                gate_names.append(name)
+    return gate_names
+
+
+def split_gate_name_2qutrit_base_matrices(gate_name: str) -> List[str]:
+    """Return a list of gate names that are elements of a given gate name.
+
+    Ex. "01x02z90_12yi180" -> ["01x02z90", "12yi180"]
+    """
+    l = gate_name.split("_")
+    return l
+
+
+def split_gate_name_2qutrit_single_base_matrix_into_base_matrix_names_angle(
+    gate_name: str,
+) -> Dict[str, str]:
+    """Return base matrix names and angle for a given 2-qutrit single base matrix name.
+
+    Parameters
+    ----------
+    gate_names : str
+        Ex. "i01x90", "12yi180", "02z12y90"
+
+    Returns
+    ----------
+    Dict[str, str]
+        key = "base0", "base1", "angle".
+        Ex. {'base0': 'i', 'base1': '01x', 'angle':'90'}
+            {'base0': '12y', 'base1': 'i', 'angle':'180'}
+            {'base0': '02z', 'base1': '12y', 'angle':'90'}
+    """
+    l = []
+    a = ""
+    for s in gate_name:
+        if s in ["i", "x", "y", "z"]:
+            a = a + s
+            l.append(a)
+            a = ""
+        else:
+            a = a + s
+    l.append(a)
+
+    assert len(l) == 3
+    res = {"base0": l[0], "base1": l[1], "angle": l[2]}
+    return res
+
+
+def calc_hamiltonian_mat_from_gate_name_2qutrit_single_base_matrix(
+    gate_name: str,
+) -> np.array:
+    """Return a Hamiltonian matrix for a given name of gate on 2-qutrit system whose Hamiltonian consists of single base matrix.
+
+    Parameters
+    ----------
+    gate_name : str
+
+    Returns
+    ----------
+    np.array(shape=(9,9), dtype=np.complex128)
+    """
+    element = split_gate_name_2qutrit_single_base_matrix_into_base_matrix_names_angle(
+        gate_name
+    )
+    base0 = element["base0"]
+    base1 = element["base1"]
+    angle = element["angle"]
+
+    # base0
+    if base0 == "i":
+        axis = "i"
+        levels = None
+    else:
+        axis = base0[-1]
+        levels = base0.replace(axis, "")
+    base_mat0 = calc_base_matrix_1qutrit(levels=levels, axis=axis)
+
+    # base1
+    if base1 == "i":
+        axis = "i"
+        levels = None
+    else:
+        axis = base1[-1]
+        levels = base1.replace(axis, "")
+    base_mat1 = calc_base_matrix_1qutrit(levels=levels, axis=axis)
+
+    # angle
+    angle_coeff = calc_coeff_from_angle_str(angle)
+
+    # Hamiltonian
+    mat = angle_coeff * np.kron(base_mat0, base_mat1)
+
+    return mat
+
+
+def calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(
+    gate_name: str,
+) -> np.array:
+    """Return a Hamiltonian matrix that corresponds to a given name of 2-qutirt gate whose Hamiltonian consists of base matrices.
+
+    Parameters
+    ----------
+    gate_name : str
+        Ex. 01xi90, 12z01y180_
+
+    Returns
+    ----------
+    np.array((9, 9), dtype=np.complex128)
+        A Hamiltonian matrix on 2-qutrit system
+    """
+    mat = np.zeros(shape=(9, 9), dtype=np.complex128)
+    l = split_gate_name_2qutrit_base_matrices(gate_name)
+    for li in l:
+        mati = calc_hamiltonian_mat_from_gate_name_2qutrit_single_base_matrix(li)
+        mat = mat + mati
+    return mat
