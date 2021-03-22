@@ -16,6 +16,7 @@ from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
     get_generalized_gell_mann_basis,
+    get_normalized_generalized_gell_mann_basis,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
@@ -35,7 +36,7 @@ def get_gate_names() -> List[str]:
     names.extend(get_gate_names_2qubit())
     names.extend(get_gate_names_3qubit())
     names.extend(get_gate_names_1qutrit())
-    # names.extend(get_gate_names_2qutrit())
+    names.extend(get_gate_names_2qutrit())
     return names
 
 
@@ -125,6 +126,23 @@ def get_gate_names_1qutrit_single_gellmann() -> List[str]:
     return names
 
 
+def get_gate_names_2qutrit() -> List[str]:
+    """return the list of valid (implemented) gate names of 2-qutrit gates."""
+    names = []
+    names.extend(get_gate_names_2qutrit_base_matrices())
+
+    return names
+
+
+def get_gate_names_2qutrit_base_matrices() -> List[str]:
+    """return the list of valid (implemented) gate names of 2-qutrit gates."""
+    names = []
+    names.extend(get_gate_names_2qutrit_single_base_matrix())
+    names.extend(get_gate_names_2qutrit_two_base_matrices())
+
+    return names
+
+
 def _is_valid_dims_ids(dims: List[int], ids: List[int]) -> bool:
     res = True
 
@@ -207,6 +225,9 @@ def generate_unitary_mat_from_gate_name(
             method = eval(method_name)
             u = method(gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        h = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name)
+        u = calc_unitary_mat_from_hamiltonian_mat(h)
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -272,6 +293,10 @@ def generate_gate_mat_from_gate_name(
             method = eval(method_name)
             mat = method(gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        basis = get_normalized_generalized_gell_mann_basis(n_qubit=2, dim=3)
+        h = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name, ids)
+        mat = calc_gate_mat_from_hamiltonian_mat(h=h, to_basis=basis)
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -330,6 +355,9 @@ def generate_gate_from_gate_name(
             method = eval(method_name)
             gate = method(c_sys, gate_name)
     # 2-qutrit gate
+    elif gate_name in get_gate_names_2qutrit():
+        mat = generate_gate_mat_from_gate_name(gate_name, ids)
+        gate = Gate(c_sys=c_sys, hs=mat)
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -2456,3 +2484,30 @@ def calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(
         mati = calc_hamiltonian_mat_from_gate_name_2qutrit_single_base_matrix(li)
         mat = mat + mati
     return mat
+
+
+def generate_gate_2qutrit_hamiltonian_mat_from_gate_name(
+    gate_name: str, ids: List[int] = []
+) -> np.array:
+    """Return a Hamiltonian of a 2-qutrit gate for a given gate name.
+
+    Parameters
+    ----------
+    gate_name : str
+
+    ids: List[int] = [], Optional
+        a list of elemental system ids, which specifies their roles such as control or target.
+
+    Returns
+    ----------
+    np.array(shape=(9, 9), dtype=np.complex128)
+    """
+    assert gate_name in get_gate_names_2qutrit()
+
+    if gate_name in get_gate_names_2qutrit_base_matrices():
+        h = calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(gate_name)
+    # add elif here when implement new gates on 2-qutrit
+    else:
+        raise ValueError(f"gate_name ias invalid.")
+
+    return h
