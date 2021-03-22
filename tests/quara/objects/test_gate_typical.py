@@ -151,7 +151,6 @@ def test_gate_1qutrit_case01(gate_name: str):
     c_sys = CompositeSystem([e_sys])
     dims = [3]
     ids = []
-    print("gate_name=", gate_name)
     _test_gate(gate_name, dims, ids, c_sys)
 
 
@@ -336,3 +335,23 @@ def test_calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices_case04():
 
     # Assert
     npt.assert_almost_equal(actual, expected)
+
+
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [
+        (gate_name)
+        for gate_name in ["i01x90", "02yi180", "12z01y90", "i01y90_02x01z180"]
+    ],
+)
+def test_gate_2qutrit_case01(gate_name: str):
+    # Arrange
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    dims = [3, 3]
+    ids = []
+
+    # Act & Assert
+    _test_gate(gate_name, dims, ids, c_sys)
