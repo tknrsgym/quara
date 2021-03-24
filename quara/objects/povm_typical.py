@@ -121,12 +121,13 @@ def generate_povm_matrices_from_name(povm_name: str) -> List[np.array]:
             calc_mat_from_vector_adjoint(pure_state_vector)
             for pure_state_vector in pure_state_vectors
         ]
-
     else:
-        # TODO get density matrix
         if povm_name == "z2":
-            matrices = [state_typical.get_state_()]
-        matrices = []
+            matrices = [
+                state_typical.generate_state_density_mat_from_name("01z0"),
+                state_typical.generate_state_density_mat_from_name("01z1")
+                + state_typical.generate_state_density_mat_from_name("02z1"),
+            ]
     return matrices
 
 
