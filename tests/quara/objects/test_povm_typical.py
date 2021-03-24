@@ -39,6 +39,7 @@ from quara.objects.povm import (
     get_zz_povm,
 )
 from quara.objects import povm_typical
+from quara.objects import state_typical
 
 from quara.objects.state import get_x0_1q
 from quara.settings import Settings
@@ -74,6 +75,7 @@ def _test_povm(
     """
 
 
+"""
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
     ("povm_name"), [(povm_name) for povm_name in povm_typical.get_povm_names_1qubit()],
@@ -112,3 +114,18 @@ def test_povm_1qubit(povm_name: str):
     ids = []
 
     _test_povm(povm_name, dims, ids, c_sys)
+"""
+
+
+def test_generate_povm_pure_state_vectors_from_name():
+    actual = povm_typical.generate_povm_pure_state_vectors_from_name("z")
+    print(f"actual={actual}")
+
+    actual = state_typical.generate_state_pure_state_vector_from_name("bell_phi_plus")
+    print(f"actual={actual}")
+    actual = state_typical.generate_state_pure_state_vector_from_name("bell_phi_minus")
+    print(f"actual={actual}")
+    actual = state_typical.generate_state_pure_state_vector_from_name("bell_psi_plus")
+    print(f"actual={actual}")
+    actual = state_typical.generate_state_pure_state_vector_from_name("bell_psi_minus")
+    print(f"actual={actual}")
