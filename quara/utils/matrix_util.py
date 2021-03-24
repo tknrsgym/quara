@@ -569,9 +569,7 @@ def _left_permutation_matrix(position: int, size_list: List[int]) -> np.array:
     return left_perm_matrix
 
 
-def _check_cross_system_position(
-    system_order: List[int],
-) -> Union[int, None]:
+def _check_cross_system_position(system_order: List[int],) -> Union[int, None]:
     # check cross system position
     # for example, if [0, 10, 5] is a list of names of ElementalSystem, then this functions returns 2(position of value 5)
     former_name = None
@@ -626,3 +624,9 @@ def calc_permutation_matrix(system_order: List[int], size_list: List[int]) -> np
         position = _check_cross_system_position(tmp_system_order)
 
     return perm_matrix
+
+def calc_mat_from_vector_adjoint(vec: np.array) -> np.array:
+    _vec = np.kron(vec, np.conjugate(vec).T)
+    dim = int(np.sqrt(_vec.shape[0]))
+    mat = _vec.reshape((dim, dim))
+    return mat
