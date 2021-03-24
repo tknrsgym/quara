@@ -75,37 +75,34 @@ def get_state_names_2qtrit() -> List[str]:
     return names
 
 
-def generate_state_from_state_name(state_name: str, c_sys: CompositeSystem) -> "State":
+def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
     if state_name not in get_state_names():
         message = f"state_name is out of range."
         raise ValueError(message)
 
     # 1qubit
     if state_name in get_state_names_1qubit():
-        method_name = f"generate_state_{state_name}"
+        method_name = f"get_state_{state_name}_pure_state_vec"
         method = eval(method_name)
-        return method(c_sys)
+        return method()
     elif state_name in get_state_names_1qtrit():
         raise NotImplementedError()
     elif state_name in _get_state_names_2qubit_typical():
-        raise generate_bell(state_name)
+        return get_state_bell_pure_state_vec(state_name)
 
-    return _generate_state_tensor_product(state_name, c_sys)
+    return _generate_pure_state_vec_tensor_product(state_name)
 
 
-def _generate_state_tensor_product(state_name: str, c_sys: CompositeSystem) -> State:
+def _generate_pure_state_vec_tensor_product(state_name: str) -> np.array:
     name_items = state_name.split("_")
-    c_sys_list = [CompositeSystem([e_sys]) for e_sys in c_sys._elemental_systems]
     state_1qubit_list = []
     for i, name_item in enumerate(name_items):
-        # TODO: Stateオブジェクトを返す関数ではなく、純粋状態のベクトルを返す関数を呼ぶ形に変更する
-        method_name = f"generate_state_{name_item}"
+        method_name = f"get_state_{name_item}_pure_state_vec"
         method = eval(method_name)
-        state = method(c_sys_list[i])
-        state_1qubit_list.append(state)
-    # TODO: tensor_productではなく、tensor_product_for_vecsを呼んで純粋状態のベクトル同士のテンソル積を取る
-    state = tensor_product(state_1qubit_list)
-    return state
+        pure_state_vec = method()
+        state_1qubit_list.append(pure_state_vec)
+    pure_state_vec = tensor_product_for_vecs(state_1qubit_list)
+    return pure_state_vec
 
 
 def tensor_product_for_vecs(state_vecs: np.array) -> np.array:
@@ -115,7 +112,17 @@ def tensor_product_for_vecs(state_vecs: np.array) -> np.array:
     return state_vec
 
 
-def generate_bell(name: str) -> np.array:
+def get_state_z0_pure_state_vec() -> np.array:
+    vec = np.array([1, 0])
+    return vec
+
+
+def get_state_z1_pure_state_vec() -> np.array:
+    vec = np.array([0, 1])
+    return vec
+
+
+def get_state_bell_pure_state_vec(name: str) -> np.array:
     state_vec_0 = np.array([1, 0])
     state_vec_1 = np.array([0, 1])
 
