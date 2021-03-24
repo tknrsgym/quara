@@ -346,7 +346,7 @@ def calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
     assert basis.is_hermitian
 
     coeff_comp = calc_matrix_expansion_coefficient(from_mat, basis)
-    coeff_real = coeff_comp.real
+    coeff_real = mutil.truncate_hs(coeff_comp)
     return coeff_real
 
 
