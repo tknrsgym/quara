@@ -98,7 +98,6 @@ def test_calc_povm_vecs_from_matrices_with_hermitian_basis_1qubit(povm_name: str
     print(f"vecs_complex={vecs_complex}")
     print(f"vecs_truncate={vecs_truncate}")
     print(f"expected={expected}")
-    assert False
 
 
 @pytest.mark.onequbit
