@@ -15,18 +15,6 @@ def test_get_state_names_1qubit():
     assert actual == expected
 
 
-def get_state_names_2qubit():
-    actual = st.get_state_names_2qubit()
-    expected = [
-        "bell_phi_plus",
-        "bell_phi_minus",
-        "bell_psi_plus",
-        "bell_psi_minus",
-        "z0_z0",
-    ]
-    assert actual == expected
-
-
 def test_generate_state_from_state_name_exception():
     with pytest.raises(ValueError):
         _ = st.generate_state_pure_state_vector_from_name("x")
