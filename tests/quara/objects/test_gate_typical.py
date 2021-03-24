@@ -12,7 +12,8 @@ from quara.objects.matrix_basis import (
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.qoperation_typical import (
-    generate_gate_object_from_gate_name_object_name,
+    generate_gate_object,
+    generate_effective_lindbladian_object,
 )
 from quara.objects.gate_typical import (
     get_gate_names_1qubit,
@@ -42,16 +43,12 @@ def _test_gate(
     decimal: int = 15,
 ):
     # Arrange
-    object_name = "effective_lindbladian_class"
-    el = generate_gate_object_from_gate_name_object_name(
-        gate_name, object_name, dims, ids, c_sys
-    )
+    object_name = "effective_lindbladian"
+    el = generate_effective_lindbladian_object(gate_name, object_name, dims, ids, c_sys)
     g_from_el = el.to_gate()
 
-    object_name = "gate_class"
-    g = generate_gate_object_from_gate_name_object_name(
-        gate_name, object_name, dims, ids, c_sys
-    )
+    object_name = "gate"
+    g = generate_gate_object(gate_name, object_name, dims, ids, c_sys)
 
     # Act
     actual = g.hs
