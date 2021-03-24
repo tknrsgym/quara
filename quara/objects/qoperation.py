@@ -778,9 +778,7 @@ class QOperation:
             raise TypeError(error_message)
 
         if other.composite_system is not self.composite_system:
-            message = (
-                "'+' not supported between instances with different composite_system."
-            )
+            message = "'+' not supported between instances with different composite_system.elemental_systems."
             raise ValueError(message)
 
         if (
@@ -821,9 +819,7 @@ class QOperation:
             raise TypeError(error_message)
 
         if other.composite_system is not self.composite_system:
-            message = (
-                "'-' not supported between instances with different composite_system."
-            )
+            message = "'-' not supported between instances with different composite_system.elemental_systems."
             raise ValueError(message)
 
         if (
