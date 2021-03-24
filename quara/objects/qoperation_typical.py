@@ -21,7 +21,7 @@ from quara.objects.effective_lindbladian_typical import (
 )
 
 
-def get_object_names() -> List[str]:
+def get_gate_object_names() -> List[str]:
     """Return the list of valid object names for generate_object_of_gate_from_gate_name_object_name()."""
     names = []
     names.append("hamiltonian_vec")
