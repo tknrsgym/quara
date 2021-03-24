@@ -96,3 +96,80 @@ def test_get_state_a_pure_state_vec():
     # Assert
     expected = np.array([1 / np.sqrt(2), (1 / 2) * (1 + 1j)])
     npt.assert_almost_equal(actual, expected)
+
+
+def test_get_state_bell():
+    # Arrange
+    basis = get_normalized_pauli_basis()
+    e_sys_0 = ElementalSystem(0, basis)
+    e_sys_1 = ElementalSystem(1, basis)
+    c_sys = CompositeSystem([e_sys_0, e_sys_1])
+    expected_state = st.get_bell_2q(c_sys)
+    state_name = "bell_psi_plus"
+
+    # density matrix
+    # Act
+    actual = st.generate_state_density_mat_from_name(state_name)
+    # Assert
+    expected = expected_state.to_density_matrix()
+    npt.assert_almost_equal(actual, expected)
+    # Act
+    actual = st.generate_state_object_from_state_name_object_name(
+        state_name=state_name, object_name="density_mat", c_sys=c_sys
+    )
+    # Assert
+    npt.assert_almost_equal(actual, expected)
+
+    # density matrix vec
+    # Act
+    actual = st.generate_state_density_matrix_vector_from_name(
+        c_sys.basis(), state_name
+    )
+    # Assert
+    expected = expected_state.vec
+    npt.assert_almost_equal(actual, expected)
+
+    # Act
+    actual = st.generate_state_object_from_state_name_object_name(
+        state_name=state_name, object_name="density_matrix_vector", c_sys=c_sys
+    )
+    # Assert
+    npt.assert_almost_equal(actual, expected)
+
+    # State
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+    # Assert
+    expected = expected_state
+    npt.assert_almost_equal(actual.vec, expected.vec)
+
+    # Act
+    actual = st.generate_state_object_from_state_name_object_name(
+        state_name=state_name, object_name="state", c_sys=c_sys
+    )
+    # Assert
+    npt.assert_almost_equal(actual.vec, expected.vec)
+
+
+def test_generate_state_pure_state_vector_from_name_2q():
+    # |0>|1>
+    actual = st.generate_state_pure_state_vector_from_name("z0_z1")
+    expected = np.array([0, 1, 0, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |1>|0>
+    actual = st.generate_state_pure_state_vector_from_name("z1_z0")
+    expected = np.array([0, 0, 1, 0])
+    npt.assert_almost_equal(actual, expected)
+
+
+def test_generate_state_pure_state_vector_from_name_3q():
+    # |0>|1>|+>
+    actual = st.generate_state_pure_state_vector_from_name("z0_z1_x0")
+    expected = np.array([0, 0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0, 0, 0, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |0>|+>|i>
+    actual = st.generate_state_pure_state_vector_from_name("z0_x0_y0")
+    expected = np.array([1 / 2, 1j / 2, 1 / 2, 1j / 2, 0, 0, 0, 0,])
+    npt.assert_almost_equal(actual, expected)
