@@ -9,7 +9,9 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
+    get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
+    get_normalized_generalized_gell_mann_basis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.composite_system import CompositeSystem
@@ -24,16 +26,43 @@ from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
+    get_gate_names_3qubit,
+    generate_gate_toffoli_hamiltonian_mat,
+    generate_gate_fredkin_hamiltonian_mat,
+    # 1-qutrit
     get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
     calc_base_matrix_1qutrit,
     calc_levels_axis_angle_from_gate_name_1qutrit_single_gellmann,
     generate_gate_1qutrit_single_gellmann_hamiltonian_mat,
+    # 2-qutrit
+    get_gate_names_2qutrit,
+    generate_gate_2qutrit_hamiltonian_mat_from_gate_name,
 )
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.effective_lindbladian import (
     _truncate_hs,
 )
+
+
+def generate_effective_lindbladian_object_from_gate_name_object_name(
+    gate_name: str,
+    object_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+) -> Union[np.array, "EffectiveLindbladian"]:
+    if object_name == "hamiltonian_vec":
+        obj = generate_hamiltonian_vec_from_gate_name(gate_name, dims, ids)
+    elif object_name == "hamiltonian_mat":
+        obj = generate_hamiltonian_mat_from_gate_name(gate_name, dims, ids)
+    elif object_name == "effective_lindbladian_mat":
+        obj = generate_effective_lindbladian_mat_from_gate_name(gate_name, dims, ids)
+    elif object_name == "effective_lindbladian":
+        obj = generate_effective_lindbladian_from_gate_name(gate_name, c_sys, ids)
+    else:
+        raise ValueError(f"object_name is out of range.")
+    return obj
 
 
 def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h: np.array) -> np.array:
@@ -158,6 +187,14 @@ def generate_hamiltonian_vec_from_gate_name(
         else:
             vec = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        b = get_normalized_pauli_basis(n_qubit=3)
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        mat = method(ids)
+        vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
+            from_mat=mat, basis=b
+        )
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -165,6 +202,12 @@ def generate_hamiltonian_vec_from_gate_name(
             method = eval(method_name)
             vec = method(gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        b = get_normalized_generalized_gell_mann_basis(n_qubit=2, dim=3)
+        mat = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name, ids)
+        vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
+            from_mat=mat, basis=b
+        )
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -216,6 +259,10 @@ def generate_hamiltonian_mat_from_gate_name(
         else:
             mat = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        mat = method(ids)
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -223,6 +270,8 @@ def generate_hamiltonian_mat_from_gate_name(
             method = eval(method_name)
             mat = method(gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        mat = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name, ids)
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -274,6 +323,14 @@ def generate_effective_lindbladian_mat_from_gate_name(
         else:
             mat = method()
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        basis = get_normalized_pauli_basis(n_qubit=3)
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        h = method(ids)
+        mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
+            h=h, to_basis=basis
+        )
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -283,6 +340,12 @@ def generate_effective_lindbladian_mat_from_gate_name(
             method = eval(method_name)
             mat = method(gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        h = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name, ids)
+        basis = get_normalized_generalized_gell_mann_basis(n_qubit=2, dim=3)
+        mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
+            h=h, to_basis=basis
+        )
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -330,6 +393,15 @@ def generate_effective_lindbladian_from_gate_name(
         else:
             el = method(c_sys)
     # 3-qubit gate
+    elif gate_name in get_gate_names_3qubit():
+        basis = get_normalized_pauli_basis(n_qubit=3)
+        method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
+        method = eval(method_name)
+        h = method(ids)
+        mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
+            h=h, to_basis=basis
+        )
+        el = EffectiveLindbladian(c_sys=c_sys, hs=mat)
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
@@ -337,6 +409,13 @@ def generate_effective_lindbladian_from_gate_name(
             method = eval(method_name)
             el = method(c_sys, gate_name)
     # 2-qutrit
+    elif gate_name in get_gate_names_2qutrit():
+        h = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name, ids)
+        basis = get_normalized_generalized_gell_mann_basis(n_qubit=2, dim=3)
+        mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
+            h=h, to_basis=basis
+        )
+        el = EffectiveLindbladian(c_sys=c_sys, hs=mat)
     else:
         raise ValueError(f"gate_name is out of range.")
 
