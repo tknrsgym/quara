@@ -78,9 +78,9 @@ def test_get_object_from_name_1qubit(state_name):
     npt.assert_almost_equal(actual.vec, expected.vec)
 
 
-def test_get_state_a_pure_state_vec():
+def test_get_state_a_pure_state_vector():
     # Act
-    actual = st.get_state_a_pure_state_vec()
+    actual = st.get_state_a_pure_state_vector()
     # Assert
     expected = np.array([1 / np.sqrt(2), (1 / 2) * (1 + 1j)])
     npt.assert_almost_equal(actual, expected)
@@ -171,36 +171,36 @@ def test_generate_state_pure_state_vector_from_name_3q():
     npt.assert_almost_equal(actual, expected)
 
 
-def test_get_state_bell_pure_state_vec():
+def test_get_state_bell_pure_state_vector():
     # |Φ+>
-    actual = st.get_state_bell_pure_state_vec("bell_phi_plus")
+    actual = st.get_state_bell_pure_state_vector("bell_phi_plus")
     expected = (1 / np.sqrt(2)) * np.array([0, 1, 1, 0])
     npt.assert_almost_equal(actual, expected)
 
     # |Φ->
-    actual = st.get_state_bell_pure_state_vec("bell_phi_minus")
+    actual = st.get_state_bell_pure_state_vector("bell_phi_minus")
     expected = (1 / np.sqrt(2)) * np.array([0, 1, -1, 0])
     npt.assert_almost_equal(actual, expected)
 
     # |Ψ+>
-    actual = st.get_state_bell_pure_state_vec("bell_psi_plus")
+    actual = st.get_state_bell_pure_state_vector("bell_psi_plus")
     expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 1])
     npt.assert_almost_equal(actual, expected)
 
     # |Ψ->
-    actual = st.get_state_bell_pure_state_vec("bell_psi_minus")
+    actual = st.get_state_bell_pure_state_vector("bell_psi_minus")
     expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, -1])
     npt.assert_almost_equal(actual, expected)
 
 
-def test_get_state_ghz_pure_state_vec():
-    actual = st.get_state_ghz_pure_state_vec()
+def test_get_state_ghz_pure_state_vector():
+    actual = st.get_state_ghz_pure_state_vector()
     expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 0, 0, 0, 0, 1])
     npt.assert_almost_equal(actual, expected)
 
 
-def test_et_state_werner_pure_state_vec():
-    actual = st.get_state_werner_pure_state_vec()
+def test_et_state_werner_pure_state_vector():
+    actual = st.get_state_werner_pure_state_vector()
     expected = (1 / np.sqrt(3)) * np.array([0, 1, 1, 0, 1, 0, 0, 0])
     npt.assert_almost_equal(actual, expected)
 
