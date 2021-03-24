@@ -173,3 +173,25 @@ def test_generate_state_pure_state_vector_from_name_3q():
     actual = st.generate_state_pure_state_vector_from_name("z0_x0_y0")
     expected = np.array([1 / 2, 1j / 2, 1 / 2, 1j / 2, 0, 0, 0, 0,])
     npt.assert_almost_equal(actual, expected)
+
+
+def test_get_state_bell_pure_state_vec():
+    # |Φ+>
+    actual = st.get_state_bell_pure_state_vec("bell_phi_plus")
+    expected = (1 / np.sqrt(2)) * np.array([0, 1, 1, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |Φ->
+    actual = st.get_state_bell_pure_state_vec("bell_phi_minus")
+    expected = (1 / np.sqrt(2)) * np.array([0, 1, -1, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |Ψ+>
+    actual = st.get_state_bell_pure_state_vec("bell_psi_plus")
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 1])
+    npt.assert_almost_equal(actual, expected)
+
+    # |Ψ->
+    actual = st.get_state_bell_pure_state_vec("bell_psi_minus")
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, -1])
+    npt.assert_almost_equal(actual, expected)
