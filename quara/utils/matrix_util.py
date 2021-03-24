@@ -625,8 +625,6 @@ def calc_permutation_matrix(system_order: List[int], size_list: List[int]) -> np
 
     return perm_matrix
 
+
 def calc_mat_from_vector_adjoint(vec: np.array) -> np.array:
-    _vec = np.kron(vec, np.conjugate(vec).T)
-    dim = int(np.sqrt(_vec.shape[0]))
-    mat = _vec.reshape((dim, dim))
-    return mat
+    return np.array([vec]).T @ np.array([vec]).conjugate()
