@@ -45,6 +45,26 @@ from quara.objects.effective_lindbladian import (
 )
 
 
+def generate_effective_lindbladian_object_from_gate_name_object_name(
+    gate_name: str,
+    object_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+) -> Union[np.array, "EffectiveLindbladian"]:
+    if object_name == "hamiltonian_vec":
+        obj = generate_hamiltonian_vec_from_gate_name(gate_name, dims, ids)
+    elif object_name == "hamiltonian_mat":
+        obj = generate_hamiltonian_mat_from_gate_name(gate_name, dims, ids)
+    elif object_name == "effective_lindbladian_mat":
+        obj = generate_effective_lindbladian_mat_from_gate_name(gate_name, dims, ids)
+    elif object_name == "effective_lindbladian":
+        obj = generate_effective_lindbladian_from_gate_name(gate_name, c_sys, ids)
+    else:
+        raise ValueError(f"object_name is out of range.")
+    return obj
+
+
 def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h: np.array) -> np.array:
     """return the HS matrix of an effective Lindbladian w.r.t. the computational basis from a given Hamiltonian.
 

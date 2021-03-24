@@ -27,8 +27,8 @@ from quara.objects.gate_typical import (
     get_gate_names_1qutrit_single_gellmann,
 )
 from quara.objects.qoperation_typical import (
-    get_object_names,
-    generate_gate_object_from_gate_name_object_name,
+    generate_gate_object,
+    generate_effective_lindbladian_object,
 )
 
 
@@ -41,11 +41,11 @@ def _test_hamiltonian_vec_hamiltonian_mat(
 ):
     # Arrange
     object_name = "hamiltonian_vec"
-    h_vec = generate_gate_object_from_gate_name_object_name(
+    h_vec = generate_effective_lindbladian_object(
         gate_name, object_name, dims, ids, c_sys
     )
     object_name = "hamiltonian_mat"
-    h_mat = generate_gate_object_from_gate_name_object_name(
+    h_mat = generate_effective_lindbladian_object(
         gate_name, object_name, dims, ids, c_sys
     )
 
@@ -75,13 +75,11 @@ def _test_hamiltonian_mat_unitary_mat(
 ):
     # Arrange
     object_name = "hamiltonian_mat"
-    h_mat = generate_gate_object_from_gate_name_object_name(
+    h_mat = generate_effective_lindbladian_object(
         gate_name, object_name, dims, ids, c_sys
     )
     object_name = "unitary_mat"
-    u_mat = generate_gate_object_from_gate_name_object_name(
-        gate_name, object_name, dims, ids, c_sys
-    )
+    u_mat = generate_gate_object(gate_name, object_name, dims, ids, c_sys)
 
     # Act
     actual = expm(-1j * h_mat)
@@ -100,13 +98,11 @@ def _test_effective_lindbladian_mat_gate_mat(
 ):
     # Arrange
     object_name = "effective_lindbladian_mat"
-    el_mat = generate_gate_object_from_gate_name_object_name(
+    el_mat = generate_effective_lindbladian_object(
         gate_name, object_name, dims, ids, c_sys
     )
     object_name = "gate_mat"
-    g_mat = generate_gate_object_from_gate_name_object_name(
-        gate_name, object_name, dims, ids, c_sys
-    )
+    g_mat = generate_gate_object(gate_name, object_name, dims, ids, c_sys)
 
     # Act
     actual = expm(el_mat)
@@ -124,11 +120,11 @@ def _test_generate_effective_lindbladian_from_h(
 ):
     # Arrange
     object_name = "hamiltonian_mat"
-    h_mat = generate_gate_object_from_gate_name_object_name(
+    h_mat = generate_effective_lindbladian_object(
         gate_name, object_name, dims, ids, c_sys
     )
     object_name = "effective_lindbladian_mat"
-    el_mat = generate_gate_object_from_gate_name_object_name(
+    el_mat = generate_effective_lindbladian_object(
         gate_name, object_name, dims, ids, c_sys
     )
 
@@ -149,7 +145,7 @@ def _test_calc_h(
 ):
     # Arrange
     object_name = "hamiltonian_mat"
-    h_mat = generate_gate_object_from_gate_name_object_name(
+    h_mat = generate_effective_lindbladian_object(
         gate_name, object_name, dims, ids, c_sys
     )
 
