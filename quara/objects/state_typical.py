@@ -158,6 +158,34 @@ def tensor_product_for_vecs(state_vecs: np.array) -> np.array:
     return state_vec
 
 
+def get_state_x0_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 + vec_1)
+    return vec
+
+
+def get_state_x1_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 - vec_1)
+    return vec
+
+
+def get_state_y0_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 + 1j*vec_1)
+    return vec
+
+
+def get_state_y1_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 - 1j*vec_1)
+    return vec
+
+
 def get_state_z0_pure_state_vec() -> np.array:
     vec = np.array([1, 0])
     return vec
