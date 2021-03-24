@@ -1,5 +1,5 @@
 from itertools import product
-from typing import List
+from typing import List, Union
 
 import numpy as np
 from quara.objects.state import State
@@ -75,12 +75,58 @@ def get_state_names_2qtrit() -> List[str]:
     return names
 
 
+def generate_state_object_from_state_name_object_name(
+    state_name: str, object_name: str, c_sys: CompositeSystem = None
+) -> Union[State, np.array]:
+    expected_object_names = [
+        "pure_state_vector",
+        "density_mat",
+        "density_matrix_vector",
+        "state",
+    ]
+
+    if object_name not in expected_object_names:
+        raise ValueError("object_name is out of range.")
+    if object_name == "state":
+        return generate_state_from_name(c_sys, state_name)
+    elif object_name == "density_matrix_vector":
+        return generate_state_density_matrix_vector_from_name(c_sys.basis(), state_name)
+    else:
+        method_name = f"generate_state_{object_name}_from_name"
+        method = eval(method_name)
+        return method(state_name)
+
+
+def generate_state_density_mat_from_name(state_name: str) -> np.array:
+    if state_name in get_state_names():
+        pure_state_vec = generate_state_pure_state_vector_from_name(state_name)
+        density_mat = calc_mat_from_vector_adjoint(pure_state_vec)
+        return density_mat
+    # TODO: call get_state_(state_name)_density_matrix()
+    raise NotImplementedError()
+
+
+def generate_state_density_matrix_vector_from_name(
+    basis: MatrixBasis, state_name: str
+) -> np.array:
+    density_mat = generate_state_density_mat_from_name(state_name)
+    vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
+        density_mat, basis
+    )
+    return vec
+
+
+def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
+    vec = generate_state_density_matrix_vector_from_name(c_sys.basis(), state_name)
+    state = State(vec=vec, c_sys=c_sys)
+    return state
+
+
 def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
     if state_name not in get_state_names():
         message = f"state_name is out of range."
         raise ValueError(message)
 
-    # 1qubit
     if state_name in get_state_names_1qubit():
         method_name = f"get_state_{state_name}_pure_state_vec"
         method = eval(method_name)
@@ -122,6 +168,14 @@ def get_state_z1_pure_state_vec() -> np.array:
     return vec
 
 
+def get_state_a_pure_state_vec() -> np.array:
+    state_vec_0 = np.array([1, 0])
+    state_vec_1 = np.array([0, 1])
+    pure_state_vec = state_vec_0 + np.exp(1j * np.pi / 4) * state_vec_1
+    pure_state_vec = (1 / np.sqrt(2)) * pure_state_vec
+    return pure_state_vec
+
+
 def get_state_bell_pure_state_vec(name: str) -> np.array:
     state_vec_0 = np.array([1, 0])
     state_vec_1 = np.array([0, 1])
@@ -150,39 +204,7 @@ def get_state_bell_pure_state_vec(name: str) -> np.array:
     return pure_state_vec
 
 
-def generate_state_from_density_matrix(
-    density_matrix: np.array, c_sys: CompositeSystem
-) -> State:
-    # 密度行列からベクトルに変換する
-    vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
-        density_matrix, c_sys.basis()
-    )
-    state = State(vec=vec, c_sys=c_sys)
-    return state
-
-
-def generate_state_from_pure_state(
-    pure_state_vec: np.array, c_sys: CompositeSystem
-) -> State:
-    # 純粋な状態ベクトルから密度行列に変換する
-    density_matrix = calc_mat_from_vector_adjoint(pure_state_vec)
-    state = generate_state_from_density_matrix(density_matrix, c_sys)
-    return state
-
-
-def generate_state_a(c_sys) -> State:
-    state_vec_0 = np.array([1, 0])
-    state_vec_1 = np.array([0, 1])
-    pure_state_vec = state_vec_0 + np.exp(1j * np.pi / 4) * state_vec_1
-    pure_state_vec = (1 / np.sqrt(2)) * pure_state_vec
-    state_a = calc_mat_from_vector_adjoint(pure_state_vec)
-    return state_a
-
-
-# TODO: 以下はstate.pyにあって名前を変更したもの。
-# 名前を元に戻して、状態ベクトルを返す関数を別に用意する。3/24
-# 1qubit
-def generate_state_x0(c_sys: CompositeSystem) -> State:
+def get_x0_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -209,7 +231,7 @@ def generate_state_x0(c_sys: CompositeSystem) -> State:
     return state
 
 
-def generate_state_x1(c_sys: CompositeSystem) -> State:
+def get_x1_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -236,7 +258,7 @@ def generate_state_x1(c_sys: CompositeSystem) -> State:
     return state
 
 
-def generate_state_y0(c_sys: CompositeSystem) -> State:
+def get_y0_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -263,7 +285,7 @@ def generate_state_y0(c_sys: CompositeSystem) -> State:
     return state
 
 
-def generate_state_y1(c_sys: CompositeSystem) -> State:
+def get_y1_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -290,7 +312,7 @@ def generate_state_y1(c_sys: CompositeSystem) -> State:
     return state
 
 
-def generate_state_z0(c_sys: CompositeSystem) -> State:
+def get_z0_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -317,7 +339,7 @@ def generate_state_z0(c_sys: CompositeSystem) -> State:
     return state
 
 
-def generate_state_z1(c_sys: CompositeSystem) -> State:
+def get_z1_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_1`` with the basis of ``c_sys``.
 
     Parameters
