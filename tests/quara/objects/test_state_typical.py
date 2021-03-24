@@ -28,9 +28,6 @@ def get_state_names_2qubit():
 
 
 def test_generate_state_from_state_name_exception():
-    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
-    c_sys = CompositeSystem([e_sys])
-
     with pytest.raises(ValueError):
         _ = st.generate_state_pure_state_vector_from_name("x")
     with pytest.raises(ValueError):
@@ -39,40 +36,59 @@ def test_generate_state_from_state_name_exception():
         _ = st.generate_state_pure_state_vector_from_name("x1_")
 
 
-# TODO: parametrizeを使って汎用的にする
-def test_get_x0():
+@pytest.mark.parametrize(
+    ("state_name"), [(state_name) for state_name in st.get_state_names_1qubit()],
+)
+def test_get_object_from_name_1qubit(state_name):
+    # TODO: test a
+    if state_name == "a":
+        return
     # Arrange
     basis = get_normalized_pauli_basis()
     e_sys = ElementalSystem(0, basis)
     c_sys = CompositeSystem([e_sys])
+    method_name = f"st.get_{state_name}_1q"
+    method = eval(method_name)
+    expected_state = method(c_sys)
 
     # density matrix
-    actual = st.generate_state_density_mat_from_name("z0")
-    expected = st.get_z0_1q(c_sys).to_density_matrix()
+    # Act
+    actual = st.generate_state_density_mat_from_name(state_name)
+    # Assert
+    expected = expected_state.to_density_matrix()
     npt.assert_almost_equal(actual, expected)
-
+    # Act
     actual = st.generate_state_object_from_state_name_object_name(
-        state_name="z0", object_name="density_mat", c_sys=c_sys
+        state_name=state_name, object_name="density_mat", c_sys=c_sys
     )
+    # Assert
     npt.assert_almost_equal(actual, expected)
 
     # density matrix vec
-    actual = st.generate_state_density_matrix_vector_from_name(basis, "z0")
-    expected = st.get_z0_1q(c_sys).vec
+    # Act
+    actual = st.generate_state_density_matrix_vector_from_name(basis, state_name)
+    # Assert
+    expected = expected_state.vec
     npt.assert_almost_equal(actual, expected)
 
+    # Act
     actual = st.generate_state_object_from_state_name_object_name(
-        state_name="z0", object_name="density_matrix_vector", c_sys=c_sys
+        state_name=state_name, object_name="density_matrix_vector", c_sys=c_sys
     )
+    # Assert
     npt.assert_almost_equal(actual, expected)
 
     # State
-    actual = st.generate_state_from_name(c_sys, "z0")
-    expected = st.get_z0_1q(c_sys)
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+    # Assert
+    expected = expected_state
     npt.assert_almost_equal(actual.vec, expected.vec)
 
+    # Act
     actual = st.generate_state_object_from_state_name_object_name(
-        state_name="z0", object_name="state", c_sys=c_sys
+        state_name=state_name, object_name="state", c_sys=c_sys
     )
+    # Assert
     npt.assert_almost_equal(actual.vec, expected.vec)
 
