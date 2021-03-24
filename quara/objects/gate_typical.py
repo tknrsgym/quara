@@ -126,6 +126,24 @@ def get_gate_names_1qutrit_single_gellmann() -> List[str]:
     return names
 
 
+def generate_gate_object_from_gate_name_object_name(
+    gate_name: str,
+    object_name: str,
+    dims: List[int] = [],
+    ids: List[int] = [],
+    c_sys: CompositeSystem = None,
+) -> Union[np.array, "Gate"]:
+    if object_name == "unitary_mat":
+        obj = generate_unitary_mat_from_gate_name(gate_name, dims, ids)
+    elif object_name == "gate_mat":
+        obj = generate_gate_mat_from_gate_name(gate_name, dims, ids)
+    elif object_name == "gate":
+        obj = generate_gate_from_gate_name(gate_name, c_sys, ids)
+    else:
+        raise ValueError(f"object_name is out of range.")
+    return obj
+
+
 def get_gate_names_2qutrit() -> List[str]:
     """return the list of valid (implemented) gate names of 2-qutrit gates."""
     names = []
