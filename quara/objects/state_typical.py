@@ -116,13 +116,13 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
         raise ValueError(message)
 
     if state_name in get_state_names_1qubit() + _get_state_names_3qubit_typical():
-        method_name = f"get_state_{state_name}_pure_state_vec"
+        method_name = f"get_state_{state_name}_pure_state_vector"
         method = eval(method_name)
         return method()
     elif state_name in get_state_names_1qutrit():
         raise NotImplementedError()
     elif state_name in _get_state_names_2qubit_typical():
-        return get_state_bell_pure_state_vec(state_name)
+        return get_state_bell_pure_state_vector(state_name)
 
     return _generate_pure_state_vec_tensor_product(state_name)
 
@@ -131,7 +131,7 @@ def _generate_pure_state_vec_tensor_product(state_name: str) -> np.array:
     name_items = state_name.split("_")
     state_1qubit_list = []
     for i, name_item in enumerate(name_items):
-        method_name = f"get_state_{name_item}_pure_state_vec"
+        method_name = f"get_state_{name_item}_pure_state_vector"
         method = eval(method_name)
         pure_state_vec = method()
         state_1qubit_list.append(pure_state_vec)
@@ -146,45 +146,45 @@ def tensor_product_for_vecs(state_vecs: np.array) -> np.array:
     return state_vec
 
 
-def get_state_x0_pure_state_vec() -> np.array:
+def get_state_x0_pure_state_vector() -> np.array:
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 + vec_1)
     return vec
 
 
-def get_state_x1_pure_state_vec() -> np.array:
+def get_state_x1_pure_state_vector() -> np.array:
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 - vec_1)
     return vec
 
 
-def get_state_y0_pure_state_vec() -> np.array:
+def get_state_y0_pure_state_vector() -> np.array:
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 + 1j * vec_1)
     return vec
 
 
-def get_state_y1_pure_state_vec() -> np.array:
+def get_state_y1_pure_state_vector() -> np.array:
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 - 1j * vec_1)
     return vec
 
 
-def get_state_z0_pure_state_vec() -> np.array:
+def get_state_z0_pure_state_vector() -> np.array:
     vec = np.array([1, 0])
     return vec
 
 
-def get_state_z1_pure_state_vec() -> np.array:
+def get_state_z1_pure_state_vector() -> np.array:
     vec = np.array([0, 1])
     return vec
 
 
-def get_state_a_pure_state_vec() -> np.array:
+def get_state_a_pure_state_vector() -> np.array:
     state_vec_0 = np.array([1, 0])
     state_vec_1 = np.array([0, 1])
     pure_state_vec = state_vec_0 + np.exp(1j * np.pi / 4) * state_vec_1
@@ -192,7 +192,7 @@ def get_state_a_pure_state_vec() -> np.array:
     return pure_state_vec
 
 
-def get_state_bell_pure_state_vec(name: str) -> np.array:
+def get_state_bell_pure_state_vector(name: str) -> np.array:
     state_vec_0 = np.array([1, 0])
     state_vec_1 = np.array([0, 1])
 
@@ -220,7 +220,7 @@ def get_state_bell_pure_state_vec(name: str) -> np.array:
     return pure_state_vec
 
 
-def get_state_ghz_pure_state_vec() -> np.array:
+def get_state_ghz_pure_state_vector() -> np.array:
     state_vec_0 = np.array([1, 0])  # |0>
     state_vec_1 = np.array([0, 1])  # |1>
 
@@ -232,7 +232,7 @@ def get_state_ghz_pure_state_vec() -> np.array:
     return pure_state_vec
 
 
-def get_state_werner_pure_state_vec() -> np.array:
+def get_state_werner_pure_state_vector() -> np.array:
     state_vec_0 = np.array([1, 0])  # |0>
     state_vec_1 = np.array([0, 1])  # |1>
 
