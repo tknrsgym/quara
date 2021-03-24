@@ -92,7 +92,12 @@ def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]
     elif povm_name == "z":
         pure_state_vector_names = ["z0", "z1"]
     elif povm_name == "bell":
-        pure_state_vector_names = ["z0", "z1"]  # TODO
+        pure_state_vector_names = [
+            "bell_phi_plus",
+            "bell_phi_minus",
+            "bell_psi_plus",
+            "bell_psi_minus",
+        ]
     elif povm_name == "z3":
         pure_state_vector_names = ["01z0", "01z1", "02z1"]
     elif povm_name == "01x3":
