@@ -174,6 +174,14 @@ def test_generate_state_pure_state_vector_from_name_3q():
     expected = np.array([1 / 2, 1j / 2, 1 / 2, 1j / 2, 0, 0, 0, 0,])
     npt.assert_almost_equal(actual, expected)
 
+    actual = st.generate_state_pure_state_vector_from_name("ghz")
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 0, 0, 0, 0, 1])
+    npt.assert_almost_equal(actual, expected)
+
+    actual = st.generate_state_pure_state_vector_from_name("werner")
+    expected = (1 / np.sqrt(3)) * np.array([0, 1, 1, 0, 1, 0, 0, 0])
+    npt.assert_almost_equal(actual, expected)
+
 
 def test_get_state_bell_pure_state_vec():
     # |Φ+>
@@ -194,6 +202,18 @@ def test_get_state_bell_pure_state_vec():
     # |Ψ->
     actual = st.get_state_bell_pure_state_vec("bell_psi_minus")
     expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, -1])
+    npt.assert_almost_equal(actual, expected)
+
+
+def test_get_state_ghz_pure_state_vec():
+    actual = st.get_state_ghz_pure_state_vec()
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 0, 0, 0, 0, 1])
+    npt.assert_almost_equal(actual, expected)
+
+
+def test_et_state_werner_pure_state_vec():
+    actual = st.get_state_werner_pure_state_vec()
+    expected = (1 / np.sqrt(3)) * np.array([0, 1, 1, 0, 1, 0, 0, 0])
     npt.assert_almost_equal(actual, expected)
 
 
@@ -323,3 +343,4 @@ def test_get_bell_2q():
     c_sys = CompositeSystem([e_sys2])
     with pytest.raises(ValueError):
         st.get_bell_2q(c_sys)
+

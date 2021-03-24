@@ -5,13 +5,10 @@ import numpy as np
 from quara.objects.state import State
 from quara.objects.matrix_basis import MatrixBasis, convert_vec
 from quara.objects.matrix_basis import (
-    get_comp_basis,
-    get_pauli_basis,
     get_normalized_pauli_basis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.utils.matrix_util import calc_mat_from_vector_adjoint
-from quara.objects.operators import tensor_product
 from quara.objects.composite_system import CompositeSystem
 
 
@@ -118,7 +115,7 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
         message = f"state_name is out of range."
         raise ValueError(message)
 
-    if state_name in get_state_names_1qubit():
+    if state_name in get_state_names_1qubit() + _get_state_names_3qubit_typical():
         method_name = f"get_state_{state_name}_pure_state_vec"
         method = eval(method_name)
         return method()
@@ -220,6 +217,32 @@ def get_state_bell_pure_state_vec(name: str) -> np.array:
         raise ValueError(error_message)
     pure_state_vec = 1 / np.sqrt(2) * pure_state_vec
 
+    return pure_state_vec
+
+
+def get_state_ghz_pure_state_vec() -> np.array:
+    state_vec_0 = np.array([1, 0])  # |0>
+    state_vec_1 = np.array([0, 1])  # |1>
+
+    # |0>|0>|0>
+    vec_0 = tensor_product_for_vecs([state_vec_0] * 3)
+    # |1>|1>|1>
+    vec_1 = tensor_product_for_vecs([state_vec_1] * 3)
+    pure_state_vec = 1 / np.sqrt(2) * (vec_0 + vec_1)
+    return pure_state_vec
+
+def get_state_werner_pure_state_vec() -> np.array:
+    state_vec_0 = np.array([1, 0])  # |0>
+    state_vec_1 = np.array([0, 1])  # |1>
+
+    # |0>|0>|1>
+    vec_0 = tensor_product_for_vecs([state_vec_0, state_vec_0, state_vec_1])
+    # |0>|1>|0>
+    vec_1 = tensor_product_for_vecs([state_vec_0, state_vec_1, state_vec_0])
+    # |1>|0>|0>
+    vec_2 = tensor_product_for_vecs([state_vec_1, state_vec_0, state_vec_0])
+
+    pure_state_vec = 1 / np.sqrt(3) * (vec_0 + vec_1 + vec_2)
     return pure_state_vec
 
 
@@ -427,6 +450,8 @@ def get_bell_2q(c_sys: CompositeSystem) -> State:
     to_vec = convert_vec(from_vec, c_sys.comp_basis(), c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
+
+
 # pure statevector of 1-qutrit, axis=01
 
 
