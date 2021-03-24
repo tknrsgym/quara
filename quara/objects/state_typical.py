@@ -231,6 +231,7 @@ def get_state_ghz_pure_state_vec() -> np.array:
     pure_state_vec = 1 / np.sqrt(2) * (vec_0 + vec_1)
     return pure_state_vec
 
+
 def get_state_werner_pure_state_vec() -> np.array:
     state_vec_0 = np.array([1, 0])  # |0>
     state_vec_1 = np.array([0, 1])  # |1>
@@ -246,7 +247,7 @@ def get_state_werner_pure_state_vec() -> np.array:
     return pure_state_vec
 
 
-def get_x0_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_x0_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -273,7 +274,7 @@ def get_x0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_x1_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_x1_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``X_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -300,7 +301,7 @@ def get_x1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_y0_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_y0_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -327,7 +328,7 @@ def get_y0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_y1_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_y1_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Y_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -354,7 +355,7 @@ def get_y1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_z0_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_z0_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -381,7 +382,7 @@ def get_z0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_z1_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_z1_1q(c_sys: CompositeSystem) -> np.array:
     """returns vec of state ``Z_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -408,7 +409,7 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_a_1q(c_sys: CompositeSystem) -> State:
+def get_state_a_1q(c_sys: CompositeSystem) -> State:
     # whether dim of CompositeSystem equals 2
     if c_sys.dim != 2:
         raise ValueError(
@@ -423,7 +424,7 @@ def get_a_1q(c_sys: CompositeSystem) -> State:
     return state
 
 
-def get_bell_2q(c_sys: CompositeSystem) -> State:
+def get_state_bell_2q(c_sys: CompositeSystem) -> State:
     """returns vec of Bell state, \frac{1}{2}(|00>+|11>)(<00|+<11|), with the basis of ``c_sys``.
 
     Parameters
