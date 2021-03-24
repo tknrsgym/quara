@@ -28,9 +28,6 @@ def get_state_names_2qubit():
 
 
 def test_generate_state_from_state_name_exception():
-    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
-    c_sys = CompositeSystem([e_sys])
-
     with pytest.raises(ValueError):
         _ = st.generate_state_pure_state_vector_from_name("x")
     with pytest.raises(ValueError):
@@ -39,40 +36,290 @@ def test_generate_state_from_state_name_exception():
         _ = st.generate_state_pure_state_vector_from_name("x1_")
 
 
-# TODO: parametrizeを使って汎用的にする
-def test_get_x0():
+@pytest.mark.parametrize(
+    ("state_name"), [(state_name) for state_name in st.get_state_names_1qubit()],
+)
+def test_get_object_from_name_1qubit(state_name):
     # Arrange
     basis = get_normalized_pauli_basis()
     e_sys = ElementalSystem(0, basis)
     c_sys = CompositeSystem([e_sys])
+    method_name = f"st.get_{state_name}_1q"
+    method = eval(method_name)
+    expected_state = method(c_sys)
 
     # density matrix
-    actual = st.generate_state_density_mat_from_name("z0")
-    expected = st.get_z0_1q(c_sys).to_density_matrix()
+    # Act
+    actual = st.generate_state_density_mat_from_name(state_name)
+    # Assert
+    expected = expected_state.to_density_matrix()
     npt.assert_almost_equal(actual, expected)
-
+    # Act
     actual = st.generate_state_object_from_state_name_object_name(
-        state_name="z0", object_name="density_mat", c_sys=c_sys
+        state_name=state_name, object_name="density_mat", c_sys=c_sys
     )
+    # Assert
     npt.assert_almost_equal(actual, expected)
 
     # density matrix vec
-    actual = st.generate_state_density_matrix_vector_from_name(basis, "z0")
-    expected = st.get_z0_1q(c_sys).vec
+    # Act
+    actual = st.generate_state_density_matrix_vector_from_name(basis, state_name)
+    # Assert
+    expected = expected_state.vec
     npt.assert_almost_equal(actual, expected)
 
+    # Act
     actual = st.generate_state_object_from_state_name_object_name(
-        state_name="z0", object_name="density_matrix_vector", c_sys=c_sys
+        state_name=state_name, object_name="density_matrix_vector", c_sys=c_sys
     )
+    # Assert
     npt.assert_almost_equal(actual, expected)
 
     # State
-    actual = st.generate_state_from_name(c_sys, "z0")
-    expected = st.get_z0_1q(c_sys)
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+    # Assert
+    expected = expected_state
     npt.assert_almost_equal(actual.vec, expected.vec)
 
+    # Act
     actual = st.generate_state_object_from_state_name_object_name(
-        state_name="z0", object_name="state", c_sys=c_sys
+        state_name=state_name, object_name="state", c_sys=c_sys
     )
+    # Assert
     npt.assert_almost_equal(actual.vec, expected.vec)
 
+
+def test_get_state_a_pure_state_vec():
+    # Act
+    actual = st.get_state_a_pure_state_vec()
+    # Assert
+    expected = np.array([1 / np.sqrt(2), (1 / 2) * (1 + 1j)])
+    npt.assert_almost_equal(actual, expected)
+
+
+def test_get_state_bell():
+    # Arrange
+    basis = get_normalized_pauli_basis()
+    e_sys_0 = ElementalSystem(0, basis)
+    e_sys_1 = ElementalSystem(1, basis)
+    c_sys = CompositeSystem([e_sys_0, e_sys_1])
+    expected_state = st.get_bell_2q(c_sys)
+    state_name = "bell_psi_plus"
+
+    # density matrix
+    # Act
+    actual = st.generate_state_density_mat_from_name(state_name)
+    # Assert
+    expected = expected_state.to_density_matrix()
+    npt.assert_almost_equal(actual, expected)
+    # Act
+    actual = st.generate_state_object_from_state_name_object_name(
+        state_name=state_name, object_name="density_mat", c_sys=c_sys
+    )
+    # Assert
+    npt.assert_almost_equal(actual, expected)
+
+    # density matrix vec
+    # Act
+    actual = st.generate_state_density_matrix_vector_from_name(
+        c_sys.basis(), state_name
+    )
+    # Assert
+    expected = expected_state.vec
+    npt.assert_almost_equal(actual, expected)
+
+    # Act
+    actual = st.generate_state_object_from_state_name_object_name(
+        state_name=state_name, object_name="density_matrix_vector", c_sys=c_sys
+    )
+    # Assert
+    npt.assert_almost_equal(actual, expected)
+
+    # State
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+    # Assert
+    expected = expected_state
+    npt.assert_almost_equal(actual.vec, expected.vec)
+
+    # Act
+    actual = st.generate_state_object_from_state_name_object_name(
+        state_name=state_name, object_name="state", c_sys=c_sys
+    )
+    # Assert
+    npt.assert_almost_equal(actual.vec, expected.vec)
+
+
+def test_generate_state_pure_state_vector_from_name_2q():
+    # |0>|1>
+    actual = st.generate_state_pure_state_vector_from_name("z0_z1")
+    expected = np.array([0, 1, 0, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |1>|0>
+    actual = st.generate_state_pure_state_vector_from_name("z1_z0")
+    expected = np.array([0, 0, 1, 0])
+    npt.assert_almost_equal(actual, expected)
+
+
+def test_generate_state_pure_state_vector_from_name_3q():
+    # |0>|1>|+>
+    actual = st.generate_state_pure_state_vector_from_name("z0_z1_x0")
+    expected = np.array([0, 0, 1 / np.sqrt(2), 1 / np.sqrt(2), 0, 0, 0, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |0>|+>|i>
+    actual = st.generate_state_pure_state_vector_from_name("z0_x0_y0")
+    expected = np.array([1 / 2, 1j / 2, 1 / 2, 1j / 2, 0, 0, 0, 0,])
+    npt.assert_almost_equal(actual, expected)
+
+
+def test_get_state_bell_pure_state_vec():
+    # |Φ+>
+    actual = st.get_state_bell_pure_state_vec("bell_phi_plus")
+    expected = (1 / np.sqrt(2)) * np.array([0, 1, 1, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |Φ->
+    actual = st.get_state_bell_pure_state_vec("bell_phi_minus")
+    expected = (1 / np.sqrt(2)) * np.array([0, 1, -1, 0])
+    npt.assert_almost_equal(actual, expected)
+
+    # |Ψ+>
+    actual = st.get_state_bell_pure_state_vec("bell_psi_plus")
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 1])
+    npt.assert_almost_equal(actual, expected)
+
+    # |Ψ->
+    actual = st.get_state_bell_pure_state_vec("bell_psi_minus")
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, -1])
+    npt.assert_almost_equal(actual, expected)
+
+
+def test_get_x0_1q():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = st.get_x0_1q(c_sys)
+    actual = state.to_density_matrix()
+    expected = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        st.get_x0_1q(c_sys)
+
+
+def test_get_x1_1q():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = st.get_x1_1q(c_sys)
+    actual = state.to_density_matrix()
+    expected = np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        st.get_x1_1q(c_sys)
+
+
+def test_get_y0_1q():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = st.get_y0_1q(c_sys)
+    actual = state.to_density_matrix()
+    expected = np.array([[0.5, -0.5j], [0.5j, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        st.get_y0_1q(c_sys)
+
+
+def test_get_y1_1q():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = st.get_y1_1q(c_sys)
+    actual = state.to_density_matrix()
+    expected = np.array([[0.5, 0.5j], [-0.5j, 0.5]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        st.get_y1_1q(c_sys)
+
+
+def test_get_z0_1q():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = st.get_z0_1q(c_sys)
+    actual = state.to_density_matrix()
+    expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        st.get_z0_1q(c_sys)
+
+
+def test_get_z1_1q():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = st.get_z1_1q(c_sys)
+    actual = state.to_density_matrix()
+    expected = np.array([[0, 0], [0, 1]], dtype=np.complex128)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 1qubit CompositeSystem
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    with pytest.raises(ValueError):
+        st.get_z1_1q(c_sys)
+
+
+def test_get_bell_2q():
+    expected = (
+        np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]],
+            dtype=np.complex128,
+        )
+        / 2
+    )
+
+    # test for Pauli basis
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+    state = st.get_bell_2q(c_sys)
+    actual = state.to_density_matrix()
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # test for comp basis
+    e_sys2 = ElementalSystem(2, matrix_basis.get_comp_basis())
+    e_sys3 = ElementalSystem(3, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys2, e_sys3])
+    state = st.get_bell_2q(c_sys)
+    actual = state.to_density_matrix()
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Test that not 2qubit CompositeSystem
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys2])
+    with pytest.raises(ValueError):
+        st.get_bell_2q(c_sys)

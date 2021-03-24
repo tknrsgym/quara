@@ -149,6 +149,34 @@ def tensor_product_for_vecs(state_vecs: np.array) -> np.array:
     return state_vec
 
 
+def get_state_x0_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 + vec_1)
+    return vec
+
+
+def get_state_x1_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 - vec_1)
+    return vec
+
+
+def get_state_y0_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 + 1j * vec_1)
+    return vec
+
+
+def get_state_y1_pure_state_vec() -> np.array:
+    vec_0 = np.array([1, 0])
+    vec_1 = np.array([0, 1])
+    vec = (1 / np.sqrt(2)) * (vec_0 - 1j * vec_1)
+    return vec
+
+
 def get_state_z0_pure_state_vec() -> np.array:
     vec = np.array([1, 0])
     return vec
@@ -357,6 +385,48 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
+def get_a_1q(c_sys: CompositeSystem) -> State:
+    # whether dim of CompositeSystem equals 2
+    if c_sys.dim != 2:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 2.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    # convert "vec in Pauli basis" to "vec in the basis of CompositeSystem"
+    from_vec = np.array([1 / np.sqrt(2), 1 / 2, 1 / 2, 0], dtype=np.float64)
+    from_basis = get_normalized_pauli_basis()
+    to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
+    state = State(c_sys, to_vec.real.astype(np.float64))
+    return state
+
+
+def get_bell_2q(c_sys: CompositeSystem) -> State:
+    """returns vec of Bell state, \frac{1}{2}(|00>+|11>)(<00|+<11|), with the basis of ``c_sys``.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem containing state.
+
+    Returns
+    -------
+    State
+        vec of state.
+    """
+    # whether dim of CompositeSystem equals 4
+    if c_sys.dim != 4:
+        raise ValueError(
+            f"dim of CompositeSystem must equals 4.  dim of CompositeSystem is {c_sys.dim}"
+        )
+
+    # \frac{1}{2}(|00>+|11>)(<00|+<11|)
+    # convert "vec in comp basis" to "vec in basis of CompositeSystem"
+    from_vec = (
+        np.array([1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1], dtype=np.float64) / 2
+    )
+    to_vec = convert_vec(from_vec, c_sys.comp_basis(), c_sys.basis())
+    state = State(c_sys, to_vec.real.astype(np.float64))
+    return state
 # pure statevector of 1-qutrit, axis=01
 
 
