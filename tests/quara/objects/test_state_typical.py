@@ -40,9 +40,6 @@ def test_generate_state_from_state_name_exception():
     ("state_name"), [(state_name) for state_name in st.get_state_names_1qubit()],
 )
 def test_get_object_from_name_1qubit(state_name):
-    # TODO: test a
-    if state_name == "a":
-        return
     # Arrange
     basis = get_normalized_pauli_basis()
     e_sys = ElementalSystem(0, basis)
@@ -92,3 +89,10 @@ def test_get_object_from_name_1qubit(state_name):
     # Assert
     npt.assert_almost_equal(actual.vec, expected.vec)
 
+
+def test_get_state_a_pure_state_vec():
+    # Act
+    actual = st.get_state_a_pure_state_vec()
+    # Assert
+    expected = np.array([1 / np.sqrt(2), (1 / 2) * (1 + 1j)])
+    npt.assert_almost_equal(actual, expected)
