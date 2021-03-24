@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Union
+import re
 
 import numpy as np
 
@@ -9,287 +10,137 @@ from quara.objects.matrix_basis import (
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.povm import Povm
-from quara.utils.matrix_util import truncate_hs
+from quara.objects import state_typical
+from quara.utils.matrix_util import truncate_hs, calc_mat_from_vector_adjoint
+
+
+def get_povm_object_names() -> List[str]:
+    """Return the list of valid povm-related object names.
+
+    Returns
+    -------
+    List[str]
+        the list of valid povm-related object names.
+    """
+    names = ["pure_state_vectors", "matrices", "vectors", "povm"]
+    return names
 
 
 def get_povm_names() -> List[str]:
-    """Return the list of valid povm names."""
+    """Return the list of valid povm names.
+
+    Returns
+    -------
+    List[str]
+        the list of valid povm names.
+    """
     names = []
-    names.extend(get_povm_names_1qubit())
-    names.extend(get_povm_names_2qubit())
-    # names.extend(get_povm_names_1qutrit())
-    # names.extend(get_povm_names_2qutrit())
+    names += get_povm_names_rank1()
+    names += get_povm_names_not_rank1()
     return names
 
 
-def get_povm_names_1qubit() -> List[str]:
-    """Return the list of valid povm names of 1-qubit povms."""
+def get_povm_names_rank1() -> List[str]:
+    """Return the list of valid povm names of rank 1."""
     names = [
-        # "x",
-        # "y",
+        "x",
+        "y",
         "z",
-    ]
-    return names
-
-
-def get_povm_names_2qubit() -> List[str]:
-    """Return the list of valid povm names of 2-qubits povms."""
-    names = [
         "bell",
+        "z3",
+        "01x3",
+        "02x3",
+        "01z3",
+        "21y3",
     ]
     return names
 
 
-def generate_povm_matrices_from_povm_name(
-    povm_name: str, dims: List[int] = [], ids: List[int] = []
-) -> List[np.array]:
-    """returns the list of the matrices of a povm.
+def get_povm_names_not_rank1() -> List[str]:
+    """Return the list of valid povm names of not rank 1."""
+    names = ["z2"]
+    return names
 
-    Parameters
-    ----------
-    povm_name : str
-        name of povm
 
-    dims : List[int]
-        list of dimensions of elemental systems that the povm acts on.
-
-    ids : List[int] (optional)
-        list of ids for elemental systems
-
-    Returns
-    -------
-    List[np.array]
-        list of the matrices of the povms, to be complex.
-    """
-    # _is_valid_dims_ids(dims, ids)
-    assert povm_name in get_povm_names()
-
-    # 1-qubit
-    if povm_name in get_povm_names_1qubit():
-        method_name = "generate_povm_" + povm_name + "_matrices"
-        method = eval(method_name)
-        matrices = method()
-    # 2-qubit
-    elif povm_name in get_povm_names_2qubit():
-        method_name = "generate_povm_" + povm_name + "_matrices"
-        method = eval(method_name)
-        matrices = method()
-    # 3-qubit
-    # 1-qutrit
-    # 2-qutrit
+def generate_povm_object_from_povm_name_object_name(
+    povm_name: str,
+    object_name: str,
+    c_sys: CompositeSystem = None,
+    basis: MatrixBasis = None,
+) -> Union[List[np.array], Povm]:
+    if object_name == "pure_state_vectors":
+        obj = generate_povm_pure_state_vectors_from_name(povm_name)
+    elif object_name == "matrices":
+        obj = generate_povm_matrices_from_name(povm_name)
+    elif object_name == "vectors":
+        obj = generate_povm_vectors_from_name(povm_name, basis)
+    elif object_name == "povm":
+        obj = generate_povm_from_name(povm_name, c_sys)
     else:
-        raise ValueError(f"povm_name is out of range. povm_name is {povm_name}")
-
-    return matrices
-
-
-def generate_povm_vecs_from_povm_name(
-    povm_name: str, dims: List[int] = [], ids: List[int] = []
-) -> List[np.array]:
-    """returns the list of vectors of a povm.
-
-    Parameters
-    ----------
-    povm_name : str
-        name of povm
-
-    dims : List[int]
-        list of dimensions of elemental systems that the povm acts on.
-
-    ids : List[int] (optional)
-        list of ids for elemental systems
-
-    Returns
-    -------
-    List[np.array]
-        list of the vectors of the povm, to be complex.
-    """
-    # _is_valid_dims_ids(dims, ids)
-    assert povm_name in get_povm_names()
-
-    # 1-qubit
-    if povm_name in get_povm_names_1qubit():
-        method_name = "generate_povm_" + povm_name + "_vecs"
-        method = eval(method_name)
-        vecs = method()
-    # 2-qubit
-    elif povm_name in get_povm_names_2qubit():
-        method_name = "generate_povm_" + povm_name + "_vecs"
-        method = eval(method_name)
-        vecs = method()
-    # 3-qubit
-    # 1-qutrit
-    # 2-qutrit
-    else:
-        raise ValueError(f"povm_name is out of range. povm_name is {povm_name}")
-
-    return vecs
+        raise ValueError(f"object_name is out of range. object_name={object_name}")
+    return obj
 
 
-def generate_povm_from_povm_name(
-    povm_name: str, c_sys: CompositeSystem, dims: List[int] = [], ids: List[int] = []
-) -> Povm:
-    """returns povm class.
+def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]:
+    if povm_name not in get_povm_names_rank1():
+        raise ValueError(f"povm_name is not rank 1. povm_name={povm_name}")
 
-    Parameters
-    ----------
-    povm_name : str
-        name of povm
+    if povm_name == "x":
+        pure_state_vector_names = ["x0", "x1"]
+    elif povm_name == "y":
+        pure_state_vector_names = ["y0", "y1"]
+    elif povm_name == "z":
+        pure_state_vector_names = ["z0", "z1"]
+    elif povm_name == "bell":
+        pure_state_vector_names = ["z0", "z1"]  # TODO
+    elif povm_name == "z3":
+        pure_state_vector_names = ["01z0", "01z1", "02z1"]
+    elif povm_name == "01x3":
+        pure_state_vector_names = ["01x0", "01x1", "02z1"]
+    elif povm_name == "02x3":
+        pure_state_vector_names = ["02x0", "02x1", "01z1"]
+    elif povm_name == "01z3":
+        pure_state_vector_names = ["01z0", "01z1", "02z1"]
+    elif povm_name == "21y3":
+        pure_state_vector_names = ["12y0", "12y1", "01z0"]
 
-    c_sys : CompositeSystem
-
-    dims : List[int]
-        list of dimensions of elemental systems that the povm acts on.
-
-    ids : List[int] (optional)
-        list of ids for elemental systems
-
-    Returns
-    -------
-    Povm
-        The povm class for the input
-    """
-    # _is_valid_dims_ids(dims, ids)
-    assert povm_name in get_povm_names()
-
-    # 1-qubit
-    if povm_name in get_povm_names_1qubit():
-        method_name = "generate_povm_" + povm_name
-        method = eval(method_name)
-        povm = method(c_sys)
-    # 2-qubit
-    elif povm_name in get_povm_names_2qubit():
-        method_name = "generate_povm_" + povm_name
-        method = eval(method_name)
-        povm = method(c_sys)
-    # 3-qubit
-    # 1-qutrit
-    # 2-qutrit
-    else:
-        raise ValueError(f"povm_name is out of range. povm_name is {povm_name}")
-
-    return povm
-
-
-def calc_povm_vecs_from_matrices(
-    from_matrices: List[np.array], to_basis: MatrixBasis
-) -> List[np.array]:
-    """Return the HS vectors for a povm represented by povm matrices.
-
-    Parameters
-    ----------
-    from_matrices : List[np.array]
-        The list of matrices, to be square complex np.array.
-        np.array((dim, dim), dtype=np.complex128)
-
-    to_basis : MatrixBasis
-        The matrix basis for representing the HS matrices, to be orthonormal.
-
-    Returns
-    -------
-    List[np.array]
-        The HS vectors of the povm corresponding to the povm matrices.
-        np.array((dim^2, dim^2), dtype=np.complex128)
-    """
-    for from_matrix in from_matrices:
-        shape = from_matrix.shape
-        assert shape[0] == shape[1]
-    dim = shape[0]
-
-    assert to_basis.dim == dim
-    assert to_basis.is_orthogonal() == True
-    assert to_basis.is_normal() == True
-
-    vecs = []
-    for from_matrix in from_matrices:
-        vecs.append(calc_matrix_expansion_coefficient(from_matrix, to_basis))
-    return vecs
-
-
-def calc_povm_vecs_from_matrices_with_hermitian_basis(
-    from_matrices: np.array, to_basis: MatrixBasis
-) -> List[np.array]:
-    """Return the HS vectors w.r.t. a Hermitian (orthonormal) matrix basis for a povm represented by povm matrices.
-
-    Parameters
-    ----------
-    from_matrices :
-        The list of matrices, to be square complex np.array.
-        np.array((dim, dim), dtype=np.complex128)
-
-    to_basis : MatrixBasis
-        The Hermitian matrix basis for representing the HS matrix
-
-    Returns
-    -------
-    List[np.array]
-        The HS vectors of the povm corresponding to the povm matrices, to be real.
-        np.array((dim^2, dim^2), dtype=np.float64)
-    """
-    assert to_basis.is_hermitian() == True
-    vecs = []
-    for from_matrix in from_matrices:
-        vecs.append(
-            calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
-                from_matrix, to_basis
-            )
+    vectors = []
+    for pure_state_vector_name in pure_state_vector_names:
+        method_name = (
+            "state_typical.get_state_" + pure_state_vector_name + "_pure_state_vector"
         )
-    return vecs
+        method = eval(method_name)
+        vectors.append(method())
+    return vectors
 
 
-# z povm on 1-qubit
+def generate_povm_matrices_from_name(povm_name: str) -> List[np.array]:
+    if povm_name in get_povm_names_rank1():
+        pure_state_vectors = generate_povm_pure_state_vectors_from_name(povm_name)
+        matrices = [
+            calc_mat_from_vector_adjoint(pure_state_vector)
+            for pure_state_vector in pure_state_vectors
+        ]
 
-
-def generate_povm_z_matrices() -> List[np.array]:
-    """Return the matrices for an z povm.
-
-    The result is the list of the 2 times 2 complex matrices.
-
-    Returns
-    -------
-    List[np.array]
-        The list of unitary matrices, which is a complex matrix.
-    """
-    matrices = [
-        np.array([[1 + 0j, 0 + 0j], [0 + 0j, 0 + 0j]], dtype=np.complex128),
-        np.array([[0 + 0j, 0 + 0j], [0 + 0j, 1 + 0j]], dtype=np.complex128),
-    ]
+    else:
+        # TODO get density matrix
+        if povm_name == "z2":
+            matrices = [state_typical.get_state_()]
+        matrices = []
     return matrices
 
 
-def generate_povm_z_vecs() -> List[np.array]:
-    """Return the Hilbert-Schmidt representation vectors for an z povm with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
-
-    The result is the list of 4 dimension real vectors.
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-    List[np.array]
-        The real Hilbert-Schmidt representation vectors for the povm.
-    """
+def generate_povm_vectors_from_name(
+    povm_name: str, basis: MatrixBasis
+) -> List[np.array]:
+    matrices = generate_povm_matrices_from_name(povm_name)
     vecs = [
-        1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
-        1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
+        calc_hermitian_matrix_expansion_coefficient_hermitian_basis(matrix, basis)
+        for matrix in matrices
     ]
     return vecs
 
 
-def generate_povm_z(c_sys: CompositeSystem) -> Povm:
-    """Return the Povm class for the z povm on the composite system.
-
-    Parameters
-    ----------
-    c_sys: CompositeSystem
-
-    Returns
-    -------
-    Povm
-        The Povm class for the z povm on the composite system.
-    """
-    assert len(c_sys.elemental_systems) == 1
-    vecs = generate_povm_z_vecs()
-    povm = Povm(c_sys, vecs)
-    return povm
+def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
+    vecs = generate_povm_vectors_from_name(povm_name, c_sys.basis)
+    return Povm(c_sys, vecs)
