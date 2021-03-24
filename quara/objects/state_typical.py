@@ -21,8 +21,7 @@ def get_state_names() -> List[str]:
     names += get_state_names_1qubit()
     names += get_state_names_2qubit()
     names += get_state_names_3qubit()
-    names += get_state_names_1qtrit()
-    names += get_state_names_1qtrit()
+    names += get_state_names_1qutrit()
     return names
 
 
@@ -57,20 +56,12 @@ def get_state_names_3qubit() -> List[str]:
     return names
 
 
-def get_state_names_1qtrit() -> List[str]:
-    """Return the list of valid gate names of 1-qtrit states."""
+def get_state_names_1qutrit() -> List[str]:
+    """Return the list of valid gate names of 1-qutrit states."""
     level = ["01", "12", "02"]
-    axis = "xyz"
-    d = "01"
+    axis = ["x", "y", "z"]
+    d = ["0", "1"]
     names = ["".join(t) for t in product(level, axis, d)]
-
-    return names
-
-
-def get_state_names_2qtrit() -> List[str]:
-    """Return the list of valid gate names of 1-qtrit states."""
-    names_1qutrit = get_state_names_1qtrit()
-    names = ["_".join(t) for t in product(names_1qutrit, repeat=2)]
 
     return names
 
@@ -131,7 +122,7 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
         method_name = f"get_state_{state_name}_pure_state_vec"
         method = eval(method_name)
         return method()
-    elif state_name in get_state_names_1qtrit():
+    elif state_name in get_state_names_1qutrit():
         raise NotImplementedError()
     elif state_name in _get_state_names_2qubit_typical():
         return get_state_bell_pure_state_vec(state_name)
@@ -364,4 +355,229 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
     to_vec = convert_vec(from_vec, from_basis, c_sys.basis())
     state = State(c_sys, to_vec.real.astype(np.float64))
     return state
+
+
+# pure statevector of 1-qutrit, axis=01
+
+
+def get_state_01x0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> + |1>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 1, 0], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_01x1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> - |1>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, -1, 0], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_01y0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> + j|1>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 1j, 0], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_01y1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> - j|1>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, -1j, 0], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_01z0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``|0>``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 0, 0], dtype=np.float64)
+    return vec
+
+
+def get_state_01z1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``|1>``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 1, 0], dtype=np.float64)
+    return vec
+
+
+# pure statevector of 1-qutrit, axis=12
+
+
+def get_state_12x0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|1> + |2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 1, 1], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_12x1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|1> - |2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 1, -1], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_12y0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|1> + j|2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 1, 1j], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_12y1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|1> - j|2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 1, -1j], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_12z0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``|1>``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 1, 0], dtype=np.float64)
+    return vec
+
+
+def get_state_12z1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``|2>``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 0, 1], dtype=np.float64)
+    return vec
+
+
+# pure statevector of 1-qutrit, axis=02
+
+
+def get_state_02x0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> + |2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 0, 1], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_02x1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> - |2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 0, -1], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_02y0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> + j|2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 0, 1j], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_02y1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``(|0> - j|2>)/sqrt(2)``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 0, -1j], dtype=np.float64) / np.sqrt(2)
+    return vec
+
+
+def get_state_02z0_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``|0>``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([1, 0, 0], dtype=np.float64)
+    return vec
+
+
+def get_state_02z1_pure_state_vector() -> np.array:
+    """returns the pure state vector of ``|2>``.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
+    vec = np.array([0, 0, 1], dtype=np.float64)
+    return vec
 
