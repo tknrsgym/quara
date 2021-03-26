@@ -11,7 +11,10 @@ from quara.objects.matrix_basis import (
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.povm import Povm
-from quara.objects import state_typical
+from quara.objects.state_typical import (
+    generate_state_density_mat_from_name,
+    generate_state_pure_state_vector_from_name,
+)
 from quara.utils.matrix_util import truncate_hs, calc_mat_from_vector_adjoint
 
 
@@ -155,13 +158,10 @@ def _generate_povm_pure_state_vectors_from_single_name(
     elif povm_name == "21y3":
         pure_state_vector_names = ["12y0", "12y1", "01z0"]
 
-    vectors = []
-    for pure_state_vector_name in pure_state_vector_names:
-        method_name = (
-            "state_typical.get_state_" + pure_state_vector_name + "_pure_state_vector"
-        )
-        method = eval(method_name)
-        vectors.append(method())
+    vectors = [
+        generate_state_pure_state_vector_from_name(pure_state_vector_name)
+        for pure_state_vector_name in pure_state_vector_names
+    ]
     return vectors
 
 
@@ -211,9 +211,9 @@ def _generate_povm_matrices_from_single_name(povm_name: str) -> List[np.array]:
     else:
         if povm_name == "z2":
             matrices = [
-                state_typical.generate_state_density_mat_from_name("01z0"),
-                state_typical.generate_state_density_mat_from_name("01z1")
-                + state_typical.generate_state_density_mat_from_name("02z1"),
+                generate_state_density_mat_from_name("01z0"),
+                generate_state_density_mat_from_name("01z1")
+                + generate_state_density_mat_from_name("02z1"),
             ]
     return matrices
 
