@@ -1,15 +1,16 @@
-from typing import Union
+from typing import Union, Tuple
 
 from quara.data_analysis.generation_setting import QOperationGenerationSetting
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.qoperation import QOperation
+from quara.objects.qoperation_typical import generate_effective_lindbladian_object
 
 
 class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
     def __init__(
         self,
         c_sys: "CompositeSystem",
-        qoperation_base: Union[QOperation, str],
+        qoperation_base: Union[QOperation, Tuple[str]],
         lindbladian_base: Union[EffectiveLindbladian, str],
     ) -> None:
         """Constructor
@@ -33,8 +34,13 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         if isinstance(lindbladian_base, EffectiveLindbladian):
             self._lindbladian_base = lindbladian_base
         elif type(lindbladian_base) == str:
-            # TODO
-            raise NotImplementedError()
+            ids = [e.name for e in c_sys.elemental_systems]
+            self._lindbladian_base = generate_effective_lindbladian_object(
+                gate_name="identity",
+                object_name="effective_lindbladian",
+                ids=ids,
+                c_sys=c_sys,
+            )
         else:
             message = f"type of `lindbladian_base` must be EffectiveLindbladian or str, type of `lindbladian_base` is {type(lindbladian_base)}"
             raise TypeError(message)
