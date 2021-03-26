@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 
 from quara.data_analysis.generation_setting import QOperationGenerationSetting
 from quara.objects.effective_lindbladian import EffectiveLindbladian
@@ -9,7 +9,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
     def __init__(
         self,
         c_sys: "CompositeSystem",
-        qoperation_base: Union[QOperation, str],
+        qoperation_base: Union[QOperation, Tuple[str]],
         lindbladian_base: Union[EffectiveLindbladian, str],
     ) -> None:
         """Constructor
