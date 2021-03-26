@@ -4,7 +4,10 @@ import pytest
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.matrix_basis import (
+    get_normalized_pauli_basis,
+    get_normalized_gell_mann_basis,
+)
 from quara.objects.operators import tensor_product
 from quara.objects.povm import Povm
 from quara.objects import povm_typical
@@ -88,7 +91,12 @@ def test_generate_povm_from_name_1qubit(povm_name, expected_vecs):
     for actual_vec, expected_vec in zip(actual.vecs, expected_vecs):
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
-    """
+
+"""
+def test_generate_povm_from_name_2qubit():
+    # TODO bell
+    from quara.objects import state_typical
+
     actual = state_typical.generate_state_pure_state_vector_from_name("bell_phi_plus")
     print(f"actual={actual}")
     actual = state_typical.generate_state_pure_state_vector_from_name("bell_phi_minus")
@@ -97,4 +105,72 @@ def test_generate_povm_from_name_1qubit(povm_name, expected_vecs):
     print(f"actual={actual}")
     actual = state_typical.generate_state_pure_state_vector_from_name("bell_psi_minus")
     print(f"actual={actual}")
-    """
+    assert False
+"""
+
+
+@pytest.mark.onequbit
+@pytest.mark.parametrize(
+    ("povm_name", "expected_vecs"),
+    [
+        (
+            "z3",
+            [
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, -np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, 0, 0, 0, 0, 0, -2 * np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+            ],
+        ),
+        (
+            "z2",
+            [
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, -np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                )
+                + np.array(
+                    [np.sqrt(1 / 3), 0, 0, 0, 0, 0, 0, 0, -2 * np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+            ],
+        ),
+        (
+            "01z3",
+            [
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, -np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+                np.array(
+                    [np.sqrt(1 / 3), 0, 0, 0, 0, 0, 0, 0, -2 * np.sqrt(1 / 6)],
+                    dtype=np.float64,
+                ),
+            ],
+        ),
+    ],
+)
+def test_generate_povm_from_name_1qutrit(povm_name, expected_vecs):
+    # TODO 01x3, 02x3, 21y3
+    e_sys = ElementalSystem(0, get_normalized_gell_mann_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    actual = povm_typical.generate_povm_from_name(povm_name, c_sys=c_sys)
+    for actual_vec, expected_vec in zip(actual.vecs, expected_vecs):
+        npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
