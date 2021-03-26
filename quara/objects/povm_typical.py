@@ -1,3 +1,4 @@
+import itertools
 from typing import List, Union
 import re
 
@@ -124,24 +125,9 @@ def generate_povm_object_from_povm_name_object_name(
     return obj
 
 
-def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]:
-    """returns pure state vectors.
-
-    Parameters
-    ----------
-    povm_name : str
-        name of povm.
-
-    Returns
-    -------
-    List[np.array]
-        pure state vectors.
-
-    Raises
-    ------
-    ValueError
-        povm_name is invalid.
-    """
+def _generate_povm_pure_state_vectors_from_single_name(
+    povm_name: str,
+) -> List[np.array]:
     if povm_name not in get_povm_names_rank1():
         raise ValueError(f"povm_name is not rank 1. povm_name={povm_name}")
 
@@ -179,6 +165,59 @@ def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]
     return vectors
 
 
+def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]:
+    """returns pure state vectors.
+
+    Parameters
+    ----------
+    povm_name : str
+        name of povm.
+
+    Returns
+    -------
+    List[np.array]
+        pure state vectors.
+
+    Raises
+    ------
+    ValueError
+        povm_name is invalid.
+    """
+    # split and get each pure state vectors
+    single_povm_names = povm_name.split("_")
+    pure_state_vectors_list = [
+        _generate_povm_pure_state_vectors_from_single_name(single_povm_name)
+        for single_povm_name in single_povm_names
+    ]
+
+    # tensor product
+    temp = pure_state_vectors_list[0]
+    for pure_state_vectors in pure_state_vectors_list[1:]:
+        temp = [
+            np.kron(vec1, vec2)
+            for vec1, vec2 in itertools.product(temp, pure_state_vectors)
+        ]
+
+    return temp
+
+
+def _generate_povm_matrices_from_single_name(povm_name: str) -> List[np.array]:
+    if povm_name in get_povm_names_rank1():
+        pure_state_vectors = generate_povm_pure_state_vectors_from_name(povm_name)
+        matrices = [
+            calc_mat_from_vector_adjoint(pure_state_vector)
+            for pure_state_vector in pure_state_vectors
+        ]
+    else:
+        if povm_name == "z2":
+            matrices = [
+                state_typical.generate_state_density_mat_from_name("01z0"),
+                state_typical.generate_state_density_mat_from_name("01z1")
+                + state_typical.generate_state_density_mat_from_name("02z1"),
+            ]
+    return matrices
+
+
 def generate_povm_matrices_from_name(povm_name: str) -> List[np.array]:
     """returns list of elements of POVM(matrices).
 
@@ -197,20 +236,19 @@ def generate_povm_matrices_from_name(povm_name: str) -> List[np.array]:
     ValueError
         povm_name is invalid.
     """
-    if povm_name in get_povm_names_rank1():
-        pure_state_vectors = generate_povm_pure_state_vectors_from_name(povm_name)
-        matrices = [
-            calc_mat_from_vector_adjoint(pure_state_vector)
-            for pure_state_vector in pure_state_vectors
-        ]
-    else:
-        if povm_name == "z2":
-            matrices = [
-                state_typical.generate_state_density_mat_from_name("01z0"),
-                state_typical.generate_state_density_mat_from_name("01z1")
-                + state_typical.generate_state_density_mat_from_name("02z1"),
-            ]
-    return matrices
+    # split and get each pure state vectors
+    single_povm_names = povm_name.split("_")
+    matrices_list = [
+        _generate_povm_matrices_from_single_name(single_povm_name)
+        for single_povm_name in single_povm_names
+    ]
+
+    # tensor product
+    temp = matrices_list[0]
+    for matrices in matrices_list[1:]:
+        temp = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(temp, matrices)]
+
+    return temp
 
 
 def generate_povm_vectors_from_name(

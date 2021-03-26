@@ -92,9 +92,45 @@ def test_generate_povm_from_name_1qubit(povm_name, expected_vecs):
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
-"""
-def test_generate_povm_from_name_2qubit():
+@pytest.mark.twoqubits
+@pytest.mark.parametrize(
+    ("povm_name", "expected_vecs"),
+    [
+        (
+            "z_z",
+            [
+                np.array(
+                    [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1], dtype=np.float64
+                )
+                / 2,
+                np.array(
+                    [1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -1], dtype=np.float64
+                )
+                / 2,
+                np.array(
+                    [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, -1], dtype=np.float64
+                )
+                / 2,
+                np.array(
+                    [1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 1], dtype=np.float64
+                )
+                / 2,
+            ],
+        ),
+    ],
+)
+def test_generate_povm_from_name_2qubit(povm_name, expected_vecs):
+    e_sys0 = ElementalSystem(0, get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+
+    actual = povm_typical.generate_povm_from_name(povm_name, c_sys=c_sys)
+    for actual_vec, expected_vec in zip(actual.vecs, expected_vecs):
+        npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
     # TODO bell
+
+
+"""
     from quara.objects import state_typical
 
     actual = state_typical.generate_state_pure_state_vector_from_name("bell_phi_plus")
