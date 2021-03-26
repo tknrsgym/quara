@@ -759,7 +759,7 @@ def get_state_12y0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 1, 1j], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([0, 1, 1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -771,7 +771,7 @@ def get_state_12y1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 1, -1j], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([0, 1, -1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
