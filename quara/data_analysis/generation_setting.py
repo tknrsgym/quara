@@ -1,7 +1,8 @@
-from typing import Union
+from typing import Type, Union, Tuple
 from abc import abstractmethod
 
 from quara.objects.qoperation import QOperation
+from quara.objects.qoperation_typical import generate_qoperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate, get_depolarizing_channel
@@ -10,18 +11,30 @@ from quara.objects.operators import composite
 
 class QOperationGenerationSetting:
     def __init__(
-        self, c_sys: "CompositeSystem", qoperation_base: Union[QOperation, str]
+        self, c_sys: "CompositeSystem", qoperation_base: Union[QOperation, Tuple[str]]
     ) -> None:
         self._composite_system = c_sys
 
+        type_error_message = "Type of 'qooeration_base' must be QOperation or tuple of length 2 containing the string, "
+        type_error_message += f"not {type(qoperation_base)}"
         if isinstance(qoperation_base, QOperation):
             self._qoperation_base = qoperation_base
-        elif type(qoperation_base) == str:
-            # TODO
-            raise NotImplementedError()
+        elif type(qoperation_base) == tuple:
+            # Validation
+            if len(qoperation_base) != 2:
+                raise TypeError(type_error_message)
+            else:
+                for item in qoperation_base:
+                    if type(item) != str:
+                        raise TypeError(type_error_message)
+            # Generate QOperation object.
+            qoperation_type = qoperation_base[0]
+            qoperation_name = qoperation_base[1]
+            self._qoperation_base = generate_qoperation(
+                mode=qoperation_type, name=qoperation_name, c_sys=c_sys
+            )
         else:
-            message = f"`qoperation_base` must be QOperation or str, not {type(qoperation_base)}"
-            raise TypeError(message)
+            raise TypeError(type_error_message)
 
     @property
     def composite_system(self):
@@ -58,7 +71,9 @@ class QOperationGenerationSetting:
 
 
 class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
-    def __init__(self, c_sys, qoperation_base, error_rate: float) -> None:
+    def __init__(
+        self, c_sys, qoperation_base: Union[QOperation, Tuple[str]], error_rate: float
+    ) -> None:
         if not (0 <= error_rate <= 1):
             message = "`error_rate` must be between 0 and 1."
             raise ValueError(message)
