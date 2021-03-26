@@ -93,7 +93,7 @@ def test_get_state_bell():
     e_sys_1 = ElementalSystem(1, basis)
     c_sys = CompositeSystem([e_sys_0, e_sys_1])
     expected_state = st.get_state_bell_2q(c_sys)
-    state_name = "bell_psi_plus"
+    state_name = "bell_phi_plus"
 
     # density matrix
     # Act
@@ -174,22 +174,22 @@ def test_generate_state_pure_state_vector_from_name_3q():
 def test_get_state_bell_pure_state_vector():
     # |Φ+>
     actual = st.get_state_bell_pure_state_vector("bell_phi_plus")
-    expected = (1 / np.sqrt(2)) * np.array([0, 1, 1, 0])
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 1])
     npt.assert_almost_equal(actual, expected)
 
     # |Φ->
     actual = st.get_state_bell_pure_state_vector("bell_phi_minus")
-    expected = (1 / np.sqrt(2)) * np.array([0, 1, -1, 0])
+    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, -1])
     npt.assert_almost_equal(actual, expected)
 
     # |Ψ+>
     actual = st.get_state_bell_pure_state_vector("bell_psi_plus")
-    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, 1])
+    expected = (1 / np.sqrt(2)) * np.array([0, 1, 1, 0])
     npt.assert_almost_equal(actual, expected)
 
     # |Ψ->
     actual = st.get_state_bell_pure_state_vector("bell_psi_minus")
-    expected = (1 / np.sqrt(2)) * np.array([1, 0, 0, -1])
+    expected = (1 / np.sqrt(2)) * np.array([0, 1, -1, 0])
     npt.assert_almost_equal(actual, expected)
 
 
