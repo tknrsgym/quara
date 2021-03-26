@@ -10,6 +10,49 @@ from quara.objects.povm import Povm
 from quara.objects import povm_typical
 
 
+def test_generate_povm_object_from_povm_name_object_name():
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # generate_povm_pure_state_vectors_from_name
+    actual = povm_typical.generate_povm_pure_state_vectors_from_name("z")
+    expected = [
+        np.array([1, 0]),
+        np.array([0, 1]),
+    ]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # generate_povm_matrices_from_name
+    actual = povm_typical.generate_povm_matrices_from_name("z")
+    expected = [
+        np.array([[1, 0], [0, 0]]),
+        np.array([[0, 0], [0, 1]]),
+    ]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # generate_povm_vectors_from_name
+    actual = povm_typical.generate_povm_vectors_from_name(
+        "z", get_normalized_pauli_basis()
+    )
+    expected = [
+        np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2),
+        np.array([1, 0, 0, -1], dtype=np.float64) / np.sqrt(2),
+    ]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    # generate_povm_from_name
+    actual = povm_typical.generate_povm_from_name("z", c_sys)
+    expected = [
+        np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2),
+        np.array([1, 0, 0, -1], dtype=np.float64) / np.sqrt(2),
+    ]
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
     ("povm_name", "expected_vecs"),
