@@ -48,8 +48,8 @@ from quara.objects.effective_lindbladian import (
 def generate_effective_lindbladian_object_from_gate_name_object_name(
     gate_name: str,
     object_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
 ) -> Union[np.array, "EffectiveLindbladian"]:
     if object_name == "hamiltonian_vec":
@@ -143,7 +143,7 @@ def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
 
 
 def generate_hamiltonian_vec_from_gate_name(
-    gate_name: str, dims: List[int] = [], ids: List[int] = []
+    gate_name: str, dims: List[int] = None, ids: List[int] = None
 ) -> np.array:
     """return the vector representation of the Hamiltonian of a gate.
 
@@ -215,7 +215,7 @@ def generate_hamiltonian_vec_from_gate_name(
 
 
 def generate_hamiltonian_mat_from_gate_name(
-    gate_name: str, dims: List[int] = [], ids: List[int] = []
+    gate_name: str, dims: List[int] = None, ids: List[int] = None
 ) -> np.array:
     """returns the Hamiltonian matrix of a gate.
 
@@ -279,7 +279,7 @@ def generate_hamiltonian_mat_from_gate_name(
 
 
 def generate_effective_lindbladian_mat_from_gate_name(
-    gate_name: str, dims: List[int] = [], ids: List[int] = []
+    gate_name: str, dims: List[int] = None, ids: List[int] = None
 ) -> np.array:
     """returns the Hilbert-Schmidt representation matrix of an effective lindbladian.
 

@@ -21,7 +21,9 @@ from quara.objects.effective_lindbladian_typical import (
 
 
 def generate_qoperation(mode: str, name: str, c_sys: CompositeSystem) -> QOperation:
-    return generate_qoperation_object(mode=mode, name=name, object_name=mode, c_sys=c_sys)
+    return generate_qoperation_object(
+        mode=mode, name=name, object_name=mode, c_sys=c_sys
+    )
 
 
 def generate_state_object(
@@ -44,8 +46,8 @@ def generate_qoperation_object(
     mode: str,
     name: str,
     object_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
 ):
     if mode == "state":
@@ -78,8 +80,8 @@ def get_gate_object_names() -> List[str]:
 def generate_gate_object(
     gate_name: str,
     object_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
 ) -> Union[np.array, "Gate"]:
     """Return a gate-related object.
@@ -92,10 +94,10 @@ def generate_gate_object(
     object_name: str
         The list of valid object_name is given by get_gate_object_names().
 
-    dims: List[int] = [], Optional
+    dims: List[int] = None, Optional
         To be given for gate_name = 'identity'
 
-    ids: List[int] = [], Optional
+    ids: List[int] = None, Optional
         This is a list of elmental system's ids.
         To be given for specific asymmetric multi-partite gates
         For example, in the case of gate_name = 'cx', id[0] is for the id of the control qubit and id[1] is for the id of the target qubit.
@@ -134,8 +136,8 @@ def get_effective_lindbladian_object_names() -> List[str]:
 def generate_effective_lindbladian_object(
     gate_name: str,
     object_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
 ) -> Union[np.array, "EffectiveLindbladian"]:
     """Return an effective-llindbladian-related object.
@@ -148,10 +150,10 @@ def generate_effective_lindbladian_object(
     object_name: str
         The list of valid object_name is given by get_effective_lindbladian_object_names().
 
-    dims: List[int] = [], Optional
+    dims: List[int] = None, Optional
         To be given for gate_name = 'identity'
 
-    ids: List[int] = [], Optional
+    ids: List[int] = None, Optional
         This is a list of elmental system's ids.
         To be given for specific asymmetric multi-partite gates
         For example, in the case of gate_name = 'cx', id[0] is for the id of the control qubit and id[1] is for the id of the target qubit.
@@ -172,6 +174,8 @@ def generate_effective_lindbladian_object(
         "EffectiveLindbladian"
             EffectiveLindbladian class for object_name = 'effective_lindbladian'
     """
+    dims = [] if dims is None else dims
+    ids = [] if dims is None else ids
     res = generate_effective_lindbladian_object_from_gate_name_object_name(
         gate_name, object_name, dims, ids, c_sys
     )
