@@ -56,6 +56,7 @@ def generate_data_from_prob_dist(
 
     # whether the sum of probabilities equals 1.
     sum_prob_dist = np.sum(prob_dist)
+
     atol = atol if atol else Settings.get_atol()
     if not np.isclose(sum_prob_dist, 1, atol=atol, rtol=0.0):
         raise ValueError(
