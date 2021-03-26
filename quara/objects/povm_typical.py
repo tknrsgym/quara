@@ -148,5 +148,5 @@ def generate_povm_vectors_from_name(
 
 
 def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
-    vecs = generate_povm_vectors_from_name(povm_name, c_sys.basis)
+    vecs = generate_povm_vectors_from_name(povm_name, c_sys.basis())
     return Povm(c_sys, vecs)
