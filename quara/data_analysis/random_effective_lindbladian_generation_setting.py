@@ -30,7 +30,7 @@ class RandomEffectiveLindbladianGenerationSetting(
     def __init__(
         self,
         c_sys: "CompositeSystem",
-        qoperation_base: Union[QOperation, str],
+        qoperation_base: Union[QOperation, Tuple[str]],
         lindbladian_base: Union[EffectiveLindbladian, str],
         strength_h_part: float,
         strength_k_part: float,
