@@ -19,6 +19,7 @@ def get_state_names() -> List[str]:
     names += get_state_names_2qubit()
     names += get_state_names_3qubit()
     names += get_state_names_1qutrit()
+    names += get_state_names_2qutrit()
     return names
 
 
@@ -59,6 +60,14 @@ def get_state_names_1qutrit() -> List[str]:
     axis = ["x", "y", "z"]
     d = ["0", "1"]
     names = ["".join(t) for t in product(level, axis, d)]
+
+    return names
+
+
+def get_state_names_2qutrit() -> List[str]:
+    """Return the list of valid gate names of 2-qutrit states."""
+    names_1qutrit = get_state_names_1qutrit()
+    names = ["_".join(t) for t in product(names_1qutrit, repeat=2)]
 
     return names
 
