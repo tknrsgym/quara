@@ -66,6 +66,29 @@ def get_state_names_1qutrit() -> List[str]:
 def generate_state_object_from_state_name_object_name(
     state_name: str, object_name: str, c_sys: CompositeSystem = None
 ) -> Union[State, np.array]:
+    """[summary]
+
+    Parameters
+    ----------
+    state_name : str
+        Name of the state.
+        See the 'state_name' argument of generate_state_pure_state_vector_from_name() for available names.
+    object_name : str
+        Name of the format of the object to generate.
+        one of ("pure_state_vector" | "density_mat" | "density_matrix_vector" | "state")
+    c_sys : CompositeSystem, optional
+        Specify if object_name is "state" or "density_matrix_vector", by default None.
+
+    Returns
+    -------
+    Union[State, np.array]
+        The state specified by state_name is returned in an object of the form specified by object_name.
+
+    Raises
+    ------
+    ValueError
+        object_name or state_name is out of range.
+    """
     expected_object_names = [
         "pure_state_vector",
         "density_mat",
@@ -86,6 +109,20 @@ def generate_state_object_from_state_name_object_name(
 
 
 def generate_state_density_mat_from_name(state_name: str) -> np.array:
+    """Return the density matrix ( ``|ρ>`` )of state specified by name.
+
+    Parameters
+    ----------
+    state_name : str
+        name of the state.
+        See the 'state_name' argument of generate_state_pure_state_vector_from_name() for available names.
+
+    Returns
+    -------
+    np.array
+        density matrix ( ``|ρ>`` )
+    """
+
     if state_name in get_state_names():
         pure_state_vec = generate_state_pure_state_vector_from_name(state_name)
         density_mat = calc_mat_from_vector_adjoint(pure_state_vec)
@@ -97,6 +134,21 @@ def generate_state_density_mat_from_name(state_name: str) -> np.array:
 def generate_state_density_matrix_vector_from_name(
     basis: MatrixBasis, state_name: str
 ) -> np.array:
+    """Return the density matrix vector ( ``|ρ>>`` )of state specified by name.
+
+    Parameters
+    ----------
+    basis : MatrixBasis
+        basis
+    state_name : str
+        name of the state.
+        See the 'state_name' argument of generate_state_pure_state_vector_from_name() for available names.
+
+    Returns
+    -------
+    np.array
+        density matrix vector ( ``|ρ>>`` )
+    """
     density_mat = generate_state_density_mat_from_name(state_name)
     vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
         density_mat, basis
@@ -105,22 +157,66 @@ def generate_state_density_matrix_vector_from_name(
 
 
 def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
+    """Return the state object specified by name.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        composite system.
+    state_name : str
+        name of the state.
+        See the 'state_name' argument of generate_state_pure_state_vector_from_name() for available names.
+
+    Returns
+    -------
+    State
+        State object
+    """
+
     vec = generate_state_density_matrix_vector_from_name(c_sys.basis(), state_name)
     state = State(vec=vec, c_sys=c_sys)
     return state
 
 
 def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
+    """Return the pure state vector for state specified by name.
+    Use get_state_names() to get a list of all available names.
+
+    Parameters
+    ----------
+    state_name : str
+        name of the state.
+        - 1 qubit: "x0", "x1", "y0", "y1", "z0", "a"
+        - 2 qubit: "bell_psi_plus", "bell_psi_minus", "bell_phi_minus", "bell_phi_plus", or tensor product of 1 qubit ("z0_z0", "z0_z1", etc).
+        - 3 qubit: "ghz", "werner", or tensor product of 1 qubit ("z0_z0_z0", "z0_x0_y0", etc).
+        - 1 qutrit: Specify a combination of level ("01" | "12" | "02"), axis ("x" | "y" | "z"), and d ("0", "1"). 
+        For example, "01x0" means level is "01", axis is "x", and d is "0".
+        Use get_state_names_1qutrit() to get a list of available names.
+        - 2 qutrit: tensor product of 1 qutrit ("01x0_01y0", "01x0_01x1", etc)
+
+    Returns
+    -------
+    np.array
+        pure state vector
+
+    Raises
+    ------
+    ValueError
+        'state_name' is out of range.
+    """
     if state_name not in get_state_names():
         message = f"state_name is out of range."
         raise ValueError(message)
 
-    if state_name in get_state_names_1qubit() + _get_state_names_3qubit_typical():
+    typical_names = (
+        get_state_names_1qubit()
+        + _get_state_names_3qubit_typical()
+        + get_state_names_1qutrit()
+    )
+    if state_name in typical_names:
         method_name = f"get_state_{state_name}_pure_state_vector"
         method = eval(method_name)
         return method()
-    elif state_name in get_state_names_1qutrit():
-        raise NotImplementedError()
     elif state_name in _get_state_names_2qubit_typical():
         return get_state_bell_pure_state_vector(state_name)
 
@@ -147,6 +243,14 @@ def tensor_product_for_vecs(state_vecs: np.array) -> np.array:
 
 
 def get_state_x0_pure_state_vector() -> np.array:
+    """Returns the pure state vector for |+>.
+    |+> := (1/√2)* (|0> + |1>)
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 + vec_1)
@@ -154,6 +258,14 @@ def get_state_x0_pure_state_vector() -> np.array:
 
 
 def get_state_x1_pure_state_vector() -> np.array:
+    """Returns the pure state vector for |->.
+    |-> := (1/√2)* (|0> - |1>)
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 - vec_1)
@@ -161,6 +273,14 @@ def get_state_x1_pure_state_vector() -> np.array:
 
 
 def get_state_y0_pure_state_vector() -> np.array:
+    """Returns the pure state vector for |i>.
+    |i> := (1/√2)* (|0> + i*|1>)
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 + 1j * vec_1)
@@ -168,6 +288,14 @@ def get_state_y0_pure_state_vector() -> np.array:
 
 
 def get_state_y1_pure_state_vector() -> np.array:
+    """Returns the pure state vector for |i>.
+    |-i> := (1/√2)* (|0> - i*|1>)
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
     vec_0 = np.array([1, 0])
     vec_1 = np.array([0, 1])
     vec = (1 / np.sqrt(2)) * (vec_0 - 1j * vec_1)
@@ -175,16 +303,38 @@ def get_state_y1_pure_state_vector() -> np.array:
 
 
 def get_state_z0_pure_state_vector() -> np.array:
+    """Returns the pure state vector for |0>.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
     vec = np.array([1, 0])
     return vec
 
 
 def get_state_z1_pure_state_vector() -> np.array:
+    """Returns the pure state vector for |1>.
+
+    Returns
+    -------
+    np.array
+        the pure state vector.
+    """
     vec = np.array([0, 1])
     return vec
 
 
 def get_state_a_pure_state_vector() -> np.array:
+    """Return the pure state vector for A state.
+    |A> := (1/√2) * (|0> + exp(iπ/4)|1>)
+
+    Returns
+    -------
+    np.array
+        the pure state vector for A state.
+    """
     state_vec_0 = np.array([1, 0])
     state_vec_1 = np.array([0, 1])
     pure_state_vec = state_vec_0 + np.exp(1j * np.pi / 4) * state_vec_1
@@ -193,16 +343,37 @@ def get_state_a_pure_state_vector() -> np.array:
 
 
 def get_state_bell_pure_state_vector(name: str) -> np.array:
+    """Return the pure state vector for bell.
+
+    Parameters
+    ----------
+    name : str
+        type of bell, one of ("bell_psi_plus" | "bell_psi_minus" | "bell_phi_plus" | "bell_phi_minus")
+        - "bell_psi_plus": |Ψ+> := |0>|1> + |1>|0>
+        - "bell_psi_minus": |Ψ-> := |0>|1> - |1>|0>
+        - "bell_phi_plus": |Φ+> := |0>|0> + |1>|1>
+        - "bell_phi_minus": |Φ-> := |0>|0> - |1>|1>
+
+    Returns
+    -------
+    np.array
+        the pure state vector for bell state.
+
+    Raises
+    ------
+    ValueError
+        'name' is out of range.
+    """
     state_vec_0 = np.array([1, 0])
     state_vec_1 = np.array([0, 1])
 
     name_items = name.split("_")
-    error_message = f"name is out of range."
+    error_message = f"'name' is out of range."
 
-    if name_items[1] == "phi":
+    if name_items[1] == "psi":
         vecs_0 = [state_vec_0, state_vec_1]
         vecs_1 = [state_vec_1, state_vec_0]
-    elif name_items[1] == "psi":
+    elif name_items[1] == "phi":
         vecs_0 = [state_vec_0, state_vec_0]
         vecs_1 = [state_vec_1, state_vec_1]
     else:
@@ -221,6 +392,14 @@ def get_state_bell_pure_state_vector(name: str) -> np.array:
 
 
 def get_state_ghz_pure_state_vector() -> np.array:
+    """Return the pure state vector for GHZ.
+    |GHZ> := (1/√2) * (|0>|0>|0> + |1>|1>|1>)
+
+    Returns
+    -------
+    np.array
+        the pure state vector for GHZ state.
+    """
     state_vec_0 = np.array([1, 0])  # |0>
     state_vec_1 = np.array([0, 1])  # |1>
 
@@ -233,6 +412,14 @@ def get_state_ghz_pure_state_vector() -> np.array:
 
 
 def get_state_werner_pure_state_vector() -> np.array:
+    """Return the pure state vector for Werner.
+    |W> := (1/√3) * (|0>|0>|1> + |0>|1>|0> + |1>|0>|0>)
+
+    Returns
+    -------
+    np.array
+        the pure state vector for Werner state.
+    """
     state_vec_0 = np.array([1, 0])  # |0>
     state_vec_1 = np.array([0, 1])  # |1>
 
