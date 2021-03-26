@@ -127,12 +127,6 @@ class StandardQpt(StandardQTomography):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.gates[target_index] = gate
 
-        # TODO: remove
-        print("=======schedules=======")
-        for i, schedule in enumerate(tmp_experiment.schedules):
-            print(f"{i}: {schedule}")
-        print("=====================")
-
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
             list_num_sums_tmp
         )

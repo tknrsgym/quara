@@ -209,11 +209,6 @@ class StandardQst(StandardQTomography):
             tmp_experiment.states[state_index] = state
 
         num_sums = [num_sum] * self._num_schedules
-        # TODO: remove
-        print("=======schedules=======")
-        for i, schedule in tmp_experiment.schedules:
-            print(f"{i}: {schedule}")
-        print("=====================")
         empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums])
 
         empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
@@ -244,12 +239,6 @@ class StandardQst(StandardQTomography):
         for schedule_index in range(len(tmp_experiment.schedules)):
             state_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
-
-        # TODO: remove
-        print("=======schedules=======")
-        for i, schedule in tmp_experiment.schedules:
-            print(f"{i}: {schedule}")
-        print("=====================")
 
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
             list_num_sums_tmp
