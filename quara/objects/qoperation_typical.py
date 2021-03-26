@@ -6,14 +6,25 @@ from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
-import quara.objects.state_typical
+from quara.objects.state_typical import generate_state_from_name
 import quara.objects.povm_typical
-from quara.objects.gate_typical import (
-    generate_gate_object_from_gate_name_object_name,
-)
+from quara.objects.gate_typical import generate_gate_object_from_gate_name_object_name
 from quara.objects.effective_lindbladian_typical import (
     generate_effective_lindbladian_object_from_gate_name_object_name,
 )
+
+
+def generate_qoperation(name: str, mode: str, c_sys: CompositeSystem) -> QOperation:
+    # TODO: c_sysは相談後対応を決める
+    if mode == "state":
+        return generate_state_from_name(c_sys=c_sys, state_name=name)
+    elif mode == "povm":
+        raise NotImplementedError()
+    elif mode == "gate":
+        return generate_gate_object(gate_name=name, object_name="gate", c_sys=c_sys)
+    else:
+        error_message = "mode is out of range."
+        raise ValueError(error_message)
 
 
 def get_gate_object_names() -> List[str]:
