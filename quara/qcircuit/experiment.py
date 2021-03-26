@@ -462,7 +462,7 @@ class Experiment:
 
         prob_dists = self.calc_prob_dists()
         # TODO: remove debug code
-        print(f"{prob_dists=}")
+        print(f"prob_dists={prob_dists}")
 
         dataset = data_generator.generate_dataset_from_prob_dists(
             prob_dists=prob_dists, data_nums=data_nums
