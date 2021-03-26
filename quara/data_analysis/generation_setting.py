@@ -15,7 +15,7 @@ class QOperationGenerationSetting:
     ) -> None:
         self._composite_system = c_sys
 
-        type_error_message = "Type of 'qooeration_base' must be QOperation or tuple of length 2 containing the string, "
+        type_error_message = "Type of 'qooeration_base' must be QOperation or tuple of length 2 containing the string (`('state', 'z0')`, etc.), "
         type_error_message += f"not {type(qoperation_base)}"
         if isinstance(qoperation_base, QOperation):
             self._qoperation_base = qoperation_base
