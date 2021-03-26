@@ -36,7 +36,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         elif type(lindbladian_base) == str:
             ids = [e.name for e in c_sys.elemental_systems]
             self._lindbladian_base = generate_effective_lindbladian_object(
-                gate_name="identity",
+                gate_name=lindbladian_base,
                 object_name="effective_lindbladian",
                 ids=ids,
                 c_sys=c_sys,
