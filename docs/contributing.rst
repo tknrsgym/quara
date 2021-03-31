@@ -7,7 +7,7 @@ Creating environment for development
 Creating a Python environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Python version:** 3.6+
+**Python version:** 3.7+
 
 To create environment for development, follow these steps:
 
