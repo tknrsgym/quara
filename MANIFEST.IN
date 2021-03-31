@@ -1,4 +1,3 @@
-recursive-include quara/matlab_script *.m *.csv
 recursive-include tests *.py *.csv
 recursive-include tutorials *.ipynb
 global-exclude *~

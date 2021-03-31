@@ -672,7 +672,7 @@ def _calc_j_mat_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> None:
     j_mat = np.zeros((c_sys.dim, c_sys.dim), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
         for col in range(k_mat.shape[1]):
-            term = k_mat[row, col] * basis[col + 1].conj() @ basis[row + 1]
+            term = k_mat[row, col] * (basis[col + 1].T.conj() @ basis[row + 1])
             j_mat += term
 
     return -1 / 2 * j_mat
