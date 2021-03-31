@@ -22,7 +22,18 @@ setup(
     long_description=read_file("README.rst"),
     url="https://github.com/tknrsgym/quara",  # TODO: update
     python_requires="~=3.7",
-    install_requires=["numpy>=1.18"],
+    install_requires=[
+        "numpy>=1.18",
+        "scipy",
+        "pandas",
+        "tqdm",
+        "plotly",
+        "plotly-express",
+        "tqdm",
+        "xhtml2pdf",
+        "psutil",
+        "kaleido==0.1.0",
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
