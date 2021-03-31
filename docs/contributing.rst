@@ -35,16 +35,6 @@ Windows:
    cd ../
    pip install -e ./quara
 
-Install MATLAB engine API for Python and other tools
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Activate the Python environment for development, and follow these steps:
-
-1. `Install MATLAB engine for
-   Python <https://github.com/tknrsgym/quara#install-matlab-engine-api-for-python>`__
-2. `Install other tools (solvers, parsers,
-   etc.) <https://github.com/tknrsgym/quara#install-other-tools-solvers-parsers-etc>`__
-
 Testing
 -------
 
