@@ -37,8 +37,8 @@ from quara.objects.effective_lindbladian_typical import (
 
 def _test_gate(
     gate_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
     decimal: int = 15,
 ):
