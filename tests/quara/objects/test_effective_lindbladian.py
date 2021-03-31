@@ -296,7 +296,7 @@ class TestEffectiveLindbladian:
 
         actual = lindbladian.calc_proj_eq_constraint()
         expected = np.array(
-            [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
+            [[0, 0, 0, 0], [0, 2, 0, 0], [0, 0, 2, 0], [0, 0, 0, 2]], dtype=np.float64
         )
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
@@ -607,7 +607,7 @@ def test_generate_effective_lindbladian_from_hk():
         c_sys, h_mat, k_mat, is_physicality_required=False
     )
     expected = np.array(
-        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64,
+        [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]], dtype=np.float64,
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
@@ -628,7 +628,7 @@ def test_generate_effective_lindbladian_from_k():
         c_sys, k_mat, is_physicality_required=False
     )
     expected = np.array(
-        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64,
+        [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]], dtype=np.float64,
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
