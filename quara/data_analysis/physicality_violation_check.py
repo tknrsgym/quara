@@ -656,7 +656,7 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     figs = []
     n_rep = len(estimated_povms)
     minus_eigenvalues_dict = get_sum_of_eigenvalues_violation_for_povm(estimated_povms)
-    num_outcomes = estimated_povms[0].num_outcomes
+    num_outcomes = len(estimated_povms[0].vecs)
 
     n_unphysical = calc_unphysical_qobjects_n(estimated_povms)
 
