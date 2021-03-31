@@ -19,7 +19,7 @@ Quara, which stands for "Quantum Characterization", is an open-source library fo
 Install
 =================================
 
-**Python version:** 3.6+
+**Python version:** 3.7+
 
 .. code-block::
 
