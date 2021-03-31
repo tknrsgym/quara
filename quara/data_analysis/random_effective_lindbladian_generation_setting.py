@@ -139,6 +139,7 @@ class RandomEffectiveLindbladianGenerationSetting(
         random_vector, random_variables = self._generate_random_variables(
             self.strength_k_part
         )
+        random_vector = np.abs(random_vector)
 
         # generate randum variables
         dim = self.composite_system.dim
