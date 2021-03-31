@@ -485,3 +485,6 @@ def test_generate_povm_from_name_2qutrit_01x3_21y3():
 
     for actual_vec, expected_vec in zip(actual.vecs, expected.vecs):
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
+
+
+# Test
