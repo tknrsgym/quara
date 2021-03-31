@@ -169,12 +169,14 @@ def convert_to_series(
     results_tmp = [
         list(qoperation_sequence) for qoperation_sequence in zip(*results_tmp)
     ]
+
     mses = [
         calc_mse_qoperations(
             qoperation_sequence, [true_object] * len(qoperation_sequence)
         )
         for qoperation_sequence in results_tmp
     ]
+
     stds = [mse[1] for mse in mses]
     mses = [mse[0] for mse in mses]
 
@@ -452,10 +454,6 @@ def make_mses_graph_estimation_results(
         error_bar_values = [sigma / np.sqrt(n_rep) for sigma in sds]
         error_bar_values_list.append(error_bar_values)
 
-    # debug
-    for display_case_name, mses in zip(display_case_names, mses_list):
-        print(f"  {display_case_name}={mses}")
-
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
@@ -520,6 +518,7 @@ def _make_data_for_graphs_mses_analytical(
     display_case_names = []
     short_names = []
     parameters = []
+
     for qtomo_type, qtomo in qtomo_type_dict.items():
         parameter = qtomo_type.on_para_eq_constraint
         estimator_name = qtomo_type.estimator_name
