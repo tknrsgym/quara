@@ -596,22 +596,10 @@ def convert_var_to_povm(
 
         measurement_n = var.shape[0] // (dim ** 2) + 1
         # [√d, 0, 0...]
-        # print("======================")
-        # print(f"convert_var_to_povm: {measurement_n=}")
-        # print("======================")
-
         total_vecs = np.hstack([np.array(np.sqrt(dim)), np.zeros(dim ** 2 - 1,)])
-        # pre_vecs = vecs.reshape(dim ** 2, measurement_n - 1).T
         pre_vecs = vecs.reshape(measurement_n - 1, dim ** 2)
-        # print(f"{}")
-        # print(f"{pre_vecs=}")
-        # print(f"{pre_vecs.shape}")
         last_vec = total_vecs - pre_vecs.sum(axis=0)
-        # print(f"{last_vec=}")
-        # print(f"{last_vec.shape}")
         vecs = np.append(pre_vecs, last_vec)
-        # print(f"{vecs=}")
-        # print(f"{vecs.shape}")
     else:
         measurement_n = var.shape[0] // (dim ** 2)
 
