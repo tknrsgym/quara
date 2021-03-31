@@ -6,18 +6,14 @@ from typing import List
 from itertools import permutations
 from scipy.linalg import expm
 
-from quara.math.matrix import (
-    project_to_traceless_matrix,
-)
+from quara.math.matrix import project_to_traceless_matrix
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
 from quara.objects.effective_lindbladian import EffectiveLindbladian
-from quara.objects.effective_lindbladian import (
-    generate_effective_lindbladian_from_h,
-)
+from quara.objects.effective_lindbladian import generate_effective_lindbladian_from_h
 from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
@@ -134,6 +130,7 @@ def _test_generate_effective_lindbladian_from_h(
     # Assert
     expected = el_mat
     npt.assert_almost_equal(actual, expected, decimal=15)
+    assert el_from_h.is_physical() == True
 
 
 def _test_calc_h(
@@ -673,8 +670,7 @@ def test_calc_h_1qubit_identity_gate_case03(dims: List[int], c_sys: CompositeSys
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"),
-    [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_hamiltonian_vec_hamiltonian_mat_1qubit(gate_name):
     # Arrange
@@ -690,8 +686,7 @@ def test_hamiltonian_vec_hamiltonian_mat_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"),
-    [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_hamiltonian_mat_unitary_mat_1qubit(gate_name):
     # Arrange
@@ -707,8 +702,7 @@ def test_hamiltonian_mat_unitary_mat_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"),
-    [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_effective_lindbladian_mat_gate_mat_1qubit(gate_name):
     # Arrange
@@ -724,8 +718,7 @@ def test_effective_lindbladian_mat_gate_mat_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"),
-    [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_generate_effective_lindbladian_from_h_1qubit(gate_name):
     # Arrange
@@ -741,8 +734,7 @@ def test_generate_effective_lindbladian_from_h_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"),
-    [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_calc_h_1qubit(gate_name):
     # Arrange
