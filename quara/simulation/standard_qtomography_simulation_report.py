@@ -12,16 +12,15 @@ from xhtml2pdf.config.httpconfig import httpConfig
 from quara.data_analysis import (
     physicality_violation_check,
     data_analysis,
-    consistency_check,
 )
 from quara.data_analysis import computation_time as ctime
-from quara.data_analysis import simulation_check
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.protocol.qtomography.estimator import EstimationResult
-from quara.simulation.simulation import StandardQTomographySimulationSetting
-
+from quara.simulation import consistency_check
+from quara.simulation import standard_qtomography_simulation_check
+from quara.simulation.standard_qtomography_simulation import StandardQTomographySimulationSetting
 
 _temp_dir_path = ""
 
@@ -858,7 +857,7 @@ def generate_consistency_check_table(
             algo=s.algo,
             algo_option=s.algo_option,
         )
-        sim_check = simulation_check.StandardQTomographySimulationCheck(
+        sim_check = standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
             estimation_results=estimation_results_list[i], simulation_setting=s
         )
         result = sim_check.execute_consistency_check(show_detail=False, mode="both")
