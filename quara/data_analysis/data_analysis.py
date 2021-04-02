@@ -190,130 +190,6 @@ def convert_to_series(
 
 
 # StandardQst, StandardQTomographyEstimator
-def calc_estimate(
-    tester_povms: List[Povm],
-    true_object: State,
-    num_data: List[int],
-    iteration: int,
-    estimator=StandardQTomographyEstimator,
-    on_para_eq_constraint: bool = True,
-) -> List[StandardQTomographyEstimationResult]:
-    qst = StandardQst(tester_povms, on_para_eq_constraint=on_para_eq_constraint)
-
-    # generate empi dists and calc estimate
-    results = []
-    for ite in range(iteration):
-        empi_dists_seq = qst.generate_empi_dists_sequence(true_object, num_data)
-        result = estimator.calc_estimate_sequence(
-            qst, empi_dists_seq, is_computation_time_required=True
-        )
-
-        info = {
-            "iteration": ite + 1,
-            "data": empi_dists_seq,
-            "estimated_var_sequence": result.estimated_var_sequence,
-            "computation_times": result.computation_times,
-        }
-        print(info)
-        results.append(result)
-
-    return results
-
-
-# common
-def _estimate(
-    qtomography: "StandardQTomography",
-    true_object: QOperation,
-    num_data: List[int],
-    estimator=StandardQTomographyEstimator,
-    loss: ProbabilityBasedLossFunction = None,
-    loss_option: ProbabilityBasedLossFunctionOption = None,
-    algo: MinimizationAlgorithm = None,
-    algo_option: MinimizationAlgorithmOption = None,
-) -> StandardQTomographyEstimationResult:
-    empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
-
-    if isinstance(estimator, LossMinimizationEstimator):
-        result = estimator.calc_estimate_sequence(
-            qtomography,
-            empi_dists_seq,
-            loss=loss,
-            loss_option=loss_option,
-            algo=algo,
-            algo_option=algo_option,
-            is_computation_time_required=True,
-        )
-    else:
-        result = estimator.calc_estimate_sequence(
-            qtomography, empi_dists_seq, is_computation_time_required=True,
-        )
-    return result
-
-
-# common
-def execute_simulation(
-    qtomography: "StandardQTomography",
-    simulation_setting: StandardQTomographySimulationSetting,
-) -> List[StandardQTomographyEstimationResult]:
-    estimation_results = estimate(
-        qtomography=qtomography,
-        true_object=simulation_setting.true_object,
-        num_data=simulation_setting.num_data,
-        estimator=simulation_setting.estimator,
-        loss=simulation_setting.loss,
-        loss_option=simulation_setting.loss_option,
-        algo=simulation_setting.algo,
-        algo_option=simulation_setting.algo_option,
-        iteration=simulation_setting.n_rep,
-    )
-    return estimation_results
-
-
-# common
-def estimate(
-    qtomography: "StandardQTomography",
-    true_object: QOperation,
-    num_data: List[int],
-    estimator: StandardQTomographyEstimator,
-    loss: ProbabilityBasedLossFunction = None,
-    loss_option: ProbabilityBasedLossFunctionOption = None,
-    algo: MinimizationAlgorithm = None,
-    algo_option: MinimizationAlgorithmOption = None,
-    iteration: Optional[int] = None,
-) -> Union[
-    StandardQTomographyEstimationResult, List[StandardQTomographyEstimationResult],
-]:
-
-    if iteration is None:
-        result = _estimate(
-            qtomography,
-            true_object,
-            num_data,
-            estimator,
-            loss=loss,
-            loss_option=loss_option,
-            algo=algo,
-            algo_option=algo_option,
-        )
-        return result
-    else:
-        results = []
-        for _ in tqdm(range(iteration)):
-            result = _estimate(
-                qtomography,
-                true_object,
-                num_data,
-                estimator,
-                loss=loss,
-                loss_option=loss_option,
-                algo=algo,
-                algo_option=algo_option,
-            )
-            results.append(result)
-        return results
-
-
-# StandardQst, StandardQTomographyEstimator
 def calc_estimate_with_average_comp_time(
     tester_povms: List[Povm],
     true_object: State,
@@ -390,7 +266,11 @@ def make_mses_graph(
                 visible=True,
             )
         trace = go.Scatter(
-            x=num_data, y=mse, mode="lines+markers", name=names[i], error_y=error_y,
+            x=num_data,
+            y=mse,
+            mode="lines+markers",
+            name=names[i],
+            error_y=error_y,
         )
         data.append(trace)
     if additional_title_text:
@@ -508,7 +388,9 @@ def _make_data_for_graphs_mses_analytical(
         else:
             estimator_name = estimator_list[i].__class__.__name__
         qtomo_type = QTomoType(
-            qtomo.__class__.__name__, qtomo.on_para_eq_constraint, estimator_name,
+            qtomo.__class__.__name__,
+            qtomo.on_para_eq_constraint,
+            estimator_name,
         )
         qtomo_type_dict[qtomo_type] = qtomo
 
