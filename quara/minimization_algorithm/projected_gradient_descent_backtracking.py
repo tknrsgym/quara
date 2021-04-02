@@ -4,8 +4,8 @@ from typing import Callable, List
 import numpy as np
 
 
-from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
-from quara.data_analysis.minimization_algorithm import (
+from quara.loss_function.loss_function import LossFunction, LossFunctionOption
+from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
     MinimizationResult,

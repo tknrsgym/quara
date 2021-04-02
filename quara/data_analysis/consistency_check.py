@@ -1,8 +1,9 @@
 from typing import List
-from quara.data_analysis import data_analysis, simulation
+from quara.data_analysis import data_analysis
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
+from quara.simulation import simulation
 
 
 def calc_mse_of_true_estimated(

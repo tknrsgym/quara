@@ -38,7 +38,7 @@ class ElementalSystem:
         self._dim: int = basis.dim
         self._basis: MatrixBasis = basis
         self._is_hermitian = self._basis.is_hermitian()
-        self._is_orthonormal_hermitian_0thpropI = (
+        self._is_orthonormal_hermitian_0thprop_identity = (
             self._basis.is_normal()
             and self._basis.is_orthogonal()
             and self._is_hermitian
@@ -90,15 +90,15 @@ class ElementalSystem:
         return self._basis
 
     @property
-    def is_orthonormal_hermitian_0thpropI(self) -> bool:  # read only
-        """Property to get whether basis is orthonormal, hermitian and 0th prop I.
+    def is_orthonormal_hermitian_0thprop_identity(self) -> bool:  # read only
+        """Property to get whether basis is orthonormal, hermitian and 0th prop identity.
 
         Returns
         -------
         bool
             whether basis is orthonormal, hermitian and 0th prop I.
         """
-        return self._is_orthonormal_hermitian_0thpropI
+        return self._is_orthonormal_hermitian_0thprop_identity
 
     @property
     def is_hermitian(self) -> bool:  # read only

@@ -6,7 +6,7 @@ from quara.objects.qoperation_typical import generate_qoperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate, get_depolarizing_channel
-from quara.objects.operators import composite
+from quara.objects.operators import compose_qoperations
 
 
 class QOperationGenerationSetting:
@@ -89,20 +89,20 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
         dp = get_depolarizing_channel(
             p=self.error_rate, c_sys=self.qoperation_base.composite_system
         )
-        new_object = composite(dp, self.qoperation_base)
+        new_object = compose_qoperations(dp, self.qoperation_base)
         return new_object
 
     def generate_povm(self):
         dp = get_depolarizing_channel(
             p=self.error_rate, c_sys=self.qoperation_base.composite_system
         )
-        new_object = composite(self.qoperation_base, dp)
+        new_object = compose_qoperations(self.qoperation_base, dp)
         return new_object
 
     def generate_gate(self):
         dp = get_depolarizing_channel(
             p=self.error_rate, c_sys=self.qoperation_base.composite_system
         )
-        new_object = composite(dp, self.qoperation_base)
+        new_object = compose_qoperations(dp, self.qoperation_base)
         return new_object
 

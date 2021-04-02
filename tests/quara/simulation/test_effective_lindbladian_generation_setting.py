@@ -5,7 +5,7 @@ import numpy.testing as npt
 import pytest
 
 
-from quara.data_analysis.effective_lindbladian_generation_setting import (
+from quara.simulation.effective_lindbladian_generation_setting import (
     EffectiveLindbladianGenerationSetting,
 )
 from quara.objects import matrix_basis

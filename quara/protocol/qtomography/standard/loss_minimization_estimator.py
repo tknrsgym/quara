@@ -3,11 +3,11 @@ from typing import List, Tuple
 
 import numpy as np
 
-from quara.data_analysis.probability_based_loss_function import (
+from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )
-from quara.data_analysis.minimization_algorithm import (
+from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
 )
