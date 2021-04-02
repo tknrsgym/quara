@@ -3,7 +3,6 @@ from quara.data_analysis import data_analysis
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
-from quara.simulation import simulation
 
 
 def calc_mse_of_true_estimated(
@@ -43,7 +42,7 @@ def calc_mse_of_true_estimated(
 
 
 def execute_consistency_check(
-    simulation_setting: "StandardQTomographySimulation",
+    simulation_setting: "StandardQTomographySimulationSetting",
     estimation_results: List["EstimationResult"],
     eps=None,
     show_detail: bool = True,

@@ -12,7 +12,7 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
 from quara.objects import povm
 from quara.objects.state import State
-from quara.data_analysis import consistency_check
+from quara.simulation import consistency_check
 
 
 def test_calc_mse_of_true_estimated():
