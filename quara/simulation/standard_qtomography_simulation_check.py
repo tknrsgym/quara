@@ -18,8 +18,10 @@ from quara.protocol.qtomography.standard.projected_linear_estimator import (
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
-from quara.simulation import simulation
-from quara.simulation.simulation import StandardQTomographySimulationSetting
+from quara.simulation import standard_qtomography_simulation
+from quara.simulation.standard_qtomography_simulation import (
+    StandardQTomographySimulationSetting,
+)
 
 
 class StandardQTomographySimulationCheck:
