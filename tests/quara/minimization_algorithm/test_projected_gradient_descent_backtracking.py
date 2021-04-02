@@ -2,7 +2,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.projected_gradient_descent_backtracking import (
+from quara.minimization_algorithm.projected_gradient_descent_backtracking import (
     ProjectedGradientDescentBacktracking,
     ProjectedGradientDescentBacktrackingOption,
 )

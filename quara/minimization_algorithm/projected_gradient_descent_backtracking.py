@@ -5,7 +5,7 @@ import numpy as np
 
 
 from quara.loss_function.loss_function import LossFunction, LossFunctionOption
-from quara.data_analysis.minimization_algorithm import (
+from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
     MinimizationResult,
