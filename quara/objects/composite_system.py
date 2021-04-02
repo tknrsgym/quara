@@ -56,9 +56,10 @@ class CompositeSystem:
         self._elemental_systems: Tuple[ElementalSystem, ...] = tuple(sored_e_syses)
 
         is_orthonormal_hermitian_0thpropIs = [
-            e_sys.is_orthonormal_hermitian_0thpropI for e_sys in self._elemental_systems
+            e_sys.is_orthonormal_hermitian_0thprop_identity
+            for e_sys in self._elemental_systems
         ]
-        self._is_orthonormal_hermitian_0thpropI = all(
+        self._is_orthonormal_hermitian_0thprop_identity = all(
             is_orthonormal_hermitian_0thpropIs
         )
 
@@ -181,15 +182,15 @@ class CompositeSystem:
         return self._elemental_systems
 
     @property
-    def is_orthonormal_hermitian_0thpropI(self) -> bool:
-        """returns whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop I.
+    def is_orthonormal_hermitian_0thprop_identity(self) -> bool:
+        """returns whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop identity.
 
         Returns
         -------
         bool
-            whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop I.
+            whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop identity.
         """
-        return self._is_orthonormal_hermitian_0thpropI
+        return self._is_orthonormal_hermitian_0thprop_identity
 
     @property
     def is_basis_hermitian(self) -> bool:
