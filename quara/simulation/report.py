@@ -14,14 +14,13 @@ from quara.data_analysis import (
     data_analysis,
     consistency_check,
 )
-from quara.data_analysis.simulation import StandardQTomographySimulationSetting
-from quara.protocol.qtomography.estimator import EstimationResult
 from quara.data_analysis import computation_time as ctime
-
+from quara.data_analysis import simulation_check
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
-from quara.data_analysis import simulation_check
+from quara.protocol.qtomography.estimator import EstimationResult
+from quara.simulation.simulation import StandardQTomographySimulationSetting
 
 
 _temp_dir_path = ""

@@ -31,8 +31,8 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
+from quara.simulation.simulation import StandardQTomographySimulationSetting
 from quara.utils import matrix_util
-from quara.data_analysis.simulation import StandardQTomographySimulationSetting
 
 
 def calc_mse_general_norm(

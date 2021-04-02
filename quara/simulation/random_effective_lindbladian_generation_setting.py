@@ -6,9 +6,6 @@ from typing import Tuple, Union
 import numpy as np
 from scipy.stats import unitary_group
 
-from quara.data_analysis.effective_lindbladian_generation_setting import (
-    EffectiveLindbladianGenerationSetting,
-)
 from quara.objects.effective_lindbladian import (
     EffectiveLindbladian,
     _calc_h_part_from_h_mat,
@@ -22,6 +19,9 @@ from quara.objects.operators import composite
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
+from quara.simulation.effective_lindbladian_generation_setting import (
+    EffectiveLindbladianGenerationSetting,
+)
 
 
 class RandomEffectiveLindbladianGenerationSetting(
