@@ -11,7 +11,7 @@ import plotly.express as px
 import numpy as np
 from tqdm import tqdm
 
-from quara.data_analysis.minimization_algorithm import (
+from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
 )
