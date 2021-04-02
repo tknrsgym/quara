@@ -1,0 +1,1 @@
+"""minimization algorithm package"""
