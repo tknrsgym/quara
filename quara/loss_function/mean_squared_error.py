@@ -2,11 +2,11 @@ from typing import List
 from quara.data_analysis import data_analysis
 from quara.utils import matrix_util
 
+from quara.loss_function.weighted_relative_entropy import WeightedRelativeEntropy
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.protocol.qtomography.standard.projected_linear_estimator import (
     ProjectedLinearEstimator,
 )
-from quara.data_analysis.weighted_relative_entropy import WeightedRelativeEntropy
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
