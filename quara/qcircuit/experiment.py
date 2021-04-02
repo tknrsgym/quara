@@ -391,7 +391,7 @@ class Experiment:
                 raise ValueError("{}s[{}] is None.".format(k, i))
             targets.appendleft(target)
 
-        prob_dist = op.composite(*targets)
+        prob_dist = op.compose_qoperations(*targets)
         return prob_dist
 
     def calc_prob_dists(self) -> List[np.array]:
