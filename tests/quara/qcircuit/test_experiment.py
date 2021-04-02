@@ -24,7 +24,7 @@ from quara.qcircuit.experiment import (
     QuaraScheduleItemError,
     QuaraScheduleOrderError,
 )
-from quara.objects.operators import composite, tensor_product
+from quara.objects.operators import compose_qoperations, tensor_product
 
 
 class TestExperiment:
@@ -92,7 +92,7 @@ class TestExperiment:
         state1 = get_z0_1q(c_sys1)
         state2 = get_z0_1q(c_sys2)
         h1 = get_h(c_sys1)
-        state1 = composite(h1, state1)
+        state1 = compose_qoperations(h1, state1)
         state12 = tensor_product(state1, state2)
 
         state_list = [state12]
@@ -131,7 +131,7 @@ class TestExperiment:
         state1 = get_z0_1q(c_sys1)
         state2 = get_z0_1q(c_sys2)
         h = get_h(c_sys2)
-        state2 = composite(h, state2)
+        state2 = compose_qoperations(h, state2)
         state12 = tensor_product(state1, state2)
 
         # POVM
