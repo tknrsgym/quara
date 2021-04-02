@@ -11,13 +11,13 @@ import plotly.express as px
 import numpy as np
 from tqdm import tqdm
 
-from quara.data_analysis.probability_based_loss_function import (
-    ProbabilityBasedLossFunction,
-    ProbabilityBasedLossFunctionOption,
-)
 from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
+)
+from quara.loss_function.probability_based_loss_function import (
+    ProbabilityBasedLossFunction,
+    ProbabilityBasedLossFunctionOption,
 )
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate

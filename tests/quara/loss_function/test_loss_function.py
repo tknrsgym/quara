@@ -4,7 +4,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
+from quara.loss_function.loss_function import LossFunction, LossFunctionOption
 
 
 class TestLossFunctionOption:

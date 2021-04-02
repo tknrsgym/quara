@@ -9,7 +9,7 @@ from quara.data_analysis.projected_gradient_descent_backtracking import (
     ProjectedGradientDescentBacktracking,
     ProjectedGradientDescentBacktrackingOption,
 )
-from quara.data_analysis.weighted_probability_based_squared_error import (
+from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
 )

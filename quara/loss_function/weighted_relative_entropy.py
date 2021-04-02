@@ -3,7 +3,7 @@ from typing import Callable, List, Tuple, Union
 
 import numpy as np
 
-from quara.data_analysis.probability_based_loss_function import (
+from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )

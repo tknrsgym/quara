@@ -6,7 +6,7 @@ from quara.data_analysis.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
 )
-from quara.data_analysis.simple_quadratic_loss_function import (
+from quara.loss_function.simple_quadratic_loss_function import (
     SimpleQuadraticLossFunction,
     SimpleQuadraticLossFunctionOption,
 )
