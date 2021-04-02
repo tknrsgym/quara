@@ -31,7 +31,9 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
-from quara.simulation.simulation import StandardQTomographySimulationSetting
+from quara.simulation.standard_qtomography_simulation import (
+    StandardQTomographySimulationSetting,
+)
 from quara.utils import matrix_util
 
 
