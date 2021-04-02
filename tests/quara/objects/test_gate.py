@@ -34,7 +34,7 @@ from quara.objects.gate import (
     get_x_rotation,
     get_amplitutde_damping_channel,
 )
-from quara.objects.operators import composite, tensor_product
+from quara.objects.operators import compose_qoperations, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
 from quara.settings import Settings
 
@@ -1441,25 +1441,25 @@ def test_get_cnot():
     gate = get_cnot(c_sys01, e_sys0)
 
     # |00> -> |00>
-    state = composite(gate, z0_z0)
+    state = compose_qoperations(gate, z0_z0)
     npt.assert_almost_equal(
         state.to_density_matrix(), z0_z0.to_density_matrix(), decimal=15
     )
 
     # |01> -> |01>
-    state = composite(gate, z0_z1)
+    state = compose_qoperations(gate, z0_z1)
     npt.assert_almost_equal(
         state.to_density_matrix(), z0_z1.to_density_matrix(), decimal=15
     )
 
     # |10> -> |11>
-    state = composite(gate, z1_z0)
+    state = compose_qoperations(gate, z1_z0)
     npt.assert_almost_equal(
         state.to_density_matrix(), z1_z1.to_density_matrix(), decimal=15
     )
 
     # |11> -> |10>
-    state = composite(gate, z1_z1)
+    state = compose_qoperations(gate, z1_z1)
     npt.assert_almost_equal(
         state.to_density_matrix(), z1_z0.to_density_matrix(), decimal=15
     )
@@ -1468,25 +1468,25 @@ def test_get_cnot():
     gate = get_cnot(c_sys01, e_sys1)
 
     # |00> -> |00>
-    state = composite(gate, z0_z0)
+    state = compose_qoperations(gate, z0_z0)
     npt.assert_almost_equal(
         state.to_density_matrix(), z0_z0.to_density_matrix(), decimal=15
     )
 
     # |01> -> |11>
-    state = composite(gate, z0_z1)
+    state = compose_qoperations(gate, z0_z1)
     npt.assert_almost_equal(
         state.to_density_matrix(), z1_z1.to_density_matrix(), decimal=15
     )
 
     # |10> -> |10>
-    state = composite(gate, z1_z0)
+    state = compose_qoperations(gate, z1_z0)
     npt.assert_almost_equal(
         state.to_density_matrix(), z1_z0.to_density_matrix(), decimal=15
     )
 
     # |11> -> |01>
-    state = composite(gate, z1_z1)
+    state = compose_qoperations(gate, z1_z1)
     npt.assert_almost_equal(
         state.to_density_matrix(), z0_z1.to_density_matrix(), decimal=15
     )
@@ -1526,19 +1526,19 @@ def test_get_cz():
     gate = get_cz(c_sys01)
 
     # |i,i> -> |i,i>
-    state = composite(gate, y0_y0)
+    state = compose_qoperations(gate, y0_y0)
     assert np.all(state.to_density_matrix() == y0_y0.to_density_matrix())
 
     # |i,-i> -> |i,-i>
-    state = composite(gate, y0_y1)
+    state = compose_qoperations(gate, y0_y1)
     assert np.all(state.to_density_matrix() == y0_y1.to_density_matrix())
 
     # |-i,i> -> |-i,-i>
-    state = composite(gate, y1_y0)
+    state = compose_qoperations(gate, y1_y0)
     assert np.all(state.to_density_matrix() == y1_y1.to_density_matrix())
 
     # |-i,-i> -> |-i,i>
-    state = composite(gate, y1_y1)
+    state = compose_qoperations(gate, y1_y1)
     assert np.all(state.to_density_matrix() == y1_y0.to_density_matrix())
 
     # Test that not 2qubits ElementalSystem
@@ -1576,19 +1576,19 @@ def test_get_swap():
     gate = get_swap(c_sys01)
 
     # |00> -> |00>
-    state = composite(gate, z0_z0)
+    state = compose_qoperations(gate, z0_z0)
     assert np.all(state.to_density_matrix() == z0_z0.to_density_matrix())
 
     # |01> -> |10>
-    state = composite(gate, z0_z1)
+    state = compose_qoperations(gate, z0_z1)
     assert np.all(state.to_density_matrix() == z1_z0.to_density_matrix())
 
     # |10> -> |01>
-    state = composite(gate, z1_z0)
+    state = compose_qoperations(gate, z1_z0)
     assert np.all(state.to_density_matrix() == z0_z1.to_density_matrix())
 
     # |11> -> |11>
-    state = composite(gate, z1_z1)
+    state = compose_qoperations(gate, z1_z1)
     assert np.all(state.to_density_matrix() == z1_z1.to_density_matrix())
 
     # Test that not 2qubits ElementalSystem

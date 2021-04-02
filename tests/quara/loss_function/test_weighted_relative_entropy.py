@@ -2,7 +2,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.weighted_relative_entropy import (
+from quara.loss_function.weighted_relative_entropy import (
     WeightedRelativeEntropy,
     WeightedRelativeEntropyOption,
 )

@@ -11,13 +11,13 @@ import plotly.express as px
 import numpy as np
 from tqdm import tqdm
 
-from quara.data_analysis.probability_based_loss_function import (
-    ProbabilityBasedLossFunction,
-    ProbabilityBasedLossFunctionOption,
-)
-from quara.data_analysis.minimization_algorithm import (
+from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
+)
+from quara.loss_function.probability_based_loss_function import (
+    ProbabilityBasedLossFunction,
+    ProbabilityBasedLossFunctionOption,
 )
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
@@ -31,8 +31,8 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
+from quara.simulation.simulation import StandardQTomographySimulationSetting
 from quara.utils import matrix_util
-from quara.data_analysis.simulation import StandardQTomographySimulationSetting
 
 
 def calc_mse_general_norm(

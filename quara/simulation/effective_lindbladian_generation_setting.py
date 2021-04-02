@@ -1,9 +1,9 @@
 from typing import Union, Tuple
 
-from quara.data_analysis.generation_setting import QOperationGenerationSetting
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.qoperation import QOperation
 from quara.objects.qoperation_typical import generate_effective_lindbladian_object
+from quara.simulation.generation_setting import QOperationGenerationSetting
 
 
 class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):

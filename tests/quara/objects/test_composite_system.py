@@ -136,21 +136,25 @@ class TestCompositeSystem:
         assert actual[0] is e1
         assert actual[1] is e2
 
-    def test_is_orthonormal_hermitian_0thpropI(self):
+    def test_is_orthonormal_hermitian_0thprop_identity(self):
         e1 = ElementalSystem(1, get_normalized_pauli_basis())
         e2 = ElementalSystem(2, get_normalized_pauli_basis())
         source = [e1, e2]
-        assert CompositeSystem(source).is_orthonormal_hermitian_0thpropI == True
+        assert CompositeSystem(source).is_orthonormal_hermitian_0thprop_identity == True
 
         e1 = ElementalSystem(1, get_comp_basis())
         e2 = ElementalSystem(2, get_normalized_pauli_basis())
         source = [e1, e2]
-        assert CompositeSystem(source).is_orthonormal_hermitian_0thpropI == False
+        assert (
+            CompositeSystem(source).is_orthonormal_hermitian_0thprop_identity == False
+        )
 
         e1 = ElementalSystem(1, get_normalized_pauli_basis())
         e2 = ElementalSystem(2, get_comp_basis())
         source = [e1, e2]
-        assert CompositeSystem(source).is_orthonormal_hermitian_0thpropI == False
+        assert (
+            CompositeSystem(source).is_orthonormal_hermitian_0thprop_identity == False
+        )
 
     def test_len(self):
         e1 = ElementalSystem(1, get_pauli_basis())
@@ -239,6 +243,6 @@ class TestCompositeSystemImmutable:
         assert c_sys[1] is e2
 
         with pytest.raises(AttributeError):
-            # AttributeError: can't set 'is_orthonormal_hermitian_0thpropI'
-            c_sys.is_orthonormal_hermitian_0thpropI = True
-        assert c_sys.is_orthonormal_hermitian_0thpropI == False
+            # AttributeError: can't set 'is_orthonormal_hermitian_0thprop_identity'
+            c_sys.is_orthonormal_hermitian_0thprop_identity = True
+        assert c_sys.is_orthonormal_hermitian_0thprop_identity == False

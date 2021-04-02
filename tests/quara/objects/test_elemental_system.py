@@ -94,16 +94,16 @@ class TestElementalSystem:
         with pytest.raises(AttributeError):
             e1.basis.basis = 1
 
-    def test_access_is_orthonormal_hermitian_0thpropI(self):
+    def test_access_is_orthonormal_hermitian_0thprop_identity(self):
         # case: True
         m_basis = get_normalized_pauli_basis()
         e1 = esys.ElementalSystem(1, m_basis)
-        assert e1.is_orthonormal_hermitian_0thpropI == True
+        assert e1.is_orthonormal_hermitian_0thprop_identity == True
 
         # case: is_normal is False
         m_basis = get_pauli_basis()
         e1 = esys.ElementalSystem(1, m_basis)
-        assert e1.is_orthonormal_hermitian_0thpropI == False
+        assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
         # case: is_orthogonal is False
         basis = [
@@ -114,7 +114,7 @@ class TestElementalSystem:
         ]
         m_basis = MatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
-        assert e1.is_orthonormal_hermitian_0thpropI == False
+        assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
         # case: is_hermitian is False
         basis = [
@@ -125,7 +125,7 @@ class TestElementalSystem:
         ]
         m_basis = MatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
-        assert e1.is_orthonormal_hermitian_0thpropI == False
+        assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
         # case: is_0thpropI is False
         basis = [
@@ -136,8 +136,8 @@ class TestElementalSystem:
         ]
         m_basis = MatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
-        assert e1.is_orthonormal_hermitian_0thpropI == False
+        assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
-        # Test that "is_orthonormal_hermitian_0thpropI" cannot be updated
+        # Test that "is_orthonormal_hermitian_0thprop_identity" cannot be updated
         with pytest.raises(AttributeError):
-            e1.is_orthonormal_hermitian_0thpropI = True
+            e1.is_orthonormal_hermitian_0thprop_identity = True
