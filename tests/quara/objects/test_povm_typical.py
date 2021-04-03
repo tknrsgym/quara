@@ -182,7 +182,8 @@ def get_z_tensors(num_tensor: int):
 
 @pytest.mark.threequbit
 @pytest.mark.parametrize(
-    ("povm_name", "expected_vecs"), [("z_z_z", get_z_tensors(3))],
+    ("povm_name", "expected_vecs"),
+    [("z_z_z", get_z_tensors(3))],
 )
 def test_generate_povm_from_name_3qubit(povm_name, expected_vecs):
     e_sys0 = ElementalSystem(0, get_normalized_pauli_basis())
@@ -287,24 +288,7 @@ def test_generate_povm_from_name_3qubit(povm_name, expected_vecs):
             ],
         ),
         (
-            "01z3",
-            [
-                np.array(
-                    [np.sqrt(1 / 3), 0, 0, np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
-                    dtype=np.float64,
-                ),
-                np.array(
-                    [np.sqrt(1 / 3), 0, 0, -np.sqrt(1 / 2), 0, 0, 0, 0, np.sqrt(1 / 6)],
-                    dtype=np.float64,
-                ),
-                np.array(
-                    [np.sqrt(1 / 3), 0, 0, 0, 0, 0, 0, 0, -2 * np.sqrt(1 / 6)],
-                    dtype=np.float64,
-                ),
-            ],
-        ),
-        (
-            "21y3",
+            "12y3",
             [
                 np.array(
                     [
@@ -419,7 +403,7 @@ def test_generate_povm_from_name_2qutrit_z2_z2():
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
-def test_generate_povm_from_name_2qutrit_01x3_21y3():
+def test_generate_povm_from_name_2qutrit_01x3_12y3():
     # Arrange
     e_sys0 = ElementalSystem(0, get_normalized_gell_mann_basis())
     c_sys0 = CompositeSystem([e_sys0])
@@ -428,7 +412,7 @@ def test_generate_povm_from_name_2qutrit_01x3_21y3():
     c_sys = CompositeSystem([e_sys0, e_sys1])
 
     # Act
-    actual = povm_typical.generate_povm_from_name("01x3_21y3", c_sys=c_sys)
+    actual = povm_typical.generate_povm_from_name("01x3_12y3", c_sys=c_sys)
 
     # Assert
     vecs_01x3 = [
@@ -445,7 +429,7 @@ def test_generate_povm_from_name_2qutrit_01x3_21y3():
             dtype=np.float64,
         ),
     ]
-    vecs_21y3 = [
+    vecs_12y3 = [
         np.array(
             [
                 np.sqrt(1 / 3),
@@ -480,7 +464,7 @@ def test_generate_povm_from_name_2qutrit_01x3_21y3():
         ),
     ]
     povm0 = Povm(c_sys0, vecs_01x3)
-    povm1 = Povm(c_sys1, vecs_21y3)
+    povm1 = Povm(c_sys1, vecs_12y3)
     expected = tensor_product(povm0, povm1)
 
     for actual_vec, expected_vec in zip(actual.vecs, expected.vecs):
