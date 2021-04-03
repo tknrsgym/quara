@@ -198,7 +198,7 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
         - 1 qubit: "x0", "x1", "y0", "y1", "z0", "a"
         - 2 qubit: "bell_psi_plus", "bell_psi_minus", "bell_phi_minus", "bell_phi_plus", or tensor product of 1 qubit ("z0_z0", "z0_z1", etc).
         - 3 qubit: "ghz", "werner", or tensor product of 1 qubit ("z0_z0_z0", "z0_x0_y0", etc).
-        - 1 qutrit: Specify a combination of level ("01" | "12" | "02"), axis ("x" | "y" | "z"), and d ("0", "1"). 
+        - 1 qutrit: Specify a combination of level ("01" | "12" | "02"), axis ("x" | "y" | "z"), and d ("0", "1").
         For example, "01x0" means level is "01", axis is "x", and d is "0".
         Use get_state_names_1qutrit() to get a list of available names.
         - 2 qutrit: tensor product of 1 qutrit ("01x0_01y0", "01x0_01x1", etc)
@@ -260,9 +260,7 @@ def get_state_x0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec_0 = np.array([1, 0])
-    vec_1 = np.array([0, 1])
-    vec = (1 / np.sqrt(2)) * (vec_0 + vec_1)
+    vec = (1 / np.sqrt(2)) * np.array([1, 1], dtype=np.complex128)
     return vec
 
 
@@ -275,9 +273,7 @@ def get_state_x1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec_0 = np.array([1, 0])
-    vec_1 = np.array([0, 1])
-    vec = (1 / np.sqrt(2)) * (vec_0 - vec_1)
+    vec = (1 / np.sqrt(2)) * np.array([1, -1], dtype=np.complex128)
     return vec
 
 
@@ -290,9 +286,7 @@ def get_state_y0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec_0 = np.array([1, 0])
-    vec_1 = np.array([0, 1])
-    vec = (1 / np.sqrt(2)) * (vec_0 + 1j * vec_1)
+    vec = (1 / np.sqrt(2)) * np.array([1, 1j], dtype=np.complex128)
     return vec
 
 
@@ -305,9 +299,7 @@ def get_state_y1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec_0 = np.array([1, 0])
-    vec_1 = np.array([0, 1])
-    vec = (1 / np.sqrt(2)) * (vec_0 - 1j * vec_1)
+    vec = (1 / np.sqrt(2)) * np.array([1, -1j], dtype=np.complex128)
     return vec
 
 
@@ -319,7 +311,7 @@ def get_state_z0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 0])
+    vec = np.array([1, 0], dtype=np.complex128)
     return vec
 
 
@@ -331,7 +323,7 @@ def get_state_z1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 1])
+    vec = np.array([0, 1], dtype=np.complex128)
     return vec
 
 
@@ -344,11 +336,8 @@ def get_state_a_pure_state_vector() -> np.array:
     np.array
         the pure state vector for A state.
     """
-    state_vec_0 = np.array([1, 0])
-    state_vec_1 = np.array([0, 1])
-    pure_state_vec = state_vec_0 + np.exp(1j * np.pi / 4) * state_vec_1
-    pure_state_vec = (1 / np.sqrt(2)) * pure_state_vec
-    return pure_state_vec
+    vec = (1 / np.sqrt(2)) * np.array([1, np.exp(1j * np.pi / 4)], dtype=np.complex128)
+    return vec
 
 
 def get_state_bell_pure_state_vector(name: str) -> np.array:
@@ -373,31 +362,19 @@ def get_state_bell_pure_state_vector(name: str) -> np.array:
     ValueError
         'name' is out of range.
     """
-    state_vec_0 = np.array([1, 0])
-    state_vec_1 = np.array([0, 1])
-
-    name_items = name.split("_")
-    error_message = f"'name' is out of range."
-
-    if name_items[1] == "psi":
-        vecs_0 = [state_vec_0, state_vec_1]
-        vecs_1 = [state_vec_1, state_vec_0]
-    elif name_items[1] == "phi":
-        vecs_0 = [state_vec_0, state_vec_0]
-        vecs_1 = [state_vec_1, state_vec_1]
+    if name == "bell_phi_plus":
+        vec = (1 / np.sqrt(2)) * np.array([1, 0, 0, 1], dtype=np.complex128)
+    elif name == "bell_phi_minus":
+        vec = (1 / np.sqrt(2)) * np.array([1, 0, 0, -1], dtype=np.complex128)
+    elif name == "bell_psi_plus":
+        vec = (1 / np.sqrt(2)) * np.array([0, 1, 1, 0], dtype=np.complex128)
+    elif name == "bell_psi_minus":
+        vec = (1 / np.sqrt(2)) * np.array([0, 1, -1, 0], dtype=np.complex128)
     else:
+        error_message = f"'name' is out of range."
         raise ValueError(error_message)
 
-    pure_state_vec = tensor_product_for_vecs(vecs_0)
-    if name_items[2] == "plus":
-        pure_state_vec += tensor_product_for_vecs(vecs_1)
-    elif name_items[2] == "minus":
-        pure_state_vec -= tensor_product_for_vecs(vecs_1)
-    else:
-        raise ValueError(error_message)
-    pure_state_vec = 1 / np.sqrt(2) * pure_state_vec
-
-    return pure_state_vec
+    return vec
 
 
 def get_state_ghz_pure_state_vector() -> np.array:
@@ -409,8 +386,8 @@ def get_state_ghz_pure_state_vector() -> np.array:
     np.array
         the pure state vector for GHZ state.
     """
-    state_vec_0 = np.array([1, 0])  # |0>
-    state_vec_1 = np.array([0, 1])  # |1>
+    state_vec_0 = np.array([1, 0], dtype=np.complex128)  # |0>
+    state_vec_1 = np.array([0, 1], dtype=np.complex128)  # |1>
 
     # |0>|0>|0>
     vec_0 = tensor_product_for_vecs([state_vec_0] * 3)
@@ -429,8 +406,8 @@ def get_state_werner_pure_state_vector() -> np.array:
     np.array
         the pure state vector for Werner state.
     """
-    state_vec_0 = np.array([1, 0])  # |0>
-    state_vec_1 = np.array([0, 1])  # |1>
+    state_vec_0 = np.array([1, 0], dtype=np.complex128)  # |0>
+    state_vec_1 = np.array([0, 1], dtype=np.complex128)  # |1>
 
     # |0>|0>|1>
     vec_0 = tensor_product_for_vecs([state_vec_0, state_vec_0, state_vec_1])
@@ -660,7 +637,7 @@ def get_state_01x0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 1, 0], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, 1, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -672,7 +649,7 @@ def get_state_01x1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, -1, 0], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, -1, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -684,7 +661,7 @@ def get_state_01y0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 1j, 0], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, 1j, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -696,7 +673,7 @@ def get_state_01y1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, -1j, 0], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, -1j, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -708,7 +685,7 @@ def get_state_01z0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 0, 0], dtype=np.float64)
+    vec = np.array([1, 0, 0], dtype=np.complex128)
     return vec
 
 
@@ -720,7 +697,7 @@ def get_state_01z1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 1, 0], dtype=np.float64)
+    vec = np.array([0, 1, 0], dtype=np.complex128)
     return vec
 
 
@@ -735,7 +712,7 @@ def get_state_12x0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 1, 1], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([0, 1, 1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -747,7 +724,7 @@ def get_state_12x1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 1, -1], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([0, 1, -1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -783,7 +760,7 @@ def get_state_12z0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 1, 0], dtype=np.float64)
+    vec = np.array([0, 1, 0], dtype=np.complex128)
     return vec
 
 
@@ -795,7 +772,7 @@ def get_state_12z1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 0, 1], dtype=np.float64)
+    vec = np.array([0, 0, 1], dtype=np.complex128)
     return vec
 
 
@@ -810,7 +787,7 @@ def get_state_02x0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 0, 1], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, 0, 1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -822,7 +799,7 @@ def get_state_02x1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 0, -1], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, 0, -1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -834,7 +811,7 @@ def get_state_02y0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 0, 1j], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, 0, 1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -846,7 +823,7 @@ def get_state_02y1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 0, -1j], dtype=np.float64) / np.sqrt(2)
+    vec = np.array([1, 0, -1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
@@ -858,7 +835,7 @@ def get_state_02z0_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([1, 0, 0], dtype=np.float64)
+    vec = np.array([1, 0, 0], dtype=np.complex128)
     return vec
 
 
@@ -870,6 +847,5 @@ def get_state_02z1_pure_state_vector() -> np.array:
     np.array
         the pure state vector.
     """
-    vec = np.array([0, 0, 1], dtype=np.float64)
+    vec = np.array([0, 0, 1], dtype=np.complex128)
     return vec
-
