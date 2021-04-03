@@ -128,6 +128,37 @@ class CompositeSystem:
         """
         return self.basis()[0].shape[0]
 
+    @property
+    def num_e_sys(self) -> int:
+        """returns the number of ElementalSystem.
+
+        the number of ElementalSystem.
+
+        Returns
+        -------
+        int
+            num of ElementalSystem.
+
+        """
+        return len(self._elemental_systems)
+
+    def dim_e_sys(self, i: int) -> int:
+        """returns the dimension of the i-th ElementalSystem.
+
+        the dim of the i-th ElementalSystem.
+
+        Parameters
+        ----------
+        i: int
+            the id of an ElementalSystem
+
+        Returns
+        -------
+        int
+            the dim of the i-th ElementalSystem
+        """
+        return self._elemental_systems[i].dim
+
     def get_basis(self, index: Union[int, Tuple]) -> MatrixBasis:
         """returns basis specified by index.
 
