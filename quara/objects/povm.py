@@ -131,12 +131,12 @@ class Povm(QOperation):
         return self._dim
 
     @property
-    def num_outcomes(self) -> List[int]:
+    def num_outcomes(self) -> int:
         """Property to get the number of POVM elements.
 
         Returns
         -------
-        List[int]
+        int
             the number of POVM elements.
         """
         return self._num_outcomes
@@ -596,7 +596,14 @@ def convert_var_to_povm(
 
         measurement_n = var.shape[0] // (dim ** 2) + 1
         # [√d, 0, 0...]
-        total_vecs = np.hstack([np.array(np.sqrt(dim)), np.zeros(dim ** 2 - 1,)])
+        total_vecs = np.hstack(
+            [
+                np.array(np.sqrt(dim)),
+                np.zeros(
+                    dim ** 2 - 1,
+                ),
+            ]
+        )
         pre_vecs = vecs.reshape(measurement_n - 1, dim ** 2)
         last_vec = total_vecs - pre_vecs.sum(axis=0)
         vecs = np.append(pre_vecs, last_vec)
