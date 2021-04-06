@@ -186,3 +186,19 @@ class StandardQpt(StandardQTomography):
         empty_estimation_obj = self._set_qoperations.gates[0]
         return empty_estimation_obj.copy()
 
+    def num_outcomes(self, schedule_index: int) -> int:
+        """returns the number of outcomes of probability distribution of a schedule index.
+
+        Parameters
+         ----------
+         schedule_index: int
+
+         Returns
+         -------
+         int
+             the number of outcomes
+        """
+        assert schedule_index >= 0
+        assert schedule_index < self.num_schedules
+        povm_index = self._experiment.schedules[schedule_index][2][1]
+        return len(self._experiment._povms[povm_index].vecs)
