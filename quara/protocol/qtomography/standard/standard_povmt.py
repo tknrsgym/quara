@@ -261,3 +261,19 @@ class StandardPovmt(StandardQTomography):
         """
         empty_estimation_obj = self._set_qoperations.povms[0]
         return empty_estimation_obj.copy()
+
+    def num_outcomes(self, schedule_index: int) -> int:
+        """returns the number of outcomes of probability distribution of a schedule index.
+
+        Parameters
+        ----------
+        schedule_index: int
+
+        Returns
+        -------
+        int
+            the number of outcomes
+        """
+        assert schedule_index >= 0
+        assert schedule_index < self.num_schedules
+        return self._num_outcomes

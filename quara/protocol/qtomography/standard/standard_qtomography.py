@@ -155,6 +155,21 @@ class StandardQTomography(QTomography):
         return size == rank
 
     @abstractmethod
+    def num_outcomes(self, schedule_index: int) -> int:
+        """returns the number of outcomes of probability distribution of a schedule index.
+
+        Parameters
+        ----------
+        schedule_index: int
+
+        Returns
+        -------
+        int
+            the number of outcomes
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def convert_var_to_qoperation(self, var: np.array) -> QOperation:
         """converts variable to QOperation.
 
