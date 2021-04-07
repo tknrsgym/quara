@@ -1,14 +1,18 @@
 from typing import List, Optional, Union
 import copy
 from collections import Counter
+import dataclasses
+import pickle
+import time
+from pathlib import Path
+import json
 
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
+
 from quara.objects.qoperation import QOperation
-from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
-    StandardQTomographyEstimator,
-    StandardQTomographyEstimationResult,
-)
 from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
@@ -20,6 +24,26 @@ from quara.loss_function.probability_based_loss_function import (
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
+from quara.protocol.qtomography.standard.standard_qst import StandardQst
+from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
+from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
+from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
+    StandardQTomographyEstimator,
+    StandardQTomographyEstimationResult,
+)
+from quara.simulation.generation_setting import QOperationGenerationSettings
+from quara.simulation.depolarized_qoperation_generation_setting import (
+    DepolarizedQOperationGenerationSetting,
+)
+from quara.simulation.random_effective_lindbladian_generation_setting import (
+    RandomEffectiveLindbladianGenerationSetting,
+)
+
+# from quara.simulation import standard_qtomography_simulation_report as report
+
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
+from quara.objects.state import State
 
 
 class StandardQTomographySimulationSetting:
@@ -70,6 +94,129 @@ class StandardQTomographySimulationSetting:
         algo = None if self.algo is None else self.algo.__class__.__name__
         desc += f"\nAlgo: {algo}"
         return desc
+
+
+@dataclasses.dataclass
+class NoiseSetting:
+    qoperation_base: Union[QOperation, str]
+    method: str
+    para: bool
+
+    def to_generation_setting(
+        self, c_sys: "CompositeSystem"
+    ) -> "QOperationGenerationSetting":
+        name2class_map = {
+            "depolarized": DepolarizedQOperationGenerationSetting,
+            "random_effective_lindbladian": RandomEffectiveLindbladianGenerationSetting,
+        }
+
+        if self.method in name2class_map:
+            target_class = name2class_map[self.method]
+        else:
+            message = f"noise_setting.method='{self.method}' is not implemented."
+            raise NotImplementedError(message)
+        return target_class(
+            qoperation_base=self.qoperation_base, c_sys=c_sys, **self.para,
+        )
+
+
+@dataclasses.dataclass
+class TestSetting:
+    true_object: NoiseSetting
+    tester_objects: List[NoiseSetting]
+    seed: int
+    n_rep: int
+    num_data: List[int]
+    n_sample: int
+    schedules: Union[str, List[List[int]]]
+    case_names: List[str]
+    estimators: List["Estimator"]
+    algo_list: List[tuple]
+    loss_list: List[tuple]
+    parametrizations: List[bool]
+    c_sys: "CompositeSystem"
+
+    def to_pickle(self, path: Union[str, Path]) -> None:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "wb") as f:
+            pickle.dump(self, f)
+
+    def to_generation_settings(self) -> QOperationGenerationSettings:
+        true_setting = self.true_object.to_generation_setting(self.c_sys)
+        tester_settings = [
+            setting.to_generation_setting(self.c_sys)
+            for setting in self.tester_objects
+        ]
+        generation_settings = QOperationGenerationSettings(
+            true_setting=true_setting, tester_settings=tester_settings
+        )
+        return generation_settings
+
+    def to_simulation_setting(
+        self,
+        true_object: "QOperation",
+        tester_objects: List["QOperation"],
+        case_index: int,
+    ) -> StandardQTomographySimulationSetting:
+        return StandardQTomographySimulationSetting(
+            name=self.case_names[case_index],
+            estimator=self.estimators[case_index],
+            loss=self.loss_list[case_index][0],
+            loss_option=self.loss_list[case_index][1],
+            algo=self.algo_list[case_index][0],
+            algo_option=self.algo_list[case_index][1],
+            true_object=true_object,
+            tester_objects=tester_objects,
+            n_rep=self.n_rep,
+            seed=self.seed,
+            num_data=self.num_data,
+            schedules=self.schedules,
+        )
+
+
+@dataclasses.dataclass
+class Result:
+    result_index: dict
+    simulation_setting: StandardQTomographySimulationSetting
+    estimation_results: List["EstimationResult"]
+    check_result: dict
+
+    def to_pickle(self, path: Union[str, Path]) -> None:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "wb") as f:
+            pickle.dump(self, f)
+
+    def to_dict(self) -> dict:
+        result_dict = dict(
+            test_setting_index=self.result_index["test_setting_index"],
+            sample_index=self.result_index["sample_index"],
+            case_index=self.result_index["case_index"],
+            name=self.simulation_setting.name,
+            total_result=self.check_result["total_result"],
+        )
+
+        def _make_warning_text(r):
+            possibly_ok = r["detail"]["possibly_ok"]
+            to_be_checked = r["detail"]["to_be_checked"]
+            warning_text = ""
+            if not possibly_ok:
+                warning_text = f"Consistency: possibly_ok={possibly_ok}, to_be_checked={to_be_checked}"
+            return warning_text
+
+        check_result = {}
+        warning_text = ""
+
+        for r in self.check_result["results"]:
+            check_result[r["name"]] = r["result"]
+            if r["name"] == "Consistency":
+                warning_text += _make_warning_text(r)
+
+        result_dict.update(check_result)
+        result_dict["warning"] = warning_text
+
+        return result_dict
 
 
 # common
@@ -163,3 +310,45 @@ def generate_empi_dists_and_calc_estimate(
             )
             results.append(result)
         return results
+
+
+# Data Convert
+def generate_qtomography(
+    sim_setting: StandardQTomographySimulationSetting,
+    para: bool,
+    eps_proj_physical: float,
+) -> "StandardQTomography":
+    # TrueObjectに応じて、適切なQTomographyを生成する
+    true_object = sim_setting.true_object
+    tester_objects = sim_setting.tester_objects
+    seed = sim_setting.seed
+
+    if type(true_object) == State:
+        return StandardQst(
+            tester_objects,
+            on_para_eq_constraint=para,
+            seed=seed,
+            eps_proj_physical=eps_proj_physical,
+        )
+    if type(true_object) == Povm:
+        return StandardPovmt(
+            tester_objects,
+            on_para_eq_constraint=para,
+            seed=seed,
+            eps_proj_physical=eps_proj_physical,
+            num_outcomes=len(true_object.vecs),
+        )
+    if type(true_object) == Gate:
+        states = [t for t in tester_objects if type(t) == State]
+        povms = [t for t in tester_objects if type(t) == Povm]
+
+        return StandardQpt(
+            states=states,
+            povms=povms,
+            on_para_eq_constraint=para,
+            seed=seed,
+            eps_proj_physical=eps_proj_physical,
+        )
+    message = f"type of sim_setting.true_object must be State, Povm, or Gate, not {type(true_object)}"
+    print(f"{sim_setting.true_object}")
+    raise TypeError(message)

@@ -1,5 +1,6 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 from abc import abstractmethod
+import dataclasses
 
 from quara.objects.qoperation import QOperation
 from quara.objects.qoperation_typical import generate_qoperation
@@ -67,3 +68,9 @@ class QOperationGenerationSetting:
     @abstractmethod
     def generate_gate(self):
         raise NotImplementedError()
+
+
+@dataclasses.dataclass
+class QOperationGenerationSettings:
+    true_setting: QOperationGenerationSetting
+    tester_settings: List[QOperationGenerationSetting]
