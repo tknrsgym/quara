@@ -12,10 +12,8 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
-    get_gell_mann_basis,
     get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
-    get_generalized_gell_mann_basis,
     get_normalized_generalized_gell_mann_basis,
 )
 from quara.objects.composite_system import CompositeSystem
@@ -128,7 +126,7 @@ def generate_gate_object_from_gate_name_object_name(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
-) -> Union[np.array, "Gate"]:
+) -> Union[np.ndarray, "Gate"]:
     if dims is None:
         dims = []
     if ids is None:
@@ -205,7 +203,7 @@ def generate_unitary_mat_from_gate_name(
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix of the gate, to be complex.
     """
     if dims is None:
@@ -260,7 +258,7 @@ def generate_unitary_mat_from_gate_name(
 
 def generate_gate_mat_from_gate_name(
     gate_name: str, dims: List[int] = None, ids: List[int] = None
-) -> np.array:
+) -> np.ndarray:
     """returns the Hilbert-Schmidt representation matrix of a gate.
 
     Parameters
@@ -276,7 +274,7 @@ def generate_gate_mat_from_gate_name(
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The HS matrix of the gate, to be real.
     """
 
@@ -395,12 +393,14 @@ def generate_gate_from_gate_name(
     return gate
 
 
-def calc_gate_mat_from_unitary_mat(from_u: np.array, to_basis: MatrixBasis) -> np.array:
+def calc_gate_mat_from_unitary_mat(
+    from_u: np.ndarray, to_basis: MatrixBasis
+) -> np.ndarray:
     """Return the HS matrix for a gate represented by an unitary matrix.
 
     Parameters
     ----------
-    from_u : np.array((dim, dim), dtype=np.complex128)
+    from_u : np.ndarray((dim, dim), dtype=np.complex128)
         The unitary matrix, to be square complex np.array.
 
     to_basis : MatrixBasis
@@ -408,7 +408,7 @@ def calc_gate_mat_from_unitary_mat(from_u: np.array, to_basis: MatrixBasis) -> n
 
     Returns
     ----------
-    np.array((dim^2, dim^2), dtype=np.complex128)
+    np.ndarray((dim^2, dim^2), dtype=np.complex128)
         The HS matrix of the gate corresponding to the unitary matrix.
     """
     shape = from_u.shape
@@ -427,21 +427,21 @@ def calc_gate_mat_from_unitary_mat(from_u: np.array, to_basis: MatrixBasis) -> n
 
 
 def calc_gate_mat_from_unitary_mat_with_hermitian_basis(
-    from_u: np.array, to_basis: MatrixBasis
-) -> np.array:
+    from_u: np.ndarray, to_basis: MatrixBasis
+) -> np.ndarray:
     """Return the HS matrix w.r.t. a Hermitian (orthonormal) matrix basis for a gate represented by an unitary matrix.
 
     Parameters
     ----------
-    from_u : np.array((dim, dim), dtype=np.complex128)
-        The unitary matrix, to be square complex np.array.
+    from_u : np.ndarray((dim, dim), dtype=np.complex128)
+        The unitary matrix, to be square complex np.ndarray.
 
     to_basis : MatrixBasis
         The matrix basis for representing the HS matrix
 
     Returns
     ----------
-    np.array((dim^2, dim^2), dtype=np.float64)
+    np.ndarray((dim^2, dim^2), dtype=np.float64)
         The HS matrix of the gate corresponding to the unitary matrix, to be real.
     """
     assert to_basis.is_hermitian() == True
@@ -450,17 +450,17 @@ def calc_gate_mat_from_unitary_mat_with_hermitian_basis(
     return hs
 
 
-def calc_unitary_mat_from_hamiltonian_mat(h: np.array) -> np.array:
+def calc_unitary_mat_from_hamiltonian_mat(h: np.ndarray) -> np.ndarray:
     """return the unitary matrix for a given Hamiltonian matrix.
 
     Parameters
     ----------
-    h : np.array((dim, dim), dtype=np.complex128)
+    h : np.ndarray((dim, dim), dtype=np.complex128)
         Hamiltonian matrix
 
     Returns
     ----------
-    np.array((dim dim), dtype=np.complex128), U = expm-(1j * h)
+    np.ndarray((dim dim), dtype=np.complex128), U = expm-(1j * h)
     """
     assert is_hermitian(h)
     u = truncate_computational_fluctuation(expm(-1j * h))
@@ -468,19 +468,21 @@ def calc_unitary_mat_from_hamiltonian_mat(h: np.array) -> np.array:
     return u
 
 
-def calc_gate_mat_from_hamiltonian_mat(h: np.array, to_basis: MatrixBasis) -> np.array:
+def calc_gate_mat_from_hamiltonian_mat(
+    h: np.ndarray, to_basis: MatrixBasis
+) -> np.ndarray:
     """return a HS matrix of a gate for a given Hamiltonian matrix.
 
     Parameters
     ----------
-    h : np.array((dim dim), dtype=np.complex128)
+    h : np.ndarray((dim dim), dtype=np.complex128)
         Hamiltonian matrix
 
     to_basis : MatrixBasis, to be Hermitian
 
     Returns
     ----------
-    np.array((dim^2, dim^2), dtype=np.float64)
+    np.ndarray((dim^2, dim^2), dtype=np.float64)
 
     """
     u = calc_unitary_mat_from_hamiltonian_mat(h)
@@ -490,14 +492,14 @@ def calc_gate_mat_from_hamiltonian_mat(h: np.array, to_basis: MatrixBasis) -> np
     return hs
 
 
-def calc_gate_from_hamiltonian_mat(c_sys: CompositeSystem, h: np.array) -> "Gate":
+def calc_gate_from_hamiltonian_mat(c_sys: CompositeSystem, h: np.ndarray) -> "Gate":
     """return a Gate class object for a given Hamiltonian matrix.
 
     Parameters
     ----------
     c_sys : CompositeSystem, whose basis must be Hermitian.
 
-    h : np.array((dim, dim), dtype=np.complex128)
+    h : np.ndarray((dim, dim), dtype=np.complex128)
 
     Returns
     ----------
@@ -512,7 +514,7 @@ def calc_gate_from_hamiltonian_mat(c_sys: CompositeSystem, h: np.array) -> "Gate
 # Identity gate
 
 
-def generate_gate_identity_unitary_mat(dim: int) -> np.array:
+def generate_gate_identity_unitary_mat(dim: int) -> np.ndarray:
     """Return the unitary matrix for an identity gate.
 
     The result is the dim times dim complex identity matrix.
@@ -524,14 +526,14 @@ def generate_gate_identity_unitary_mat(dim: int) -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix, which is a complex matrix.
     """
     u = np.eye(dim, dtype=np.complex128)
     return u
 
 
-def generate_gate_identity_mat(dim: int) -> np.array:
+def generate_gate_identity_mat(dim: int) -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for an Identity gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is the dim^2 times dim^2 real identity matrix.
@@ -543,7 +545,7 @@ def generate_gate_identity_mat(dim: int) -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the gate. It is the identity matrix in this case.
     """
     size = dim * dim
@@ -572,7 +574,7 @@ def generate_gate_identity(c_sys: CompositeSystem) -> "Gate":
 # X90 gate on 1-qubit
 
 
-def generate_gate_x90_unitary_mat() -> np.array:
+def generate_gate_x90_unitary_mat() -> np.ndarray:
     """Return the unitary matrix for an X90 gate.
 
     The result is the 2 times 2 complex matrix.
@@ -582,14 +584,14 @@ def generate_gate_x90_unitary_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix, which is a complex matrix.
     """
     u = np.array([[1 + 0j, 0 - 1j], [0 - 1j, 1 + 0j]], dtype=np.complex128) / np.sqrt(2)
     return u
 
 
-def generate_gate_x90_mat() -> np.array:
+def generate_gate_x90_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for an X90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -599,7 +601,7 @@ def generate_gate_x90_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the gate.
     """
     l = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]]
@@ -628,7 +630,7 @@ def generate_gate_x90(c_sys: CompositeSystem) -> "Gate":
 # X180 gate on 1-qubit
 
 
-def generate_gate_x180_unitary_mat() -> np.array:
+def generate_gate_x180_unitary_mat() -> np.ndarray:
     """Return the unitary matrix for an X180 gate.
 
     The result is the 2 times 2 complex matrix, -i X.
@@ -638,14 +640,14 @@ def generate_gate_x180_unitary_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix, which is a complex matrix.
     """
     u = np.array([[0, -1j], [-1j, 0]], dtype=np.complex128)
     return u
 
 
-def generate_gate_x180_mat() -> np.array:
+def generate_gate_x180_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for an X180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -655,7 +657,7 @@ def generate_gate_x180_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the gate.
     """
     l = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]
@@ -684,7 +686,7 @@ def generate_gate_x180(c_sys: CompositeSystem) -> "Gate":
 # X gate on 1-qubit
 
 
-def generate_gate_x_unitary_mat() -> np.array:
+def generate_gate_x_unitary_mat() -> np.ndarray:
     """Return the unitary matrix for an X gate.
 
     The result is the 2 times 2 complex matrix, X.
@@ -694,7 +696,7 @@ def generate_gate_x_unitary_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix, which is a complex matrix.
     """
     num_qubit = 1
@@ -703,7 +705,7 @@ def generate_gate_x_unitary_mat() -> np.array:
     return u
 
 
-def generate_gate_x_mat() -> np.array:
+def generate_gate_x_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for an X gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -713,7 +715,7 @@ def generate_gate_x_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the gate.
     """
     l = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]
@@ -742,7 +744,7 @@ def generate_gate_x(c_sys: CompositeSystem) -> "Gate":
 # Y90 on 1-qubit
 
 
-def generate_gate_y90_unitary_mat() -> np.array:
+def generate_gate_y90_unitary_mat() -> np.ndarray:
     """Return the unitary matrix for an Y90 gate.
 
     The result is a 2 times 2 complex matrix.
@@ -752,14 +754,14 @@ def generate_gate_y90_unitary_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix, which is a complex matrix.
     """
     u = np.array([[1, -1], [1, 1]], dtype=np.complex128) / np.sqrt(2)
     return u
 
 
-def generate_gate_y90_mat() -> np.array:
+def generate_gate_y90_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for a Y90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -769,7 +771,7 @@ def generate_gate_y90_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the gate.
     """
     l = [[1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0], [0, -1, 0, 0]]
@@ -798,7 +800,7 @@ def generate_gate_y90(c_sys: CompositeSystem) -> "Gate":
 # Y180 gate on 1-qubit
 
 
-def generate_gate_y180_unitary_mat() -> np.array:
+def generate_gate_y180_unitary_mat() -> np.ndarray:
     """Return the unitary matrix for a Y180 gate.
 
     The result is the 2 times 2 complex matrix, -i Y.
@@ -808,14 +810,14 @@ def generate_gate_y180_unitary_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix, which is a complex matrix.
     """
     u = np.array([[0, -1], [1, 0]], dtype=np.complex128)
     return u
 
 
-def generate_gate_y180_mat() -> np.array:
+def generate_gate_y180_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for a Y180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -825,7 +827,7 @@ def generate_gate_y180_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the gate.
     """
     l = [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]
@@ -854,7 +856,7 @@ def generate_gate_y180(c_sys: CompositeSystem) -> "Gate":
 # Y gate on 1-qubit
 
 
-def generate_gate_y_unitary_mat() -> np.array:
+def generate_gate_y_unitary_mat() -> np.ndarray:
     """Return the unitary matrix for a Y gate.
 
     The result is the 2 times 2 complex matrix, Y.
@@ -864,7 +866,7 @@ def generate_gate_y_unitary_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The unitary matrix, which is a complex matrix.
     """
     num_qubit = 1
