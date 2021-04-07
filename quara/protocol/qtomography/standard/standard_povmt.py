@@ -144,8 +144,8 @@ class StandardPovmt(StandardQTomography):
         return val
 
     def calc_cramer_rao_bound(
-        self, var: Union[QOperation, np.array], N: int, list_N: List[int]
-    ) -> np.array:
+        self, var: Union[QOperation, np.ndarray], N: int, list_N: List[int]
+    ) -> np.ndarray:
         if self.on_para_eq_constraint:
             val_1st_term = self._calc_cramer_rao_bound(var, N, list_N)
 
@@ -164,7 +164,7 @@ class StandardPovmt(StandardQTomography):
 
     def generate_empi_dists_sequence(
         self, povm: Povm, num_sums: List[int]
-    ) -> List[List[Tuple[int, np.array]]]:
+    ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
 
         list_num_sums = [num_sums] * self._num_schedules
@@ -246,7 +246,7 @@ class StandardPovmt(StandardQTomography):
             self._debug_c_prime_tile = np.vstack(c_prime_tile_list)
             self._debug_b = b_list
 
-    def convert_var_to_qoperation(self, var: np.array) -> Povm:
+    def convert_var_to_qoperation(self, var: np.ndarray) -> Povm:
         template = self._set_qoperations.povms[0]
         povm = template.generate_from_var(var=var)
         return povm

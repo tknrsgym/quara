@@ -4,7 +4,7 @@ from typing import List, Tuple
 from quara.settings import Settings
 
 
-def _random_number_to_data(probdist: np.array, random_number: np.float64) -> int:
+def _random_number_to_data(probdist: np.ndarray, random_number: np.float64) -> int:
     cumulative_sum = 0.0
     for index, prob in enumerate(probdist):
         cumulative_sum += prob
@@ -14,10 +14,10 @@ def _random_number_to_data(probdist: np.array, random_number: np.float64) -> int
 
 
 def generate_data_from_prob_dist(
-    prob_dist: np.array, data_num: int, seed: int = None, atol: float = None
+    prob_dist: np.ndarray, data_num: int, seed: int = None, atol: float = None
 ) -> List[int]:
     """generates random data from a probability distribution.
-    
+
     the data is a sequence (list) of measurement outcomes.
     measurement outcomes are integers.
     0 <= each measurement outcomes < ``len(probdist)``.
@@ -25,7 +25,7 @@ def generate_data_from_prob_dist(
 
     Parameters
     ----------
-    prob_dist : np.array
+    prob_dist : np.ndarray
         a probability distribution used to generate random data.
     data_num : int
         length of the data.
@@ -69,7 +69,7 @@ def generate_data_from_prob_dist(
     # generate random numbers. 0 <= rand_val[i] < 1 for all i = 0,..., num_data - 1
     rand_val = np.random.rand(data_num)
 
-    # use np.frompyfunc to apply the function '_random_number_to_data' to np.array
+    # use np.frompyfunc to apply the function '_random_number_to_data' to np.ndarray
     def curried_random_number_to_data(random_number):
         return _random_number_to_data(prob_dist, random_number)
 
@@ -79,7 +79,9 @@ def generate_data_from_prob_dist(
 
 
 def generate_dataset_from_prob_dists(
-    prob_dists: List[np.array], data_nums: List[int], seeds: List[int] = None,
+    prob_dists: List[np.ndarray],
+    data_nums: List[int],
+    seeds: List[int] = None,
 ) -> List[List[int]]:
     """generates random dataset from probability distributions.
 
@@ -87,7 +89,7 @@ def generate_dataset_from_prob_dists(
 
     Parameters
     ----------
-    prob_dists : List[np.array]
+    prob_dists : List[np.ndarray]
         a list of probdist.
     data_nums : List[int]
         a list of data_num.
@@ -130,7 +132,7 @@ def generate_dataset_from_prob_dists(
 
 def calc_empi_dist_sequence(
     measurement_num: int, data: List[int], num_sums: List[int]
-) -> List[Tuple[int, np.array]]:
+) -> List[Tuple[int, np.ndarray]]:
     """calculates empirical distributions.
 
     uses ``data`` from 0-th to ``num_sums[index]``-th to calculate empirical distributions.
@@ -146,7 +148,7 @@ def calc_empi_dist_sequence(
 
     Returns
     -------
-    List[Tuple[int, np.array]]
+    List[Tuple[int, np.ndarray]]
         a list of (the range of ``data``, empirical distribution).
         the dtype of each empirical distribution is np.float64.
 
@@ -235,7 +237,7 @@ def calc_empi_dists_sequence(
     measurement_nums: List[int],
     dataset: List[List[int]],
     list_num_sums: List[List[int]],
-) -> List[List[Tuple[int, np.array]]]:
+) -> List[List[Tuple[int, np.ndarray]]]:
     """calculates a sequence of empirical distributions by :func:`~quara.qcircuit.data_generator.calc_empidist`.
 
     Parameters
@@ -249,7 +251,7 @@ def calc_empi_dists_sequence(
 
     Returns
     -------
-    List[List[np.array]]
+    List[List[np.ndarray]]
         a sequence of empirical distributions.
 
     Raises

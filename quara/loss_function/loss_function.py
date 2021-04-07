@@ -231,13 +231,13 @@ class LossFunction:
         """
         self._on_hessian = on_hessian
 
-    def _validate_var_shape(self, var: np.array) -> None:
+    def _validate_var_shape(self, var: np.ndarray) -> None:
         """validates whether the shape of variable is ``(num_var,)``.
 
         Parameters
         ----------
-        var : np.array
-            np.array of variables.
+        var : np.ndarray
+            np.ndarray of variables.
 
         Raises
         ------
@@ -288,7 +288,7 @@ class LossFunction:
         self,
         qtomography: StandardQTomography,
         option: LossFunctionOption,
-        data: List[Tuple[int, np.array]],
+        data: List[Tuple[int, np.ndarray]],
         is_gradient_required: bool,
         is_hessian_required: bool,
     ) -> None:
@@ -303,7 +303,7 @@ class LossFunction:
             StandardQTomography for settings of loss function.
         option : LossFunctionOption
             ProbabilityBasedLossFunctionOption for settings of loss function.
-        data : List[Tuple[int, np.array]]
+        data : List[Tuple[int, np.ndarray]]
             empirical distributions for settings of loss function.
         is_gradient_required : bool
             whether or not to require gradient.
@@ -313,13 +313,13 @@ class LossFunction:
         pass
 
     @abstractmethod
-    def value(self, var: np.array) -> np.float64:
+    def value(self, var: np.ndarray) -> np.float64:
         """returns the value of the loss function.
 
         Parameters
         ----------
-        var : np.array
-            np.array of variables.
+        var : np.ndarray
+            np.ndarray of variables.
 
         Returns
         -------
@@ -334,17 +334,17 @@ class LossFunction:
         raise NotImplementedError()
 
     @abstractmethod
-    def gradient(self, var: np.array) -> np.array:
+    def gradient(self, var: np.ndarray) -> np.ndarray:
         """returns the gradient of the loss function.
 
         Parameters
         ----------
-        var : np.array
-            np.array of variables.
+        var : np.ndarray
+            np.ndarray of variables.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the gradient of the loss function. dtype=np.float64
 
         Raises
@@ -355,17 +355,17 @@ class LossFunction:
         raise NotImplementedError()
 
     @abstractmethod
-    def hessian(self, var: np.array) -> np.array:
+    def hessian(self, var: np.ndarray) -> np.ndarray:
         """returns the Hessian of the loss function.
 
         Parameters
         ----------
-        var : np.array
-            np.array of variables.
+        var : np.ndarray
+            np.ndarray of variables.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the Hessian of the loss function. dtype=np.float64
 
         Raises

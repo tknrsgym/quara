@@ -79,7 +79,10 @@ class Experiment:
     def states(self, value):
         self._validate_type(value, State)
         objdict = dict(
-            state=value, povm=self._povms, gate=self._gates, mprocess=self._mprocesses,
+            state=value,
+            povm=self._povms,
+            gate=self._gates,
+            mprocess=self._mprocesses,
         )
 
         try:
@@ -99,7 +102,10 @@ class Experiment:
     def povms(self, value):
         self._validate_type(value, Povm)
         objdict = dict(
-            state=self._states, povm=value, gate=self._gates, mprocess=self._mprocesses,
+            state=self._states,
+            povm=value,
+            gate=self._gates,
+            mprocess=self._mprocesses,
         )
 
         try:
@@ -120,7 +126,10 @@ class Experiment:
         self._validate_type(value, Gate)
 
         objdict = dict(
-            state=self._states, povm=self._povms, gate=value, mprocess=self._mprocesses,
+            state=self._states,
+            povm=self._povms,
+            gate=value,
+            mprocess=self._mprocesses,
         )
         try:
             self._validate_schedules(self._schedules, objdict=objdict)
@@ -214,7 +223,7 @@ class Experiment:
                 raise QuaraScheduleOrderError(message)
 
     def _validate_schedule_order(self, schedule: List[Tuple[str, int]]) -> None:
-        """ Validate that the order of the schedule is correct.
+        """Validate that the order of the schedule is correct.
         For example, check to see if the schedule starts with 'state' and ends with 'povm'.
 
         Parameters
@@ -362,7 +371,7 @@ class Experiment:
         )
         return experiment
 
-    def calc_prob_dist(self, schedule_index: int) -> np.array:
+    def calc_prob_dist(self, schedule_index: int) -> np.ndarray:
         """Calculate the probability distributionthe by running the specified schedule.
 
         Parameters
@@ -372,7 +381,7 @@ class Experiment:
 
         Returns
         -------
-        np.array
+        np.ndarray
             Probability distribution
 
         Raises
@@ -394,12 +403,12 @@ class Experiment:
         prob_dist = op.compose_qoperations(*targets)
         return prob_dist
 
-    def calc_prob_dists(self) -> List[np.array]:
+    def calc_prob_dists(self) -> List[np.ndarray]:
         """Caluclate probability distributions for all schedules.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             Probability distributions for all schedules
         """
         prob_dists = []
@@ -444,7 +453,7 @@ class Experiment:
         data = data_generator.generate_data_from_prob_dist(prob_dist, data_num)
         return data
 
-    def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
+    def generate_dataset(self, data_nums: List[int]) -> List[List[np.ndarray]]:
         """Run all the schedules to caluclate the probability distribution and generate random data.
 
         Parameters
@@ -454,7 +463,7 @@ class Experiment:
 
         Returnsf
         -------
-        List[List[np.array]]
+        List[List[np.ndarray]]
             Generated dataset.
         """
 
@@ -469,7 +478,7 @@ class Experiment:
 
     def generate_empi_dist_sequence(
         self, schedule_index: int, num_sums: List[int]
-    ) -> List[Tuple[int, np.array]]:
+    ) -> List[Tuple[int, np.ndarray]]:
         """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
 
         Uses generated data from 0-th to ``num_sums[index]``-th to calculate empirical distributions.
@@ -483,7 +492,7 @@ class Experiment:
 
         Returns
         -------
-        List[Tuple[int, np.array]]
+        List[Tuple[int, np.ndarray]]
             A list of the numbers of data and empirical distribution.
         """
         data_n = max(num_sums)
@@ -500,7 +509,7 @@ class Experiment:
 
     def generate_empi_dists_sequence(
         self, list_num_sums: List[List[int]]
-    ) -> List[List[Tuple[int, np.array]]]:
+    ) -> List[List[Tuple[int, np.ndarray]]]:
         """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
 
         Parameters
@@ -510,7 +519,7 @@ class Experiment:
 
         Returns
         -------
-        List[List[Tuple[int, np.array]]]
+        List[List[Tuple[int, np.ndarray]]]
             A list of tuples for the number of data and experience distribution for each schedules.
         """
         for num_sums in list_num_sums:

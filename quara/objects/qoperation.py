@@ -257,7 +257,7 @@ class QOperation:
 
     @abstractmethod
     def _generate_zero_obj(self):
-        """returns ``np.array`` which zero object of QOperation has.
+        """returns ``np.ndarray`` which zero object of QOperation has.
 
         this function is called from :func:`~quara.objects.qoperation.QOperation.generate_zero_obj`.
 
@@ -292,7 +292,7 @@ class QOperation:
 
     @abstractmethod
     def _generate_origin_obj(self):
-        """returns ``np.array`` which origin object of QOperation has.
+        """returns ``np.ndarray`` which origin object of QOperation has.
 
         this function is called from :func:`~quara.objects.qoperation.QOperation.generate_origin_obj`.
 
@@ -327,7 +327,7 @@ class QOperation:
 
     @abstractmethod
     def _copy(self):
-        """returns ``np.array`` which copy of QOperation has.
+        """returns ``np.ndarray`` which copy of QOperation has.
 
         this function is called from :func:`~quara.objects.qoperation.QOperation.copy`.
 
@@ -339,14 +339,14 @@ class QOperation:
         raise NotImplementedError()
 
     @abstractmethod
-    def to_var(self) -> np.array:
+    def to_var(self) -> np.ndarray:
         """converts QOperation to variables.
 
         this function must be implemented in the subclass.
 
         Returns
         -------
-        np.array
+        np.ndarray
             variable representation of QOperation.
 
         Raises
@@ -357,14 +357,14 @@ class QOperation:
         raise NotImplementedError()
 
     @abstractmethod
-    def to_stacked_vector(self) -> np.array:
+    def to_stacked_vector(self) -> np.ndarray:
         """converts QOperation to stacked vector.
 
         this function must be implemented in the subclass.
 
         Returns
         -------
-        np.array
+        np.ndarray
             stacked vector representation of QOperation.
 
         Raises
@@ -410,13 +410,13 @@ class QOperation:
 
     def func_calc_proj_eq_constraint(
         self, on_para_eq_constraint: bool = None
-    ) -> Callable[[np.array], np.array]:
+    ) -> Callable[[np.ndarray], np.ndarray]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
 
         qobj_empty = self.generate_zero_obj()
 
-        def _func_proj(var: np.array) -> np.array:
+        def _func_proj(var: np.ndarray) -> np.ndarray:
             qobj_tmp = qobj_empty.generate_from_var(
                 var, on_para_eq_constraint=on_para_eq_constraint
             )
@@ -438,13 +438,13 @@ class QOperation:
 
     def func_calc_proj_ineq_constraint(
         self, on_para_eq_constraint: bool = None
-    ) -> Callable[[np.array], np.array]:
+    ) -> Callable[[np.ndarray], np.ndarray]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
 
         qobj_empty = self.generate_zero_obj()
 
-        def _func_proj(var: np.array) -> np.array:
+        def _func_proj(var: np.ndarray) -> np.ndarray:
             qobj_tmp = qobj_empty.generate_from_var(
                 var, on_para_eq_constraint=on_para_eq_constraint
             )
@@ -459,7 +459,7 @@ class QOperation:
 
     def generate_from_var(
         self,
-        var: np.array,
+        var: np.ndarray,
         is_physicality_required: bool = None,
         is_estimation_object: bool = None,
         on_para_eq_constraint: bool = None,
@@ -472,7 +472,7 @@ class QOperation:
 
         Parameters
         ----------
-        var : np.array
+        var : np.ndarray
         is_physicality_required : bool, optional
             whether this QOperation is physicality required, by default None.
             if this parameter is None, the value of this instance is set.
@@ -548,7 +548,7 @@ class QOperation:
         self, is_iteration_history: bool = False
     ) -> Union["QOperation", Tuple["QOperation", Dict]]:
         """calculates the projection of QOperation with physically correctness.
- 
+
         Parameters
         ----------
         is_iteration_history : bool, optional
@@ -674,14 +674,14 @@ class QOperation:
 
     def _calc_stopping_criterion_birgin_raydan_vectors(
         self,
-        p_prev: np.array,
-        p_next: np.array,
-        q_prev: np.array,
-        q_next: np.array,
-        x_prev: np.array,
-        x_next: np.array,
-        y_prev: np.array,
-        y_next: np.array,
+        p_prev: np.ndarray,
+        p_next: np.ndarray,
+        q_prev: np.ndarray,
+        q_next: np.ndarray,
+        x_prev: np.ndarray,
+        x_next: np.ndarray,
+        y_prev: np.ndarray,
+        y_next: np.ndarray,
     ) -> float:
         val = (
             np.sum((p_prev - p_next) ** 2 + (q_prev - q_next) ** 2)
@@ -694,14 +694,14 @@ class QOperation:
 
     def _is_satisfied_stopping_criterion_birgin_raydan_vectors(
         self,
-        p_prev: np.array,
-        p_next: np.array,
-        q_prev: np.array,
-        q_next: np.array,
-        x_prev: np.array,
-        x_next: np.array,
-        y_prev: np.array,
-        y_next: np.array,
+        p_prev: np.ndarray,
+        p_next: np.ndarray,
+        q_prev: np.ndarray,
+        q_next: np.ndarray,
+        x_prev: np.ndarray,
+        x_next: np.ndarray,
+        y_prev: np.ndarray,
+        y_next: np.ndarray,
         eps_proj_physical: float,
     ):
         error_value = self._calc_stopping_criterion_birgin_raydan_vectors(
@@ -753,14 +753,16 @@ class QOperation:
         return result, error_value
 
     def func_calc_proj_physical(
-        self, on_para_eq_constraint: bool = None, mode_proj_order: str = "eq_ineq",
-    ) -> Callable[[np.array], np.array]:
+        self,
+        on_para_eq_constraint: bool = None,
+        mode_proj_order: str = "eq_ineq",
+    ) -> Callable[[np.ndarray], np.ndarray]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
 
         qobj_empty = self.generate_zero_obj()
 
-        def _func_proj(var: np.array) -> np.array:
+        def _func_proj(var: np.ndarray) -> np.ndarray:
             qobj_tmp = qobj_empty.generate_from_var(
                 var,
                 on_para_eq_constraint=on_para_eq_constraint,
@@ -853,8 +855,14 @@ class QOperation:
                     self.on_algo_ineq_constraint,
                     other.on_algo_ineq_constraint,
                 ),
-                mode_proj_order=(self.mode_proj_order, other.mode_proj_order,),
-                eps_proj_physical=(self.eps_proj_physical, other.eps_proj_physical,),
+                mode_proj_order=(
+                    self.mode_proj_order,
+                    other.mode_proj_order,
+                ),
+                eps_proj_physical=(
+                    self.eps_proj_physical,
+                    other.eps_proj_physical,
+                ),
             )
             for k, v in config_dict.items():
                 if v[0] != v[1]:

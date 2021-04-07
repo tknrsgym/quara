@@ -109,7 +109,7 @@ def generate_povm_object_from_povm_name_object_name(
     object_name: str,
     c_sys: CompositeSystem = None,
     basis: MatrixBasis = None,
-) -> Union[List[np.array], Povm]:
+) -> Union[List[np.ndarray], Povm]:
     """Return a povm-related object.
 
     Parameters
@@ -125,8 +125,8 @@ def generate_povm_object_from_povm_name_object_name(
 
     Returns
     -------
-    Union[List[np.array], Povm]
-        np.array
+    Union[List[np.ndarray], Povm]
+        np.ndarray
             pure state vectors related elements of POVM for object_name = 'pure_state_vectors'
                 Complex vectors
             list of elements of POVM(matrices) for object_name = 'matrices'
@@ -156,7 +156,7 @@ def generate_povm_object_from_povm_name_object_name(
 
 def _generate_povm_pure_state_vectors_from_single_name(
     povm_name: str,
-) -> List[np.array]:
+) -> List[np.ndarray]:
     if povm_name not in get_povm_names_rank1():
         raise ValueError(f"povm_name is not rank 1. povm_name={povm_name}")
 
@@ -197,7 +197,7 @@ def _generate_povm_pure_state_vectors_from_single_name(
     return vectors
 
 
-def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]:
+def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.ndarray]:
     """returns pure state vectors.
 
     Parameters
@@ -207,7 +207,7 @@ def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]
 
     Returns
     -------
-    List[np.array]
+    List[np.ndarray]
         pure state vectors.
 
     Raises
@@ -233,7 +233,7 @@ def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.array]
     return temp
 
 
-def _generate_povm_matrices_from_single_name(povm_name: str) -> List[np.array]:
+def _generate_povm_matrices_from_single_name(povm_name: str) -> List[np.ndarray]:
     if povm_name in get_povm_names_rank1():
         pure_state_vectors = generate_povm_pure_state_vectors_from_name(povm_name)
         matrices = [
@@ -250,7 +250,7 @@ def _generate_povm_matrices_from_single_name(povm_name: str) -> List[np.array]:
     return matrices
 
 
-def generate_povm_matrices_from_name(povm_name: str) -> List[np.array]:
+def generate_povm_matrices_from_name(povm_name: str) -> List[np.ndarray]:
     """returns list of elements of POVM(matrices).
 
     Parameters
@@ -260,7 +260,7 @@ def generate_povm_matrices_from_name(povm_name: str) -> List[np.array]:
 
     Returns
     -------
-    List[np.array]
+    List[np.ndarray]
         list of elements of POVM(matrices).
 
     Raises
@@ -285,7 +285,7 @@ def generate_povm_matrices_from_name(povm_name: str) -> List[np.array]:
 
 def generate_povm_vectors_from_name(
     povm_name: str, basis: MatrixBasis
-) -> List[np.array]:
+) -> List[np.ndarray]:
     """returns vectors on Hermitian basis.
 
     Parameters
@@ -297,7 +297,7 @@ def generate_povm_vectors_from_name(
 
     Returns
     -------
-    List[np.array]
+    List[np.ndarray]
         vectors on Hermitian basis.
 
     Raises

@@ -2,14 +2,14 @@ import numpy as np
 import math
 
 
-def multiply_veca_vecb(vec_a: np.array, vec_b: np.array) -> float:
+def multiply_veca_vecb(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
     """returns ``a \cdot b``. '\cdot' means inner product.
 
     Parameters
     ----------
-    vec_a : np.array
+    vec_a : np.ndarray
         vector a.
-    vec_b : np.array
+    vec_b : np.ndarray
         vector b.
 
     Returns
@@ -37,16 +37,18 @@ def multiply_veca_vecb(vec_a: np.array, vec_b: np.array) -> float:
     return val
 
 
-def multiply_veca_vecb_matc(vec_a: np.array, vec_b: np.array, mat_c: np.array) -> float:
+def multiply_veca_vecb_matc(
+    vec_a: np.ndarray, vec_b: np.ndarray, mat_c: np.ndarray
+) -> float:
     """returns ``a \cdot C b``. '\cdot' means inner product.
 
     Parameters
     ----------
-    vec_a : np.array
+    vec_a : np.ndarray
         vector a.
-    vec_b : np.array
+    vec_b : np.ndarray
         vector b.
-    mat_c : np.array
+    mat_c : np.ndarray
         matrix C.
 
     Returns
@@ -80,17 +82,17 @@ def multiply_veca_vecb_matc(vec_a: np.array, vec_b: np.array, mat_c: np.array) -
     return val
 
 
-def project_to_traceless_matrix(A: np.array) -> np.array:
+def project_to_traceless_matrix(A: np.ndarray) -> np.ndarray:
     """returns a matrix projected to a trace-less matrix subspace.
 
     Parameters
     ----------
-    A : np.array
+    A : np.ndarray
         Square matrix
 
     Returns
     ----------
-    B : np.array
+    B : np.ndarray
         Square matrix, B = A - Tr[b0 @ A] b0, b0 = I/sqrt(d).
 
     """
