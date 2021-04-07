@@ -30,11 +30,15 @@ from quara.objects.qoperation_typical import (
 
 def _test_hamiltonian_vec_hamiltonian_mat(
     gate_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
     decimal: int = 15,
 ):
+    if dims is None:
+        dims = []
+    if ids is None:
+        ids = []
     # Arrange
     object_name = "hamiltonian_vec"
     h_vec = generate_effective_lindbladian_object(
@@ -87,11 +91,16 @@ def _test_hamiltonian_mat_unitary_mat(
 
 def _test_effective_lindbladian_mat_gate_mat(
     gate_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
     decimal: int = 15,
 ):
+    if dims is None:
+        dims = []
+    if ids is None:
+        ids = []
+
     # Arrange
     object_name = "effective_lindbladian_mat"
     el_mat = generate_effective_lindbladian_object(
@@ -109,11 +118,16 @@ def _test_effective_lindbladian_mat_gate_mat(
 
 def _test_generate_effective_lindbladian_from_h(
     gate_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
     decimal: int = 15,
 ):
+    if dims is None:
+        dims = []
+    if ids is None:
+        ids = []
+
     # Arrange
     object_name = "hamiltonian_mat"
     h_mat = generate_effective_lindbladian_object(
@@ -135,11 +149,16 @@ def _test_generate_effective_lindbladian_from_h(
 
 def _test_calc_h(
     gate_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
     decimal: int = 15,
 ):
+    if dims is None:
+        dims = []
+    if ids is None:
+        ids = []
+
     # Arrange
     object_name = "hamiltonian_mat"
     h_mat = generate_effective_lindbladian_object(
