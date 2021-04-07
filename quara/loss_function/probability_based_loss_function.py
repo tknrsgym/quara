@@ -18,10 +18,12 @@ class ProbabilityBasedLossFunction(LossFunction):
     def __init__(
         self,
         num_var: int,
-        func_prob_dists: List[Callable[[np.array], np.array]] = None,
-        func_gradient_prob_dists: List[Callable[[int, np.array], np.array]] = None,
-        func_hessian_prob_dists: List[Callable[[int, int, np.array], np.array]] = None,
-        prob_dists_q: List[np.array] = None,
+        func_prob_dists: List[Callable[[np.ndarray], np.ndarray]] = None,
+        func_gradient_prob_dists: List[Callable[[int, np.ndarray], np.ndarray]] = None,
+        func_hessian_prob_dists: List[
+            Callable[[int, int, np.ndarray], np.ndarray]
+        ] = None,
+        prob_dists_q: List[np.ndarray] = None,
     ):
         """Constructor
 
@@ -31,49 +33,57 @@ class ProbabilityBasedLossFunction(LossFunction):
         ----------
         num_var : int
             number of variables.
-        func_prob_dists : List[Callable[[np.array], np.array]], optional
+        func_prob_dists : List[Callable[[np.ndarray], np.ndarray]], optional
             functions map variables to a probability distribution.
-        func_gradient_prob_dists : List[Callable[[int, np.array], np.array]], optional
+        func_gradient_prob_dists : List[Callable[[int, np.ndarray], np.ndarray]], optional
             functions map variables and an index of variables to gradient of probability distributions.
-        func_hessian_prob_dists : List[Callable[[int, int, np.array], np.array]], optional
+        func_hessian_prob_dists : List[Callable[[int, int, np.ndarray], np.ndarray]], optional
             functions map variables and indices of variables to Hessian of probability distributions.
-        prob_dists_q : List[np.array], optional
+        prob_dists_q : List[np.ndarray], optional
             vectors of ``q``, by default None.
         """
         super().__init__(num_var)
-        self._func_prob_dists: List[Callable[[np.array], np.array]] = func_prob_dists
+        self._func_prob_dists: List[
+            Callable[[np.ndarray], np.ndarray]
+        ] = func_prob_dists
         self._func_gradient_prob_dists: List[
-            Callable[[int, np.array], np.array]
+            Callable[[int, np.ndarray], np.ndarray]
         ] = func_gradient_prob_dists
         self._func_hessian_prob_dists: List[
-            Callable[[int, int, np.array], np.array]
+            Callable[[int, int, np.ndarray], np.ndarray]
         ] = func_hessian_prob_dists
-        self._prob_dists_q: List[np.array] = prob_dists_q
+        self._prob_dists_q: List[np.ndarray] = prob_dists_q
 
-        self._on_func_prob_dists: bool = True if self._func_prob_dists is not None else False
-        self._on_func_gradient_prob_dists: bool = True if self._func_gradient_prob_dists is not None else False
-        self._on_func_hessian_prob_dists: bool = True if self._func_hessian_prob_dists is not None else False
+        self._on_func_prob_dists: bool = (
+            True if self._func_prob_dists is not None else False
+        )
+        self._on_func_gradient_prob_dists: bool = (
+            True if self._func_gradient_prob_dists is not None else False
+        )
+        self._on_func_hessian_prob_dists: bool = (
+            True if self._func_hessian_prob_dists is not None else False
+        )
         self._on_prob_dists_q: bool = True if self._prob_dists_q is not None else False
 
     @property
-    def func_prob_dists(self) -> List[Callable[[np.array], np.array]]:
+    def func_prob_dists(self) -> List[Callable[[np.ndarray], np.ndarray]]:
         """returns functions map variables to a probability distribution.
 
         Returns
         -------
-        List[Callable[[np.array], np.array]]
+        List[Callable[[np.ndarray], np.ndarray]]
             functions map variables to a probability distribution.
         """
         return self._func_prob_dists
 
     def set_func_prob_dists(
-        self, func_prob_dists: List[Callable[[np.array], np.array]]
+        self, func_prob_dists: List[Callable[[np.ndarray], np.ndarray]]
     ) -> None:
         """sets functions map variables to a probability distribution.
 
         Parameters
         ----------
-        func_prob_dists : List[Callable[[np.array], np.array]]
+        func_prob_dists : List[Callable[[np.ndarray], np.ndarray]]
             functions map variables to a probability distribution.
         """
         self._func_prob_dists = func_prob_dists
@@ -86,24 +96,24 @@ class ProbabilityBasedLossFunction(LossFunction):
         self._on_func_prob_dists = on_func_prob_dists
 
     @property
-    def func_gradient_prob_dists(self) -> List[Callable[[int, np.array], np.array]]:
+    def func_gradient_prob_dists(self) -> List[Callable[[int, np.ndarray], np.ndarray]]:
         """returns functions map variables and an index of variables to gradient of probability distributions.
 
         Returns
         -------
-        List[Callable[[int, np.array], np.array]]
+        List[Callable[[int, np.ndarray], np.ndarray]]
             functions map variables and an index of variables to gradient of probability distributions.
         """
         return self._func_gradient_prob_dists
 
     def set_func_gradient_prob_dists(
-        self, func_gradient_prob_dists: List[Callable[[int, np.array], np.array]]
+        self, func_gradient_prob_dists: List[Callable[[int, np.ndarray], np.ndarray]]
     ) -> None:
         """sets functions map variables and an index of variables to gradient of probability distributions.
 
         Parameters
         ----------
-        func_gradient_prob_dists : List[Callable[[int, np.array], np.array]]
+        func_gradient_prob_dists : List[Callable[[int, np.ndarray], np.ndarray]]
             functions map variables and an index of variables to gradient of probability distributions.
         """
         self._func_gradient_prob_dists = func_gradient_prob_dists
@@ -112,24 +122,27 @@ class ProbabilityBasedLossFunction(LossFunction):
         self._update_on_hessian_true()
 
     @property
-    def func_hessian_prob_dists(self) -> List[Callable[[int, int, np.array], np.array]]:
+    def func_hessian_prob_dists(
+        self,
+    ) -> List[Callable[[int, int, np.ndarray], np.ndarray]]:
         """returns functions map variables and indices of variables to Hessian of probability distributions.
 
         Returns
         -------
-        List[Callable[[int, int, np.array], np.array]]
+        List[Callable[[int, int, np.ndarray], np.ndarray]]
             functions map variables and indices of variables to Hessian of probability distributions.
         """
         return self._func_hessian_prob_dists
 
     def set_func_hessian_prob_dists(
-        self, func_hessian_prob_dists: List[Callable[[int, int, np.array], np.array]]
+        self,
+        func_hessian_prob_dists: List[Callable[[int, int, np.ndarray], np.ndarray]],
     ) -> None:
         """sets functions map variables and indices of variables to Hessian of probability distributions.
 
         Parameters
         ----------
-        func_hessian_prob_dists : List[Callable[[int, int, np.array], np.array]]
+        func_hessian_prob_dists : List[Callable[[int, int, np.ndarray], np.ndarray]]
             functions map variables and indices of variables to Hessian of probability distributions.
         """
         self._func_hessian_prob_dists = func_hessian_prob_dists
@@ -137,12 +150,12 @@ class ProbabilityBasedLossFunction(LossFunction):
         self._update_on_hessian_true()
 
     @property
-    def prob_dists_q(self) -> List[np.array]:
+    def prob_dists_q(self) -> List[np.ndarray]:
         """returns vectors of ``q``, by default None.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             vectors of ``q``, by default None.
         """
         return self._prob_dists_q
@@ -204,12 +217,12 @@ class ProbabilityBasedLossFunction(LossFunction):
         else:
             return len(self._func_prob_dists)
 
-    def set_prob_dists_q(self, prob_dists_q: List[np.array]) -> None:
+    def set_prob_dists_q(self, prob_dists_q: List[np.ndarray]) -> None:
         """sets vectors of ``q``, by default None.
 
         Parameters
         ----------
-        prob_dists_q : List[np.array]
+        prob_dists_q : List[np.ndarray]
             vectors of ``q``, by default None.
         """
         self._prob_dists_q = prob_dists_q
@@ -223,9 +236,9 @@ class ProbabilityBasedLossFunction(LossFunction):
         self._update_on_hessian_true()
 
     def _generate_func_prob_dist(
-        self, matA: np.array, vecB: np.array, size_prob_dist: int, index: int
+        self, matA: np.ndarray, vecB: np.ndarray, size_prob_dist: int, index: int
     ):
-        def _process(var: np.array) -> np.array:
+        def _process(var: np.ndarray) -> np.ndarray:
             return (
                 matA[size_prob_dist * index : size_prob_dist * (index + 1)] @ var
                 + vecB[size_prob_dist * index : size_prob_dist * (index + 1)]
@@ -253,9 +266,9 @@ class ProbabilityBasedLossFunction(LossFunction):
         self.set_func_prob_dists(func_prob_dists)
 
     def _generate_func_gradient_prob_dist(
-        self, matA: np.array, size_prob_dist: int, index: int
+        self, matA: np.ndarray, size_prob_dist: int, index: int
     ):
-        def _process(alpha: int, var: np.array) -> np.array:
+        def _process(alpha: int, var: np.ndarray) -> np.ndarray:
             prob_dist = [
                 matA[size_prob_dist * index + prob_dist_index, alpha]
                 for prob_dist_index in range(size_prob_dist)
@@ -285,7 +298,7 @@ class ProbabilityBasedLossFunction(LossFunction):
         self.set_func_gradient_prob_dists(func_gradient_prob_dists)
 
     def _generate_func_hessian_prob_dist(self, size_prob_dist: int, index: int):
-        def _process(alpha: int, beta: int, var: np.array):
+        def _process(alpha: int, beta: int, var: np.ndarray):
             return np.array([0.0] * size_prob_dist, dtype=np.float64)
 
         return _process
@@ -311,7 +324,7 @@ class ProbabilityBasedLossFunction(LossFunction):
         self.set_func_hessian_prob_dists(func_hessian_prob_dists)
 
     def _set_weights_by_mode(
-        self, mode_weight: str, data: List[Tuple[int, np.array]]
+        self, mode_weight: str, data: List[Tuple[int, np.ndarray]]
     ) -> None:
         """sets weights of loss function.
 
@@ -322,7 +335,7 @@ class ProbabilityBasedLossFunction(LossFunction):
         ----------
         mode_weight : str
             mode for weights.
-        data : List[Tuple[int, np.array]]
+        data : List[Tuple[int, np.ndarray]]
             empirical distributions.
         """
         pass
@@ -331,7 +344,7 @@ class ProbabilityBasedLossFunction(LossFunction):
         self,
         qtomography: StandardQTomography,
         option: LossFunctionOption,
-        data: List[Tuple[int, np.array]],
+        data: List[Tuple[int, np.ndarray]],
         is_gradient_required: bool,
         is_hessian_required: bool,
     ) -> None:
@@ -343,7 +356,7 @@ class ProbabilityBasedLossFunction(LossFunction):
             StandardQTomography for settings of loss function.
         option : LossFunctionOption
             ProbabilityBasedLossFunctionOption for settings of loss function.
-        data : List[Tuple[int, np.array]]
+        data : List[Tuple[int, np.ndarray]]
             empirical distributions for settings of loss function.
         is_gradient_required : bool
             whether or not to require gradient.

@@ -1,15 +1,15 @@
 import numpy as np
 
 
-def l2_norm(x: np.array, y: np.array) -> np.float64:
+def l2_norm(x: np.ndarray, y: np.ndarray) -> np.float64:
     """calculates L2 norm.
 
     Parameters
     ----------
-    x : np.array
-        vector.(1-dim numpy array)
-    y : np.array
-        vector.(1-dim numpy array)
+    x : np.ndarray
+        vector.(1-dim numpy ndarray)
+    y : np.ndarray
+        vector.(1-dim numpy ndarray)
 
     Returns
     -------

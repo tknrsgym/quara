@@ -295,13 +295,13 @@ class VectorizedMatrixBasis(Basis):
 
 
 def calc_matrix_expansion_coefficient(
-    from_mat: np.array, basis: MatrixBasis
-) -> np.array:
+    from_mat: np.ndarray, basis: MatrixBasis
+) -> np.ndarray:
     """return expansion coefficients of a matrix w.r.t. the matrix basis.
 
     Parameters
     ----------
-    from_mat : np.array((dim, dim), np.complex128)
+    from_mat : np.ndarray((dim, dim), np.complex128)
         A square complex matrix
 
     basis: MatrixBasis
@@ -309,7 +309,7 @@ def calc_matrix_expansion_coefficient(
 
     Returns
     ----------
-    np.array((dim * dim, 1), np.complex)
+    np.ndarray((dim * dim, 1), np.complex)
     """
     shape = from_mat.shape
     assert shape[0] == shape[1]
@@ -326,13 +326,13 @@ def calc_matrix_expansion_coefficient(
 
 
 def calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
-    from_mat: np.array, basis: MatrixBasis
-) -> np.array:
+    from_mat: np.ndarray, basis: MatrixBasis
+) -> np.ndarray:
     """return expansion coefficients of an Hermitian matrix w.r.t. the Hermitian matrix basis.
 
     Parameters
     ----------
-    from_mat : np.array((dim, dim), np.complex128)
+    from_mat : np.ndarray((dim, dim), np.complex128)
         An Hermitian matrix
 
     basis: MatrixBasis
@@ -340,7 +340,7 @@ def calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
 
     Returns
     ----------
-    np.array((dim * dim, 1), np.float)
+    np.ndarray((dim * dim, 1), np.float)
     """
     assert mutil.is_hermitian(from_mat)
     assert basis.is_hermitian
@@ -350,12 +350,14 @@ def calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
     return coeff_real
 
 
-def calc_mat_from_coefficient_basis(coeff: np.array, basis: MatrixBasis) -> np.array:
+def calc_mat_from_coefficient_basis(
+    coeff: np.ndarray, basis: MatrixBasis
+) -> np.ndarray:
     """return a matrix corresponding to the coefficient and matrix basis.
 
     Parameters
     ----------
-    coeff : np.array((dim *dim, 1))
+    coeff : np.ndarray((dim *dim, 1))
         A coefficient vector
 
     basis : MatrixBasis
@@ -363,7 +365,7 @@ def calc_mat_from_coefficient_basis(coeff: np.array, basis: MatrixBasis) -> np.a
 
     Returns
     ----------
-    np.array((dim, dim))
+    np.ndarray((dim, dim))
         A square matrix
     """
     dim = basis.dim
@@ -693,13 +695,13 @@ def get_normalized_generalized_gell_mann_basis(
 
 
 def convert_vec(
-    from_vec: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
-) -> np.array:
+    from_vec: np.ndarray, from_basis: MatrixBasis, to_basis: MatrixBasis
+) -> np.ndarray:
     """converts vector representation from ``from_basis`` to ``to_basis``.
 
     Parameters
     ----------
-    from_vec : np.array
+    from_vec : np.ndarray
         vector representation before converts vector representation.
     from_basis : MatrixBasis
         basis before converts vector representation.
@@ -708,7 +710,7 @@ def convert_vec(
 
     Returns
     -------
-    np.array
+    np.ndarray
         vector representation after converts vector representation.
         ``dtype`` is ``float64``.
     """

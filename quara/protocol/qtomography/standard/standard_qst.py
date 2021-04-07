@@ -160,7 +160,7 @@ class StandardQst(StandardQTomography):
         state_index = schedule[0][1]
         return state_index
 
-    def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
+    def generate_dataset(self, data_nums: List[int]) -> List[List[np.ndarray]]:
         """calculates a probability distribution.
 
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_dataset`
@@ -170,7 +170,7 @@ class StandardQst(StandardQTomography):
 
     def generate_empi_dist(
         self, schedule_index: int, state: State, num_sum: int
-    ) -> Tuple[int, np.array]:
+    ) -> Tuple[int, np.ndarray]:
         """Generate empirical distribution using the data generated from probability distribution of specified schedules.
 
         Parameters
@@ -184,7 +184,7 @@ class StandardQst(StandardQTomography):
 
         Returns
         -------
-        Tuple[int, np.array]
+        Tuple[int, np.ndarray]
             Generated empirical distribution.
         """
         tmp_experiment = self._experiment.copy()
@@ -198,7 +198,7 @@ class StandardQst(StandardQTomography):
 
     def generate_empi_dists(
         self, state: State, num_sum: int
-    ) -> List[Tuple[int, np.array]]:
+    ) -> List[Tuple[int, np.ndarray]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_empi_dists`
@@ -216,7 +216,7 @@ class StandardQst(StandardQTomography):
 
     def generate_empi_dists_sequence(
         self, state: State, num_sums: List[int]
-    ) -> List[List[Tuple[int, np.array]]]:
+    ) -> List[List[Tuple[int, np.ndarray]]]:
         """Generate sequence of empirical distributions using the data generated from probability distributions of all schedules.
 
         Parameters
@@ -228,7 +228,7 @@ class StandardQst(StandardQTomography):
 
         Returns
         -------
-        List[List[Tuple[int, np.array]]]
+        List[List[Tuple[int, np.ndarray]]]
             sequence of list of tuples for the number of data and experience distributions for each schedules.
         """
         tmp_experiment = self._experiment.copy()
@@ -248,7 +248,7 @@ class StandardQst(StandardQTomography):
         ]
         return empi_dists_sequence
 
-    def convert_var_to_qoperation(self, var: np.array) -> State:
+    def convert_var_to_qoperation(self, var: np.ndarray) -> State:
         """converts variable to QOperation.
 
         see :func:`~quara.protocol.qtomography.standard.standard_qtomography.StandardQTomography.convert_var_to_qoperation`
