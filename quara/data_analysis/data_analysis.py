@@ -1,5 +1,3 @@
-from numpy.lib.utils import source
-from quara.protocol.qtomography.estimator import EstimationResult
 import time
 from typing import Callable, List, Optional, Union, Dict
 import copy
@@ -7,25 +5,13 @@ from collections import namedtuple
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly.express as px
 import numpy as np
 from tqdm import tqdm
 
-from quara.minimization_algorithm.minimization_algorithm import (
-    MinimizationAlgorithm,
-    MinimizationAlgorithmOption,
-)
-from quara.loss_function.probability_based_loss_function import (
-    ProbabilityBasedLossFunction,
-    ProbabilityBasedLossFunctionOption,
-)
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
-from quara.protocol.qtomography.standard.loss_minimization_estimator import (
-    LossMinimizationEstimator,
-)
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
@@ -35,6 +21,7 @@ from quara.simulation.standard_qtomography_simulation import (
     StandardQTomographySimulationSetting,
 )
 from quara.utils import matrix_util
+from quara.protocol.qtomography.estimator import EstimationResult
 
 
 def calc_mse_general_norm(
@@ -266,11 +253,7 @@ def make_mses_graph(
                 visible=True,
             )
         trace = go.Scatter(
-            x=num_data,
-            y=mse,
-            mode="lines+markers",
-            name=names[i],
-            error_y=error_y,
+            x=num_data, y=mse, mode="lines+markers", name=names[i], error_y=error_y,
         )
         data.append(trace)
     if additional_title_text:
@@ -388,9 +371,7 @@ def _make_data_for_graphs_mses_analytical(
         else:
             estimator_name = estimator_list[i].__class__.__name__
         qtomo_type = QTomoType(
-            qtomo.__class__.__name__,
-            qtomo.on_para_eq_constraint,
-            estimator_name,
+            qtomo.__class__.__name__, qtomo.on_para_eq_constraint, estimator_name,
         )
         qtomo_type_dict[qtomo_type] = qtomo
 
