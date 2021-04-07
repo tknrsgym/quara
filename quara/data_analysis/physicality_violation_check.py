@@ -1,5 +1,5 @@
 import warnings
-from typing import List, Tuple, Dict, Any, Union, Optional
+from typing import List, Tuple, Dict, Union, Optional
 from collections import defaultdict, Counter
 
 import plotly.graph_objects as go
@@ -55,8 +55,7 @@ def get_sorted_eigenvalues_list(
     elif qobject_type == Povm:
         raise NotImplementedError()
     elif qobject_type == Gate:
-        # TODO: function name
-        sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_qobjects)
+        sorted_eigenvalues_list = _get_sorted_eigenvalue_for_gate(estimated_qobjects)
     else:
         message = f"estimated_qobjects must be a list of State, Povm, or Gate, not {qobject_type}"
         raise TypeError(message)
@@ -136,7 +135,7 @@ def get_trace_list(estimated_state_list: List["State"],) -> List[float]:
     return trace_list
 
 
-def get_sum_vecs(estimated_povms: List["Povm"]) -> np.array:
+def get_sum_vecs(estimated_povms: List["Povm"]) -> np.ndarray:
     sum_vecs = None
 
     for est in tqdm(estimated_povms):
@@ -235,7 +234,7 @@ def make_prob_dist_histogram(
 
 # Common
 def make_prob_dist_histograms(
-    values_set: np.array, bin_size: int, x_range: Optional[tuple] = None
+    values_set: np.ndarray, bin_size: int, x_range: Optional[tuple] = None
 ) -> "Figure":
     if x_range:
         x_start, x_end = x_range
@@ -345,9 +344,6 @@ def make_graphs_sum_unphysical_eigenvalues(
         figs = _make_graphs_sum_unphysical_eigenvalues(
             estimated_qoperations, n_data, bin_size, expected_values=(0, dim)
         )
-    else:
-        # TODO: message
-        raise TypeError()
     return figs
 
 
@@ -438,7 +434,7 @@ def _make_graphs_eigenvalues_state(
 
 def get_sorted_eigenvalues_list_povm(
     estimated_povms: List[Povm],
-) -> Dict[int, np.array]:
+) -> Dict[int, np.ndarray]:
     eigenvalues_dict = defaultdict(lambda: [])
 
     for est in tqdm(estimated_povms):
@@ -446,7 +442,7 @@ def get_sorted_eigenvalues_list_povm(
 
         # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
         sorted_eigenvalues = []
-        for eigs in eigenvalues:  # 各測定値の固有値
+        for eigs in eigenvalues:
             eigs = sorted(eigs, reverse=True)
             eigs_real = [eig.real for eig in eigs]
             sorted_eigenvalues.append(eigs_real)
@@ -496,7 +492,7 @@ def _make_graphs_eigenvalues_povm(
     return fig_list_list
 
 
-def get_sorted_eigenvalue_gate(gates: List[Gate]) -> list:
+def _get_sorted_eigenvalue_for_gate(gates: List[Gate]) -> list:
     sorted_eigenvalues_list = []
     for gate in gates:
         choi_matrix = gate.to_choi_matrix()
@@ -509,7 +505,7 @@ def get_sorted_eigenvalue_gate(gates: List[Gate]) -> list:
 def _make_graphs_eigenvalues_gate(
     estimated_gates: List[Gate], num_data: int, bin_size: float = 0.0001
 ):
-    sorted_eigenvalues_list = get_sorted_eigenvalue_gate(estimated_gates)
+    sorted_eigenvalues_list = _get_sorted_eigenvalue_for_gate(estimated_gates)
     sorted_eigenvalues_list = np.array(sorted_eigenvalues_list).T
 
     dim = estimated_gates[0].dim
