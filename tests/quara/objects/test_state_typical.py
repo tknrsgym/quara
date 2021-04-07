@@ -2,10 +2,15 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.matrix_basis import (
+    get_normalized_pauli_basis,
+    get_normalized_gell_mann_basis,
+)
+from quara.objects.state import State
 from quara.objects import state_typical as st
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.elemental_system import ElementalSystem
 
 
@@ -24,10 +29,12 @@ def test_generate_state_from_state_name_exception():
         _ = st.generate_state_pure_state_vector_from_name("x1_")
 
 
+@pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("state_name"), [(state_name) for state_name in st.get_state_names_1qubit()],
+    ("state_name"),
+    [(state_name) for state_name in st.get_state_names_1qubit()],
 )
-def test_get_object_from_name_1qubit(state_name):
+def test_generate_state_from_name_1qubit(state_name):
     # Arrange
     basis = get_normalized_pauli_basis()
     e_sys = ElementalSystem(0, basis)
@@ -76,6 +83,74 @@ def test_get_object_from_name_1qubit(state_name):
     )
     # Assert
     npt.assert_almost_equal(actual.vec, expected.vec)
+
+
+@pytest.mark.twoqubit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in st.get_state_names_2qubit()],
+)
+def test_generate_state_from_name_2qubit(state_name):
+    # Arrange
+    c_sys = generate_composite_system("qubit", 2)
+
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+
+    # Assert
+    # TODO implement various test cases
+    assert type(actual) == State
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in st.get_state_names_3qubit()],
+)
+def test_generate_state_from_name_3qubit(state_name):
+    # Arrange
+    c_sys = generate_composite_system("qubit", 3)
+
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+
+    # Assert
+    # TODO implement various test cases
+    assert type(actual) == State
+
+
+@pytest.mark.onequtrit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in st.get_state_names_1qutrit()],
+)
+def test_generate_state_from_name_1qutrit(state_name):
+    # Arrange
+    c_sys = generate_composite_system("qutrit", 1)
+
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+
+    # Assert
+    # TODO implement various test cases
+    assert type(actual) == State
+
+
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in st.get_state_names_2qutrit()],
+)
+def test_generate_state_from_name_2qutrit(state_name):
+    # Arrange
+    c_sys = generate_composite_system("qutrit", 2)
+
+    # Act
+    actual = st.generate_state_from_name(c_sys, state_name)
+
+    # Assert
+    # TODO implement various test cases
+    assert type(actual) == State
 
 
 def test_get_state_a_pure_state_vector():
@@ -159,7 +234,18 @@ def test_generate_state_pure_state_vector_from_name_3q():
 
     # |0>|+>|i>
     actual = st.generate_state_pure_state_vector_from_name("z0_x0_y0")
-    expected = np.array([1 / 2, 1j / 2, 1 / 2, 1j / 2, 0, 0, 0, 0,])
+    expected = np.array(
+        [
+            1 / 2,
+            1j / 2,
+            1 / 2,
+            1j / 2,
+            0,
+            0,
+            0,
+            0,
+        ]
+    )
     npt.assert_almost_equal(actual, expected)
 
     actual = st.generate_state_pure_state_vector_from_name("ghz")
@@ -331,4 +417,3 @@ def test_get_state_bell_2q():
     c_sys = CompositeSystem([e_sys2])
     with pytest.raises(ValueError):
         st.get_state_bell_2q(c_sys)
-
