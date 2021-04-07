@@ -7,26 +7,26 @@ from quara.protocol.qtomography.standard.standard_qtomography import StandardQTo
 
 
 class MinimizationResult:
-    def __init__(self, value: np.array, computation_time: float = None):
+    def __init__(self, value: np.ndarray, computation_time: float = None):
         """Constructor
 
         Parameters
         ----------
-        value : np.array
+        value : np.ndarray
             the result of the minimization.
         computation_time : float, optional
             computation time for the minimization, by default None
         """
-        self._value: np.array = value
+        self._value: np.ndarray = value
         self._computation_time: float = computation_time
 
     @property
-    def value(self) -> np.array:
+    def value(self) -> np.ndarray:
         """returns the result of the minimization.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the result of the minimization.
         """
         return self._value
@@ -48,7 +48,7 @@ class MinimizationAlgorithmOption:
         self,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
-        var_start: np.array = None,
+        var_start: np.ndarray = None,
     ):
         """Constructor
 
@@ -58,12 +58,12 @@ class MinimizationAlgorithmOption:
             whether this algorithm needs on algorithm equality constraint, by default True
         on_algo_ineq_constraint : bool, optional
             whether this algorithm needs on algorithm inequality constraint, by default True
-        var_start : np.array, optional
+        var_start : np.ndarray, optional
             initial variable for the algorithm, by default None.
         """
         self._on_algo_eq_constraint = on_algo_eq_constraint
         self._on_algo_ineq_constraint = on_algo_ineq_constraint
-        self._var_start: np.array = var_start
+        self._var_start: np.ndarray = var_start
 
     @property
     def on_algo_eq_constraint(self) -> bool:  # read only
@@ -88,12 +88,12 @@ class MinimizationAlgorithmOption:
         return self._on_algo_ineq_constraint
 
     @property
-    def var_start(self) -> np.array:
+    def var_start(self) -> np.ndarray:
         """returns initial variable for the algorithm.
 
         Returns
         -------
-        np.array
+        np.ndarray
             initial variable for the algorithm.
         """
         return self._var_start

@@ -11,7 +11,7 @@ class SimpleQuadraticLossFunctionOption(LossFunctionOption):
 
 
 class SimpleQuadraticLossFunction(LossFunction):
-    def __init__(self, var_ref: np.array):
+    def __init__(self, var_ref: np.ndarray):
         """Constructor
 
         this class has following properties.
@@ -21,14 +21,14 @@ class SimpleQuadraticLossFunction(LossFunction):
 
         Parameters
         ----------
-        var_ref : np.array
+        var_ref : np.ndarray
             variables
         """
         super().__init__(var_ref.size)
         self._on_value = True
         self._on_gradient = True
         self._on_hessian = True
-        self._var_ref: np.array = var_ref
+        self._var_ref: np.ndarray = var_ref
 
     def _update_on_value_true(self) -> bool:
         """validates and updates ``on_value`` to True.
@@ -54,15 +54,15 @@ class SimpleQuadraticLossFunction(LossFunction):
         self._set_on_hessian(True)
         return True
 
-    def value(self, var: np.array) -> np.float64:
+    def value(self, var: np.ndarray) -> np.float64:
         """returns the value of the loss function.
 
         the value of the loss function is ``|| var - var_ref ||^2_2``.
 
         Parameters
         ----------
-        var : np.array
-            np.array of variables.
+        var : np.ndarray
+            np.ndarray of variables.
 
         Returns
         -------
@@ -78,19 +78,19 @@ class SimpleQuadraticLossFunction(LossFunction):
         val = np.sum((var - self._var_ref) ** 2)
         return val
 
-    def gradient(self, var: np.array) -> np.array:
+    def gradient(self, var: np.ndarray) -> np.ndarray:
         """returns the gradient of the loss function.
 
         the value of the loss function is ``2 * (var - var_ref)``.
 
         Parameters
         ----------
-        var : np.array
-            np.array of variables.
+        var : np.ndarray
+            np.ndarray of variables.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the gradient of the loss function. dtype=np.float64
 
         Raises
@@ -102,19 +102,19 @@ class SimpleQuadraticLossFunction(LossFunction):
         val = 2 * (var - self._var_ref)
         return val
 
-    def hessian(self, var: np.array) -> np.array:
+    def hessian(self, var: np.ndarray) -> np.ndarray:
         """returns the Hessian of the loss function.
 
         the value of the loss function is ``2I``, where ``I`` is the identity matrix of size ``num_var``.
 
         Parameters
         ----------
-        var : np.array
-            np.array of variables.
+        var : np.ndarray
+            np.ndarray of variables.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the Hessian of the loss function. dtype=np.float64
 
         Raises

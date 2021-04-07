@@ -116,7 +116,7 @@ class StandardQpt(StandardQTomography):
 
     def generate_empi_dists_sequence(
         self, gate: Povm, num_sums: List[int]
-    ) -> List[List[Tuple[int, np.array]]]:
+    ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
 
         list_num_sums = [num_sums] * self._num_schedules
@@ -177,7 +177,7 @@ class StandardQpt(StandardQTomography):
         # for debugging and test
         self._C = np.array(c_list)
 
-    def convert_var_to_qoperation(self, var: np.array) -> Gate:
+    def convert_var_to_qoperation(self, var: np.ndarray) -> Gate:
         template = self._set_qoperations.gates[0]
         gate = template.generate_from_var(var=var)
         return gate

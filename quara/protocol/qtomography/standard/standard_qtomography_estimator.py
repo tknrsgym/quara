@@ -16,14 +16,14 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         self,
         qtomography: StandardQTomography,
         data,
-        estimated_var_sequence: List[np.array],
+        estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
         super().__init__(computation_times)
 
         self._qtomography: StandardQTomography = qtomography
         self._data = data
-        self._estimated_var_sequence: List[np.array] = estimated_var_sequence
+        self._estimated_var_sequence: List[np.ndarray] = estimated_var_sequence
 
     @property
     def qtomography(self) -> StandardQTomography:
@@ -48,23 +48,23 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         return self._data
 
     @property
-    def estimated_var(self) -> np.array:
-        """returns the estimate. the type of each estimate is ``np.array``.
+    def estimated_var(self) -> np.ndarray:
+        """returns the estimate. the type of each estimate is ``np.ndarray``.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the estimate.
         """
         return self._estimated_var_sequence[0]
 
     @property
-    def estimated_var_sequence(self) -> List[np.array]:
-        """returns the estimate sequence. the type of each estimate is ``np.array``.
+    def estimated_var_sequence(self) -> List[np.ndarray]:
+        """returns the estimate sequence. the type of each estimate is ``np.ndarray``.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             the estimate sequence.
         """
         return self._estimated_var_sequence
@@ -112,7 +112,7 @@ class StandardQTomographyEstimator(QTomographyEstimator):
     def calc_estimate(
         self,
         qtomography: StandardQTomography,
-        empi_dists: List[Tuple[int, np.array]],
+        empi_dists: List[Tuple[int, np.ndarray]],
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
         """calculates estimate variables.
@@ -122,9 +122,9 @@ class StandardQTomographyEstimator(QTomographyEstimator):
         Parameters
         ----------
         qtomography : StandardQTomography
-            StandardQTomography to calculates estimate variables. 
-        empi_dists : List[Tuple[int, np.array]]
-            empirical distributions to calculates estimate variables. 
+            StandardQTomography to calculates estimate variables.
+        empi_dists : List[Tuple[int, np.ndarray]]
+            empirical distributions to calculates estimate variables.
         is_computation_time_required : bool, optional
             whether to include computation time in the return value or not, by default False.
 
@@ -144,7 +144,7 @@ class StandardQTomographyEstimator(QTomographyEstimator):
     def calc_estimate_sequence(
         self,
         qtomography: StandardQTomography,
-        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+        empi_dists_sequence: List[List[Tuple[int, np.ndarray]]],
         is_computation_time_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
         """calculates sequence of estimate variables.
@@ -154,9 +154,9 @@ class StandardQTomographyEstimator(QTomographyEstimator):
         Parameters
         ----------
         qtomography : StandardQTomography
-            StandardQTomography to calculates estimate variables. 
-        empi_dists_sequence : List[List[Tuple[int, np.array]]]
-            sequence of empirical distributions to calculates estimate variables. 
+            StandardQTomography to calculates estimate variables.
+        empi_dists_sequence : List[List[Tuple[int, np.ndarray]]]
+            sequence of empirical distributions to calculates estimate variables.
         is_computation_time_required : bool, optional
             whether to include computation time in the return value or not, by default False.
 
