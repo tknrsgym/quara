@@ -125,10 +125,15 @@ def get_gate_names_1qutrit_single_gellmann() -> List[str]:
 def generate_gate_object_from_gate_name_object_name(
     gate_name: str,
     object_name: str,
-    dims: List[int] = [],
-    ids: List[int] = [],
+    dims: List[int] = None,
+    ids: List[int] = None,
     c_sys: CompositeSystem = None,
 ) -> Union[np.array, "Gate"]:
+    if dims is None:
+        dims = []
+    if ids is None:
+        ids = []
+
     if object_name == "unitary_mat":
         obj = generate_unitary_mat_from_gate_name(gate_name, dims, ids)
     elif object_name == "gate_mat":
@@ -183,7 +188,7 @@ def _dim_total_from_dims(dims: List[int]) -> int:
 
 
 def generate_unitary_mat_from_gate_name(
-    gate_name: str, dims: List[int] = [], ids: List[int] = []
+    gate_name: str, dims: List[int] = None, ids: List[int] = None
 ):
     """returns the unitary matrix of a gate.
 
@@ -203,6 +208,11 @@ def generate_unitary_mat_from_gate_name(
     np.array
         The unitary matrix of the gate, to be complex.
     """
+    if dims is None:
+        dims = []
+    if ids is None:
+        ids = []
+
     _is_valid_dims_ids(dims, ids)
     assert gate_name in get_gate_names()
 
@@ -249,7 +259,7 @@ def generate_unitary_mat_from_gate_name(
 
 
 def generate_gate_mat_from_gate_name(
-    gate_name: str, dims: List[int] = [], ids: List[int] = []
+    gate_name: str, dims: List[int] = None, ids: List[int] = None
 ) -> np.array:
     """returns the Hilbert-Schmidt representation matrix of a gate.
 
@@ -269,6 +279,11 @@ def generate_gate_mat_from_gate_name(
     np.array
         The HS matrix of the gate, to be real.
     """
+
+    if dims is None:
+        dims = []
+    if ids is None:
+        ids = []
 
     _is_valid_dims_ids(dims, ids)
     assert gate_name in get_gate_names()
@@ -318,7 +333,7 @@ def generate_gate_mat_from_gate_name(
 
 
 def generate_gate_from_gate_name(
-    gate_name: str, c_sys: CompositeSystem, ids: List[int] = []
+    gate_name: str, c_sys: CompositeSystem, ids: List[int] = None
 ) -> "Gate":
     """returns gate class.
 
@@ -338,6 +353,8 @@ def generate_gate_from_gate_name(
         The gate class for the input
     """
     assert gate_name in get_gate_names()
+    if ids is None:
+        ids = []
 
     if gate_name == "identity":
         method_name = "generate_gate_" + gate_name
@@ -2499,7 +2516,7 @@ def calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(
 
 
 def generate_gate_2qutrit_hamiltonian_mat_from_gate_name(
-    gate_name: str, ids: List[int] = []
+    gate_name: str, ids: List[int] = None
 ) -> np.array:
     """Return a Hamiltonian of a 2-qutrit gate for a given gate name.
 
@@ -2507,7 +2524,7 @@ def generate_gate_2qutrit_hamiltonian_mat_from_gate_name(
     ----------
     gate_name : str
 
-    ids: List[int] = [], Optional
+    ids: List[int] = None, Optional
         a list of elemental system ids, which specifies their roles such as control or target.
 
     Returns
@@ -2515,6 +2532,9 @@ def generate_gate_2qutrit_hamiltonian_mat_from_gate_name(
     np.array(shape=(9, 9), dtype=np.complex128)
     """
     assert gate_name in get_gate_names_2qutrit()
+
+    if ids is None:
+        ids = []
 
     if gate_name in get_gate_names_2qutrit_base_matrices():
         h = calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(gate_name)
