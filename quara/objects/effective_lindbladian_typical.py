@@ -1686,21 +1686,21 @@ def generate_effective_lindbladian_mat_for_hamiltonian_x() -> np.ndarray:
     """Return HS matrix of effective lindbladian for Hamiltonian X, which correspond to a linear map, f(A) := -i [ H, A ] with H = X """
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]]
     mat = np.array(l, dtype=np.float64)
-    return l
+    return mat
 
 
 def generate_effective_lindbladian_mat_for_hamiltonian_y() -> np.ndarray:
     """Return HS matrix of effective lindbladian for Hamiltonian Y, which correspond to a linear map, f(A) := -i [ H, A ] with H = Y """
     l = [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 0], [0, -2, 0, 0]]
     mat = np.array(l, dtype=np.float64)
-    return l
+    return mat
 
 
 def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.ndarray:
     """Return HS matrix of effective lindbladian for Hamiltonian Z, which correspond to a linear map, f(A) := -i [ H, A ] with H = Z """
     l = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
-    return l
+    return mat
 
 
 # HS matrices for commutator map and anti-commutator maps with 1-qubit Pauli matrix
