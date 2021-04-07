@@ -6,9 +6,6 @@ from typing import Tuple, Union
 import numpy as np
 from scipy.stats import unitary_group
 
-from quara.data_analysis.effective_lindbladian_generation_setting import (
-    EffectiveLindbladianGenerationSetting,
-)
 from quara.objects.effective_lindbladian import (
     EffectiveLindbladian,
     _calc_h_part_from_h_mat,
@@ -18,10 +15,13 @@ from quara.objects.effective_lindbladian import (
     _truncate_hs,
 )
 from quara.objects.gate import Gate, convert_hs
-from quara.objects.operators import composite
+from quara.objects.operators import compose_qoperations
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
+from quara.simulation.effective_lindbladian_generation_setting import (
+    EffectiveLindbladianGenerationSetting,
+)
 
 
 class RandomEffectiveLindbladianGenerationSetting(
@@ -230,7 +230,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_unitary,
             random_el,
         ) = self.generate_random_effective_lindbladian()
-        new_object = composite(el.to_gate(), self.qoperation_base)
+        new_object = compose_qoperations(el.to_gate(), self.qoperation_base)
         return (
             new_object,
             random_variables_h_part,
@@ -259,7 +259,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_unitary,
             random_el,
         ) = self.generate_random_effective_lindbladian()
-        new_object = composite(el.to_gate(), self.qoperation_base)
+        new_object = compose_qoperations(el.to_gate(), self.qoperation_base)
         return (
             new_object,
             random_variables_h_part,
@@ -288,7 +288,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_unitary,
             random_el,
         ) = self.generate_random_effective_lindbladian()
-        new_object = composite(self.qoperation_base, el.to_gate())
+        new_object = compose_qoperations(self.qoperation_base, el.to_gate())
         return (
             new_object,
             random_variables_h_part,

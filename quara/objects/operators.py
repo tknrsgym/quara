@@ -237,10 +237,10 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         )
 
 
-def composite(*elements) -> Union[Gate, Povm, State, List[float]]:
-    """calculates composite of ``elements``.
+def compose_qoperations(*elements) -> Union[Gate, Povm, State, List[float]]:
+    """calculates composition of qoperations.
 
-    this function can calculate composite of the following combinations of types:
+    this function can calculate composition of the following combinations of types:
 
     - (Gate, Gate) -> Gate
     - (Gate, State) -> State
@@ -250,8 +250,8 @@ def composite(*elements) -> Union[Gate, Povm, State, List[float]]:
 
     Returns
     -------
-    Union[Gate, State]
-        composite of ``elements``
+    Union[Gate, Povm, State, List[float]]
+        composition of qoperations.
 
     Raises
     ------
@@ -261,24 +261,24 @@ def composite(*elements) -> Union[Gate, Povm, State, List[float]]:
     # convert argument to list
     element_list = _to_list(*elements)
 
-    # recursively calculate composite(calculate from tail to head of list)
+    # recursively calculate composition(calculate from tail to head of list)
     temp = element_list[-1]
     for elem in reversed(element_list[:-1]):
-        temp = _composite(elem, temp)
+        temp = _compose_qoperations(elem, temp)
     return temp
 
 
-def _composite(elem1, elem2):
+def _compose_qoperations(elem1, elem2):
     # check CompositeSystem
     if elem1.composite_system != elem2.composite_system:
-        raise ValueError(f"Cannot composite different composite systems.")
+        raise ValueError(f"Cannot compose different composite systems.")
 
     # is_physicality_required
     is_physicality_required = (
         elem1.is_physicality_required and elem2.is_physicality_required
     )
 
-    # implement composite calculation for each type
+    # implement compose calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         # create Gate
         matrix = elem1.hs @ elem2.hs

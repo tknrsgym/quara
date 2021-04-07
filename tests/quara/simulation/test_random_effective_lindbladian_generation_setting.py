@@ -5,7 +5,7 @@ import numpy.testing as npt
 import pytest
 
 
-from quara.data_analysis.random_effective_lindbladian_generation_setting import (
+from quara.simulation.random_effective_lindbladian_generation_setting import (
     RandomEffectiveLindbladianGenerationSetting,
 )
 from quara.objects import matrix_basis
@@ -146,6 +146,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
 
         # Assert
         assert el.hs.shape == (4, 4)
+        assert el.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)
@@ -166,6 +167,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
             c_sys, qoperation_base, lindbladian_base, 1.0, 2.0
         )
 
+        ### generate_state
         # Act
         (
             state,
@@ -177,38 +179,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
 
         # Assert
         assert len(state.vec) == 4
-        assert len(random_variables_h_part) == 3
-        assert len(random_variables_k_part) == 3
-        assert random_unitary.shape == (3, 3)
-        uni = random_unitary @ random_unitary.T.conj()
-        npt.assert_almost_equal(uni, np.eye(3), decimal=15)
-        assert random_el.shape == (4, 4)
-
-    def test_generate_state(self):
-        # Arrange
-        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
-        c_sys = CompositeSystem([e_sys])
-        qoperation_base = get_z0_1q(c_sys)
-        hs = np.array(
-            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
-        )
-        lindbladian_base = EffectiveLindbladian(c_sys, hs)
-        generation_setting = RandomEffectiveLindbladianGenerationSetting(
-            c_sys, qoperation_base, lindbladian_base, 1.0, 2.0
-        )
-
-        ### generate_gate
-        # Act
-        (
-            state,
-            random_variables_h_part,
-            random_variables_k_part,
-            random_unitary,
-            random_el,
-        ) = generation_setting.generate_state()
-
-        # Assert
-        assert len(state.vec) == 4
+        assert state.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)
@@ -228,6 +199,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
 
         # Assert
         assert len(state.vec) == 4
+        assert state.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)
@@ -260,6 +232,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
 
         # Assert
         assert gate.hs.shape == (4, 4)
+        assert gate.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)
@@ -279,6 +252,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
 
         # Assert
         assert gate.hs.shape == (4, 4)
+        assert gate.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)
@@ -313,6 +287,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         assert len(povm.vecs) == 2
         assert len(povm.vecs[0]) == 4
         assert len(povm.vecs[1]) == 4
+        assert povm.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)
@@ -334,6 +309,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         assert len(povm.vecs) == 2
         assert len(povm.vecs[0]) == 4
         assert len(povm.vecs[1]) == 4
+        assert povm.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)

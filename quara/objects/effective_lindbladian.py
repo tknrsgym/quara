@@ -70,7 +70,7 @@ class EffectiveLindbladian(Gate):
             ``is_physicality_required`` is ``True`` and the gate is not physically correct.
         """
         # check the basis is a orthonormal Hermitian matrix basis with B_0 = I/sqrt(d)
-        if c_sys.is_orthonormal_hermitian_0thpropI == False:
+        if c_sys.is_orthonormal_hermitian_0thprop_identity == False:
             raise ValueError(
                 "basis is not a orthonormal Hermitian matrix basis and 0th prop I."
             )

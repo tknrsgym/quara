@@ -5,10 +5,10 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.probability_based_loss_function import (
+from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
 )
-from quara.data_analysis.weighted_probability_based_squared_error import (
+from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
 )
 from quara.objects.composite_system import CompositeSystem

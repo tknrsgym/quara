@@ -11,7 +11,7 @@ from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, convert_hs
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects import effective_lindbladian as el
-from quara.objects.operators import composite, tensor_product
+from quara.objects.operators import compose_qoperations, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
 from quara.settings import Settings
 
@@ -136,9 +136,7 @@ class TestEffectiveLindbladian:
         c_sys = CompositeSystem([e_sys])
         # k=I
         k_mat = np.eye(3, dtype=np.complex128)
-        lindbladian = el.generate_effective_lindbladian_from_k(
-            c_sys, k_mat, is_physicality_required=False
-        )
+        lindbladian = el.generate_effective_lindbladian_from_k(c_sys, k_mat)
 
         # mode_basis=default("hermitian_basis")
         actual = lindbladian.calc_k_part()
@@ -376,7 +374,7 @@ class TestEffectiveLindbladian:
 
         # hs=0
         hs = np.zeros((4, 4))
-        actual = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
+        actual = EffectiveLindbladian(c_sys, hs)
         assert actual.is_tp() == True
 
         # hs=I
@@ -390,9 +388,7 @@ class TestEffectiveLindbladian:
 
         # k=I
         k_mat = np.eye(3)
-        actual = el.generate_effective_lindbladian_from_k(
-            c_sys, k_mat, is_physicality_required=False
-        )
+        actual = el.generate_effective_lindbladian_from_k(c_sys, k_mat)
         assert actual.is_cp() == True
 
         # k=-I
@@ -405,7 +401,6 @@ class TestEffectiveLindbladian:
     def test_to_kraus_matrices(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        eye2 = np.eye(2, dtype=np.complex128)
 
         hs = np.array(
             [[1, 1, 0, 0], [1, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
@@ -423,7 +418,7 @@ class TestEffectiveLindbladian:
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         hs = np.zeros((4, 4), dtype=np.float64)
-        lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
+        lindbladian = EffectiveLindbladian(c_sys, hs)
 
         # Act
         actual = lindbladian.to_gate()
@@ -603,9 +598,7 @@ def test_generate_effective_lindbladian_from_hk():
     # h=I/sqrt(2), k=I
     h_mat = np.eye(2, dtype=np.complex128) / np.sqrt(2)
     k_mat = np.eye(3, dtype=np.complex128)
-    actual = el.generate_effective_lindbladian_from_hk(
-        c_sys, h_mat, k_mat, is_physicality_required=False
-    )
+    actual = el.generate_effective_lindbladian_from_hk(c_sys, h_mat, k_mat)
     expected = np.array(
         [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]], dtype=np.float64,
     )
@@ -624,9 +617,7 @@ def test_generate_effective_lindbladian_from_k():
 
     # k=I
     k_mat = np.eye(3, dtype=np.complex128)
-    actual = el.generate_effective_lindbladian_from_k(
-        c_sys, k_mat, is_physicality_required=False
-    )
+    actual = el.generate_effective_lindbladian_from_k(c_sys, k_mat)
     expected = np.array(
         [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]], dtype=np.float64,
     )
