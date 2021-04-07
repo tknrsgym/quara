@@ -1,5 +1,5 @@
 import time
-from typing import Callable, List, Optional, Union, Dict
+from typing import Callable, List, Optional, Union
 import copy
 from collections import namedtuple
 
@@ -25,19 +25,19 @@ from quara.protocol.qtomography.estimator import EstimationResult
 
 
 def calc_mse_general_norm(
-    xs: List[np.array],
-    y: np.array,
-    norm_function: Callable[[np.array, np.array], np.float64],
+    xs: List[np.ndarray],
+    y: np.ndarray,
+    norm_function: Callable[[np.ndarray, np.ndarray], np.float64],
 ) -> np.float64:
     """calculates mse(mean squared error) of ``xs`` and ``y`` according to ``norm_function``.
 
     Parameters
     ----------
-    xs : np.array
+    xs : np.ndarray
         sample values.
-    y : np.array
+    y : np.ndarray
         true value.
-    norm_function : Callable[[np.array, np.array], np.float64]
+    norm_function : Callable[[np.ndarray, np.ndarray], np.float64]
         norm function.
 
     Returns
@@ -54,19 +54,21 @@ def calc_mse_general_norm(
     return mse
 
 
-def calc_covariance_matrix_of_prob_dist(prob_dist: np.array, data_num: int) -> np.array:
+def calc_covariance_matrix_of_prob_dist(
+    prob_dist: np.ndarray, data_num: int
+) -> np.ndarray:
     """calculates covariance matrix of probability distribution.
 
     Parameters
     ----------
-    prob_dist : np.array
+    prob_dist : np.ndarray
         probability distribution.
     data_num : int
         number of data.
 
     Returns
     -------
-    np.array
+    np.ndarray
         covariance matrix = 1/N (diag(p) - p \cdot p^T), where N is ``data_num`` and p is ``prob_dist``.
     """
     matrix = np.diag(prob_dist) - np.array([prob_dist]).T @ np.array([prob_dist])
@@ -74,20 +76,20 @@ def calc_covariance_matrix_of_prob_dist(prob_dist: np.array, data_num: int) -> n
 
 
 def calc_covariance_matrix_of_prob_dists(
-    prob_dists: List[np.array], data_num: int
-) -> np.array:
+    prob_dists: List[np.ndarray], data_num: int
+) -> np.ndarray:
     """calculates covariance matrix of probability distributions(= direct product of each covariance matrix of probability distribution).
 
     Parameters
     ----------
-    prob_dists : List[np.array]
+    prob_dists : List[np.ndarray]
         probability distributions.
     data_num : int
         number of data.
 
     Returns
     -------
-    np.array
+    np.ndarray
         direct product of each covariance matrix = \oplus_j V(p^j), where V(p) is covariance matrix of p.
     """
     # calculate diagonal blocks
@@ -666,7 +668,9 @@ def show_average_computation_times(
     fig.show()
 
 
-def extract_empi_dists(results: List["EstimationResult"]) -> List[List[List[np.array]]]:
+def extract_empi_dists(
+    results: List["EstimationResult"],
+) -> List[List[List[np.ndarray]]]:
     converted = []
     num_data_len = len(results[0].data)  # num_dataの要素数
     n_rep = len(results)
@@ -675,7 +679,7 @@ def extract_empi_dists(results: List["EstimationResult"]) -> List[List[List[np.a
         for rep_index in tqdm(range(n_rep)):  # Nrepの数だけ回る
             result = results[rep_index]
             empi_dists = result.data[num_data_index]
-            # list of tuple -> list of np.array
+            # list of tuple -> list of np.ndarray
             converted_dists = [data[1] for data in empi_dists]
             converted_dists_seq.append(converted_dists)
         converted.append(converted_dists_seq)
