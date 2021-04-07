@@ -63,8 +63,8 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         func_prob_dists: List = None,
         func_gradient_prob_dists: List = None,
         func_hessian_prob_dists: List = None,
-        prob_dists_q: List[np.array] = None,
-        weight_matrices: List[np.array] = None,
+        prob_dists_q: List[np.ndarray] = None,
+        weight_matrices: List[np.ndarray] = None,
     ):
         """Constructor
 
@@ -72,15 +72,15 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         ----------
         num_var : int
             number of variables.
-        func_prob_dists : List[Callable[[np.array], np.array]], optional
+        func_prob_dists : List[Callable[[np.ndarray], np.ndarray]], optional
             functions map variables to a probability distribution.
-        func_gradient_prob_dists : List[Callable[[int, np.array], np.array]], optional
+        func_gradient_prob_dists : List[Callable[[int, np.ndarray], np.ndarray]], optional
             functions map variables and an index of variables to gradient of probability distributions.
-        func_hessian_prob_dists : List[Callable[[int, int, np.array], np.array]], optional
+        func_hessian_prob_dists : List[Callable[[int, int, np.ndarray], np.ndarray]], optional
             functions map variables and indices of variables to Hessian of probability distributions.
-        prob_dists_q : List[np.array], optional
+        prob_dists_q : List[np.ndarray], optional
             vectors of ``q``, by default None.
-        weight_matrices : List[np.array], optional
+        weight_matrices : List[np.ndarray], optional
             weight matrices, by default None
         """
         super().__init__(
@@ -100,7 +100,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         self._update_on_gradient_true()
         self._update_on_hessian_true()
 
-    def _validate_weight_matrices(self, weight_matrices: List[np.array]) -> None:
+    def _validate_weight_matrices(self, weight_matrices: List[np.ndarray]) -> None:
         if weight_matrices:
             for index, weight_matrix in enumerate(weight_matrices):
                 # weight_matrices are real matrices
@@ -116,29 +116,29 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
                     )
 
     @property
-    def weight_matrices(self) -> List[np.array]:
+    def weight_matrices(self) -> List[np.ndarray]:
         """returns weight matrices.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             weight matrices.
         """
         return self._weight_matrices
 
-    def set_weight_matrices(self, weight_matrices: List[np.array]) -> None:
+    def set_weight_matrices(self, weight_matrices: List[np.ndarray]) -> None:
         """sets weight matrices.
 
         Parameters
         ----------
-        weight_matrices : List[np.array]
+        weight_matrices : List[np.ndarray]
             weight matrices.
         """
         self._validate_weight_matrices(weight_matrices)
         self._weight_matrices = weight_matrices
 
     def _set_weights_by_mode(
-        self, mode_weight: str, data: List[Tuple[int, np.array]]
+        self, mode_weight: str, data: List[Tuple[int, np.ndarray]]
     ) -> None:
         if mode_weight == "identity":
             pass
@@ -214,7 +214,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
             self._set_on_hessian(True)
         return self.on_hessian
 
-    def value(self, var: np.array) -> np.float64:
+    def value(self, var: np.ndarray) -> np.float64:
         """returns the value of Weighted Probability Based Squared Error.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.value`
@@ -233,7 +233,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         val = np.sum(tmp_values)
         return val
 
-    def gradient(self, var: np.array) -> np.array:
+    def gradient(self, var: np.ndarray) -> np.ndarray:
         """returns the gradient of Weighted Probability Based Squared Error.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`

@@ -54,7 +54,7 @@ class StandardQTomography(QTomography):
         """
         return self._coeffs_0th[(schedule_index, x)]
 
-    def get_coeffs_0th_vec(self, schedule_index: int) -> np.array:
+    def get_coeffs_0th_vec(self, schedule_index: int) -> np.ndarray:
         """returns 0th coefficient vector specified by schedule index.
 
         Parameters
@@ -64,7 +64,7 @@ class StandardQTomography(QTomography):
 
         Returns
         -------
-        np.array( , dtype=np.float64)
+        np.ndarray( , dtype=np.float64)
             0th coefficients vector
         """
         l = []
@@ -74,7 +74,7 @@ class StandardQTomography(QTomography):
             l.append(coeffs_0th)
         return np.array(l, dtype=np.float64)
 
-    def get_coeffs_1st(self, schedule_index: int, x: int) -> np.array:
+    def get_coeffs_1st(self, schedule_index: int, x: int) -> np.ndarray:
         """returns 1st coefficients specified by schedule index and measurement outcome index
 
         Parameters
@@ -86,12 +86,12 @@ class StandardQTomography(QTomography):
 
         Returns
         -------
-        np.array
+        np.ndarray
             1st coefficients.
         """
         return self._coeffs_1st[(schedule_index, x)]
 
-    def get_coeffs_1st_mat(self, schedule_index: int) -> np.array:
+    def get_coeffs_1st_mat(self, schedule_index: int) -> np.ndarray:
         """returns 1st coefficient matrix specified by schedule index.
 
         Parameters
@@ -101,7 +101,7 @@ class StandardQTomography(QTomography):
 
         Returns
         -------
-        np.array
+        np.ndarray
             1st coefficient matrix.
         """
         ll = []
@@ -111,14 +111,14 @@ class StandardQTomography(QTomography):
             ll.append(coeffs_1st)
         return np.stack(ll)
 
-    def calc_matA(self) -> np.array:
+    def calc_matA(self) -> np.ndarray:
         """returns the matrix A.
 
         the matrix A is a stack of 1st coefficients.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the matrix A.
         """
         sorted_coeffs_1st = sorted(self._coeffs_1st.items())
@@ -126,14 +126,14 @@ class StandardQTomography(QTomography):
         matA = np.vstack(sorted_values)
         return matA
 
-    def calc_vecB(self) -> np.array:
+    def calc_vecB(self) -> np.ndarray:
         """returns the vector B.
 
         the vector B is a stack of 0th coefficients.
 
         Returns
         -------
-        np.array
+        np.ndarray
             the vector B.
         """
         sorted_coeffs_0th = sorted(self._coeffs_0th.items())
@@ -170,14 +170,14 @@ class StandardQTomography(QTomography):
         raise NotImplementedError()
 
     @abstractmethod
-    def convert_var_to_qoperation(self, var: np.array) -> QOperation:
+    def convert_var_to_qoperation(self, var: np.ndarray) -> QOperation:
         """converts variable to QOperation.
 
         this function must be implemented in the subclass.
 
         Parameters
         ----------
-        var : np.array
+        var : np.ndarray
             variables.
 
         Returns
@@ -228,7 +228,7 @@ class StandardQTomography(QTomography):
 
     def calc_covariance_mat_single(
         self, qope: QOperation, schedule_index: int, data_num: int
-    ) -> np.array:
+    ) -> np.ndarray:
         """calculates covariance matrix of single probability distribution.
 
         Parameters
@@ -242,7 +242,7 @@ class StandardQTomography(QTomography):
 
         Returns
         -------
-        np.array
+        np.ndarray
             covariance matrix of single probability distribution.
         """
         prob_dist = self.calc_prob_dist(qope, schedule_index)
@@ -251,7 +251,7 @@ class StandardQTomography(QTomography):
 
     def calc_covariance_mat_total(
         self, qope: QOperation, data_num_list: List[int]
-    ) -> np.array:
+    ) -> np.ndarray:
         """calculates covariance matrix of total probability distributions.
 
         Parameters
@@ -263,7 +263,7 @@ class StandardQTomography(QTomography):
 
         Returns
         -------
-        np.array
+        np.ndarray
             covariance matrix of total probability distributions.
         """
         matrices = []
@@ -278,7 +278,7 @@ class StandardQTomography(QTomography):
 
     def calc_covariance_linear_mat_total(
         self, qope: QOperation, data_num_list: List[int]
-    ) -> np.array:
+    ) -> np.ndarray:
         """calculates covariance matrix of linear estimate of probability distributions.
 
         Parameters
@@ -290,7 +290,7 @@ class StandardQTomography(QTomography):
 
         Returns
         -------
-        np.array
+        np.ndarray
             covariance matrix of linear estimate of probability distributions.
         """
         A_inv = matrix_util.calc_left_inv(self.calc_matA())
@@ -362,19 +362,21 @@ class StandardQTomography(QTomography):
             )
         return mse_total
 
-    def calc_fisher_matrix(self, j: int, var: Union[QOperation, np.array]) -> np.array:
+    def calc_fisher_matrix(
+        self, j: int, var: Union[QOperation, np.ndarray]
+    ) -> np.ndarray:
         """calculates Fisher matrix of one schedule.
 
         Parameters
         ----------
         j : int
             schedule_index
-        var : Union[QOperation, np.array]
+        var : Union[QOperation, np.ndarray]
             variables to calculate Fisher matrix of one schedule.
 
         Returns
         -------
-        np.array
+        np.ndarray
             Fisher matrix of one schedule.
         """
         if isinstance(var, QOperation):
@@ -393,20 +395,20 @@ class StandardQTomography(QTomography):
         return fisher_matrix
 
     def calc_fisher_matrix_total(
-        self, var: Union[QOperation, np.array], weights: List[float]
-    ) -> np.array:
+        self, var: Union[QOperation, np.ndarray], weights: List[float]
+    ) -> np.ndarray:
         """calculates Fisher matrix of the total schedule.
 
         Parameters
         ----------
-        var : Union[QOperation, np.array]
+        var : Union[QOperation, np.ndarray]
             variables to calculate Fisher matrix of one schedule.
         weights : List[float]
             weights to calculate Fisher matrix of one schedule.
 
         Returns
         -------
-        np.array
+        np.ndarray
             Fisher matrix of the total schedule.
         """
         fisher_matrices = []
@@ -417,13 +419,13 @@ class StandardQTomography(QTomography):
         return sum(fisher_matrices)
 
     def calc_cramer_rao_bound(
-        self, var: Union[QOperation, np.array], N: int, list_N: List[int]
-    ) -> np.array:
+        self, var: Union[QOperation, np.ndarray], N: int, list_N: List[int]
+    ) -> np.ndarray:
         """calculates Cramer-Rao bound.
 
         Parameters
         ----------
-        var : Union[QOperation, np.array]
+        var : Union[QOperation, np.ndarray]
             variables to calculate Cramer-Rao bound.
         N : int
             representative value of the number of data.
@@ -432,14 +434,14 @@ class StandardQTomography(QTomography):
 
         Returns
         -------
-        np.array
+        np.ndarray
             Cramer-Rao bound.
         """
         return self._calc_cramer_rao_bound(var, N, list_N)
 
     def _calc_cramer_rao_bound(
-        self, var: Union[QOperation, np.array], N: int, list_N: List[int]
-    ) -> np.array:
+        self, var: Union[QOperation, np.ndarray], N: int, list_N: List[int]
+    ) -> np.ndarray:
         weights = [tmp_N / N for tmp_N in list_N]
         fisher = self.calc_fisher_matrix_total(var, weights)
         val = np.trace(np.linalg.inv(fisher)) / N
@@ -455,7 +457,7 @@ class StandardQTomography(QTomography):
 
     def generate_prob_dists_sequence(
         self, true_object: QOperation
-    ) -> List[List[Tuple[int, np.array]]]:
+    ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
         attribute_name = (
             self.__class__._estimated_qoperation_type.__name__.lower() + "s"

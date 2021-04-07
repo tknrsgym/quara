@@ -10,7 +10,9 @@ from quara.qcircuit.experiment import Experiment
 
 class QTomography:
     def __init__(
-        self, experiment: Experiment, set_qoperations: SetQOperations,
+        self,
+        experiment: Experiment,
+        set_qoperations: SetQOperations,
     ):
         """initialize quantum tomography class.
 
@@ -146,7 +148,7 @@ class QTomography:
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             a probability distribution.
 
         Raises
@@ -169,7 +171,7 @@ class QTomography:
 
         Returns
         -------
-        List[List[np.array]]
+        List[List[np.ndarray]]
             probability distributions.
 
         Raises
@@ -180,7 +182,7 @@ class QTomography:
         raise NotImplementedError()
 
     @abstractmethod
-    def generate_dataset(self, data_nums: List[int]) -> List[List[np.array]]:
+    def generate_dataset(self, data_nums: List[int]) -> List[List[np.ndarray]]:
         """Run all the schedules to caluclate the probability distribution and generate random data.
 
         this function must be implemented in the subclass.
@@ -192,7 +194,7 @@ class QTomography:
 
         Returns
         -------
-        List[List[np.array]]
+        List[List[np.ndarray]]
             Generated dataset.
 
         Raises
@@ -205,7 +207,7 @@ class QTomography:
     @abstractmethod
     def generate_empi_dists(
         self, qoperation: QOperation, num_sum: int
-    ) -> List[Tuple[int, np.array]]:
+    ) -> List[Tuple[int, np.ndarray]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
         this function must be implemented in the subclass.
@@ -219,7 +221,7 @@ class QTomography:
 
         Returns
         -------
-        List[Tuple[int, np.array]]
+        List[Tuple[int, np.ndarray]]
             A list of tuples for the number of data and experience distributions for each schedules.
 
         Raises

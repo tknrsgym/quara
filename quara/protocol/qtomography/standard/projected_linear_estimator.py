@@ -16,17 +16,21 @@ class ProjectedLinearEstimationResult(LinearEstimationResult):
         self,
         qtomography: StandardQTomography,
         data,
-        estimated_var_sequence: List[np.array],
+        estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
         super().__init__(
-            qtomography, data, estimated_var_sequence, computation_times,
+            qtomography,
+            data,
+            estimated_var_sequence,
+            computation_times,
         )
 
 
 class ProjectedLinearEstimator(LinearEstimator):
     def __init__(
-        self, mode_proj_order: str = "eq_ineq",
+        self,
+        mode_proj_order: str = "eq_ineq",
     ):
         super().__init__()
 
@@ -48,7 +52,7 @@ class ProjectedLinearEstimator(LinearEstimator):
     def calc_estimate(
         self,
         qtomography: StandardQTomography,
-        empi_dists: List[Tuple[int, np.array]],
+        empi_dists: List[Tuple[int, np.ndarray]],
         is_computation_time_required: bool = False,
     ) -> LinearEstimationResult:
         """calculates estimate variables.
@@ -66,7 +70,7 @@ class ProjectedLinearEstimator(LinearEstimator):
     def calc_estimate_sequence(
         self,
         qtomography: StandardQTomography,
-        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+        empi_dists_sequence: List[List[Tuple[int, np.ndarray]]],
         is_computation_time_required: bool = False,
     ) -> LinearEstimationResult:
         """calculates sequence of estimate variables.

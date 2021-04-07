@@ -18,20 +18,20 @@ from quara.settings import Settings
 class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
     def __init__(
         self,
-        value: np.array,
+        value: np.ndarray,
         computation_time: float = None,
         k: int = None,
-        fx: List[np.array] = None,
-        x: List[np.array] = None,
-        y: List[np.array] = None,
+        fx: List[np.ndarray] = None,
+        x: List[np.ndarray] = None,
+        y: List[np.ndarray] = None,
         alpha: List[float] = None,
         error_values: List[float] = None,
     ):
         super().__init__(value, computation_time)
         self._k: int = k
-        self._fx: List[np.array] = fx
-        self._x: List[np.array] = x
-        self._y: List[np.array] = y
+        self._fx: List[np.ndarray] = fx
+        self._x: List[np.ndarray] = x
+        self._y: List[np.ndarray] = y
         self._alpha: List[float] = alpha
         self._error_values: List[float] = error_values
 
@@ -47,56 +47,56 @@ class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
         return self._k
 
     @property
-    def fx(self) -> List[np.array]:
+    def fx(self) -> List[np.ndarray]:
         """return the value of f(x) per iteration.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             the value of f(x) per iteration.
         """
         return self._fx
 
     @property
-    def x(self) -> List[np.array]:
+    def x(self) -> List[np.ndarray]:
         """return the x per iteration.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             the x per iteration.
         """
         return self._x
 
     @property
-    def y(self) -> List[np.array]:
+    def y(self) -> List[np.ndarray]:
         """return the y per iteration.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             the y per iteration.
         """
         return self._y
 
     @property
-    def alpha(self) -> List[np.array]:
+    def alpha(self) -> List[np.ndarray]:
         """return the alpha per iteration.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             the alpha per iteration.
         """
         return self._alpha
 
     @property
-    def error_values(self) -> List[np.array]:
+    def error_values(self) -> List[np.ndarray]:
         """return the error_values per iteration.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             the error_values per iteration.
         """
         return self._error_values
@@ -107,7 +107,7 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         self,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
-        var_start: np.array = None,
+        var_start: np.ndarray = None,
         mu: float = None,
         gamma: float = 0.3,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
@@ -123,7 +123,7 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
             whether this algorithm needs on algorithm equality constraint, by default True
         on_algo_ineq_constraint : bool, optional
             whether this algorithm needs on algorithm inequality constraint, by default True
-        var_start : np.array, optional
+        var_start : np.ndarray, optional
             initial variable for the algorithm, by default None
         mu : float, optional
             algorithm option ``mu``, by default None
@@ -252,27 +252,27 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
 
 
 class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
-    def __init__(self, func_proj: Callable[[np.array], np.array] = None):
+    def __init__(self, func_proj: Callable[[np.ndarray], np.ndarray] = None):
         """Constructor
 
         Parameters
         ----------
-        func_proj : Callable[[np.array], np.array], optional
+        func_proj : Callable[[np.ndarray], np.ndarray], optional
             function of projection, by default None
         """
         super().__init__()
-        self._func_proj: Callable[[np.array], np.array] = func_proj
+        self._func_proj: Callable[[np.ndarray], np.ndarray] = func_proj
         self._is_gradient_required: bool = True
         self._is_hessian_required: bool = False
         self._qt: StandardQTomography = None
 
     @property
-    def func_proj(self) -> Callable[[np.array], np.array]:
+    def func_proj(self) -> Callable[[np.ndarray], np.ndarray]:
         """returns function of projection.
 
         Returns
         -------
-        Callable[[np.array], np.array]
+        Callable[[np.ndarray], np.ndarray]
             function of projection.
         """
         return self._func_proj
@@ -407,9 +407,9 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
         Raises
         ------
         ValueError
-            when ``on_value`` of ``loss_function`` is False. 
+            when ``on_value`` of ``loss_function`` is False.
         ValueError
-            when ``on_gradient`` of ``loss_function`` is False. 
+            when ``on_gradient`` of ``loss_function`` is False.
         """
         if loss_function.on_value == False:
             raise ValueError(
@@ -529,8 +529,8 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
 
     def _is_doing_for_alpha(
         self,
-        x_prev: np.array,
-        y_prev: np.array,
+        x_prev: np.ndarray,
+        y_prev: np.ndarray,
         alpha: float,
         gamma: float,
         loss_function: LossFunction,

@@ -61,7 +61,7 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
         return False
 
 
-def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.array:
+def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.ndarray:
     """calculates partial trace ``Tr_1[X \otimes Y] := Tr[X]Y``.
 
     Parameters
@@ -73,7 +73,7 @@ def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         partial trace.
     """
     # split input matrix to diagonal blocks
@@ -160,14 +160,14 @@ def truncate_computational_fluctuation(
 
 
 def truncate_hs(
-    hs: np.array,
+    hs: np.ndarray,
     eps_proj_physical: float = None,
     is_zero_imaginary_part_required: bool = True,
-) -> np.array:
+) -> np.ndarray:
     """truncate HS matrix to a real matrix.
     Parameters
     ----------
-    hs : np.array
+    hs : np.ndarray
         HS matrix to truncate.
     eps_proj_physical : float, optional
         threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
@@ -176,7 +176,7 @@ def truncate_hs(
 
     Returns
     -------
-    np.array
+    np.ndarray
         truncated real matrix.
 
     Raises
@@ -198,15 +198,15 @@ def truncate_hs(
     return truncated_hs
 
 
-def calc_se(xs: List[np.array], ys: List[np.array]) -> np.float64:
+def calc_se(xs: List[np.ndarray], ys: List[np.ndarray]) -> np.float64:
     """calculates Squared Error of ``xs`` and ``ys``.
 
     Parameters
     ----------
-    xs : List[np.array]
-        a list of array.
-    ys : List[np.array]
-        a list of array.
+    xs : List[np.ndarray]
+        a list of ndarray.
+    ys : List[np.ndarray]
+        a list of ndarray.
 
     Returns
     -------
@@ -223,7 +223,7 @@ def calc_se(xs: List[np.array], ys: List[np.array]) -> np.float64:
 
 
 def calc_mse_prob_dists(
-    xs_list: List[List[np.array]], ys_list: List[List[np.array]]
+    xs_list: List[List[np.ndarray]], ys_list: List[List[np.ndarray]]
 ) -> np.float64:
     """calculates MSE(Mean Squared Error) of 'list of xs' and 'list of ys'.
 
@@ -232,10 +232,10 @@ def calc_mse_prob_dists(
 
     Parameters
     ----------
-    xs_list : List[List[np.array]]
-        a list of list of array.
-    ys_list : List[List[np.array]]
-        a list of list of array.
+    xs_list : List[List[np.ndarray]]
+        a list of list of ndarray.
+    ys_list : List[List[np.ndarray]]
+        a list of list of ndarray.
 
     Returns
     -------
@@ -251,37 +251,37 @@ def calc_mse_prob_dists(
     return mse, std
 
 
-def calc_covariance_mat(q: np.array, n: int) -> np.array:
+def calc_covariance_mat(q: np.ndarray, n: int) -> np.ndarray:
     """calculates covariance matrix of vector ``q``.
 
     Parameters
     ----------
-    q : np.array
+    q : np.ndarray
         vector.
     n : int
         number of data.
 
     Returns
     -------
-    np.array
+    np.ndarray
         covariance matrix = 1/n (diag(q) - q \cdot q^T)
     """
     mat = np.diag(q) - np.array([q]).T @ np.array([q])
     return mat / n
 
 
-def calc_covariance_mat_total(empi_dists: List[Tuple[int, np.array]]) -> np.array:
+def calc_covariance_mat_total(empi_dists: List[Tuple[int, np.ndarray]]) -> np.ndarray:
     """calculates covariance matrix of total empirical distributions.
 
     Parameters
     ----------
-    empi_dists : List[Tuple[int, np.array]]
+    empi_dists : List[Tuple[int, np.ndarray]]
         list of empirical distributions.
         each empirical distribution is a tuple of (data_num, empirical distribution).
 
     Returns
     -------
-    np.array
+    np.ndarray
         covariance matrix of total empirical distributions.
     """
     matrices = []
@@ -293,17 +293,17 @@ def calc_covariance_mat_total(empi_dists: List[Tuple[int, np.array]]) -> np.arra
     return val
 
 
-def calc_direct_sum(matrices: List[np.array]) -> np.array:
+def calc_direct_sum(matrices: List[np.ndarray]) -> np.ndarray:
     """calculates direct sum of matrices.
 
     Parameters
     ----------
-    matrices : List[np.array]
+    matrices : List[np.ndarray]
         matrices to calculate direct sum.
 
     Returns
     -------
-    np.array
+    np.ndarray
         direct sum.
 
     Raises
@@ -335,35 +335,35 @@ def calc_direct_sum(matrices: List[np.array]) -> np.array:
     return matrix
 
 
-def calc_conjugate(x: np.array, v: np.array) -> np.array:
+def calc_conjugate(x: np.ndarray, v: np.ndarray) -> np.ndarray:
     """calculates conjugate of matrices.
 
     Parameters
     ----------
-    x : np.array
+    x : np.ndarray
         parameter ``x``.
-    v : np.array
+    v : np.ndarray
         parameter ``v``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         x @ v @ x^T
     """
     return x @ v @ x.T
 
 
-def calc_left_inv(matrix: np.array) -> np.array:
+def calc_left_inv(matrix: np.ndarray) -> np.ndarray:
     """calculates left inverse matrix.
 
     Parameters
     ----------
-    matrix : np.array
+    matrix : np.ndarray
         matrix to calculate left inverse matrix.
 
     Returns
     -------
-    np.array
+    np.ndarray
         left inverse matrix.
 
     Raises
@@ -383,24 +383,24 @@ def calc_left_inv(matrix: np.array) -> np.array:
 
 
 def calc_fisher_matrix(
-    prob_dist: np.array, grad_prob_dist: List[np.array], eps: float = None
-) -> np.array:
+    prob_dist: np.ndarray, grad_prob_dist: List[np.ndarray], eps: float = None
+) -> np.ndarray:
     """calculates Fisher matrix.
 
     Parameters
     ----------
-    prob_dist : np.array
+    prob_dist : np.ndarray
         probability distribution.
-    grad_prob_dist : List[np.array]
+    grad_prob_dist : List[np.ndarray]
         list of gradient of probability distribution.
         the length of list is the size of probability distribution.
-        the size of np.array is the number of variables.
+        the size of np.ndarray is the number of variables.
     eps : float, optional
         a parameter to avoid divergence about the inverse of probability, by default 1e-8
 
     Returns
     -------
-    np.array
+    np.ndarray
         Fisher matrix.
 
     Raises
@@ -453,7 +453,7 @@ def calc_fisher_matrix(
     return matrix
 
 
-def replace_prob_dist(prob_dist: np.array, eps: float = None) -> np.array:
+def replace_prob_dist(prob_dist: np.ndarray, eps: float = None) -> np.ndarray:
     eps = eps if eps is not None else 1e-8
 
     size_prob_dist = prob_dist.shape[0]
@@ -472,18 +472,18 @@ def replace_prob_dist(prob_dist: np.array, eps: float = None) -> np.array:
 
 
 def calc_fisher_matrix_total(
-    prob_dists: List[np.array],
-    grad_prob_dists: List[List[np.array]],
+    prob_dists: List[np.ndarray],
+    grad_prob_dists: List[List[np.ndarray]],
     weights: List[float],
     eps: float = None,
-) -> np.array:
+) -> np.ndarray:
     """calculates total Fisher matrix.
 
     Parameters
     ----------
-    prob_dists : List[np.array]
+    prob_dists : List[np.ndarray]
         list of probability distribution.
-    grad_prob_dists : List[List[np.array]]
+    grad_prob_dists : List[List[np.ndarray]]
         list of list of gradient of probability distribution.
     weights : List[float]
         list of weight.
@@ -492,7 +492,7 @@ def calc_fisher_matrix_total(
 
     Returns
     -------
-    np.array
+    np.ndarray
         total Fisher matrix.
 
     Raises
@@ -537,7 +537,7 @@ def calc_fisher_matrix_total(
 
 
 def convert_list_by_permutation_matrix(
-    old_list: List, permutation_matrix: np.array
+    old_list: List, permutation_matrix: np.ndarray
 ) -> List:
     """converts list by permutation_matrix.
 
@@ -548,7 +548,7 @@ def convert_list_by_permutation_matrix(
     ----------
     old_list : List
         a list before permutation.
-    permutation_matrix : np.array
+    permutation_matrix : np.ndarray
         permutation_matrix to permutate a list.
 
     Returns
@@ -576,7 +576,7 @@ def _U(dim1, dim2, i, j):
     return matrix
 
 
-def _K(dim1: int, dim2: int) -> np.array:
+def _K(dim1: int, dim2: int) -> np.ndarray:
     matrix = np.zeros((dim1 * dim2, dim1 * dim2))
     for row in range(dim1):
         for col in range(dim2):
@@ -585,7 +585,7 @@ def _K(dim1: int, dim2: int) -> np.array:
     return matrix
 
 
-def _left_permutation_matrix(position: int, size_list: List[int]) -> np.array:
+def _left_permutation_matrix(position: int, size_list: List[int]) -> np.ndarray:
     # identity matrix for head of permutation matrix
     if position < 2:
         I_head = np.eye(1)
@@ -625,7 +625,9 @@ def _check_cross_system_position(
     return None
 
 
-def calc_permutation_matrix(system_order: List[int], size_list: List[int]) -> np.array:
+def calc_permutation_matrix(
+    system_order: List[int], size_list: List[int]
+) -> np.ndarray:
     """calculate permutation matrix.
 
     permutation matrix can reorder the system order to [0, 1,..., n].
@@ -639,7 +641,7 @@ def calc_permutation_matrix(system_order: List[int], size_list: List[int]) -> np
 
     Returns
     -------
-    np.array
+    np.ndarray
         permutation matrix.
     """
     tmp_system_order = copy.copy(system_order)
@@ -667,5 +669,5 @@ def calc_permutation_matrix(system_order: List[int], size_list: List[int]) -> np
     return perm_matrix
 
 
-def calc_mat_from_vector_adjoint(vec: np.array) -> np.array:
+def calc_mat_from_vector_adjoint(vec: np.ndarray) -> np.ndarray:
     return np.array([vec]).T @ np.array([vec]).conjugate()

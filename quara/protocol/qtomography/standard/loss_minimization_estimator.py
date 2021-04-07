@@ -23,7 +23,7 @@ class LossMinimizationEstimationResult(StandardQTomographyEstimationResult):
         self,
         qtomography: StandardQTomography,
         data,
-        estimated_var_sequence: List[np.array],
+        estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
         super().__init__(qtomography, data, estimated_var_sequence, computation_times)
@@ -36,7 +36,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
     def calc_estimate(
         self,
         qtomography: StandardQTomography,
-        empi_dists: List[Tuple[int, np.array]],
+        empi_dists: List[Tuple[int, np.ndarray]],
         loss: ProbabilityBasedLossFunction,
         loss_option: ProbabilityBasedLossFunctionOption,
         algo: MinimizationAlgorithm,
@@ -50,9 +50,9 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         Parameters
         ----------
         qtomography : StandardQTomography
-            StandardQTomography to calculates estimate variables. 
-        empi_dists : List[Tuple[int, np.array]]
-            empirical distributions to calculates estimate variables. 
+            StandardQTomography to calculates estimate variables.
+        empi_dists : List[Tuple[int, np.ndarray]]
+            empirical distributions to calculates estimate variables.
         loss : ProbabilityBasedLossFunction
             ProbabilityBasedLossFunction to calculates estimate variables.
         loss_option : ProbabilityBasedLossFunctionOption
@@ -95,7 +95,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
     def calc_estimate_sequence(
         self,
         qtomography: StandardQTomography,
-        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+        empi_dists_sequence: List[List[Tuple[int, np.ndarray]]],
         loss: ProbabilityBasedLossFunction,
         loss_option: ProbabilityBasedLossFunctionOption,
         algo: MinimizationAlgorithm,
@@ -109,8 +109,8 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         Parameters
         ----------
         qtomography : StandardQTomography
-            StandardQTomography to calculates estimate variables. 
-        empi_dists_sequence : List[List[Tuple[int, np.array]]]
+            StandardQTomography to calculates estimate variables.
+        empi_dists_sequence : List[List[Tuple[int, np.ndarray]]]
             sequence of empirical distributions to calculates estimate variables.
         loss : ProbabilityBasedLossFunction
             ProbabilityBasedLossFunction to calculates estimate variables.

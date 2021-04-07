@@ -16,7 +16,7 @@ class LinearEstimationResult(StandardQTomographyEstimationResult):
         self,
         qtomography: StandardQTomography,
         data,
-        estimated_var_sequence: List[np.array],
+        estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
         super().__init__(qtomography, data, estimated_var_sequence, computation_times)
@@ -29,7 +29,7 @@ class LinearEstimator(StandardQTomographyEstimator):
     def calc_estimate(
         self,
         qtomography: StandardQTomography,
-        empi_dists: List[Tuple[int, np.array]],
+        empi_dists: List[Tuple[int, np.ndarray]],
         is_computation_time_required: bool = False,
     ) -> LinearEstimationResult:
         """calculates estimate variables.
@@ -47,7 +47,7 @@ class LinearEstimator(StandardQTomographyEstimator):
     def calc_estimate_sequence(
         self,
         qtomography: StandardQTomography,
-        empi_dists_sequence: List[List[Tuple[int, np.array]]],
+        empi_dists_sequence: List[List[Tuple[int, np.ndarray]]],
         is_computation_time_required: bool = False,
     ) -> LinearEstimationResult:
         """calculates sequence of estimate variables.
@@ -79,6 +79,9 @@ class LinearEstimator(StandardQTomographyEstimator):
                 comp_time_sequence.append(comp_time)
 
         result = LinearEstimationResult(
-            qtomography, empi_dists_sequence, estimate_sequence, comp_time_sequence,
+            qtomography,
+            empi_dists_sequence,
+            estimate_sequence,
+            comp_time_sequence,
         )
         return result
