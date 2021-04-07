@@ -190,20 +190,20 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     tensor_vecs = [perm_matrix @ tensor_vec for tensor_vec in tensor_vecs]
 
     # permutate list of tensor vecs
-    num_outcomes = copy.copy(povm1.num_outcomes)
-    num_outcomes.extend(povm2.num_outcomes)
-    perm_matrix = matrix_util.calc_permutation_matrix(system_order, num_outcomes)
+    nums_local_outcomes = copy.copy(povm1.nums_local_outcomes)
+    nums_local_outcomes.extend(povm2.nums_local_outcomes)
+    perm_matrix = matrix_util.calc_permutation_matrix(system_order, nums_local_outcomes)
     tensor_vecs = matrix_util.convert_list_by_permutation_matrix(
         tensor_vecs, perm_matrix
     )
 
-    # permutate num_outcomes
+    # permutate nums_local_outcomes
     system_outcomes = [
         (system_name, num_outcome)
-        for system_name, num_outcome in zip(system_order, num_outcomes)
+        for system_name, num_outcome in zip(system_order, nums_local_outcomes)
     ]
     system_outcomes = sorted(system_outcomes, key=itemgetter(0))
-    new_num_outcomes = [system_outcome[1] for system_outcome in system_outcomes]
+    new_nums_local_outcomes = [system_outcome[1] for system_outcome in system_outcomes]
 
     # create Povm
     is_physicality_required = (
@@ -212,7 +212,7 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     tensor_povm = Povm(
         c_sys, tensor_vecs, is_physicality_required=is_physicality_required
     )
-    tensor_povm._num_outcomes = new_num_outcomes
+    tensor_povm._nums_local_outcomes = new_nums_local_outcomes
     return tensor_povm
 
 
