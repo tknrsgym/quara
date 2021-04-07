@@ -1,8 +1,5 @@
-from typing import List, Optional, Union
+from typing import List
 import copy
-from collections import Counter
-import dataclasses
-import pickle
 import time
 from pathlib import Path
 import json
@@ -22,7 +19,6 @@ from quara.simulation.standard_qtomography_simulation import (
     Result,
     StandardQTomographySimulationSetting,
 )
-from quara.simulation.generation_setting import QOperationGenerationSettings
 
 
 def execute_simulation_case_unit(
@@ -35,8 +31,7 @@ def execute_simulation_case_unit(
     root_dir: str,
 ) -> Result:
     # Generate QTomographySimulationSetting
-    sim_setting = sim.to_simulation_setting(
-        test_setting, true_object, tester_objects, case_index
+    sim_setting = test_setting.to_simulation_setting(true_object, tester_objects, case_index
     )
     print(f"Case {case_index}: {sim_setting.name}")
 
@@ -94,7 +89,7 @@ def execute_simulation_case_unit(
         check_result=check_result,
     )
     # Save
-    sim.write_result_case_unit(result, root_dir=root_dir)
+    write_result_case_unit(result, root_dir=root_dir)
     return result
 
 
@@ -132,7 +127,7 @@ def execute_simulation_sample_unit(
         results.append(result)
 
     # Save
-    sim.write_result_sample_unit(results, root_dir=root_dir)
+    write_result_sample_unit(results, root_dir=root_dir)
 
     # Save PDF
     if pdf_mode == "all":
@@ -154,7 +149,7 @@ def execute_simulation_sample_unit(
 def execute_simulation_test_setting_unit(
     test_setting, test_setting_index, root_dir, pdf_mode: str = "only_ng"
 ) -> List[Result]:
-    generation_settings = sim.to_generation_settings(test_setting)
+    generation_settings = test_setting.to_generation_settings()
     n_sample = test_setting.n_sample
     results = []
 
@@ -170,7 +165,7 @@ def execute_simulation_test_setting_unit(
         results += sample_results
 
     # Save
-    sim.write_result_test_setting_unit(results, root_dir)
+    write_result_test_setting_unit(results, root_dir)
     return results
 
 
@@ -181,14 +176,16 @@ def execute_simulation_test_settings(
     start = time.time()
 
     for test_setting_index, test_setting in enumerate(test_settings):
-        sim.write_setting(test_setting, root_dir, test_setting_index)
+        path = Path(root_dir) / str(test_setting_index) / "test_setting.pickle"
+        test_setting.to_pickle(path)
+        print(f"Completed to write test_setting. {path}")
         test_results = execute_simulation_test_setting_unit(
             test_setting, test_setting_index, root_dir, pdf_mode="only_ng"
         )
         all_results += test_results
 
     # Save
-    sim.write_results(all_results, root_dir)
+    write_results(all_results, root_dir)
 
     elapsed_time = time.time() - start
     _print_summary(all_results, elapsed_time)
@@ -197,9 +194,8 @@ def execute_simulation_test_settings(
 
 
 def _print_summary(results: List[Result], elapsed_time: float) -> None:
-    result_dict_list = [sim.result2dict(r) for r in results]
+    result_dict_list = [result.to_dict() for result in results]
     result_df = pd.DataFrame(result_dict_list)
-    case_n = result_df.shape[0]
     ok_n = result_df[result_df["total_result"]].shape[0]
     ng_n = result_df[~result_df["total_result"]].shape[0]
     warning_n = result_df[
@@ -227,6 +223,31 @@ def _print_summary(results: List[Result], elapsed_time: float) -> None:
 
     print(summary_text)
 
+# writer
+def write_results(results: List[Result], dir_path: str) -> None:
+    dir_path = Path(dir_path)
+    dir_path.mkdir(parents=True, exist_ok=True)
+    path = dir_path / "check_result.csv"
+
+    result_dict_list = [result.to_dict() for result in results]
+    sample_result_df = pd.DataFrame(result_dict_list)
+    sample_result_df.to_csv(path, index=None)
+
+    print(f"Completed to write csv. {path}")
+
+def write_result_sample_unit(results: List[Result], root_dir: str) -> None:
+    test_setting_index = results[0].result_index["test_setting_index"]
+    sample_index = results[0].result_index["sample_index"]
+    dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
+
+    write_results(results, dir_path)
+
+
+def write_result_test_setting_unit(results: List[Result], root_dir: str) -> None:
+    test_setting_index = results[0].result_index["test_setting_index"]
+    dir_path = Path(root_dir) / str(test_setting_index)
+
+    write_results(results, dir_path)
 
 def write_pdf_report(results: List[Result], root_dir: str) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
@@ -240,3 +261,18 @@ def write_pdf_report(results: List[Result], root_dir: str) -> None:
     sim_settings = [r.simulation_setting for r in results]
 
     report.export_report(path, estimation_results_list, sim_settings)
+
+def write_result_case_unit(result: Result, root_dir: str) -> None:
+    test_setting_index = result.result_index["test_setting_index"]
+    sample_index = result.result_index["sample_index"]
+    case_index = result.result_index["case_index"]
+
+    # Save all
+    dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
+    path = dir_path / f"case_{case_index}_result.pickle"
+    result.to_pickle(path)
+
+    check_result = result.check_result
+    path = dir_path / f"case_{case_index}_check_result.json"
+    with open(path, "w") as f:
+        json.dump(check_result, f, ensure_ascii=False, indent=4, separators=(",", ": "))
