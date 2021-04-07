@@ -53,7 +53,7 @@ def _U(dim1, dim2, i, j):
     return matrix
 
 
-def _K(dim1: int, dim2: int) -> np.array:
+def _K(dim1: int, dim2: int) -> np.ndarray:
     matrix = np.zeros((dim1 * dim2, dim1 * dim2))
     for row in range(dim1):
         for col in range(dim2):
@@ -64,7 +64,7 @@ def _K(dim1: int, dim2: int) -> np.array:
 
 def _permutation_matrix(
     position: int, dim_list: List[int]
-) -> Tuple[np.array, np.array]:
+) -> Tuple[np.ndarray, np.ndarray]:
     # identity matrix for head of permutation matrix
     if position < 2:
         I_head = np.eye(1)
@@ -245,7 +245,7 @@ def compose_qoperations(*elements) -> Union[Gate, Povm, State, List[float]]:
     - (Gate, Gate) -> Gate
     - (Gate, State) -> State
     - (Povm, Gate) -> Povm
-    - (Povm, State) -> List[np.array] dtype=np.float64(probability distribution)
+    - (Povm, State) -> List[np.ndarray] dtype=np.float64(probability distribution)
     - list conststs of these combinations
 
     Returns

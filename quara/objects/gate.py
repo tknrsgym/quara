@@ -145,14 +145,14 @@ class Gate(QOperation):
         new_hs[0][0] = 1
         return new_hs
 
-    def to_var(self) -> np.array:
+    def to_var(self) -> np.ndarray:
         return convert_gate_to_var(
             c_sys=self.composite_system,
             hs=self.hs,
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
 
-    def to_stacked_vector(self) -> np.array:
+    def to_stacked_vector(self) -> np.ndarray:
         return self.hs.flatten()
 
     def calc_gradient(self, var_index: int) -> "Gate":
@@ -212,11 +212,11 @@ class Gate(QOperation):
 
         return new_gate
 
-    def _add_vec(self, other) -> np.array:
+    def _add_vec(self, other) -> np.ndarray:
         new_hs = self.hs + other.hs
         return new_hs
 
-    def _sub_vec(self, other) -> np.array:
+    def _sub_vec(self, other) -> np.ndarray:
         new_hs = self.hs - other.hs
         return new_hs
 
@@ -300,7 +300,7 @@ class Gate(QOperation):
         # "A is CP"  <=> "C(A) >= 0"
         return mutil.is_positive_semidefinite(self.to_choi_matrix(), atol=atol)
 
-    def convert_basis(self, other_basis: MatrixBasis) -> np.array:
+    def convert_basis(self, other_basis: MatrixBasis) -> np.ndarray:
         """returns HS representation for ``other_basis``.
 
         Parameters
@@ -310,18 +310,18 @@ class Gate(QOperation):
 
         Returns
         -------
-        np.array
+        np.ndarray
             HS representation for ``other_basis``.
         """
         converted_hs = convert_hs(self.hs, self.composite_system.basis(), other_basis)
         return converted_hs
 
-    def convert_to_comp_basis(self) -> np.array:
+    def convert_to_comp_basis(self) -> np.ndarray:
         """returns HS representation for computational basis.
 
         Returns
         -------
-        np.array
+        np.ndarray
             HS representation for computational basis.
         """
         converted_hs = convert_hs(
@@ -329,12 +329,12 @@ class Gate(QOperation):
         )
         return converted_hs
 
-    def to_choi_matrix(self) -> np.array:
+    def to_choi_matrix(self) -> np.ndarray:
         """returns Choi matrix of gate.
 
         Returns
         -------
-        np.array
+        np.ndarray
             Choi matrix of gate.
         """
         # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
@@ -416,12 +416,12 @@ class Gate(QOperation):
                 kraus.append(k)
         return kraus
 
-    def to_process_matrix(self) -> np.array:
+    def to_process_matrix(self) -> np.ndarray:
         """returns process matrix of gate.
 
         Returns
         -------
-        np.array
+        np.ndarray
             process matrix of gate.
         """
         # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
@@ -440,7 +440,7 @@ class Gate(QOperation):
         return copy.deepcopy(self.hs)
 
 
-def hs_from_choi(choi, c_sys: CompositeSystem) -> np.array:
+def hs_from_choi(choi, c_sys: CompositeSystem) -> np.ndarray:
     basis_no = len(c_sys.basis().basis)
     hs = np.zeros((basis_no, basis_no), dtype=np.float64)
     basis = copy.deepcopy(c_sys.basis().basis)
@@ -569,7 +569,7 @@ def convert_var_to_gate(
 
 def convert_gate_to_var(
     c_sys: CompositeSystem, hs: np.ndarray, on_para_eq_constraint: bool = True
-) -> np.array:
+) -> np.ndarray:
     """converts hs of gate to vec of variables.
 
     Parameters
@@ -583,7 +583,7 @@ def convert_gate_to_var(
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of variables.
     """
     var = np.delete(hs, 0, axis=0).flatten() if on_para_eq_constraint else hs.flatten()
@@ -639,7 +639,7 @@ def calc_gradient_from_gate(
     return gate
 
 
-def is_hp(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
+def is_hp(hs: np.ndarray, basis: MatrixBasis, atol: float = None) -> bool:
     """returns whether gate is HP(Hermiticity-Preserving).
 
     HP <=> HS on Hermitian basis is real matrix.
@@ -647,7 +647,7 @@ def is_hp(hs: np.array, basis: MatrixBasis, atol: float = None) -> bool:
 
     Parameters
     ----------
-    hs : np.array
+    hs : np.ndarray
         HS representation of gate.
     basis : MatrixBasis
         basis of HS representation.
@@ -711,13 +711,13 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
 
 
 def convert_hs(
-    from_hs: np.array, from_basis: MatrixBasis, to_basis: MatrixBasis
-) -> np.array:
+    from_hs: np.ndarray, from_basis: MatrixBasis, to_basis: MatrixBasis
+) -> np.ndarray:
     """returns HS representation for ``to_basis``
 
     Parameters
     ----------
-    from_hs : np.array
+    from_hs : np.ndarray
         HS representation before convert.
     from_basis : MatrixBasis
         basis before convert.
@@ -726,7 +726,7 @@ def convert_hs(
 
     Returns
     -------
-    np.array
+    np.ndarray
         HS representation for ``to_basis``.
 
     Raises
@@ -777,7 +777,7 @@ def convert_hs(
 
 
 def _get_1q_gate_from_hs_on_pauli_basis(
-    matrix: np.array, c_sys: CompositeSystem
+    matrix: np.ndarray, c_sys: CompositeSystem
 ) -> Gate:
     # whether dim of CompositeSystem equals 2
     if c_sys.dim != 2:

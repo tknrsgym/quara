@@ -114,7 +114,7 @@ class State(QOperation):
 
         Returns
         -------
-        np.array
+        np.ndarray
             vec of this state.
         """
         return self._vec
@@ -137,8 +137,7 @@ class State(QOperation):
         return self.is_positive_semidefinite(atol)
 
     def set_zero(self):
-        """sets parameters to zero.
-        """
+        """sets parameters to zero."""
         self._vec = np.zeros(self._vec.shape, dtype=np.float64)
         self._is_physicality_required = False
 
@@ -169,12 +168,12 @@ class State(QOperation):
         with np.errstate(divide="ignore"):
             return self.vec / other
 
-    def to_var(self) -> np.array:
+    def to_var(self) -> np.ndarray:
         """converts State to variables.
 
         Returns
         -------
-        np.array
+        np.ndarray
             variable representation of State.
         """
         return convert_state_to_var(
@@ -183,12 +182,12 @@ class State(QOperation):
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
 
-    def to_stacked_vector(self) -> np.array:
+    def to_stacked_vector(self) -> np.ndarray:
         """converts State to stacked vector.
 
         Returns
         -------
-        np.array
+        np.ndarray
             stacked vector representation of State.
         """
         return self._vec
@@ -359,7 +358,7 @@ class State(QOperation):
         values = sorted(values, reverse=True)
         return values
 
-    def convert_basis(self, other_basis: MatrixBasis) -> np.array:
+    def convert_basis(self, other_basis: MatrixBasis) -> np.ndarray:
         """returns vector representation for ``other_basis``.
 
         Parameters
@@ -369,7 +368,7 @@ class State(QOperation):
 
         Returns
         -------
-        np.array
+        np.ndarray
             vector representation for ``other_basis``.
         """
         converted_vec = convert_vec(
@@ -467,7 +466,7 @@ def convert_var_to_state(
 
 def convert_state_to_var(
     c_sys: CompositeSystem, vec: np.ndarray, on_para_eq_constraint: bool = True
-) -> np.array:
+) -> np.ndarray:
     """converts vec of state to vec of variables.
 
     Parameters
@@ -481,7 +480,7 @@ def convert_state_to_var(
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of variables.
     """
     var = np.delete(vec, 0) if on_para_eq_constraint else vec
@@ -535,7 +534,7 @@ def calc_gradient_from_state(
     return state
 
 
-def get_x0_1q(c_sys: CompositeSystem) -> np.array:
+def get_x0_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``X_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -545,7 +544,7 @@ def get_x0_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -562,7 +561,7 @@ def get_x0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_x1_1q(c_sys: CompositeSystem) -> np.array:
+def get_x1_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``X_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -572,7 +571,7 @@ def get_x1_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -589,7 +588,7 @@ def get_x1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_y0_1q(c_sys: CompositeSystem) -> np.array:
+def get_y0_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Y_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -599,7 +598,7 @@ def get_y0_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -616,7 +615,7 @@ def get_y0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_y1_1q(c_sys: CompositeSystem) -> np.array:
+def get_y1_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Y_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -626,7 +625,7 @@ def get_y1_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -643,7 +642,7 @@ def get_y1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_z0_1q(c_sys: CompositeSystem) -> np.array:
+def get_z0_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Z_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -653,7 +652,7 @@ def get_z0_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -670,7 +669,7 @@ def get_z0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_z1_1q(c_sys: CompositeSystem) -> np.array:
+def get_z1_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Z_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -680,7 +679,7 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
