@@ -3,7 +3,7 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 
-from quara.data_analysis.loss_function import LossFunction, LossFunctionOption
+from quara.loss_function.loss_function import LossFunction, LossFunctionOption
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 
 

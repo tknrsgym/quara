@@ -3,8 +3,8 @@ from typing import Callable, List, Tuple
 
 import numpy as np
 
-from quara.data_analysis.loss_function import LossFunctionOption
-from quara.data_analysis.probability_based_loss_function import (
+from quara.loss_function.loss_function import LossFunctionOption
+from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )

@@ -44,6 +44,30 @@ def get_povm_names() -> List[str]:
     return names
 
 
+def get_povm_names_1qubit() -> List[str]:
+    """Return the list of valid povm names on 1-qubit system.
+
+    Returns
+    -------
+    List[str]
+        the list of valid povm names on 1-qubit system.
+    """
+    names = ["x", "y", "z"]
+    return names
+
+
+def get_povm_names_1qutrit() -> List[str]:
+    """Return the list of valid povm names on 1-qutrit system.
+
+    Returns
+    -------
+    List[str]
+        the list of valid povm names on 1-qutrit system.
+    """
+    names = ["01x3", "01y3", "z3", "z2", "02x3", "02y3", "12x3", "12y3"]
+    return names
+
+
 def get_povm_names_rank1() -> List[str]:
     """Return the list of valid povm names of rank 1.
 
@@ -59,9 +83,11 @@ def get_povm_names_rank1() -> List[str]:
         "bell",
         "z3",
         "01x3",
+        "01y3",
         "02x3",
-        "01z3",
-        "21y3",
+        "02y3",
+        "12x3",
+        "12y3",
     ]
     return names
 
@@ -151,11 +177,17 @@ def _generate_povm_pure_state_vectors_from_single_name(
         pure_state_vector_names = ["01z0", "01z1", "02z1"]
     elif povm_name == "01x3":
         pure_state_vector_names = ["01x0", "01x1", "02z1"]
+    elif povm_name == "01y3":
+        pure_state_vector_names = ["01y0", "01y1", "02z1"]
     elif povm_name == "02x3":
         pure_state_vector_names = ["02x0", "02x1", "01z1"]
+    elif povm_name == "02y3":
+        pure_state_vector_names = ["02y0", "02y1", "01z1"]
     elif povm_name == "01z3":
         pure_state_vector_names = ["01z0", "01z1", "02z1"]
-    elif povm_name == "21y3":
+    elif povm_name == "12x3":
+        pure_state_vector_names = ["12x0", "12x1", "01z0"]
+    elif povm_name == "12y3":
         pure_state_vector_names = ["12y0", "12y1", "01z0"]
 
     vectors = [

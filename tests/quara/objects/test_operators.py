@@ -24,10 +24,10 @@ from quara.objects.gate import (
     get_z,
 )
 from quara.objects.operators import (
-    _composite,
+    _compose_qoperations,
     _tensor_product,
     _to_list,
-    composite,
+    compose_qoperations,
     tensor_product,
 )
 from quara.objects.povm import (
@@ -651,9 +651,9 @@ def test_composite_error():
     c_sys1 = CompositeSystem([e_sys1])
     i_gate1 = get_i(c_sys1)
 
-    # error case: composite different composite systems
+    # error case: compose different composite systems
     with pytest.raises(ValueError):
-        composite(i_gate0, i_gate1)
+        compose_qoperations(i_gate0, i_gate1)
 
 
 def test_composite_unexpected_type():
@@ -667,10 +667,10 @@ def test_composite_unexpected_type():
     # Gate (x) State is OK, but State (x) Gate is NG
     with pytest.raises(TypeError):
         # TypeError: Unsupported type combination!
-        _ = _composite(state, z_gate)
+        _ = _compose_qoperations(state, z_gate)
 
 
-def test_composite_Gate_Gate():
+def test_compose_qoperations_Gate_Gate():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     i_gate = get_i(c_sys)
@@ -679,28 +679,28 @@ def test_composite_Gate_Gate():
     z_gate = get_z(c_sys)
 
     # X \circ X = I
-    actual = composite(x_gate, x_gate)
+    actual = compose_qoperations(x_gate, x_gate)
     expected = i_gate.hs
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     # X \circ Y = Z
-    actual = composite(x_gate, y_gate)
+    actual = compose_qoperations(x_gate, y_gate)
     expected = z_gate.hs
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     # X \circ X \circ X = X
-    actual = composite(x_gate, x_gate, x_gate)
+    actual = compose_qoperations(x_gate, x_gate, x_gate)
     expected = x_gate.hs
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     # assert associativity
     # (X \circ Y) \circ Z = X \circ (Y \circ Z)
-    xy_z = composite(composite(x_gate, y_gate), z_gate)
-    x_yz = composite(x_gate, composite(y_gate, z_gate))
+    xy_z = compose_qoperations(compose_qoperations(x_gate, y_gate), z_gate)
+    x_yz = compose_qoperations(x_gate, compose_qoperations(y_gate, z_gate))
     npt.assert_almost_equal(xy_z.hs, x_yz.hs, decimal=15)
 
 
-def test_composite_Gate_State():
+def test_compose_qoperations_Gate_State():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     z_gate = get_z(c_sys)
@@ -709,56 +709,56 @@ def test_composite_Gate_State():
 
     # case: Z gate \circ x0 state. Z|+><+|Z^{\dagger} = |-><-|
     state = get_x0_1q(c_sys)
-    actual = composite(z_gate, state)
+    actual = compose_qoperations(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.complex128)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: Z gate \circ x1 state. Z|-><-|Z^{\dagger} = |+><+|
     state = get_x1_1q(c_sys)
-    actual = composite(z_gate, state)
+    actual = compose_qoperations(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: Z gate \circ z0 state. Z|0><0|Z^{\dagger} = |0><0|
     state = get_z0_1q(c_sys)
-    actual = composite(z_gate, state)
+    actual = compose_qoperations(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: Z gate \circ z1 state. Z|1><1|Z^{\dagger} = |1><1|
     state = get_z1_1q(c_sys)
-    actual = composite(z_gate, state)
+    actual = compose_qoperations(z_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: S gate \circ S gate \circ z0 state. SS|0><0|S^{\dagger}S^{\dagger} = |0><0|
     # S = root(Z), hense SS = Z
     state = get_z0_1q(c_sys)
-    actual = composite(s_gate, s_gate, state)
+    actual = compose_qoperations(s_gate, s_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: H gate \circ z0 state. H|0><0|H^{\dagger} = 1/2(I+X)
     state = get_z0_1q(c_sys)
-    actual = composite(h_gate, state)
+    actual = compose_qoperations(h_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # case: H gate \circ z1 state. H|1><1|H^{\dagger} = 1/2(I-X)
     state = get_z1_1q(c_sys)
-    actual = composite(h_gate, state)
+    actual = compose_qoperations(h_gate, state)
     expected = 1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
     # assert associativity
     # (H \circ Z) \circ |1> = H \circ (Z \circ |1>)
     state = get_z1_1q(c_sys)
-    hz_1 = composite(composite(h_gate, z_gate), state)
-    h_z1 = composite(h_gate, composite(z_gate, state))
+    hz_1 = compose_qoperations(compose_qoperations(h_gate, z_gate), state)
+    h_z1 = compose_qoperations(h_gate, compose_qoperations(z_gate, state))
     npt.assert_almost_equal(hz_1.vec, h_z1.vec, decimal=15)
 
 
-def test_composite_Povm_Gate():
+def test_compose_qoperations_Povm_Gate():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     vecs = [
@@ -767,9 +767,9 @@ def test_composite_Povm_Gate():
     ]
     povm = Povm(c_sys, vecs)
 
-    # composite Z-measurement and X gate
+    # compose Z-measurement and X gate
     x_gate = get_x(c_sys)
-    actual = composite(povm, x_gate)
+    actual = compose_qoperations(povm, x_gate)
     expected = [
         1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
@@ -779,13 +779,13 @@ def test_composite_Povm_Gate():
     # assert associativity
     # (POVM \circ X) \circ Z = POVM \circ (X \circ Z)
     z_gate = get_z(c_sys)
-    px_z = composite(composite(povm, x_gate), z_gate)
-    p_xz = composite(povm, composite(x_gate, z_gate))
+    px_z = compose_qoperations(compose_qoperations(povm, x_gate), z_gate)
+    p_xz = compose_qoperations(povm, compose_qoperations(x_gate, z_gate))
     npt.assert_almost_equal(px_z.vecs[0], p_xz.vecs[0], decimal=15)
     npt.assert_almost_equal(px_z.vecs[1], p_xz.vecs[1], decimal=15)
 
 
-def test_composite_Povm_State():
+def test_compose_qoperations_Povm_State():
     e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
     c_sys = CompositeSystem([e_sys])
     vecs = [
@@ -796,19 +796,19 @@ def test_composite_Povm_State():
 
     # measurement z0 by Z-measurement
     state = get_z0_1q(c_sys)
-    actual = composite(povm, state)
+    actual = compose_qoperations(povm, state)
     expected = [1, 0]
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # measurement z1 by Z-measurement
     state = get_z1_1q(c_sys)
-    actual = composite(povm, state)
+    actual = compose_qoperations(povm, state)
     expected = [0, 1]
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # measurement x0 by Z-measurement
     state = get_x0_1q(c_sys)
-    actual = composite(povm, state)
+    actual = compose_qoperations(povm, state)
     expected = [0.5, 0.5]
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -816,8 +816,8 @@ def test_composite_Povm_State():
     # (POVM \circ X) \circ |1> = POVM \circ (X \circ |1>)
     state = get_z1_1q(c_sys)
     x_gate = get_x(c_sys)
-    px_z = composite(composite(povm, x_gate), state)
-    p_xz = composite(povm, composite(x_gate, state))
+    px_z = compose_qoperations(compose_qoperations(povm, x_gate), state)
+    p_xz = compose_qoperations(povm, compose_qoperations(x_gate, state))
     npt.assert_almost_equal(px_z, p_xz, decimal=15)
 
 
@@ -965,31 +965,11 @@ def test_to_list_unexpected_value():
         (get_z1_1q, get_sdg, get_y_povm, [0.5, 0.5]),
         (get_z1_1q, get_sdg, get_z_povm, [0, 1]),
         # T gate
-        (
-            get_x0_1q,
-            get_t,
-            get_x_povm,
-            [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],
-        ),
-        (
-            get_x0_1q,
-            get_t,
-            get_y_povm,
-            [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],
-        ),
+        (get_x0_1q, get_t, get_x_povm, [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],),
+        (get_x0_1q, get_t, get_y_povm, [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],),
         (get_x0_1q, get_t, get_z_povm, [0.5, 0.5]),
-        (
-            get_y0_1q,
-            get_t,
-            get_x_povm,
-            [(2 - np.sqrt(2)) / 4, (2 + np.sqrt(2)) / 4],
-        ),
-        (
-            get_y0_1q,
-            get_t,
-            get_y_povm,
-            [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],
-        ),
+        (get_y0_1q, get_t, get_x_povm, [(2 - np.sqrt(2)) / 4, (2 + np.sqrt(2)) / 4],),
+        (get_y0_1q, get_t, get_y_povm, [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],),
         (get_y0_1q, get_t, get_z_povm, [0.5, 0.5]),
         (get_z0_1q, get_t, get_x_povm, [0.5, 0.5]),
         (get_z0_1q, get_t, get_y_povm, [0.5, 0.5]),
@@ -1009,7 +989,7 @@ def test_scenario_1qubit(state, gate, povm, expected):
     povm_obj = povm(c_sys1)
 
     # Act
-    actual = composite(povm_obj, gate_obj, state_obj)
+    actual = compose_qoperations(povm_obj, gate_obj, state_obj)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1045,9 +1025,9 @@ def test_scenario_2qubits_cnot(povm, expected):
     povm_obj = povm(c_sys12)
 
     # Act
-    state1 = composite(h, state1)
+    state1 = compose_qoperations(h, state1)
     state12 = tensor_product(state1, state2)
-    actual = composite(povm_obj, cnot, state12)
+    actual = compose_qoperations(povm_obj, cnot, state12)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1068,9 +1048,9 @@ def test_scenario_2qubits_cnot(povm, expected):
     povm_obj = povm(c_sys34)
 
     # Act
-    state4 = composite(h, state4)
+    state4 = compose_qoperations(h, state4)
     state34 = tensor_product(state3, state4)
-    actual = composite(povm_obj, swap, cnot, state34)
+    actual = compose_qoperations(povm_obj, swap, cnot, state34)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=14)
@@ -1106,9 +1086,9 @@ def test_scenario_2qubits_cz(povm, expected):
     povm_obj = povm(c_sys12)
 
     # Act
-    state2 = composite(h, state2)
+    state2 = compose_qoperations(h, state2)
     state12 = tensor_product(state1, state2)
-    actual = composite(povm_obj, swap, state12)
+    actual = compose_qoperations(povm_obj, swap, state12)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=14)
@@ -1129,9 +1109,9 @@ def test_scenario_2qubits_cz(povm, expected):
     povm_obj = povm(c_sys34)
 
     # Act
-    state3 = composite(h, state3)
+    state3 = compose_qoperations(h, state3)
     state34 = tensor_product(state3, state4)
-    actual = composite(povm_obj, swap, cz, state34)
+    actual = compose_qoperations(povm_obj, swap, cz, state34)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=14)
@@ -1169,9 +1149,9 @@ def test_scenario_2qubits_swap(povm, expected):
     povm_obj = povm(c_sys12)
 
     # Act
-    state1 = composite(h, state1)
+    state1 = compose_qoperations(h, state1)
     state12 = tensor_product(state1, state2)
-    actual = composite(povm_obj, swap, state12)
+    actual = compose_qoperations(povm_obj, swap, state12)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=14)
@@ -1193,9 +1173,9 @@ def test_scenario_2qubits_swap(povm, expected):
     povm_obj = povm(c_sys34)
 
     # Act
-    state3 = composite(h, state3)
+    state3 = compose_qoperations(h, state3)
     state34 = tensor_product(state3, state4)
-    actual = composite(povm_obj, cnot12, cnot21, cnot12, state34)
+    actual = compose_qoperations(povm_obj, cnot12, cnot21, cnot12, state34)
 
     # Assert
     npt.assert_almost_equal(actual, expected, decimal=14)
@@ -1395,7 +1375,7 @@ def test_scenario_tomographically_complete_sets(d):
         for alpha, state_vec in enumerate(list_of_state_vec):
             state = State(c_sys, state_vec)
             povm = Povm(c_sys, povm_vecs)
-            actual = composite(povm, gate, state)
+            actual = compose_qoperations(povm, gate, state)
 
             # Assert
             expected = prob_per_povm[alpha]

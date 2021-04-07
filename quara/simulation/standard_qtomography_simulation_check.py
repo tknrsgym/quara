@@ -3,23 +3,23 @@ import warnings
 
 import numpy as np
 
-from quara.data_analysis import simulation
 from quara.data_analysis import physicality_violation_check
-
-from quara.data_analysis.simulation import StandardQTomographySimulationSetting
-from quara.data_analysis.consistency_check import execute_consistency_check
-from quara.data_analysis.mean_squared_error import (
+from quara.data_analysis.physicality_violation_check import calc_unphysical_qobjects_n
+from quara.loss_function.mean_squared_error import (
     check_mse_of_empirical_distributions,
     check_mse_of_estimators,
 )
-from quara.data_analysis.physicality_violation_check import calc_unphysical_qobjects_n
-
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.protocol.qtomography.standard.projected_linear_estimator import (
     ProjectedLinearEstimator,
 )
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
+)
+from quara.simulation.consistency_check import execute_consistency_check
+from quara.simulation import standard_qtomography_simulation
+from quara.simulation.standard_qtomography_simulation import (
+    StandardQTomographySimulationSetting,
 )
 
 

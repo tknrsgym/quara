@@ -566,7 +566,7 @@ def convert_list_by_permutation_matrix(
             if permutation_matrix[row, col] == 1:
                 new_list[row] = old_list[col]
                 break
-    print(f"new_list={new_list}")
+    # print(f"new_list={new_list}")
     return new_list
 
 
@@ -608,7 +608,9 @@ def _left_permutation_matrix(position: int, size_list: List[int]) -> np.array:
     return left_perm_matrix
 
 
-def _check_cross_system_position(system_order: List[int],) -> Union[int, None]:
+def _check_cross_system_position(
+    system_order: List[int],
+) -> Union[int, None]:
     # check cross system position
     # for example, if [0, 10, 5] is a list of names of ElementalSystem, then this functions returns 2(position of value 5)
     former_name = None

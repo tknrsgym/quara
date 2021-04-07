@@ -2,13 +2,13 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.data_analysis.projected_gradient_descent_backtracking import (
-    ProjectedGradientDescentBacktracking,
-    ProjectedGradientDescentBacktrackingOption,
-)
-from quara.data_analysis.weighted_probability_based_squared_error import (
+from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
+)
+from quara.minimization_algorithm.projected_gradient_descent_backtracking import (
+    ProjectedGradientDescentBacktracking,
+    ProjectedGradientDescentBacktrackingOption,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem

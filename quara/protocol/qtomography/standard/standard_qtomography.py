@@ -12,7 +12,9 @@ from quara.utils import matrix_util
 
 class StandardQTomography(QTomography):
     def __init__(
-        self, experiment: Experiment, set_qoperations: SetQOperations,
+        self,
+        experiment: Experiment,
+        set_qoperations: SetQOperations,
     ):
         """initialize standard quantum tomography class.
 
@@ -20,9 +22,9 @@ class StandardQTomography(QTomography):
 
         - ``_coeffs_0th``: return value of ``get_coeffs_0th`` function.
         - ``_coeffs_1st``: return value of ``get_coeffs_1st`` function.
-        - ``_map_experiment_to_setqoperations``: a map from indices of Experiment to indices of SetQOperations. 
+        - ``_map_experiment_to_setqoperations``: a map from indices of Experiment to indices of SetQOperations.
             if you map the 0th state to the 1st state, set ``{("state", 0): ("state", 1)}``.
-        - ``_map_setqoperations_to_experiment``: a map from indices of SetQOperations to indices of Experiment. 
+        - ``_map_setqoperations_to_experiment``: a map from indices of SetQOperations to indices of Experiment.
 
         Parameters
         ----------
@@ -36,14 +38,14 @@ class StandardQTomography(QTomography):
         self._coeffs_1st = None
 
     def get_coeffs_0th(self, schedule_index: int, x: int) -> np.float64:
-        """returns 0th coefficients specified by schedule index and povm vecs index
+        """returns 0th coefficients specified by schedule index and measurement outcome index
 
         Parameters
         ----------
         schedule_index : int
             schedule index.
         x : int
-            povm vecs index.
+            measurement outcome index.
 
         Returns
         -------
@@ -52,15 +54,35 @@ class StandardQTomography(QTomography):
         """
         return self._coeffs_0th[(schedule_index, x)]
 
+    def get_coeffs_0th_vec(self, schedule_index: int) -> np.array:
+        """returns 0th coefficient vector specified by schedule index.
+
+        Parameters
+        ----------
+        schedule_index : int
+            schedule index.
+
+        Returns
+        -------
+        np.array( , dtype=np.float64)
+            0th coefficients vector
+        """
+        l = []
+        xs = [key[1] for key in self._coeffs_0th.keys() if key[0] == schedule_index]
+        for x in xs:
+            coeffs_0th = self.get_coeffs_0th(schedule_index, x)
+            l.append(coeffs_0th)
+        return np.array(l, dtype=np.float64)
+
     def get_coeffs_1st(self, schedule_index: int, x: int) -> np.array:
-        """returns 1st coefficients specified by schedule index and povm vecs index
+        """returns 1st coefficients specified by schedule index and measurement outcome index
 
         Parameters
         ----------
         schedule_index : int
             schedule index.
         x : int
-            povm vecs index.
+            measurement outcome index.
 
         Returns
         -------
@@ -68,6 +90,26 @@ class StandardQTomography(QTomography):
             1st coefficients.
         """
         return self._coeffs_1st[(schedule_index, x)]
+
+    def get_coeffs_1st_mat(self, schedule_index: int) -> np.array:
+        """returns 1st coefficient matrix specified by schedule index.
+
+        Parameters
+        ----------
+        schedule_index : int
+            schedule index.
+
+        Returns
+        -------
+        np.array
+            1st coefficient matrix.
+        """
+        ll = []
+        xs = [key[1] for key in self._coeffs_0th.keys() if key[0] == schedule_index]
+        for x in xs:
+            coeffs_1st = self.get_coeffs_1st(schedule_index, x)
+            ll.append(coeffs_1st)
+        return np.stack(ll)
 
     def calc_matA(self) -> np.array:
         """returns the matrix A.
@@ -113,6 +155,21 @@ class StandardQTomography(QTomography):
         return size == rank
 
     @abstractmethod
+    def num_outcomes(self, schedule_index: int) -> int:
+        """returns the number of outcomes of probability distribution of a schedule index.
+
+        Parameters
+        ----------
+        schedule_index: int
+
+        Returns
+        -------
+        int
+            the number of outcomes
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def convert_var_to_qoperation(self, var: np.array) -> QOperation:
         """converts variable to QOperation.
 
@@ -153,7 +210,7 @@ class StandardQTomography(QTomography):
 
     def calc_prob_dist(self, qope: QOperation, schedule_index: int) -> List[float]:
         """calculates a probability distribution.
-        
+
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dist`
         """
         prob_dists = self.calc_prob_dists(qope)
@@ -161,7 +218,7 @@ class StandardQTomography(QTomography):
 
     def calc_prob_dists(self, qope: QOperation) -> List[List[float]]:
         """calculates probability distributions.
-        
+
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dists`
         """
         tmp_prob_dists = self.calc_matA() @ qope.to_var() + self.calc_vecB()
