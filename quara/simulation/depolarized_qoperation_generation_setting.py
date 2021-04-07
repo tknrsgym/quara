@@ -1,5 +1,4 @@
-from typing import Type, Union, Tuple
-from abc import abstractmethod
+from typing import Union, Tuple
 
 from quara.objects.qoperation import QOperation
 from quara.objects.gate import get_depolarizing_channel
@@ -19,27 +18,26 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
         self._error_rate = error_rate
 
     @property
-    def error_rate(self):
+    def error_rate(self) -> float:
         return self._error_rate
 
-    def generate_state(self):
+    def generate_state(self) -> "State":
         dp = get_depolarizing_channel(
             p=self.error_rate, c_sys=self.qoperation_base.composite_system
         )
         new_object = compose_qoperations(dp, self.qoperation_base)
         return new_object
 
-    def generate_povm(self):
+    def generate_povm(self) -> "Povm":
         dp = get_depolarizing_channel(
             p=self.error_rate, c_sys=self.qoperation_base.composite_system
         )
         new_object = compose_qoperations(self.qoperation_base, dp)
         return new_object
 
-    def generate_gate(self):
+    def generate_gate(self) -> "Gate":
         dp = get_depolarizing_channel(
             p=self.error_rate, c_sys=self.qoperation_base.composite_system
         )
         new_object = compose_qoperations(dp, self.qoperation_base)
         return new_object
-
