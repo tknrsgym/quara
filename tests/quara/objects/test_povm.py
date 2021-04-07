@@ -306,23 +306,25 @@ class TestPovm:
         povm1 = Povm(c_sys1, vecs1, is_physicality_required=False)
 
         # Act
-        actual = povm1.num_outcomes
+        actual = povm1.nums_local_outcomes
 
         # Assert
         expected = [2]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
             assert a == e
+        assert povm1.num_outcomes == 2
 
         # Case 2:
         # Act
-        povm1._num_outcomes = [1, 2]
-        actual = povm1.num_outcomes
+        povm1._nums_local_outcomes = [1, 2]
+        actual = povm1.nums_local_outcomes
         # Assert
         expected = [1, 2]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
             assert a == e
+        assert povm1.num_outcomes == 2
 
     def test_vec(self):
         # Case 1:
