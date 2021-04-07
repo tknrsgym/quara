@@ -77,12 +77,24 @@ def test_tensor_product_Gate_Gate():
     c_sys2 = CompositeSystem([e_sys2])
 
     hs1 = np.array(
-        [[0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
+        [
+            [0, 1, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
+        dtype=np.float64,
     )
     gate1 = Gate(c_sys1, hs1, is_physicality_required=False)
 
     hs2 = np.array(
-        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0],], dtype=np.float64
+        [
+            [1, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ],
+        dtype=np.float64,
     )
     gate2 = Gate(c_sys2, hs2, is_physicality_required=False)
 
@@ -339,7 +351,10 @@ def test_tensor_product_State_State():
     actual = tensor_product(state2, state1)
 
     # expected
-    expected_vec = np.kron(np.array([0, 1, 0, 0]), np.array([1, 0, 0, 0]),)
+    expected_vec = np.kron(
+        np.array([0, 1, 0, 0]),
+        np.array([1, 0, 0, 0]),
+    )
     expected_density_matrix = np.kron(
         np.array([[0, 1], [0, 0]], dtype=np.complex128),
         np.array([[1, 0], [0, 0]], dtype=np.complex128),
@@ -618,7 +633,7 @@ def test_tensor_product_Povm_Povm_3vecs():
 
     # Act
     povm21 = tensor_product(povm2, povm1)
-    actual = povm21.num_outcomes
+    actual = povm21.nums_local_outcomes
 
     # Assert
     expected = [len(vecs1), len(vecs2)]
@@ -965,11 +980,31 @@ def test_to_list_unexpected_value():
         (get_z1_1q, get_sdg, get_y_povm, [0.5, 0.5]),
         (get_z1_1q, get_sdg, get_z_povm, [0, 1]),
         # T gate
-        (get_x0_1q, get_t, get_x_povm, [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],),
-        (get_x0_1q, get_t, get_y_povm, [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],),
+        (
+            get_x0_1q,
+            get_t,
+            get_x_povm,
+            [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],
+        ),
+        (
+            get_x0_1q,
+            get_t,
+            get_y_povm,
+            [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],
+        ),
         (get_x0_1q, get_t, get_z_povm, [0.5, 0.5]),
-        (get_y0_1q, get_t, get_x_povm, [(2 - np.sqrt(2)) / 4, (2 + np.sqrt(2)) / 4],),
-        (get_y0_1q, get_t, get_y_povm, [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],),
+        (
+            get_y0_1q,
+            get_t,
+            get_x_povm,
+            [(2 - np.sqrt(2)) / 4, (2 + np.sqrt(2)) / 4],
+        ),
+        (
+            get_y0_1q,
+            get_t,
+            get_y_povm,
+            [(2 + np.sqrt(2)) / 4, (2 - np.sqrt(2)) / 4],
+        ),
         (get_y0_1q, get_t, get_z_povm, [0.5, 0.5]),
         (get_z0_1q, get_t, get_x_povm, [0.5, 0.5]),
         (get_z0_1q, get_t, get_y_povm, [0.5, 0.5]),
@@ -1309,7 +1344,12 @@ def _calculate_probability_of_povm_k_plus_il(
 
 
 @pytest.mark.parametrize(
-    ("d"), [(2), (3), (4),],
+    ("d"),
+    [
+        (2),
+        (3),
+        (4),
+    ],
 )
 def test_scenario_tomographically_complete_sets(d):
     # see G. C. Knee et al., \Quantum process tomography via completely positive and trace-preserving projection", Phys Rev. A 98, 062336 (2018).

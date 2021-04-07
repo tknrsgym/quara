@@ -76,7 +76,8 @@ class Povm(QOperation):
         for b in self._vecs:
             b.setflags(write=False)
 
-        self._num_outcomes = [len(self._vecs)]
+        self._num_outcomes = len(self._vecs)
+        self._nums_local_outcomes = [len(self._vecs)]
 
         # Validation
         size = vecs[0].shape
@@ -140,6 +141,17 @@ class Povm(QOperation):
             the number of POVM elements.
         """
         return self._num_outcomes
+
+    @property
+    def nums_local_outcomes(self) -> List[int]:
+        """Property to get the list of the number of POVM elements.
+
+        Returns
+        -------
+        List[int]
+            the list of the number of POVM elements.
+        """
+        return self._nums_local_outcomes
 
     def is_eq_constraint_satisfied(self, atol: float = None):
         return self.is_identity_sum(atol)
@@ -303,9 +315,9 @@ class Povm(QOperation):
         """
         if type(index) == tuple:
             # whether size of tuple equals length of the list of measurements
-            if len(index) != len(self.num_outcomes):
+            if len(index) != len(self.nums_local_outcomes):
                 raise ValueError(
-                    f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self.num_outcomes)}"
+                    f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self.nums_local_outcomes)}"
                 )
 
             # calculate index in _vecs by traversing the tuple from the back.
@@ -316,7 +328,7 @@ class Povm(QOperation):
             temp_len = 1
             for position, local_index in enumerate(reversed(index)):
                 temp_grobal_index += local_index * temp_len
-                temp_len = temp_len * (self.num_outcomes[position])
+                temp_len = temp_len * (self.nums_local_outcomes[position])
             return self._vecs[temp_grobal_index]
         else:
             return self._vecs[index]
