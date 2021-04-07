@@ -45,7 +45,7 @@ def generate_effective_lindbladian_object_from_gate_name_object_name(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
-) -> Union[np.array, "EffectiveLindbladian"]:
+) -> Union[np.ndarray, "EffectiveLindbladian"]:
     if object_name == "hamiltonian_vec":
         obj = generate_hamiltonian_vec_from_gate_name(gate_name, dims, ids)
     elif object_name == "hamiltonian_mat":
@@ -59,17 +59,17 @@ def generate_effective_lindbladian_object_from_gate_name_object_name(
     return obj
 
 
-def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h: np.array) -> np.array:
+def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h: np.ndarray) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the computational basis from a given Hamiltonian.
 
     Parameters
     ----------
-    h : np.array((dim, dim), dtype=np.complex128)
+    h : np.ndarray((dim, dim), dtype=np.complex128)
         A Hamiltonian, to be an Hermitian matrix.
 
     Returns
     ----------
-    np.array((dim^2, dim^2), dtype=np.complex128)
+    np.ndarray((dim^2, dim^2), dtype=np.complex128)
         The HS matrix of an effective Lindbladian characterized by the Hamiltonian.
     """
     shape = h.shape
@@ -82,13 +82,13 @@ def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h: np.array) -> n
 
 
 def calc_effective_lindbladian_mat_from_hamiltonian(
-    h: np.array, to_basis: MatrixBasis
-) -> np.array:
+    h: np.ndarray, to_basis: MatrixBasis
+) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the given matrix basis from a given Hamiltonian.
 
     Parameters
     ----------
-    h : np.array((dim, dim), dtype=np.complex128)
+    h : np.ndarray((dim, dim), dtype=np.complex128)
         A Hamiltonian, to be an Hermitian matrix.
 
     bo_basis : MatrixBasis
@@ -96,7 +96,7 @@ def calc_effective_lindbladian_mat_from_hamiltonian(
 
     Returns
     ----------
-    np.array((dim^2, dim^2), dtype=np.complex128)
+    np.ndarray((dim^2, dim^2), dtype=np.complex128)
         The HS matrix of an effective Lindbladian characterized by the Hamiltonian.
 
     """
@@ -113,13 +113,13 @@ def calc_effective_lindbladian_mat_from_hamiltonian(
 
 
 def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
-    h: np.array, to_basis: MatrixBasis
-) -> np.array:
+    h: np.ndarray, to_basis: MatrixBasis
+) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the given Hermitian matrix basis from a given Hamiltonian.
 
     Parameters
     ----------
-    h : np.array((dim, dim), dtype=np.complex128)
+    h : np.ndarray((dim, dim), dtype=np.complex128)
         A Hamiltonian, to be an Hermitian matrix.
 
     bo_basis : MatrixBasis
@@ -127,7 +127,7 @@ def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
 
     Returns
     ----------
-    np.array((dim^2, dim^2), dtype=np.float128)
+    np.ndarray((dim^2, dim^2), dtype=np.float128)
         The HS matrix of an effective Lindbladian characterized by the Hamiltonian.
     """
     assert to_basis.is_hermitian() == True
@@ -138,7 +138,7 @@ def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
 
 def generate_hamiltonian_vec_from_gate_name(
     gate_name: str, dims: List[int] = None, ids: List[int] = None
-) -> np.array:
+) -> np.ndarray:
     """return the vector representation of the Hamiltonian of a gate.
 
     Parameters
@@ -154,7 +154,7 @@ def generate_hamiltonian_vec_from_gate_name(
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The vector for the Hamiltonian matrix, to be real.
     """
     _is_valid_dims_ids(dims, ids)
@@ -210,7 +210,7 @@ def generate_hamiltonian_vec_from_gate_name(
 
 def generate_hamiltonian_mat_from_gate_name(
     gate_name: str, dims: List[int] = None, ids: List[int] = None
-) -> np.array:
+) -> np.ndarray:
     """returns the Hamiltonian matrix of a gate.
 
     Parameters
@@ -226,7 +226,7 @@ def generate_hamiltonian_mat_from_gate_name(
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian matrix the gate, to be complex.
     """
     _is_valid_dims_ids(dims, ids)
@@ -274,7 +274,7 @@ def generate_hamiltonian_mat_from_gate_name(
 
 def generate_effective_lindbladian_mat_from_gate_name(
     gate_name: str, dims: List[int] = None, ids: List[int] = None
-) -> np.array:
+) -> np.ndarray:
     """returns the Hilbert-Schmidt representation matrix of an effective lindbladian.
 
     Parameters
@@ -290,7 +290,7 @@ def generate_effective_lindbladian_mat_from_gate_name(
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The HS matrix of the effective lindbladian, to be real.
     """
     _is_valid_dims_ids(dims, ids)
@@ -419,7 +419,7 @@ def generate_effective_lindbladian_from_gate_name(
 # Identity gate
 
 
-def generate_gate_identity_hamiltonian_vec(dim: int) -> np.array:
+def generate_gate_identity_hamiltonian_vec(dim: int) -> np.ndarray:
     """Return the vector representation for the Hamiltonian of an identity gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is the real zero vector with size dim^2.
@@ -431,14 +431,14 @@ def generate_gate_identity_hamiltonian_vec(dim: int) -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     vec = np.zeros(dim * dim, dtype=np.float64)
     return vec
 
 
-def generate_gate_identity_hamiltonian_mat(dim: int) -> np.array:
+def generate_gate_identity_hamiltonian_mat(dim: int) -> np.ndarray:
     """Return Hamiltonian matrix for an identity gate.
 
     The result is the dim times dim complex zero matrix.
@@ -450,14 +450,14 @@ def generate_gate_identity_hamiltonian_mat(dim: int) -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     mat = np.zeros((dim, dim), dtype=np.complex128)
     return mat
 
 
-def generate_gate_identity_effective_lindbladian_mat(dim: int) -> np.array:
+def generate_gate_identity_effective_lindbladian_mat(dim: int) -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of an Identity gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is the dim^2 times dim^2 real zero matrix.
@@ -469,7 +469,7 @@ def generate_gate_identity_effective_lindbladian_mat(dim: int) -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate. It is the zero matrix in this case.
     """
     size = dim * dim
@@ -501,7 +501,7 @@ def generate_gate_identity_effective_lindbladian(
 # X90 gate on 1-qubit
 
 
-def generate_gate_x90_hamiltonian_vec() -> np.array:
+def generate_gate_x90_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of an X90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -511,7 +511,7 @@ def generate_gate_x90_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -521,7 +521,7 @@ def generate_gate_x90_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_x90_hamiltonian_mat() -> np.array:
+def generate_gate_x90_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an X90 gate.
 
     The result is the 2 times 2 complex matrix, 0.25 * pi * X.
@@ -531,7 +531,7 @@ def generate_gate_x90_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -541,7 +541,7 @@ def generate_gate_x90_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_x90_effective_lindbladian_mat() -> np.array:
+def generate_gate_x90_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of an X90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -551,7 +551,7 @@ def generate_gate_x90_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]]
@@ -584,7 +584,7 @@ def generate_gate_x90_effective_lindbladian(
 # X180 gate on 1-qubit
 
 
-def generate_gate_x180_hamiltonian_vec() -> np.array:
+def generate_gate_x180_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of an X180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -594,7 +594,7 @@ def generate_gate_x180_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -604,7 +604,7 @@ def generate_gate_x180_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_x180_hamiltonian_mat() -> np.array:
+def generate_gate_x180_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an X180 gate.
 
     The result is the 2 times 2 complex matrix, 0.5 * pi * X.
@@ -614,7 +614,7 @@ def generate_gate_x180_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -624,7 +624,7 @@ def generate_gate_x180_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_x180_effective_lindbladian_mat() -> np.array:
+def generate_gate_x180_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of an X180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -634,7 +634,7 @@ def generate_gate_x180_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]]
@@ -667,7 +667,7 @@ def generate_gate_x180_effective_lindbladian(
 # X gate on 1-qubit
 
 
-def generate_gate_x_hamiltonian_vec() -> np.array:
+def generate_gate_x_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of an X gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -677,7 +677,7 @@ def generate_gate_x_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -688,7 +688,7 @@ def generate_gate_x_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_x_hamiltonian_mat() -> np.array:
+def generate_gate_x_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an X gate.
 
     The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * X.
@@ -698,7 +698,7 @@ def generate_gate_x_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -709,7 +709,7 @@ def generate_gate_x_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_x_effective_lindbladian_mat() -> np.array:
+def generate_gate_x_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of an X gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -719,7 +719,7 @@ def generate_gate_x_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]]
@@ -752,7 +752,7 @@ def generate_gate_x_effective_lindbladian(
 # Y90 on 1-qubit
 
 
-def generate_gate_y90_hamiltonian_vec() -> np.array:
+def generate_gate_y90_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Y90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -762,7 +762,7 @@ def generate_gate_y90_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -772,7 +772,7 @@ def generate_gate_y90_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_y90_hamiltonian_mat() -> np.array:
+def generate_gate_y90_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Y90 gate.
 
     The result is the 2 times 2 complex matrix, 0.25 * pi * Y.
@@ -782,7 +782,7 @@ def generate_gate_y90_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -792,7 +792,7 @@ def generate_gate_y90_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_y90_effective_lindbladian_mat() -> np.array:
+def generate_gate_y90_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Y90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -802,7 +802,7 @@ def generate_gate_y90_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, -1, 0, 0]]
@@ -835,7 +835,7 @@ def generate_gate_y90_effective_lindbladian(
 # Y180 gate on 1-qubit
 
 
-def generate_gate_y180_hamiltonian_vec() -> np.array:
+def generate_gate_y180_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Y180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -845,7 +845,7 @@ def generate_gate_y180_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -855,7 +855,7 @@ def generate_gate_y180_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_y180_hamiltonian_mat() -> np.array:
+def generate_gate_y180_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Y180 gate.
 
     The result is the 2 times 2 complex matrix, 0.5 * pi * Y.
@@ -865,7 +865,7 @@ def generate_gate_y180_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -875,7 +875,7 @@ def generate_gate_y180_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_y180_effective_lindbladian_mat() -> np.array:
+def generate_gate_y180_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Y180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -885,7 +885,7 @@ def generate_gate_y180_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, -1, 0, 0]]
@@ -918,7 +918,7 @@ def generate_gate_y180_effective_lindbladian(
 # Y gate on 1-qubit
 
 
-def generate_gate_y_hamiltonian_vec() -> np.array:
+def generate_gate_y_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Y gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -928,7 +928,7 @@ def generate_gate_y_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -939,7 +939,7 @@ def generate_gate_y_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_y_hamiltonian_mat() -> np.array:
+def generate_gate_y_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian for a Y gate.
 
     The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * Y.
@@ -949,7 +949,7 @@ def generate_gate_y_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -960,7 +960,7 @@ def generate_gate_y_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_y_effective_lindbladian_mat() -> np.array:
+def generate_gate_y_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Y gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -970,7 +970,7 @@ def generate_gate_y_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, 0, 1], [0, 0, 0, 0], [0, -1, 0, 0]]
@@ -1003,7 +1003,7 @@ def generate_gate_y_effective_lindbladian(
 # Z90 gate on 1-qubit
 
 
-def generate_gate_z90_hamiltonian_vec() -> np.array:
+def generate_gate_z90_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Z90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is the real vector with size 4.
@@ -1013,7 +1013,7 @@ def generate_gate_z90_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1023,7 +1023,7 @@ def generate_gate_z90_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_z90_hamiltonian_mat() -> np.array:
+def generate_gate_z90_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Z90 gate.
 
     The result is the 2 times 2 complex matrix, 0.25 * pi * Z.
@@ -1033,7 +1033,7 @@ def generate_gate_z90_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1043,7 +1043,7 @@ def generate_gate_z90_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_z90_effective_lindbladian_mat() -> np.array:
+def generate_gate_z90_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Z90 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1053,7 +1053,7 @@ def generate_gate_z90_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
@@ -1086,7 +1086,7 @@ def generate_gate_z90_effective_lindbladian(
 # Z180 gate on 1-qubit
 
 
-def generate_gate_z180_hamiltonian_vec() -> np.array:
+def generate_gate_z180_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Z180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -1096,7 +1096,7 @@ def generate_gate_z180_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1106,7 +1106,7 @@ def generate_gate_z180_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_z180_hamiltonian_mat() -> np.array:
+def generate_gate_z180_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Z180 gate.
 
     The result is the 2 times 2 complex matrix, 0.5 * pi * Z.
@@ -1116,7 +1116,7 @@ def generate_gate_z180_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1126,7 +1126,7 @@ def generate_gate_z180_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_z180_effective_lindbladian_mat() -> np.array:
+def generate_gate_z180_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Z180 gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1136,7 +1136,7 @@ def generate_gate_z180_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
@@ -1169,7 +1169,7 @@ def generate_gate_z180_effective_lindbladian(
 # Z gate on 1-qubit
 
 
-def generate_gate_z_hamiltonian_vec() -> np.array:
+def generate_gate_z_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Z gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -1179,7 +1179,7 @@ def generate_gate_z_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1190,7 +1190,7 @@ def generate_gate_z_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_z_hamiltonian_mat() -> np.array:
+def generate_gate_z_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Z gate.
 
     The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * Z.
@@ -1200,7 +1200,7 @@ def generate_gate_z_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1211,7 +1211,7 @@ def generate_gate_z_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_z_effective_lindbladian_mat() -> np.array:
+def generate_gate_z_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Z gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1221,7 +1221,7 @@ def generate_gate_z_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
@@ -1254,7 +1254,7 @@ def generate_gate_z_effective_lindbladian(
 # Phase (S) gate on 1-qubit
 
 
-def generate_gate_phase_hamiltonian_vec() -> np.array:
+def generate_gate_phase_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Phase (S) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -1264,7 +1264,7 @@ def generate_gate_phase_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1275,7 +1275,7 @@ def generate_gate_phase_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_phase_hamiltonian_mat() -> np.array:
+def generate_gate_phase_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Phase (S) gate.
 
     The result is the 2 times 2 complex matrix, -0.25 * pi * I + 0.25 * pi * Z.
@@ -1285,7 +1285,7 @@ def generate_gate_phase_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1296,7 +1296,7 @@ def generate_gate_phase_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_phase_effective_lindbladian_mat() -> np.array:
+def generate_gate_phase_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Phase (S) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1306,7 +1306,7 @@ def generate_gate_phase_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
@@ -1339,7 +1339,7 @@ def generate_gate_phase_effective_lindbladian(
 # Phase daggered (S^dagger) gate on 1-qubit
 
 
-def generate_gate_phase_daggered_hamiltonian_vec() -> np.array:
+def generate_gate_phase_daggered_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a Phase daggered (S^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -1349,7 +1349,7 @@ def generate_gate_phase_daggered_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1360,7 +1360,7 @@ def generate_gate_phase_daggered_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_phase_daggered_hamiltonian_mat() -> np.array:
+def generate_gate_phase_daggered_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Phase daggerd (S^dagger) gate.
 
     The result is the 2 times 2 complex matrix, 0.25 * pi * I - 0.25 * pi * Z.
@@ -1370,7 +1370,7 @@ def generate_gate_phase_daggered_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1381,7 +1381,7 @@ def generate_gate_phase_daggered_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_phase_daggered_effective_lindbladian_mat() -> np.array:
+def generate_gate_phase_daggered_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Phase daggered (S^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1391,7 +1391,7 @@ def generate_gate_phase_daggered_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
@@ -1424,7 +1424,7 @@ def generate_gate_phase_daggered_effective_lindbladian(
 # pi/8 (T) gate on 1-qubit
 
 
-def generate_gate_piover8_hamiltonian_vec() -> np.array:
+def generate_gate_piover8_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a pi/8 (T) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -1434,7 +1434,7 @@ def generate_gate_piover8_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1445,7 +1445,7 @@ def generate_gate_piover8_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_piover8_hamiltonian_mat() -> np.array:
+def generate_gate_piover8_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a pi/8 (T) gate.
 
     The result is the 2 times 2 complex matrix, -(pi/8) * I + (pi/8) * Z.
@@ -1455,7 +1455,7 @@ def generate_gate_piover8_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1466,7 +1466,7 @@ def generate_gate_piover8_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_piover8_effective_lindbladian_mat() -> np.array:
+def generate_gate_piover8_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a pi/8 (T) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1476,7 +1476,7 @@ def generate_gate_piover8_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
@@ -1509,7 +1509,7 @@ def generate_gate_piover8_effective_lindbladian(
 # pi/8 daggered (T^dagger) gate on 1-qubit
 
 
-def generate_gate_piover8_daggered_hamiltonian_vec() -> np.array:
+def generate_gate_piover8_daggered_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of a pi/8 daggered (T^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -1519,7 +1519,7 @@ def generate_gate_piover8_daggered_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1530,7 +1530,7 @@ def generate_gate_piover8_daggered_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_piover8_daggered_hamiltonian_mat() -> np.array:
+def generate_gate_piover8_daggered_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a pi/8 daggerd (T^dagger) gate.
 
     The result is the 2 times 2 complex matrix, (pi/8) * I - (pi/8) * Z.
@@ -1540,7 +1540,7 @@ def generate_gate_piover8_daggered_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1551,7 +1551,7 @@ def generate_gate_piover8_daggered_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_piover8_daggered_effective_lindbladian_mat() -> np.array:
+def generate_gate_piover8_daggered_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a pi/8 daggered (T^dagger) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1561,7 +1561,7 @@ def generate_gate_piover8_daggered_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
@@ -1594,7 +1594,7 @@ def generate_gate_piover8_daggered_effective_lindbladian(
 # Hadamard (H) gate on 1-qubit
 
 
-def generate_gate_hadamard_hamiltonian_vec() -> np.array:
+def generate_gate_hadamard_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation for the Hamiltonian of an Hadamard (H) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a real vector with size 4.
@@ -1604,7 +1604,7 @@ def generate_gate_hadamard_hamiltonian_vec() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real vector representation of the Hamiltonian of the gate.
     """
     dim = 2
@@ -1616,7 +1616,7 @@ def generate_gate_hadamard_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_hadamard_hamiltonian_mat() -> np.array:
+def generate_gate_hadamard_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an Hadamard (H) gate.
 
     The result is the 2 times 2 complex matrix, -0.25 * pi * I + 0.25 * pi * X / sqrt(2)+ 0.25 * pi * Z / sqrt(2).
@@ -1626,7 +1626,7 @@ def generate_gate_hadamard_hamiltonian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The Hamiltonian, which is a complex matrix.
     """
     num_qubit = 1
@@ -1638,7 +1638,7 @@ def generate_gate_hadamard_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_hadamard_effective_lindbladian_mat() -> np.array:
+def generate_gate_hadamard_effective_lindbladian_mat() -> np.ndarray:
     """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of an Hadamard (H) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
 
     The result is a 4 times 4 real matrix.
@@ -1648,7 +1648,7 @@ def generate_gate_hadamard_effective_lindbladian_mat() -> np.array:
 
     Returns
     ----------
-    np.array
+    np.ndarray
         The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
     """
     l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, -1], [0, 0, 1, 0]]
@@ -1682,21 +1682,21 @@ def generate_gate_hadamard_effective_lindbladian(
 # HS matrix of effective Lindbladian for Hamiltonians in the form of a Pauli matrix
 
 
-def generate_effective_lindbladian_mat_for_hamiltonian_x() -> np.array:
+def generate_effective_lindbladian_mat_for_hamiltonian_x() -> np.ndarray:
     """Return HS matrix of effective lindbladian for Hamiltonian X, which correspond to a linear map, f(A) := -i [ H, A ] with H = X """
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]]
     mat = np.array(l, dtype=np.float64)
     return l
 
 
-def generate_effective_lindbladian_mat_for_hamiltonian_y() -> np.array:
+def generate_effective_lindbladian_mat_for_hamiltonian_y() -> np.ndarray:
     """Return HS matrix of effective lindbladian for Hamiltonian Y, which correspond to a linear map, f(A) := -i [ H, A ] with H = Y """
     l = [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 0], [0, -2, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return l
 
 
-def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.array:
+def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.ndarray:
     """Return HS matrix of effective lindbladian for Hamiltonian Z, which correspond to a linear map, f(A) := -i [ H, A ] with H = Z """
     l = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
@@ -1706,28 +1706,28 @@ def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.array:
 # HS matrices for commutator map and anti-commutator maps with 1-qubit Pauli matrix
 
 # Pauli commutator maps on 1-qubit
-def calc_hs_commutator_map_i() -> np.array:
+def calc_hs_commutator_map_i() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = I."""
     size = 4
     mat = 2 * np.eye(size, dtype=np.float64)
     return mat
 
 
-def calc_hs_commutator_map_x() -> np.array:
+def calc_hs_commutator_map_x() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = X."""
     l = [[0, 2, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
-def calc_hs_commutator_map_y() -> np.array:
+def calc_hs_commutator_map_y() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = Y."""
     l = [[0, 0, 2, 0], [0, 0, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
-def calc_hs_commutator_map_z() -> np.array:
+def calc_hs_commutator_map_z() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = Z."""
     l = [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
@@ -1737,28 +1737,28 @@ def calc_hs_commutator_map_z() -> np.array:
 # Pauli annti-commutator map on 1-qubit
 
 
-def calc_hs_minus1j_anticommutator_map_i() -> np.array:
+def calc_hs_minus1j_anticommutator_map_i() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = I."""
     size = 4
     mat = np.zeros((size, size), dtype=np.float64)
     return mat
 
 
-def calc_hs_minus1j_anticommutator_map_x() -> np.array:
+def calc_hs_minus1j_anticommutator_map_x() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = X."""
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
-def calc_hs_minus1j_anticommutator_map_y() -> np.array:
+def calc_hs_minus1j_anticommutator_map_y() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = Y."""
     l = [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 0], [0, -2, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
-def calc_hs_minus1j_anticommutator_map_z() -> np.array:
+def calc_hs_minus1j_anticommutator_map_z() -> np.ndarray:
     """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = Z."""
     l = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
@@ -1771,7 +1771,7 @@ def calc_hs_minus1j_anticommutator_map_z() -> np.array:
 
 def calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(
     pauli_type: str,
-) -> np.array:
+) -> np.ndarray:
     """Return the HS matrix of effective lindbladian for Hamiltonian with the form of tensor product of two Pauli matrices"""
     assert len(pauli_type) == 2
 
@@ -1796,7 +1796,7 @@ def calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(
 # Control-X gate on 2-qubit
 
 
-def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.array:
+def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.ndarray:
     """Return the vector representation of the Hamiltonian of the Control-X gate. The Hamiltonian is H = (pi/4) * (- II + IX - ZI - ZX) for ids[0] < ids[1], and H = (pi/4) * (- II + XI - IZ - XZ) for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
@@ -1834,7 +1834,7 @@ def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.array:
     return vec
 
 
-def generate_gate_cx_hamiltonian_mat(ids: List[int]) -> np.array:
+def generate_gate_cx_hamiltonian_mat(ids: List[int]) -> np.ndarray:
     """Return the Hamiltonian of the Control-X gate. The Hamiltonian is H = (pi/4) * (- II + IX - ZI - ZX) for ids[0] < ids[1], and H = (pi/4) * (- II + XI - IZ - XZ) for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
@@ -1874,7 +1874,7 @@ def generate_gate_cx_hamiltonian_mat(ids: List[int]) -> np.array:
     return mat
 
 
-def generate_gate_cx_effective_lindbladian_mat(ids: List[int]) -> np.array:
+def generate_gate_cx_effective_lindbladian_mat(ids: List[int]) -> np.ndarray:
     """Return the HS matrix of the effective lindbladian for a Control-X gate"""
     assert len(ids) == 2
     assert ids[0] != ids[1]
@@ -1944,7 +1944,7 @@ def generate_gate_cx_effective_lindbladian(
 # Control-Z gate on 2-qubit
 
 
-def generate_gate_cz_hamiltonian_vec() -> np.array:
+def generate_gate_cz_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation of the Hamiltonian of the Control-Z gate. The Hamiltonian is H = (pi/4) * (- II + IZ + ZI - ZZ)."""
     coeff = 0.5 * math.pi
     # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
@@ -1966,7 +1966,7 @@ def generate_gate_cz_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_cz_hamiltonian_mat() -> np.array:
+def generate_gate_cz_hamiltonian_mat() -> np.ndarray:
     """Return the Hamiltonian of the Control-Z gate. The Hamiltonian is H = (pi/4) * (- II + IZ + ZI - ZZ)."""
     coeff = 0.25 * math.pi
     num_qubit = 2
@@ -1990,7 +1990,7 @@ def generate_gate_cz_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_cz_effective_lindbladian_mat() -> np.array:
+def generate_gate_cz_effective_lindbladian_mat() -> np.ndarray:
     """Return the HS matrix of the effective lindbladian for a Control-Z gate"""
     coeff = 0.25 * math.pi
     size = 16
@@ -2040,7 +2040,7 @@ def generate_gate_cz_effective_lindbladian(
 # SWAP gate on 2-qubit
 
 
-def generate_gate_swap_hamiltonian_vec() -> np.array:
+def generate_gate_swap_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation of the Hamiltonian of the SWAP gate. The Hamiltonian is H = (pi/4) * (- II + XX + YY + ZZ)."""
     coeff = 0.5 * math.pi
     # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
@@ -2062,7 +2062,7 @@ def generate_gate_swap_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_swap_hamiltonian_mat() -> np.array:
+def generate_gate_swap_hamiltonian_mat() -> np.ndarray:
     """Return the Hamiltonian of the SWAP gate. The Hamiltonian is H = (pi/4) * (- II + XX + YY + ZZ)."""
     coeff = 0.25 * math.pi
     num_qubit = 2
@@ -2086,7 +2086,7 @@ def generate_gate_swap_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_swap_effective_lindbladian_mat() -> np.array:
+def generate_gate_swap_effective_lindbladian_mat() -> np.ndarray:
     """Return the HS matrix of the effective lindbladian for a SWAP gate"""
     coeff = 0.25 * math.pi
     size = 16
@@ -2136,7 +2136,7 @@ def generate_gate_swap_effective_lindbladian(
 # ZX90 gate on 2-qubit system
 
 
-def generate_gate_zx90_hamiltonian_vec(ids: List[int]) -> np.array:
+def generate_gate_zx90_hamiltonian_vec(ids: List[int]) -> np.ndarray:
     """Return the vector representation of the Hamiltonian of the ZX90 gate. The Hamiltonian is H = (pi/4) * ZX for ids[0] < ids[1], and H = (pi/4) * XZ for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
@@ -2156,7 +2156,7 @@ def generate_gate_zx90_hamiltonian_vec(ids: List[int]) -> np.array:
     return vec
 
 
-def generate_gate_zx90_hamiltonian_mat(ids: List[int]) -> np.array:
+def generate_gate_zx90_hamiltonian_mat(ids: List[int]) -> np.ndarray:
     """Return the Hamiltonian of the ZX90 gate. The Hamiltonian is H = (pi/4) * ZX for ids[0] < ids[1], and H = (pi/4) * XZ for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
@@ -2178,7 +2178,7 @@ def generate_gate_zx90_hamiltonian_mat(ids: List[int]) -> np.array:
     return mat
 
 
-def generate_gate_zx90_effective_lindbladian_mat(ids: List[int]) -> np.array:
+def generate_gate_zx90_effective_lindbladian_mat(ids: List[int]) -> np.ndarray:
     """Return the HS matrix of the effective lindbladian for a ZX90 gate"""
     assert len(ids) == 2
     assert ids[0] != ids[1]
@@ -2227,7 +2227,7 @@ def generate_gate_zx90_effective_lindbladian(
 # ZZ90 gate on 2-qubit system
 
 
-def generate_gate_zz90_hamiltonian_vec() -> np.array:
+def generate_gate_zz90_hamiltonian_vec() -> np.ndarray:
     """Return the vector representation of the Hamiltonian of a ZZ90 gate. The Hamiltonian is H = (pi/4) * ZZ."""
     coeff = 0.5 * math.pi
     # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
@@ -2240,7 +2240,7 @@ def generate_gate_zz90_hamiltonian_vec() -> np.array:
     return vec
 
 
-def generate_gate_zz90_hamiltonian_mat() -> np.array:
+def generate_gate_zz90_hamiltonian_mat() -> np.ndarray:
     """Return the Hamiltonian of a ZZ90 gate. The Hamiltonian is H = (pi/4) * ZZ."""
     coeff = 0.25 * math.pi
     num_qubit = 2
@@ -2255,7 +2255,7 @@ def generate_gate_zz90_hamiltonian_mat() -> np.array:
     return mat
 
 
-def generate_gate_zz90_effective_lindbladian_mat() -> np.array:
+def generate_gate_zz90_effective_lindbladian_mat() -> np.ndarray:
     """Return the HS matrix of the effective lindbladian for a ZZ90 gate"""
     coeff = 0.25 * math.pi
     size = 16
@@ -2296,7 +2296,7 @@ def generate_gate_zz90_effective_lindbladian(
 # 1-qutrit gates
 
 
-def generate_gate_1qutrit_single_gellmann_hamiltonian_vec(gate_name: str) -> np.array:
+def generate_gate_1qutrit_single_gellmann_hamiltonian_vec(gate_name: str) -> np.ndarray:
     """return the Hamiltonian vector for the gate."""
     h = generate_gate_1qutrit_single_gellmann_hamiltonian_mat(gate_name)
     basis = get_normalized_gell_mann_basis()
@@ -2306,7 +2306,7 @@ def generate_gate_1qutrit_single_gellmann_hamiltonian_vec(gate_name: str) -> np.
 
 def generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(
     gate_name: str,
-) -> np.array:
+) -> np.ndarray:
     """return the effective Lindbladian matrix for the gate."""
     h = generate_gate_1qutrit_single_gellmann_hamiltonian_mat(gate_name)
     to_basis = get_normalized_gell_mann_basis()
@@ -2316,7 +2316,7 @@ def generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(
 
 def generate_gate_1qutrit_single_gellmann_effective_linabladian(
     c_sys: CompositeSystem, gate_name: str
-) -> np.array:
+) -> np.ndarray:
     """return the EffectiveLindbladian for the gate."""
     assert len(c_sys.elemental_systems) == 1
     assert c_sys.dim == 3

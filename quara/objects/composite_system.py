@@ -4,7 +4,6 @@ from typing import List, Tuple, Union
 
 import numpy as np
 
-from quara.objects import elemental_system
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
 

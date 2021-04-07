@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from functools import reduce
 from operator import add
 from typing import Tuple, Union
@@ -100,12 +99,14 @@ class RandomEffectiveLindbladianGenerationSetting(
         random_vector = strength * normalized_factor * random_variables
         return random_vector, random_variables
 
-    def generate_random_effective_lindbladian_h_part(self) -> Tuple[np.array, np.array]:
+    def generate_random_effective_lindbladian_h_part(
+        self,
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of h part of effective Lindbladian.
 
         Returns
         -------
-        Tuple[np.array, np.array]
+        Tuple[np.ndarray, np.ndarray]
             tuple of random HS matrix and ramdom variables.
         """
         # generate randum variables
@@ -127,12 +128,12 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian_d_part(
         self,
-    ) -> Tuple[np.array, np.array, np.array]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of d part of effective Lindbladian.
 
         Returns
         -------
-        Tuple[np.array, np.array, np.array]
+        Tuple[np.ndarray, np.ndarray, np.ndarray]
             tuple of random HS matrix, ramdom variables and random unitary matrix.
         """
         # generate randum variables
@@ -160,13 +161,13 @@ class RandomEffectiveLindbladianGenerationSetting(
     def generate_random_effective_lindbladian(
         self,
     ) -> Tuple[
-        EffectiveLindbladian, np.array, np.array, np.array, np.array,
+        EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
     ]:
         """generates random effective Lindbladian and returns effective Lindbladian base + random effective Lindbladian.
 
         Returns
         -------
-        Tuple[ EffectiveLindbladian, np.array, np.array, np.array, np.array, ]
+        Tuple[ EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of effective Lindbladian, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
         """
         (
@@ -213,13 +214,13 @@ class RandomEffectiveLindbladianGenerationSetting(
     def generate_state(
         self,
     ) -> Tuple[
-        State, np.array, np.array, np.array, np.array,
+        State, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
     ]:
         """generates random effective Lindbladian and returns state(composition of random effective Lindbladian and qoperation base).
 
         Returns
         -------
-        Tuple[ State, np.array, np.array, np.array, np.array, ]
+        Tuple[ State, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of state, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
@@ -242,13 +243,13 @@ class RandomEffectiveLindbladianGenerationSetting(
     def generate_gate(
         self,
     ) -> Tuple[
-        Gate, np.array, np.array, np.array, np.array,
+        Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
     ]:
         """generates random effective Lindbladian and returns gate(composition of random effective Lindbladian and qoperation base).
 
         Returns
         -------
-        Tuple[ Gate, np.array, np.array, np.array, np.array, ]
+        Tuple[ Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of gate, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
@@ -271,13 +272,13 @@ class RandomEffectiveLindbladianGenerationSetting(
     def generate_povm(
         self,
     ) -> Tuple[
-        Povm, np.array, np.array, np.array, np.array,
+        Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
     ]:
         """generates random effective Lindbladian and returns povm(composition of random effective Lindbladian and qoperation base).
 
         Returns
         -------
-        Tuple[ Povm, np.array, np.array, np.array, np.array, ]
+        Tuple[ Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of povm, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """

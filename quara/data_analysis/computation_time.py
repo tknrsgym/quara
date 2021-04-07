@@ -1,11 +1,9 @@
-from typing import List, Tuple, Dict, Any, Union, Optional
+from typing import List, Union
 
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import numpy as np
-from tqdm import tqdm
 
-# TODO: 共通化
+# TODO: commonalisation
 def make_histogram(
     values: List[float],
     num_data: int,
@@ -36,8 +34,6 @@ def make_histogram(
 
     hist = go.Histogram(
         x=values,
-        # autobinx=True,
-        # bins=np.arange(x_min, x_max, abs(x_max - x_min) / 10),
         xbins=xbins,
         histnorm="probability",
     )
@@ -107,8 +103,8 @@ def make_computation_time_histogram(
     elif unit == "sec":
         time_unit = 1
     else:
-        # TODO: error message
-        raise ValueError()
+        error_message = f"'unit' must be 'min' or 'sec', not {unit}"
+        raise ValueError(error_message)
 
     n = estimation_results[0].num_data[num_data_index]
     values = [

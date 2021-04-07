@@ -8,7 +8,6 @@ from quara.objects.matrix_basis import (
 )
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.qoperation_typical import generate_qoperation
 
 
 def generate_composite_system(

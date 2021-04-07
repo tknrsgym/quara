@@ -1,4 +1,4 @@
-from typing import Type, Union, Tuple
+from typing import Union, Tuple
 from abc import abstractmethod
 
 from quara.objects.qoperation import QOperation
