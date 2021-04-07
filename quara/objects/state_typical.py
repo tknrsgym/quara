@@ -74,7 +74,7 @@ def get_state_names_2qutrit() -> List[str]:
 
 def generate_state_object_from_state_name_object_name(
     state_name: str, object_name: str, c_sys: CompositeSystem = None
-) -> Union[State, np.array]:
+) -> Union[State, np.ndarray]:
     """[summary]
 
     Parameters
@@ -90,7 +90,7 @@ def generate_state_object_from_state_name_object_name(
 
     Returns
     -------
-    Union[State, np.array]
+    Union[State, np.ndarray]
         The state specified by state_name is returned in an object of the form specified by object_name.
 
     Raises
@@ -117,7 +117,7 @@ def generate_state_object_from_state_name_object_name(
         return method(state_name)
 
 
-def generate_state_density_mat_from_name(state_name: str) -> np.array:
+def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
     """Return the density matrix ( ``|ρ>`` )of state specified by name.
 
     Parameters
@@ -128,7 +128,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         density matrix ( ``|ρ>`` )
     """
 
@@ -142,7 +142,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.array:
 
 def generate_state_density_matrix_vector_from_name(
     basis: MatrixBasis, state_name: str
-) -> np.array:
+) -> np.ndarray:
     """Return the density matrix vector ( ``|ρ>>`` )of state specified by name.
 
     Parameters
@@ -155,7 +155,7 @@ def generate_state_density_matrix_vector_from_name(
 
     Returns
     -------
-    np.array
+    np.ndarray
         density matrix vector ( ``|ρ>>`` )
     """
     density_mat = generate_state_density_mat_from_name(state_name)
@@ -187,7 +187,7 @@ def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
     return state
 
 
-def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
+def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
     """Return the pure state vector for state specified by name.
     Use get_state_names() to get a list of all available names.
 
@@ -205,7 +205,7 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         pure state vector
 
     Raises
@@ -232,7 +232,7 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.array:
     return _generate_pure_state_vec_tensor_product(state_name)
 
 
-def _generate_pure_state_vec_tensor_product(state_name: str) -> np.array:
+def _generate_pure_state_vec_tensor_product(state_name: str) -> np.ndarray:
     name_items = state_name.split("_")
     state_1qubit_list = []
     for i, name_item in enumerate(name_items):
@@ -244,103 +244,103 @@ def _generate_pure_state_vec_tensor_product(state_name: str) -> np.array:
     return pure_state_vec
 
 
-def tensor_product_for_vecs(state_vecs: np.array) -> np.array:
+def tensor_product_for_vecs(state_vecs: np.ndarray) -> np.ndarray:
     state_vec = state_vecs[0]
     for vec in state_vecs[1:]:
         state_vec = np.kron(state_vec, vec)
     return state_vec
 
 
-def get_state_x0_pure_state_vector() -> np.array:
+def get_state_x0_pure_state_vector() -> np.ndarray:
     """Returns the pure state vector for |+>.
     |+> := (1/√2)* (|0> + |1>)
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = (1 / np.sqrt(2)) * np.array([1, 1], dtype=np.complex128)
     return vec
 
 
-def get_state_x1_pure_state_vector() -> np.array:
+def get_state_x1_pure_state_vector() -> np.ndarray:
     """Returns the pure state vector for |->.
     |-> := (1/√2)* (|0> - |1>)
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = (1 / np.sqrt(2)) * np.array([1, -1], dtype=np.complex128)
     return vec
 
 
-def get_state_y0_pure_state_vector() -> np.array:
+def get_state_y0_pure_state_vector() -> np.ndarray:
     """Returns the pure state vector for |i>.
     |i> := (1/√2)* (|0> + i*|1>)
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = (1 / np.sqrt(2)) * np.array([1, 1j], dtype=np.complex128)
     return vec
 
 
-def get_state_y1_pure_state_vector() -> np.array:
+def get_state_y1_pure_state_vector() -> np.ndarray:
     """Returns the pure state vector for |i>.
     |-i> := (1/√2)* (|0> - i*|1>)
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = (1 / np.sqrt(2)) * np.array([1, -1j], dtype=np.complex128)
     return vec
 
 
-def get_state_z0_pure_state_vector() -> np.array:
+def get_state_z0_pure_state_vector() -> np.ndarray:
     """Returns the pure state vector for |0>.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 0], dtype=np.complex128)
     return vec
 
 
-def get_state_z1_pure_state_vector() -> np.array:
+def get_state_z1_pure_state_vector() -> np.ndarray:
     """Returns the pure state vector for |1>.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 1], dtype=np.complex128)
     return vec
 
 
-def get_state_a_pure_state_vector() -> np.array:
+def get_state_a_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for A state.
     |A> := (1/√2) * (|0> + exp(iπ/4)|1>)
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector for A state.
     """
     vec = (1 / np.sqrt(2)) * np.array([1, np.exp(1j * np.pi / 4)], dtype=np.complex128)
     return vec
 
 
-def get_state_bell_pure_state_vector(name: str) -> np.array:
+def get_state_bell_pure_state_vector(name: str) -> np.ndarray:
     """Return the pure state vector for bell.
 
     Parameters
@@ -354,7 +354,7 @@ def get_state_bell_pure_state_vector(name: str) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector for bell state.
 
     Raises
@@ -377,13 +377,13 @@ def get_state_bell_pure_state_vector(name: str) -> np.array:
     return vec
 
 
-def get_state_ghz_pure_state_vector() -> np.array:
+def get_state_ghz_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for GHZ.
     |GHZ> := (1/√2) * (|0>|0>|0> + |1>|1>|1>)
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector for GHZ state.
     """
     state_vec_0 = np.array([1, 0], dtype=np.complex128)  # |0>
@@ -397,13 +397,13 @@ def get_state_ghz_pure_state_vector() -> np.array:
     return pure_state_vec
 
 
-def get_state_werner_pure_state_vector() -> np.array:
+def get_state_werner_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for Werner.
     |W> := (1/√3) * (|0>|0>|1> + |0>|1>|0> + |1>|0>|0>)
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector for Werner state.
     """
     state_vec_0 = np.array([1, 0], dtype=np.complex128)  # |0>
@@ -420,7 +420,7 @@ def get_state_werner_pure_state_vector() -> np.array:
     return pure_state_vec
 
 
-def get_state_x0_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_x0_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``X_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -430,7 +430,7 @@ def get_state_x0_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -447,7 +447,7 @@ def get_state_x0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_state_x1_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_x1_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``X_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -457,7 +457,7 @@ def get_state_x1_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -474,7 +474,7 @@ def get_state_x1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_state_y0_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_y0_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Y_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -484,7 +484,7 @@ def get_state_y0_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -501,7 +501,7 @@ def get_state_y0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_state_y1_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_y1_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Y_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -511,7 +511,7 @@ def get_state_y1_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -528,7 +528,7 @@ def get_state_y1_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_state_z0_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_z0_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Z_0`` with the basis of ``c_sys``.
 
     Parameters
@@ -538,7 +538,7 @@ def get_state_z0_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -555,7 +555,7 @@ def get_state_z0_1q(c_sys: CompositeSystem) -> np.array:
     return state
 
 
-def get_state_z1_1q(c_sys: CompositeSystem) -> np.array:
+def get_state_z1_1q(c_sys: CompositeSystem) -> np.ndarray:
     """returns vec of state ``Z_1`` with the basis of ``c_sys``.
 
     Parameters
@@ -565,7 +565,7 @@ def get_state_z1_1q(c_sys: CompositeSystem) -> np.array:
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of state.
     """
     # whether dim of CompositeSystem equals 2
@@ -629,72 +629,72 @@ def get_state_bell_2q(c_sys: CompositeSystem) -> State:
 # pure statevector of 1-qutrit, axis=01
 
 
-def get_state_01x0_pure_state_vector() -> np.array:
+def get_state_01x0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> + |1>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 1, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_01x1_pure_state_vector() -> np.array:
+def get_state_01x1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> - |1>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, -1, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_01y0_pure_state_vector() -> np.array:
+def get_state_01y0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> + j|1>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 1j, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_01y1_pure_state_vector() -> np.array:
+def get_state_01y1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> - j|1>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, -1j, 0], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_01z0_pure_state_vector() -> np.array:
+def get_state_01z0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``|0>``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 0, 0], dtype=np.complex128)
     return vec
 
 
-def get_state_01z1_pure_state_vector() -> np.array:
+def get_state_01z1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``|1>``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 1, 0], dtype=np.complex128)
@@ -704,72 +704,72 @@ def get_state_01z1_pure_state_vector() -> np.array:
 # pure statevector of 1-qutrit, axis=12
 
 
-def get_state_12x0_pure_state_vector() -> np.array:
+def get_state_12x0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|1> + |2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 1, 1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_12x1_pure_state_vector() -> np.array:
+def get_state_12x1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|1> - |2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 1, -1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_12y0_pure_state_vector() -> np.array:
+def get_state_12y0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|1> + j|2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 1, 1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_12y1_pure_state_vector() -> np.array:
+def get_state_12y1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|1> - j|2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 1, -1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_12z0_pure_state_vector() -> np.array:
+def get_state_12z0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``|1>``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 1, 0], dtype=np.complex128)
     return vec
 
 
-def get_state_12z1_pure_state_vector() -> np.array:
+def get_state_12z1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``|2>``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 0, 1], dtype=np.complex128)
@@ -779,72 +779,72 @@ def get_state_12z1_pure_state_vector() -> np.array:
 # pure statevector of 1-qutrit, axis=02
 
 
-def get_state_02x0_pure_state_vector() -> np.array:
+def get_state_02x0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> + |2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 0, 1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_02x1_pure_state_vector() -> np.array:
+def get_state_02x1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> - |2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 0, -1], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_02y0_pure_state_vector() -> np.array:
+def get_state_02y0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> + j|2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 0, 1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_02y1_pure_state_vector() -> np.array:
+def get_state_02y1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``(|0> - j|2>)/sqrt(2)``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 0, -1j], dtype=np.complex128) / np.sqrt(2)
     return vec
 
 
-def get_state_02z0_pure_state_vector() -> np.array:
+def get_state_02z0_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``|0>``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([1, 0, 0], dtype=np.complex128)
     return vec
 
 
-def get_state_02z1_pure_state_vector() -> np.array:
+def get_state_02z1_pure_state_vector() -> np.ndarray:
     """returns the pure state vector of ``|2>``.
 
     Returns
     -------
-    np.array
+    np.ndarray
         the pure state vector.
     """
     vec = np.array([0, 0, 1], dtype=np.complex128)

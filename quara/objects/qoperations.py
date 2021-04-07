@@ -128,13 +128,13 @@ class SetQOperations:
         )
         return total
 
-    def var_state(self, index: int) -> np.array:
+    def var_state(self, index: int) -> np.ndarray:
         return self.states[index].to_var()
 
-    def var_gate(self, index: int) -> np.array:
+    def var_gate(self, index: int) -> np.ndarray:
         return self.gates[index].to_var()
 
-    def var_povm(self, index: int) -> np.array:
+    def var_povm(self, index: int) -> np.ndarray:
         return self.povms[index].to_var()
 
     def var_states(self) -> List[float]:
@@ -142,17 +142,17 @@ class SetQOperations:
         vars = np.hstack(vars) if vars else np.array([])
         return vars
 
-    def var_povms(self) -> np.array:
+    def var_povms(self) -> np.ndarray:
         vars = [povm.to_var() for povm in self.povms]
         vars = np.hstack(vars) if vars else np.array([])
         return vars
 
-    def var_gates(self) -> np.array:
+    def var_gates(self) -> np.ndarray:
         vars = [gate.to_var() for gate in self.gates]
         vars = np.hstack(vars) if vars else np.array([])
         return vars
 
-    def var_total(self) -> np.array:
+    def var_total(self) -> np.ndarray:
         vars = np.hstack([self.var_states(), self.var_gates(), self.var_povms()])
         return vars
 
@@ -268,7 +268,7 @@ class SetQOperations:
         # Do NOT change the order
         return self.states + self.gates + self.povms
 
-    def set_qoperations_from_var_total(self, var_total: np.array) -> "SetQOperations":
+    def set_qoperations_from_var_total(self, var_total: np.ndarray) -> "SetQOperations":
         # numpy array var_totalに対応するsetListQOperationを返す
         actual, expected = len(var_total), self.size_var_total()
         if actual != expected:
@@ -302,4 +302,3 @@ class SetQOperations:
             povms=new_q_operation_dict[Povm],
         )
         return new_set_qoperations
-

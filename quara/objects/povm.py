@@ -173,7 +173,7 @@ class Povm(QOperation):
     def _generate_origin_obj(self):
         size = self.dim ** 2
 
-        def generate_vec() -> np.array:
+        def generate_vec() -> np.ndarray:
             return np.hstack(
                 [
                     np.array([np.sqrt(self.dim) / len(self.vecs)], dtype=np.float64),
@@ -185,14 +185,14 @@ class Povm(QOperation):
 
         return new_vecs
 
-    def to_var(self) -> np.array:
+    def to_var(self) -> np.ndarray:
         return convert_povm_to_var(
             c_sys=self.composite_system,
             vecs=list(self.vecs),
             on_para_eq_constraint=self.on_para_eq_constraint,
         )
 
-    def to_stacked_vector(self) -> np.array:
+    def to_stacked_vector(self) -> np.ndarray:
         stacked_vec = np.hstack(self.vecs)
         return stacked_vec
 
@@ -454,7 +454,7 @@ class Povm(QOperation):
                 w_list.append(w)
             return w_list
 
-    def convert_basis(self, other_basis: MatrixBasis) -> List[np.array]:
+    def convert_basis(self, other_basis: MatrixBasis) -> List[np.ndarray]:
         """Calculate vector representation for ``other_basis``.
 
         Parameters
@@ -464,7 +464,7 @@ class Povm(QOperation):
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             Vector representation after conversion to ``other_basis`` .
         """
 
@@ -624,7 +624,7 @@ def convert_var_to_povm(
 
     vec_list = []
     reshaped_vecs = vecs.reshape(measurement_n, dim ** 2)
-    # convert np.array to list of np.array
+    # convert np.ndarray to list of np.ndarray
     for vec in reshaped_vecs:
         vec_list.append(vec)
     povm = Povm(
@@ -643,7 +643,7 @@ def convert_var_to_povm(
 
 def convert_povm_to_var(
     c_sys: CompositeSystem, vecs: List[np.ndarray], on_para_eq_constraint: bool = True
-) -> np.array:
+) -> np.ndarray:
     """converts hs of povm to vec of variables.
 
     Parameters
@@ -657,7 +657,7 @@ def convert_povm_to_var(
 
     Returns
     -------
-    np.array
+    np.ndarray
         list of vec of variables.
     """
     var = copy.copy(vecs)
@@ -720,7 +720,7 @@ def calc_gradient_from_povm(
 
 
 def _get_1q_povm_from_vecs_on_pauli_basis(
-    c_sys: CompositeSystem, vecs: np.array
+    c_sys: CompositeSystem, vecs: np.ndarray
 ) -> Povm:
     # whether CompositeSystem is 1 qubit
     size = len(c_sys._elemental_systems)
@@ -744,7 +744,7 @@ def _get_1q_povm_from_vecs_on_pauli_basis(
     return povm
 
 
-def _get_x_povm_vecs() -> List[np.array]:
+def _get_x_povm_vecs() -> List[np.ndarray]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 1, 0, 0], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, -1, 0, 0], dtype=np.float64),
@@ -752,7 +752,7 @@ def _get_x_povm_vecs() -> List[np.array]:
     return vecs
 
 
-def _get_y_povm_vecs() -> List[np.array]:
+def _get_y_povm_vecs() -> List[np.ndarray]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 0, 1, 0], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, 0, -1, 0], dtype=np.float64),
@@ -760,7 +760,7 @@ def _get_y_povm_vecs() -> List[np.array]:
     return vecs
 
 
-def _get_z_povm_vecs() -> List[np.array]:
+def _get_z_povm_vecs() -> List[np.ndarray]:
     vecs = [
         1 / np.sqrt(2) * np.array([1, 0, 0, 1], dtype=np.float64),
         1 / np.sqrt(2) * np.array([1, 0, 0, -1], dtype=np.float64),
@@ -841,7 +841,7 @@ def get_z_povm(c_sys: CompositeSystem) -> Povm:
 
 
 def _get_2q_povm_from_vecs_on_pauli_basis(
-    c_sys: CompositeSystem, vecs1: np.array, vecs2: np.array
+    c_sys: CompositeSystem, vecs1: np.ndarray, vecs2: np.ndarray
 ) -> Povm:
     # whether CompositeSystem is 2 qubit
     size = len(c_sys._elemental_systems)
