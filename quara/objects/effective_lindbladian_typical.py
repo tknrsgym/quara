@@ -2,9 +2,7 @@ import math
 import numpy as np
 from typing import List, Union
 
-from quara.utils.matrix_util import (
-    is_hermitian,
-)
+from quara.utils.matrix_util import is_hermitian
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
@@ -16,9 +14,7 @@ from quara.objects.matrix_basis import (
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import Gate
-from quara.objects.gate import (
-    convert_hs,
-)
+from quara.objects.gate import convert_hs
 from quara.objects.gate_typical import (
     _is_valid_dims_ids,
     _dim_total_from_dims,
@@ -40,9 +36,7 @@ from quara.objects.gate_typical import (
     generate_gate_2qutrit_hamiltonian_mat_from_gate_name,
 )
 from quara.objects.effective_lindbladian import EffectiveLindbladian
-from quara.objects.effective_lindbladian import (
-    _truncate_hs,
-)
+from quara.objects.effective_lindbladian import _truncate_hs
 
 
 def generate_effective_lindbladian_object_from_gate_name_object_name(
@@ -353,7 +347,7 @@ def generate_effective_lindbladian_mat_from_gate_name(
 
 
 def generate_effective_lindbladian_from_gate_name(
-    gate_name: str, c_sys: CompositeSystem, ids: List[int] = []
+    gate_name: str, c_sys: CompositeSystem, ids: List[int] = None
 ) -> "EffectiveLindbladian":
     """returns the Hilbert-Schmidt representation matrix of a gate.
 
