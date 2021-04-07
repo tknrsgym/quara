@@ -10,6 +10,9 @@ from quara.protocol.qtomography.standard.projected_linear_estimator import (
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
+from quara.simulation.standard_qtomography_simulation import (
+    generate_empi_dists_and_calc_estimate,
+)
 
 
 def check_mse_of_empirical_distributions(
@@ -167,9 +170,9 @@ def compare_to_linear(
         simulation_setting.true_object, on_para_eq_constraint=parameter
     )
 
-    # estimate
+    # generate empi dists and calc estimate
     linear_estimator = LinearEstimator()
-    linear_estimation_results = data_analysis.estimate(
+    linear_estimation_results = generate_empi_dists_and_calc_estimate(
         qtomography=qtomo,
         true_object=true_object_copied,
         num_data=num_data,
