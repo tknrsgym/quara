@@ -199,7 +199,6 @@ class TestStandardQst:
         state = get_z0_1q(c_sys)
 
         actual = qst.generate_empi_dists_sequence(state, [10, 20])
-        print(actual)
         expected = [
             [
                 (10, np.array([0.5, 0.5], dtype=np.float64)),

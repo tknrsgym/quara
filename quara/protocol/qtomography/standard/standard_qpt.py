@@ -1,6 +1,6 @@
-from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
-from typing import List, Tuple, Union
+import itertools
 from itertools import product
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -114,8 +114,54 @@ class StandardQpt(StandardQTomography):
 
         return is_ok_states and is_ok_povms
 
+    def generate_empi_dist(
+        self, schedule_index: int, gate: Gate, num_sum: int
+    ) -> Tuple[int, np.ndarray]:
+        """Generate empirical distribution using the data generated from probability distribution of specified schedules.
+
+        Parameters
+        ----------
+        schedule_index : int
+            schedule index.
+        gate: Gate
+            true object.
+        num_sum : int
+            the number of data to use to generate the experience distributions for each schedule.
+
+        Returns
+        -------
+        Tuple[int, np.ndarray]
+            Generated empirical distribution.
+        """
+        tmp_experiment = self._experiment.copy()
+        target_index = self._get_target_index(tmp_experiment, schedule_index)
+        tmp_experiment.gates[target_index] = gate
+
+        empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
+            schedule_index, [num_sum]
+        )
+        return empi_dist_seq[0]
+
+    def generate_empi_dists(
+        self, gate: Gate, num_sum: int
+    ) -> List[Tuple[int, np.ndarray]]:
+        """Generate empirical distributions using the data generated from probability distributions of all schedules.
+
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_empi_dists`
+        """
+        tmp_experiment = self._experiment.copy()
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            target_index = self._get_target_index(tmp_experiment, schedule_index)
+            tmp_experiment.gates[target_index] = gate
+
+        num_sums = [num_sum] * self._num_schedules
+        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums])
+
+        empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
+        return empi_dists
+
     def generate_empi_dists_sequence(
-        self, gate: Povm, num_sums: List[int]
+        self, gate: Gate, num_sums: List[int]
     ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
 
