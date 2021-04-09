@@ -128,6 +128,10 @@ class TestQTomography:
         seed = 77
         experiment.reset_seed(seed)
         actual = experiment.generate_data(1, 10)
-        print(actual)
+        expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
+        assert np.all(actual == expected)
+
+        experiment.reset_seed(experiment.seed)
+        actual = experiment.generate_data(1, 10)
         expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         assert np.all(actual == expected)
