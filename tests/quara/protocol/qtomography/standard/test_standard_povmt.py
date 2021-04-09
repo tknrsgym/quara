@@ -12,7 +12,30 @@ from quara.objects.state import (
     get_z1_1q,
 )
 from quara.objects.povm import Povm
+from quara.objects.povm_typical import generate_povm_from_name
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
+
+
+def get_test_data():
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # |+><+|
+    state_x0 = get_x0_1q(c_sys)
+    # |+i><+i|
+    state_y0 = get_y0_1q(c_sys)
+    # |0><0|
+    state_z0 = get_z0_1q(c_sys)
+    # |1><1|
+    state_z1 = get_z1_1q(c_sys)
+    tester_objects = [state_x0, state_y0, state_z0, state_z1]
+
+    # Act
+    povmt = StandardPovmt(
+        tester_objects, on_para_eq_constraint=False, num_outcomes=2, seed=7
+    )
+
+    return povmt, c_sys
 
 
 class TestStandardPovmt:
@@ -51,7 +74,18 @@ class TestStandardPovmt:
         )
         npt.assert_almost_equal(actual.calc_matA(), expected_A, decimal=15)
 
-        expected_b = np.array([0, 0, 0, 0, 0, 0, 0, 0,])
+        expected_b = np.array(
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ]
+        )
         npt.assert_almost_equal(actual.calc_vecB(), expected_b, decimal=15)
 
         # Case 1: m = 3
@@ -426,3 +460,71 @@ class TestStandardPovmt:
                 num_outcomes=2,
                 schedules=invalid_schedules,
             )
+
+    def test_generate_empi_dist(self):
+        povmt, c_sys = get_test_data()
+        povm = generate_povm_from_name("z", c_sys)
+
+        # schedule_index = 0
+        actual = povmt.generate_empi_dist(0, povm, 10)
+        expected = (10, np.array([0.5, 0.5], dtype=np.float64))
+        assert actual[0] == expected[0]
+        npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+
+        # schedule_index = 1
+        actual = povmt.generate_empi_dist(1, povm, 10)
+        expected = (10, np.array([0.6, 0.4], dtype=np.float64))
+        assert actual[0] == expected[0]
+        npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+
+        # schedule_index = 2
+        actual = povmt.generate_empi_dist(2, povm, 10)
+        expected = (10, np.array([1.0, 0.0], dtype=np.float64))
+        assert actual[0] == expected[0]
+        npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+
+        # schedule_index = 3
+        actual = povmt.generate_empi_dist(3, povm, 10)
+        expected = (10, np.array([0.0, 1.0], dtype=np.float64))
+        assert actual[0] == expected[0]
+        npt.assert_almost_equal(actual[1], expected[1], decimal=15)
+
+    def test_generate_empi_dists(self):
+        povmt, c_sys = get_test_data()
+        povm = generate_povm_from_name("z", c_sys)
+
+        actual = povmt.generate_empi_dists(povm, 10)
+        expected = [
+            (10, np.array([0.5, 0.5], dtype=np.float64)),
+            (10, np.array([0.6, 0.4], dtype=np.float64)),
+            (10, np.array([1.0, 0.0], dtype=np.float64)),
+            (10, np.array([0.0, 1.0], dtype=np.float64)),
+        ]
+        for a, e in zip(actual, expected):
+            assert a[0] == e[0]
+            npt.assert_almost_equal(a[1], e[1], decimal=15)
+
+    def test_generate_empi_dists_sequence(self):
+        povmt, c_sys = get_test_data()
+        povm = generate_povm_from_name("z", c_sys)
+
+        actual = povmt.generate_empi_dists_sequence(povm, [10, 20])
+        print(actual)
+        expected = [
+            [
+                (10, np.array([0.5, 0.5], dtype=np.float64)),
+                (10, np.array([0.3, 0.7], dtype=np.float64)),
+                (10, np.array([1.0, 0.0], dtype=np.float64)),
+                (10, np.array([0.0, 1.0], dtype=np.float64)),
+            ],
+            [
+                (20, np.array([0.55, 0.45], dtype=np.float64)),
+                (20, np.array([0.5, 0.5], dtype=np.float64)),
+                (20, np.array([1.0, 0.0], dtype=np.float64)),
+                (20, np.array([0.0, 1.0], dtype=np.float64)),
+            ],
+        ]
+        for a_dists, e_dists in zip(actual, expected):
+            for a, e in zip(a_dists, e_dists):
+                assert a[0] == e[0]
+                npt.assert_almost_equal(a[1], e[1], decimal=15)
