@@ -158,6 +158,35 @@ class TestStandardQst:
         qst, _ = get_test_data()
         assert qst.is_valid_experiment() == True
 
+    def test_reset_seed(self):
+        # Assert
+        qst, c_sys = get_test_data()
+        state = get_z0_1q(c_sys)
+
+        actual = qst.generate_empi_dists(state, 10)
+        expected = [
+            (10, np.array([0.5, 0.5], dtype=np.float64)),
+            (10, np.array([0.6, 0.4], dtype=np.float64)),
+            (10, np.array([1, 0], dtype=np.float64)),
+        ]
+        for a, e in zip(actual, expected):
+            assert a[0] == e[0]
+            npt.assert_almost_equal(a[1], e[1], decimal=15)
+
+        # Act
+        qst.reset_seed()
+
+        # Assert
+        actual = qst.generate_empi_dists(state, 10)
+        expected = [
+            (10, np.array([0.5, 0.5], dtype=np.float64)),
+            (10, np.array([0.6, 0.4], dtype=np.float64)),
+            (10, np.array([1, 0], dtype=np.float64)),
+        ]
+        for a, e in zip(actual, expected):
+            assert a[0] == e[0]
+            npt.assert_almost_equal(a[1], e[1], decimal=15)
+
     def test_generate_empi_dist(self):
         qst, c_sys = get_test_data()
         state = get_z0_1q(c_sys)
