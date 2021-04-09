@@ -120,7 +120,7 @@ class Gate(QOperation):
 
         Returns
         -------
-        np.array
+        np.ndarray
             HS representation of gate.
         """
         return self._hs
@@ -351,16 +351,16 @@ class Gate(QOperation):
         choi = reduce(add, tmp_list)
         return choi
 
-    def to_kraus_matrices(self) -> List[np.array]:
+    def to_kraus_matrices(self) -> List[np.ndarray]:
         """returns Kraus matrices of gate.
 
-        this function returns Kraus matrices as list of ``np.array`` with ``dtype=np.complex128``.
+        this function returns Kraus matrices as list of ``np.ndarray`` with ``dtype=np.complex128``.
         the list is sorted large eigenvalue order.
         if HS of gate is not CP, then returns empty list because Kraus matrices does not exist.
 
         Returns
         -------
-        List[np.array]
+        List[np.ndarray]
             Kraus matrices of gate.
         """
         if not self.is_cp():
