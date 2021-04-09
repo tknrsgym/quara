@@ -105,15 +105,20 @@ class QTomography:
         """
         return self._num_variables
 
-    def reset_seed(self, seed: int) -> None:
+    def reset_seed(self, seed: int = None) -> None:
         """reset new seed.
+
+        if `seed` is None, reset by seed which Experiment already has.
 
         Parameters
         ----------
-        seed : int
-            new seed.
+        seed : int, optional
+            new seed, None by default.
         """
-        self._experiment.reset_seed(seed)
+        if seed:
+            self._experiment.reset_seed(seed)
+        else:
+            self._experiment.reset_seed(self._experiment.seed)
 
     @abstractmethod
     def is_valid_experiment(self) -> bool:
