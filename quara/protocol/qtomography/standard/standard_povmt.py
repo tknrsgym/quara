@@ -1,4 +1,4 @@
-from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
+import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -161,6 +161,52 @@ class StandardPovmt(StandardQTomography):
         else:
             val = self._calc_cramer_rao_bound(var, N, list_N)
         return val
+
+    def generate_empi_dist(
+        self, schedule_index: int, povm: Povm, num_sum: int
+    ) -> Tuple[int, np.ndarray]:
+        """Generate empirical distribution using the data generated from probability distribution of specified schedules.
+
+        Parameters
+        ----------
+        schedule_index : int
+            schedule index.
+        povm: Povm
+            true object.
+        num_sum : int
+            the number of data to use to generate the experience distributions for each schedule.
+
+        Returns
+        -------
+        Tuple[int, np.ndarray]
+            Generated empirical distribution.
+        """
+        tmp_experiment = self._experiment.copy()
+        target_index = self._get_target_index(tmp_experiment, schedule_index)
+        tmp_experiment.povms[target_index] = povm
+
+        empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
+            schedule_index, [num_sum]
+        )
+        return empi_dist_seq[0]
+
+    def generate_empi_dists(
+        self, povm: Povm, num_sum: int
+    ) -> List[Tuple[int, np.ndarray]]:
+        """Generate empirical distributions using the data generated from probability distributions of all schedules.
+
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_empi_dists`
+        """
+        tmp_experiment = self._experiment.copy()
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            target_index = self._get_target_index(tmp_experiment, schedule_index)
+            tmp_experiment.povms[target_index] = povm
+
+        num_sums = [num_sum] * self._num_schedules
+        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums])
+
+        empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
+        return empi_dists
 
     def generate_empi_dists_sequence(
         self, povm: Povm, num_sums: List[int]

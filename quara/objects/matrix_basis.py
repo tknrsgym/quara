@@ -392,7 +392,7 @@ def to_vect(source: MatrixBasis) -> VectorizedMatrixBasis:
     return VectorizedMatrixBasis(source)
 
 
-def _calc_tensor_product_from_1q_basis(n_qubit: int, basis_1q: List[np.array]):
+def _calc_tensor_product_from_1q_basis(n_qubit: int, basis_1q: List[np.ndarray]):
     basis = basis_1q
     for _ in range(1, n_qubit):
         basis = [
