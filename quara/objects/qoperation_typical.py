@@ -83,7 +83,7 @@ def generate_gate_object(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
-) -> Union[np.array, "Gate"]:
+) -> Union[np.ndarray, "Gate"]:
     """Return a gate-related object.
 
     Parameters
@@ -107,8 +107,8 @@ def generate_gate_object(
 
     Returns
     ----------
-    Union[np.array, "Gate"]
-        np.array
+    Union[np.ndarray, "Gate"]
+        np.ndarray
             Unitary matrix for object_name = 'unitary_mat'
                 Complex matrix
             HS matrix for object_name = 'gate_mat'
@@ -139,7 +139,7 @@ def generate_effective_lindbladian_object(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
-) -> Union[np.array, "EffectiveLindbladian"]:
+) -> Union[np.ndarray, "EffectiveLindbladian"]:
     """Return an effective-llindbladian-related object.
 
     Parameters
@@ -163,8 +163,8 @@ def generate_effective_lindbladian_object(
 
     Returns
     ----------
-    Union[np.array, "EffectiveLindbladian"]
-        np.array
+    Union[np.ndarray, "EffectiveLindbladian"]
+        np.ndarray
             Hamiltonian vector for object_name = 'hamiltonian_vec'
                 Real vector (The representaiton matrix basis is chosen to be Hermitian)
             Hamiltonian matrix for object_name = 'hamiltonian_mat'
