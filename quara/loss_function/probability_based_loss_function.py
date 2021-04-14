@@ -17,7 +17,7 @@ class ProbabilityBasedLossFunctionOption(LossFunctionOption):
 class ProbabilityBasedLossFunction(LossFunction):
     def __init__(
         self,
-        num_var: int,
+        num_var: int = None,
         func_prob_dists: List[Callable[[np.ndarray], np.ndarray]] = None,
         func_gradient_prob_dists: List[Callable[[int, np.ndarray], np.ndarray]] = None,
         func_hessian_prob_dists: List[
@@ -31,8 +31,8 @@ class ProbabilityBasedLossFunction(LossFunction):
 
         Parameters
         ----------
-        num_var : int
-            number of variables.
+        num_var : int, optional
+            number of variables, by default None
         func_prob_dists : List[Callable[[np.ndarray], np.ndarray]], optional
             functions map variables to a probability distribution.
         func_gradient_prob_dists : List[Callable[[int, np.ndarray], np.ndarray]], optional
@@ -256,6 +256,7 @@ class ProbabilityBasedLossFunction(LossFunction):
         """
         matA = np.copy(qt.calc_matA())
         vecB = np.copy(qt.calc_vecB())
+        self._num_var = qt.num_variables
         num_func = qt.num_schedules
         size_prob_dist = int(matA.shape[0] / num_func)
 
