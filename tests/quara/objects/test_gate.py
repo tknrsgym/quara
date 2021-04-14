@@ -777,7 +777,7 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is gate_1.on_algo_ineq_constraint
         assert actual.eps_proj_physical == gate_1.eps_proj_physical
 
-    @pytest.mark.skip(reasone="The result depends on the Python version and OS.")
+    @pytest.mark.skip(reason="The result depends on the Python version and OS.")
     def test_truediv_zero_division(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
