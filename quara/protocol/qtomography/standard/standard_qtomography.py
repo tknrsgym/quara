@@ -221,7 +221,12 @@ class StandardQTomography(QTomography):
 
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.calc_prob_dists`
         """
-        tmp_prob_dists = self.calc_matA() @ qope.to_var() + self.calc_vecB()
+        if self._on_para_eq_constraint:
+            tmp_prob_dists = self.calc_matA() @ qope.to_var() + self.calc_vecB()
+        else:
+            tmp_prob_dists = (
+                self.calc_matA() @ qope.to_stacked_vector() + self.calc_vecB()
+            )
         prob_dists = tmp_prob_dists.reshape((self.num_schedules, -1))
 
         return prob_dists
