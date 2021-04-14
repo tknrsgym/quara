@@ -63,9 +63,9 @@ class StandardQpt(StandardQTomography):
             )
 
         if on_para_eq_constraint:
-            self._num_variables = gate.dim ** 2 - 1
+            self._num_variables = gate.dim ** 4 - gate.dim ** 2
         else:
-            self._num_variables = gate.dim ** 2
+            self._num_variables = gate.dim ** 4
 
         # create map
         self._map_experiment_to_setqoperations = {("gate", 0): ("gate", 0)}
