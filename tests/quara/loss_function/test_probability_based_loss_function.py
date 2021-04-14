@@ -25,17 +25,20 @@ from quara.protocol.qtomography.standard.standard_qst import StandardQst
 
 
 # parameters for test
-mat_p = np.array(
-    [
-        [1, 1, 0, 0],
-        [1, -1, 0, 0],
-        [1, 0, 1, 0],
-        [1, 0, -1, 0],
-        [1, 0, 0, 1],
-        [1, 0, 0, -1],
-    ],
-    dtype=np.float64,
-) / np.sqrt(2)
+mat_p = (
+    np.array(
+        [
+            [1, 1, 0, 0],
+            [1, -1, 0, 0],
+            [1, 0, 1, 0],
+            [1, 0, -1, 0],
+            [1, 0, 0, 1],
+            [1, 0, 0, -1],
+        ],
+        dtype=np.float64,
+    )
+    / np.sqrt(2)
+)
 
 
 def _func_prob_dist(index: int):
@@ -108,6 +111,29 @@ class TestProbabilityBasedLossFunction:
         assert loss_func.on_prob_dists_q == True
         assert len(loss_func.prob_dists_q) == 3
 
+    def test_set_func_prob_dists_from_standard_qt___num_var(self):
+        # Arrange
+        qt = get_test_qst(on_para_eq_constraint=True)
+        loss_func = WeightedProbabilityBasedSquaredError()
+        assert loss_func.on_func_prob_dists == False
+        assert loss_func.on_func_gradient_prob_dists == False
+        assert loss_func.on_func_hessian_prob_dists == False
+        assert loss_func.on_prob_dists_q == False
+
+        # Act
+        loss_func.set_func_prob_dists_from_standard_qt(qt)
+
+        # Assert
+        assert loss_func.num_var == 3
+        assert loss_func.on_func_prob_dists == True
+        func_prob_dists = loss_func.func_prob_dists
+        expected = [[0.5, 0.5], [0.5, 0.5], [1, 0]]
+        var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 3
+        for index in range(len(func_prob_dists)):
+            npt.assert_almost_equal(
+                func_prob_dists[index](var), expected[index], decimal=15
+            )
+
     def test_set_func_prob_dists_from_standard_qt___on_para_eq_constraint_True(self):
         # Arrange
         qt = get_test_qst(on_para_eq_constraint=True)
@@ -170,9 +196,21 @@ class TestProbabilityBasedLossFunction:
         assert loss_func.on_func_gradient_prob_dists == True
         func_gradient_dists = loss_func.func_gradient_prob_dists
         expected = [
-            [[1 / np.sqrt(2), -1 / np.sqrt(2)], [0, 0], [0, 0],],
-            [[0, 0], [1 / np.sqrt(2), -1 / np.sqrt(2)], [0, 0],],
-            [[0, 0], [0, 0], [1 / np.sqrt(2), -1 / np.sqrt(2)],],
+            [
+                [1 / np.sqrt(2), -1 / np.sqrt(2)],
+                [0, 0],
+                [0, 0],
+            ],
+            [
+                [0, 0],
+                [1 / np.sqrt(2), -1 / np.sqrt(2)],
+                [0, 0],
+            ],
+            [
+                [0, 0],
+                [0, 0],
+                [1 / np.sqrt(2), -1 / np.sqrt(2)],
+            ],
         ]
         var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)  # len(var) = 3
         for index in range(len(func_gradient_dists)):
