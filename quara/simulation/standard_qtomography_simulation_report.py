@@ -20,7 +20,9 @@ from quara.objects.gate import Gate
 from quara.protocol.qtomography.estimator import EstimationResult
 from quara.simulation import consistency_check
 from quara.simulation import standard_qtomography_simulation_check
-from quara.simulation.standard_qtomography_simulation import StandardQTomographySimulationSetting
+from quara.simulation.standard_qtomography_simulation import (
+    StandardQTomographySimulationSetting,
+)
 
 _temp_dir_path = ""
 
@@ -903,7 +905,8 @@ def generate_consistency_check_table(
         "Squared Error to True": [f"{d:.2e}" for d in diff_list],
         "Possibly OK": [f"{'OK' if r['possibly_ok'] else 'NG'}" for r in result_list],
         "To be checked": [
-            f"{'True' if r['to_be_checked'] else ''}" for r in result_list
+            f"{'need debug' if r['to_be_checked'] else 'not need debug'}"
+            for r in result_list
         ],
     }
 

@@ -32,7 +32,7 @@ setup(
         "tqdm",
         "xhtml2pdf",
         "psutil",
-        "kaleido==0.1.0",
+        "kaleido>=0.1.0,<=0.1.0.post1",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
