@@ -57,7 +57,7 @@ class TestStandardPovmt:
         # Case 1: m = 2
         # Act
         actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=False)
-        assert actual.num_variables == 4  # TODO
+        assert actual.num_variables == 8
 
         # Assert
         expected_A = (1 / np.sqrt(2)) * np.array(
@@ -91,7 +91,7 @@ class TestStandardPovmt:
         # Case 1: m = 3
         # Act
         actual = StandardPovmt(states, num_outcomes=3, on_para_eq_constraint=False)
-        assert actual.num_variables == 4  # TODO
+        assert actual.num_variables == 12
 
         # Assert
         expected_A = (1 / np.sqrt(2)) * np.array(
@@ -135,7 +135,7 @@ class TestStandardPovmt:
         actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=True)
 
         # Assert
-        assert actual.num_variables == 3  # TODO
+        assert actual.num_variables == 4
         # Assert
         expected_A = (1 / np.sqrt(2)) * np.array(
             [
@@ -159,7 +159,7 @@ class TestStandardPovmt:
         actual = StandardPovmt(states, num_outcomes=3, on_para_eq_constraint=True)
 
         # Assert
-        assert actual.num_variables == 3  # TODO
+        assert actual.num_variables == 8
         # Assert
         expected_A = (1 / np.sqrt(2)) * np.array(
             [
