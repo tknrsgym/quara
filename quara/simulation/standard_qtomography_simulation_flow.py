@@ -181,7 +181,7 @@ def execute_simulation_test_settings(
         test_setting.to_pickle(path)
         print(f"Completed to write test_setting. {path}")
         test_results = execute_simulation_test_setting_unit(
-            test_setting, test_setting_index, root_dir, pdf_mode="only_ng"
+            test_setting, test_setting_index, root_dir, pdf_mode=pdf_mode
         )
         all_results += test_results
 
