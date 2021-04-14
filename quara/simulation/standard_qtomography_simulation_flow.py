@@ -31,7 +31,8 @@ def execute_simulation_case_unit(
     root_dir: str,
 ) -> Result:
     # Generate QTomographySimulationSetting
-    sim_setting = test_setting.to_simulation_setting(true_object, tester_objects, case_index
+    sim_setting = test_setting.to_simulation_setting(
+        true_object, tester_objects, case_index
     )
     print(f"Case {case_index}: {sim_setting.name}")
 
@@ -194,13 +195,42 @@ def execute_simulation_test_settings(
 
 
 def _print_summary(results: List[Result], elapsed_time: float) -> None:
-    result_dict_list = [result.to_dict() for result in results]
-    result_df = pd.DataFrame(result_dict_list)
-    ok_n = result_df[result_df["total_result"]].shape[0]
-    ng_n = result_df[~result_df["total_result"]].shape[0]
-    warning_n = result_df[
-        result_df["total_result"] & result_df["warning"].isnull()
-    ].shape[0]
+    def _to_dict(result: "Result") -> dict:
+        check_result = {}
+        for r in result.check_result["results"]:
+            if r["name"] == "Consistency":
+                check_result["Consistency_possibly_ok"] = r["detail"]["possibly_ok"]
+                check_result["Consistency_to_be_checked"] = r["detail"]["to_be_checked"]
+            else:
+                check_result[r["name"]] = r["result"]
+        return check_result
+
+    result_dict_list = [_to_dict(result) for result in results]
+    df = pd.DataFrame(result_dict_list)
+
+    start_red = "\033[31m"
+    start_green = "\033[32m"
+    start_yellow = "\033[33m"
+    end_color = "\033[0m"
+
+    result_lines = []
+
+    for col in df.columns:
+        if col == "Consistency_to_be_checked":
+            continue
+        ok_n = df[df[col]].shape[0]
+        ng_n = df[~df[col]].shape[0]
+
+        if col == "Consistency_possibly_ok":
+            result_line = f"Consistency:\n"
+            result_line += f"{start_green}OK: {ok_n} cases{end_color}, {start_red}NG: {ng_n} cases{end_color}\n"
+            to_be_checked_n = df[df["Consistency_to_be_checked"]].shape[0]
+            result_line += f"You need to check report: {to_be_checked_n} cases\n"
+        else:
+            result_line = f"{col}:\n"
+            result_line += f"{start_green}OK: {ok_n} cases{end_color}, {start_red}NG: {ng_n} cases{end_color}\n"
+
+        result_lines.append(result_line)
 
     def _to_h_m_s(sec) -> tuple:
         m, s = divmod(int(sec), 60)
@@ -211,17 +241,17 @@ def _print_summary(results: List[Result], elapsed_time: float) -> None:
     time_text = "{:.1f}s ".format(elapsed_time)
     time_text += f"({h}:{str(m).zfill(2)}:{str(s).zfill(2)})"
 
-    start_red = "\033[31m"
-    start_green = "\033[32m"
-    start_yellow = "\033[33m"
-    end_color = "\033[0m"
-
-    summary_text = f"{start_yellow}=============={end_color} "
-    summary_text += f"{start_green}OK: {ok_n} cases{end_color} ({start_yellow}{warning_n} warnings{end_color}), "
-    summary_text += f"{start_red}NG: {ng_n} cases{end_color} "
-    summary_text += f"{start_yellow} in {time_text}s=============={end_color}"
+    summary_text = (
+        f"{start_yellow}=============== Summary ================={end_color}\n"
+    )
+    summary_text += "\n".join(result_lines)
+    summary_text += f"\nTime:\n{time_text}\n"
+    summary_text += (
+        f"{start_yellow}========================================={end_color}"
+    )
 
     print(summary_text)
+
 
 # writer
 def write_results(results: List[Result], dir_path: str) -> None:
@@ -234,6 +264,7 @@ def write_results(results: List[Result], dir_path: str) -> None:
     sample_result_df.to_csv(path, index=None)
 
     print(f"Completed to write csv. {path}")
+
 
 def write_result_sample_unit(results: List[Result], root_dir: str) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
@@ -249,6 +280,7 @@ def write_result_test_setting_unit(results: List[Result], root_dir: str) -> None
 
     write_results(results, dir_path)
 
+
 def write_pdf_report(results: List[Result], root_dir: str) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
     sample_index = results[0].result_index["sample_index"]
@@ -261,6 +293,7 @@ def write_pdf_report(results: List[Result], root_dir: str) -> None:
     sim_settings = [r.simulation_setting for r in results]
 
     report.export_report(path, estimation_results_list, sim_settings)
+
 
 def write_result_case_unit(result: Result, root_dir: str) -> None:
     test_setting_index = result.result_index["test_setting_index"]

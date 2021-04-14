@@ -17,7 +17,6 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
 from quara.simulation.consistency_check import execute_consistency_check
-from quara.simulation import standard_qtomography_simulation
 from quara.simulation.standard_qtomography_simulation import (
     StandardQTomographySimulationSetting,
 )
@@ -47,12 +46,16 @@ class StandardQTomographySimulationCheck:
 
             if name == "Consistency":
                 detail = result_dict["detail"]
-                to_be_checked_text = f"to_be_checked={detail['to_be_checked']}"
-                if detail["to_be_checked"]:
-                    to_be_checked_text = (
-                        f"{start_yellow_bg}{to_be_checked_text}{end_color}"
-                    )
-                text_lines += f"{name}: {ok_text if detail['possibly_ok'] else ng_text} ({to_be_checked_text})\n"
+                text = f"{ok_text if detail['possibly_ok'] else ng_text}"
+                if detail["possibly_ok"]:
+                    text = ok_text
+                else:
+                    if detail["to_be_checked"]:
+                        to_be_checked_text = f"and you need to check report."
+                    else:
+                        to_be_checked_text = f"but you may not need to check report, because on_para_eq_constraint is False."
+                    text = f"{ng_text}, {to_be_checked_text}"
+                text_lines += f"{name}: {text}\n"
             else:
                 text_lines += f"{name}: {ok_text if result else ng_text}\n"
 
@@ -91,7 +94,7 @@ class StandardQTomographySimulationCheck:
             eps=consistency_check_eps, show_detail=show_detail, mode="both"
         )
         detail = result
-        result = not detail["to_be_checked"]
+        result = detail["possibly_ok"]
         results.append(_to_result_dict(name, result, detail))
 
         # MSE of estimators
