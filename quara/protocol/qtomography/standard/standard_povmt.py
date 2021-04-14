@@ -65,11 +65,10 @@ class StandardPovmt(StandardQTomography):
                 "the experiment is not valid. all CompositeSystem of testers must have same ElementalSystems."
             )
 
-        # TODO:
         if on_para_eq_constraint:
-            self._num_variables = povm.dim ** 2 - 1
+            self._num_variables = (len(vecs) - 1) * povm.dim ** 2
         else:
-            self._num_variables = povm.dim ** 2
+            self._num_variables = len(vecs) * povm.dim ** 2
 
         # create map
         self._map_experiment_to_setqoperations = {("povm", 0): ("povm", 0)}

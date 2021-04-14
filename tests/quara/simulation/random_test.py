@@ -98,6 +98,7 @@ def generate_common_setting():
 def execute(
     mode: str,
     n_qubit: int,
+    tomography_type: str,
     true_objects: List[str],
     tester_names: List[Tuple[str, str]],
     noise_method: str,
@@ -123,7 +124,7 @@ def execute(
         # Generate TestSetting 0: random_effective_lindbladian
         # True Object
         true_object_noise_setting = NoiseSetting(
-            qoperation_base=("state", true_object),
+            qoperation_base=(tomography_type, true_object),
             method=noise_method,
             para=noise_para,
         )
@@ -164,6 +165,7 @@ def execute_qst_1qubit():
     setting = {
         "mode": "qubit",
         "n_qubit": 1,
+        "tomography_type": "state",
         "true_objects": ["z0", "z1", "x0", "a"],
         "tester_names": [("povm", name) for name in ["x", "y", "z"]],
         "noise_method": "random_effective_lindbladian",
@@ -181,5 +183,31 @@ def execute_qst_1qubit():
         "num_data": [1000, 10000],
         "seed": 777,
         "output_root_dir": "result_random_qst_1qubit",
+    }
+    execute(**setting)
+
+
+def execute_povmt_1qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 1,
+        "tomography_type": "povm",
+        "true_objects": ["z", "x"],
+        "tester_names": [("state", name) for name in ["x0", "y0", "z0", "z1"]],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_povmt_1qubit",
     }
     execute(**setting)
