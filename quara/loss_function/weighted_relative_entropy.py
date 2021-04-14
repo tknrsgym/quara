@@ -51,7 +51,7 @@ class WeightedRelativeEntropyOption(ProbabilityBasedLossFunctionOption):
 class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
     def __init__(
         self,
-        num_var: int,
+        num_var: int = None,
         func_prob_dists: List = None,
         func_gradient_prob_dists: List = None,
         func_hessian_prob_dists: List = None,
@@ -62,8 +62,8 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
 
         Parameters
         ----------
-        num_var : int
-            number of variables.
+        num_var : int, optional
+            number of variables, by default None
         func_prob_dists : List[Callable[[np.ndarray], np.ndarray]], optional
             functions map variables to a probability distribution.
         func_gradient_prob_dists : List[Callable[[int, np.ndarray], np.ndarray]], optional

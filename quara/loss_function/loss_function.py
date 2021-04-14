@@ -60,15 +60,15 @@ class LossFunctionOption:
 
 
 class LossFunction:
-    def __init__(self, num_var: int):
+    def __init__(self, num_var: int = None):
         """Constructor
 
         Subclasses have a responsibility to set ``on_value``, ``on_gradient``, ``on_hessian``.
 
         Parameters
         ----------
-        num_var : int
-            number of variables.
+        num_var : int, optional
+            number of variables, by default None
         """
         self._num_var: int = num_var
         self._on_value: bool = False
