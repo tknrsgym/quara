@@ -1,3 +1,4 @@
+from itertools import product
 from typing import List, Tuple
 
 import numpy as np
@@ -187,6 +188,122 @@ def execute_qst_1qubit():
     execute(**setting)
 
 
+def execute_qst_2qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 2,
+        "tomography_type": "state",
+        "true_objects": ["z0_z0", "z0_x0", "z0_a", "bell_psi_minus"],
+        "tester_names": [
+            ("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=2)
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qst_2qubit",
+    }
+    execute(**setting)
+
+
+def execute_qst_3qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 3,
+        "tomography_type": "state",
+        "true_objects": ["z0_z0_z0", "ghz", "werner"],
+        "tester_names": [
+            ("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=3)
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qst_3qubit",
+    }
+    execute(**setting)
+
+
+def execute_qst_1qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 1,
+        "tomography_type": "state",
+        "true_objects": ["01z0", "02z1", "0_1_2_superposition"],
+        "tester_names": [
+            ("povm", name)
+            for name in ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"]
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qst_1qutrit",
+    }
+    execute(**setting)
+
+
+def execute_qst_2qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 2,
+        "tomography_type": "state",
+        "true_objects": ["01z0_01z0", "00_11_22_superposition"],
+        "tester_names": [
+            ("povm", f"{a}_{b}")
+            for a, b in product(
+                ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"], repeat=2
+            )
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qst_2qutrit",
+    }
+    execute(**setting)
+
+
 def execute_povmt_1qubit():
     setting = {
         "mode": "qubit",
@@ -209,5 +326,340 @@ def execute_povmt_1qubit():
         "num_data": [1000, 10000],
         "seed": 777,
         "output_root_dir": "result_random_povmt_1qubit",
+    }
+    execute(**setting)
+
+
+def execute_povmt_2qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 2,
+        "tomography_type": "povm",
+        "true_objects": ["z_z", "bell"],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(["x0", "y0", "z0", "z1"], repeat=2)
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_povmt_2qubit",
+    }
+    execute(**setting)
+
+
+def execute_povmt_3qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 3,
+        "tomography_type": "povm",
+        "true_objects": ["z_z_z"],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(["x0", "y0", "z0", "z1"], repeat=3)
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_povmt_3qubit",
+    }
+    execute(**setting)
+
+
+def execute_povmt_1qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 1,
+        "tomography_type": "povm",
+        "true_objects": ["z3", "z2"],
+        "tester_names": [
+            ("state", name)
+            for name in [
+                "01z0",
+                "12z0",
+                "02z1",
+                "01x0",
+                "01y0",
+                "12x0",
+                "12y0",
+                "02x0",
+                "02y0",
+            ]
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_povmt_1qutrit",
+    }
+    execute(**setting)
+
+
+def execute_povmt_2qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 2,
+        "tomography_type": "povm",
+        "true_objects": ["z3_z3", "z2_z2"],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(
+                [
+                    "01z0",
+                    "12z0",
+                    "02z1",
+                    "01x0",
+                    "01y0",
+                    "12x0",
+                    "12y0",
+                    "02x0",
+                    "02y0",
+                ],
+                repeat=2,
+            )
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_povmt_2qutrit",
+    }
+    execute(**setting)
+
+
+def execute_qpt_1qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 1,
+        "tomography_type": "gate",
+        "true_objects": [
+            "identity",
+            "x90",
+            "y90",
+            "z90",
+            "x180",
+            "y180",
+            "z180",
+            "hadamard",
+            "phase",
+            "phase_daggered",
+            "piover8",
+            "piover8_daggered",
+        ],
+        "tester_names": [("state", name) for name in ["x0", "y0", "z0", "z1"]]
+        + [("povm", name) for name in ["x", "y", "z"]],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qpt_1qubit",
+    }
+    execute(**setting)
+
+
+def execute_qpt_2qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 2,
+        "tomography_type": "gate",
+        "true_objects": [
+            "ix90",
+            "cx",
+            "cz",
+            "swap",
+        ],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(["x0", "y0", "z0", "z1"], repeat=2)
+        ]
+        + [("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=2)],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qpt_2qubit",
+    }
+    execute(**setting)
+
+
+def execute_qpt_3qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 3,
+        "tomography_type": "gate",
+        "true_objects": ["toffoli"],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(["x0", "y0", "z0", "z1"], repeat=3)
+        ]
+        + [("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=3)],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qpt_3qubit",
+    }
+    execute(**setting)
+
+
+def execute_qpt_1qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 1,
+        "tomography_type": "gate",
+        "true_objects": ["identity"],
+        "tester_names": [
+            ("state", name)
+            for name in [
+                "01z0",
+                "12z0",
+                "02z1",
+                "01x0",
+                "01y0",
+                "12x0",
+                "12y0",
+                "02x0",
+                "02y0",
+            ]
+        ]
+        + [
+            ("povm", name)
+            for name in ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"]
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qpt_1qutrit",
+    }
+    execute(**setting)
+
+
+def execute_qpt_2qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 2,
+        "tomography_type": "gate",
+        "true_objects": ["identity_identity"],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(
+                [
+                    "01z0",
+                    "12z0",
+                    "02z1",
+                    "01x0",
+                    "01y0",
+                    "12x0",
+                    "12y0",
+                    "02x0",
+                    "02y0",
+                ],
+                repeat=2,
+            )
+        ]
+        + [
+            ("povm", f"{a}_{b}")
+            for a, b in product(
+                ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"], repeat=2
+            )
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed": 777,
+        "output_root_dir": "result_random_qpt_2qutrit",
     }
     execute(**setting)
