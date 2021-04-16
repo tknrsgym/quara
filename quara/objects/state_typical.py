@@ -60,6 +60,7 @@ def get_state_names_1qutrit() -> List[str]:
     axis = ["x", "y", "z"]
     d = ["0", "1"]
     names = ["".join(t) for t in product(level, axis, d)]
+    names.append("v012")
 
     return names
 
@@ -68,6 +69,7 @@ def get_state_names_2qutrit() -> List[str]:
     """Return the list of valid gate names of 2-qutrit states."""
     names_1qutrit = get_state_names_1qutrit()
     names = ["_".join(t) for t in product(names_1qutrit, repeat=2)]
+    names.append("v001122")
 
     return names
 
@@ -198,10 +200,10 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
         - 1 qubit: "x0", "x1", "y0", "y1", "z0", "a"
         - 2 qubit: "bell_psi_plus", "bell_psi_minus", "bell_phi_minus", "bell_phi_plus", or tensor product of 1 qubit ("z0_z0", "z0_z1", etc).
         - 3 qubit: "ghz", "werner", or tensor product of 1 qubit ("z0_z0_z0", "z0_x0_y0", etc).
-        - 1 qutrit: Specify a combination of level ("01" | "12" | "02"), axis ("x" | "y" | "z"), and d ("0", "1").
+        - 1 qutrit: Specify a combination of level ("01" | "12" | "02"), axis ("x" | "y" | "z"), and d ("0", "1") and "v012".
         For example, "01x0" means level is "01", axis is "x", and d is "0".
         Use get_state_names_1qutrit() to get a list of available names.
-        - 2 qutrit: tensor product of 1 qutrit ("01x0_01y0", "01x0_01x1", etc)
+        - 2 qutrit: tensor product of 1 qutrit ("01x0_01y0", "01x0_01x1", etc) and "v001122".
 
     Returns
     -------
@@ -849,3 +851,40 @@ def get_state_02z1_pure_state_vector() -> np.ndarray:
     """
     vec = np.array([0, 0, 1], dtype=np.complex128)
     return vec
+
+
+def get_state_v012_pure_state_vector() -> np.ndarray:
+    """Return the pure state vector for v012.
+    |v012> := (1/√3) * (|0> + |1> + |2>)
+
+    Returns
+    -------
+    np.ndarray
+        the pure state vector for v012.
+    """
+    pure_state_vec = 1 / np.sqrt(3) * np.array([1, 1, 1], dtype=np.complex128)
+    return pure_state_vec
+
+
+def get_state_v001122_pure_state_vector() -> np.ndarray:
+    """Return the pure state vector for v001122.
+    |v001122> := (1/√3) * (|00> + |11> + |22>)
+
+    Returns
+    -------
+    np.ndarray
+        the pure state vector for v001122.
+    """
+    vec_01z0 = get_state_01z0_pure_state_vector()
+    vec_12z0 = get_state_12z0_pure_state_vector()
+    vec_02z1 = get_state_02z1_pure_state_vector()
+    pure_state_vec = (
+        1
+        / np.sqrt(3)
+        * (
+            np.kron(vec_01z0, vec_01z0)
+            + np.kron(vec_12z0, vec_12z0)
+            + np.kron(vec_02z1, vec_02z1)
+        )
+    )
+    return pure_state_vec
