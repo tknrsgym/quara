@@ -158,7 +158,9 @@ def execute(
         )
         test_settings.append(test_setting)
 
-    all_results = execute_simulation_test_settings(test_settings, output_root_dir)
+    all_results = execute_simulation_test_settings(
+        test_settings, output_root_dir, pdf_mode="all"
+    )
     return all_results
 
 
@@ -663,3 +665,6 @@ def execute_qpt_2qutrit():
         "output_root_dir": "result_random_qpt_2qutrit",
     }
     execute(**setting)
+
+
+execute_qst_1qubit()
