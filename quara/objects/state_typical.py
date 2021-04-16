@@ -54,23 +54,34 @@ def get_state_names_3qubit() -> List[str]:
     return names
 
 
-def get_state_names_1qutrit() -> List[str]:
-    """Return the list of valid gate names of 1-qutrit states."""
+def _get_state_names_1qutrit_special_typical() -> List[str]:
+    return ["0_1_2_superposition"]
+
+
+def _get_state_names_1qutrit_typical() -> List[str]:
     level = ["01", "12", "02"]
     axis = ["x", "y", "z"]
     d = ["0", "1"]
     names = ["".join(t) for t in product(level, axis, d)]
-    names.append("v012")
-
     return names
 
 
-def get_state_names_2qutrit() -> List[str]:
-    """Return the list of valid gate names of 2-qutrit states."""
-    names_1qutrit = get_state_names_1qutrit()
-    names = ["_".join(t) for t in product(names_1qutrit, repeat=2)]
-    names.append("v001122")
+def get_state_names_1qutrit() -> List[str]:
+    """Return the list of valid gate names of 1-qutrit states."""
+    names = _get_state_names_1qutrit_special_typical()
+    names += _get_state_names_1qutrit_typical()
+    return names
 
+
+def _get_state_names_2qutrit_typical() -> List[str]:
+    return ["00_11_22_superposition"]
+
+
+def get_state_names_2qutrit() -> List[str]:
+    """Return the list of valid gate names of 2-qubit states."""
+    names = _get_state_names_2qutrit_typical()
+    names_1qutrit = _get_state_names_1qutrit_typical()
+    names += ["_".join(t) for t in product(names_1qutrit, repeat=2)]
     return names
 
 
@@ -223,6 +234,7 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
         get_state_names_1qubit()
         + _get_state_names_3qubit_typical()
         + get_state_names_1qutrit()
+        + _get_state_names_2qutrit_typical()
     )
     if state_name in typical_names:
         method_name = f"get_state_{state_name}_pure_state_vector"
@@ -853,7 +865,7 @@ def get_state_02z1_pure_state_vector() -> np.ndarray:
     return vec
 
 
-def get_state_v012_pure_state_vector() -> np.ndarray:
+def get_state_0_1_2_superposition_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for v012.
     |v012> := (1/√3) * (|0> + |1> + |2>)
 
@@ -866,7 +878,7 @@ def get_state_v012_pure_state_vector() -> np.ndarray:
     return pure_state_vec
 
 
-def get_state_v001122_pure_state_vector() -> np.ndarray:
+def get_state_00_11_22_superposition_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for v001122.
     |v001122> := (1/√3) * (|00> + |11> + |22>)
 
