@@ -150,7 +150,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
         density_mat = calc_mat_from_vector_adjoint(pure_state_vec)
         return density_mat
     # TODO: call get_state_(state_name)_density_matrix()
-    raise NotImplementedError()
+    raise NotImplementedError(f"state_name={state_name}")
 
 
 def generate_state_density_matrix_vector_from_name(
