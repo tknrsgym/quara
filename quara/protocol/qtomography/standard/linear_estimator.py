@@ -82,13 +82,3 @@ class LinearEstimator(StandardQTomographyEstimator):
             qtomography, empi_dists_sequence, estimate_sequence, comp_time_sequence,
         )
         return result
-
-
-def assert_equal_estimation_result(result_source, result_target):
-    source_qoperations = result_source.estimated_qoperation_sequence
-    target_qoperations = result_target.estimated_qoperation_sequence
-
-    assert len(source_qoperations) == len(target_qoperations)
-    for s, t in zip(source_qoperations, target_qoperations):
-        assert_equal_qoperation(s, t)
-
