@@ -15,7 +15,7 @@ from quara.simulation.standard_qtomography_simulation_check import (
 )
 from quara.simulation import standard_qtomography_simulation as sim
 from quara.simulation.standard_qtomography_simulation import (
-    TestSetting,
+    EstimatorTestSetting,
     SimulationResult,
     StandardQTomographySimulationSetting,
 )
@@ -50,6 +50,7 @@ def execute_simulation_case_unit(
             n_rep=source.n_rep,
             num_data=source.num_data,
             schedules=source.schedules,
+            # eps_proj_physical=source.eps_proj_physical,
         )
 
     org_sim_setting = _copy_sim_setting(sim_setting)
@@ -171,7 +172,7 @@ def execute_simulation_test_setting_unit(
 
 
 def execute_simulation_test_settings(
-    test_settings: List[TestSetting], root_dir: str, pdf_mode: str = "only_ng"
+    test_settings: List[EstimatorTestSetting], root_dir: str, pdf_mode: str = "only_ng"
 ) -> List[SimulationResult]:
     all_results = []
     start = time.time()
