@@ -180,7 +180,7 @@ class TestStandardQTomography:
         npt.assert_almost_equal(actual, np.array([1, 0], dtype=np.float64), decimal=15)
 
     def test_calc_prob_dists(self):
-        # on_para_eq_constraint=True
+        # tomography on_para_eq_constraint=True, qoperation on_para_eq_constraint=True
         qst, c_sys = get_test_data_qst(on_para_eq_constraint=True)
         state = get_z0_1q(c_sys)
 
@@ -192,7 +192,31 @@ class TestStandardQTomography:
         ]
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-        # on_para_eq_constraint=False
+        # tomography on_para_eq_constraint=True, qoperation on_para_eq_constraint=False
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        state = get_z0_1q(c_sys)
+
+        actual = qst.calc_prob_dists(state)
+        expected = [
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([1, 0], dtype=np.float64),
+        ]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # tomography on_para_eq_constraint=False, qoperation on_para_eq_constraint=True
+        qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
+        state = get_z0_1q(c_sys)
+
+        actual = qst.calc_prob_dists(state)
+        expected = [
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([0.5, 0.5], dtype=np.float64),
+            np.array([1, 0], dtype=np.float64),
+        ]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # tomography on_para_eq_constraint=False, qoperation on_para_eq_constraint=False
         qst, c_sys = get_test_data_qst(on_para_eq_constraint=False)
         state = get_z0_1q(c_sys)
         state._on_para_eq_constraint = False
@@ -248,7 +272,14 @@ class TestStandardQTomography:
         state = get_z0_1q(c_sys)
 
         actual = qst.calc_covariance_linear_mat_total(state, [10, 5, 10])
-        expected = np.array([[0.05, 0, 0], [0, 0.1, 0], [0, 0, 0],], dtype=np.float64,)
+        expected = np.array(
+            [
+                [0.05, 0, 0],
+                [0, 0.1, 0],
+                [0, 0, 0],
+            ],
+            dtype=np.float64,
+        )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # on_para_eq_constraint=False
@@ -258,7 +289,12 @@ class TestStandardQTomography:
 
         actual = qst.calc_covariance_linear_mat_total(state, [10, 5, 10])
         expected = np.array(
-            [[0, 0, 0, 0], [0, 0.05, 0, 0], [0, 0, 0.1, 0], [0, 0, 0, 0],],
+            [
+                [0, 0, 0, 0],
+                [0, 0.05, 0, 0],
+                [0, 0, 0.1, 0],
+                [0, 0, 0, 0],
+            ],
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
@@ -316,7 +352,12 @@ class TestStandardQTomography:
         actual = qst.calc_fisher_matrix(2, state)
         # Assert
         expected = np.array(
-            [[0, 0, 0], [0, 0, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+            [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -348,7 +389,12 @@ class TestStandardQTomography:
         actual = qst.calc_fisher_matrix(2, var)
         # Assert
         expected = np.array(
-            [[0, 0, 0], [0, 0, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+            [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -381,7 +427,12 @@ class TestStandardQTomography:
         actual = qst.calc_fisher_matrix_total(state, weights)
         # Assert
         expected = np.array(
-            [[6, 0, 0], [0, 4, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+            [
+                [6, 0, 0],
+                [0, 4, 0],
+                [0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -415,7 +466,12 @@ class TestStandardQTomography:
         actual = qst.calc_fisher_matrix_total(var, weights)
         # Assert
         expected = np.array(
-            [[6, 0, 0], [0, 4, 0], [0, 0, 50000000.499999985],], dtype=np.float64,
+            [
+                [6, 0, 0],
+                [0, 4, 0],
+                [0, 0, 50000000.499999985],
+            ],
+            dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
