@@ -54,6 +54,7 @@ class StandardQTomographySimulationSetting:
         n_rep: int,
         num_data: List[int],
         schedules: Union[str, List[List[int]]],
+        # eps_proj_physical: float,
         loss=None,
         loss_option=None,
         algo=None,
@@ -71,6 +72,7 @@ class StandardQTomographySimulationSetting:
         self.seed = seed
         self.n_rep = n_rep
         self.num_data = num_data
+        # self.eps_proj_physical = eps_proj_physical
 
         self.schedules = schedules
 
@@ -86,6 +88,7 @@ class StandardQTomographySimulationSetting:
         desc += f"\nn_rep: {self.n_rep}"
         desc += f"\nnum_data: {self.num_data}"
         desc += f"\nEstimator: {self.estimator.__class__.__name__}"
+        # desc += f"\neps_proj_physical: {self.eps_proj_physical}"
         loss = None if self.loss is None else self.loss.__class__.__name__
         desc += f"\nLoss: {loss}"
         algo = None if self.algo is None else self.algo.__class__.__name__
@@ -118,7 +121,7 @@ class NoiseSetting:
 
 
 @dataclasses.dataclass
-class TestSetting:
+class EstimatorTestSetting:
     true_object: NoiseSetting
     tester_objects: List[NoiseSetting]
     seed: int
@@ -265,7 +268,7 @@ def _generate_empi_dists_and_calc_estimate(
 
 
 def re_estimate(
-    test_setting: TestSetting, result: SimulationResult, n_rep_index: int
+    test_setting: EstimatorTestSetting, result: SimulationResult, n_rep_index: int
 ) -> StandardQTomographyEstimationResult:
     case_index = result.result_index["case_index"]
     empi_dists_seq = result.estimation_results[n_rep_index].data
@@ -285,7 +288,7 @@ def re_estimate(
 
 
 def re_estimate_sequence(
-    test_setting: TestSetting, result: SimulationResult
+    test_setting: EstimatorTestSetting, result: SimulationResult
 ) -> List[StandardQTomographyEstimationResult]:
     sim_setting = result.simulation_setting
     estimation_results = []
