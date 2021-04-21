@@ -172,7 +172,7 @@ class TestSetting:
 
 
 @dataclasses.dataclass
-class Result:
+class SimulationResult:
     result_index: dict
     simulation_setting: StandardQTomographySimulationSetting
     estimation_results: List["EstimationResult"]
@@ -265,7 +265,7 @@ def _generate_empi_dists_and_calc_estimate(
 
 
 def re_estimate(
-    test_setting: TestSetting, result: Result, n_rep_index: int
+    test_setting: TestSetting, result: SimulationResult, n_rep_index: int
 ) -> StandardQTomographyEstimationResult:
     case_index = result.result_index["case_index"]
     empi_dists_seq = result.estimation_results[n_rep_index].data
@@ -285,7 +285,7 @@ def re_estimate(
 
 
 def re_estimate_sequence(
-    test_setting: TestSetting, result: Result
+    test_setting: TestSetting, result: SimulationResult
 ) -> List[StandardQTomographyEstimationResult]:
     sim_setting = result.simulation_setting
     estimation_results = []
@@ -309,7 +309,7 @@ def re_estimate_sequence_from_path(
 
 def re_estimate_sequence_from_index(
     root_dir: str, test_setting_index: int, sample_index: int, case_index: int
-)-> List[StandardQTomographyEstimationResult]:
+) -> List[StandardQTomographyEstimationResult]:
     result_path = (
         Path(root_dir)
         / str(test_setting_index)

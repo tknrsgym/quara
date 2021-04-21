@@ -1,4 +1,4 @@
-from quara.simulation.standard_qtomography_simulation import Result
+from quara.simulation.standard_qtomography_simulation import SimulationResult
 from quara.simulation.standard_qtomography_simulation_flow import _print_summary
 
 
@@ -18,7 +18,7 @@ def test_print_summary(capfd):
             {"name": "Physicality Violation", "result": True, "detail": None},
         ],
     }
-    result_0 = Result(
+    result_0 = SimulationResult(
         result_index=None,
         simulation_setting=None,
         estimation_results=None,
@@ -39,7 +39,7 @@ def test_print_summary(capfd):
             {"name": "Physicality Violation", "result": False, "detail": None},
         ],
     }
-    result_1 = Result(
+    result_1 = SimulationResult(
         result_index=None,
         simulation_setting=None,
         estimation_results=None,
@@ -60,7 +60,7 @@ def test_print_summary(capfd):
             {"name": "Physicality Violation", "result": False, "detail": None},
         ],
     }
-    result_2 = Result(
+    result_2 = SimulationResult(
         result_index=None,
         simulation_setting=None,
         estimation_results=None,
@@ -81,7 +81,7 @@ def test_print_summary(capfd):
             {"name": "Physicality Violation", "result": False, "detail": None},
         ],
     }
-    result_3 = Result(
+    result_3 = SimulationResult(
         result_index=None,
         simulation_setting=None,
         estimation_results=None,

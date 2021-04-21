@@ -16,7 +16,7 @@ from quara.simulation.standard_qtomography_simulation_check import (
 from quara.simulation import standard_qtomography_simulation as sim
 from quara.simulation.standard_qtomography_simulation import (
     TestSetting,
-    Result,
+    SimulationResult,
     StandardQTomographySimulationSetting,
 )
 
@@ -29,7 +29,7 @@ def execute_simulation_case_unit(
     sample_index: int,
     test_setting_index: int,
     root_dir: str,
-) -> Result:
+) -> SimulationResult:
     # Generate QTomographySimulationSetting
     sim_setting = test_setting.to_simulation_setting(
         true_object, tester_objects, case_index
@@ -83,7 +83,7 @@ def execute_simulation_case_unit(
     )
 
     # Store result
-    result = Result(
+    result = SimulationResult(
         result_index=result_index,
         simulation_setting=org_sim_setting,
         estimation_results=estimation_results,
@@ -101,7 +101,7 @@ def execute_simulation_sample_unit(
     sample_index,
     root_dir,
     pdf_mode: str = "only_ng",
-) -> List[Result]:
+) -> List[SimulationResult]:
     # Generate sample
     true_object = generation_settings.true_setting.generate()
     true_object = true_object[0] if type(true_object) == tuple else true_object
@@ -149,7 +149,7 @@ def execute_simulation_sample_unit(
 
 def execute_simulation_test_setting_unit(
     test_setting, test_setting_index, root_dir, pdf_mode: str = "only_ng"
-) -> List[Result]:
+) -> List[SimulationResult]:
     generation_settings = test_setting.to_generation_settings()
     n_sample = test_setting.n_sample
     results = []
@@ -172,7 +172,7 @@ def execute_simulation_test_setting_unit(
 
 def execute_simulation_test_settings(
     test_settings: List[TestSetting], root_dir: str, pdf_mode: str = "only_ng"
-) -> List[Result]:
+) -> List[SimulationResult]:
     all_results = []
     start = time.time()
 
@@ -194,8 +194,8 @@ def execute_simulation_test_settings(
     return all_results
 
 
-def _print_summary(results: List[Result], elapsed_time: float) -> None:
-    def _to_dict(result: "Result") -> dict:
+def _print_summary(results: List[SimulationResult], elapsed_time: float) -> None:
+    def _to_dict(result: SimulationResult) -> dict:
         check_result = {}
         for r in result.check_result["results"]:
             if r["name"] == "Consistency":
@@ -254,7 +254,7 @@ def _print_summary(results: List[Result], elapsed_time: float) -> None:
 
 
 # writer
-def write_results(results: List[Result], dir_path: str) -> None:
+def write_results(results: List[SimulationResult], dir_path: str) -> None:
     dir_path = Path(dir_path)
     dir_path.mkdir(parents=True, exist_ok=True)
     path = dir_path / "check_result.csv"
@@ -266,7 +266,7 @@ def write_results(results: List[Result], dir_path: str) -> None:
     print(f"Completed to write csv. {path}")
 
 
-def write_result_sample_unit(results: List[Result], root_dir: str) -> None:
+def write_result_sample_unit(results: List[SimulationResult], root_dir: str) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
     sample_index = results[0].result_index["sample_index"]
     dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
@@ -274,14 +274,16 @@ def write_result_sample_unit(results: List[Result], root_dir: str) -> None:
     write_results(results, dir_path)
 
 
-def write_result_test_setting_unit(results: List[Result], root_dir: str) -> None:
+def write_result_test_setting_unit(
+    results: List[SimulationResult], root_dir: str
+) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
     dir_path = Path(root_dir) / str(test_setting_index)
 
     write_results(results, dir_path)
 
 
-def write_pdf_report(results: List[Result], root_dir: str) -> None:
+def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
     sample_index = results[0].result_index["sample_index"]
 
@@ -295,7 +297,7 @@ def write_pdf_report(results: List[Result], root_dir: str) -> None:
     report.export_report(path, estimation_results_list, sim_settings)
 
 
-def write_result_case_unit(result: Result, root_dir: str) -> None:
+def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
     test_setting_index = result.result_index["test_setting_index"]
     sample_index = result.result_index["sample_index"]
     case_index = result.result_index["case_index"]
