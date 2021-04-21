@@ -145,8 +145,7 @@ class TestSetting:
     def to_generation_settings(self) -> QOperationGenerationSettings:
         true_setting = self.true_object.to_generation_setting(self.c_sys)
         tester_settings = [
-            setting.to_generation_setting(self.c_sys)
-            for setting in self.tester_objects
+            setting.to_generation_setting(self.c_sys) for setting in self.tester_objects
         ]
         generation_settings = QOperationGenerationSettings(
             true_setting=true_setting, tester_settings=tester_settings
@@ -265,6 +264,52 @@ def _generate_empi_dists_and_calc_estimate(
         result = estimator.calc_estimate_sequence(
             qtomography, empi_dists_seq, is_computation_time_required=True,
         )
+    return result
+
+
+def re_estimate_sequence(
+    test_setting: TestSetting, result: Result
+) -> StandardQTomographyEstimationResult:
+    case_index = result.result_index["case_index"]
+    empi_dists_seq = result.estimation_results[case_index].data
+
+    sim_setting = result.simulation_setting
+    qtomography = generate_qtomography(
+        sim_setting,
+        para=test_setting.parametrizations[case_index],
+        eps_proj_physical=1e-13,
+    )
+
+    estimator = copy.deepcopy(result.simulation_setting.estimator)
+    result = estimator.calc_estimate_sequence(
+        qtomography, empi_dists_seq, is_computation_time_required=True,
+    )
+    return result
+
+
+def re_estimate_sequence_from_path(
+    test_setting_path: str, result_path: str
+) -> StandardQTomographyEstimationResult:
+    with open(result_path, "rb") as f:
+        result = pickle.load(f)
+
+    with open(test_setting_path, "rb") as f:
+        test_setting = pickle.load(f)
+    result = re_estimate_sequence(test_setting, result)
+    return result
+
+
+def re_estimate_sequence_from_index(
+    root_dir: str, test_setting_index: int, sample_index: int, case_index: int
+):
+    result_path = (
+        Path(root_dir)
+        / str(test_setting_index)
+        / str(sample_index)
+        / f"case_{case_index}_result.pickle"
+    )
+    test_setting_path = Path(root_dir) / str(test_setting_index) / "test_setting.pickle"
+    result = re_estimate_sequence_from_path(test_setting_path, result_path)
     return result
 
 
