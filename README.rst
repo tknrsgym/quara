@@ -4,7 +4,7 @@ Quara
 
 .. _start_of_about:
 
-Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations.
+Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations. Currently protocols of standard tomography for quantum states, POVMs, and gates are implemented.
 
 .. _end_of_about:
 
@@ -24,3 +24,8 @@ Install
 .. code-block::
 
    pip install quara
+
+License
+=================================
+
+[Apache License 2.0](LICENSE.txt)

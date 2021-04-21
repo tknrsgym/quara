@@ -22,7 +22,7 @@ from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
 from quara.objects.gate_typical import generate_gate_x
 
 
-def get_test_data():
+def get_test_data(on_para_eq_constraint=False):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
@@ -35,12 +35,23 @@ def get_test_data():
     ]
     tester_povms = [get_x_povm(c_sys), get_y_povm(c_sys), get_z_povm(c_sys)]
 
-    qpt = StandardQpt(tester_states, tester_povms, on_para_eq_constraint=False, seed=7)
+    qpt = StandardQpt(
+        tester_states, tester_povms, on_para_eq_constraint=on_para_eq_constraint, seed=7
+    )
 
     return qpt, c_sys
 
 
 class TestStandardQpt:
+    def test_num_variables(self):
+        # on_para_eq_constraint=True
+        qpt, c_sys = get_test_data(on_para_eq_constraint=True)
+        assert qpt.num_variables == 12
+
+        # on_para_eq_constraint=False
+        qpt, c_sys = get_test_data(on_para_eq_constraint=False)
+        assert qpt.num_variables == 16
+
     def test_validate_schedules(self):
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
