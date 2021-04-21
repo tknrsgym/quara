@@ -171,3 +171,4 @@ class StandardQTomographyEstimator(QTomographyEstimator):
             this function does not be implemented in the subclass.
         """
         raise NotImplementedError()
+

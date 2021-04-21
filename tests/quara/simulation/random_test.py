@@ -27,7 +27,10 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
 from quara.protocol.qtomography.standard.projected_linear_estimator import (
     ProjectedLinearEstimator,
 )
-from quara.simulation.standard_qtomography_simulation import NoiseSetting, TestSetting
+from quara.simulation.standard_qtomography_simulation import (
+    NoiseSetting,
+    EstimatorTestSetting,
+)
 from quara.simulation.standard_qtomography_simulation_flow import (
     execute_simulation_test_settings,
 )
@@ -92,8 +95,16 @@ def generate_common_setting():
         (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
         (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
     ]
+    eps_proj_physical_list = [1e-13] * len(case_names)
 
-    return case_names, parametrizations, estimators, loss_list, algo_list
+    return (
+        case_names,
+        parametrizations,
+        estimators,
+        loss_list,
+        algo_list,
+        eps_proj_physical_list,
+    )
 
 
 def execute(
@@ -118,6 +129,7 @@ def execute(
         estimators,
         loss_list,
         algo_list,
+        eps_proj_physical_list
     ) = generate_common_setting()
 
     test_settings = []
@@ -132,16 +144,12 @@ def execute(
 
         # Tester Object
         tester_object_noise_settings = [
-            NoiseSetting(
-                qoperation_base=name,
-                method=noise_method,
-                para=noise_para,
-            )
+            NoiseSetting(qoperation_base=name, method=noise_method, para=noise_para,)
             for name in tester_names
         ]
 
         # Test Setting
-        test_setting = TestSetting(
+        test_setting = EstimatorTestSetting(
             true_object=true_object_noise_setting,
             tester_objects=tester_object_noise_settings,
             seed=seed,
@@ -155,6 +163,7 @@ def execute(
             loss_list=loss_list,
             parametrizations=parametrizations,
             c_sys=c_sys,
+            eps_proj_physical_list=eps_proj_physical_list,
         )
         test_settings.append(test_setting)
 
@@ -514,12 +523,7 @@ def execute_qpt_2qubit():
         "mode": "qubit",
         "n_qubit": 2,
         "tomography_type": "gate",
-        "true_objects": [
-            "ix90",
-            "cx",
-            "cz",
-            "swap",
-        ],
+        "true_objects": ["ix90", "cx", "cz", "swap",],
         "tester_names": [
             ("state", f"{a}_{b}")
             for a, b in product(["x0", "y0", "z0", "z1"], repeat=2)

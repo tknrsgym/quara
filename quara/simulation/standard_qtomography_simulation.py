@@ -11,8 +11,11 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-
 from quara.objects.qoperation import QOperation
+from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
+
 from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
@@ -39,12 +42,6 @@ from quara.simulation.random_effective_lindbladian_generation_setting import (
     RandomEffectiveLindbladianGenerationSetting,
 )
 
-# from quara.simulation import standard_qtomography_simulation_report as report
-
-from quara.objects.povm import Povm
-from quara.objects.gate import Gate
-from quara.objects.state import State
-
 
 class StandardQTomographySimulationSetting:
     def __init__(
@@ -57,6 +54,7 @@ class StandardQTomographySimulationSetting:
         n_rep: int,
         num_data: List[int],
         schedules: Union[str, List[List[int]]],
+        eps_proj_physical: float,
         loss=None,
         loss_option=None,
         algo=None,
@@ -74,6 +72,7 @@ class StandardQTomographySimulationSetting:
         self.seed = seed
         self.n_rep = n_rep
         self.num_data = num_data
+        self.eps_proj_physical = eps_proj_physical
 
         self.schedules = schedules
 
@@ -89,6 +88,7 @@ class StandardQTomographySimulationSetting:
         desc += f"\nn_rep: {self.n_rep}"
         desc += f"\nnum_data: {self.num_data}"
         desc += f"\nEstimator: {self.estimator.__class__.__name__}"
+        desc += f"\neps_proj_physical: {self.eps_proj_physical}"
         loss = None if self.loss is None else self.loss.__class__.__name__
         desc += f"\nLoss: {loss}"
         algo = None if self.algo is None else self.algo.__class__.__name__
@@ -121,7 +121,7 @@ class NoiseSetting:
 
 
 @dataclasses.dataclass
-class TestSetting:
+class EstimatorTestSetting:
     true_object: NoiseSetting
     tester_objects: List[NoiseSetting]
     seed: int
@@ -131,6 +131,7 @@ class TestSetting:
     schedules: Union[str, List[List[int]]]
     case_names: List[str]
     estimators: List["Estimator"]
+    eps_proj_physical_list: List[float]
     algo_list: List[tuple]
     loss_list: List[tuple]
     parametrizations: List[bool]
@@ -171,11 +172,12 @@ class TestSetting:
             seed=self.seed,
             num_data=self.num_data,
             schedules=self.schedules,
+            eps_proj_physical=self.eps_proj_physical_list[case_index],
         )
 
 
 @dataclasses.dataclass
-class Result:
+class SimulationResult:
     result_index: dict
     simulation_setting: StandardQTomographySimulationSetting
     estimation_results: List["EstimationResult"]
@@ -267,41 +269,50 @@ def _generate_empi_dists_and_calc_estimate(
     return result
 
 
-def re_estimate_sequence(
-    test_setting: TestSetting, result: Result
+def re_estimate(
+    test_setting: EstimatorTestSetting, result: SimulationResult, n_rep_index: int
 ) -> StandardQTomographyEstimationResult:
     case_index = result.result_index["case_index"]
-    empi_dists_seq = result.estimation_results[case_index].data
+    empi_dists_seq = result.estimation_results[n_rep_index].data
 
     sim_setting = result.simulation_setting
     qtomography = generate_qtomography(
-        sim_setting,
-        para=test_setting.parametrizations[case_index],
-        eps_proj_physical=1e-13,
+        sim_setting, para=test_setting.parametrizations[case_index],
     )
 
     estimator = copy.deepcopy(result.simulation_setting.estimator)
-    result = estimator.calc_estimate_sequence(
+    estimation_result = estimator.calc_estimate_sequence(
         qtomography, empi_dists_seq, is_computation_time_required=True,
     )
-    return result
+    return estimation_result
+
+
+def re_estimate_sequence(
+    test_setting: EstimatorTestSetting, result: SimulationResult
+) -> List[StandardQTomographyEstimationResult]:
+    sim_setting = result.simulation_setting
+    estimation_results = []
+    for n_rep_index in range(sim_setting.n_rep):
+        estimation_result = re_estimate(test_setting, result, n_rep_index)
+        estimation_results.append(estimation_result)
+    return estimation_results
 
 
 def re_estimate_sequence_from_path(
-    test_setting_path: str, result_path: str
-) -> StandardQTomographyEstimationResult:
+    test_setting_path: Union[str, Path], result_path: Union[str, Path]
+) -> List[StandardQTomographyEstimationResult]:
     with open(result_path, "rb") as f:
         result = pickle.load(f)
 
     with open(test_setting_path, "rb") as f:
         test_setting = pickle.load(f)
-    result = re_estimate_sequence(test_setting, result)
-    return result
+    estimation_results = re_estimate_sequence(test_setting, result)
+    return estimation_results
 
 
 def re_estimate_sequence_from_index(
     root_dir: str, test_setting_index: int, sample_index: int, case_index: int
-):
+) -> List[StandardQTomographyEstimationResult]:
     result_path = (
         Path(root_dir)
         / str(test_setting_index)
@@ -309,8 +320,8 @@ def re_estimate_sequence_from_index(
         / f"case_{case_index}_result.pickle"
     )
     test_setting_path = Path(root_dir) / str(test_setting_index) / "test_setting.pickle"
-    result = re_estimate_sequence_from_path(test_setting_path, result_path)
-    return result
+    estimation_results = re_estimate_sequence_from_path(test_setting_path, result_path)
+    return estimation_results
 
 
 # common
@@ -359,13 +370,11 @@ def generate_empi_dists_and_calc_estimate(
 
 # Data Convert
 def generate_qtomography(
-    sim_setting: StandardQTomographySimulationSetting,
-    para: bool,
-    eps_proj_physical: float,
+    sim_setting: StandardQTomographySimulationSetting, para: bool
 ) -> "StandardQTomography":
-    # TrueObjectに応じて、適切なQTomographyを生成する
     true_object = sim_setting.true_object
     tester_objects = sim_setting.tester_objects
+    eps_proj_physical = sim_setting.eps_proj_physical
     seed = sim_setting.seed
 
     if type(true_object) == State:

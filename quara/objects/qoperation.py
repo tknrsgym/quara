@@ -753,9 +753,7 @@ class QOperation:
         return result, error_value
 
     def func_calc_proj_physical(
-        self,
-        on_para_eq_constraint: bool = None,
-        mode_proj_order: str = "eq_ineq",
+        self, on_para_eq_constraint: bool = None, mode_proj_order: str = "eq_ineq",
     ) -> Callable[[np.ndarray], np.ndarray]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
@@ -855,14 +853,8 @@ class QOperation:
                     self.on_algo_ineq_constraint,
                     other.on_algo_ineq_constraint,
                 ),
-                mode_proj_order=(
-                    self.mode_proj_order,
-                    other.mode_proj_order,
-                ),
-                eps_proj_physical=(
-                    self.eps_proj_physical,
-                    other.eps_proj_physical,
-                ),
+                mode_proj_order=(self.mode_proj_order, other.mode_proj_order,),
+                eps_proj_physical=(self.eps_proj_physical, other.eps_proj_physical,),
             )
             for k, v in config_dict.items():
                 if v[0] != v[1]:
@@ -948,16 +940,3 @@ class QOperation:
         desc = desc.rstrip("\n")
         return desc
 
-
-def assert_equal_qoperation(source, target):
-    assert type(source) == type(target)
-    if type(source) == State:
-        npt.assert_almost_equal(source.vec, target.vec, decimal=16)
-    elif type(source) == Povm:
-        assert len(source.vecs) == len(target.vecs)
-        for vec_a, vec_b in zip(source.vecs, target.vecs):
-            npt.assert_almost_equal(vec_a, vec_b, decimal=16)
-    elif type(source) == Gate:
-        npt.assert_almost_equal(source.hs, target.hs, decimal=16)
-    else:
-        raise NotImplementedError()
