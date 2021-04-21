@@ -261,11 +261,6 @@ def _generate_empi_dists_and_calc_estimate(
             is_computation_time_required=True,
         )
     else:
-        print("======debug======")
-        print(type(empi_dists_seq))
-        print(empi_dists_seq)
-        print("======debug======")
-
         result = estimator.calc_estimate_sequence(
             qtomography, empi_dists_seq, is_computation_time_required=True,
         )
