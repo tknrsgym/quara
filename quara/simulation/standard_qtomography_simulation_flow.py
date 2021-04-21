@@ -50,16 +50,14 @@ def execute_simulation_case_unit(
             n_rep=source.n_rep,
             num_data=source.num_data,
             schedules=source.schedules,
-            # eps_proj_physical=source.eps_proj_physical,
+            eps_proj_physical=source.eps_proj_physical,
         )
 
     org_sim_setting = _copy_sim_setting(sim_setting)
 
     # Generate QTomography
     qtomography = sim.generate_qtomography(
-        sim_setting,
-        para=test_setting.parametrizations[case_index],
-        eps_proj_physical=1e-13,
+        sim_setting, para=test_setting.parametrizations[case_index],
     )
 
     # Execute
