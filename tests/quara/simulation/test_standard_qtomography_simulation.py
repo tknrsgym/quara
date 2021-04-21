@@ -22,13 +22,13 @@ def assert_equal_estimation_result(result_source, result_target):
 def assert_equal_qoperation(source, target):
     assert type(source) == type(target)
     if type(source) == State:
-        npt.assert_almost_equal(source.vec, target.vec, decimal=16)
+        npt.assert_almost_equal(source.vec, target.vec, decimal=15)
     elif type(source) == Povm:
         assert len(source.vecs) == len(target.vecs)
         for vec_a, vec_b in zip(source.vecs, target.vecs):
-            npt.assert_almost_equal(vec_a, vec_b, decimal=16)
+            npt.assert_almost_equal(vec_a, vec_b, decimal=15)
     elif type(source) == Gate:
-        npt.assert_almost_equal(source.hs, target.hs, decimal=16)
+        npt.assert_almost_equal(source.hs, target.hs, decimal=15)
     else:
         raise NotImplementedError()
 
