@@ -1,4 +1,3 @@
-import datetime
 from itertools import product
 from typing import List, Tuple
 
@@ -38,52 +37,43 @@ def generate_common_setting():
     # Generate settings for simulation
     case_names = [
         "Linear (True)",
-        # "Linear (False)",
+        "Linear (False)",
         "ProjectedLinear (True)",
-        # "ProjectedLinear (False)",
+        "ProjectedLinear (False)",
         "Maximum-Likelihood (True)",
-        # "Maximum-Likelihood (False)",
+        "Maximum-Likelihood (False)",
         "Least Squares (True)",
-        # "Least Squares (False)",
+        "Least Squares (False)",
     ]
 
-    parametrizations = [
-        True,
-        # False,
-        True,
-        # False,
-        True,
-        # False,
-        True,
-        # False,
-    ]
+    parametrizations = [True, False, True, False, True, False, True, False]
 
     estimators = [
         LinearEstimator(),
-        # LinearEstimator(),
+        LinearEstimator(),
         ProjectedLinearEstimator(),
-        # ProjectedLinearEstimator(),
+        ProjectedLinearEstimator(),
         LossMinimizationEstimator(),
-        # LossMinimizationEstimator(),
         LossMinimizationEstimator(),
-        # LossMinimizationEstimator(),
+        LossMinimizationEstimator(),
+        LossMinimizationEstimator(),
     ]
 
     loss_list = [
         (None, None),
-        # (None, None),
         (None, None),
-        # (None, None),
+        (None, None),
+        (None, None),
         (WeightedRelativeEntropy(), WeightedRelativeEntropyOption("identity")),
-        # (WeightedRelativeEntropy(), WeightedRelativeEntropyOption("identity")),
+        (WeightedRelativeEntropy(), WeightedRelativeEntropyOption("identity")),
         (
             WeightedProbabilityBasedSquaredError(),
             WeightedProbabilityBasedSquaredErrorOption("identity"),
         ),
-        # (
-        #    WeightedProbabilityBasedSquaredError(),
-        #    WeightedProbabilityBasedSquaredErrorOption("identity"),
-        # ),
+        (
+            WeightedProbabilityBasedSquaredError(),
+            WeightedProbabilityBasedSquaredErrorOption("identity"),
+        ),
     ]
 
     def generate_pgdb_algo_option():
@@ -94,13 +84,13 @@ def generate_common_setting():
 
     algo_list = [
         (None, None),
-        # (None, None),
         (None, None),
-        # (None, None),
+        (None, None),
+        (None, None),
         (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
-        # (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
         (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
-        # (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
+        (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
+        (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
     ]
 
     return case_names, parametrizations, estimators, loss_list, algo_list
@@ -169,7 +159,7 @@ def execute(
         test_settings.append(test_setting)
 
     all_results = execute_simulation_test_settings(
-        test_settings, output_root_dir, pdf_mode="none"
+        test_settings, output_root_dir, pdf_mode="all"
     )
     return all_results
 
@@ -235,7 +225,7 @@ def execute_qst_3qubit():
         "tomography_type": "state",
         "true_objects": ["z0_z0_z0", "ghz", "werner"],
         "tester_names": [
-            ("povm", f"{a}_{b}_{c}") for a, b, c in product(["x", "y", "z"], repeat=3)
+            ("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=3)
         ],
         "noise_method": "random_effective_lindbladian",
         "noise_para": {
@@ -378,8 +368,8 @@ def execute_povmt_3qubit():
         "tomography_type": "povm",
         "true_objects": ["z_z_z"],
         "tester_names": [
-            ("state", f"{a}_{b}_{c}")
-            for a, b, c in product(["x0", "y0", "z0", "z1"], repeat=3)
+            ("state", f"{a}_{b}")
+            for a, b in product(["x0", "y0", "z0", "z1"], repeat=3)
         ],
         "noise_method": "random_effective_lindbladian",
         "noise_para": {
@@ -526,7 +516,12 @@ def execute_qpt_2qubit():
         "mode": "qubit",
         "n_qubit": 2,
         "tomography_type": "gate",
-        "true_objects": ["identity", "zx90"],
+        "true_objects": [
+            "ix90",
+            "cx",
+            "cz",
+            "swap",
+        ],
         "tester_names": [
             ("state", f"{a}_{b}")
             for a, b in product(["x0", "y0", "z0", "z1"], repeat=2)
@@ -556,10 +551,10 @@ def execute_qpt_3qubit():
         "mode": "qubit",
         "n_qubit": 3,
         "tomography_type": "gate",
-        "true_objects": ["identity", "toffoli", "fredkin"],
+        "true_objects": ["toffoli"],
         "tester_names": [
-            ("state", f"{a}_{b}_{c}")
-            for a, b, c in product(["x0", "y0", "z0", "z1"], repeat=3)
+            ("state", f"{a}_{b}")
+            for a, b in product(["x0", "y0", "z0", "z1"], repeat=3)
         ]
         + [("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=3)],
         "noise_method": "random_effective_lindbladian",
@@ -670,3 +665,6 @@ def execute_qpt_2qutrit():
         "output_root_dir": "result_random_qpt_2qutrit",
     }
     execute(**setting)
+
+
+execute_qst_1qubit()
