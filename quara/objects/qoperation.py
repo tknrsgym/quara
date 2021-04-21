@@ -947,3 +947,17 @@ class QOperation:
             desc += f"{k}:\n{v.__str__()}\n\n"
         desc = desc.rstrip("\n")
         return desc
+
+
+def assert_equal_qoperation(source, target):
+    assert type(source) == type(target)
+    if type(source) == State:
+        npt.assert_almost_equal(source.vec, target.vec, decimal=16)
+    elif type(source) == Povm:
+        assert len(source.vecs) == len(target.vecs)
+        for vec_a, vec_b in zip(source.vecs, target.vecs):
+            npt.assert_almost_equal(vec_a, vec_b, decimal=16)
+    elif type(source) == Gate:
+        npt.assert_almost_equal(source.hs, target.hs, decimal=16)
+    else:
+        raise NotImplementedError()
