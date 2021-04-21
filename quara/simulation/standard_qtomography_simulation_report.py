@@ -1199,6 +1199,40 @@ def generate_computation_time_of_estimators_div(
     return div
 
 
+def _load_simulation_results(
+    root_dir, test_setting_index: int, sample_index: int
+) -> list:
+    simulation_results = []
+    print("Loading SimulationResult pickles ...")
+    for file_path in result_dir_path.iterdir():
+        file_name = file_path.name
+        if file_name.startswith("case_") and file_name.endswith("_result.pickle"):
+            print(file_path)
+            with open(file_path, "rb") as f:
+                simulation_result = pickle.load(f)
+            simulation_results.append(simulation_result)
+    print(
+        f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
+    )
+    return simulation_results
+
+
+def export_report_from_index(
+    input_root_dir, test_index, sample_index, output_root_dir
+) -> None:
+    simulation_results = _load_simulation_results(
+        input_root_dir, test_index, sample_index
+    )
+    estimation_results_list = [r.estimation_results for r in simulation_results]
+    simulation_settings = [r.simulation_setting for r in simulation_results]
+
+    export_report(
+        output_root_dir,
+        estimation_results_list=estimation_results_list,
+        simulation_settings=simulation_settings,
+    )
+
+
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
