@@ -20,6 +20,7 @@ class TestStandardQTomographySimulationCheck:
             n_rep=None,
             num_data=[],
             schedules=None,
+            eps_proj_physical=1e-13,
         )
         source_dummy_results = None
 

@@ -54,7 +54,7 @@ class StandardQTomographySimulationSetting:
         n_rep: int,
         num_data: List[int],
         schedules: Union[str, List[List[int]]],
-        # eps_proj_physical: float,
+        eps_proj_physical: float,
         loss=None,
         loss_option=None,
         algo=None,
@@ -72,7 +72,7 @@ class StandardQTomographySimulationSetting:
         self.seed = seed
         self.n_rep = n_rep
         self.num_data = num_data
-        # self.eps_proj_physical = eps_proj_physical
+        self.eps_proj_physical = eps_proj_physical
 
         self.schedules = schedules
 
@@ -88,7 +88,7 @@ class StandardQTomographySimulationSetting:
         desc += f"\nn_rep: {self.n_rep}"
         desc += f"\nnum_data: {self.num_data}"
         desc += f"\nEstimator: {self.estimator.__class__.__name__}"
-        # desc += f"\neps_proj_physical: {self.eps_proj_physical}"
+        desc += f"\neps_proj_physical: {self.eps_proj_physical}"
         loss = None if self.loss is None else self.loss.__class__.__name__
         desc += f"\nLoss: {loss}"
         algo = None if self.algo is None else self.algo.__class__.__name__
@@ -131,6 +131,7 @@ class EstimatorTestSetting:
     schedules: Union[str, List[List[int]]]
     case_names: List[str]
     estimators: List["Estimator"]
+    eps_proj_physical_list: List[float]
     algo_list: List[tuple]
     loss_list: List[tuple]
     parametrizations: List[bool]
@@ -171,6 +172,7 @@ class EstimatorTestSetting:
             seed=self.seed,
             num_data=self.num_data,
             schedules=self.schedules,
+            eps_proj_physical=self.eps_proj_physical_list[case_index],
         )
 
 
@@ -275,9 +277,7 @@ def re_estimate(
 
     sim_setting = result.simulation_setting
     qtomography = generate_qtomography(
-        sim_setting,
-        para=test_setting.parametrizations[case_index],
-        eps_proj_physical=1e-13,
+        sim_setting, para=test_setting.parametrizations[case_index],
     )
 
     estimator = copy.deepcopy(result.simulation_setting.estimator)
@@ -370,13 +370,11 @@ def generate_empi_dists_and_calc_estimate(
 
 # Data Convert
 def generate_qtomography(
-    sim_setting: StandardQTomographySimulationSetting,
-    para: bool,
-    eps_proj_physical: float,
+    sim_setting: StandardQTomographySimulationSetting, para: bool
 ) -> "StandardQTomography":
-    # TrueObjectに応じて、適切なQTomographyを生成する
     true_object = sim_setting.true_object
     tester_objects = sim_setting.tester_objects
+    eps_proj_physical = sim_setting.eps_proj_physical
     seed = sim_setting.seed
 
     if type(true_object) == State:
