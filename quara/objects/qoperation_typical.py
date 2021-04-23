@@ -3,9 +3,13 @@ from typing import List, Union
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.qoperation import QOperation
+from quara.objects.operators import compose_qoperations
 from quara.objects.state import State
 from quara.objects.povm import Povm
-from quara.objects.gate import Gate
+from quara.objects.gate import (
+    Gate,
+    get_depolarizing_channel,
+)
 from quara.objects.state_typical import (
     generate_state_from_name,
     generate_state_object_from_state_name_object_name,
@@ -26,6 +30,28 @@ def generate_qoperation(
     return generate_qoperation_object(
         mode=mode, name=name, object_name=mode, ids=ids, c_sys=c_sys
     )
+
+
+def generate_qoperation_depolarized(
+    mode: str,
+    name: str,
+    c_sys: CompositeSystem,
+    error_rate: np.float64,
+    ids: List[int] = None,
+) -> QOperation:
+    dp = get_depolarizing_channel(p=error_rate, c_sys=c_sys)
+    qoperation = generate_qoperation(mode=mode, name=name, c_sys=c_sys, ids=ids)
+
+    if mode == "state":
+        qoperation_depolarized = compose_qoperations(dp, qoperation)
+    elif mode == "povm":
+        qoperation_depolarized = compose_qoperations(qoperation, dp)
+    elif mode == "gate":
+        qoperation_depolarized = compose_qoperations(dp, qoperation)
+    else:
+        raise ValueError(f"mode is invalid.")
+
+    return qoperation_depolarized
 
 
 def generate_state_object(
