@@ -7,7 +7,6 @@ import pytest
 
 import quara.objects.qoperation_typical as qt
 from quara.objects.composite_system_typical import generate_composite_system
-
 from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
@@ -27,7 +26,10 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
 from quara.protocol.qtomography.standard.projected_linear_estimator import (
     ProjectedLinearEstimator,
 )
-from quara.simulation.standard_qtomography_simulation import NoiseSetting, TestSetting
+from quara.simulation.standard_qtomography_simulation import (
+    EstimatorTestSetting,
+    NoiseSetting,
+)
 from quara.simulation.standard_qtomography_simulation_flow import (
     execute_simulation_test_settings,
 )
@@ -102,7 +104,16 @@ def generate_common_setting():
         # (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
     ]
 
-    return case_names, parametrizations, estimators, loss_list, algo_list
+    eps_proj_physical_list = [1e-13] * len(case_names)
+
+    return (
+        case_names,
+        parametrizations,
+        estimators,
+        loss_list,
+        algo_list,
+        eps_proj_physical_list,
+    )
 
 
 def execute(
@@ -119,7 +130,6 @@ def execute(
     seed: int,
     output_root_dir: str,
 ):
-
     c_sys = generate_composite_system(mode, n_qubit)
     (
         case_names,
@@ -127,11 +137,12 @@ def execute(
         estimators,
         loss_list,
         algo_list,
+        eps_proj_physical_list,
     ) = generate_common_setting()
 
     test_settings = []
     for true_object in true_objects:
-        # Generate TestSetting 0: random_effective_lindbladian
+        # Generate EstimatorTestSetting 0: random_effective_lindbladian
         # True Object
         true_object_noise_setting = NoiseSetting(
             qoperation_base=(tomography_type, true_object),
@@ -150,7 +161,7 @@ def execute(
         ]
 
         # Test Setting
-        test_setting = TestSetting(
+        test_setting = EstimatorTestSetting(
             true_object=true_object_noise_setting,
             tester_objects=tester_object_noise_settings,
             seed=seed,
@@ -160,6 +171,7 @@ def execute(
             schedules="all",
             case_names=case_names,
             estimators=estimators,
+            eps_proj_physical_list=eps_proj_physical_list,
             algo_list=algo_list,
             loss_list=loss_list,
             parametrizations=parametrizations,
@@ -669,3 +681,6 @@ def execute_qpt_2qutrit():
         "output_root_dir": "result_random_qpt_2qutrit",
     }
     execute(**setting)
+
+
+execute_qst_1qubit()
