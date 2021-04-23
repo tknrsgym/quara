@@ -129,6 +129,8 @@ def execute(
     num_data: List[int],
     seed: int,
     output_root_dir: str,
+    true_object_ids: List[int] = None,
+    tester_ids: List[int] = None,
 ):
     c_sys = generate_composite_system(mode, n_qubit)
     (
@@ -141,13 +143,14 @@ def execute(
     ) = generate_common_setting()
 
     test_settings = []
-    for true_object in true_objects:
+    for index, true_object in enumerate(true_objects):
         # Generate EstimatorTestSetting 0: random_effective_lindbladian
         # True Object
         true_object_noise_setting = NoiseSetting(
             qoperation_base=(tomography_type, true_object),
             method=noise_method,
             para=noise_para,
+            ids=true_object_ids[index] if true_object_ids else None,
         )
 
         # Tester Object
@@ -156,6 +159,7 @@ def execute(
                 qoperation_base=name,
                 method=noise_method,
                 para=noise_para,
+                ids=tester_ids[index] if tester_ids else None,
             )
             for name in tester_names
         ]
@@ -538,6 +542,7 @@ def execute_qpt_2qubit():
         "n_qubit": 2,
         "tomography_type": "gate",
         "true_objects": ["identity", "zx90"],
+        "true_object_ids": [None, [0, 1]],
         "tester_names": [
             ("state", f"{a}_{b}")
             for a, b in product(["x0", "y0", "z0", "z1"], repeat=2)
@@ -568,11 +573,12 @@ def execute_qpt_3qubit():
         "n_qubit": 3,
         "tomography_type": "gate",
         "true_objects": ["identity", "toffoli", "fredkin"],
+        "true_object_ids": [None, [0, 1, 2], [0, 1, 2]],
         "tester_names": [
             ("state", f"{a}_{b}_{c}")
             for a, b, c in product(["x0", "y0", "z0", "z1"], repeat=3)
         ]
-        + [("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=3)],
+        + [("povm", f"{a}_{b}_{c}") for a, b, c in product(["x", "y", "z"], repeat=3)],
         "noise_method": "random_effective_lindbladian",
         "noise_para": {
             "lindbladian_base": "identity",
@@ -681,6 +687,3 @@ def execute_qpt_2qutrit():
         "output_root_dir": "result_random_qpt_2qutrit",
     }
     execute(**setting)
-
-
-execute_qst_1qubit()

@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import List, Union, Tuple
 
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.qoperation import QOperation
@@ -12,6 +12,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         c_sys: "CompositeSystem",
         qoperation_base: Union[QOperation, Tuple[str]],
         lindbladian_base: Union[EffectiveLindbladian, str],
+        ids: List[int] = None,
     ) -> None:
         """Constructor
 
@@ -23,13 +24,17 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
             QOperation base of the random effective Lindbladian.
         lindbladian_base : Union[EffectiveLindbladian, str]
             effective Lindbladian base of the random effective Lindbladian.
+        ids: List[int], Optional
+            This is a list of elmental system's ids, by default None.
+            To be given for specific asymmetric multi-partite gates
+            For example, in the case of gate_name = 'cx', id[0] is for the id of the control qubit and id[1] is for the id of the target qubit.
 
         Raises
         ------
         TypeError
             If the type of argument `lindbladian_base` is not EffectiveLindbladian or str.
         """
-        super().__init__(c_sys, qoperation_base)
+        super().__init__(c_sys, qoperation_base, ids=ids)
 
         if isinstance(lindbladian_base, EffectiveLindbladian):
             self._lindbladian_base = lindbladian_base

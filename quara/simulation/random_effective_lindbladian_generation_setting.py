@@ -1,6 +1,6 @@
 from functools import reduce
 from operator import add
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 from scipy.stats import unitary_group
@@ -33,6 +33,7 @@ class RandomEffectiveLindbladianGenerationSetting(
         lindbladian_base: Union[EffectiveLindbladian, str],
         strength_h_part: float,
         strength_k_part: float,
+        ids: List[int] = None,
     ) -> None:
         """Constructor
 
@@ -48,6 +49,10 @@ class RandomEffectiveLindbladianGenerationSetting(
             the strength of random variables for generating h part.
         strength_k_part : float
             the strength of random variables for generating k part.
+        ids: List[int], Optional
+            This is a list of elmental system's ids, by default None.
+            To be given for specific asymmetric multi-partite gates
+            For example, in the case of gate_name = 'cx', id[0] is for the id of the control qubit and id[1] is for the id of the target qubit.
 
         Raises
         ------
@@ -66,7 +71,7 @@ class RandomEffectiveLindbladianGenerationSetting(
                 f"strength_k_part must be non-negative number. strength_k_part is {strength_k_part}"
             )
 
-        super().__init__(c_sys, qoperation_base, lindbladian_base)
+        super().__init__(c_sys, qoperation_base, lindbladian_base, ids=ids)
         self._strength_h_part = strength_h_part
         self._strength_k_part = strength_k_part
 
@@ -160,9 +165,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian(
         self,
-    ) -> Tuple[
-        EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-    ]:
+    ) -> Tuple[EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns effective Lindbladian base + random effective Lindbladian.
 
         Returns
@@ -213,9 +216,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_state(
         self,
-    ) -> Tuple[
-        State, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-    ]:
+    ) -> Tuple[State, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns state(composition of random effective Lindbladian and qoperation base).
 
         Returns
@@ -242,9 +243,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_gate(
         self,
-    ) -> Tuple[
-        Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-    ]:
+    ) -> Tuple[Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns gate(composition of random effective Lindbladian and qoperation base).
 
         Returns
@@ -271,9 +270,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_povm(
         self,
-    ) -> Tuple[
-        Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray,
-    ]:
+    ) -> Tuple[Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns povm(composition of random effective Lindbladian and qoperation base).
 
         Returns

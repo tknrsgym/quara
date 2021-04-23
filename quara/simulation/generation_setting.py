@@ -11,7 +11,10 @@ from quara.objects.gate import Gate
 
 class QOperationGenerationSetting:
     def __init__(
-        self, c_sys: "CompositeSystem", qoperation_base: Union[QOperation, Tuple[str]]
+        self,
+        c_sys: "CompositeSystem",
+        qoperation_base: Union[QOperation, Tuple[str]],
+        ids: List[int] = None,
     ) -> None:
         self._composite_system = c_sys
 
@@ -31,7 +34,7 @@ class QOperationGenerationSetting:
             qoperation_type = qoperation_base[0]
             qoperation_name = qoperation_base[1]
             self._qoperation_base = generate_qoperation(
-                mode=qoperation_type, name=qoperation_name, c_sys=c_sys
+                mode=qoperation_type, name=qoperation_name, c_sys=c_sys, ids=ids
             )
         else:
             raise TypeError(type_error_message)
