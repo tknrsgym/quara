@@ -101,6 +101,7 @@ class NoiseSetting:
     qoperation_base: Union[QOperation, str]
     method: str
     para: bool
+    ids: List[int] = None
 
     def to_generation_setting(
         self, c_sys: "CompositeSystem"
@@ -116,7 +117,10 @@ class NoiseSetting:
             message = f"noise_setting.method='{self.method}' is not implemented."
             raise NotImplementedError(message)
         return target_class(
-            qoperation_base=self.qoperation_base, c_sys=c_sys, **self.para,
+            qoperation_base=self.qoperation_base,
+            c_sys=c_sys,
+            **self.para,
+            ids=self.ids,
         )
 
 
@@ -264,7 +268,9 @@ def _generate_empi_dists_and_calc_estimate(
         )
     else:
         result = estimator.calc_estimate_sequence(
-            qtomography, empi_dists_seq, is_computation_time_required=True,
+            qtomography,
+            empi_dists_seq,
+            is_computation_time_required=True,
         )
     return result
 
@@ -277,12 +283,15 @@ def re_estimate(
 
     sim_setting = result.simulation_setting
     qtomography = generate_qtomography(
-        sim_setting, para=test_setting.parametrizations[case_index],
+        sim_setting,
+        para=test_setting.parametrizations[case_index],
     )
 
     estimator = copy.deepcopy(result.simulation_setting.estimator)
     estimation_result = estimator.calc_estimate_sequence(
-        qtomography, empi_dists_seq, is_computation_time_required=True,
+        qtomography,
+        empi_dists_seq,
+        is_computation_time_required=True,
     )
     return estimation_result
 
@@ -336,7 +345,8 @@ def generate_empi_dists_and_calc_estimate(
     algo_option: MinimizationAlgorithmOption = None,
     iteration: Optional[int] = None,
 ) -> Union[
-    StandardQTomographyEstimationResult, List[StandardQTomographyEstimationResult],
+    StandardQTomographyEstimationResult,
+    List[StandardQTomographyEstimationResult],
 ]:
 
     if iteration is None:
