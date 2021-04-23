@@ -20,9 +20,11 @@ from quara.objects.effective_lindbladian_typical import (
 )
 
 
-def generate_qoperation(mode: str, name: str, c_sys: CompositeSystem) -> QOperation:
+def generate_qoperation(
+    mode: str, name: str, c_sys: CompositeSystem, ids: List[int] = None
+) -> QOperation:
     return generate_qoperation_object(
-        mode=mode, name=name, object_name=mode, c_sys=c_sys
+        mode=mode, name=name, object_name=mode, ids=ids, c_sys=c_sys
     )
 
 
