@@ -1,4 +1,4 @@
-import itertools
+from itertools import product
 from typing import List, Union
 import re
 
@@ -39,8 +39,11 @@ def get_povm_names() -> List[str]:
         the list of valid povm names.
     """
     names = []
-    names += get_povm_names_rank1()
-    names += get_povm_names_not_rank1()
+    names += get_povm_names_1qubit()
+    names += get_povm_names_2qubit()
+    names += get_povm_names_3qubit()
+    names += get_povm_names_1qutrit()
+    names += get_povm_names_2qutrit()
     return names
 
 
@@ -56,6 +59,36 @@ def get_povm_names_1qubit() -> List[str]:
     return names
 
 
+def _get_povm_names_2qubit_typical() -> List[str]:
+    return ["bell"]
+
+
+def get_povm_names_2qubit() -> List[str]:
+    """Return the list of valid povm names on 2-qubit system.
+
+    Returns
+    -------
+    List[str]
+        the list of valid povm names on 2-qubit system.
+    """
+    names = _get_povm_names_2qubit_typical()
+    names_1qubit = get_povm_names_1qubit()
+    names += ["_".join(t) for t in product(names_1qubit, repeat=2)]
+    return names
+
+def get_povm_names_3qubit() -> List[str]:
+    """Return the list of valid povm names on 3-qubit system.
+
+    Returns
+    -------
+    List[str]
+        the list of valid povm names on 3-qubit system.
+    """
+    names_1qubit = get_povm_names_1qubit()
+    names = ["_".join(t) for t in product(names_1qubit, repeat=3)]
+    return names
+
+
 def get_povm_names_1qutrit() -> List[str]:
     """Return the list of valid povm names on 1-qutrit system.
 
@@ -65,6 +98,19 @@ def get_povm_names_1qutrit() -> List[str]:
         the list of valid povm names on 1-qutrit system.
     """
     names = ["01x3", "01y3", "z3", "z2", "02x3", "02y3", "12x3", "12y3"]
+    return names
+
+
+def get_povm_names_2qutrit() -> List[str]:
+    """Return the list of valid povm names on 2-qutrit system.
+
+    Returns
+    -------
+    List[str]
+        the list of valid povm names on 2-qutrit system.
+    """
+    names_1qutrit = get_povm_names_1qutrit()
+    names = ["_".join(t) for t in product(names_1qutrit, repeat=2)]
     return names
 
 
@@ -227,7 +273,7 @@ def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.ndarra
     for pure_state_vectors in pure_state_vectors_list[1:]:
         temp = [
             np.kron(vec1, vec2)
-            for vec1, vec2 in itertools.product(temp, pure_state_vectors)
+            for vec1, vec2 in product(temp, pure_state_vectors)
         ]
 
     return temp
@@ -278,7 +324,7 @@ def generate_povm_matrices_from_name(povm_name: str) -> List[np.ndarray]:
     # tensor product
     temp = matrices_list[0]
     for matrices in matrices_list[1:]:
-        temp = [np.kron(vec1, vec2) for vec1, vec2 in itertools.product(temp, matrices)]
+        temp = [np.kron(vec1, vec2) for vec1, vec2 in product(temp, matrices)]
 
     return temp
 
