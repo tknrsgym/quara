@@ -85,6 +85,15 @@ def get_gate_names_3qubit() -> List[str]:
     return names
 
 
+def get_gate_names_3qubit_asymmetric() -> List[str]:
+    """Return the list of valid gate names of typical 3-qubit gates that are asymmetric with respect to ids of elemental systems."""
+    names = []
+    names.append("toffoli")
+    names.append("fredkin")
+
+    return names
+
+
 def get_gate_names_1qutrit() -> List[str]:
     """return the list of valid (implemented) gate names of 1-qutrit gates."""
     names = []
