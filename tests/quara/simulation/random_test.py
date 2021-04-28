@@ -4,7 +4,6 @@ from typing import List, Tuple
 
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 import quara.objects.qoperation_typical as qt
 from quara.objects.composite_system_typical import generate_composite_system

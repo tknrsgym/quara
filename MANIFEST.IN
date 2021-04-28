@@ -2,3 +2,4 @@ recursive-include tests *.py *.csv
 recursive-include tutorials *.ipynb
 global-exclude *~
 global-exclude *.pyc
+include LICENSE
