@@ -91,6 +91,7 @@ def generate_common_setting():
         return ProjectedGradientDescentBacktrackingOption(
             mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
             num_history_stopping_criterion_gradient_descent=1,
+            eps=1e-9,
         )
 
     algo_list = [
@@ -104,7 +105,7 @@ def generate_common_setting():
         # (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
     ]
 
-    eps_proj_physical_list = [1e-13] * len(case_names)
+    eps_proj_physical_list = [1e-5] * len(case_names)
 
     return (
         case_names,
@@ -646,7 +647,7 @@ def execute_qpt_2qutrit():
         "mode": "qutrit",
         "n_qubit": 2,
         "tomography_type": "gate",
-        "true_objects": ["identity_identity"],
+        "true_objects": ["identity"],
         "tester_names": [
             ("state", f"{a}_{b}")
             for a, b in product(
