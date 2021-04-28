@@ -21,6 +21,7 @@ setup(
     description='Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.',
     long_description=read_file("README.rst"),
     url="https://github.com/tknrsgym/quara",
+    license="Apache License 2.0",
     python_requires="~=3.7",
     install_requires=[
         "numpy>=1.18",
@@ -49,4 +50,5 @@ setup(
     ],
     keywords=["quara", "lsqpt", "quantum process tomography"],
     include_package_data=True,
+    package_data={'': ['LICENSE']},
 )
