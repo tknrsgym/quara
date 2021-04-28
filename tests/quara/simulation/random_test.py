@@ -1,3 +1,4 @@
+import datetime
 from itertools import product
 from typing import List, Tuple
 
@@ -33,6 +34,11 @@ from quara.simulation.standard_qtomography_simulation import (
 from quara.simulation.standard_qtomography_simulation_flow import (
     execute_simulation_test_settings,
 )
+
+
+def get_current_time_string():
+    now = datetime.datetime.now()
+    return now.strftime("%Y%m%d-%H%M%S")
 
 
 def generate_common_setting():
@@ -91,6 +97,7 @@ def generate_common_setting():
         return ProjectedGradientDescentBacktrackingOption(
             mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
             num_history_stopping_criterion_gradient_descent=1,
+            eps=1e-9,
         )
 
     algo_list = [
@@ -104,7 +111,7 @@ def generate_common_setting():
         # (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
     ]
 
-    eps_proj_physical_list = [1e-13] * len(case_names)
+    eps_proj_physical_list = [1e-5] * len(case_names)
 
     return (
         case_names,
@@ -210,7 +217,7 @@ def execute_qst_1qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qst_1qubit",
+        "output_root_dir": "result_random_qst_1qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -238,7 +245,7 @@ def execute_qst_2qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qst_2qubit",
+        "output_root_dir": "result_random_qst_2qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -266,7 +273,7 @@ def execute_qst_3qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qst_3qubit",
+        "output_root_dir": "result_random_qst_3qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -295,7 +302,7 @@ def execute_qst_1qutrit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qst_1qutrit",
+        "output_root_dir": "result_random_qst_1qutrit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -326,7 +333,7 @@ def execute_qst_2qutrit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qst_2qutrit",
+        "output_root_dir": "result_random_qst_2qutrit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -352,7 +359,7 @@ def execute_povmt_1qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_povmt_1qubit",
+        "output_root_dir": "result_random_povmt_1qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -381,7 +388,7 @@ def execute_povmt_2qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_povmt_2qubit",
+        "output_root_dir": "result_random_povmt_2qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -410,7 +417,7 @@ def execute_povmt_3qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_povmt_3qubit",
+        "output_root_dir": "result_random_povmt_3qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -449,7 +456,7 @@ def execute_povmt_1qutrit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_povmt_1qutrit",
+        "output_root_dir": "result_random_povmt_1qutrit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -491,7 +498,7 @@ def execute_povmt_2qutrit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_povmt_2qutrit",
+        "output_root_dir": "result_random_povmt_2qutrit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -531,7 +538,7 @@ def execute_qpt_1qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qpt_1qubit",
+        "output_root_dir": "result_random_qpt_1qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -562,7 +569,7 @@ def execute_qpt_2qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qpt_2qubit",
+        "output_root_dir": "result_random_qpt_2qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -593,7 +600,7 @@ def execute_qpt_3qubit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qpt_3qubit",
+        "output_root_dir": "result_random_qpt_3qubit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -636,7 +643,7 @@ def execute_qpt_1qutrit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qpt_1qutrit",
+        "output_root_dir": "result_random_qpt_1qutrit-" + get_current_time_string(),
     }
     execute(**setting)
 
@@ -646,7 +653,7 @@ def execute_qpt_2qutrit():
         "mode": "qutrit",
         "n_qubit": 2,
         "tomography_type": "gate",
-        "true_objects": ["identity_identity"],
+        "true_objects": ["identity"],
         "tester_names": [
             ("state", f"{a}_{b}")
             for a, b in product(
@@ -684,6 +691,6 @@ def execute_qpt_2qutrit():
         "n_rep": 1,
         "num_data": [1000, 10000],
         "seed": 777,
-        "output_root_dir": "result_random_qpt_2qutrit",
+        "output_root_dir": "result_random_qpt_2qutrit-" + get_current_time_string(),
     }
     execute(**setting)
