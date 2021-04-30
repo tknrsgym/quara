@@ -3,6 +3,7 @@ import shutil
 
 from typing import List, Optional
 from pathlib import Path
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -377,7 +378,9 @@ def _generate_graph_eigenvalues_seq_3loop(
     fig_info_list3 = []
     for num_data_index in range(len(num_data)):
         fig_list_list = physicality_violation_check.make_graphs_eigenvalues(
-            estimation_results, true_object, num_data_index=num_data_index,
+            estimation_results,
+            true_object,
+            num_data_index=num_data_index,
         )
         fig_info_list2 = []
 
@@ -411,21 +414,27 @@ def generate_eigenvalues_div(
 ):
     if type(true_object) == State:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         vals = true_object.calc_eigenvalues()
         col_n = 2 if len(vals) <= 2 else 4
         div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
     elif type(true_object) == Povm:
         fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         vals = true_object.calc_eigenvalues()
         col_n = 2 if len(vals[0]) <= 2 else 4
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3, col_n=col_n)
     elif type(true_object) == Gate:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         v, _ = np.linalg.eig(true_object.to_choi_matrix())
         col_n = 2 if len(v) <= 2 else 4
@@ -436,13 +445,16 @@ def generate_eigenvalues_div(
 
 
 def _generate_graph_sum_eigenvalues_seq(
-    estimation_results: List["EstimationResult"], case_id: int, true_object,
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    true_object,
 ) -> List[List[dict]]:
     num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
-            estimation_results, num_data_index=num_data_index,
+            estimation_results,
+            num_data_index=num_data_index,
         )
         n_unphysical = physicality_violation_check.calc_unphysical_qobjects_n(
             estimation_results, num_data_index=num_data_index
@@ -489,7 +501,9 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
 
 
 def generate_sum_eigenvalues_div(
-    estimation_results: List["EstimationResult"], case_id: int, true_object,
+    estimation_results: List["EstimationResult"],
+    case_id: int,
+    true_object,
 ):
     fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
         estimation_results, case_id=case_id, true_object=true_object
@@ -536,7 +550,8 @@ def generate_mse_analytical_div(
 
 
 def generate_empi_dist_mse_div(
-    estimation_results_list: List[List[EstimationResult]], true_object: "QOperation",
+    estimation_results_list: List[List[EstimationResult]],
+    true_object: "QOperation",
 ) -> str:
 
     fig = data_analysis.make_empi_dists_mse_graph(
@@ -592,7 +607,9 @@ def _generate_physicality_violation_test_div_for_state(
             """
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -600,7 +617,9 @@ def _generate_physicality_violation_test_div_for_state(
             """
 
         div = generate_sum_eigenvalues_div(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         test_ineq_const_sum_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -645,7 +664,9 @@ def _generate_physicality_violation_test_div_for_povm(
             """
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -653,7 +674,9 @@ def _generate_physicality_violation_test_div_for_povm(
             """
 
         div = generate_sum_eigenvalues_div(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         test_ineq_const_sum_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -720,7 +743,9 @@ def _generate_physicality_violation_test_div_for_gate(
         """
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         test_ineq_const_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -728,7 +753,9 @@ def _generate_physicality_violation_test_div_for_gate(
             """
 
         div = generate_sum_eigenvalues_div(
-            estimation_results, case_id=case_id, true_object=true_object,
+            estimation_results,
+            case_id=case_id,
+            true_object=true_object,
         )
         test_ineq_const_sum_eigenvalues_divs += f"""
             <h4>Case {case_id}: {case_name}<h4>
@@ -859,8 +886,10 @@ def generate_consistency_check_table(
             algo=s.algo,
             algo_option=s.algo_option,
         )
-        sim_check = standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
-            estimation_results=estimation_results_list[i], simulation_setting=s
+        sim_check = (
+            standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
+                estimation_results=estimation_results_list[i], simulation_setting=s
+            )
         )
         result = sim_check.execute_consistency_check(show_detail=False, mode="both")
         diff_list.append(diff)
@@ -1199,6 +1228,68 @@ def generate_computation_time_of_estimators_div(
     return div
 
 
+def _load_simulation_results(
+    root_dir: str,
+    test_setting_index: int,
+    sample_index: int,
+    case_index: int = None,
+) -> list:
+    print(f"_load_simulation_results case_index={case_index}")
+    simulation_results = []
+    if case_index is not None:
+        # load specific pickle file
+        file_name = "case_" + str(case_index) + "_result.pickle"
+        result_dir_path_name = "/".join(
+            [root_dir, str(test_setting_index), str(sample_index), file_name]
+        )
+        file_path = Path(result_dir_path_name)
+        print(file_path)
+        with open(file_path, "rb") as f:
+            simulation_result = pickle.load(f)
+        simulation_results.append(simulation_result)
+        simulation_results.append(simulation_result)
+    else:
+        # load some pickle files
+        result_dir_path_name = "/".join(
+            [root_dir, str(test_setting_index), str(sample_index)]
+        )
+        result_dir_path = Path(result_dir_path_name)
+        print("Loading SimulationResult pickles ...")
+        for file_path in result_dir_path.iterdir():
+            file_name = file_path.name
+            if file_name.startswith("case_") and file_name.endswith("_result.pickle"):
+                print(file_path)
+                with open(file_path, "rb") as f:
+                    simulation_result = pickle.load(f)
+                simulation_results.append(simulation_result)
+        simulation_results.append(simulation_result)
+    print(
+        f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
+    )
+    return simulation_results
+
+
+def export_report_from_index(
+    input_root_dir: str,
+    test_index: int,
+    sample_index: int,
+    output_root_dir: str,
+    case_index: int = None,
+) -> None:
+    print(f"export_report_from_index case_index={case_index}")
+    simulation_results = _load_simulation_results(
+        input_root_dir, test_index, sample_index, case_index=case_index
+    )
+    estimation_results_list = [r.estimation_results for r in simulation_results]
+    simulation_settings = [r.simulation_setting for r in simulation_results]
+
+    export_report(
+        output_root_dir,
+        estimation_results_list=estimation_results_list,
+        simulation_settings=simulation_settings,
+    )
+
+
 def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
@@ -1227,12 +1318,31 @@ def export_report(
     _temp_dir_path = Path(temp_dir_path)
 
     true_object = simulation_settings[0].true_object
+    for simulation_setting in simulation_settings:
+        # set same CompositeSystem
+        simulation_setting.true_object._composite_system = true_object.composite_system
+
     tester_objects = simulation_settings[0].tester_objects
+    for tester_object in tester_objects:
+        # set same CompositeSystem
+        tester_object._composite_system = true_object.composite_system
+
     seed = simulation_settings[0].seed
 
     num_data = estimation_results_list[0][0].num_data
     n_rep = len(estimation_results_list[0])
     qtomography_list = [results[0].qtomography for results in estimation_results_list]
+    for qtomography in qtomography_list:
+        # set same CompositeSystem
+        for qobj in qtomography._experiment.states:
+            if qobj:
+                qobj._composite_system = true_object.composite_system
+        for qobj in qtomography._experiment.gates:
+            if qobj:
+                qobj._composite_system = true_object.composite_system
+        for qobj in qtomography._experiment.povms:
+            if qobj:
+                qobj._composite_system = true_object.composite_system
 
     # TODO: remove
     case_name_list = [s.name for s in simulation_settings]
