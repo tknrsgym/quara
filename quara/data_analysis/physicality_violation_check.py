@@ -33,7 +33,9 @@ def get_eq_const_eps(para) -> float:
     return __eq_const_eps_true if para else __eq_const_eps_false
 
 
-def _get_sorted_eigenvalues_list_for_state(estimated_states: List["State"],):
+def _get_sorted_eigenvalues_list_for_state(
+    estimated_states: List["State"],
+):
     sorted_eigenvalues_list = []
 
     for estimated_qobject in tqdm(estimated_states):
@@ -64,7 +66,8 @@ def get_sorted_eigenvalues_list(
 
 
 def get_sum_of_eigenvalues_violation(
-    sorted_eigenvalues_list: List[List[float]], expected_values=(0, 1),
+    sorted_eigenvalues_list: List[List[float]],
+    expected_values=(0, 1),
 ) -> Tuple[List[float], List[float]]:
     expected_values = sorted(expected_values)
     if len(expected_values) != 2:
@@ -122,7 +125,9 @@ def get_sum_of_eigenvalues_violation_for_povm(
     return minus_eigenvalues_dict
 
 
-def get_trace_list(estimated_state_list: List["State"],) -> List[float]:
+def get_trace_list(
+    estimated_state_list: List["State"],
+) -> List[float]:
     trace_list = []
 
     for estimated_state in estimated_state_list:
@@ -142,7 +147,7 @@ def get_sum_vecs(estimated_povms: List["Povm"]) -> np.ndarray:
         if sum_vecs is not None:
             sum_vecs = np.vstack([sum_vecs, sum(est.vecs)])
         else:
-            sum_vecs = sum(est.vecs)
+            sum_vecs = np.array([sum(est.vecs)])
 
     sum_vecs = sum_vecs.T
     return sum_vecs
@@ -176,7 +181,11 @@ def make_prob_dist_histogram(
         )
         raise TypeError(error_message)
 
-    hist = go.Histogram(x=values, xbins=xbins, histnorm="probability",)
+    hist = go.Histogram(
+        x=values,
+        xbins=xbins,
+        histnorm="probability",
+    )
     layout = go.Layout()
     fig = go.Figure(hist, layout=layout)
 
@@ -227,7 +236,8 @@ def make_prob_dist_histogram(
 
     n_lines = title.count("<br>") + 1
     fig.update_layout(
-        title=title, margin={"t": 40 * n_lines, "b": 0},
+        title=title,
+        margin={"t": 40 * n_lines, "b": 0},
     )
     return fig
 
@@ -243,7 +253,9 @@ def make_prob_dist_histograms(
 
     for i, values in enumerate(values_set):
         trace = go.Histogram(
-            x=values, xbins=dict(size=bin_size), histnorm="probability",
+            x=values,
+            xbins=dict(size=bin_size),
+            histnorm="probability",
         )
         fig.append_trace(trace, i + 1, 1)
 
@@ -736,7 +748,8 @@ def make_graph_trace_error_sum(
 
 
 def make_graphs_trace_error_sum(
-    estimation_results: List["EstimatedResult"], bin_size: float = 0.0001,
+    estimation_results: List["EstimatedResult"],
+    bin_size: float = 0.0001,
 ) -> list:
     num_data = estimation_results[0].num_data
     figs = []
