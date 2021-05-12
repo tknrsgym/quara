@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 from quara.data_analysis import data_analysis
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
@@ -13,7 +13,7 @@ def calc_mse_of_true_estimated(
     loss_option: "ProbabilityBasedLossFunctionOption" = None,
     algo: "MinimizationAlgorithm" = None,
     algo_option: "MinimizationAlgorithmOption" = None,
-) -> float:
+) -> Tuple[float, List["EstimationResult"]]:
     true_prob_dists = qtomography.generate_prob_dists_sequence(true_object)
     tmp_prob_dists = []
     for prob_dist in true_prob_dists:
@@ -38,7 +38,7 @@ def calc_mse_of_true_estimated(
         [true_estimated.estimated_qoperation], [true_object], with_std=False
     )
 
-    return mse
+    return (mse, true_estimated)
 
 
 def execute_consistency_check(
@@ -49,7 +49,7 @@ def execute_consistency_check(
 ) -> dict:
     if eps is None:
         eps = 10 ** (-10)
-    value = calc_mse_of_true_estimated(
+    value, estimation_result = calc_mse_of_true_estimated(
         true_object=simulation_setting.true_object,
         qtomography=estimation_results[0].qtomography,
         estimator=simulation_setting.estimator,
@@ -75,4 +75,5 @@ def execute_consistency_check(
     data["possibly_ok"] = possibly_ok
     data["to_be_checked"] = to_be_checked
     data["squared_error_to_true"] = value
+    data["estimation_result"] = estimation_result
     return data
