@@ -6,12 +6,10 @@ quara.protocol package
    :undoc-members:
    :show-inheritance:
 
-Submodules
-----------
+Subpackages
+-----------
 
 .. toctree::
    :maxdepth: 4
 
-   quara.protocol.simple_io
-   quara.protocol.simple_lsqpt
-   quara.protocol.simple_qpt
+   quara.protocol.qtomography
