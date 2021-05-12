@@ -870,20 +870,30 @@ def generate_consistency_check_table(
     estimation_results_list: List[List["EstimationResult"]],
     simulation_settings: List[StandardQTomographySimulationSetting],
     true_object: "QOperation",
+    check_results: List["CheckResult"] = None
 ):
     qtomography_list = [results[0].qtomography for results in estimation_results_list]
     diff_list = []
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
-    for i, s in enumerate(simulation_settings):
-        sim_check = (
-            standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
+    if check_results:
+        # Use the results of pre-run checks
+        def _extract_consistency_check_results(check_result: "CheckResult") -> dict:
+            for r in check_result["results"]:
+                if r["name"] == "Consistency":
+                    return r["detail"]
+        result_list = [_extract_consistency_check_results(cr) for cr in check_results]
+    else:
+        # Execute Consistency Check
+        for i, s in enumerate(simulation_settings):
+            sim_check = (
+                standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
                 estimation_results=estimation_results_list[i], simulation_setting=s
             )
         )
-        result_dict = sim_check.execute_consistency_check(show_detail=False)
-        result_list.append(result_dict)
+            result_dict = sim_check.execute_consistency_check(show_detail=False)
+            result_list.append(result_dict)
 
     def _insert_white_space(text: str) -> str:
         # If there is an upper case, insert a half-width space.
@@ -1224,35 +1234,26 @@ def _load_simulation_results(
     sample_index: int,
     case_index: int = None,
 ) -> list:
-    print(f"_load_simulation_results case_index={case_index}")
+    print("Loading SimulationResult pickles ...")
+    print(f"(test_setting_index, sample_index, case_index) = ({test_setting_index}, {sample_index}, {case_index})")
+    result_dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
     simulation_results = []
     if case_index is not None:
         # load specific pickle file
-        file_name = "case_" + str(case_index) + "_result.pickle"
-        result_dir_path_name = "/".join(
-            [root_dir, str(test_setting_index), str(sample_index), file_name]
-        )
-        file_path = Path(result_dir_path_name)
+        file_name = f"case_{case_index}_result.pickle"
+        file_path = result_dir_path / file_name
         print(file_path)
         with open(file_path, "rb") as f:
             simulation_result = pickle.load(f)
         simulation_results.append(simulation_result)
-        simulation_results.append(simulation_result)
     else:
         # load some pickle files
-        result_dir_path_name = "/".join(
-            [root_dir, str(test_setting_index), str(sample_index)]
-        )
-        result_dir_path = Path(result_dir_path_name)
-        print("Loading SimulationResult pickles ...")
-        for file_path in result_dir_path.iterdir():
-            file_name = file_path.name
-            if file_name.startswith("case_") and file_name.endswith("_result.pickle"):
-                print(file_path)
-                with open(file_path, "rb") as f:
-                    simulation_result = pickle.load(f)
-                simulation_results.append(simulation_result)
-        simulation_results.append(simulation_result)
+        file_paths = sorted(result_dir_path.glob('case_*_result.pickle'))
+        for file_path in file_paths:
+            print(file_path)
+            with open(file_path, "rb") as f:
+                simulation_result = pickle.load(f)
+            simulation_results.append(simulation_result)
     print(
         f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
     )
@@ -1266,17 +1267,22 @@ def export_report_from_index(
     output_root_dir: str,
     case_index: int = None,
 ) -> None:
-    print(f"export_report_from_index case_index={case_index}")
     simulation_results = _load_simulation_results(
         input_root_dir, test_index, sample_index, case_index=case_index
     )
-    estimation_results_list = [r.estimation_results for r in simulation_results]
-    simulation_settings = [r.simulation_setting for r in simulation_results]
-
+    estimation_results_list=[]
+    simulation_settings = []
+    check_results = []
+    for sim_result in simulation_results:
+        estimation_results_list.append(sim_result.estimation_results)
+        simulation_settings.append(sim_result.simulation_setting)
+        check_results.append(sim_result.check_result)
+    
     export_report(
         output_root_dir,
         estimation_results_list=estimation_results_list,
         simulation_settings=simulation_settings,
+        check_results=check_results
     )
 
 
@@ -1284,10 +1290,11 @@ def export_report(
     path: str,
     estimation_results_list: List[List["EstimationResult"]],
     simulation_settings: List[StandardQTomographySimulationSetting],
+    check_results: List["CheckResult"] = None,
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
-    """[summary]
+    """Output a PDF report with simulation settings and results.
 
     Parameters
     ----------
@@ -1297,6 +1304,8 @@ def export_report(
         List containing a list of estimated results for each simulation.
     simulation_settings : List[StandardQTomographySimulationSetting]
         Settings for each simulation.
+    check_results : List[CheckResult]
+        CheckResults for each simulation. If SimulationCheck has already been executed, giving the result to this argument will reduce the processing time to generate the report. If not specified, SimulationCheck will be executed during report generation. See the documentation for the StandardQTomographySimulationCheck class to see what SimulationCheck does.
     keep_tmp_files : bool, optional
         [description], by default False
     show_physicality_violation_check : bool, optional
@@ -1334,7 +1343,6 @@ def export_report(
             if qobj:
                 qobj._composite_system = true_object.composite_system
 
-    # TODO: remove
     case_name_list = [s.name for s in simulation_settings]
     estimator_list = [s.estimator for s in simulation_settings]
 
@@ -1378,7 +1386,7 @@ def export_report(
     # Consistency Test
     print("​​Generating consictency test blocks ...")
     consistency_check_table = generate_consistency_check_table(
-        estimation_results_list, simulation_settings, true_object
+        estimation_results_list, simulation_settings, true_object, check_results
     )
 
     # MSE
