@@ -2438,9 +2438,12 @@ def split_gate_name_2qutrit_single_base_matrix_into_base_matrix_names_angle(
     ----------
     Dict[str, str]
         key = "base0", "base1", "angle".
-        Ex. {'base0': 'i', 'base1': '01x', 'angle':'90'}
-            {'base0': '12y', 'base1': 'i', 'angle':'180'}
-            {'base0': '02z', 'base1': '12y', 'angle':'90'}
+
+        Ex.
+
+        - {'base0': 'i', 'base1': '01x', 'angle':'90'}
+        - {'base0': '12y', 'base1': 'i', 'angle':'180'}
+        - {'base0': '02z', 'base1': '12y', 'angle':'90'}
     """
     l = []
     a = ""

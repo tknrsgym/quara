@@ -49,7 +49,7 @@ The source code for this project is maintained on `GitHub <https://github.com/tk
 License
 =======
 
-This project is licensed under the XXX.
+This project is licensed under Apache License 2.0 `LICENSE <https://github.com/tknrsgym/quara/blob/master/LICENSE>`__
 
 
 Indices and tables
