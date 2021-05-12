@@ -877,23 +877,13 @@ def generate_consistency_check_table(
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
     for i, s in enumerate(simulation_settings):
-        diff = consistency_check.calc_mse_of_true_estimated(
-            true_object=true_object,
-            qtomography=qtomography_list[i],
-            estimator=s.estimator,
-            loss=s.loss,
-            loss_option=s.loss_option,
-            algo=s.algo,
-            algo_option=s.algo_option,
-        )
         sim_check = (
             standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
                 estimation_results=estimation_results_list[i], simulation_setting=s
             )
         )
-        result = sim_check.execute_consistency_check(show_detail=False, mode="both")
-        diff_list.append(diff)
-        result_list.append(result)
+        result_dict = sim_check.execute_consistency_check(show_detail=False)
+        result_list.append(result_dict)
 
     def _insert_white_space(text: str) -> str:
         # If there is an upper case, insert a half-width space.
@@ -931,7 +921,7 @@ def generate_consistency_check_table(
         "Estimator": type_estimator_values,
         "Loss": type_loss_values,
         "Algo": type_algo_values,
-        "Squared Error to True": [f"{d:.2e}" for d in diff_list],
+        "Squared Error to True": [f"{r['squared_error_to_true']:.2e}" for r in result_list],
         "Possibly OK": [f"{'OK' if r['possibly_ok'] else 'NG'}" for r in result_list],
         "To be checked": [
             f"{'need debug' if r['to_be_checked'] else 'not need debug'}"
