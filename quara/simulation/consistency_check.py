@@ -46,7 +46,7 @@ def execute_consistency_check(
     estimation_results: List["EstimationResult"],
     eps=None,
     show_detail: bool = True,
-) -> bool:
+) -> dict:
     if eps is None:
         eps = 10 ** (-10)
     value = calc_mse_of_true_estimated(
@@ -58,6 +58,7 @@ def execute_consistency_check(
         algo=simulation_setting.algo,
         algo_option=simulation_setting.algo_option,
     )
+        
     # numpy.bool_ -> bool to serialize to json
     result = bool(value < eps)
     if show_detail:
@@ -66,4 +67,12 @@ def execute_consistency_check(
         print(f"eps={eps}")
         print(f"result(value < eps): {result}")
 
-    return result
+    param = estimation_results[0].estimated_qoperation.on_para_eq_constraint
+    possibly_ok = result
+    to_be_checked = not result if param else False
+
+    data = dict()
+    data["possibly_ok"] = possibly_ok
+    data["to_be_checked"] = to_be_checked
+    data["squared_error_to_true"] = value
+    return data
