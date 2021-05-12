@@ -57,7 +57,8 @@ def execute_simulation_case_unit(
 
     # Generate QTomography
     qtomography = sim.generate_qtomography(
-        sim_setting, para=test_setting.parametrizations[case_index],
+        sim_setting,
+        para=test_setting.parametrizations[case_index],
     )
 
     # Execute
@@ -290,10 +291,12 @@ def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
     dir_path.mkdir(parents=True, exist_ok=True)
     path = dir_path / f"{test_setting_index}_{sample_index}_quara_report.pdf"
 
-    estimation_results_list = [r.estimation_results for r in results]
-    sim_settings = [r.simulation_setting for r in results]
-
-    report.export_report(path, estimation_results_list, sim_settings)
+    report.export_report_from_index(
+        input_root_dir=root_dir,
+        test_setting_index=test_setting_index,
+        sample_index=sample_index,
+        output_path=path,
+    )
 
 
 def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
@@ -308,7 +311,7 @@ def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
 
     # Save JSON
     # EstimationResult cannot be converted to JSON.
-    # Therefore, alternative text is used.    
+    # Therefore, alternative text is used.
     alternative_results = []
     for r in result.check_result["results"]:
         if r["name"] == "Consistency":
@@ -324,4 +327,10 @@ def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
 
     path = dir_path / f"case_{case_index}_check_result.json"
     with open(path, "w") as f:
-        json.dump(alternative_check_result, f, ensure_ascii=False, indent=4, separators=(",", ": "))
+        json.dump(
+            alternative_check_result,
+            f,
+            ensure_ascii=False,
+            indent=4,
+            separators=(",", ": "),
+        )

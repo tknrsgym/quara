@@ -870,7 +870,7 @@ def generate_consistency_check_table(
     estimation_results_list: List[List["EstimationResult"]],
     simulation_settings: List[StandardQTomographySimulationSetting],
     true_object: "QOperation",
-    check_results: List["CheckResult"] = None
+    check_results: List["CheckResult"] = None,
 ):
     qtomography_list = [results[0].qtomography for results in estimation_results_list]
     diff_list = []
@@ -883,15 +883,14 @@ def generate_consistency_check_table(
             for r in check_result["results"]:
                 if r["name"] == "Consistency":
                     return r["detail"]
+
         result_list = [_extract_consistency_check_results(cr) for cr in check_results]
     else:
         # Execute Consistency Check
         for i, s in enumerate(simulation_settings):
-            sim_check = (
-                standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
+            sim_check = standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
                 estimation_results=estimation_results_list[i], simulation_setting=s
             )
-        )
             result_dict = sim_check.execute_consistency_check(show_detail=False)
             result_list.append(result_dict)
 
@@ -931,7 +930,9 @@ def generate_consistency_check_table(
         "Estimator": type_estimator_values,
         "Loss": type_loss_values,
         "Algo": type_algo_values,
-        "Squared Error to True": [f"{r['squared_error_to_true']:.2e}" for r in result_list],
+        "Squared Error to True": [
+            f"{r['squared_error_to_true']:.2e}" for r in result_list
+        ],
         "Possibly OK": [f"{'OK' if r['possibly_ok'] else 'NG'}" for r in result_list],
         "To be checked": [
             f"{'need debug' if r['to_be_checked'] else 'not need debug'}"
@@ -1235,7 +1236,9 @@ def _load_simulation_results(
     case_index: int = None,
 ) -> list:
     print("Loading SimulationResult pickles ...")
-    print(f"(test_setting_index, sample_index, case_index) = ({test_setting_index}, {sample_index}, {case_index})")
+    print(
+        f"(test_setting_index, sample_index, case_index) = ({test_setting_index}, {sample_index}, {case_index})"
+    )
     result_dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
     simulation_results = []
     if case_index is not None:
@@ -1248,7 +1251,7 @@ def _load_simulation_results(
         simulation_results.append(simulation_result)
     else:
         # load some pickle files
-        file_paths = sorted(result_dir_path.glob('case_*_result.pickle'))
+        file_paths = sorted(result_dir_path.glob("case_*_result.pickle"))
         for file_path in file_paths:
             print(file_path)
             with open(file_path, "rb") as f:
@@ -1262,27 +1265,27 @@ def _load_simulation_results(
 
 def export_report_from_index(
     input_root_dir: str,
-    test_index: int,
+    test_setting_index: int,
     sample_index: int,
-    output_root_dir: str,
+    output_path: str,
     case_index: int = None,
 ) -> None:
     simulation_results = _load_simulation_results(
-        input_root_dir, test_index, sample_index, case_index=case_index
+        input_root_dir, test_setting_index, sample_index, case_index=case_index
     )
-    estimation_results_list=[]
+    estimation_results_list = []
     simulation_settings = []
     check_results = []
     for sim_result in simulation_results:
         estimation_results_list.append(sim_result.estimation_results)
         simulation_settings.append(sim_result.simulation_setting)
         check_results.append(sim_result.check_result)
-    
+
     export_report(
-        output_root_dir,
+        output_path,
         estimation_results_list=estimation_results_list,
         simulation_settings=simulation_settings,
-        check_results=check_results
+        check_results=check_results,
     )
 
 
