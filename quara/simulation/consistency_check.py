@@ -31,7 +31,9 @@ def calc_mse_of_true_estimated(
         )
     else:
         true_estimated = estimator.calc_estimate_sequence(
-            qtomography, [tmp_prob_dists], is_computation_time_required=True,
+            qtomography,
+            [tmp_prob_dists],
+            is_computation_time_required=True,
         )
 
     mse = data_analysis.calc_mse_qoperations(
@@ -58,7 +60,7 @@ def execute_consistency_check(
         algo=simulation_setting.algo,
         algo_option=simulation_setting.algo_option,
     )
-        
+
     # numpy.bool_ -> bool to serialize to json
     result = bool(value < eps)
     if show_detail:
