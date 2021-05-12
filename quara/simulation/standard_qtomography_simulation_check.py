@@ -91,7 +91,7 @@ class StandardQTomographySimulationCheck:
         # Consistency
         name = "Consistency"
         result = self.execute_consistency_check(
-            eps=consistency_check_eps, show_detail=show_detail, mode="both"
+            eps=consistency_check_eps, show_detail=show_detail
         )
         detail = result
         result = detail["possibly_ok"]
@@ -136,32 +136,15 @@ class StandardQTomographySimulationCheck:
         return result
 
     def execute_consistency_check(
-        self, eps: float = None, show_detail: bool = True, mode="possibly_ok"
-    ) -> Union[bool, dict]:
-        expected_mode = ["possibly_ok", "to_be_checked", "both"]
-        if mode not in expected_mode:
-            message = f"The mode must be one of the following values: {expected_mode}"
-            raise ValueError(message)
-
-        result = execute_consistency_check(
+        self, eps: float = None, show_detail: bool = True
+    ) -> dict:
+        result_dict = execute_consistency_check(
             simulation_setting=self.simulation_setting,
             estimation_results=self.estimation_results,
             eps=eps,
             show_detail=show_detail,
         )
-        param = self.estimation_results[0].estimated_qoperation.on_para_eq_constraint
-        possibly_ok = result
-        to_be_checked = not result if param else False
-
-        if mode == "possibly_ok":
-            return possibly_ok
-        elif mode == "to_be_checked":
-            return to_be_checked
-        else:
-            data = dict()
-            data["possibly_ok"] = possibly_ok
-            data["to_be_checked"] = to_be_checked
-            return data
+        return result_dict
 
     def execute_mse_of_estimators_check(self, show_detail: bool = True):
         try:

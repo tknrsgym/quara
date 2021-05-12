@@ -32,11 +32,11 @@ def test_calc_mse_of_true_estimated():
     estimator = LinearEstimator()
 
     # Act
-    actual = consistency_check.calc_mse_of_true_estimated(
+    actual_mse, _ = consistency_check.calc_mse_of_true_estimated(
         true_object=true_object, qtomography=qst, estimator=estimator
     )
     # Assert
-    npt.assert_almost_equal(actual, 0, decimal=16)
+    npt.assert_almost_equal(actual_mse, 0, decimal=16)
 
     # Case 2
     # Array
@@ -44,11 +44,11 @@ def test_calc_mse_of_true_estimated():
     estimator = LinearEstimator()
 
     # Act
-    actual = consistency_check.calc_mse_of_true_estimated(
+    actual_mse, _ = consistency_check.calc_mse_of_true_estimated(
         true_object=true_object, qtomography=qst, estimator=estimator
     )
     # Assert
-    npt.assert_almost_equal(actual, 0, decimal=16)
+    npt.assert_almost_equal(actual_mse, 0, decimal=16)
 
     # Case 3
     # Array
@@ -56,11 +56,11 @@ def test_calc_mse_of_true_estimated():
     estimator = ProjectedLinearEstimator()
 
     # Act
-    actual = consistency_check.calc_mse_of_true_estimated(
+    actual_mse, _ = consistency_check.calc_mse_of_true_estimated(
         true_object=true_object, qtomography=qst, estimator=estimator
     )
     # Assert
-    npt.assert_almost_equal(actual, 0, decimal=16)
+    npt.assert_almost_equal(actual_mse, 0, decimal=16)
 
     # Case 4
     # Arrange
@@ -68,8 +68,8 @@ def test_calc_mse_of_true_estimated():
     estimator = ProjectedLinearEstimator()
 
     # Act
-    actual = consistency_check.calc_mse_of_true_estimated(
+    actual_mse, _ = consistency_check.calc_mse_of_true_estimated(
         true_object=true_object, qtomography=qst, estimator=estimator
     )
     # Assert
-    npt.assert_almost_equal(actual, 0, decimal=16)
+    npt.assert_almost_equal(actual_mse, 0, decimal=16)
