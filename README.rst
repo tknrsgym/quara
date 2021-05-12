@@ -28,4 +28,4 @@ Install
 License
 =================================
 
-Apache License 2.0 https://github.com/tknrsgym/quara/blob/master/LICENSE
+Apache License 2.0 `LICENSE <LICENSE>`_
