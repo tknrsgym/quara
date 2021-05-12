@@ -99,12 +99,12 @@ class EffectiveLindbladian(Gate):
         if self.is_physicality_required and not self.is_physical():
             raise ValueError("the EffectiveLindbladian is not phsically correct.")
 
-    def calc_h_mat(self) -> np.array:
+    def calc_h_mat(self) -> np.ndarray:
         """calculates h matrix of this EffectiveLindbladian.
 
         Returns
         -------
-        np.array
+        np.ndarray
             h matrix of this EffectiveLindbladian.
         """
         basis = self.composite_system.basis()
@@ -123,12 +123,12 @@ class EffectiveLindbladian(Gate):
 
         return tmp_h_mat
 
-    def calc_j_mat(self) -> np.array:
+    def calc_j_mat(self) -> np.ndarray:
         """calculates j matrix of this EffectiveLindbladian.
 
         Returns
         -------
-        np.array
+        np.ndarray
             j matrix of this EffectiveLindbladian.
         """
         basis = self.composite_system.basis()
@@ -148,12 +148,12 @@ class EffectiveLindbladian(Gate):
 
         return tmp_j_mat
 
-    def calc_k_mat(self) -> np.array:
+    def calc_k_mat(self) -> np.ndarray:
         """calculates k matrix of this EffectiveLindbladian.
 
         Returns
         -------
-        np.array
+        np.ndarray
             k matrix of this EffectiveLindbladian.
         """
         basis = self.composite_system.basis()
@@ -175,7 +175,7 @@ class EffectiveLindbladian(Gate):
         if not mode_basis in ["hermitian_basis", "comp_basis"]:
             raise ValueError(f"unsupported mode_basis={mode_basis}")
 
-    def calc_h_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+    def calc_h_part(self, mode_basis: str = "hermitian_basis") -> np.ndarray:
         """calculates h part of this EffectiveLindbladian.
 
         mode_basis allows the following values:
@@ -189,7 +189,7 @@ class EffectiveLindbladian(Gate):
 
         Returns
         -------
-        np.array
+        np.ndarray
             h part of this EffectiveLindbladian.
         """
         self._check_mode_basis(mode_basis)
@@ -206,7 +206,7 @@ class EffectiveLindbladian(Gate):
 
         return h_part
 
-    def calc_j_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+    def calc_j_part(self, mode_basis: str = "hermitian_basis") -> np.ndarray:
         """calculates j part of this EffectiveLindbladian.
 
         mode_basis allows the following values:
@@ -220,7 +220,7 @@ class EffectiveLindbladian(Gate):
 
         Returns
         -------
-        np.array
+        np.ndarray
             j part of this EffectiveLindbladian.
         """
         self._check_mode_basis(mode_basis)
@@ -237,7 +237,7 @@ class EffectiveLindbladian(Gate):
 
         return j_part
 
-    def calc_k_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+    def calc_k_part(self, mode_basis: str = "hermitian_basis") -> np.ndarray:
         """calculates k part of this EffectiveLindbladian.
 
         mode_basis allows the following values:
@@ -251,7 +251,7 @@ class EffectiveLindbladian(Gate):
 
         Returns
         -------
-        np.array
+        np.ndarray
             k part of this EffectiveLindbladian.
         """
         self._check_mode_basis(mode_basis)
@@ -268,7 +268,7 @@ class EffectiveLindbladian(Gate):
 
         return k_part
 
-    def calc_d_part(self, mode_basis: str = "hermitian_basis") -> np.array:
+    def calc_d_part(self, mode_basis: str = "hermitian_basis") -> np.ndarray:
         """calculates d part of this EffectiveLindbladian.
 
         mode_basis allows the following values:
@@ -282,7 +282,7 @@ class EffectiveLindbladian(Gate):
 
         Returns
         -------
-        np.array
+        np.ndarray
             d part of this EffectiveLindbladian.
         """
         self._check_mode_basis(mode_basis)
@@ -401,7 +401,7 @@ class EffectiveLindbladian(Gate):
         # for A:L^{gb}, "A is CP"  <=> "k >= 0"
         return mutil.is_positive_semidefinite(self.calc_k_mat(), atol=atol)
 
-    def to_kraus_matrices(self) -> List[Tuple[np.float64, np.array]]:
+    def to_kraus_matrices(self) -> List[Tuple[np.float64, np.ndarray]]:
         """returns Kraus matrices of EffectiveLindbladian.
 
         if A is Hermitian preserve matrix, then A(X) = \sum_i a_i A_i X A_i^{\dagger}, where a_i are real numbers and A_i are complex square matrices.
@@ -409,7 +409,7 @@ class EffectiveLindbladian(Gate):
 
         Returns
         -------
-        List[Tuple[np.float64, np.array]]
+        List[Tuple[np.float64, np.ndarray]]
             Kraus matrices of EffectiveLindbladian.
         """
         # step1. calc the eigenvalue decomposition of Choi matrix.
@@ -569,7 +569,7 @@ def convert_var_to_effective_lindbladian(
 
 def convert_effective_lindbladian_to_var(
     c_sys: CompositeSystem, hs: np.ndarray, on_para_eq_constraint: bool = True
-) -> np.array:
+) -> np.ndarray:
     """converts hs of EffectiveLindbladian to vec of variables.
 
     Parameters
@@ -583,7 +583,7 @@ def convert_effective_lindbladian_to_var(
 
     Returns
     -------
-    np.array
+    np.ndarray
         vec of variables.
     """
     return convert_gate_to_var(c_sys, hs, on_para_eq_constraint=on_para_eq_constraint)
@@ -636,7 +636,7 @@ def calc_gradient_from_effective_lindbladian(
     return lindbladian
 
 
-def _check_h_mat(h_mat: np.array, dim: int) -> None:
+def _check_h_mat(h_mat: np.ndarray, dim: int) -> None:
     # whetever h_mat is Hermitian
     if not mutil.is_hermitian(h_mat):
         raise ValueError("h_mat must be Hermitian. h_mat={h_mat}")
@@ -649,12 +649,12 @@ def _check_h_mat(h_mat: np.array, dim: int) -> None:
         )
 
 
-def _calc_h_part_from_h_mat(h_mat: np.array) -> np.array:
+def _calc_h_part_from_h_mat(h_mat: np.ndarray) -> np.ndarray:
     identity = np.eye(h_mat.shape[0])
     return -1j * (np.kron(h_mat, identity) - np.kron(identity, h_mat.conj()))
 
 
-def _check_j_mat(j_mat: np.array, dim: int) -> None:
+def _check_j_mat(j_mat: np.ndarray, dim: int) -> None:
     # whetever j_mat is Hermitian
     if not mutil.is_hermitian(j_mat):
         raise ValueError("j_mat must be Hermitian. j_mat={j_mat}")
@@ -667,7 +667,7 @@ def _check_j_mat(j_mat: np.array, dim: int) -> None:
         )
 
 
-def _calc_j_mat_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> None:
+def _calc_j_mat_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> None:
     basis = c_sys.basis()
     j_mat = np.zeros((c_sys.dim, c_sys.dim), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
@@ -678,12 +678,12 @@ def _calc_j_mat_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> None:
     return -1 / 2 * j_mat
 
 
-def _calc_j_part_from_j_mat(j_mat: np.array) -> np.array:
+def _calc_j_part_from_j_mat(j_mat: np.ndarray) -> np.ndarray:
     identity = np.eye(j_mat.shape[0])
     return np.kron(j_mat, identity) + np.kron(identity, j_mat.conj())
 
 
-def _check_k_mat(k_mat: np.array, dim: int) -> None:
+def _check_k_mat(k_mat: np.ndarray, dim: int) -> None:
     # whetever k_mat is Hermitian
     if not mutil.is_hermitian(k_mat):
         raise ValueError("k_mat must be Hermitian. k_mat={k_mat}")
@@ -696,7 +696,7 @@ def _check_k_mat(k_mat: np.array, dim: int) -> None:
         )
 
 
-def _calc_k_part_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> np.array:
+def _calc_k_part_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
     basis = c_sys.basis()
     k_part = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
@@ -708,10 +708,10 @@ def _calc_k_part_from_k_mat(k_mat: np.array, c_sys: CompositeSystem) -> np.array
 
 
 def _truncate_hs(
-    hs: np.array,
+    hs: np.ndarray,
     eps_proj_physical: float = None,
     is_zero_imaginary_part_required: bool = True,
-) -> np.array:
+) -> np.ndarray:
     tmp_hs = mutil.truncate_imaginary_part(hs, eps_proj_physical)
 
     if is_zero_imaginary_part_required == True and np.any(tmp_hs.imag != 0):
@@ -732,7 +732,7 @@ def generate_hs_from_hjk(
     j_mat: np.ndarray,
     k_mat: np.ndarray,
     eps_proj_physical: float = None,
-) -> np.array:
+) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from h matrix, j matrix and k matrix.
 
     Parameters
@@ -748,7 +748,7 @@ def generate_hs_from_hjk(
 
     Returns
     -------
-    np.array
+    np.ndarray
         HS matrix of EffectiveLindbladian.
     """
     dim = c_sys.dim
@@ -817,7 +817,7 @@ def generate_effective_lindbladian_from_hjk(
 
     Returns
     -------
-    np.array
+    np.ndarray
         EffectiveLindbladian.
     """
     # generate HS
@@ -839,8 +839,10 @@ def generate_effective_lindbladian_from_hjk(
 
 
 def generate_hs_from_h(
-    c_sys: CompositeSystem, h_mat: np.ndarray, eps_proj_physical: float = None,
-) -> np.array:
+    c_sys: CompositeSystem,
+    h_mat: np.ndarray,
+    eps_proj_physical: float = None,
+) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from h matrix.
 
     Parameters
@@ -852,7 +854,7 @@ def generate_hs_from_h(
 
     Returns
     -------
-    np.array
+    np.ndarray
         HS matrix of EffectiveLindbladian.
     """
     dim = c_sys.dim
@@ -907,7 +909,7 @@ def generate_effective_lindbladian_from_h(
 
     Returns
     -------
-    np.array
+    np.ndarray
         EffectiveLindbladian.
     """
     # generate HS
@@ -933,7 +935,7 @@ def generate_hs_from_hk(
     h_mat: np.ndarray,
     k_mat: np.ndarray,
     eps_proj_physical: float = None,
-) -> np.array:
+) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from h matrix and k matrix.
 
     j matrix is calculated from k matrix.
@@ -949,7 +951,7 @@ def generate_hs_from_hk(
 
     Returns
     -------
-    np.array
+    np.ndarray
         HS matrix of EffectiveLindbladian.
     """
     dim = c_sys.dim
@@ -1017,7 +1019,7 @@ def generate_effective_lindbladian_from_hk(
 
     Returns
     -------
-    np.array
+    np.ndarray
         EffectiveLindbladian.
     """
     # generate HS
@@ -1039,8 +1041,10 @@ def generate_effective_lindbladian_from_hk(
 
 
 def generate_hs_from_k(
-    c_sys: CompositeSystem, k_mat: np.ndarray, eps_proj_physical: float = None,
-) -> np.array:
+    c_sys: CompositeSystem,
+    k_mat: np.ndarray,
+    eps_proj_physical: float = None,
+) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from k matrix.
 
     j matrix is calculated from k matrix.
@@ -1054,7 +1058,7 @@ def generate_hs_from_k(
 
     Returns
     -------
-    np.array
+    np.ndarray
         HS matrix of EffectiveLindbladian.
     """
     dim = c_sys.dim
@@ -1115,7 +1119,7 @@ def generate_effective_lindbladian_from_k(
 
     Returns
     -------
-    np.array
+    np.ndarray
         EffectiveLindbladian.
     """
     # generate HS
@@ -1136,19 +1140,21 @@ def generate_effective_lindbladian_from_k(
     return effective_lindbladian
 
 
-def generate_j_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np.array:
+def generate_j_part_cb_from_jump_operators(
+    jump_operators: List[np.ndarray],
+) -> np.ndarray:
     """generates j part of EffectiveLindbladian from jump operators.
 
     this j part is represented by computational basis.
 
     Parameters
     ----------
-    jump_operators : List[np.array]
+    jump_operators : List[np.ndarray]
         jump operators to generate j part.
 
     Returns
     -------
-    np.array
+    np.ndarray
         j part of EffectiveLindbladian.
     """
     dim = jump_operators[0].shape[0]
@@ -1162,15 +1168,17 @@ def generate_j_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np
 
 
 def generate_j_part_gb_from_jump_operators(
-    jump_operators: List[np.array], basis: MatrixBasis, eps_proj_physical: float = None
-) -> np.array:
+    jump_operators: List[np.ndarray],
+    basis: MatrixBasis,
+    eps_proj_physical: float = None,
+) -> np.ndarray:
     """generates j part of EffectiveLindbladian from jump operators.
 
     this j part is represented by general basis.
 
     Parameters
     ----------
-    jump_operators : List[np.array]
+    jump_operators : List[np.ndarray]
         jump operators to generate j part.
     basis : MatrixBasis
         MatrixBasis to present j part.
@@ -1179,7 +1187,7 @@ def generate_j_part_gb_from_jump_operators(
 
     Returns
     -------
-    np.array
+    np.ndarray
         j part of EffectiveLindbladian.
     """
     j_part_cb = generate_j_part_cb_from_jump_operators(jump_operators)
@@ -1188,19 +1196,21 @@ def generate_j_part_gb_from_jump_operators(
     return j_part_gb
 
 
-def generate_k_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np.array:
+def generate_k_part_cb_from_jump_operators(
+    jump_operators: List[np.ndarray],
+) -> np.ndarray:
     """generates k part of EffectiveLindbladian from jump operators.
 
     this k part is represented by computational basis.
 
     Parameters
     ----------
-    jump_operators : List[np.array]
+    jump_operators : List[np.ndarray]
         jump operators to generate k part.
 
     Returns
     -------
-    np.array
+    np.ndarray
         k part of EffectiveLindbladian.
     """
     terms = [np.kron(opertor, opertor.conj()) for opertor in jump_operators]
@@ -1209,15 +1219,17 @@ def generate_k_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np
 
 
 def generate_k_part_gb_from_jump_operators(
-    jump_operators: List[np.array], basis: MatrixBasis, eps_proj_physical: float = None
-) -> np.array:
+    jump_operators: List[np.ndarray],
+    basis: MatrixBasis,
+    eps_proj_physical: float = None,
+) -> np.ndarray:
     """generates k part of EffectiveLindbladian from jump operators.
 
     this k part is represented by general basis.
 
     Parameters
     ----------
-    jump_operators : List[np.array]
+    jump_operators : List[np.ndarray]
         jump operators to generate k part.
     basis : MatrixBasis
         MatrixBasis to present k part.
@@ -1226,7 +1238,7 @@ def generate_k_part_gb_from_jump_operators(
 
     Returns
     -------
-    np.array
+    np.ndarray
         k part of EffectiveLindbladian.
     """
     k_part_cb = generate_k_part_cb_from_jump_operators(jump_operators)
@@ -1235,19 +1247,21 @@ def generate_k_part_gb_from_jump_operators(
     return k_part_gb
 
 
-def generate_d_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np.array:
+def generate_d_part_cb_from_jump_operators(
+    jump_operators: List[np.ndarray],
+) -> np.ndarray:
     """generates d part of EffectiveLindbladian from jump operators.
 
     this d part is represented by computational basis.
 
     Parameters
     ----------
-    jump_operators : List[np.array]
+    jump_operators : List[np.ndarray]
         jump_operators to generate d part.
 
     Returns
     -------
-    np.array
+    np.ndarray
         d part of EffectiveLindbladian.
     """
     d_part_cb = generate_j_part_cb_from_jump_operators(
@@ -1257,15 +1271,17 @@ def generate_d_part_cb_from_jump_operators(jump_operators: List[np.array]) -> np
 
 
 def generate_d_part_gb_from_jump_operators(
-    jump_operators: List[np.array], basis: MatrixBasis, eps_proj_physical: float = None
-) -> np.array:
+    jump_operators: List[np.ndarray],
+    basis: MatrixBasis,
+    eps_proj_physical: float = None,
+) -> np.ndarray:
     """generates d part of EffectiveLindbladian from jump operators.
 
     this d part is represented by general basis.
 
     Parameters
     ----------
-    jump_operators : List[np.array]
+    jump_operators : List[np.ndarray]
         jump operators to generate d part.
     basis : MatrixBasis
         MatrixBasis to present d part.
@@ -1274,7 +1290,7 @@ def generate_d_part_gb_from_jump_operators(
 
     Returns
     -------
-    np.array
+    np.ndarray
         d part of EffectiveLindbladian.
     """
     d_part_cb = generate_d_part_cb_from_jump_operators(jump_operators)
@@ -1285,7 +1301,7 @@ def generate_d_part_gb_from_jump_operators(
 
 def generate_effective_lindbladian_from_jump_operators(
     c_sys: CompositeSystem,
-    jump_operators: List[np.array],
+    jump_operators: List[np.ndarray],
     is_physicality_required: bool = True,
     is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
@@ -1300,7 +1316,7 @@ def generate_effective_lindbladian_from_jump_operators(
     ----------
     c_sys : CompositeSystem
         CompositeSystem of this EffectiveLindbladian.
-    jump_operators : List[np.array]
+    jump_operators : List[np.ndarray]
         jump operators to generate EffectiveLindbladian.
     is_physicality_required : bool, optional
         whether this QOperation is physicality required, by default True
@@ -1319,7 +1335,7 @@ def generate_effective_lindbladian_from_jump_operators(
 
     Returns
     -------
-    np.array
+    np.ndarray
         EffectiveLindbladian.
     """
     # calculate hs(=Lindbladian for Hermitian basis)

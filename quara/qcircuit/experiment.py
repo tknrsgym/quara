@@ -461,7 +461,7 @@ class Experiment:
         data_nums : List[int]
             A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
 
-        Returnsf
+        Returns
         -------
         List[List[np.ndarray]]
             Generated dataset.

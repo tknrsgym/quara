@@ -208,12 +208,15 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
     ----------
     state_name : str
         name of the state.
+
         - 1 qubit: "x0", "x1", "y0", "y1", "z0", "a"
         - 2 qubit: "bell_psi_plus", "bell_psi_minus", "bell_phi_minus", "bell_phi_plus", or tensor product of 1 qubit ("z0_z0", "z0_z1", etc).
         - 3 qubit: "ghz", "werner", or tensor product of 1 qubit ("z0_z0_z0", "z0_x0_y0", etc).
         - 1 qutrit: Specify a combination of level ("01" | "12" | "02"), axis ("x" | "y" | "z"), and d ("0", "1") and "v012".
+
         For example, "01x0" means level is "01", axis is "x", and d is "0".
         Use get_state_names_1qutrit() to get a list of available names.
+
         - 2 qutrit: tensor product of 1 qutrit ("01x0_01y0", "01x0_01x1", etc) and "v001122".
 
     Returns
@@ -361,6 +364,7 @@ def get_state_bell_pure_state_vector(name: str) -> np.ndarray:
     ----------
     name : str
         type of bell, one of ("bell_psi_plus" | "bell_psi_minus" | "bell_phi_plus" | "bell_phi_minus")
+
         - "bell_psi_plus": |Ψ+> := |0>|1> + |1>|0>
         - "bell_psi_minus": |Ψ-> := |0>|1> - |1>|0>
         - "bell_phi_plus": |Φ+> := |0>|0> + |1>|1>
