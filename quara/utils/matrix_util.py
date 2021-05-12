@@ -165,6 +165,7 @@ def truncate_hs(
     is_zero_imaginary_part_required: bool = True,
 ) -> np.ndarray:
     """truncate HS matrix to a real matrix.
+
     Parameters
     ----------
     hs : np.ndarray

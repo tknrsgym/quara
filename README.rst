@@ -25,6 +25,8 @@ Install
 
    pip install quara
 
+.. _end_of_install:
+
 License
 =================================
 
