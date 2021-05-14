@@ -357,16 +357,18 @@ def calc_mat_from_coefficient_basis(
 
     Parameters
     ----------
-    coeff : np.ndarray((dim *dim, 1))
-        A coefficient vector
+    coeff : np.ndarray
+        A coefficient vector.
+        The shape of np.ndarray is ``(dim * dim, 1)``.
 
     basis : MatrixBasis
         A square matrix basis with dimension dim.
 
     Returns
     ----------
-    np.ndarray((dim, dim))
+    np.ndarray
         A square matrix
+        The shape of np.ndarray is ``(dim, dim)``.
     """
     dim = basis.dim
     assert len(coeff.shape) == 1
