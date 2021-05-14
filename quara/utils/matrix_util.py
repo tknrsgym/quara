@@ -193,7 +193,7 @@ def truncate_hs(
         )
 
     if is_zero_imaginary_part_required == True:
-        tmp_hs = tmp_hs.astype(np.float64)
+        tmp_hs = tmp_hs.real.astype(np.float64)
 
     truncated_hs = truncate_computational_fluctuation(tmp_hs, eps_proj_physical)
     return truncated_hs
