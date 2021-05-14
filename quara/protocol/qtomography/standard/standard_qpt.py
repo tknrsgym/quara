@@ -236,13 +236,14 @@ class StandardQpt(StandardQTomography):
         """returns the number of outcomes of probability distribution of a schedule index.
 
         Parameters
-         ----------
-         schedule_index: int
+        ----------
+        schedule_index: int
+            a schedule index
 
-         Returns
-         -------
-         int
-             the number of outcomes
+        Returns
+        -------
+        int
+            the number of outcomes
         """
         assert schedule_index >= 0
         assert schedule_index < self.num_schedules

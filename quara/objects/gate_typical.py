@@ -2516,7 +2516,7 @@ def calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices(
     Parameters
     ----------
     gate_name : str
-        Ex. 01xi90, 12z01y180_
+        Ex. 01xi90, 12z01y180
 
     Returns
     ----------
