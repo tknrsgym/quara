@@ -180,7 +180,7 @@ def calc_empi_dist_sequence(
         )
 
     empi_dists = []
-    cumulative_frequency = np.zeros((measurement_num), dtype=np.int)
+    cumulative_frequency = np.zeros((measurement_num), dtype=int)
 
     # take next num_sum from 'num_sums'
     if len(num_sums) == 0:
