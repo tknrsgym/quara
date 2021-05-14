@@ -34,7 +34,7 @@ shutil.copytree("../tutorials", "./tutorials")
 # -- Project information -----------------------------------------------------
 
 project = "quara"
-copyright = "2020, Tomoko Furuki, Satoyuki Tsukano, Takanori Sugiyama"
+copyright = "2021, Tomoko Furuki, Satoyuki Tsukano, Takanori Sugiyama"
 author = "Tomoko Furuki, Satoyuki Tsukano, Takanori Sugiyama"
 
 
