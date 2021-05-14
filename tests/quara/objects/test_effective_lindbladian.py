@@ -69,9 +69,13 @@ class TestEffectiveLindbladian:
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         # h=Z/sqrt(2)
-        hs = np.array(
-            [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]], dtype=np.float64,
-        ) / np.sqrt(2)
+        hs = (
+            np.array(
+                [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]],
+                dtype=np.float64,
+            )
+            / np.sqrt(2)
+        )
         lindbladian = EffectiveLindbladian(c_sys, hs)
 
         # mode_basis=default("hermitian_basis")
@@ -92,19 +96,26 @@ class TestEffectiveLindbladian:
 
         # mode_basis="comp_basis"
         actual = lindbladian.calc_h_part(mode_basis="comp_basis")
-        expected = np.array(
-            [[0, 0, 0, 0], [0, -2j, 0, 0], [0, 0, 2j, 0], [0, 0, 0, 0]],
-            dtype=np.complex128,
-        ) / np.sqrt(2)
+        expected = (
+            np.array(
+                [[0, 0, 0, 0], [0, -2j, 0, 0], [0, 0, 2j, 0], [0, 0, 0, 0]],
+                dtype=np.complex128,
+            )
+            / np.sqrt(2)
+        )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_calc_j_part(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         # j=Z/sqrt(2)
-        hs = np.array(
-            [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]], dtype=np.float64,
-        ) / np.sqrt(2)
+        hs = (
+            np.array(
+                [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]],
+                dtype=np.float64,
+            )
+            / np.sqrt(2)
+        )
         lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
 
         # mode_basis=default("hermitian_basis")
@@ -125,10 +136,13 @@ class TestEffectiveLindbladian:
 
         # mode_basis="comp_basis"
         actual = lindbladian.calc_j_part(mode_basis="comp_basis")
-        expected = np.array(
-            [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]],
-            dtype=np.complex128,
-        ) / np.sqrt(2)
+        expected = (
+            np.array(
+                [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]],
+                dtype=np.complex128,
+            )
+            / np.sqrt(2)
+        )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_calc_k_part(self):
@@ -324,48 +338,48 @@ class TestEffectiveLindbladian:
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
-        hs1 = np.diag([0, 1, 2, 3]).astype(np.float64)
-        hs2 = np.diag([0, 10, 20, 30]).astype(np.float64)
+        hs1 = np.diag([0, 1, 2, 3]).real.astype(np.float64)
+        hs2 = np.diag([0, 10, 20, 30]).real.astype(np.float64)
         lindbladian1 = EffectiveLindbladian(c_sys, hs1, is_physicality_required=False)
         lindbladian2 = EffectiveLindbladian(c_sys, hs2, is_physicality_required=False)
         actual = lindbladian1 + lindbladian2
         assert type(actual) == EffectiveLindbladian
-        expected = np.diag([0, 11, 22, 33]).astype(np.float64)
+        expected = np.diag([0, 11, 22, 33]).real.astype(np.float64)
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     def test_sub_vec(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
-        hs1 = np.diag([0, 1, 2, 3]).astype(np.float64)
-        hs2 = np.diag([0, -10, -20, -30]).astype(np.float64)
+        hs1 = np.diag([0, 1, 2, 3]).real.astype(np.float64)
+        hs2 = np.diag([0, -10, -20, -30]).real.astype(np.float64)
         lindbladian1 = EffectiveLindbladian(c_sys, hs1, is_physicality_required=False)
         lindbladian2 = EffectiveLindbladian(c_sys, hs2, is_physicality_required=False)
         actual = lindbladian1 - lindbladian2
         assert type(actual) == EffectiveLindbladian
-        expected = np.diag([0, 11, 22, 33]).astype(np.float64)
+        expected = np.diag([0, 11, 22, 33]).real.astype(np.float64)
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     def test_mul_vec(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
-        hs = np.diag([0, 1, 2, 3]).astype(np.float64)
+        hs = np.diag([0, 1, 2, 3]).real.astype(np.float64)
         lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
         actual = 3 * lindbladian
         assert type(actual) == EffectiveLindbladian
-        expected = np.diag([0, 3, 6, 9]).astype(np.float64)
+        expected = np.diag([0, 3, 6, 9]).real.astype(np.float64)
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     def test_truediv_vec(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
-        hs = np.diag([0, 1, 2, 3]).astype(np.float64)
+        hs = np.diag([0, 1, 2, 3]).real.astype(np.float64)
         lindbladian = EffectiveLindbladian(c_sys, hs, is_physicality_required=False)
         actual = lindbladian / 3
         assert type(actual) == EffectiveLindbladian
-        expected = np.diag([0, 1 / 3, 2 / 3, 3 / 3]).astype(np.float64)
+        expected = np.diag([0, 1 / 3, 2 / 3, 3 / 3]).real.astype(np.float64)
         npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
     def test_is_tp(self):
@@ -452,28 +466,37 @@ def test_calc_h_part_from_h_mat():
     # h=X/sqrt(2)
     h_mat = np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2)
     actual = el._calc_h_part_from_h_mat(h_mat)
-    expected = np.array(
-        [[0, 1j, -1j, 0], [1j, 0, 0, -1j], [-1j, 0, 0, 1j], [0, -1j, 1j, 0]],
-        dtype=np.complex128,
-    ) / np.sqrt(2)
+    expected = (
+        np.array(
+            [[0, 1j, -1j, 0], [1j, 0, 0, -1j], [-1j, 0, 0, 1j], [0, -1j, 1j, 0]],
+            dtype=np.complex128,
+        )
+        / np.sqrt(2)
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # h=Y/sqrt(2)
     h_mat = np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2)
     actual = el._calc_h_part_from_h_mat(h_mat)
-    expected = np.array(
-        [[0, -1, -1, 0], [1, 0, 0, -1], [1, 0, 0, -1], [0, 1, 1, 0]],
-        dtype=np.complex128,
-    ) / np.sqrt(2)
+    expected = (
+        np.array(
+            [[0, -1, -1, 0], [1, 0, 0, -1], [1, 0, 0, -1], [0, 1, 1, 0]],
+            dtype=np.complex128,
+        )
+        / np.sqrt(2)
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # h=Z/sqrt(2)
     h_mat = np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2)
     actual = el._calc_h_part_from_h_mat(h_mat)
-    expected = np.array(
-        [[0, 0, 0, 0], [0, -2j, 0, 0], [0, 0, 2j, 0], [0, 0, 0, 0]],
-        dtype=np.complex128,
-    ) / np.sqrt(2)
+    expected = (
+        np.array(
+            [[0, 0, 0, 0], [0, -2j, 0, 0], [0, 0, 2j, 0], [0, 0, 0, 0]],
+            dtype=np.complex128,
+        )
+        / np.sqrt(2)
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
@@ -494,26 +517,37 @@ def test_calc_j_part_from_j_mat():
     # j=X/sqrt(2)
     j_mat = np.array([[0, 1], [1, 0]], dtype=np.complex128) / np.sqrt(2)
     actual = el._calc_j_part_from_j_mat(j_mat)
-    expected = np.array(
-        [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], dtype=np.complex128,
-    ) / np.sqrt(2)
+    expected = (
+        np.array(
+            [[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]],
+            dtype=np.complex128,
+        )
+        / np.sqrt(2)
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # j=Y/sqrt(2)
     j_mat = np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2)
     actual = el._calc_j_part_from_j_mat(j_mat)
-    expected = np.array(
-        [[0, 1j, -1j, 0], [-1j, 0, 0, -1j], [1j, 0, 0, 1j], [0, 1j, -1j, 0]],
-        dtype=np.complex128,
-    ) / np.sqrt(2)
+    expected = (
+        np.array(
+            [[0, 1j, -1j, 0], [-1j, 0, 0, -1j], [1j, 0, 0, 1j], [0, 1j, -1j, 0]],
+            dtype=np.complex128,
+        )
+        / np.sqrt(2)
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # j=Z/sqrt(2)
     j_mat = np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2)
     actual = el._calc_j_part_from_j_mat(j_mat)
-    expected = np.array(
-        [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]], dtype=np.complex128,
-    ) / np.sqrt(2)
+    expected = (
+        np.array(
+            [[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2]],
+            dtype=np.complex128,
+        )
+        / np.sqrt(2)
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
@@ -578,9 +612,13 @@ def test_generate_effective_lindbladian_from_h():
     # h=Z/sqrt(2)
     h_mat = np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2)
     actual = el.generate_effective_lindbladian_from_h(c_sys, h_mat)
-    expected = np.array(
-        [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]], dtype=np.float64,
-    ) / np.sqrt(2)
+    expected = (
+        np.array(
+            [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]],
+            dtype=np.float64,
+        )
+        / np.sqrt(2)
+    )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
 
@@ -600,7 +638,8 @@ def test_generate_effective_lindbladian_from_hk():
     k_mat = np.eye(3, dtype=np.complex128)
     actual = el.generate_effective_lindbladian_from_hk(c_sys, h_mat, k_mat)
     expected = np.array(
-        [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]], dtype=np.float64,
+        [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]],
+        dtype=np.float64,
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
@@ -619,7 +658,8 @@ def test_generate_effective_lindbladian_from_k():
     k_mat = np.eye(3, dtype=np.complex128)
     actual = el.generate_effective_lindbladian_from_k(c_sys, k_mat)
     expected = np.array(
-        [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]], dtype=np.float64,
+        [[0, 0, 0, 0], [0, -2, 0, 0], [0, 0, -2, 0], [0, 0, 0, -2]],
+        dtype=np.float64,
     )
     npt.assert_almost_equal(actual.hs, expected, decimal=15)
 
@@ -635,9 +675,13 @@ def test_generate_j_part_cb_from_jump_operators():
     actual = el.generate_j_part_cb_from_jump_operators(jump_operators)
 
     # Assert
-    expected = np.array(
-        [[2, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, -2]], dtype=np.complex128,
-    ) * (-1 / 2)
+    expected = (
+        np.array(
+            [[2, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, -2]],
+            dtype=np.complex128,
+        )
+        * (-1 / 2)
+    )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
@@ -654,7 +698,8 @@ def test_generate_j_part_gb_from_jump_operators():
 
     # Assert
     expected = np.array(
-        [[0, -1, 0, -1], [-1, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 0]], dtype=np.float64,
+        [[0, -1, 0, -1], [-1, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 0]],
+        dtype=np.float64,
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -671,7 +716,8 @@ def test_generate_k_part_cb_from_jump_operators():
 
     # Assert
     expected = np.array(
-        [[1, 0, 0, 1], [0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 1]], dtype=np.complex128,
+        [[1, 0, 0, 1], [0, -1, 0, 0], [0, 0, -1, 0], [1, 0, 0, 1]],
+        dtype=np.complex128,
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -689,6 +735,7 @@ def test_generate_k_part_gb_from_jump_operators():
 
     # Assert
     expected = np.array(
-        [[2, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 0]], dtype=np.float64,
+        [[2, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 0]],
+        dtype=np.float64,
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
