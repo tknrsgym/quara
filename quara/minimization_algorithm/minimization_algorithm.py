@@ -104,6 +104,7 @@ class MinimizationAlgorithm:
         """Constructor.
 
         Subclasses have a responsibility to set the following variables.
+
         - ``_is_gradient_required``: whether or not to require gradient.
         - ``_is_hessian_required``: whether or not to require Hessian.
 

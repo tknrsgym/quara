@@ -131,7 +131,7 @@ def generate_state_object_from_state_name_object_name(
 
 
 def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
-    """Return the density matrix ( ``|ρ>`` )of state specified by name.
+    """Return the density matrix ( :math:`|\\rho\\rangle` ) of state specified by name.
 
     Parameters
     ----------
@@ -142,7 +142,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        density matrix ( ``|ρ>`` )
+        density matrix ( :math:`|\\rho\\rangle` )
     """
 
     if state_name in get_state_names():
@@ -156,7 +156,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
 def generate_state_density_matrix_vector_from_name(
     basis: MatrixBasis, state_name: str
 ) -> np.ndarray:
-    """Return the density matrix vector ( ``|ρ>>`` )of state specified by name.
+    """Return the density matrix vector ( :math:`|\\rho\\rangle\\rangle` ) of state specified by name.
 
     Parameters
     ----------
@@ -169,7 +169,7 @@ def generate_state_density_matrix_vector_from_name(
     Returns
     -------
     np.ndarray
-        density matrix vector ( ``|ρ>>`` )
+        density matrix vector ( :math:`|\\rho\\rangle\\rangle` )
     """
     density_mat = generate_state_density_mat_from_name(state_name)
     vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
@@ -653,7 +653,7 @@ def get_state_bell_2q(c_sys: CompositeSystem) -> State:
 
 
 def get_state_01x0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> + |1>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle + |1\\rangle)`.
 
     Returns
     -------
@@ -665,7 +665,7 @@ def get_state_01x0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_01x1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> - |1>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle - |1\\rangle)`.
 
     Returns
     -------
@@ -677,7 +677,7 @@ def get_state_01x1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_01y0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> + j|1>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle + j|1\\rangle)`.
 
     Returns
     -------
@@ -689,7 +689,7 @@ def get_state_01y0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_01y1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> - j|1>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle - j|1\\rangle)`.
 
     Returns
     -------
@@ -701,7 +701,7 @@ def get_state_01y1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_01z0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``|0>``.
+    """returns the pure state vector of :math:`|0\\rangle`.
 
     Returns
     -------
@@ -713,7 +713,7 @@ def get_state_01z0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_01z1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``|1>``.
+    """returns the pure state vector of :math:`|1\\rangle`.
 
     Returns
     -------
@@ -728,7 +728,7 @@ def get_state_01z1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_12x0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|1> + |2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|1\\rangle + |2\\rangle)`.
 
     Returns
     -------
@@ -740,7 +740,7 @@ def get_state_12x0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_12x1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|1> - |2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|1\\rangle - |2\\rangle)`.
 
     Returns
     -------
@@ -752,7 +752,7 @@ def get_state_12x1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_12y0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|1> + j|2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|1\\rangle + j|2\\rangle)`.
 
     Returns
     -------
@@ -764,7 +764,7 @@ def get_state_12y0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_12y1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|1> - j|2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|1\\rangle - j|2\\rangle)`.
 
     Returns
     -------
@@ -776,7 +776,7 @@ def get_state_12y1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_12z0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``|1>``.
+    """returns the pure state vector of :math:`|1\\rangle`.
 
     Returns
     -------
@@ -788,7 +788,7 @@ def get_state_12z0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_12z1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``|2>``.
+    """returns the pure state vector of :math:`|2\\rangle`.
 
     Returns
     -------
@@ -803,7 +803,7 @@ def get_state_12z1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_02x0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> + |2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle + |2\\rangle)`.
 
     Returns
     -------
@@ -815,7 +815,7 @@ def get_state_02x0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_02x1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> - |2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle - |2\\rangle)`.
 
     Returns
     -------
@@ -827,7 +827,7 @@ def get_state_02x1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_02y0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> + j|2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle + j|2\\rangle)`.
 
     Returns
     -------
@@ -839,7 +839,7 @@ def get_state_02y0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_02y1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``(|0> - j|2>)/sqrt(2)``.
+    """returns the pure state vector of :math:`\\frac{1}{\\sqrt{2}} (|0\\rangle - j|2\\rangle)`.
 
     Returns
     -------
@@ -851,7 +851,7 @@ def get_state_02y1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_02z0_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``|0>``.
+    """returns the pure state vector of :math:`|0\\rangle`.
 
     Returns
     -------
@@ -863,7 +863,7 @@ def get_state_02z0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_02z1_pure_state_vector() -> np.ndarray:
-    """returns the pure state vector of ``|2>``.
+    """returns the pure state vector of :math:`|2\\rangle`.
 
     Returns
     -------
