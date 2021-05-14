@@ -3,7 +3,7 @@ import math
 
 
 def multiply_veca_vecb(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
-    """returns ``a \cdot b``. '\cdot' means inner product.
+    """returns :math:`a \\cdot b`. this dot means inner product.
 
     Parameters
     ----------
@@ -15,7 +15,7 @@ def multiply_veca_vecb(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
     Returns
     -------
     float
-        value of ``a \cdot C b``.
+        value of :math:`a \\cdot b`.
 
     Raises
     ------
@@ -40,7 +40,7 @@ def multiply_veca_vecb(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
 def multiply_veca_vecb_matc(
     vec_a: np.ndarray, vec_b: np.ndarray, mat_c: np.ndarray
 ) -> float:
-    """returns ``a \cdot C b``. '\cdot' means inner product.
+    """returns :math:`a \\cdot C b`. this dot means inner product.
 
     Parameters
     ----------
@@ -54,7 +54,7 @@ def multiply_veca_vecb_matc(
     Returns
     -------
     float
-        value of ``a \cdot C b``.
+        value of :math:`a \\cdot C b`.
 
     Raises
     ------
@@ -93,7 +93,7 @@ def project_to_traceless_matrix(A: np.ndarray) -> np.ndarray:
     Returns
     ----------
     B : np.ndarray
-        Square matrix, B = A - Tr[b0 @ A] b0, b0 = I/sqrt(d).
+        Square matrix, :math:`B = A - \\mathrm{Tr}[b_0 A] b_0`, where :math:`b_0 = \\frac{I}{\\sqrt{d}}`.
 
     """
     if A.shape[0] != A.shape[1]:
