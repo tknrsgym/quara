@@ -76,6 +76,7 @@ def get_povm_names_2qubit() -> List[str]:
     names += ["_".join(t) for t in product(names_1qubit, repeat=2)]
     return names
 
+
 def get_povm_names_3qubit() -> List[str]:
     """Return the list of valid povm names on 3-qubit system.
 
@@ -172,15 +173,17 @@ def generate_povm_object_from_povm_name_object_name(
     Returns
     -------
     Union[List[np.ndarray], Povm]
-        np.ndarray
-            pure state vectors related elements of POVM for object_name = 'pure_state_vectors'
-                Complex vectors
-            list of elements of POVM(matrices) for object_name = 'matrices'
-                Complex matrices
-            vectors on Hermitian basis for object_name = 'vectors'
-                Real vectors
-        Povm
-            Povm class for object_name = 'povm'
+        .. line-block::
+
+            List[np.ndarray]
+                pure state vectors related elements of POVM for object_name = 'pure_state_vectors'
+                    Complex vectors
+                list of elements of POVM(matrices) for object_name = 'matrices'
+                    Complex matrices
+                vectors on Hermitian basis for object_name = 'vectors'
+                    Real vectors
+            Povm
+                Povm class for object_name = 'povm'
 
     Raises
     ------
@@ -271,10 +274,7 @@ def generate_povm_pure_state_vectors_from_name(povm_name: str) -> List[np.ndarra
     # tensor product
     temp = pure_state_vectors_list[0]
     for pure_state_vectors in pure_state_vectors_list[1:]:
-        temp = [
-            np.kron(vec1, vec2)
-            for vec1, vec2 in product(temp, pure_state_vectors)
-        ]
+        temp = [np.kron(vec1, vec2) for vec1, vec2 in product(temp, pure_state_vectors)]
 
     return temp
 
