@@ -304,7 +304,7 @@ class EffectiveLindbladian(Gate):
         # return HS matrix of the origin = diag(0, min, min,..,min) in R^{{dim ** 2}x{dim ** 2}}
         min = sys.float_info.min_exp
         diag_values = [0] + [min] * (self.dim ** 2 - 1)
-        origin_hs = np.diag(diag_values).astype(np.float64)
+        origin_hs = np.diag(diag_values).real.astype(np.float64)
         return origin_hs
 
     def calc_gradient(self, var_index: int) -> "EffectiveLindbladian":
@@ -720,7 +720,7 @@ def _truncate_hs(
         )
 
     if is_zero_imaginary_part_required == True:
-        tmp_hs = tmp_hs.astype(np.float64)
+        tmp_hs = tmp_hs.real.astype(np.float64)
 
     truncated_hs = mutil.truncate_computational_fluctuation(tmp_hs, eps_proj_physical)
     return truncated_hs

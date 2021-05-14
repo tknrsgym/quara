@@ -561,13 +561,15 @@ class QOperation:
             otherwise, returns only the projection of QOperation with physically correctness.
 
             iteration history forms the following dict:
-            {
-                "p": list of opject ``p``,
-                "q": list of opject ``q``,
-                "x": list of opject ``x``,
-                "y": list of opject ``y``,
-                "error_value": list of opject ``error_value``,
-            }
+
+            .. line-block::
+                {
+                    "p": list of opject ``p``,
+                    "q": list of opject ``q``,
+                    "x": list of opject ``x``,
+                    "y": list of opject ``y``,
+                    "error_value": list of opject ``error_value``,
+                }
 
             When step=0, "y" and "error_value" are not calculated, so None is set.
 
@@ -753,7 +755,9 @@ class QOperation:
         return result, error_value
 
     def func_calc_proj_physical(
-        self, on_para_eq_constraint: bool = None, mode_proj_order: str = "eq_ineq",
+        self,
+        on_para_eq_constraint: bool = None,
+        mode_proj_order: str = "eq_ineq",
     ) -> Callable[[np.ndarray], np.ndarray]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
@@ -853,8 +857,14 @@ class QOperation:
                     self.on_algo_ineq_constraint,
                     other.on_algo_ineq_constraint,
                 ),
-                mode_proj_order=(self.mode_proj_order, other.mode_proj_order,),
-                eps_proj_physical=(self.eps_proj_physical, other.eps_proj_physical,),
+                mode_proj_order=(
+                    self.mode_proj_order,
+                    other.mode_proj_order,
+                ),
+                eps_proj_physical=(
+                    self.eps_proj_physical,
+                    other.eps_proj_physical,
+                ),
             )
             for k, v in config_dict.items():
                 if v[0] != v[1]:
@@ -939,4 +949,3 @@ class QOperation:
             desc += f"{k}:\n{v.__str__()}\n\n"
         desc = desc.rstrip("\n")
         return desc
-

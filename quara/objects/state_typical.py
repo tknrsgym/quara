@@ -269,8 +269,9 @@ def tensor_product_for_vecs(state_vecs: np.ndarray) -> np.ndarray:
 
 
 def get_state_x0_pure_state_vector() -> np.ndarray:
-    """Returns the pure state vector for |+>.
-    |+> := (1/√2)* (|0> + |1>)
+    """Returns the pure state vector for :math:`|+\\rangle`.
+
+    :math:`|+\\rangle := \\frac{1}{\\sqrt{2}} (|0\\rangle + |1\\rangle)`
 
     Returns
     -------
@@ -282,8 +283,9 @@ def get_state_x0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_x1_pure_state_vector() -> np.ndarray:
-    """Returns the pure state vector for |->.
-    |-> := (1/√2)* (|0> - |1>)
+    """Returns the pure state vector for :math:`|-\\rangle`.
+
+    :math:`|-\\rangle := \\frac{1}{\\sqrt{2}} (|0\\rangle - |1\\rangle)`
 
     Returns
     -------
@@ -295,8 +297,9 @@ def get_state_x1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_y0_pure_state_vector() -> np.ndarray:
-    """Returns the pure state vector for |i>.
-    |i> := (1/√2)* (|0> + i*|1>)
+    """Returns the pure state vector for :math:`|i\\rangle`.
+
+    :math:`|i\\rangle := \\frac{1}{\\sqrt{2}} (|0\\rangle + i|1\\rangle)`
 
     Returns
     -------
@@ -308,8 +311,9 @@ def get_state_y0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_y1_pure_state_vector() -> np.ndarray:
-    """Returns the pure state vector for |i>.
-    |-i> := (1/√2)* (|0> - i*|1>)
+    """Returns the pure state vector for :math:`|i\\rangle`.
+
+    :math:`|-i\\rangle := \\frac{1}{\\sqrt{2}} (|0\\rangle - i|1\\rangle)`
 
     Returns
     -------
@@ -321,7 +325,7 @@ def get_state_y1_pure_state_vector() -> np.ndarray:
 
 
 def get_state_z0_pure_state_vector() -> np.ndarray:
-    """Returns the pure state vector for |0>.
+    """Returns the pure state vector for :math:`|0\\rangle`.
 
     Returns
     -------
@@ -333,7 +337,7 @@ def get_state_z0_pure_state_vector() -> np.ndarray:
 
 
 def get_state_z1_pure_state_vector() -> np.ndarray:
-    """Returns the pure state vector for |1>.
+    """Returns the pure state vector for :math:`|1\\rangle`.
 
     Returns
     -------
@@ -346,7 +350,8 @@ def get_state_z1_pure_state_vector() -> np.ndarray:
 
 def get_state_a_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for A state.
-    |A> := (1/√2) * (|0> + exp(iπ/4)|1>)
+
+    :math:`|A\\rangle := \\frac{1}{\\sqrt{2}} (|0\\rangle + \\exp(iπ/4)|1\\rangle)`
 
     Returns
     -------
@@ -365,10 +370,10 @@ def get_state_bell_pure_state_vector(name: str) -> np.ndarray:
     name : str
         type of bell, one of ("bell_psi_plus" | "bell_psi_minus" | "bell_phi_plus" | "bell_phi_minus")
 
-        - "bell_psi_plus": |Ψ+> := |0>|1> + |1>|0>
-        - "bell_psi_minus": |Ψ-> := |0>|1> - |1>|0>
-        - "bell_phi_plus": |Φ+> := |0>|0> + |1>|1>
-        - "bell_phi_minus": |Φ-> := |0>|0> - |1>|1>
+        - "bell_psi_plus": :math:`|\Psi^+\\rangle := |0\\rangle|1\\rangle + |1\\rangle|0\\rangle`
+        - "bell_psi_minus": :math:`|\Psi^-\\rangle := |0\\rangle|1\\rangle - |1\\rangle|0\\rangle`
+        - "bell_phi_plus": :math:`|\Phi^+\\rangle := |0\\rangle|0\\rangle + |1\\rangle|1\\rangle`
+        - "bell_phi_minus": :math:`|\Phi^-\\rangle := |0\\rangle|0\\rangle - |1\\rangle|1\\rangle`
 
     Returns
     -------
@@ -397,7 +402,7 @@ def get_state_bell_pure_state_vector(name: str) -> np.ndarray:
 
 def get_state_ghz_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for GHZ.
-    |GHZ> := (1/√2) * (|0>|0>|0> + |1>|1>|1>)
+    :math:`|GHZ\\rangle := \\frac{1}{\\sqrt{2}} (|0\\rangle|0\\rangle|0\\rangle + |1\\rangle|1\\rangle|1\\rangle)`
 
     Returns
     -------
@@ -417,7 +422,7 @@ def get_state_ghz_pure_state_vector() -> np.ndarray:
 
 def get_state_werner_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for Werner.
-    |W> := (1/√3) * (|0>|0>|1> + |0>|1>|0> + |1>|0>|0>)
+    :math:`|W\\rangle := \\frac{1}{\\sqrt{3}} (|0\\rangle|0\\rangle|1\\rangle + |0\\rangle|1\\rangle|0\\rangle + |1\\rangle|0\\rangle|0\\rangle)`
 
     Returns
     -------
@@ -616,7 +621,7 @@ def get_state_a_1q(c_sys: CompositeSystem) -> State:
 
 
 def get_state_bell_2q(c_sys: CompositeSystem) -> State:
-    """returns vec of Bell state, \frac{1}{2}(|00>+|11>)(<00|+<11|), with the basis of ``c_sys``.
+    """returns vec of Bell state, :math:`\\frac{1}{2} (|00\\rangle + |11\\rangle)(\\langle00| + \\langle11|)` , with the basis of ``c_sys``.
 
     Parameters
     ----------
@@ -871,7 +876,7 @@ def get_state_02z1_pure_state_vector() -> np.ndarray:
 
 def get_state_0_1_2_superposition_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for v012.
-    |v012> := (1/√3) * (|0> + |1> + |2>)
+    :math:`|v012\\rangle := \\frac{1}{\\sqrt{3}} (|0\\rangle + |1\\rangle + |2\\rangle)`
 
     Returns
     -------
@@ -884,7 +889,7 @@ def get_state_0_1_2_superposition_pure_state_vector() -> np.ndarray:
 
 def get_state_00_11_22_superposition_pure_state_vector() -> np.ndarray:
     """Return the pure state vector for v001122.
-    |v001122> := (1/√3) * (|00> + |11> + |22>)
+    :math:`|v001122\\rangle := \\frac{1}{\\sqrt{3}} (|00\\rangle + |11\\rangle + |22\\rangle)`
 
     Returns
     -------
