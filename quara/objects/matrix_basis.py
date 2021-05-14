@@ -437,7 +437,7 @@ def get_pauli_basis(n_qubit: int = 1) -> MatrixBasis:
     Returns
     -------
     MatrixBasis
-        Pauli basis ``[I, X, Y, Z]``
+        Pauli basis :math:`[I, X, Y, Z]`
     """
     identity = np.array([[1, 0], [0, 1]], dtype=np.complex128)
     pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
@@ -461,7 +461,7 @@ def get_normalized_pauli_basis(n_qubit: int = 1) -> MatrixBasis:
     Returns
     -------
     MatrixBasis
-        ``n_qubit`` of Pauli basis ``\\frac{1}{\\sqrt{2}}[I, X, Y, Z]``
+        ``n_qubit`` of Pauli basis :math:`\\frac{1}{\\sqrt{2}}[I, X, Y, Z]`
     """
     identity = 1 / np.sqrt(2) * np.array([[1, 0], [0, 1]], dtype=np.complex128)
     pauli_x = 1 / np.sqrt(2) * np.array([[0, 1], [1, 0]], dtype=np.complex128)
