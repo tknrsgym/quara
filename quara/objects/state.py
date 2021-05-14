@@ -697,7 +697,7 @@ def get_z1_1q(c_sys: CompositeSystem) -> np.ndarray:
 
 
 def get_bell_2q(c_sys: CompositeSystem) -> State:
-    """returns vec of Bell state, \frac{1}{2}(|00>+|11>)(<00|+<11|), with the basis of ``c_sys``.
+    """returns vec of Bell state, :math:`\\frac{1}{2} (|00\\rangle + |11\\rangle)(\\langle00| + \\langle11|)`, with the basis of ``c_sys``.
 
     Parameters
     ----------
