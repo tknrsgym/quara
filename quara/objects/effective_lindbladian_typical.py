@@ -59,7 +59,9 @@ def generate_effective_lindbladian_object_from_gate_name_object_name(
     return obj
 
 
-def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(h: np.ndarray) -> np.ndarray:
+def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(
+    h: np.ndarray,
+) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the computational basis from a given Hamiltonian.
 
     Parameters
@@ -524,7 +526,7 @@ def generate_gate_x90_hamiltonian_vec() -> np.ndarray:
 def generate_gate_x90_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an X90 gate.
 
-    The result is the 2 times 2 complex matrix, 0.25 * pi * X.
+    The result is the 2 times 2 complex matrix, :math:`0.25 \\pi X`.
 
     Parameters
     ----------
@@ -607,7 +609,7 @@ def generate_gate_x180_hamiltonian_vec() -> np.ndarray:
 def generate_gate_x180_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an X180 gate.
 
-    The result is the 2 times 2 complex matrix, 0.5 * pi * X.
+    The result is the 2 times 2 complex matrix, :math:`0.5 \\pi X`.
 
     Parameters
     ----------
@@ -691,7 +693,7 @@ def generate_gate_x_hamiltonian_vec() -> np.ndarray:
 def generate_gate_x_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an X gate.
 
-    The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * X.
+    The result is the 2 times 2 complex matrix, :math:`-0.5 \\pi I + 0.5 \\pi X`.
 
     Parameters
     ----------
@@ -775,7 +777,7 @@ def generate_gate_y90_hamiltonian_vec() -> np.ndarray:
 def generate_gate_y90_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Y90 gate.
 
-    The result is the 2 times 2 complex matrix, 0.25 * pi * Y.
+    The result is the 2 times 2 complex matrix, :math:`0.25 \\pi Y`.
 
     Parameters
     ----------
@@ -858,7 +860,7 @@ def generate_gate_y180_hamiltonian_vec() -> np.ndarray:
 def generate_gate_y180_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Y180 gate.
 
-    The result is the 2 times 2 complex matrix, 0.5 * pi * Y.
+    The result is the 2 times 2 complex matrix, :math:`0.5 \\pi Y`.
 
     Parameters
     ----------
@@ -942,7 +944,7 @@ def generate_gate_y_hamiltonian_vec() -> np.ndarray:
 def generate_gate_y_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian for a Y gate.
 
-    The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * Y.
+    The result is the 2 times 2 complex matrix, :math:`-0.5 \\pi I + 0.5 \\pi Y`.
 
     Parameters
     ----------
@@ -1026,7 +1028,7 @@ def generate_gate_z90_hamiltonian_vec() -> np.ndarray:
 def generate_gate_z90_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Z90 gate.
 
-    The result is the 2 times 2 complex matrix, 0.25 * pi * Z.
+    The result is the 2 times 2 complex matrix, :math:`0.25 \\pi Z`.
 
     Parameters
     ----------
@@ -1109,7 +1111,7 @@ def generate_gate_z180_hamiltonian_vec() -> np.ndarray:
 def generate_gate_z180_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Z180 gate.
 
-    The result is the 2 times 2 complex matrix, 0.5 * pi * Z.
+    The result is the 2 times 2 complex matrix, :math:`0.5 \\pi Z`.
 
     Parameters
     ----------
@@ -1193,7 +1195,7 @@ def generate_gate_z_hamiltonian_vec() -> np.ndarray:
 def generate_gate_z_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Z gate.
 
-    The result is the 2 times 2 complex matrix, -0.5 * pi * I + 0.5 * pi * Z.
+    The result is the 2 times 2 complex matrix, :math:`-0.5 \\pi I + 0.5 \\pi Z`.
 
     Parameters
     ----------
@@ -1278,7 +1280,7 @@ def generate_gate_phase_hamiltonian_vec() -> np.ndarray:
 def generate_gate_phase_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Phase (S) gate.
 
-    The result is the 2 times 2 complex matrix, -0.25 * pi * I + 0.25 * pi * Z.
+    The result is the 2 times 2 complex matrix, :math:`-0.25 \\pi I + 0.25 \\pi Z`.
 
     Parameters
     ----------
@@ -1363,7 +1365,7 @@ def generate_gate_phase_daggered_hamiltonian_vec() -> np.ndarray:
 def generate_gate_phase_daggered_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a Phase daggerd (S^dagger) gate.
 
-    The result is the 2 times 2 complex matrix, 0.25 * pi * I - 0.25 * pi * Z.
+    The result is the 2 times 2 complex matrix, :math:`0.25 \\pi I - 0.25 \\pi Z`.
 
     Parameters
     ----------
@@ -1403,7 +1405,7 @@ def generate_gate_phase_daggered_effective_lindbladian_mat() -> np.ndarray:
 def generate_gate_phase_daggered_effective_lindbladian(
     c_sys: "CompositeSystem",
 ) -> "EffectiveLindbladian":
-    """Return the class EffectiveLindbladian for the Phase daggered (S^dagger) gate on the composite system.
+    """Return the class EffectiveLindbladian for the Phase daggered (:math:`S^\\dagger`) gate on the composite system.
 
     Parameters
     ----------
@@ -1448,7 +1450,7 @@ def generate_gate_piover8_hamiltonian_vec() -> np.ndarray:
 def generate_gate_piover8_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a pi/8 (T) gate.
 
-    The result is the 2 times 2 complex matrix, -(pi/8) * I + (pi/8) * Z.
+    The result is the 2 times 2 complex matrix, :math:`-\\frac{\\pi}{8} I + \\frac{\\pi}{8} Z`.
 
     Parameters
     ----------
@@ -1533,7 +1535,7 @@ def generate_gate_piover8_daggered_hamiltonian_vec() -> np.ndarray:
 def generate_gate_piover8_daggered_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for a pi/8 daggerd (T^dagger) gate.
 
-    The result is the 2 times 2 complex matrix, (pi/8) * I - (pi/8) * Z.
+    The result is the 2 times 2 complex matrix, :math:`\\frac{\\pi}{8} I - \\frac{\\pi}{8} Z`.
 
     Parameters
     ----------
@@ -1619,7 +1621,7 @@ def generate_gate_hadamard_hamiltonian_vec() -> np.ndarray:
 def generate_gate_hadamard_hamiltonian_mat() -> np.ndarray:
     """Return Hamiltonian matrix for an Hadamard (H) gate.
 
-    The result is the 2 times 2 complex matrix, -0.25 * pi * I + 0.25 * pi * X / sqrt(2)+ 0.25 * pi * Z / sqrt(2).
+    The result is the 2 times 2 complex matrix, :math:`-0.25 \\pi I + 0.25 \\pi X / \\sqrt{2}+ 0.25 \\pi Z / \\sqrt{2}`.
 
     Parameters
     ----------
@@ -1683,21 +1685,21 @@ def generate_gate_hadamard_effective_lindbladian(
 
 
 def generate_effective_lindbladian_mat_for_hamiltonian_x() -> np.ndarray:
-    """Return HS matrix of effective lindbladian for Hamiltonian X, which correspond to a linear map, f(A) := -i [ H, A ] with H = X """
+    """Return HS matrix of effective lindbladian for Hamiltonian X, which correspond to a linear map, :math:`f(A) := -i [ H, A ]`, with :math:`H = X`."""
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
 def generate_effective_lindbladian_mat_for_hamiltonian_y() -> np.ndarray:
-    """Return HS matrix of effective lindbladian for Hamiltonian Y, which correspond to a linear map, f(A) := -i [ H, A ] with H = Y """
+    """Return HS matrix of effective lindbladian for Hamiltonian Y, which correspond to a linear map, :math:`f(A) := -i [ H, A ]`, with :math:`H = Y`."""
     l = [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 0], [0, -2, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
 def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.ndarray:
-    """Return HS matrix of effective lindbladian for Hamiltonian Z, which correspond to a linear map, f(A) := -i [ H, A ] with H = Z """
+    """Return HS matrix of effective lindbladian for Hamiltonian Z, which correspond to a linear map, :math:`f(A) := -i [ H, A ]`, with :math:`H = Z`."""
     l = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
@@ -1707,28 +1709,28 @@ def generate_effective_lindbladian_mat_for_hamiltonian_z() -> np.ndarray:
 
 # Pauli commutator maps on 1-qubit
 def calc_hs_commutator_map_i() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = I."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := {H, A} = HA + AH`, with :math:`H = I`."""
     size = 4
     mat = 2 * np.eye(size, dtype=np.float64)
     return mat
 
 
 def calc_hs_commutator_map_x() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = X."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := {H, A} = HA + AH`, with :math:`H = X`."""
     l = [[0, 2, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
 def calc_hs_commutator_map_y() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = Y."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := {H, A} = HA + AH`, with :math:`H = Y`."""
     l = [[0, 0, 2, 0], [0, 0, 0, 0], [2, 0, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
 def calc_hs_commutator_map_z() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := {H, A} = HA + AH, with H = Z."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := {H, A} = HA + AH`, with :math:`H = Z`."""
     l = [[0, 0, 0, 2], [0, 0, 0, 0], [0, 0, 0, 0], [2, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
@@ -1738,28 +1740,28 @@ def calc_hs_commutator_map_z() -> np.ndarray:
 
 
 def calc_hs_minus1j_anticommutator_map_i() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = I."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := -i[H, A] = -i(HA - AH)`, with :math:`H = I`."""
     size = 4
     mat = np.zeros((size, size), dtype=np.float64)
     return mat
 
 
 def calc_hs_minus1j_anticommutator_map_x() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = X."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := -i[H, A] = -i(HA - AH)`, with :math:`H = X`."""
     l = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -2], [0, 0, 2, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
 def calc_hs_minus1j_anticommutator_map_y() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = Y."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := -i[H, A] = -i(HA - AH)`, with :math:`H = Y`."""
     l = [[0, 0, 0, 0], [0, 0, 0, 2], [0, 0, 0, 0], [0, -2, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
 
 
 def calc_hs_minus1j_anticommutator_map_z() -> np.ndarray:
-    """Return the HS matrix for an Hermiticity-preserving linear map, f_H(A) := -1j * [H, A] = -1j * (HA - AH), with H = Z."""
+    """Return the HS matrix for an Hermiticity-preserving linear map, :math:`f_H(A) := -i[H, A] = -i(HA - AH)`, with :math:`H = Z`."""
     l = [[0, 0, 0, 0], [0, 0, -2, 0], [0, 2, 0, 0], [0, 0, 0, 0]]
     mat = np.array(l, dtype=np.float64)
     return mat
@@ -1797,7 +1799,7 @@ def calc_effective_lindbladian_mat_for_2qubit_hamiltonian_pauli(
 
 
 def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.ndarray:
-    """Return the vector representation of the Hamiltonian of the Control-X gate. The Hamiltonian is H = (pi/4) * (- II + IX - ZI - ZX) for ids[0] < ids[1], and H = (pi/4) * (- II + XI - IZ - XZ) for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    """Return the vector representation of the Hamiltonian of the Control-X gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} (- II + IX - ZI - ZX)` for ids[0] < ids[1], and :math:`H = \\frac{\\pi}{4} (- II + XI - IZ - XZ)` for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
     coeff = 0.5 * math.pi
@@ -1835,7 +1837,7 @@ def generate_gate_cx_hamiltonian_vec(ids: List[int]) -> np.ndarray:
 
 
 def generate_gate_cx_hamiltonian_mat(ids: List[int]) -> np.ndarray:
-    """Return the Hamiltonian of the Control-X gate. The Hamiltonian is H = (pi/4) * (- II + IX - ZI - ZX) for ids[0] < ids[1], and H = (pi/4) * (- II + XI - IZ - XZ) for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    """Return the Hamiltonian of the Control-X gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} (- II + IX - ZI - ZX)` for ids[0] < ids[1], and :math:`H = \\frac{\\pi}{4} (- II + XI - IZ - XZ)` for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
     coeff = 0.25 * math.pi
@@ -1945,7 +1947,7 @@ def generate_gate_cx_effective_lindbladian(
 
 
 def generate_gate_cz_hamiltonian_vec() -> np.ndarray:
-    """Return the vector representation of the Hamiltonian of the Control-Z gate. The Hamiltonian is H = (pi/4) * (- II + IZ + ZI - ZZ)."""
+    """Return the vector representation of the Hamiltonian of the Control-Z gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} (- II + IZ + ZI - ZZ)`."""
     coeff = 0.5 * math.pi
     # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
     size = 16
@@ -1967,7 +1969,7 @@ def generate_gate_cz_hamiltonian_vec() -> np.ndarray:
 
 
 def generate_gate_cz_hamiltonian_mat() -> np.ndarray:
-    """Return the Hamiltonian of the Control-Z gate. The Hamiltonian is H = (pi/4) * (- II + IZ + ZI - ZZ)."""
+    """Return the Hamiltonian of the Control-Z gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} (- II + IZ + ZI - ZZ)`."""
     coeff = 0.25 * math.pi
     num_qubit = 2
     b = get_pauli_basis(num_qubit)
@@ -2041,7 +2043,7 @@ def generate_gate_cz_effective_lindbladian(
 
 
 def generate_gate_swap_hamiltonian_vec() -> np.ndarray:
-    """Return the vector representation of the Hamiltonian of the SWAP gate. The Hamiltonian is H = (pi/4) * (- II + XX + YY + ZZ)."""
+    """Return the vector representation of the Hamiltonian of the SWAP gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} (- II + XX + YY + ZZ)`."""
     coeff = 0.5 * math.pi
     # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
     size = 16
@@ -2063,7 +2065,7 @@ def generate_gate_swap_hamiltonian_vec() -> np.ndarray:
 
 
 def generate_gate_swap_hamiltonian_mat() -> np.ndarray:
-    """Return the Hamiltonian of the SWAP gate. The Hamiltonian is H = (pi/4) * (- II + XX + YY + ZZ)."""
+    """Return the Hamiltonian of the SWAP gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} (- II + XX + YY + ZZ)`."""
     coeff = 0.25 * math.pi
     num_qubit = 2
     b = get_pauli_basis(num_qubit)
@@ -2137,7 +2139,7 @@ def generate_gate_swap_effective_lindbladian(
 
 
 def generate_gate_zx90_hamiltonian_vec(ids: List[int]) -> np.ndarray:
-    """Return the vector representation of the Hamiltonian of the ZX90 gate. The Hamiltonian is H = (pi/4) * ZX for ids[0] < ids[1], and H = (pi/4) * XZ for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    """Return the vector representation of the Hamiltonian of the ZX90 gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} ZX` for ids[0] < ids[1], and :math:`H = \\frac{\\pi}{4} XZ` for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
     coeff = 0.5 * math.pi
@@ -2157,7 +2159,7 @@ def generate_gate_zx90_hamiltonian_vec(ids: List[int]) -> np.ndarray:
 
 
 def generate_gate_zx90_hamiltonian_mat(ids: List[int]) -> np.ndarray:
-    """Return the Hamiltonian of the ZX90 gate. The Hamiltonian is H = (pi/4) * ZX for ids[0] < ids[1], and H = (pi/4) * XZ for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
+    """Return the Hamiltonian of the ZX90 gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} ZX` for ids[0] < ids[1], and :math:`H = \\frac{\\pi}{4} XZ` for ids[0] > ids[1], where ids[0] for control system index and ids[1] for target system index."""
     assert len(ids) == 2
     assert ids[0] != ids[1]
     coeff = 0.25 * math.pi
@@ -2228,7 +2230,7 @@ def generate_gate_zx90_effective_lindbladian(
 
 
 def generate_gate_zz90_hamiltonian_vec() -> np.ndarray:
-    """Return the vector representation of the Hamiltonian of a ZZ90 gate. The Hamiltonian is H = (pi/4) * ZZ."""
+    """Return the vector representation of the Hamiltonian of a ZZ90 gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} ZZ`."""
     coeff = 0.5 * math.pi
     # 0.5 = 2 /4 where 2 is the normalization factor of the matrix basis
     size = 16
@@ -2241,7 +2243,7 @@ def generate_gate_zz90_hamiltonian_vec() -> np.ndarray:
 
 
 def generate_gate_zz90_hamiltonian_mat() -> np.ndarray:
-    """Return the Hamiltonian of a ZZ90 gate. The Hamiltonian is H = (pi/4) * ZZ."""
+    """Return the Hamiltonian of a ZZ90 gate. The Hamiltonian is :math:`H = \\frac{\\pi}{4} ZZ`."""
     coeff = 0.25 * math.pi
     num_qubit = 2
     b = get_pauli_basis(num_qubit)

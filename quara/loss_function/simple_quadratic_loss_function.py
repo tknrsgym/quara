@@ -15,6 +15,7 @@ class SimpleQuadraticLossFunction(LossFunction):
         """Constructor
 
         this class has following properties.
+
         - ``on_value = True``
         - ``on_gradient = True``
         - ``on_hessian = True``
@@ -57,7 +58,7 @@ class SimpleQuadraticLossFunction(LossFunction):
     def value(self, var: np.ndarray) -> np.float64:
         """returns the value of the loss function.
 
-        the value of the loss function is ``|| var - var_ref ||^2_2``.
+        the value of the loss function is :math:`|| \\text{var} - \\text{var_ref} ||^2_2`.
 
         Parameters
         ----------
@@ -81,7 +82,7 @@ class SimpleQuadraticLossFunction(LossFunction):
     def gradient(self, var: np.ndarray) -> np.ndarray:
         """returns the gradient of the loss function.
 
-        the value of the loss function is ``2 * (var - var_ref)``.
+        the value of the loss function is :math:`2(\\text{var} - \\text{var_ref})`.
 
         Parameters
         ----------
