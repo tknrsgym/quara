@@ -24,7 +24,6 @@ Welcome to Quara's documentation!
 
    ./tutorials/tutorial_for_system_state_measurement_gate
    ./tutorials/tutorial_for_standardqtomography
-   ./tutorials/*
 
 .. toctree::
    :caption: Limitations
