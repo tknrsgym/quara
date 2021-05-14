@@ -62,7 +62,7 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
 
 
 def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.ndarray:
-    """calculates partial trace :math:`Tr_1[X \\otimes Y] := Tr[X]Y`.
+    """calculates partial trace :math:`\\mathrm{Tr}_1[X \\otimes Y] := \\mathrm{Tr}[X]Y`.
 
     Parameters
     ----------
@@ -93,8 +93,8 @@ def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.ndarray:
 
 def is_tp(matrix: np.ndarray, dim: int, atol: float = None) -> bool:
     """returns whether the matrix is TP.
-    if ``Tr_1[matrix] = I_2``, we think the matrix is TP.
-    ``dim`` is a size of ``I_2``.
+    if :math:`\\mathrm{Tr}_1[\\text{matrix}] = I_2`, we think the matrix is TP.
+    ``dim`` is a size of :math:`I_2`.
 
     Parameters
     ----------
@@ -349,7 +349,7 @@ def calc_conjugate(x: np.ndarray, v: np.ndarray) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        x @ v @ x^T
+        :math:`x v x^T`
     """
     return x @ v @ x.T
 

@@ -20,6 +20,7 @@ class WeightedProbabilityBasedSquaredErrorOption(ProbabilityBasedLossFunctionOpt
         """Constructor
 
         mode_weight should be the following value:
+
         - "identity" then uses identity matrices for weights.
         - "custom" then uses user custom matrices for weights.
         - "inverse_sample_covariance" then uses inverse matrices of Sample Covariance Matrices.
@@ -28,16 +29,16 @@ class WeightedProbabilityBasedSquaredErrorOption(ProbabilityBasedLossFunctionOpt
         Parameters
         ----------
         mode_weight : str, optional
-            [description], by default None
+            mode_weight string, by default None
         weights : List, optional
-            [description], by default None
+            values of weight, by default None
         weight_name : str, optional
-            [description], by default None
+            weight_name string, by default None
 
         Raises
         ------
         ValueError
-            [description]
+            unsupported ``mode_weight``
         """
         if weights is not None:
             mode_weight = "custom"

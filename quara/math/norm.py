@@ -14,7 +14,7 @@ def l2_norm(x: np.ndarray, y: np.ndarray) -> np.float64:
     Returns
     -------
     np.float64
-        L^2 norm of x and y.
+        L2 norm of x and y.
     """
     norm = np.linalg.norm(x - y)
     return norm

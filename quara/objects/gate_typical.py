@@ -1993,7 +1993,7 @@ def permute_pauli_symbol(symbol: str, ids: List[int]) -> str:
 def generate_gate_toffoli_hamiltonian_mat(ids: List[int]) -> np.ndarray:
     """Return the Hamiltonian matrix of the Toffoli gate (Controlled-Controlled-NOT).
 
-    H = (pi/8) * (-III + IIX + IZI - IZX + ZII - ZIX - ZZI + ZZX)
+    :math:`H = \\frac{\\pi}{8} (-III + IIX + IZI - IZX + ZII - ZIX - ZZI + ZZX)`
 
     Parameters
     ----------
@@ -2061,7 +2061,7 @@ def generate_gate_toffoli_hamiltonian_mat(ids: List[int]) -> np.ndarray:
 def generate_gate_fredkin_hamiltonian_mat(ids: List[int]) -> np.ndarray:
     """Return the Hamiltonian matrix of the Fredkin gate (Controlled-SWAP).
 
-    H = (pi/8) * (-III + IXX + IYY + IZZ + ZII - ZXX - ZYY - ZZZ)
+    :math:`H = \\frac{\\pi}{8} (-III + IXX + IYY + IZZ + ZII - ZXX - ZYY - ZZZ)`
 
     Parameters
     ----------

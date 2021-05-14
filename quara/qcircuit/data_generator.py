@@ -20,7 +20,7 @@ def generate_data_from_prob_dist(
 
     the data is a sequence (list) of measurement outcomes.
     measurement outcomes are integers.
-    0 <= each measurement outcomes < ``len(probdist)``.
+    ``0 <= each measurement outcomes < len(probdist)``.
     length of the data equals ``data_num``.
 
     Parameters

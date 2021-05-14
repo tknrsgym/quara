@@ -22,6 +22,7 @@ class WeightedRelativeEntropyOption(ProbabilityBasedLossFunctionOption):
         """Constructor
 
         mode_weight should be the following value:
+
         - "identity" then uses identity matrices for weights.
         - "custom" then uses user custom matrices for weights.
 
