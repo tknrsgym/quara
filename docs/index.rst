@@ -15,7 +15,6 @@ Welcome to Quara's documentation!
 .. toctree::
    :caption: Getting Started
 
-   ./about_quara
    ./getting_started_base
 
 .. toctree::
@@ -23,6 +22,8 @@ Welcome to Quara's documentation!
    :caption: Tutorials
    :glob:
 
+   ./tutorials/tutorial_for_system_state_measurement_gate
+   ./tutorials/tutorial_for_standardqtomography
    ./tutorials/*
 
 .. toctree::
