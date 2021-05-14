@@ -43,7 +43,7 @@ def calc_mse_general_norm(
     Returns
     -------
     np.float64
-        mse = 1/len(x) \sum_i norm_function(x_i, y)^2
+        :math:`\\text{mse} = \\frac{1}{len(x)} \\sum_i \\text{norm_function}(x_i, y)^2`
     """
     norms = []
     for x in xs:
@@ -69,7 +69,7 @@ def calc_covariance_matrix_of_prob_dist(
     Returns
     -------
     np.ndarray
-        covariance matrix = 1/N (diag(p) - p \cdot p^T), where N is ``data_num`` and p is ``prob_dist``.
+        :math:`\\text{covariance matrix} = \\frac{1}{len(x)} (diag(p) - p \\cdot p^T)`, where N is ``data_num`` and p is ``prob_dist``.
     """
     matrix = np.diag(prob_dist) - np.array([prob_dist]).T @ np.array([prob_dist])
     return matrix / data_num
@@ -90,7 +90,7 @@ def calc_covariance_matrix_of_prob_dists(
     Returns
     -------
     np.ndarray
-        direct product of each covariance matrix = \oplus_j V(p^j), where V(p) is covariance matrix of p.
+        direct product of each covariance matrix = :math:`\\oplus_j V(p^j)`, where :math:`V(p)` is covariance matrix of p.
     """
     # calculate diagonal blocks
     diag_blocks = [
@@ -255,7 +255,11 @@ def make_mses_graph(
                 visible=True,
             )
         trace = go.Scatter(
-            x=num_data, y=mse, mode="lines+markers", name=names[i], error_y=error_y,
+            x=num_data,
+            y=mse,
+            mode="lines+markers",
+            name=names[i],
+            error_y=error_y,
         )
         data.append(trace)
     if additional_title_text:
@@ -373,7 +377,9 @@ def _make_data_for_graphs_mses_analytical(
         else:
             estimator_name = estimator_list[i].__class__.__name__
         qtomo_type = QTomoType(
-            qtomo.__class__.__name__, qtomo.on_para_eq_constraint, estimator_name,
+            qtomo.__class__.__name__,
+            qtomo.on_para_eq_constraint,
+            estimator_name,
         )
         qtomo_type_dict[qtomo_type] = qtomo
 

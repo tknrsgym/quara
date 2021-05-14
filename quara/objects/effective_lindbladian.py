@@ -404,8 +404,8 @@ class EffectiveLindbladian(Gate):
     def to_kraus_matrices(self) -> List[Tuple[np.float64, np.ndarray]]:
         """returns Kraus matrices of EffectiveLindbladian.
 
-        if A is Hermitian preserve matrix, then A(X) = \sum_i a_i A_i X A_i^{\dagger}, where a_i are real numbers and A_i are complex square matrices.
-        this function returns the list of (a_i, A_i) sorted in descending order by a_i.
+        if :math:`A` is Hermitian preserve matrix, then :math:`A(X) = \\sum_i a_i A_i X A_i^{\\dagger}`, where :math:`a_i` are real numbers and :math:`A_i` are complex square matrices.
+        this function returns the list of :math:`(a_i, A_i)` sorted in descending order by :math:`a_i`.
 
         Returns
         -------
