@@ -62,7 +62,7 @@ def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
 
 
 def partial_trace1(matrix: np.ndarray, dim_Y: int) -> np.ndarray:
-    """calculates partial trace ``Tr_1[X \otimes Y] := Tr[X]Y``.
+    """calculates partial trace :math:`Tr_1[X \\otimes Y] := Tr[X]Y`.
 
     Parameters
     ----------
@@ -265,7 +265,7 @@ def calc_covariance_mat(q: np.ndarray, n: int) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        covariance matrix = 1/n (diag(q) - q \cdot q^T)
+        covariance matrix is :math:`\\frac{1}{n} (diag(q) - q \\cdot q^T)`
     """
     mat = np.diag(q) - np.array([q]).T @ np.array([q])
     return mat / n

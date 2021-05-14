@@ -370,10 +370,10 @@ def get_state_bell_pure_state_vector(name: str) -> np.ndarray:
     name : str
         type of bell, one of ("bell_psi_plus" | "bell_psi_minus" | "bell_phi_plus" | "bell_phi_minus")
 
-        - "bell_psi_plus": :math:`|\Psi^+\\rangle := |0\\rangle|1\\rangle + |1\\rangle|0\\rangle`
-        - "bell_psi_minus": :math:`|\Psi^-\\rangle := |0\\rangle|1\\rangle - |1\\rangle|0\\rangle`
-        - "bell_phi_plus": :math:`|\Phi^+\\rangle := |0\\rangle|0\\rangle + |1\\rangle|1\\rangle`
-        - "bell_phi_minus": :math:`|\Phi^-\\rangle := |0\\rangle|0\\rangle - |1\\rangle|1\\rangle`
+        - "bell_psi_plus": :math:`|\\Psi^+\\rangle := |0\\rangle|1\\rangle + |1\\rangle|0\\rangle`
+        - "bell_psi_minus": :math:`|\\Psi^-\\rangle := |0\\rangle|1\\rangle - |1\\rangle|0\\rangle`
+        - "bell_phi_plus": :math:`|\\Phi^+\\rangle := |0\\rangle|0\\rangle + |1\\rangle|1\\rangle`
+        - "bell_phi_minus": :math:`|\\Phi^-\\rangle := |0\\rangle|0\\rangle - |1\\rangle|1\\rangle`
 
     Returns
     -------
