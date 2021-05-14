@@ -15,7 +15,6 @@ Welcome to Quara's documentation!
 .. toctree::
    :caption: Getting Started
 
-   ./about_quara
    ./getting_started_base
 
 .. toctree::
