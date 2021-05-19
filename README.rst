@@ -2,6 +2,27 @@
 Quara
 =================
 
+|license| |tests| |release| |downloads| |DOI|
+
+.. |license| image:: https://img.shields.io/github/license/tknrsgym/quara
+    :alt: license
+    :target: https://opensource.org/licenses/Apache-2.0
+
+.. |tests| image:: https://img.shields.io/circleci/build/github/tknrsgym/quara
+    :alt: tests
+    :target: https://circleci.com/gh/tknrsgym/quara
+
+.. |release| image:: https://img.shields.io/github/release/tknrsgym/quara
+    :alt: release
+    :target: https://github.com/tknrsgym/quara/releases
+
+.. |downloads| image:: https://pepy.tech/badge/quara
+    :alt: downloads
+    :target: https://pypi.org/project/quara/
+
+.. |DOI| image:: https://zenodo.org/badge/230030298.svg
+    :target: https://zenodo.org/badge/latestdoi/230030298
+
 .. _start_of_about:
 
 Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations. Currently protocols of standard tomography for quantum states, POVMs, and gates are implemented.
