@@ -328,8 +328,9 @@ def make_mses_graph_estimation_results(
     # calc analytical result
     if show_analytical_results:
         if not estimator_list:
-            # TODO error massage
-            raise ValueError()
+            raise ValueError(
+                "'show_analytical_results' is set True. But, 'estimator_list' is None."
+            )
 
         (
             analytical_mses,
@@ -678,11 +679,11 @@ def extract_empi_dists(
     results: List["EstimationResult"],
 ) -> List[List[List[np.ndarray]]]:
     converted = []
-    num_data_len = len(results[0].data)  # num_dataの要素数
+    num_data_len = len(results[0].data)
     n_rep = len(results)
-    for num_data_index in range(num_data_len):  # num_dataの要素数だけ回る
+    for num_data_index in range(num_data_len):
         converted_dists_seq = []
-        for rep_index in tqdm(range(n_rep)):  # Nrepの数だけ回る
+        for rep_index in tqdm(range(n_rep)):
             result = results[rep_index]
             empi_dists = result.data[num_data_index]
             # list of tuple -> list of np.ndarray
