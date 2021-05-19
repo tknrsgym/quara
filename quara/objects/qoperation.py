@@ -794,8 +794,41 @@ class QOperation:
             or (self.mode_proj_order != other.mode_proj_order)
             or (self.eps_proj_physical != other.eps_proj_physical)
         ):
-            # TODO: error message
-            raise ValueError()
+            message = "'-' not supported between instances with different configration."
+            config_dict = dict(
+                is_physicality_required=(
+                    self.is_physicality_required,
+                    other.is_physicality_required,
+                ),
+                is_estimation_object=(
+                    self.is_estimation_object,
+                    other.is_estimation_object,
+                ),
+                on_para_eq_constraint=(
+                    self.on_para_eq_constraint,
+                    other.on_para_eq_constraint,
+                ),
+                on_algo_eq_constraint=(
+                    self.on_algo_eq_constraint,
+                    other.on_algo_eq_constraint,
+                ),
+                on_algo_ineq_constraint=(
+                    self.on_algo_ineq_constraint,
+                    other.on_algo_ineq_constraint,
+                ),
+                mode_proj_order=(
+                    self.mode_proj_order,
+                    other.mode_proj_order,
+                ),
+                eps_proj_physical=(
+                    self.eps_proj_physical,
+                    other.eps_proj_physical,
+                ),
+            )
+            for k, v in config_dict.items():
+                if v[0] != v[1]:
+                    message += f"\nself.{k}=v[0], other.{k}=v[1]"
+            raise ValueError(message)
 
         # Calculation
         new_values = self._add_vec(other)

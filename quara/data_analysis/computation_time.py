@@ -3,7 +3,7 @@ from typing import List, Union
 import plotly.graph_objects as go
 import numpy as np
 
-# TODO: commonalisation
+
 def make_histogram(
     values: List[float],
     num_data: int,
