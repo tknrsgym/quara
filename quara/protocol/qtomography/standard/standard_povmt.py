@@ -270,11 +270,6 @@ class StandardPovmt(StandardQTomography):
                     a = a_prime - np.tile(c_prime, m - 1)
                     b = np.sqrt(dim) * c_prime[0]
 
-                    # TODO: remove
-                    a_prime_list.append(a_prime)  # for debug
-                    c_prime_list.append(c_prime)  # for debug
-                    c_prime_tile_list.append(np.tile(c_prime, m - 1))  # for debug
-
                     self._coeffs_1st[(schedule_index, m_index)] = a
                     self._coeffs_0th[(schedule_index, m_index)] = b
 
@@ -282,14 +277,6 @@ class StandardPovmt(StandardQTomography):
                 else:
                     self._coeffs_1st[(schedule_index, m_index)] = c
                     self._coeffs_0th[(schedule_index, m_index)] = 0
-
-        # TODO: remove
-        self._debug_c = np.vstack(c_list)
-        if on_para_eq_constraint:
-            self._debug_a_prime = np.vstack(a_prime_list)
-            self._debug_c_prime = np.vstack(c_prime_list)
-            self._debug_c_prime_tile = np.vstack(c_prime_tile_list)
-            self._debug_b = b_list
 
     def convert_var_to_qoperation(self, var: np.ndarray) -> Povm:
         template = self._set_qoperations.povms[0]
