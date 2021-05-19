@@ -2,7 +2,7 @@
 Quara
 =================
 
-|license| |tests| |release| |downloads| |DOI|
+|license| |tests| |docs publish| |release| |downloads| |DOI|
 
 .. |license| image:: https://img.shields.io/github/license/tknrsgym/quara
     :alt: license
@@ -11,6 +11,10 @@ Quara
 .. |tests| image:: https://img.shields.io/circleci/build/github/tknrsgym/quara
     :alt: tests
     :target: https://circleci.com/gh/tknrsgym/quara
+
+.. |docs publish| image:: https://readthedocs.org/projects/quara/badge/
+    :alt: docs publish
+    :target: https://quara.readthedocs.io/
 
 .. |release| image:: https://img.shields.io/github/release/tknrsgym/quara
     :alt: release
