@@ -59,7 +59,7 @@ class Experiment:
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
-        # TODO: List[MProcess]
+        # TODO: MProcess functions are not yet implemented. Only attributes are provided for future use.
         self._mprocesses: list = []
 
         # Validate
@@ -297,7 +297,7 @@ class Experiment:
         if type(item_index) != int:
             raise TypeError("A schedule item must be a tuple of str and int.")
 
-        # TODO: 大文字・小文字の考慮。現状は小文字だけを想定する
+        # Currently, only lowercase is assumed.
         if item_name not in ["state", "povm", "gate", "mprocess"]:
             raise ValueError(
                 "The item of schedule can be specified as either 'state', 'povm', 'gate', or 'mprocess'."
@@ -496,8 +496,9 @@ class Experiment:
             A list of the numbers of data and empirical distribution.
         """
         data_n = max(num_sums)
-        # TODO: measurement_numを得るために計算している
-        # 確率分布をこの関数内とgenerate_dataメソッドの2回計算しているので、改善すること
+        # Calculating to get the measurement_num.
+        # The probability distribution is calculated twice, in this function and in the generate_data method,
+        # so it should be improved.
         prob_dist = self.calc_prob_dist(schedule_index)
         measurement_num = len(prob_dist)
 

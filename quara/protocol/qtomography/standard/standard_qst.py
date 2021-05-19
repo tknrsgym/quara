@@ -165,8 +165,7 @@ class StandardQst(StandardQTomography):
 
         see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_dataset`
         """
-        # TODO
-        pass
+        raise NotImplementedError()
 
     def generate_empi_dist(
         self, schedule_index: int, state: State, num_sum: int
