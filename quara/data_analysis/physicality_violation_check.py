@@ -452,11 +452,16 @@ def get_sorted_eigenvalues_list_povm(
     for est in tqdm(estimated_povms):
         eigenvalues = est.calc_eigenvalues()
 
-        # TODO: 虚部が10**(-13)より大きい場合はwarningを出す
         sorted_eigenvalues = []
         for eigs in eigenvalues:
             eigs = sorted(eigs, reverse=True)
-            eigs_real = [eig.real for eig in eigs]
+            eigs_real = []
+            for eig in eigs:
+                if eig.imag > 10 ** (-13):
+                    message = f"Eigenvalues with imaginary part greater than 10**-13 were found in the process of physicality violation check. (eig.imag={eig.imag})"
+                    warnings.warn(message)
+                eigs_real.append(eig.real)
+
             sorted_eigenvalues.append(eigs_real)
 
         for x_i, values in enumerate(sorted_eigenvalues):
