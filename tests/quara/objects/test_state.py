@@ -122,7 +122,10 @@ class TestState:
         e_sys = ElementalSystem(1, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
 
-        state = State(c_sys, np.array([1, 0, 0, 0], dtype=np.float64),)
+        state = State(
+            c_sys,
+            np.array([1, 0, 0, 0], dtype=np.float64),
+        )
         assert state.is_physical() == True
 
         state = State(
@@ -982,7 +985,6 @@ class TestState:
         assert np.all(state.calc_eigenvalues() == np.array([0, 0], dtype=np.complex128))
 
         # test for vec[0, 0, 1, 0]
-        # TODO: ElementalSystem is not hermitian
         state = State(
             c_sys,
             np.array([0, 0, 1, 0], dtype=np.float64),
@@ -1030,7 +1032,9 @@ class TestState:
         assert state.is_hermitian() == True
         assert state.is_positive_semidefinite() == True
         npt.assert_almost_equal(
-            state.calc_eigenvalues(), np.array([1, 1], dtype=np.complex128), decimal=15,
+            state.calc_eigenvalues(),
+            np.array([1, 1], dtype=np.complex128),
+            decimal=15,
         )
 
         # test for vec [0, 1, 0, 0]
@@ -1416,9 +1420,13 @@ class TestState:
         vec = np.array([1, 2, 3, 4], dtype=np.float64)
         state = State(c_sys, vec, is_physicality_required=False)
         actual, history = state.calc_proj_physical(is_iteration_history=True)
-        expected = np.array(
-            [1, 2 / np.sqrt(29), 3 / np.sqrt(29), 4 / np.sqrt(29)], dtype=np.float64,
-        ) / np.sqrt(2)
+        expected = (
+            np.array(
+                [1, 2 / np.sqrt(29), 3 / np.sqrt(29), 4 / np.sqrt(29)],
+                dtype=np.float64,
+            )
+            / np.sqrt(2)
+        )
         npt.assert_almost_equal(actual.vec, expected, decimal=4)
         assert actual.is_physical(actual.eps_proj_physical) == True
         assert len(history["p"]) == 28
@@ -1777,7 +1785,6 @@ def test_convert_state_to_var():
 
 
 def test_calc_gradient_from_state():
-    # TODO add test cases
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
