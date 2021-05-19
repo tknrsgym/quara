@@ -18,7 +18,7 @@ setup(
     author="Tomoko Furuki, Satoyuki Tsukano, Takanori Sugiyama",
     author_email="quara@googlegroups.com",
     packages=find_packages(),
-    description='Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elemental quantum operations.',
+    description='Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations.',
     long_description=read_file("README.rst"),
     url="https://github.com/tknrsgym/quara",
     license="Apache License 2.0",
