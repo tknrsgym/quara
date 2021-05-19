@@ -12,9 +12,9 @@ Quara
     :alt: tests
     :target: https://circleci.com/gh/tknrsgym/quara
 
-.. |docs publish| image:: https://readthedocs.org/projects/quara/badge/
-    :alt: docs publish
-    :target: https://quara.readthedocs.io/en/latest/
+.. |docs publish| image:: https://readthedocs.org/projects/quara/badge/?version=stable
+    :alt: Documentation Status
+    :target: https://quara.readthedocs.io/en/stable/
 
 .. |release| image:: https://img.shields.io/github/release/tknrsgym/quara
     :alt: release
@@ -33,7 +33,7 @@ Quara, which stands for "Quantum Characterization", is an open-source library fo
 
 .. _end_of_about:
 
-- **Documentation:** https://quara.readthedocs.io/en/latest/
+- **Documentation:** https://quara.readthedocs.io/en/stable/
 - **Tutorials:** https://github.com/tknrsgym/quara/tree/master/tutorials
 - **Source code:** https://github.com/tknrsgym/quara
 - **Bug reports:** https://github.com/tknrsgym/quara/issues
