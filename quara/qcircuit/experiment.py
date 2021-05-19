@@ -59,7 +59,7 @@ class Experiment:
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
-        # MProcess functions are not yet implemented. Only attributes are provided for future use.
+        # TODO: MProcess functions are not yet implemented. Only attributes are provided for future use.
         self._mprocesses: list = []
 
         # Validate
