@@ -14,7 +14,7 @@ def read_file(filename):
 
 setup(
     name="quara",
-    version="0.0a0.dev1",
+    version="0.1.0",
     author="Tomoko Furuki, Satoyuki Tsukano, Takanori Sugiyama",
     author_email="quara@googlegroups.com",
     packages=find_packages(),
@@ -34,7 +34,7 @@ setup(
         "xhtml2pdf",
         "psutil",
         "kaleido>=0.1.0,<=0.1.0.post1",
-        "jinja2"
+        "jinja2",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -50,5 +50,5 @@ setup(
     ],
     keywords=["quara", "lsqpt", "quantum process tomography"],
     include_package_data=True,
-    package_data={'': ['LICENSE']},
+    package_data={"": ["LICENSE"]},
 )
