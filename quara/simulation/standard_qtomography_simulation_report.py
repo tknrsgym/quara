@@ -162,7 +162,6 @@ _col2_fig_height = 400
 
 
 def _convert_html2pdf(source_html: str, output_path: str):
-    # TODO: check file extension
     httpConfig.save_keys("nosslcheck", True)
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w+b") as f:
@@ -252,7 +251,7 @@ def _generate_fig_info_list_list_div(
     fig_info_list_list: List[List[dict]], col_n=2
 ) -> str:
     graph_block_html_all = ""
-    css_class = "box" if col_n <= 2 else "box_col4"  # TODO: adjust
+    css_class = "box" if col_n <= 2 else "box_col4"
 
     for fig_info_list in fig_info_list_list:  # num
         num = fig_info_list[0]["num"]
@@ -334,7 +333,6 @@ def _generate_eigenvalues_div(
 def _generate_eigenvalues_div_3loop(
     fig_info_list3: List[List[List[dict]]], col_n: int
 ) -> str:
-    # TODO: 今
     graph_block_html_all = ""
     fig_n = fig_info_list3[0][0]
     col_n = len(fig_n) if len(fig_n) <= 4 else 4
@@ -1014,7 +1012,6 @@ def _make_graphs_mses(make_graphs_func, mse_type: "str", **kwargs) -> list:
     for i, fig in enumerate(figs):
         fig_name = f"mse_type={mse_type}_{i}"
         fig.update_layout(width=600, height=600)
-        # fig.update_layout(legend=dict(yanchor="top", y=-0.1, xanchor="left", x=0))
         num_legend = len(fig.data)
         legend_y = _calc_legend_y(num_legend)
         fig.update_layout(
@@ -1084,7 +1081,7 @@ def _make_fig_info_list_list(
 def _generate_figs_div(fig_info_list: List[dict], col_n: int = 2) -> str:
     graph_block_html = ""
     subblock_list = []
-    css_class = "box" if col_n <= 2 else "box_col4"  # TODO: adjust
+    css_class = "box" if col_n <= 2 else "box_col4"
     for fig_info in fig_info_list:
         graph_subblock = (
             f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
@@ -1143,8 +1140,7 @@ def generate_computation_time_of_estimators_table(
         elif unit == "sec":
             time_unit = 1
         else:
-            # TODO: message
-            raise ValueError()
+            raise ValueError("'unit' must be 'sec' or 'min'.")
 
         num_list = []
         mean_list = []

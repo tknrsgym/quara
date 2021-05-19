@@ -57,7 +57,6 @@ class QOperationGenerationSetting:
         if type(self.qoperation_base) == Gate:
             return self.generate_gate()
 
-        # TODO: imprement MProcess
         raise NotImplementedError()
 
     @abstractmethod
