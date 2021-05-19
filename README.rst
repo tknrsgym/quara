@@ -35,7 +35,7 @@ If you use Quara in your research, please cite Quara with DOI.
 License
 =================================
 
-Apache License 2.0 `LICENSE <LICENSE>`_
+Apache License 2.0 `LICENSE <https://github.com/tknrsgym/quara/blob/master/LICENSE>`_
 
 Supports
 =================================
