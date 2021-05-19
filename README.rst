@@ -50,7 +50,7 @@ Install
 
 Citation
 =================================
-If you use Quara in your research, please cite Quara with DOI. 
+If you use Quara in your research, please cite Quara with |DOI|. 
 
 
 License
