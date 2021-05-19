@@ -40,4 +40,4 @@ Apache License 2.0 `LICENSE <LICENSE>`_
 Supports
 =================================
 
-Quara development is supported by JST, PRESTO Grant Number JPMJPR1915, Japan.
+Quara development is supported by 'JST, PRESTO Grant Number JPMJPR1915, Japan. <https://www.jst.go.jp/kisoken/presto/en/project/1112090/1112090_2019.html>'_
