@@ -495,8 +495,14 @@ class Povm(QOperation):
 
     def _sub_vec(self, other):
         if len(self.vecs) != len(other.vecs):
-            # TODO: error_message
-            raise ValueError()
+            message = (
+                "POVMs of different lengths of vecs can not be added to each other."
+            )
+            message = (
+                message
+                + f" len(self.vecs)={len(self.vecs)}, len(other.vecs)={len(other.vecs)}"
+            )
+            raise ValueError(message)
 
         new_vecs = [s - o for s, o in zip(self, other)]
         return new_vecs

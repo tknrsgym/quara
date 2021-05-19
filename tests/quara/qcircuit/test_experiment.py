@@ -732,7 +732,10 @@ class TestExperiment:
         with pytest.raises(TypeError):
             # TypeError: 'states' must be a list of State.
             _ = Experiment(
-                states=ng_states, povms=ok_povms, gates=ok_gates, schedules=schedules,
+                states=ng_states,
+                povms=ok_povms,
+                gates=ok_gates,
+                schedules=schedules,
             )
 
         # Case2: Invalid povms
@@ -740,7 +743,10 @@ class TestExperiment:
         with pytest.raises(TypeError):
             # TypeError: 'povms' must be a list of Povm.
             _ = Experiment(
-                states=ok_states, povms=ng_povms, gates=ok_gates, schedules=schedules,
+                states=ok_states,
+                povms=ng_povms,
+                gates=ok_gates,
+                schedules=schedules,
             )
 
         # Case3: Invalid gates
@@ -748,7 +754,10 @@ class TestExperiment:
         with pytest.raises(TypeError):
             # TypeError: 'povms' must be a list of Povm.
             _ = Experiment(
-                states=ok_states, povms=ok_povms, gates=ng_gates, schedules=schedules,
+                states=ok_states,
+                povms=ok_povms,
+                gates=ng_gates,
+                schedules=schedules,
             )
 
     def test_expeption_order_too_short_schedule(self):
@@ -809,7 +818,7 @@ class TestExperiment:
                 schedules=ng_schedules,
             )
 
-        # TODO: mprocessを実装後、mprocessで終わるスケジュールを含めたテストを追加する
+        # TODO: After implementing mprocess, add testcases that includes a schedule ending mprocess
 
     def test_expeption_order_too_many_state(self):
         # Array
