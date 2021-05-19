@@ -169,7 +169,7 @@ class StandardQpt(StandardQTomography):
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
-            # Trueに相当するインデックスを取得して置き換える
+            # Get the index corresponding to True and replace it.
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.gates[target_index] = gate
 
@@ -194,7 +194,7 @@ class StandardQpt(StandardQTomography):
         self._coeffs_0th = dict()  # b
         self._coeffs_1st = dict()  # α
         STATE_ITEM_INDEX = 0
-        POVM_ITEM_INDEX = 2  # TODO:
+        POVM_ITEM_INDEX = 2
 
         # Create C
         total_index = 0
