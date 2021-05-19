@@ -38,9 +38,6 @@ class StandardPovmt(StandardQTomography):
         self._validate_schedules(schedules)
 
         # Make SetQOperation
-        # povmsはPovmを一つだけ持つ。
-        # そのPovmはStateと同じcomposite systemを持ち、vec以外の値は引数の設定を代入する。
-        # gates, states, mprocessesの長さは0.
         self._num_outcomes = num_outcomes
         vecs = [
             np.zeros(states[0].vec.shape, dtype=np.float64)
@@ -216,7 +213,7 @@ class StandardPovmt(StandardQTomography):
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
-            # Trueに相当するインデックスを取得して置き換える
+            # Get the index corresponding to True and replace it.
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.povms[target_index] = povm
 
