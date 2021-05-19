@@ -14,7 +14,7 @@ Quara
 
 .. |docs publish| image:: https://readthedocs.org/projects/quara/badge/
     :alt: docs publish
-    :target: https://quara.readthedocs.io/
+    :target: https://quara.readthedocs.io/en/latest/
 
 .. |release| image:: https://img.shields.io/github/release/tknrsgym/quara
     :alt: release
