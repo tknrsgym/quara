@@ -38,9 +38,6 @@ class StandardPovmt(StandardQTomography):
         self._validate_schedules(schedules)
 
         # Make SetQOperation
-        # povmsはPovmを一つだけ持つ。
-        # そのPovmはStateと同じcomposite systemを持ち、vec以外の値は引数の設定を代入する。
-        # gates, states, mprocessesの長さは0.
         self._num_outcomes = num_outcomes
         vecs = [
             np.zeros(states[0].vec.shape, dtype=np.float64)
@@ -216,7 +213,7 @@ class StandardPovmt(StandardQTomography):
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
         for schedule_index in range(len(tmp_experiment.schedules)):
-            # Trueに相当するインデックスを取得して置き換える
+            # Get the index corresponding to True and replace it.
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.povms[target_index] = povm
 
@@ -270,11 +267,6 @@ class StandardPovmt(StandardQTomography):
                     a = a_prime - np.tile(c_prime, m - 1)
                     b = np.sqrt(dim) * c_prime[0]
 
-                    # TODO: remove
-                    a_prime_list.append(a_prime)  # for debug
-                    c_prime_list.append(c_prime)  # for debug
-                    c_prime_tile_list.append(np.tile(c_prime, m - 1))  # for debug
-
                     self._coeffs_1st[(schedule_index, m_index)] = a
                     self._coeffs_0th[(schedule_index, m_index)] = b
 
@@ -282,14 +274,6 @@ class StandardPovmt(StandardQTomography):
                 else:
                     self._coeffs_1st[(schedule_index, m_index)] = c
                     self._coeffs_0th[(schedule_index, m_index)] = 0
-
-        # TODO: remove
-        self._debug_c = np.vstack(c_list)
-        if on_para_eq_constraint:
-            self._debug_a_prime = np.vstack(a_prime_list)
-            self._debug_c_prime = np.vstack(c_prime_list)
-            self._debug_c_prime_tile = np.vstack(c_prime_tile_list)
-            self._debug_b = b_list
 
     def convert_var_to_qoperation(self, var: np.ndarray) -> Povm:
         template = self._set_qoperations.povms[0]
