@@ -76,19 +76,19 @@ class SetQOperations:
         return len(self._mprocesses)
 
     def dim_state(self, index: int) -> int:
-        # statesのi番目に対応するtotal systemの次元を返す.
+        # returns the dimension of the total system of the i-th state
         return self.states[index].dim
 
     def dim_gate(self, index: int) -> int:
-        # gatesのi番目に対応するtotal systemの次元を返す.
+        # returns the dimension of the total system of the i-th gate
         return self.gates[index].dim
 
     def dim_povm(self, index: int) -> int:
-        # povmsのi番目に対応するtotal systemの次元を返す.
+        # returns the dimension of the total system of the i-th povm
         return self.povms[index].dim
 
     def dim_mprosess(self, index: int) -> int:
-        # TODO
+        # TODO MProcess
         raise NotImplementedError()
 
     def size_var_states(self) -> int:
@@ -101,7 +101,7 @@ class SetQOperations:
         return len(self.var_povms())
 
     def size_var_mprocesses(self) -> int:
-        # TODO
+        # TODO MProcess
         return 0
 
     def size_var_state(self, index: int) -> int:
@@ -114,7 +114,7 @@ class SetQOperations:
         return len(self.var_povm(index=index))
 
     def size_var_mprocess(self) -> int:
-        # TODO
+        # TODO MProcess
         pass
 
     def size_var_total(self) -> int:
@@ -171,8 +171,7 @@ class SetQOperations:
     def _get_operation_item_var_first_index(
         self, type_operation: str, index: int
     ) -> int:
-        # TODO: メソッド名をわかりやすくする
-        # statesに格納されているi番目のStateが、states全体をvarにした時に何番目のインデックスから始まるか
+        # returns the index that is the place of the 'index'-th 'type_operation' starts in the whole var
         target_operations: List[QOperation]
         if type_operation == "state":
             target_operations = self.states
@@ -196,8 +195,9 @@ class SetQOperations:
     def index_var_total_from_local_info(
         self, type_operation: str, index_operations: int, index_var_local: int
     ):
-        # 演算の種類、その種類の演算リストの中での番号、その演算を特徴づける変数中のインデックス、
-        # から、最適化変数中のインデックスを返す
+        # Returns the index in the optimization variable from local information.
+        # The local information consists of type of the operation, its number in the list of operations of that type,
+        # and the index in the variable that characterizes the operation.
         supported_types = ["state", "povm", "gate", "mprocess"]
         if type_operation not in supported_types:
             raise ValueError(
@@ -223,8 +223,9 @@ class SetQOperations:
         elif first_index_map["povm"] <= index_var_total < first_index_map["mprocess"]:
             type_operation = "povm"
         else:
-            # TODO: error message
-            raise IndexError()
+            raise IndexError(
+                f"index_var_total is out of range. index_var_total={index_var_total}"
+            )
         return type_operation
 
     def local_info_from_index_var_total(self, index_var_total: int) -> dict:
@@ -232,8 +233,9 @@ class SetQOperations:
         type_operation = self._get_type_operation_from_index_var_total(index_var_total)
 
         # Index Operations
-        # テストしやすくするために関数分割しているが、このメソッド内と_get_type_operation_from_index_var_totalで
-        # 2回first_index_mapを求めているので、速度が問題になるならひとつのメソッド内におさめる
+        #   This function is split to make it easier to test.
+        #   However, first_index_map is called twice, in this method and in _get_type_operation_from_index_var_total,
+        #   so if speed is slow, it should be modified.
         first_index_map = self._get_operation_type_to_total_index_map()
         mid_level_index = index_var_total - first_index_map[type_operation]
 
@@ -269,11 +271,13 @@ class SetQOperations:
         return self.states + self.gates + self.povms
 
     def set_qoperations_from_var_total(self, var_total: np.ndarray) -> "SetQOperations":
-        # numpy array var_totalに対応するsetListQOperationを返す
+        # returns SetQOperations corresponding to var_total
         actual, expected = len(var_total), self.size_var_total()
         if actual != expected:
-            error_message = "var_totalの長さが不正です。expceted: {}, actual: {}".format(
-                expected, actual
+            error_message = (
+                "the length of var_total is wrong. expceted: {}, actual: {}".format(
+                    expected, actual
+                )
             )
             raise ValueError(error_message)
 
