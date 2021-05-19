@@ -22,7 +22,7 @@ setup(
     long_description=read_file("README.rst"),
     url="https://github.com/tknrsgym/quara",
     license="Apache License 2.0",
-    python_requires="~=3.7",
+    python_requires=">=3.7",
     install_requires=[
         "numpy>=1.18",
         "scipy",
