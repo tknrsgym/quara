@@ -27,7 +27,17 @@ Install
 
 .. _end_of_install:
 
+Citation
+=================================
+If you use Quara in your research, please cite Quara with DOI. 
+
+
 License
 =================================
 
 Apache License 2.0 `LICENSE <LICENSE>`_
+
+Supports
+=================================
+
+Quara development is supported by JST, PRESTO Grant Number JPMJPR1915, Japan.
