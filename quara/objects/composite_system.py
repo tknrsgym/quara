@@ -77,6 +77,17 @@ class CompositeSystem:
                 ]
             self._total_basis = MatrixBasis(temp)
 
+        # calculate np.kron(basis, basisconjugate)
+        basis_no = len(self._total_basis.basis)
+        hs = np.zeros((basis_no, basis_no), dtype=np.float64)
+        basis = copy.deepcopy(self._total_basis.basis)
+
+        self._basis_basisconjugate = dict()
+        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+            b_alpha = basis[alpha]
+            b_beta = np.conjugate(basis[beta])
+            self._basis_basisconjugate[(alpha, beta)] = np.kron(b_alpha, b_beta)
+
     def comp_basis(self) -> MatrixBasis:
         """returns computational basis of CompositeSystem.
 
@@ -91,15 +102,6 @@ class CompositeSystem:
         if len(self._elemental_systems) == 1:
             basis_tmp = self._elemental_systems[0].comp_basis
         else:
-            """
-            basis_list = [e_sys.comp_basis for e_sys in self._elemental_systems]
-            temp = basis_list[0]
-            for elem in basis_list[1:]:
-                temp = [
-                    np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
-                ]
-            basis_tmp = MatrixBasis(temp)
-            """
             basis_tmp = get_comp_basis(self.dim)
         return basis_tmp
 
@@ -164,8 +166,9 @@ class CompositeSystem:
         ----------
         index : Union[int, Tuple]
             index of basis.
-            if type is int, then regardes it as the index after calculating the basis of CompositeSystem.
-            if type is Tuple, then regardes it as the indices of the basis of ElementalSystems.
+
+            - if type is int, then regardes it as the index after calculating the basis of CompositeSystem.
+            - if type is Tuple, then regardes it as the indices of the basis of ElementalSystems.
 
         Returns
         -------
@@ -198,6 +201,30 @@ class CompositeSystem:
             return self.basis()[temp_grobal_index]
         else:
             return self.basis()[index]
+
+    def basis_basisconjugate(
+        self, basis_index: Union[int, Tuple[int, int]]
+    ) -> np.ndarray:
+        """returns :math:`B_{\\alpha} \\otimes \\bar{B_{\\beta}}`, where basis_index = :math:`(\\alpha, \\beta)` and :math:`B_{i}` are the elements of basis.
+
+        Parameters
+        ----------
+        basis_index : Union[int, Tuple[int, int]]
+            index of basis.
+
+            - if type is int, then regardes it as the indices (basis_index / num_of_basis, basis_index % num_of_basis) of the basis of CompositeSystem.
+            - if type is Tuple, then regardes (i, j) as the indices of the basis of CompositeSystem.
+
+        Returns
+        -------
+        np.ndarray
+            :math:`B_{\\alpha} \\otimes \\bar{B_{\\beta}}`
+        """
+        if type(basis_index) == tuple:
+            return self._basis_basisconjugate[(basis_index)]
+        else:
+            basis_index = divmod(basis_index, len(self.basis()))
+            return self._basis_basisconjugate[(basis_index)]
 
     @property
     def elemental_systems(self) -> Tuple[ElementalSystem]:
