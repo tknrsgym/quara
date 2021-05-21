@@ -65,6 +65,18 @@ class CompositeSystem:
         is_hermitian_list = [e_sys.is_hermitian for e_sys in self._elemental_systems]
         self._is_basis_hermitian = all(is_hermitian_list)
 
+        # calculate tensor product of ElamentalSystem list for getting total MatrixBasis
+        if len(self._elemental_systems) == 1:
+            self._total_basis = self._elemental_systems[0].basis
+        else:
+            basis_list = [e_sys.basis for e_sys in self._elemental_systems]
+            temp = basis_list[0]
+            for elem in basis_list[1:]:
+                temp = [
+                    np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                ]
+            self._total_basis = MatrixBasis(temp)
+
     def comp_basis(self) -> MatrixBasis:
         """returns computational basis of CompositeSystem.
 
@@ -99,20 +111,7 @@ class CompositeSystem:
         MatrixBasis
             MatrixBasis of CompositeSystem.
         """
-        # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
-        basis_tmp: MatrixBasis
-
-        if len(self._elemental_systems) == 1:
-            basis_tmp = self._elemental_systems[0].basis
-        else:
-            basis_list = [e_sys.basis for e_sys in self._elemental_systems]
-            temp = basis_list[0]
-            for elem in basis_list[1:]:
-                temp = [
-                    np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
-                ]
-            basis_tmp = MatrixBasis(temp)
-        return basis_tmp
+        return self._total_basis
 
     @property
     def dim(self) -> int:
