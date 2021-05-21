@@ -338,13 +338,11 @@ class Gate(QOperation):
             Choi matrix of gate.
         """
         # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
+        c_sys = self.composite_system
+        basis_no = len(c_sys.basis())
         tmp_list = []
-        basis = self.composite_system.basis()
-        indexed_basis = list(zip(range(len(basis)), basis))
-        for B_alpha, B_beta in itertools.product(indexed_basis, indexed_basis):
-            tmp = self._hs[B_alpha[0]][B_beta[0]] * np.kron(
-                B_alpha[1], B_beta[1].conj()
-            )
+        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+            tmp = self._hs[alpha][beta] * c_sys.basis_basisconjugate((alpha, beta))
             tmp_list.append(tmp)
 
         # summing
@@ -443,14 +441,11 @@ class Gate(QOperation):
 def hs_from_choi(choi, c_sys: CompositeSystem) -> np.ndarray:
     basis_no = len(c_sys.basis().basis)
     hs = np.zeros((basis_no, basis_no), dtype=np.float64)
-    basis = copy.deepcopy(c_sys.basis().basis)
 
     for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
-        b_alpha = np.conjugate(basis[alpha].T)
-        b_beta = basis[beta].T
-        hs[alpha, beta] = (np.trace(np.kron(b_alpha, b_beta) @ choi)).real.astype(
-            np.float64
-        )
+        b_bc = c_sys.basis_basisconjugate((alpha, beta))
+        b_bc_dag = np.conjugate(b_bc.T)
+        hs[alpha, beta] = (np.trace(b_bc_dag @ choi)).real.astype(np.float64)
 
     return hs
 

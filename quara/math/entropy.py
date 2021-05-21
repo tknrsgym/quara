@@ -50,7 +50,7 @@ def round_varz(
         raise ValueError(
             f"z must be a real number(float or np.float64). dtype of z is {type(z)}"
         )
-    if is_valid_required and not np.isclose(z, 0, atol=atol, rtol=0.0) and z < 0:
+    if is_valid_required and z < 0 and not np.isclose(z, 0, atol=atol, rtol=0.0):
         raise ValueError(f"z must be a non-negative number. z is {z}")
     if type(eps) != float and type(z) != np.float64:
         raise ValueError(

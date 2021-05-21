@@ -127,6 +127,38 @@ class TestCompositeSystem:
         expected = tensor_product(get_pauli_basis(), get_comp_basis())[13]  # 3*2**2 + 1
         assert np.all(actual == expected)
 
+    def test_basis_basisconjugate(self):
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+
+        # access by int
+        actual = c_sys.basis_basisconjugate(0)
+        expected = np.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
+        assert np.all(actual == expected)
+
+        actual = c_sys.basis_basisconjugate(6)
+        expected = np.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
+        assert np.all(actual == expected)
+
+        actual = c_sys.basis_basisconjugate(13)
+        expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
+        assert np.all(actual == expected)
+
+        # access by tuple
+        actual = c_sys.basis_basisconjugate((0, 0))
+        expected = np.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
+        assert np.all(actual == expected)
+
+        actual = c_sys.basis_basisconjugate((1, 2))
+        expected = np.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
+        assert np.all(actual == expected)
+
+        actual = c_sys.basis_basisconjugate((3, 1))
+        expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
+        assert np.all(actual == expected)
+
     def test_access_elemental_systems(self):
         e1 = ElementalSystem(1, get_pauli_basis())
         e2 = ElementalSystem(2, get_comp_basis())
