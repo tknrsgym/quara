@@ -1,5 +1,0 @@
-test_setting_index,sample_index,case_index,name,total_result,MSE of Empirical Distributions,Consistency,MSE of estimators,Physicality Violation,warning
-1,0,0,Linear (True),False,False,True,False,True,
-1,0,1,ProjectedLinear (True),False,False,True,True,False,
-1,0,2,Maximum-Likelihood (True),False,False,True,True,False,
-1,0,3,Least Squares (True),False,False,True,True,False,
