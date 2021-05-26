@@ -1,8 +1,10 @@
 import pickle
 from pathlib import Path
+import shutil
 import os
 
 import numpy.testing as npt
+import pytest
 
 from quara.simulation import standard_qtomography_simulation as sim
 from quara.objects.state import State
@@ -35,8 +37,7 @@ def assert_equal_qoperation(source, target):
         raise NotImplementedError()
 
 
-def make_test_data():
-    test_data_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
+def make_test_data(test_data_dir):
     setting = {
         "mode": "qubit",
         "n_qubit": 1,
@@ -57,65 +58,83 @@ def make_test_data():
     }
     random_test.execute(**setting)
 
-
-def test_re_estimate_sequence():
-    # Arrange
-    input_root_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
-    result_path = Path(input_root_dir) / "0" / "0" / "case_1_result.pickle"
-    test_setting_path = Path(input_root_dir) / "0" / "test_setting.pickle"
-
-    with open(result_path, "rb") as f:
-        source_result = pickle.load(f)
-
-    with open(test_setting_path, "rb") as f:
-        source_test_setting = pickle.load(f)
-
-    # Act
-    actual_results = sim.re_estimate_sequence(source_test_setting, source_result)
-
-    # Assert
-    expected_results = source_result.estimation_results
-    assert len(actual_results) == len(expected_results)
-    for actual, expected in zip(actual_results, expected_results):
-        assert_equal_estimation_result(actual, expected)
+    return test_data_dir
 
 
-def test_re_estimate_sequence_from_path():
-    input_root_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
-    # TODO: revert
-    # result_path = Path(input_root_dir) / "0" / "0" / "case_2_result.pickle"
-    result_path = Path(input_root_dir) / "0" / "0" / "case_1_result.pickle"
-    test_setting_path = Path(input_root_dir) / "0" / "test_setting.pickle"
+@pytest.fixture(scope="class")
+def execute_simulation_fixture():
+    # setup
+    test_data_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
+    make_test_data(test_data_dir)
 
-    # Act
-    actual_results = sim.re_estimate_sequence_from_path(test_setting_path, result_path)
+    # execute test
+    yield {"test_data_root_dir": test_data_dir}
 
-    # Assert
-    with open(result_path, "rb") as f:
-        source_result = pickle.load(f)
-    expected_results = source_result.estimation_results
-    assert len(actual_results) == len(expected_results)
-    for actual, expected in zip(actual_results, expected_results):
-        assert_equal_estimation_result(actual, expected)
+    # remove
+    shutil.rmtree(test_data_dir)
 
 
-def test_re_estimate_sequence_from_index():
-    # Arrange
-    input_root_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
+@pytest.mark.usefixtures("execute_simulation_fixture")
+class TestReEstimate:
+    def test_re_estimate_sequence(self, execute_simulation_fixture):
+        # Arrange
+        input_root_dir = execute_simulation_fixture["test_data_root_dir"]
+        result_path = Path(input_root_dir) / "0" / "0" / "case_1_result.pickle"
+        test_setting_path = Path(input_root_dir) / "0" / "test_setting.pickle"
 
-    # Act
-    # TODO: revert
-    # actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 3)
-    actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 1)
+        with open(result_path, "rb") as f:
+            source_result = pickle.load(f)
 
-    # Assert
-    # TODO: revert
-    # result_path = Path(input_root_dir) / "1" / "0" / "case_3_result.pickle"
-    result_path = Path(input_root_dir) / "1" / "0" / "case_1_result.pickle"
-    with open(result_path, "rb") as f:
-        source_result = pickle.load(f)
-    # Assert
-    expected_results = source_result.estimation_results
-    assert len(actual_results) == len(expected_results)
-    for actual, expected in zip(actual_results, expected_results):
-        assert_equal_estimation_result(actual, expected)
+        with open(test_setting_path, "rb") as f:
+            source_test_setting = pickle.load(f)
+
+        # Act
+        actual_results = sim.re_estimate_sequence(source_test_setting, source_result)
+
+        # Assert
+        expected_results = source_result.estimation_results
+        assert len(actual_results) == len(expected_results)
+        for actual, expected in zip(actual_results, expected_results):
+            assert_equal_estimation_result(actual, expected)
+
+    def test_re_estimate_sequence_from_path(self, execute_simulation_fixture):
+        input_root_dir = execute_simulation_fixture["test_data_root_dir"]
+
+        # TODO: revert
+        # result_path = Path(input_root_dir) / "0" / "0" / "case_2_result.pickle"
+        result_path = Path(input_root_dir) / "0" / "0" / "case_1_result.pickle"
+        test_setting_path = Path(input_root_dir) / "0" / "test_setting.pickle"
+
+        # Act
+        actual_results = sim.re_estimate_sequence_from_path(
+            test_setting_path, result_path
+        )
+
+        # Assert
+        with open(result_path, "rb") as f:
+            source_result = pickle.load(f)
+        expected_results = source_result.estimation_results
+        assert len(actual_results) == len(expected_results)
+        for actual, expected in zip(actual_results, expected_results):
+            assert_equal_estimation_result(actual, expected)
+
+    def test_re_estimate_sequence_from_index(self, execute_simulation_fixture):
+        # Arrange
+        input_root_dir = execute_simulation_fixture["test_data_root_dir"]
+
+        # Act
+        # TODO: revert
+        # actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 3)
+        actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 1)
+
+        # Assert
+        # TODO: revert
+        # result_path = Path(input_root_dir) / "1" / "0" / "case_3_result.pickle"
+        result_path = Path(input_root_dir) / "1" / "0" / "case_1_result.pickle"
+        with open(result_path, "rb") as f:
+            source_result = pickle.load(f)
+        # Assert
+        expected_results = source_result.estimation_results
+        assert len(actual_results) == len(expected_results)
+        for actual, expected in zip(actual_results, expected_results):
+            assert_equal_estimation_result(actual, expected)
