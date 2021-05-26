@@ -211,7 +211,6 @@ def re_estimate_case_unit(
             is_computation_time_required=True,
         )
         estimation_results.append(estimation_result)
-
     # Simulation Check
     sim_check = StandardQTomographySimulationCheck(sim_setting, estimation_results)
     check_result = sim_check.execute_all(show_detail=False, with_detail=True)
