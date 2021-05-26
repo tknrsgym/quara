@@ -1,10 +1,10 @@
 {
     "name": "Linear (True)",
-    "total_result": true,
+    "total_result": false,
     "results": [
         {
             "name": "MSE of Empirical Distributions",
-            "result": true,
+            "result": false,
             "detail": null
         },
         {
@@ -12,12 +12,14 @@
             "result": true,
             "detail": {
                 "possibly_ok": true,
-                "to_be_checked": false
+                "to_be_checked": false,
+                "squared_error_to_true": 3.851859888774472e-34,
+                "estimation_result": "EstimationResult generated in the process of ConsistencyCheck is not dumped to json, check the pickle."
             }
         },
         {
             "name": "MSE of estimators",
-            "result": true,
+            "result": false,
             "detail": null
         },
         {

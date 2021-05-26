@@ -12,7 +12,9 @@
             "result": true,
             "detail": {
                 "possibly_ok": true,
-                "to_be_checked": false
+                "to_be_checked": false,
+                "squared_error_to_true": 1.2434285203450091e-32,
+                "estimation_result": "EstimationResult generated in the process of ConsistencyCheck is not dumped to json, check the pickle."
             }
         },
         {
