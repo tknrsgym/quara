@@ -88,51 +88,94 @@ def test_is_tp():
 
 def test_truncate_imaginary_part():
     # truncate
-    target_matrix = np.array([[1, 1e-14 * 1j], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-14 * 1j], [0, 1]],
+        dtype=np.complex128,
+    )
     actual = util.truncate_imaginary_part(target_matrix)
     expected = np.eye(2)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # not truncate
-    target_matrix = np.array([[1, 1e-13 * 1j], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-13 * 1j], [0, 1]],
+        dtype=np.complex128,
+    )
     actual = util.truncate_imaginary_part(target_matrix)
     npt.assert_almost_equal(actual, target_matrix, decimal=15)
 
 
 def test_truncate_computational_fluctuation():
     # truncate
-    target_matrix = np.array([[1, 1e-14], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-14], [0, 1]],
+        dtype=np.complex128,
+    )
     actual = util.truncate_computational_fluctuation(target_matrix)
     expected = np.eye(2)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # not truncate
-    target_matrix = np.array([[1, 1e-13], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-13], [0, 1]],
+        dtype=np.complex128,
+    )
     actual = util.truncate_computational_fluctuation(target_matrix)
     npt.assert_almost_equal(actual, target_matrix, decimal=15)
 
 
 def test_truncate_hs():
     # truncate
-    target_matrix = np.array([[1, 1e-14j], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-14j], [0, 1]],
+        dtype=np.complex128,
+    )
     actual = util.truncate_hs(target_matrix)
     expected = np.eye(2)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # not truncate(ValueError)
-    target_matrix = np.array([[1, 1e-13j], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-13j], [0, 1]],
+        dtype=np.complex128,
+    )
     with pytest.raises(ValueError):
         util.truncate_hs(target_matrix)
 
     # not truncate(ValueError)
-    target_matrix = np.array([[1, 1e-13j], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-13j], [0, 1]],
+        dtype=np.complex128,
+    )
     with pytest.raises(ValueError):
         util.truncate_hs(target_matrix, is_zero_imaginary_part_required=True)
 
     # not truncate(not ValueError)
-    target_matrix = np.array([[1, 1e-13j], [0, 1]], dtype=np.complex128,)
+    target_matrix = np.array(
+        [[1, 1e-13j], [0, 1]],
+        dtype=np.complex128,
+    )
     actual = util.truncate_hs(target_matrix, is_zero_imaginary_part_required=False)
     npt.assert_almost_equal(actual, target_matrix, decimal=15)
+
+
+def test_truncate_and_normalize():
+    # not truncate
+    mat = np.array([0.1, 0.2, 0.3, 0.4])
+    actual = util.truncate_and_normalize(mat)
+    npt.assert_almost_equal(actual, mat, decimal=15)
+
+    # truncate (eps=default)
+    mat = np.array([-0.1, 0.2, 0.3, 0.4])
+    actual = util.truncate_and_normalize(mat)
+    expected = np.array([0.0, 0.2, 0.3, 0.4]) / 0.9
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # truncate (eps=0.1)
+    mat = np.array([0.09, 0.2, 0.3, 0.4])
+    actual = util.truncate_and_normalize(mat, eps=0.1)
+    expected = np.array([0.0, 0.2, 0.3, 0.4]) / 0.9
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_calc_se():
@@ -165,12 +208,24 @@ def test_calc_se():
 
 def test_calc_mse_prob_dists():
     xs_list = [
-        [np.array([1, 2]), np.array([3, 4]),],
-        [np.array([5, 6]), np.array([7, 8]),],
+        [
+            np.array([1, 2]),
+            np.array([3, 4]),
+        ],
+        [
+            np.array([5, 6]),
+            np.array([7, 8]),
+        ],
     ]
     ys_list = [
-        [np.array([11, 12]), np.array([13, 14]),],
-        [np.array([15, 16]), np.array([17, 18]),],
+        [
+            np.array([11, 12]),
+            np.array([13, 14]),
+        ],
+        [
+            np.array([15, 16]),
+            np.array([17, 18]),
+        ],
     ]
     actual = util.calc_mse_prob_dists(xs_list, ys_list)
     expected = float(400), 0.0
@@ -407,8 +462,14 @@ def test_calc_fisher_matrix_total():
         np.array([0.8, 0.2], dtype=np.float64),
     ]
     grad_prob_dists = [
-        [np.array([3, 4], dtype=np.float64), np.array([5, 6], dtype=np.float64),],
-        [np.array([7, 8], dtype=np.float64), np.array([9, 10], dtype=np.float64),],
+        [
+            np.array([3, 4], dtype=np.float64),
+            np.array([5, 6], dtype=np.float64),
+        ],
+        [
+            np.array([7, 8], dtype=np.float64),
+            np.array([9, 10], dtype=np.float64),
+        ],
     ]
     weights = [1.0, 0.5]
 
@@ -417,7 +478,10 @@ def test_calc_fisher_matrix_total():
 
     # Assert
     expected = np.array(
-        [[260 + 490 / 16 + 810 / 4, 940 / 3 + 260], [940 / 3 + 260, 3400 / 9 + 290],],
+        [
+            [260 + 490 / 16 + 810 / 4, 940 / 3 + 260],
+            [940 / 3 + 260, 3400 / 9 + 290],
+        ],
         dtype=np.float64,
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
