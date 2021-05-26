@@ -20,6 +20,9 @@ from quara.simulation.standard_qtomography_simulation import (
     SimulationResult,
     StandardQTomographySimulationSetting,
 )
+from quara.protocol.qtomography.standard.loss_minimization_estimator import (
+    LossMinimizationEstimator,
+)
 
 
 def execute_simulation_case_unit(
@@ -205,11 +208,24 @@ def re_estimate_case_unit(
     for n_rep_index in range(sim_setting.n_rep):
         empi_dists_seq = simulation_result.estimation_results[n_rep_index].data
         estimator = copy.deepcopy(simulation_result.simulation_setting.estimator)
-        estimation_result = estimator.calc_estimate_sequence(
-            qtomography,
-            empi_dists_seq,
-            is_computation_time_required=True,
-        )
+
+        if isinstance(estimator, LossMinimizationEstimator):
+            estimation_result = estimator.calc_estimate_sequence(
+                qtomography,
+                empi_dists_seq,
+                loss=sim_setting.loss,
+                loss_option=sim_setting.loss_option,
+                algo=sim_setting.algo,
+                algo_option=sim_setting.algo_option,
+                is_computation_time_required=True,
+            )
+        else:
+            estimation_result = estimator.calc_estimate_sequence(
+                qtomography,
+                empi_dists_seq,
+                is_computation_time_required=True,
+            )
+
         estimation_results.append(estimation_result)
     # Simulation Check
     sim_check = StandardQTomographySimulationCheck(sim_setting, estimation_results)
@@ -290,13 +306,7 @@ def re_estimate_sample_unit(
 def re_estimate_test_setting_unit(
     test_setting_index, output_root_dir, input_root_dir, pdf_mode: str = "only_ng"
 ) -> List[SimulationResult]:
-    # sample_dir_paths = sorted(Path(input_root_dir).glob(f"{test_setting_index}/*[0-9]"))
-    # test_setting_pickle_path = (
-    #     f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
-    # )
-    # print(test_setting_pickle_path)
-    # n_sample = len(sample_dir_paths)
-
+    # Load test setting from pickle
     test_setting_pickle_path = (
         f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
     )
@@ -318,7 +328,7 @@ def re_estimate_test_setting_unit(
         results += sample_results
 
     # Save
-    write_result_test_setting_unit(results, root_dir)
+    write_result_test_setting_unit(results, output_root_dir)
     return results
 
 
@@ -471,21 +481,21 @@ def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
     )
 
 
-def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
-    test_setting_index = result.result_index["test_setting_index"]
-    sample_index = result.result_index["sample_index"]
-    case_index = result.result_index["case_index"]
+def write_result_case_unit(sim_result: SimulationResult, root_dir: str) -> None:
+    test_setting_index = sim_result.result_index["test_setting_index"]
+    sample_index = sim_result.result_index["sample_index"]
+    case_index = sim_result.result_index["case_index"]
 
     # Save pickle
     dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
     path = dir_path / f"case_{case_index}_result.pickle"
-    result.to_pickle(path)
+    sim_result.to_pickle(path)
 
     # Save JSON
     # EstimationResult cannot be converted to JSON.
     # Therefore, alternative text is used.
     alternative_results = []
-    for r in result.check_result["results"]:
+    for r in sim_result.check_result["results"]:
         if r["name"] == "Consistency":
             alternative_text = "EstimationResult generated in the process of ConsistencyCheck is not dumped to json, check the pickle."
             new_r = copy.deepcopy(r)
@@ -494,7 +504,7 @@ def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
         else:
             alternative_results.append(r)
 
-    alternative_check_result = copy.deepcopy(result.check_result)
+    alternative_check_result = copy.deepcopy(sim_result.check_result)
     alternative_check_result["results"] = alternative_results
 
     path = dir_path / f"case_{case_index}_check_result.json"
