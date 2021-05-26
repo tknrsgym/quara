@@ -88,8 +88,13 @@ class CompositeSystem:
             b_beta = np.conjugate(basis[beta])
             self._basis_basisconjugate[(alpha, beta)] = np.kron(b_alpha, b_beta)
 
-    def comp_basis(self) -> MatrixBasis:
+    def comp_basis(self, mode: str = "row_major") -> MatrixBasis:
         """returns computational basis of CompositeSystem.
+
+        Parameters
+        ----------
+        mode : str, optional
+            specify whether the order of basis is "row_major" or "column_major", by default "row_major".
 
         Returns
         -------
@@ -100,9 +105,9 @@ class CompositeSystem:
         basis_tmp: MatrixBasis
 
         if len(self._elemental_systems) == 1:
-            basis_tmp = self._elemental_systems[0].comp_basis
+            basis_tmp = self._elemental_systems[0].comp_basis(mode=mode)
         else:
-            basis_tmp = get_comp_basis(self.dim)
+            basis_tmp = get_comp_basis(self.dim, mode=mode)
         return basis_tmp
 
     def basis(self) -> MatrixBasis:
