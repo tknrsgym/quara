@@ -287,7 +287,7 @@ def re_estimate(
         para=test_setting.parametrizations[case_index],
     )
 
-    estimator = copy.deepcopy(result.simulation_setting.estimator)
+    estimator = copy.deepcopy(simulation_result.simulation_setting.estimator)
     if isinstance(estimator, LossMinimizationEstimator):
         estimation_result = estimator.calc_estimate_sequence(
             qtomography,
