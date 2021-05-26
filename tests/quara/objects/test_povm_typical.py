@@ -335,6 +335,7 @@ def test_generate_povm_from_name_1qutrit(povm_name, expected_vecs):
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.twoqutrit
 def test_generate_povm_from_name_2qutrit_z3_z3():
     # Arrange
     e_sys0 = ElementalSystem(0, get_normalized_gell_mann_basis())
@@ -369,6 +370,7 @@ def test_generate_povm_from_name_2qutrit_z3_z3():
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.twoqutrit
 def test_generate_povm_from_name_2qutrit_z2_z2():
     # Arrange
     e_sys0 = ElementalSystem(0, get_normalized_gell_mann_basis())
@@ -403,6 +405,7 @@ def test_generate_povm_from_name_2qutrit_z2_z2():
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.twoqutrit
 def test_generate_povm_from_name_2qutrit_01x3_12y3():
     # Arrange
     e_sys0 = ElementalSystem(0, get_normalized_gell_mann_basis())
