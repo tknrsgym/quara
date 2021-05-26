@@ -316,8 +316,13 @@ class Gate(QOperation):
         converted_hs = convert_hs(self.hs, self.composite_system.basis(), other_basis)
         return converted_hs
 
-    def convert_to_comp_basis(self) -> np.ndarray:
+    def convert_to_comp_basis(self, mode: str = "row_major") -> np.ndarray:
         """returns HS representation for computational basis.
+
+        Parameters
+        ----------
+        mode : str, optional
+            specify whether the order of basis is "row_major" or "column_major", by default "row_major".
 
         Returns
         -------
@@ -325,7 +330,7 @@ class Gate(QOperation):
             HS representation for computational basis.
         """
         converted_hs = convert_hs(
-            self.hs, self.composite_system.basis(), self.composite_system.comp_basis()
+            self.hs, self.composite_system.basis(), self.composite_system.comp_basis(mode=mode)
         )
         return converted_hs
 
