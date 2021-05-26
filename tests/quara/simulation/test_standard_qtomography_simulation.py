@@ -76,10 +76,14 @@ def execute_simulation_fixture():
 
 @pytest.mark.usefixtures("execute_simulation_fixture")
 class TestReEstimate:
-    def test_re_estimate_sequence(self, execute_simulation_fixture):
+    @pytest.mark.parametrize(
+        ("case_file_name"),
+        [f"case_{i}_result.pickle" for i in range(4)],
+    )
+    def test_re_estimate_sequence(self, execute_simulation_fixture, case_file_name):
         # Arrange
         input_root_dir = execute_simulation_fixture["test_data_root_dir"]
-        result_path = Path(input_root_dir) / "0" / "0" / "case_1_result.pickle"
+        result_path = Path(input_root_dir) / "0" / "0" / case_file_name
         test_setting_path = Path(input_root_dir) / "0" / "test_setting.pickle"
 
         with open(result_path, "rb") as f:
@@ -100,10 +104,8 @@ class TestReEstimate:
     def test_re_estimate_sequence_from_path(self, execute_simulation_fixture):
         input_root_dir = execute_simulation_fixture["test_data_root_dir"]
 
-        # TODO: revert
-        # result_path = Path(input_root_dir) / "0" / "0" / "case_2_result.pickle"
-        result_path = Path(input_root_dir) / "0" / "0" / "case_1_result.pickle"
-        test_setting_path = Path(input_root_dir) / "0" / "test_setting.pickle"
+        result_path = Path(input_root_dir) / "0" / "1" / "case_2_result.pickle"
+        test_setting_path = Path(input_root_dir) / "1" / "test_setting.pickle"
 
         # Act
         actual_results = sim.re_estimate_sequence_from_path(
@@ -123,14 +125,10 @@ class TestReEstimate:
         input_root_dir = execute_simulation_fixture["test_data_root_dir"]
 
         # Act
-        # TODO: revert
-        # actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 3)
-        actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 1)
+        actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 3)
 
         # Assert
-        # TODO: revert
-        # result_path = Path(input_root_dir) / "1" / "0" / "case_3_result.pickle"
-        result_path = Path(input_root_dir) / "1" / "0" / "case_1_result.pickle"
+        result_path = Path(input_root_dir) / "1" / "0" / "case_3_result.pickle"
         with open(result_path, "rb") as f:
             source_result = pickle.load(f)
         # Assert
