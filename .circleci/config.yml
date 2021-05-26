@@ -24,11 +24,11 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            free
+            free -m -t
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
             echo $?
             cat /var/log/messages
-            free
+            free -m -t
       - store_test_results:
             path: test-results
   test-3.8:
@@ -48,11 +48,11 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            free
+            free -m -t
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
             echo $?
             cat /var/log/messages
-            free
+            free -m -t
       - store_test_results:
             path: test-results
   test-3.9:
@@ -72,10 +72,10 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            free
+            free -m -t
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
             echo $?
             cat /var/log/messages
-            free
+            free -m -t
       - store_test_results:
             path: test-results
