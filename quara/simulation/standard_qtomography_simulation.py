@@ -276,12 +276,12 @@ def _generate_empi_dists_and_calc_estimate(
 
 
 def re_estimate(
-    test_setting: EstimatorTestSetting, result: SimulationResult, n_rep_index: int
+    test_setting: EstimatorTestSetting, simulation_result: SimulationResult, n_rep_index: int
 ) -> StandardQTomographyEstimationResult:
-    case_index = result.result_index["case_index"]
-    empi_dists_seq = result.estimation_results[n_rep_index].data
+    case_index = simulation_result.result_index["case_index"]
+    empi_dists_seq = simulation_result.estimation_results[n_rep_index].data
 
-    sim_setting = result.simulation_setting
+    sim_setting = simulation_result.simulation_setting
     qtomography = generate_qtomography(
         sim_setting,
         para=test_setting.parametrizations[case_index],
@@ -297,39 +297,39 @@ def re_estimate(
 
 
 def re_estimate_sequence(
-    test_setting: EstimatorTestSetting, result: SimulationResult
+    test_setting: EstimatorTestSetting, simulation_result: SimulationResult
 ) -> List[StandardQTomographyEstimationResult]:
-    sim_setting = result.simulation_setting
+    sim_setting = simulation_result.simulation_setting
     estimation_results = []
     for n_rep_index in range(sim_setting.n_rep):
-        estimation_result = re_estimate(test_setting, result, n_rep_index)
+        estimation_result = re_estimate(test_setting, simulation_result, n_rep_index)
         estimation_results.append(estimation_result)
     return estimation_results
 
 
 def re_estimate_sequence_from_path(
-    test_setting_path: Union[str, Path], result_path: Union[str, Path]
+    test_setting_path: Union[str, Path], simulation_result_path: Union[str, Path]
 ) -> List[StandardQTomographyEstimationResult]:
-    with open(result_path, "rb") as f:
-        result = pickle.load(f)
+    with open(simulation_result_path, "rb") as f:
+        simulation_result = pickle.load(f)
 
     with open(test_setting_path, "rb") as f:
         test_setting = pickle.load(f)
-    estimation_results = re_estimate_sequence(test_setting, result)
+    estimation_results = re_estimate_sequence(test_setting, simulation_result)
     return estimation_results
 
 
 def re_estimate_sequence_from_index(
     root_dir: str, test_setting_index: int, sample_index: int, case_index: int
 ) -> List[StandardQTomographyEstimationResult]:
-    result_path = (
+    simulation_result_path = (
         Path(root_dir)
         / str(test_setting_index)
         / str(sample_index)
         / f"case_{case_index}_result.pickle"
     )
     test_setting_path = Path(root_dir) / str(test_setting_index) / "test_setting.pickle"
-    estimation_results = re_estimate_sequence_from_path(test_setting_path, result_path)
+    estimation_results = re_estimate_sequence_from_path(test_setting_path, simulation_result_path)
     return estimation_results
 
 
