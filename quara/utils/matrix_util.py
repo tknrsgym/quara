@@ -199,6 +199,29 @@ def truncate_hs(
     return truncated_hs
 
 
+def truncate_and_normalize(matrix: np.ndarray, eps: float = None) -> np.array:
+    """truncates entries smaller than eps and normalizes to the matrix whose sum of all entries is 1.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        the matrix to be truncated and normalized.
+    eps : float, optional
+        threshold to truncate, uses :func:`~quara.settings.Settings.get_atol` by default.
+
+    Returns
+    -------
+    np.array
+        truncated and normalized matrix
+    """
+    eps = Settings.get_atol() if eps is None else eps
+
+    # truncate entries smaller than eps and normalize matrix
+    matrix = np.where(matrix < eps, 0, matrix)
+    matrix = matrix / np.sum(matrix)
+    return matrix
+
+
 def calc_se(xs: List[np.ndarray], ys: List[np.ndarray]) -> np.float64:
     """calculates Squared Error of ``xs`` and ``ys``.
 
