@@ -3,6 +3,7 @@ import copy
 import time
 from pathlib import Path
 import json
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -46,9 +47,9 @@ def execute_simulation_case_unit(
 
     # Execute
     estimation_results = sim.execute_simulation(
-            qtomography=qtomography, simulation_setting=sim_setting
-        )
-    
+        qtomography=qtomography, simulation_setting=sim_setting
+    )
+
     # Simulation Check
     sim_check = StandardQTomographySimulationCheck(sim_setting, estimation_results)
     check_result = sim_check.execute_all(show_detail=False, with_detail=True)
@@ -155,27 +156,29 @@ def execute_simulation_test_setting_unit(
 
 def _copy_sim_setting(source):
     return StandardQTomographySimulationSetting(
-            name=source.name,
-            true_object=source.true_object,
-            tester_objects=source.tester_objects,
-            estimator=source.estimator,
-            loss=copy.deepcopy(source.loss),
-            loss_option=source.loss_option,
-            algo=copy.deepcopy(source.algo),
-            algo_option=source.algo_option,
-            seed=source.seed,
-            n_rep=source.n_rep,
-            num_data=source.num_data,
-            schedules=source.schedules,
-            eps_proj_physical=source.eps_proj_physical,
-        )
+        name=source.name,
+        true_object=source.true_object,
+        tester_objects=source.tester_objects,
+        estimator=source.estimator,
+        loss=copy.deepcopy(source.loss),
+        loss_option=source.loss_option,
+        algo=copy.deepcopy(source.algo),
+        algo_option=source.algo_option,
+        seed=source.seed,
+        n_rep=source.n_rep,
+        num_data=source.num_data,
+        schedules=source.schedules,
+        eps_proj_physical=source.eps_proj_physical,
+    )
+
 
 def re_estimate_case_unit(
+    test_setting,
     input_root_dir: str,
     case_index: int,
     sample_index: int,
     test_setting_index: int,
-    output_root_dir: str
+    output_root_dir: str,
 ) -> SimulationResult:
     # Load pickle
     simulation_result_path = (
@@ -201,14 +204,14 @@ def re_estimate_case_unit(
     estimation_results = []
     for n_rep_index in range(sim_setting.n_rep):
         empi_dists_seq = simulation_result.estimation_results[n_rep_index].data
-        estimator = copy.deepcopy(result.simulation_setting.estimator)
+        estimator = copy.deepcopy(simulation_result.simulation_setting.estimator)
         estimation_result = estimator.calc_estimate_sequence(
             qtomography,
             empi_dists_seq,
             is_computation_time_required=True,
         )
         estimation_results.append(estimation_result)
-    
+
     # Simulation Check
     sim_check = StandardQTomographySimulationCheck(sim_setting, estimation_results)
     check_result = sim_check.execute_all(show_detail=False, with_detail=True)
@@ -236,6 +239,7 @@ def re_estimate_case_unit(
     write_result_case_unit(result, root_dir=output_root_dir)
     return result
 
+
 def re_estimate_sample_unit(
     test_setting_index,
     sample_index,
@@ -243,26 +247,33 @@ def re_estimate_sample_unit(
     input_root_dir,
     pdf_mode: str = "only_ng",
 ) -> List[SimulationResult]:
-    
-    case_n = len(test_setting.case_names)
 
+    # Load test setting pickle
+    test_setting_pickle_path = (
+        f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
+    )
+    with open(test_setting_pickle_path, "rb") as f:
+        test_setting = pickle.load(f)
+
+    case_n = len(test_setting.case_names)
+    results = []
     for case_index in range(case_n):
         result = re_estimate_case_unit(
-            test_setting,
+            test_setting=test_setting,
             case_index=case_index,
             sample_index=sample_index,
             test_setting_index=test_setting_index,
             input_root_dir=input_root_dir,
-            output_root_dir=output_root_dir
+            output_root_dir=output_root_dir,
         )
         results.append(result)
 
     # Save
-    write_result_sample_unit(results, root_dir=root_dir)
+    write_result_sample_unit(results, root_dir=output_root_dir)
 
     # Save PDF
     if pdf_mode == "all":
-        write_pdf_report(results, root_dir)
+        write_pdf_report(results, output_root_dir)
     elif pdf_mode == "only_ng":
         total_results = [r.check_result["total_result"] for r in results]
         print(f"total_result={np.all(total_results)}")
@@ -276,12 +287,25 @@ def re_estimate_sample_unit(
 
     return results
 
+
 def re_estimate_test_setting_unit(
     test_setting_index, output_root_dir, input_root_dir, pdf_mode: str = "only_ng"
 ) -> List[SimulationResult]:
-    # n_sample = test_setting.n_sample  # TODO: modify
-    test_setting_pickle_paths = sorted(Path(input_root_dir).glob(f"*/{test_setting_index}/"))
-    
+    # sample_dir_paths = sorted(Path(input_root_dir).glob(f"{test_setting_index}/*[0-9]"))
+    # test_setting_pickle_path = (
+    #     f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
+    # )
+    # print(test_setting_pickle_path)
+    # n_sample = len(sample_dir_paths)
+
+    test_setting_pickle_path = (
+        f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
+    )
+    with open(test_setting_pickle_path, "rb") as f:
+        test_setting = pickle.load(f)
+
+    n_sample = test_setting.n_sample
+
     results = []
 
     for sample_index in range(n_sample):
@@ -298,17 +322,25 @@ def re_estimate_test_setting_unit(
     write_result_test_setting_unit(results, root_dir)
     return results
 
-def re_estimate_test_settings(input_root_dir: str, output_root_dir: str, pdf_mode) -> List[SimulationResult]:
+
+def re_estimate_test_settings(
+    input_root_dir: str, output_root_dir: str, pdf_mode: str
+) -> List[SimulationResult]:
     # Load All Test Setting
-    test_setting_pickle_paths = sorted(Path(input_root_dir).glob("*/test_setting.pickle"))
+    test_setting_pickle_paths = sorted(
+        Path(input_root_dir).glob("*/test_setting.pickle")
+    )
+    all_results = []
     for path in test_setting_pickle_paths:
         test_setting_index = path.parent.name  # directory name is test_setting_index
         test_results = re_estimate_test_setting_unit(
-            test_setting_index, input_root_dir=input_root_dir, output_root_dir=output_root_dir, pdf_mode=pdf_mode
+            test_setting_index,
+            input_root_dir=input_root_dir,
+            output_root_dir=output_root_dir,
+            pdf_mode=pdf_mode,
         )
         all_results += test_results
     return all_results
-
 
 
 def execute_simulation_test_settings(
