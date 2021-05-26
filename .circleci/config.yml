@@ -26,7 +26,7 @@ jobs:
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
             echo $?
-            cat /var/log/messages | grep Kill
+            cat /var/log/messages
       - store_test_results:
             path: test-results
   test-3.8:
@@ -48,7 +48,7 @@ jobs:
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
             echo $?
-            cat /var/log/messages | grep Kill
+            cat /var/log/messages
       - store_test_results:
             path: test-results
   test-3.9:
@@ -70,6 +70,6 @@ jobs:
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
             echo $?
-            cat /var/log/messages | grep Kill
+            cat /var/log/messages
       - store_test_results:
             path: test-results
