@@ -200,7 +200,7 @@ def truncate_hs(
 
 
 def truncate_and_normalize(matrix: np.ndarray, eps: float = None) -> np.array:
-    """truncates entries smaller than eps and normalizes to the matrix whose sum of all entries is 1.
+    """truncates entries smaller than eps and normalizes to the matrix whose sum of each row is 1.
 
     Parameters
     ----------
@@ -216,9 +216,13 @@ def truncate_and_normalize(matrix: np.ndarray, eps: float = None) -> np.array:
     """
     eps = Settings.get_atol() if eps is None else eps
 
-    # truncate entries smaller than eps and normalize matrix
+    # truncate entries smaller than eps and normalize matrix along rows
     matrix = np.where(matrix < eps, 0, matrix)
-    matrix = matrix / np.sum(matrix)
+    if matrix.ndim == 1:
+        matrix = matrix / np.sum(matrix)
+    else:
+        for index, row in enumerate(matrix):
+            matrix[index] = row / np.sum(row)
     return matrix
 
 
