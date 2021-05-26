@@ -81,9 +81,8 @@ class ElementalSystem:
         """
         return self._dim
 
-    @property
-    def comp_basis(self) -> MatrixBasis:  # read only
-        return get_comp_basis(self._dim)
+    def comp_basis(self, mode: str = "row_major") -> MatrixBasis:  # read only
+        return get_comp_basis(self._dim, mode=mode)
 
     @property
     def basis(self) -> MatrixBasis:  # read only
