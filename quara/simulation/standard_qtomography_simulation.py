@@ -288,11 +288,23 @@ def re_estimate(
     )
 
     estimator = copy.deepcopy(result.simulation_setting.estimator)
-    estimation_result = estimator.calc_estimate_sequence(
-        qtomography,
-        empi_dists_seq,
-        is_computation_time_required=True,
-    )
+    if isinstance(estimator, LossMinimizationEstimator):
+        estimation_result = estimator.calc_estimate_sequence(
+            qtomography,
+            empi_dists_seq,
+            loss=sim_setting.loss,
+            loss_option=sim_setting.loss_option,
+            algo=sim_setting.algo,
+            algo_option=sim_setting.algo_option,
+            is_computation_time_required=True,
+        )
+    else:
+        estimation_result = estimator.calc_estimate_sequence(
+            qtomography,
+            empi_dists_seq,
+            is_computation_time_required=True,
+        )
+
     return estimation_result
 
 

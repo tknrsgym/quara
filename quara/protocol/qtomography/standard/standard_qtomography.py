@@ -228,6 +228,7 @@ class StandardQTomography(QTomography):
                 self.calc_matA() @ qope.to_stacked_vector() + self.calc_vecB()
             )
         prob_dists = tmp_prob_dists.reshape((self.num_schedules, -1))
+        prob_dists = matrix_util.truncate_and_normalize(prob_dists)
 
         return prob_dists
 

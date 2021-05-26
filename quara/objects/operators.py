@@ -12,6 +12,7 @@ from quara.objects.gate import Gate
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import Povm
 from quara.objects.state import State
+from quara.settings import Settings
 from quara.utils import matrix_util
 
 
@@ -310,6 +311,7 @@ def _compose_qoperations(elem1, elem2):
         # calculate probability distribution
         prob_list = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
         prob = np.array(prob_list, dtype=np.float64)
+        prob = matrix_util.truncate_and_normalize(prob)
         return prob
     else:
         raise TypeError(
