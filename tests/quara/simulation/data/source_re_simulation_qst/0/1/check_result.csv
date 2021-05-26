@@ -1,9 +1,5 @@
 test_setting_index,sample_index,case_index,name,total_result,MSE of Empirical Distributions,Consistency,MSE of estimators,Physicality Violation,warning
-0,1,0,Linear (True),True,True,True,True,True,
-0,1,1,Linear (False),True,True,True,True,True,
-0,1,2,ProjectedLinear (True),True,True,True,True,True,
-0,1,3,ProjectedLinear (False),True,True,True,True,True,
-0,1,4,Maximum-Likelihood (True),True,True,True,True,True,
-0,1,5,Maximum-Likelihood (False),False,True,False,True,True,"Consistency: possibly_ok=False, to_be_checked=False"
-0,1,6,Least Squares (True),True,True,True,True,True,
-0,1,7,Least Squares (False),True,True,True,True,True,
+0,1,0,Linear (True),False,False,True,False,True,
+0,1,1,ProjectedLinear (True),False,False,True,True,False,
+0,1,2,Maximum-Likelihood (True),False,False,True,True,False,
+0,1,3,Least Squares (True),False,False,True,True,False,

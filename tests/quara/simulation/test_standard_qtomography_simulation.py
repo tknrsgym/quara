@@ -9,6 +9,8 @@ from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 
+import random_test
+
 
 def assert_equal_estimation_result(result_source, result_target):
     source_qoperations = result_source.estimated_qoperation_sequence
@@ -31,6 +33,29 @@ def assert_equal_qoperation(source, target):
         npt.assert_almost_equal(source.hs, target.hs, decimal=15)
     else:
         raise NotImplementedError()
+
+
+def make_test_data():
+    test_data_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 1,
+        "tomography_type": "state",
+        "true_objects": ["z0", "z1"],
+        "tester_names": [("povm", name) for name in ["x", "y", "z"]],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        "n_sample": 2,
+        "n_rep": 3,
+        "num_data": [10, 100],
+        "seed": 777,
+        "output_root_dir": test_data_dir,
+    }
+    random_test.execute(**setting)
 
 
 def test_re_estimate_sequence():
@@ -57,7 +82,9 @@ def test_re_estimate_sequence():
 
 def test_re_estimate_sequence_from_path():
     input_root_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
-    result_path = Path(input_root_dir) / "0" / "0" / "case_2_result.pickle"
+    # TODO: revert
+    # result_path = Path(input_root_dir) / "0" / "0" / "case_2_result.pickle"
+    result_path = Path(input_root_dir) / "0" / "0" / "case_1_result.pickle"
     test_setting_path = Path(input_root_dir) / "0" / "test_setting.pickle"
 
     # Act
@@ -77,10 +104,14 @@ def test_re_estimate_sequence_from_index():
     input_root_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
 
     # Act
-    actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 3)
+    # TODO: revert
+    # actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 3)
+    actual_results = sim.re_estimate_sequence_from_index(input_root_dir, 1, 0, 1)
 
     # Assert
-    result_path = Path(input_root_dir) / "1" / "0" / "case_3_result.pickle"
+    # TODO: revert
+    # result_path = Path(input_root_dir) / "1" / "0" / "case_3_result.pickle"
+    result_path = Path(input_root_dir) / "1" / "0" / "case_1_result.pickle"
     with open(result_path, "rb") as f:
         source_result = pickle.load(f)
     # Assert

@@ -1,10 +1,10 @@
 {
-    "name": "ProjectedLinear (True)",
-    "total_result": true,
+    "name": "Maximum-Likelihood (True)",
+    "total_result": false,
     "results": [
         {
             "name": "MSE of Empirical Distributions",
-            "result": true,
+            "result": false,
             "detail": null
         },
         {
@@ -12,7 +12,9 @@
             "result": true,
             "detail": {
                 "possibly_ok": true,
-                "to_be_checked": false
+                "to_be_checked": false,
+                "squared_error_to_true": 1.0425207081816808e-17,
+                "estimation_result": "EstimationResult generated in the process of ConsistencyCheck is not dumped to json, check the pickle."
             }
         },
         {
@@ -22,7 +24,7 @@
         },
         {
             "name": "Physicality Violation",
-            "result": true,
+            "result": false,
             "detail": null
         }
     ]
