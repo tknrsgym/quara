@@ -29,7 +29,8 @@ from quara.objects.gate import (
     get_y,
     get_z,
     is_hp,
-    hs_from_choi,
+    to_hs_from_choi,
+    to_hs_from_choi_with_dict,
     get_depolarizing_channel,
     get_x_rotation,
     get_amplitutde_damping_channel,
@@ -410,6 +411,39 @@ class TestGate:
 
         # for H
         actual = get_h(c_sys).to_choi_matrix()
+        expected = (
+            1
+            / 2
+            * np.array([[1, 1, 1, -1], [1, 1, 1, -1], [1, 1, 1, -1], [-1, -1, -1, 1]])
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_to_choi_matrix_with_dict(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # for I
+        actual = get_i(c_sys).to_choi_matrix_with_dict()
+        expected = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # for X
+        actual = get_x(c_sys).to_choi_matrix_with_dict()
+        expected = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # for Y
+        actual = get_y(c_sys).to_choi_matrix_with_dict()
+        expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # for Z
+        actual = get_z(c_sys).to_choi_matrix_with_dict()
+        expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # for H
+        actual = get_h(c_sys).to_choi_matrix_with_dict()
         expected = (
             1
             / 2
@@ -940,7 +974,7 @@ class TestGate:
         assert actual.eps_proj_physical is gate.eps_proj_physical
 
 
-def test_hs_from_choi():
+def test_to_hs_from_choi():
     # Case 1:
     # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -948,7 +982,7 @@ def test_hs_from_choi():
     gate = get_x(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(source_choi, c_sys)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -960,7 +994,7 @@ def test_hs_from_choi():
     gate = get_y(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(source_choi, c_sys)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -972,7 +1006,7 @@ def test_hs_from_choi():
     gate = get_z(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(source_choi, c_sys)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -986,10 +1020,48 @@ def test_hs_from_choi():
     gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=False)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(source_choi, c_sys)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=14)
+
+
+def test_to_hs_from_choi_with_dict():
+    # Case 1:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_x(c_sys)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = to_hs_from_choi_with_dict(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 2:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_y(c_sys)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = to_hs_from_choi_with_dict(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 3:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate = get_z(c_sys)
+    source_choi = gate.to_choi_matrix()
+    # Act
+    actual = to_hs_from_choi_with_dict(source_choi, c_sys)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_convert_var_index_to_gate_index():
