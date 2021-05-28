@@ -1095,7 +1095,10 @@ def test_convert_var_to_gate_2q():
     source = np.array(list(range(16 * 16)), dtype=np.float64)
     # Act
     actual = convert_var_to_gate(
-        c_sys_2q, source, on_para_eq_constraint=False, is_physicality_required=False,
+        c_sys_2q,
+        source,
+        on_para_eq_constraint=False,
+        is_physicality_required=False,
     )
     # Assert
     expected = np.array(range(16 * 16), dtype=np.float64)
@@ -1211,7 +1214,7 @@ def test_calc_agf():
     expected = 1.0 / 3.0
     assert np.isclose(actual, expected, atol=Settings.get_atol())
 
-    # case: u is not Hermitian
+    # case: u is not unitary
     hs = np.array(
         [[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
     )

@@ -330,7 +330,9 @@ class Gate(QOperation):
             HS representation for computational basis.
         """
         converted_hs = convert_hs(
-            self.hs, self.composite_system.basis(), self.composite_system.comp_basis(mode=mode)
+            self.hs,
+            self.composite_system.basis(),
+            self.composite_system.comp_basis(mode=mode),
         )
         return converted_hs
 
@@ -697,9 +699,9 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
             f"type of g and u must be Gate. type of g={type(g)}, type of u={type(u)}"
         )
 
-    # u: unitary gate <=> HS(u) is Hermitian
-    # whetever HS(u) is Hermitian
-    if not mutil.is_hermitian(u.hs):
+    # u: unitary gate <=> HS(u) is unitary
+    # whetever HS(u) is unitary
+    if not mutil.is_unitary(u.hs):
         raise ValueError("gate u must be unitary")
 
     # let trace = Tr[HS(u)^{\dagger}HS(g)]
