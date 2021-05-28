@@ -5,6 +5,25 @@ import pytest
 import quara.utils.matrix_util as util
 
 
+def test_is_unitary():
+    # cases: unitary
+    target_matrix = np.array([[1, 0], [0, 1]], dtype=np.complex128)
+    assert util.is_hermitian(target_matrix)
+
+    target_matrix = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+    assert util.is_hermitian(target_matrix)
+
+    # cases: not Hermitian
+    target_matrix = np.array([[0, 0], [0, 0]], dtype=np.complex128)
+    assert util.is_hermitian(target_matrix)
+
+    target_matrix = np.array([[1, 0], [1j, 1]], dtype=np.complex128)
+    assert not util.is_hermitian(target_matrix)
+
+    target_matrix = np.array([[0, -1j], [1j, 0], [1j, 0]], dtype=np.complex128)
+    assert not util.is_hermitian(target_matrix)
+
+
 def test_is_hermitian():
     # cases: Hermitian
     target_matrix = np.array([[1, 0], [0, 1]], dtype=np.complex128)
