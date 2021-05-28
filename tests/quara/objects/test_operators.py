@@ -1,3 +1,5 @@
+import gc
+
 import itertools
 
 import numpy as np
@@ -53,6 +55,11 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
+
+
+@pytest.fixture(scope="function", autouse=True)
+def setup_function():
+    gc.collect()
 
 
 def test_tensor_product_Gate_Gate():
@@ -144,6 +151,7 @@ def test_tensor_product_Gate_Gate():
     gate_X_ZH = tensor_product(x, tensor_product(z, h))
 
     npt.assert_almost_equal(gate_XZ_H.hs, gate_X_ZH.hs, decimal=15)
+    assert False
 
 
 def test_tensor_product_Gate_Gate_sort_ElementalSystem():

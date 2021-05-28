@@ -1,3 +1,5 @@
+import gc
+
 import numpy as np
 import pytest
 
@@ -12,6 +14,9 @@ from quara.objects.operators import tensor_product
 
 
 class TestCompositeSystem:
+    def teardown_method(self, method):
+        gc.collect()
+
     def test_init_duplicate_elemental_system(self):
         e1 = ElementalSystem(1, get_pauli_basis())
 

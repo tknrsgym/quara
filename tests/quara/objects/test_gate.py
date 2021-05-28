@@ -1,3 +1,5 @@
+import gc
+
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -40,6 +42,9 @@ from quara.settings import Settings
 
 
 class TestGate:
+    def teardown_method(self, method):
+        gc.collect()
+
     def test_init_error(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -1095,7 +1100,10 @@ def test_convert_var_to_gate_2q():
     source = np.array(list(range(16 * 16)), dtype=np.float64)
     # Act
     actual = convert_var_to_gate(
-        c_sys_2q, source, on_para_eq_constraint=False, is_physicality_required=False,
+        c_sys_2q,
+        source,
+        on_para_eq_constraint=False,
+        is_physicality_required=False,
     )
     # Assert
     expected = np.array(range(16 * 16), dtype=np.float64)
