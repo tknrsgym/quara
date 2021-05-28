@@ -361,7 +361,6 @@ def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case02(
 """
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("dims", "c_sys"),
@@ -387,7 +386,6 @@ def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case03(
     _test_hamiltonian_mat_unitary_mat(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
     )
-"""
 
 
 @pytest.mark.parametrize(
@@ -469,7 +467,6 @@ def test_effective_lindbladian_mat_gate_mat_identity_gate_case02(
 """
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("dims", "c_sys"),
@@ -495,7 +492,6 @@ def test_effective_lindbladian_mat_gate_mat_identity_gate_case03(
     _test_effective_lindbladian_mat_gate_mat(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
     )
-"""
 
 
 @pytest.mark.parametrize(
@@ -576,7 +572,6 @@ def test_generate_effective_lindbladian_from_h_identity_gate_case02(
     )
 """
 
-"""
 
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
@@ -603,7 +598,6 @@ def test_generate_effective_lindbladian_from_h_identity_gate_case03(
     _test_generate_effective_lindbladian_from_h(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
     )
-"""
 
 
 @pytest.mark.parametrize(
@@ -677,7 +671,6 @@ def test_calc_h_1qubit_identity_gate_case02(dims: List[int], c_sys: CompositeSys
 """
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("dims", "c_sys"),
@@ -699,7 +692,6 @@ def test_calc_h_1qubit_identity_gate_case03(dims: List[int], c_sys: CompositeSys
     ids = []
 
     _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
-"""
 
 
 # Tests for 1-qubit gates
@@ -1108,7 +1100,6 @@ def test_calc_h_1qutrit(gate_name, decimal):
 # Tests for 2-qutrit gates
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("gate_name", "decimal"),
@@ -1129,10 +1120,8 @@ def test_hamiltonian_vec_hamiltonian_mat_2qutrit_case01(gate_name, decimal):
     _test_hamiltonian_vec_hamiltonian_mat(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
     )
-"""
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("gate_name", "decimal"),
@@ -1153,10 +1142,8 @@ def test_hamiltonian_mat_unitary_mat_2qutrit_case01(gate_name, decimal):
     _test_hamiltonian_mat_unitary_mat(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
     )
-"""
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("gate_name", "decimal"),
@@ -1177,10 +1164,8 @@ def test_effective_lindbladian_mat_gate_mat_2qutrit_case01(gate_name, decimal):
     _test_effective_lindbladian_mat_gate_mat(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
     )
-"""
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("gate_name", "decimal"),
@@ -1201,10 +1186,8 @@ def test_generate_effective_lindbladian_from_h_2qutrit_case01(gate_name, decimal
     _test_generate_effective_lindbladian_from_h(
         gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
     )
-"""
 
 
-"""
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("gate_name", "decimal"),
@@ -1224,4 +1207,3 @@ def test_calc_h_2qutrit(gate_name, decimal):
 
     # Act & Assert
     _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal)
-"""
