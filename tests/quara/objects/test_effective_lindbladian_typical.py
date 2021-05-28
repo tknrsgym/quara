@@ -226,9 +226,9 @@ def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case01(
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case02():
+    # Arrange
+    parameters = [
         (
             [2, 2, 2],
             CompositeSystem(
@@ -239,24 +239,21 @@ def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case01(
                 ]
             ),
         ),
-    ],
-)
-def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case02(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_hamiltonian_vec_hamiltonian_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_hamiltonian_vec_hamiltonian_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case03():
+    # Arrange
+    parameters = [
         (
             [3, 3],
             CompositeSystem(
@@ -266,18 +263,15 @@ def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case02(
                 ]
             ),
         ),
-    ],
-)
-def test_validity_hamiltonian_vec_hamiltonian_mat_identity_gate_case03(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_hamiltonian_vec_hamiltonian_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_hamiltonian_vec_hamiltonian_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.parametrize(
@@ -330,9 +324,9 @@ def test_validity_hamiltonian_mat_unitary_mat_identity_gate_01(
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case02():
+    # Arrange
+    parameters = [
         (
             [2, 2, 2],
             CompositeSystem(
@@ -343,24 +337,21 @@ def test_validity_hamiltonian_mat_unitary_mat_identity_gate_01(
                 ]
             ),
         ),
-    ],
-)
-def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case02(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_hamiltonian_mat_unitary_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_hamiltonian_mat_unitary_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case03():
+    # Arrange
+    parameters = [
         (
             [3, 3],
             CompositeSystem(
@@ -370,18 +361,15 @@ def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case02(
                 ]
             ),
         ),
-    ],
-)
-def test_validity_hamiltonian_mat_unitary_mat_identity_gate_case03(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_hamiltonian_mat_unitary_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_hamiltonian_mat_unitary_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.parametrize(
@@ -434,9 +422,9 @@ def test_effective_lindbladian_mat_gate_mat_identity_gate_case01(
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_effective_lindbladian_mat_gate_mat_identity_gate_case02():
+    # Arrange
+    parameters = [
         (
             [2, 2, 2],
             CompositeSystem(
@@ -447,24 +435,21 @@ def test_effective_lindbladian_mat_gate_mat_identity_gate_case01(
                 ]
             ),
         ),
-    ],
-)
-def test_effective_lindbladian_mat_gate_mat_identity_gate_case02(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_effective_lindbladian_mat_gate_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_effective_lindbladian_mat_gate_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_effective_lindbladian_mat_gate_mat_identity_gate_case03():
+    # Arrange
+    parameters = [
         (
             [3, 3],
             CompositeSystem(
@@ -474,18 +459,15 @@ def test_effective_lindbladian_mat_gate_mat_identity_gate_case02(
                 ]
             ),
         ),
-    ],
-)
-def test_effective_lindbladian_mat_gate_mat_identity_gate_case03(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_effective_lindbladian_mat_gate_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_effective_lindbladian_mat_gate_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.parametrize(
@@ -538,9 +520,9 @@ def test_generate_effective_lindbladian_from_h_identity_gate_case01(
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_generate_effective_lindbladian_from_h_identity_gate_case02():
+    # Arrange
+    parameters = [
         (
             [2, 2, 2],
             CompositeSystem(
@@ -551,24 +533,21 @@ def test_generate_effective_lindbladian_from_h_identity_gate_case01(
                 ]
             ),
         ),
-    ],
-)
-def test_generate_effective_lindbladian_from_h_identity_gate_case02(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_generate_effective_lindbladian_from_h(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_generate_effective_lindbladian_from_h(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_generate_effective_lindbladian_from_h_identity_gate_case03():
+    # Arrange
+    parameters = [
         (
             [3, 3],
             CompositeSystem(
@@ -578,18 +557,15 @@ def test_generate_effective_lindbladian_from_h_identity_gate_case02(
                 ]
             ),
         ),
-    ],
-)
-def test_generate_effective_lindbladian_from_h_identity_gate_case03(
-    dims: List[int], c_sys: CompositeSystem
-):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_generate_effective_lindbladian_from_h(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
-    )
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_generate_effective_lindbladian_from_h(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys
+        )
 
 
 @pytest.mark.parametrize(
@@ -638,9 +614,9 @@ def test_calc_h_1qubit_identity_gate_case01(dims: List[int], c_sys: CompositeSys
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_calc_h_1qubit_identity_gate_case02():
+    # Arrange
+    parameters = [
         (
             [2, 2, 2],
             CompositeSystem(
@@ -651,20 +627,19 @@ def test_calc_h_1qubit_identity_gate_case01(dims: List[int], c_sys: CompositeSys
                 ]
             ),
         ),
-    ],
-)
-def test_calc_h_1qubit_identity_gate_case02(dims: List[int], c_sys: CompositeSystem):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("dims", "c_sys"),
-    [
+def test_calc_h_1qubit_identity_gate_case03():
+    # Arrange
+    parameters = [
         (
             [3, 3],
             CompositeSystem(
@@ -674,14 +649,13 @@ def test_calc_h_1qubit_identity_gate_case02(dims: List[int], c_sys: CompositeSys
                 ]
             ),
         ),
-    ],
-)
-def test_calc_h_1qubit_identity_gate_case03(dims: List[int], c_sys: CompositeSystem):
-    # Arrange
+    ]
     gate_name = "identity"
     ids = []
 
-    _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
+    for (dims, c_sys) in parameters:
+        print(f"test dims={dims}, c_sys={c_sys}")
+        _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys)
 
 
 # Tests for 1-qubit gates
@@ -689,7 +663,8 @@ def test_calc_h_1qubit_identity_gate_case03(dims: List[int], c_sys: CompositeSys
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_hamiltonian_vec_hamiltonian_mat_1qubit(gate_name):
     # Arrange
@@ -705,7 +680,8 @@ def test_hamiltonian_vec_hamiltonian_mat_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_hamiltonian_mat_unitary_mat_1qubit(gate_name):
     # Arrange
@@ -721,7 +697,8 @@ def test_hamiltonian_mat_unitary_mat_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_effective_lindbladian_mat_gate_mat_1qubit(gate_name):
     # Arrange
@@ -737,7 +714,8 @@ def test_effective_lindbladian_mat_gate_mat_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_generate_effective_lindbladian_from_h_1qubit(gate_name):
     # Arrange
@@ -753,7 +731,8 @@ def test_generate_effective_lindbladian_from_h_1qubit(gate_name):
 
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_gate_names_1qubit()],
+    ("gate_name"),
+    [(gate_name) for gate_name in get_gate_names_1qubit()],
 )
 def test_calc_h_1qubit(gate_name):
     # Arrange
@@ -892,12 +871,9 @@ def test_calc_h_2qubit(gate_name, decimal):
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
-)
-def test_hamiltonian_vec_hamiltonian_mat_3qubit(gate_name, decimal):
+def test_hamiltonian_vec_hamiltonian_mat_3qubit():
     # Arrange
+    parameters = [(gate_name, 15) for gate_name in get_gate_names_3qubit()]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
@@ -905,19 +881,18 @@ def test_hamiltonian_vec_hamiltonian_mat_3qubit(gate_name, decimal):
     dims = [2, 2, 2]
 
     ids_base = [0, 1, 2]
-    for ids in permutations(ids_base):
-        _test_hamiltonian_vec_hamiltonian_mat(
-            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-        )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        for ids in permutations(ids_base):
+            _test_hamiltonian_vec_hamiltonian_mat(
+                gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+            )
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
-)
-def test_hamiltonian_mat_unitary_mat_3qubit(gate_name, decimal):
+def test_hamiltonian_mat_unitary_mat_3qubit():
     # Arrange
+    parameters = [(gate_name, 15) for gate_name in get_gate_names_3qubit()]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
@@ -925,39 +900,37 @@ def test_hamiltonian_mat_unitary_mat_3qubit(gate_name, decimal):
     dims = [2, 2, 2]
 
     ids_base = [0, 1, 2]
-    for ids in permutations(ids_base):
-        _test_hamiltonian_mat_unitary_mat(
-            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-        )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        for ids in permutations(ids_base):
+            _test_hamiltonian_mat_unitary_mat(
+                gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+            )
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
-)
-def test_effective_lindbladian_mat_gate_mat_3qubit(gate_name, decimal):
+def test_effective_lindbladian_mat_gate_mat_3qubit():
     # Arrange
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    parameters = [(gate_name, 15) for gate_name in get_gate_names_3qubit()]
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1, e_sys2])
     dims = [2, 2, 2]
 
     ids_base = [0, 1, 2]
-    for ids in permutations(ids_base):
-        _test_effective_lindbladian_mat_gate_mat(
-            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-        )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        for ids in permutations(ids_base):
+            _test_effective_lindbladian_mat_gate_mat(
+                gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+            )
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [(gate_name, 15) for gate_name in get_gate_names_3qubit()],
-)
-def test_generate_effective_lindbladian_from_h_3qubit(gate_name, decimal):
+def test_generate_effective_lindbladian_from_h_3qubit():
     # Arrange
+    parameters = [(gate_name, 15) for gate_name in get_gate_names_3qubit()]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
@@ -965,19 +938,18 @@ def test_generate_effective_lindbladian_from_h_3qubit(gate_name, decimal):
     dims = [2, 2, 2]
 
     ids_base = [0, 1, 2]
-    for ids in permutations(ids_base):
-        _test_generate_effective_lindbladian_from_h(
-            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-        )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        for ids in permutations(ids_base):
+            _test_generate_effective_lindbladian_from_h(
+                gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+            )
 
 
 @pytest.mark.threequbit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [(gate_name, 14) for gate_name in get_gate_names_3qubit()],
-)
-def test_calc_h_3qubit(gate_name, decimal):
+def test_calc_h_3qubit():
     # Arrange
+    parameters = [(gate_name, 14) for gate_name in get_gate_names_3qubit()]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
     e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
@@ -985,10 +957,12 @@ def test_calc_h_3qubit(gate_name, decimal):
     dims = [2, 2, 2]
 
     ids_base = [0, 1, 2]
-    for ids in permutations(ids_base):
-        _test_calc_h(
-            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-        )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        for ids in permutations(ids_base):
+            _test_calc_h(
+                gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+            )
 
 
 # Tests for 1-qutrit gates
@@ -1076,15 +1050,12 @@ def test_calc_h_1qutrit(gate_name, decimal):
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [
+def test_hamiltonian_vec_hamiltonian_mat_2qutrit_case01():
+    # Arrange
+    parameters = [
         (gate_name, 15)
         for gate_name in ["i01x90", "02yi180", "12z01y90", "i01y90_02x01z180"]
-    ],
-)
-def test_hamiltonian_vec_hamiltonian_mat_2qutrit_case01(gate_name, decimal):
-    # Arrange
+    ]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
@@ -1092,21 +1063,20 @@ def test_hamiltonian_vec_hamiltonian_mat_2qutrit_case01(gate_name, decimal):
     ids = []
 
     # Act & Assert
-    _test_hamiltonian_vec_hamiltonian_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-    )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        _test_hamiltonian_vec_hamiltonian_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [
+def test_hamiltonian_mat_unitary_mat_2qutrit_case01():
+    # Arrange
+    parameters = [
         (gate_name, 15)
         for gate_name in ["i01x90", "02yi180", "12z01y90", "i01y90_02x01z180"]
-    ],
-)
-def test_hamiltonian_mat_unitary_mat_2qutrit_case01(gate_name, decimal):
-    # Arrange
+    ]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
@@ -1114,21 +1084,20 @@ def test_hamiltonian_mat_unitary_mat_2qutrit_case01(gate_name, decimal):
     ids = []
 
     # Act & Assert
-    _test_hamiltonian_mat_unitary_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-    )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        _test_hamiltonian_mat_unitary_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [
+def test_effective_lindbladian_mat_gate_mat_2qutrit_case01():
+    # Arrange
+    parameters = [
         (gate_name, 15)
         for gate_name in ["i01x90", "02yi180", "12z01y90", "i01y90_02x01z180"]
-    ],
-)
-def test_effective_lindbladian_mat_gate_mat_2qutrit_case01(gate_name, decimal):
-    # Arrange
+    ]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
@@ -1136,21 +1105,20 @@ def test_effective_lindbladian_mat_gate_mat_2qutrit_case01(gate_name, decimal):
     ids = []
 
     # Act & Assert
-    _test_effective_lindbladian_mat_gate_mat(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-    )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        _test_effective_lindbladian_mat_gate_mat(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [
+def test_generate_effective_lindbladian_from_h_2qutrit_case01():
+    # Arrange
+    parameters = [
         (gate_name, 15)
         for gate_name in ["i01x90", "02yi180", "12z01y90", "i01y90_02x01z180"]
-    ],
-)
-def test_generate_effective_lindbladian_from_h_2qutrit_case01(gate_name, decimal):
-    # Arrange
+    ]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
@@ -1158,22 +1126,21 @@ def test_generate_effective_lindbladian_from_h_2qutrit_case01(gate_name, decimal
     ids = []
 
     # Act & Assert
-    _test_generate_effective_lindbladian_from_h(
-        gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
-    )
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        _test_generate_effective_lindbladian_from_h(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
 
 
 @pytest.mark.twoqutrit
-@pytest.mark.parametrize(
-    ("gate_name", "decimal"),
-    [
+def test_calc_h_2qutrit():
+    # Arrange
+    parameters = [
         (gate_name, 14)
         for gate_name in ["i01x90", "02yi180", "12z01y90", "i01y90_02x01z180"]
         # We set secimal = 14, because decimal = 15 could not pass the test.
-    ],
-)
-def test_calc_h_2qutrit(gate_name, decimal):
-    # Arrange
+    ]
     e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_gell_mann_basis())
     e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_gell_mann_basis())
     c_sys = CompositeSystem([e_sys0, e_sys1])
@@ -1181,4 +1148,8 @@ def test_calc_h_2qutrit(gate_name, decimal):
     ids = []
 
     # Act & Assert
-    _test_calc_h(gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal)
+    for (gate_name, decimal) in parameters:
+        print(f"test gate_name={gate_name}, decimal={decimal}")
+        _test_calc_h(
+            gate_name=gate_name, dims=dims, ids=ids, c_sys=c_sys, decimal=decimal
+        )
