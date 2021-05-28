@@ -100,6 +100,11 @@ class CompositeSystem:
         -------
         MatrixBasis
             computational basis of CompositeSystem.
+
+        Raises
+        ------
+        ValueError
+            ``mode`` is unsupported.
         """
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
         basis_tmp: MatrixBasis
