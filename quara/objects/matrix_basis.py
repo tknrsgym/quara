@@ -417,6 +417,11 @@ def get_comp_basis(dim: int = 2, mode: str = "row_major") -> MatrixBasis:
     -------
     MatrixBasis
         computational basis with specific dim.
+
+    Raises
+    ------
+    ValueError
+        ``mode`` is unsupported.
     """
     comp_basis_list = []
     if mode == "row_major":
@@ -426,13 +431,15 @@ def get_comp_basis(dim: int = 2, mode: str = "row_major") -> MatrixBasis:
                 tmp_basis = np.zeros((dim, dim), dtype=np.complex128)
                 tmp_basis[row, col] = 1
                 comp_basis_list.append(tmp_basis)
-    else:
+    elif mode == "column_major":
         # column-major
         for col in range(dim):
             for row in range(dim):
                 tmp_basis = np.zeros((dim, dim), dtype=np.complex128)
                 tmp_basis[row, col] = 1
                 comp_basis_list.append(tmp_basis)
+    else:
+        raise ValueError(f"unsupported mode={mode}")
 
     comp_basis = MatrixBasis(comp_basis_list)
     return comp_basis

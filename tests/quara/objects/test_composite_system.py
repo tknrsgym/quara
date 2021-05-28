@@ -90,6 +90,12 @@ class TestCompositeSystem:
         assert np.all(actual[2] == expected[2])
         assert np.all(actual[3] == expected[3])
 
+        ### unsupported mode
+        e = ElementalSystem(1, get_comp_basis(mode="column_major"))
+        source = [e]
+        with pytest.raises(ValueError):
+            CompositeSystem(source).comp_basis(mode="unsupported")
+
     def test_basis(self):
         e1 = ElementalSystem(1, get_pauli_basis())
         e2 = ElementalSystem(2, get_comp_basis())
