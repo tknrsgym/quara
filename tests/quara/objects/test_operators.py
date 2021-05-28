@@ -59,6 +59,7 @@ from quara.objects.state import (
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_function():
+    print("test_operators")
     gc.collect()
 
 

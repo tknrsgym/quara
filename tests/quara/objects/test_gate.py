@@ -35,7 +35,7 @@ from quara.objects.gate import (
     get_depolarizing_channel,
     get_x_rotation,
     get_amplitutde_damping_channel,
-)
+)sqlite3
 from quara.objects.operators import compose_qoperations, tensor_product
 from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
 from quara.settings import Settings
@@ -43,6 +43,7 @@ from quara.settings import Settings
 
 class TestGate:
     def teardown_method(self, method):
+        print("TestGate")
         gc.collect()
 
     def test_init_error(self):

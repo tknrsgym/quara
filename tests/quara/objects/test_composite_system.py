@@ -15,6 +15,7 @@ from quara.objects.operators import tensor_product
 
 class TestCompositeSystem:
     def teardown_method(self, method):
+        print("TestCompositeSystem")
         gc.collect()
 
     def test_init_duplicate_elemental_system(self):
