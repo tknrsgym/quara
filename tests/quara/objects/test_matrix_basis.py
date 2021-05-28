@@ -470,6 +470,10 @@ def test_get_comp_basis():
     assert np.all(basis[2] == np.array([[0, 1], [0, 0]], dtype=np.complex128))
     assert np.all(basis[3] == np.array([[0, 0], [0, 1]], dtype=np.complex128))
 
+    ### unsupported mode
+    with pytest.raises(ValueError):
+        matrix_basis.get_comp_basis(mode="unsupported")
+
 
 def test_get_pauli_basis():
     # 1 qubit(use default value)
