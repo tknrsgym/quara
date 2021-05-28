@@ -152,7 +152,6 @@ def test_tensor_product_Gate_Gate():
     gate_X_ZH = tensor_product(x, tensor_product(z, h))
 
     npt.assert_almost_equal(gate_XZ_H.hs, gate_X_ZH.hs, decimal=15)
-    assert False
 
 
 def test_tensor_product_Gate_Gate_sort_ElementalSystem():
