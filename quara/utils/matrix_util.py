@@ -9,6 +9,32 @@ import numpy as np
 from quara.settings import Settings
 
 
+def is_unitary(matrix: np.ndarray, atol: float = None) -> bool:
+    """returns whether the matrix is unitary.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        input matrix.
+    atol : float, optional
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+
+    Returns
+    -------
+    bool
+        True where ``matrix`` is unitary, False otherwise.
+    """
+    atol = Settings.get_atol() if atol is None else atol
+    rows, columns = matrix.shape
+
+    if rows != columns:
+        return False
+
+    adjoint = matrix.conj().T
+    I = np.eye(rows)
+    return np.allclose(matrix @ adjoint, I, atol=atol, rtol=0.0)
+
+
 def is_hermitian(matrix: np.ndarray, atol: float = None) -> bool:
     """returns whether the matrix is Hermitian.
 

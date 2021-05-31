@@ -83,10 +83,36 @@ class CompositeSystem:
         basis = copy.deepcopy(self._total_basis.basis)
 
         self._basis_basisconjugate = dict()
+        self._dict_from_hs_to_choi = dict()
+        self._dict_from_choi_to_hs = dict()
         for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
             b_alpha = basis[alpha]
             b_beta = np.conjugate(basis[beta])
-            self._basis_basisconjugate[(alpha, beta)] = np.kron(b_alpha, b_beta)
+            matrix = np.kron(b_alpha, b_beta)
+            self._basis_basisconjugate[(alpha, beta)] = matrix
+
+            # calc _dict_from_hs_to_choi and _dict_from_choi_to_hs
+            row_indices, column_indices = np.where(matrix != 0)
+            for row_index, column_index in zip(row_indices, column_indices):
+                # _dict_from_hs_to_choi
+                if (row_index, column_index) in self._dict_from_hs_to_choi:
+                    self._dict_from_hs_to_choi[(row_index, column_index)].append(
+                        (alpha, beta, matrix[row_index, column_index])
+                    )
+                else:
+                    self._dict_from_hs_to_choi[(row_index, column_index)] = [
+                        (alpha, beta, matrix[row_index, column_index])
+                    ]
+
+                # _dict_from_choi_to_hs
+                if (alpha, beta) in self._dict_from_choi_to_hs:
+                    self._dict_from_choi_to_hs[(alpha, beta)].append(
+                        (row_index, column_index, matrix[row_index, column_index])
+                    )
+                else:
+                    self._dict_from_choi_to_hs[(alpha, beta)] = [
+                        (row_index, column_index, matrix[row_index, column_index])
+                    ]
 
     def comp_basis(self, mode: str = "row_major") -> MatrixBasis:
         """returns computational basis of CompositeSystem.
