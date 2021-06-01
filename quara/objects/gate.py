@@ -197,7 +197,7 @@ class Gate(QOperation):
                 eigenvals[index] = 0
 
         new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
-        new_hs = hs_from_choi(new_choi_matrix, self.composite_system)
+        new_hs = to_hs_from_choi(new_choi_matrix, self.composite_system)
         new_gate = Gate(
             c_sys=self.composite_system,
             hs=new_hs,
@@ -316,8 +316,13 @@ class Gate(QOperation):
         converted_hs = convert_hs(self.hs, self.composite_system.basis(), other_basis)
         return converted_hs
 
-    def convert_to_comp_basis(self) -> np.ndarray:
+    def convert_to_comp_basis(self, mode: str = "row_major") -> np.ndarray:
         """returns HS representation for computational basis.
+
+        Parameters
+        ----------
+        mode : str, optional
+            specify whether the order of basis is "row_major" or "column_major", by default "row_major".
 
         Returns
         -------
@@ -325,7 +330,9 @@ class Gate(QOperation):
             HS representation for computational basis.
         """
         converted_hs = convert_hs(
-            self.hs, self.composite_system.basis(), self.composite_system.comp_basis()
+            self.hs,
+            self.composite_system.basis(),
+            self.composite_system.comp_basis(mode=mode),
         )
         return converted_hs
 
@@ -339,14 +346,34 @@ class Gate(QOperation):
         """
         # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
         c_sys = self.composite_system
-        basis_no = len(c_sys.basis())
+        num_basis = len(c_sys.basis())
         tmp_list = []
-        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+        for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
             tmp = self._hs[alpha][beta] * c_sys.basis_basisconjugate((alpha, beta))
             tmp_list.append(tmp)
 
         # summing
         choi = reduce(add, tmp_list)
+        return choi
+
+    def to_choi_matrix_with_dict(self) -> np.ndarray:
+        """returns Choi matrix of gate.
+
+        this function uses the sparsity of matrices to calculate.
+
+        Returns
+        -------
+        np.ndarray
+            Choi matrix of gate.
+        """
+        c_sys = self.composite_system
+        num_basis = len(c_sys.basis())
+        choi = np.zeros((num_basis, num_basis), dtype=np.complex128)
+        for i, j in itertools.product(range(num_basis), range(num_basis)):
+            non_zeros = c_sys._dict_from_hs_to_choi.get((i, j), [])
+            for alpha, beta, coefficient in non_zeros:
+                choi[i, j] += self.hs[alpha, beta] * coefficient
+
         return choi
 
     def to_kraus_matrices(self) -> List[np.ndarray]:
@@ -438,16 +465,28 @@ class Gate(QOperation):
         return copy.deepcopy(self.hs)
 
 
-def hs_from_choi(choi, c_sys: CompositeSystem) -> np.ndarray:
-    basis_no = len(c_sys.basis().basis)
-    hs = np.zeros((basis_no, basis_no), dtype=np.float64)
+def to_hs_from_choi(choi, c_sys: CompositeSystem) -> np.ndarray:
+    num_basis = len(c_sys.basis().basis)
+    hs = np.zeros((num_basis, num_basis), dtype=np.float64)
 
-    for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+    for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
         b_bc = c_sys.basis_basisconjugate((alpha, beta))
         b_bc_dag = np.conjugate(b_bc.T)
         hs[alpha, beta] = (np.trace(b_bc_dag @ choi)).real.astype(np.float64)
 
     return hs
+
+
+def to_hs_from_choi_with_dict(choi, c_sys: CompositeSystem) -> np.ndarray:
+    num_basis = len(c_sys.basis())
+    hs = np.zeros((num_basis, num_basis), dtype=np.complex128)
+
+    for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
+        non_zeros = c_sys._dict_from_choi_to_hs.get((alpha, beta), [])
+        for i, j, coefficient in non_zeros:
+            hs[alpha, beta] += coefficient * choi[i, j]
+
+    return mutil.truncate_hs(hs)
 
 
 def convert_var_index_to_gate_index(
@@ -692,9 +731,9 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
             f"type of g and u must be Gate. type of g={type(g)}, type of u={type(u)}"
         )
 
-    # u: unitary gate <=> HS(u) is Hermitian
-    # whetever HS(u) is Hermitian
-    if not mutil.is_hermitian(u.hs):
+    # u: unitary gate <=> HS(u) is unitary
+    # whetever HS(u) is unitary
+    if not mutil.is_unitary(u.hs):
         raise ValueError("gate u must be unitary")
 
     # let trace = Tr[HS(u)^{\dagger}HS(g)]

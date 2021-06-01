@@ -403,25 +403,44 @@ def _calc_tensor_product_from_1q_basis(n_qubit: int, basis_1q: List[np.ndarray])
     return basis
 
 
-def get_comp_basis(dim: int = 2) -> MatrixBasis:
+def get_comp_basis(dim: int = 2, mode: str = "row_major") -> MatrixBasis:
     """Returns computational basis.
 
     Parameters
     ----------
     dim : int, optional
         dim of computational basis, by default 2.
+    mode : str, optional
+        specify whether the order of basis is "row_major" or "column_major", by default "row_major".
 
     Returns
     -------
     MatrixBasis
         computational basis with specific dim.
+
+    Raises
+    ------
+    ValueError
+        ``mode`` is unsupported.
     """
     comp_basis_list = []
-    for row in range(dim):
+    if mode == "row_major":
+        # row-major
+        for row in range(dim):
+            for col in range(dim):
+                tmp_basis = np.zeros((dim, dim), dtype=np.complex128)
+                tmp_basis[row, col] = 1
+                comp_basis_list.append(tmp_basis)
+    elif mode == "column_major":
+        # column-major
         for col in range(dim):
-            tmp_basis = np.zeros((dim, dim), dtype=np.complex128)
-            tmp_basis[row, col] = 1
-            comp_basis_list.append(tmp_basis)
+            for row in range(dim):
+                tmp_basis = np.zeros((dim, dim), dtype=np.complex128)
+                tmp_basis[row, col] = 1
+                comp_basis_list.append(tmp_basis)
+    else:
+        raise ValueError(f"unsupported mode={mode}")
+
     comp_basis = MatrixBasis(comp_basis_list)
     return comp_basis
 

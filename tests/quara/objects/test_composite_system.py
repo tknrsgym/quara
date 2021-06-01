@@ -46,6 +46,7 @@ class TestCompositeSystem:
         assert source == expected
 
     def test_comp_basis(self):
+        ### mode=default
         e1 = ElementalSystem(1, get_pauli_basis())
         e2 = ElementalSystem(2, get_comp_basis())
 
@@ -66,6 +67,34 @@ class TestCompositeSystem:
         assert len(actual) == 16
         assert np.all(actual[0] == expected[0])
         assert np.all(actual[1] == expected[1])
+
+        ### mode="row_major"
+        e = ElementalSystem(1, get_comp_basis(mode="row_major"))
+        source = [e]
+        actual = CompositeSystem(source).comp_basis(mode="row_major")
+        expected = get_comp_basis(mode="row_major")
+        assert len(actual) == 4
+        assert np.all(actual[0] == expected[0])
+        assert np.all(actual[1] == expected[1])
+        assert np.all(actual[2] == expected[2])
+        assert np.all(actual[3] == expected[3])
+
+        ### mode="column_major"
+        e = ElementalSystem(1, get_comp_basis(mode="column_major"))
+        source = [e]
+        actual = CompositeSystem(source).comp_basis(mode="column_major")
+        expected = get_comp_basis(mode="column_major")
+        assert len(actual) == 4
+        assert np.all(actual[0] == expected[0])
+        assert np.all(actual[1] == expected[1])
+        assert np.all(actual[2] == expected[2])
+        assert np.all(actual[3] == expected[3])
+
+        ### unsupported mode
+        e = ElementalSystem(1, get_comp_basis(mode="column_major"))
+        source = [e]
+        with pytest.raises(ValueError):
+            CompositeSystem(source).comp_basis(mode="unsupported")
 
     def test_basis(self):
         e1 = ElementalSystem(1, get_pauli_basis())
