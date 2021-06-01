@@ -9,6 +9,7 @@ from quara.objects.state_typical import (
 from quara.interface.qutip.qutip_state_typical import (
     get_qutip_state_names_1qubit,
     get_qutip_state_names_2qubit,
+    get_qutip_state_names_3qubit,
     get_qutip_state_names_1qutrit,
     get_qutip_state_names_2qutrit,
     generate_qutip_state_from_state_name,
@@ -28,10 +29,11 @@ def test_get_qutip_state_names(type: str):
 
 
 @pytest.mark.parametrize(("type"), ["1qubit", "2qubit", "3qubit", "1qutrit", "2qutrit"])
-def test_generate_qutip_state_from_state_name(state_name):
+def test_generate_qutip_state_from_state_name(type):
     get_state_name_method_name = f"get_qutip_state_names_{type}"
     get_state_name_method = eval(get_state_name_method_name)
     state_names = get_state_name_method()
     for state_name in state_names:
-        generate_qutip_state_from_state_name(state_name)
+        generate_qutip_state_from_state_name(state_name, target_type="ket")
+        generate_qutip_state_from_state_name(state_name, target_type="oper")
     # TODO: check values
