@@ -22,6 +22,8 @@ def test_print_summary(capfd):
         result_index=None,
         simulation_setting=None,
         estimation_results=None,
+        qtomography=None,
+        empi_dists_sequences=None,
         check_result=check_result,
     )
 
@@ -43,6 +45,8 @@ def test_print_summary(capfd):
         result_index=None,
         simulation_setting=None,
         estimation_results=None,
+        qtomography=None,
+        empi_dists_sequences=None,
         check_result=check_result,
     )
 
@@ -64,6 +68,8 @@ def test_print_summary(capfd):
         result_index=None,
         simulation_setting=None,
         estimation_results=None,
+        qtomography=None,
+        empi_dists_sequences=None,
         check_result=check_result,
     )
 
@@ -85,6 +91,8 @@ def test_print_summary(capfd):
         result_index=None,
         simulation_setting=None,
         estimation_results=None,
+        qtomography=None,
+        empi_dists_sequences=None,
         check_result=check_result,
     )
     dummy_results = [result_0, result_1, result_2, result_3]

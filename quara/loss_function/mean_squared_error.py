@@ -172,7 +172,7 @@ def compare_to_linear(
 
     # generate empi dists and calc estimate
     linear_estimator = LinearEstimator()
-    linear_estimation_results = generate_empi_dists_and_calc_estimate(
+    sim_result = generate_empi_dists_and_calc_estimate(
         qtomography=qtomo,
         true_object=true_object_copied,
         num_data=num_data,
@@ -181,7 +181,7 @@ def compare_to_linear(
     )
     # calc
     linear_mses, *_ = data_analysis.convert_to_series(
-        linear_estimation_results, true_object_copied
+        sim_result.estimation_results, true_object_copied
     )
 
     # compare
