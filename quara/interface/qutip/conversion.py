@@ -1,3 +1,6 @@
+from typing import List
+
+import numpy as np
 from qutip import Qobj
 
 from quara.objects.composite_system import CompositeSystem
@@ -34,14 +37,24 @@ def convert_state_quara_to_qutip(quara_state: State) -> Qobj:
     return Qobj(density_mat)
 
 
-# TODO: implement
-def convert_povm_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Povm:
-    pass
+def convert_povm_qutip_to_quara(
+    qutip_qobjs: List[Qobj], c_sys: CompositeSystem
+) -> Povm:
+    vecs = []
+    for item in qutip_qobjs:
+        matrix = item.data.toarray()
+        vecs.append(
+            calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
+                matrix, c_sys.basis()
+            )
+        )
+    return Povm(c_sys, vecs)
 
 
-# TODO: implement
-def convert_povm_quara_to_qutip(quara_povm: Povm) -> Qobj:
-    pass
+def convert_povm_quara_to_qutip(quara_povm: Povm) -> List[Qobj]:
+    matrices = quara_povm.matrices()
+    qutip_povm = [Qobj(matrix) for matrix in matrices]
+    return qutip_povm
 
 
 # TODO: implement
