@@ -41,14 +41,9 @@ from quara.objects.matrix_basis import (
 from quara.utils.matrix_util import calc_mat_from_vector_adjoint
 
 
-@pytest.mark.onequbit
-@pytest.mark.parametrize(
-    ("state_name"),
-    [(state_name) for state_name in get_qutip_state_names_1qubit()],
-)
-def test_convert_state_qutip_to_quara_1qubit(state_name):
+def _test_convert_state_qutip_to_quara(mode, num, state_name):
     # Arrange
-    c_sys = generate_composite_system("qubit", 1)
+    c_sys = generate_composite_system(mode, num)
     expected = generate_state_from_name(c_sys, state_name)
 
     # Case 1: Qobj.type=="ket"
@@ -64,7 +59,17 @@ def test_convert_state_qutip_to_quara_1qubit(state_name):
     # Case 2: test Qobj type validation
     source = generate_qutip_state_from_state_name(state_name, "ket")
     with pytest.raises(ValueError):
+        # type == "bra"
         convert_state_qutip_to_quara(source.dag(), c_sys)
+
+
+@pytest.mark.onequbit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qutip_state_names_1qubit()],
+)
+def test_convert_state_qutip_to_quara_1qubit(state_name):
+    _test_convert_state_qutip_to_quara("qubit", 1, state_name)
 
 
 @pytest.mark.twoqubit
@@ -73,24 +78,7 @@ def test_convert_state_qutip_to_quara_1qubit(state_name):
     [(state_name) for state_name in get_qutip_state_names_2qubit()],
 )
 def test_convert_state_qutip_to_quara_2qubit(state_name):
-    # Arrange
-    c_sys = generate_composite_system("qubit", 2)
-    expected = generate_state_from_name(c_sys, state_name)
-
-    # Case 1: Qobj.type=="ket"
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
-
-    # Case 2: Qobj.type=="oper"
-    source = generate_qutip_state_from_state_name(state_name, "oper")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
-
-    # Case 2: test Qobj type validation
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    with pytest.raises(ValueError):
-        convert_state_qutip_to_quara(source.dag(), c_sys)
+    _test_convert_state_qutip_to_quara("qubit", 2, state_name)
 
 
 @pytest.mark.threequbit
@@ -99,24 +87,7 @@ def test_convert_state_qutip_to_quara_2qubit(state_name):
     [(state_name) for state_name in get_qutip_state_names_3qubit()],
 )
 def test_convert_state_qutip_to_quara_3qubit(state_name):
-    # Arrange
-    c_sys = generate_composite_system("qubit", 3)
-    expected = generate_state_from_name(c_sys, state_name)
-
-    # Case 1: Qobj.type=="ket"
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
-
-    # Case 2: Qobj.type=="oper"
-    source = generate_qutip_state_from_state_name(state_name, "oper")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
-
-    # Case 2: test Qobj type validation
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    with pytest.raises(ValueError):
-        convert_state_qutip_to_quara(source.dag(), c_sys)
+    _test_convert_state_qutip_to_quara("qubit", 3, state_name)
 
 
 @pytest.mark.onequtrit
@@ -125,24 +96,7 @@ def test_convert_state_qutip_to_quara_3qubit(state_name):
     [(state_name) for state_name in get_qutip_state_names_1qutrit()],
 )
 def test_convert_state_qutip_to_quara_1qutrit(state_name):
-    # Arrange
-    c_sys = generate_composite_system("qutrit", 1)
-    expected = generate_state_from_name(c_sys, state_name)
-
-    # Case 1: Qobj.type=="ket"
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
-
-    # Case 2: Qobj.type=="oper"
-    source = generate_qutip_state_from_state_name(state_name, "oper")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
-
-    # Case 2: test Qobj type validation
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    with pytest.raises(ValueError):
-        convert_state_qutip_to_quara(source.dag(), c_sys)
+    _test_convert_state_qutip_to_quara("qutrit", 1, state_name)
 
 
 @pytest.mark.twoqutrit
@@ -151,28 +105,66 @@ def test_convert_state_qutip_to_quara_1qutrit(state_name):
     [(state_name) for state_name in get_qutip_state_names_2qutrit()],
 )
 def test_convert_state_qutip_to_quara_2qutrit(state_name):
+    _test_convert_state_qutip_to_quara("qutrit", 2, state_name)
+
+
+def _test_convert_state_quara_to_qutip(mode, num, state_name):
     # Arrange
-    c_sys = generate_composite_system("qutrit", 2)
-    expected = generate_state_from_name(c_sys, state_name)
+    c_sys = generate_composite_system(mode, num)
+    expected = generate_qutip_state_from_state_name(state_name, "oper")
 
-    # Case 1: Qobj.type=="ket"
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
+    # Case 1: target_type=="oper"
+    source = generate_state_from_name(c_sys, state_name)
+    actual = convert_state_quara_to_qutip(source)
 
-    # Case 2: Qobj.type=="oper"
-    source = generate_qutip_state_from_state_name(state_name, "oper")
-    actual = convert_state_qutip_to_quara(source, c_sys)
-    npt.assert_array_almost_equal(actual.vec, expected.vec, decimal=10)
-
-    # Case 2: test Qobj type validation
-    source = generate_qutip_state_from_state_name(state_name, "ket")
-    with pytest.raises(ValueError):
-        convert_state_qutip_to_quara(source.dag(), c_sys)
+    npt.assert_array_almost_equal(
+        actual.data.toarray(), expected.data.toarray(), decimal=10
+    )
 
 
-def test_convert_state_quara_to_qutip():
-    pass
+@pytest.mark.onequbit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qutip_state_names_1qubit()],
+)
+def test_convert_state_quara_to_qutip_1qubit(state_name):
+    _test_convert_state_quara_to_qutip("qubit", 1, state_name)
+
+
+@pytest.mark.twoqubit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qutip_state_names_2qubit()],
+)
+def test_convert_state_quara_to_qutip_2qubit(state_name):
+    _test_convert_state_quara_to_qutip("qubit", 2, state_name)
+
+
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qutip_state_names_3qubit()],
+)
+def test_convert_state_quara_to_qutip_3qubit(state_name):
+    _test_convert_state_quara_to_qutip("qubit", 3, state_name)
+
+
+@pytest.mark.onequtrit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qutip_state_names_1qutrit()],
+)
+def test_convert_state_quara_to_qutip_1qutrit(state_name):
+    _test_convert_state_quara_to_qutip("qutrit", 1, state_name)
+
+
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qutip_state_names_2qutrit()],
+)
+def test_convert_state_quara_to_qutip_2qutrit(state_name):
+    _test_convert_state_quara_to_qutip("qutrit", 2, state_name)
 
 
 def test_convert_povm_qutip_to_quara():

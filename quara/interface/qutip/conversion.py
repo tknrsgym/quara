@@ -29,26 +29,26 @@ def convert_state_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> St
     return quara_state
 
 
+def convert_state_quara_to_qutip(quara_state: State) -> Qobj:
+    density_mat = quara_state.to_density_matrix()
+    return Qobj(density_mat)
+
+
 # TODO: implement
-def convert_state_quara_to_qutip(quara_state: State, target_type: str):
+def convert_povm_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Povm:
     pass
 
 
 # TODO: implement
-def convert_povm_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem):
+def convert_povm_quara_to_qutip(quara_povm: Povm) -> Qobj:
     pass
 
 
 # TODO: implement
-def convert_povm_quara_to_qutip(quara_povm: Povm, target_type: str):
+def convert_gate_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Gate:
     pass
 
 
 # TODO: implement
-def convert_gate_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem):
-    pass
-
-
-# TODO: implement
-def convert_gate_quara_to_qutip(quara_gate: Gate, target_type: str):
+def convert_gate_quara_to_qutip(quara_gate: Gate) -> Qobj:
     pass
