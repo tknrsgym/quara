@@ -19,6 +19,7 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
 )
 from quara.simulation.standard_qtomography_simulation import (
     StandardQTomographySimulationSetting,
+    SimulationResult,
 )
 from quara.utils import matrix_util
 from quara.protocol.qtomography.estimator import EstimationResult
@@ -675,7 +676,7 @@ def show_average_computation_times(
     fig.show()
 
 
-def extract_empi_dists(
+def extract_empi_dists_sequences_old(
     results: List["EstimationResult"],
 ) -> List[List[List[np.ndarray]]]:
     converted = []
@@ -693,19 +694,38 @@ def extract_empi_dists(
     return converted
 
 
+def extract_empi_dists_sequences(
+    source_empi_dists_sequences,
+) -> List[List[List[np.ndarray]]]:
+    converted = []
+    num_data_len = len(source_empi_dists_sequences[0])
+    n_rep = len(source_empi_dists_sequences)
+    for num_data_index in range(num_data_len):
+        converted_dists_seq = []
+        for rep_index in tqdm(range(n_rep)):
+            empi_dists_seq = source_empi_dists_sequences[rep_index]
+            empi_dists = empi_dists_seq[num_data_index]
+            # list of tuple -> list of np.ndarray
+            converted_dists = [data[1] for data in empi_dists]
+            converted_dists_seq.append(converted_dists)
+        converted.append(converted_dists_seq)
+    return converted
+
+
 def make_empi_dists_mse_graph(
-    estimation_results: List["LinearEstimationResult"], true_object: "QOperation"
+    simulation_result: SimulationResult, true_object: "QOperation"
 ):
-    qtomography = estimation_results[0]._qtomography
+    num_data = simulation_result.simulation_setting.num_data
+    n_rep = simulation_result.simulation_setting.n_rep
+    qtomography = simulation_result.qtomography
     num_schedules = qtomography.num_schedules
-    num_data = estimation_results[0].num_data
-    n_rep = len(estimation_results)
 
     # Data
     display_names = ["Empirical distributions"]
-    para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
+    para = qtomography.on_para_eq_constraint
     true_object_copied = _recreate_qoperation(true_object, para)
-    empi_dists = extract_empi_dists(estimation_results)
+    empi_dists = extract_empi_dists_sequences(simulation_result.empi_dists_sequences)
+
     xs_list_list = empi_dists
     ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
         num_data

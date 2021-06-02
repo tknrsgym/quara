@@ -22,6 +22,7 @@ from quara.protocol.qtomography.estimator import EstimationResult
 from quara.simulation import consistency_check
 from quara.simulation import standard_qtomography_simulation_check
 from quara.simulation.standard_qtomography_simulation import (
+    SimulationResult,
     StandardQTomographySimulationSetting,
 )
 
@@ -548,13 +549,14 @@ def generate_mse_analytical_div(
 
 
 def generate_empi_dist_mse_div(
-    estimation_results_list: List[List[EstimationResult]],
+    simulation_result: SimulationResult,
     true_object: "QOperation",
 ) -> str:
 
-    fig = data_analysis.make_empi_dists_mse_graph(
-        estimation_results_list[0], true_object
-    )
+    # fig = data_analysis.make_empi_dists_mse_graph(
+    #     estimation_results_list[0], true_object
+    # )
+    fig = data_analysis.make_empi_dists_mse_graph(simulation_result, true_object)
 
     fig_name = f"empi_dists_mse"
     path = _save_fig_to_tmp_dir(fig, fig_name)
@@ -864,18 +866,18 @@ def generate_condition_table(
     return condition_table
 
 
-def generate_consistency_check_table(
-    estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[StandardQTomographySimulationSetting],
-    true_object: "QOperation",
-    check_results: List["CheckResult"] = None,
-):
-    qtomography_list = [results[0].qtomography for results in estimation_results_list]
-    diff_list = []
+def generate_consistency_check_table(simulation_results: List[SimulationResult]):
+    check_results = []
+    simulation_settings = []
+    for sim_result in simulation_results:
+        check_results.append(sim_result.check_result)
+        simulation_settings.append(sim_result.simulation_setting)
+
+    qtomography_list = [sim_result.qtomography for sim_result in simulation_results]
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
-    if check_results:
+    if len(check_results) == len(simulation_results):
         # Use the results of pre-run checks
         def _extract_consistency_check_results(check_result: "CheckResult") -> dict:
             for r in check_result["results"]:
@@ -885,9 +887,9 @@ def generate_consistency_check_table(
         result_list = [_extract_consistency_check_results(cr) for cr in check_results]
     else:
         # Execute Consistency Check
-        for i, s in enumerate(simulation_settings):
+        for sim_result in simulation_results:
             sim_check = standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
-                estimation_results=estimation_results_list[i], simulation_setting=s
+                sim_result
             )
             result_dict = sim_check.execute_consistency_check(show_detail=False)
             result_list.append(result_dict)
@@ -1269,27 +1271,21 @@ def export_report_from_index(
     simulation_results = _load_simulation_results(
         input_root_dir, test_setting_index, sample_index, case_index=case_index
     )
-    estimation_results_list = []
-    simulation_settings = []
     check_results = []
     for sim_result in simulation_results:
-        estimation_results_list.append(sim_result.estimation_results)
-        simulation_settings.append(sim_result.simulation_setting)
         check_results.append(sim_result.check_result)
 
     export_report(
         output_path,
-        estimation_results_list=estimation_results_list,
-        simulation_settings=simulation_settings,
+        simulation_results=simulation_results,
         check_results=check_results,
     )
 
 
 def export_report(
     path: str,
-    estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[StandardQTomographySimulationSetting],
-    check_results: List["CheckResult"] = None,
+    simulation_results: List[SimulationResult],
+    check_results: List["CheckResult"] = None,  # TODO: remove
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
@@ -1310,6 +1306,11 @@ def export_report(
     show_physicality_violation_check : bool, optional
         [description], by default True
     """
+    estimation_results_list = []
+    simulation_settings = []
+    for sim_result in simulation_results:
+        estimation_results_list.append(sim_result.estimation_results)
+        simulation_settings.append(sim_result.simulation_setting)
 
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
@@ -1378,15 +1379,11 @@ def export_report(
 
     # MSE of Empirical Distributions
     print("​​Generating MSE of empirical distributions blocks ...")
-    empi_dists_mse_div = generate_empi_dist_mse_div(
-        estimation_results_list, true_object
-    )
+    empi_dists_mse_div = generate_empi_dist_mse_div(simulation_results[0], true_object)
 
     # Consistency Test
     print("​​Generating consictency test blocks ...")
-    consistency_check_table = generate_consistency_check_table(
-        estimation_results_list, simulation_settings, true_object, check_results
-    )
+    consistency_check_table = generate_consistency_check_table(simulation_results)
 
     # MSE
     print("​Generating a graph for MSE ...")

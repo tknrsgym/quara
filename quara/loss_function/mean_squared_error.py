@@ -11,25 +11,29 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
 from quara.simulation.standard_qtomography_simulation import (
+    SimulationResult,
     generate_empi_dists_and_calc_estimate,
 )
 
 
 def check_mse_of_empirical_distributions(
-    simulation_setting, estimation_results, show_detail: bool = True
+    simulation_result: SimulationResult, show_detail: bool = True
 ) -> bool:
-    qtomography = estimation_results[0].qtomography
-    num_data = estimation_results[0].num_data
+    num_data = simulation_result.simulation_setting.num_data
+    n_rep = simulation_result.simulation_setting.n_rep
+    qtomography = simulation_result.qtomography
     num_schedules = qtomography.num_schedules
-    n_rep = len(estimation_results)
 
     parameter = qtomography.on_para_eq_constraint
     true_object_copied = data_analysis._recreate_qoperation(
-        simulation_setting.true_object, on_para_eq_constraint=parameter
+        simulation_result.simulation_setting.true_object,
+        on_para_eq_constraint=parameter,
     )
 
     # MSE of Empirical Distributions
-    empi_dists = data_analysis.extract_empi_dists(estimation_results)
+    empi_dists = data_analysis.extract_empi_dists_sequences(
+        simulation_result.empi_dists_sequences
+    )  # TODO: check empi_distsでOKか？
     xs_list_list = empi_dists
     ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
         num_data

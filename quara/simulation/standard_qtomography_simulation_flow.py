@@ -36,6 +36,9 @@ def execute_simulation_case_unit(
     )
     print(f"Case {case_index}: {sim_setting.name}")
 
+    # TODO:
+    org_sim_setting = sim_setting.copy()
+
     # Generate QTomography
     qtomography = sim.generate_qtomography(
         sim_setting,
@@ -48,9 +51,7 @@ def execute_simulation_case_unit(
     )
 
     # Simulation Check
-    sim_check = StandardQTomographySimulationCheck(
-        sim_setting, sim_result.estimation_results
-    )
+    sim_check = StandardQTomographySimulationCheck(sim_result)
     check_result = sim_check.execute_all(show_detail=False, with_detail=True)
 
     # Show result
@@ -66,6 +67,7 @@ def execute_simulation_case_unit(
     )
 
     # Add to SimulationResult
+    sim_result.simulation_setting = org_sim_setting
     sim_result.result_index = result_index
     sim_result.check_result = check_result
 
