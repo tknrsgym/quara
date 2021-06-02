@@ -197,7 +197,7 @@ class Gate(QOperation):
                 eigenvals[index] = 0
 
         new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
-        new_hs = to_hs_from_choi(new_choi_matrix, self.composite_system)
+        new_hs = to_hs_from_choi_with_dict(new_choi_matrix, self.composite_system)
         new_gate = Gate(
             c_sys=self.composite_system,
             hs=new_hs,
