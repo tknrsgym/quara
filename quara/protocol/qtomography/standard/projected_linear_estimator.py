@@ -15,13 +15,11 @@ class ProjectedLinearEstimationResult(LinearEstimationResult):
     def __init__(
         self,
         qtomography: StandardQTomography,
-        data,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
         super().__init__(
             qtomography,
-            data,
             estimated_var_sequence,
             computation_times,
         )
@@ -105,7 +103,6 @@ class ProjectedLinearEstimator(LinearEstimator):
 
         result = ProjectedLinearEstimationResult(
             qtomography,
-            empi_dists_sequence,
             proj_estimated_var_sequence,
             proj_computation_times,
         )

@@ -15,14 +15,12 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
     def __init__(
         self,
         qtomography: StandardQTomography,
-        data,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
         super().__init__(computation_times)
 
         self._qtomography: StandardQTomography = qtomography
-        self._data = data
         self._estimated_var_sequence: List[np.ndarray] = estimated_var_sequence
 
     @property
@@ -35,17 +33,6 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
             the StandardQTomography used for estimation.
         """
         return self._qtomography
-
-    @property
-    def data(self) -> Any:
-        """returns the data used for estimation.
-
-        Returns
-        -------
-        Any
-            returns the data used for estimation.
-        """
-        return self._data
 
     @property
     def estimated_var(self) -> np.ndarray:
@@ -98,10 +85,10 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         ]
         return qoperations
 
-    @property
-    def num_data(self) -> List[int]:
-        num_data = [data[0][0] for data in self._data]
-        return num_data
+    # @property
+    # def num_data(self) -> List[int]:
+    #     num_data = [data[0][0] for data in self._data]
+    #     return num_data
 
 
 class StandardQTomographyEstimator(QTomographyEstimator):
@@ -171,4 +158,3 @@ class StandardQTomographyEstimator(QTomographyEstimator):
             this function does not be implemented in the subclass.
         """
         raise NotImplementedError()
-

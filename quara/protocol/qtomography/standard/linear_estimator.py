@@ -15,11 +15,10 @@ class LinearEstimationResult(StandardQTomographyEstimationResult):
     def __init__(
         self,
         qtomography: StandardQTomography,
-        data,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
-        super().__init__(qtomography, data, estimated_var_sequence, computation_times)
+        super().__init__(qtomography, estimated_var_sequence, computation_times)
 
 
 class LinearEstimator(StandardQTomographyEstimator):
@@ -79,6 +78,8 @@ class LinearEstimator(StandardQTomographyEstimator):
                 comp_time_sequence.append(comp_time)
 
         result = LinearEstimationResult(
-            qtomography, empi_dists_sequence, estimate_sequence, comp_time_sequence,
+            qtomography,
+            estimate_sequence,
+            comp_time_sequence,
         )
         return result

@@ -22,11 +22,10 @@ class LossMinimizationEstimationResult(StandardQTomographyEstimationResult):
     def __init__(
         self,
         qtomography: StandardQTomography,
-        data,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
     ):
-        super().__init__(qtomography, data, estimated_var_sequence, computation_times)
+        super().__init__(qtomography, estimated_var_sequence, computation_times)
 
 
 class LossMinimizationEstimator(StandardQTomographyEstimator):
@@ -195,6 +194,6 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
                 computation_times.append(prepare_time + algo_result.computation_time)
 
         result = LossMinimizationEstimationResult(
-            qtomography, empi_dists_sequence, estimated_var_sequence, computation_times
+            qtomography, estimated_var_sequence, computation_times
         )
         return result
