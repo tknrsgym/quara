@@ -32,13 +32,18 @@ def get_valid_mode_form() -> List[str]:
 
 
 class CvxpyLossFunctionOption(LossFunctionOption):
-    def __init__(self, mode_form: str = "sum"):
+    def __init__(self, mode_form: str = "sum", eps_prob_zero: np.float64 = 1e-12):
         assert mode_form in get_valid_mode_form()
         self._mode_form = mode_form
+        self._eps_prob_zero = eps_prob_zero
 
     @property
     def mode_form(self) -> str:
         return self._mode_form
+
+    @property
+    def eps_prob_zero(self) -> np.float64:
+        return self._eps_prob_zero
 
 
 class CvxpyLossFunction(LossFunction):
@@ -51,13 +56,16 @@ class CvxpyLossFunction(LossFunction):
         self._prob_dists_data = None
         self._sqt = None
         self._option = None
+        self._mode_form = None
 
     @property
     def eps_prob_zero(self) -> np.float64:
         return self._eps_prob_zero
 
-    def set_eps_prob_zero(self, eps: np.float64):
-        self._eps_prob_zero = eps
+    def set_from_option(self, option: CvxpyLossFunctionOption) -> None:
+        self._mode_form = option.mode_form
+        self._eps_prob_zero = option.eps_prob_zero
+        self._option = option
 
     @property
     def sqt(self) -> StandardQTomography:
@@ -73,9 +81,9 @@ class CvxpyLossFunction(LossFunction):
     def type_estimate(self) -> str:
         return self._type_estimate
 
-    # @property
-    # def preporcessing(self) -> StandardQTomographyPreprocessing:
-    #    return self._preprocessing
+    @property
+    def mode_form(self) -> str:
+        return self._mode_form
 
     @property
     def nums_data(self) -> List[int]:

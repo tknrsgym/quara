@@ -105,9 +105,15 @@ class CvxpyMinimizationAlgorithm(MinimizationAlgorithm):
         t = self.loss.type_estimate
         dim = self.loss.dim_system()
         c_sys = self.loss.composite_system
-
-        var = generate_cvxpy_variable(t, dim)
-        constraints = generate_cvxpy_constraints_from_cvxpy_variable(c_sys, t, var)
+        if t == "state" or t == "gate":
+            var = generate_cvxpy_variable(t, dim)
+            constraints = generate_cvxpy_constraints_from_cvxpy_variable(c_sys, t, var)
+        elif t == "povm":
+            num_outcomes = self.loss.num_outcomes_estimate()
+            var = generate_cvxpy_variable(t, dim, num_outcomes)
+            constraints = generate_cvxpy_constraints_from_cvxpy_variable(
+                c_sys, t, var, num_outcomes
+            )
         if (
             self.option.mode_constraint
             == "physical_and_zero_probability_equation_satisfied"
