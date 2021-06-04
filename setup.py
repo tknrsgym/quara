@@ -15,7 +15,7 @@ def read_file(filename):
 setup(
     name="quara",
     version="0.1.1",
-    author="Tomoko Furuki, Satoyuki Tsukano, Takanori Sugiyama",
+    author="Takanori Sugiyama",
     author_email="quara@googlegroups.com",
     packages=find_packages(),
     description='Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations.',
@@ -48,7 +48,7 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows :: Windows 10",
     ],
-    keywords=["quara", "lsqpt", "quantum process tomography"],
+    keywords=["quara", "quantum characterization", "quantum tomography"],
     include_package_data=True,
     package_data={"": ["LICENSE"]},
 )
