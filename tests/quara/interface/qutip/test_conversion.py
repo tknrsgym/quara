@@ -1,14 +1,6 @@
-from quara.objects.povm_typical import generate_povm_from_name
 import numpy as np
 import numpy.testing as npt
 import pytest
-
-from qutip import (
-    Qobj,
-    basis as qutip_basis,
-    qutrit_basis as qutip_qutrit_basis,
-    ket2dm as qutip_ket2dm,
-)
 
 from quara.interface.qutip.conversion import (
     convert_state_quara_to_qutip,
@@ -34,20 +26,19 @@ from quara.interface.qutip.qutip_povm_typical import (
     get_qutip_povm_names_2qutrit,
     generate_qutip_povm_from_povm_name,
 )
+from quara.interface.qutip.qutip_gate_typical import (
+    get_qutip_gate_names_1qubit,
+    get_qutip_gate_names_2qubit,
+    get_qutip_gate_names_3qubit,
+    get_qutip_gate_names_1qutrit,
+    get_qutip_gate_names_2qutrit,
+    generate_qutip_gate_from_gate_name,
+)
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.composite_system_typical import generate_composite_system
-from quara.objects.state import State
-from quara.objects.state_typical import (
-    generate_state_from_name,
-    get_state_bell_2q,
-    get_state_bell_pure_state_vector,
-)
-from quara.objects.povm import Povm
-from quara.objects.gate import Gate
-from quara.objects.matrix_basis import (
-    calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
-)
-from quara.utils.matrix_util import calc_mat_from_vector_adjoint
+from quara.objects.state_typical import generate_state_from_name
+from quara.objects.povm_typical import generate_povm_from_name
+from quara.objects.gate_typical import generate_gate_from_gate_name
 
 
 def _test_convert_state_qutip_to_quara(mode, num, state_name):
@@ -300,7 +291,7 @@ def test_convert_povm_quara_to_qutip_3qubit(povm_name):
     ("povm_name"),
     [(povm_name) for povm_name in get_qutip_povm_names_1qutrit()],
 )
-def test_convert_povm_quara_to_qutip_1qubit(povm_name):
+def test_convert_povm_quara_to_qutip_1qutrit(povm_name):
     _test_convert_povm_quara_to_qutip("qutrit", 1, povm_name)
 
 
@@ -310,17 +301,49 @@ def test_convert_povm_quara_to_qutip_1qubit(povm_name):
     ("povm_name"),
     [(povm_name) for povm_name in get_qutip_povm_names_2qutrit()],
 )
-def test_convert_povm_quara_to_qutip_1qubit(povm_name):
+def test_convert_povm_quara_to_qutip_2qutrit(povm_name):
     _test_convert_povm_quara_to_qutip("qutrit", 2, povm_name)
 
 
-def test_convert_povm_quara_to_qutip():
-    pass
+def _test_convert_gate_qutip_to_quara(mode, num, gate_name):
+    # Arrange
+    c_sys = generate_composite_system(mode, num)
+    expected = generate_gate_from_gate_name(gate_name, c_sys)
+
+    # Test
+    source = generate_qutip_gate_from_gate_name(gate_name)
+    actual = convert_gate_qutip_to_quara(source, c_sys)
+    npt.assert_array_almost_equal(expected.hs, actual.hs, decimal=10)
 
 
-def test_convert_gate_qutip_to_quara():
-    pass
+@pytest.mark.qutip
+@pytest.mark.onequbit
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_qutip_gate_names_1qubit()],
+)
+def test_convert_gate_qutip_to_quara_1qubit(gate_name):
+    _test_convert_gate_qutip_to_quara("qubit", 1, gate_name)
 
 
-def test_convert_gate_quara_to_qutip():
-    pass
+def _test_convert_gate_quara_to_qutip(mode, num, gate_name):
+    # Arrange
+    c_sys = generate_composite_system(mode, num)
+    expected = generate_qutip_gate_from_gate_name(gate_name)
+
+    # Test
+    source = generate_gate_from_gate_name(gate_name, c_sys)
+    actual = convert_gate_quara_to_qutip(source)
+    npt.assert_array_almost_equal(
+        expected.data.toarray(), actual.data.toarray(), decimal=10
+    )
+
+
+@pytest.mark.qutip
+@pytest.mark.onequbit
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_qutip_gate_names_1qubit()],
+)
+def test_convert_gate_quara_to_qutip_1qubit(gate_name):
+    _test_convert_gate_quara_to_qutip("qubit", 1, gate_name)
