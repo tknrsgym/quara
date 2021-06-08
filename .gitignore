@@ -136,6 +136,7 @@ docs/tutorials/
 docs/getting_started/
 
 # private directory
+private/
 
 # for debug
 debug.py
