@@ -16,6 +16,7 @@ from quara.interface.qutip.qutip_state_typical import (
 )
 
 
+@pytest.mark.qutip
 @pytest.mark.parametrize(("type"), ["1qubit", "2qubit", "3qubit", "1qutrit", "2qutrit"])
 def test_get_qutip_state_names(type: str):
     quara_method_name = f"get_state_names_{type}"
@@ -28,6 +29,7 @@ def test_get_qutip_state_names(type: str):
         assert qutip_state_name in quara_state_names
 
 
+@pytest.mark.qutip
 @pytest.mark.parametrize(("type"), ["1qubit", "2qubit", "3qubit", "1qutrit", "2qutrit"])
 def test_generate_qutip_state_from_state_name(type):
     get_state_name_method_name = f"get_qutip_state_names_{type}"

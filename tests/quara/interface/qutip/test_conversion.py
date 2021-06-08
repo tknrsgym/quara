@@ -30,6 +30,8 @@ from quara.interface.qutip.qutip_povm_typical import (
     get_qutip_povm_names_1qubit,
     get_qutip_povm_names_2qubit,
     get_qutip_povm_names_3qubit,
+    get_qutip_povm_names_1qutrit,
+    get_qutip_povm_names_2qutrit,
     generate_qutip_povm_from_povm_name,
 )
 from quara.objects.composite_system import CompositeSystem
@@ -70,6 +72,7 @@ def _test_convert_state_qutip_to_quara(mode, num, state_name):
         convert_state_qutip_to_quara(source.dag(), c_sys)
 
 
+@pytest.mark.qutip
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -79,6 +82,7 @@ def test_convert_state_qutip_to_quara_1qubit(state_name):
     _test_convert_state_qutip_to_quara("qubit", 1, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.twoqubit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -88,6 +92,7 @@ def test_convert_state_qutip_to_quara_2qubit(state_name):
     _test_convert_state_qutip_to_quara("qubit", 2, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.threequbit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -97,6 +102,7 @@ def test_convert_state_qutip_to_quara_3qubit(state_name):
     _test_convert_state_qutip_to_quara("qubit", 3, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.onequtrit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -106,6 +112,7 @@ def test_convert_state_qutip_to_quara_1qutrit(state_name):
     _test_convert_state_qutip_to_quara("qutrit", 1, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -129,6 +136,7 @@ def _test_convert_state_quara_to_qutip(mode, num, state_name):
     )
 
 
+@pytest.mark.qutip
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -138,6 +146,7 @@ def test_convert_state_quara_to_qutip_1qubit(state_name):
     _test_convert_state_quara_to_qutip("qubit", 1, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.twoqubit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -147,6 +156,7 @@ def test_convert_state_quara_to_qutip_2qubit(state_name):
     _test_convert_state_quara_to_qutip("qubit", 2, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.threequbit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -156,6 +166,7 @@ def test_convert_state_quara_to_qutip_3qubit(state_name):
     _test_convert_state_quara_to_qutip("qubit", 3, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.onequtrit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -165,6 +176,7 @@ def test_convert_state_quara_to_qutip_1qutrit(state_name):
     _test_convert_state_quara_to_qutip("qutrit", 1, state_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.twoqutrit
 @pytest.mark.parametrize(
     ("state_name"),
@@ -187,6 +199,7 @@ def _test_convert_povm_qutip_to_quara(mode, num, povm_name):
         npt.assert_array_almost_equal(expected_vec, actual_vec, decimal=10)
 
 
+@pytest.mark.qutip
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
     ("povm_name"),
@@ -196,6 +209,7 @@ def test_convert_povm_qutip_to_quara_1qubit(povm_name):
     _test_convert_povm_qutip_to_quara("qubit", 1, povm_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.twoqubit
 @pytest.mark.parametrize(
     ("povm_name"),
@@ -205,6 +219,7 @@ def test_convert_povm_qutip_to_quara_2qubit(povm_name):
     _test_convert_povm_qutip_to_quara("qubit", 2, povm_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.threequbit
 @pytest.mark.parametrize(
     ("povm_name"),
@@ -229,6 +244,7 @@ def _test_convert_povm_quara_to_qutip(mode, num, povm_name):
         )
 
 
+@pytest.mark.qutip
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
     ("povm_name"),
@@ -238,6 +254,7 @@ def test_convert_povm_quara_to_qutip_1qubit(povm_name):
     _test_convert_povm_quara_to_qutip("qubit", 1, povm_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.twoqubit
 @pytest.mark.parametrize(
     ("povm_name"),
@@ -247,6 +264,7 @@ def test_convert_povm_quara_to_qutip_2qubit(povm_name):
     _test_convert_povm_quara_to_qutip("qubit", 2, povm_name)
 
 
+@pytest.mark.qutip
 @pytest.mark.threequbit
 @pytest.mark.parametrize(
     ("povm_name"),
@@ -256,7 +274,24 @@ def test_convert_povm_quara_to_qutip_3qubit(povm_name):
     _test_convert_povm_quara_to_qutip("qubit", 3, povm_name)
 
 
-# TODO: write tests for qutrits
+@pytest.mark.qutip
+@pytest.mark.onequtrit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qutip_povm_names_1qutrit()],
+)
+def test_convert_povm_quara_to_qutip_1qubit(povm_name):
+    _test_convert_povm_quara_to_qutip("qutrit", 1, povm_name)
+
+
+@pytest.mark.qutip
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qutip_povm_names_2qutrit()],
+)
+def test_convert_povm_quara_to_qutip_1qubit(povm_name):
+    _test_convert_povm_quara_to_qutip("qutrit", 2, povm_name)
 
 
 def test_convert_povm_quara_to_qutip():
