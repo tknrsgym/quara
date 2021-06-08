@@ -6,11 +6,12 @@ from qutip import Qobj
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.state import State
 from quara.objects.povm import Povm
-from quara.objects.gate import Gate
+from quara.objects.gate import Gate, convert_hs
 from quara.objects.matrix_basis import (
+    get_comp_basis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
-from quara.utils.matrix_util import calc_mat_from_vector_adjoint
+from quara.utils.matrix_util import calc_mat_from_vector_adjoint, truncate_hs
 
 
 def convert_state_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> State:
@@ -57,11 +58,18 @@ def convert_povm_quara_to_qutip(quara_povm: Povm) -> List[Qobj]:
     return qutip_povm
 
 
-# TODO: implement
 def convert_gate_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Gate:
-    pass
+    hs_matrix_column_major = qutip_qobj.data.toarray()
+    dim = int(np.sqrt(qutip_qobj.shape[0]))
+    comp_basis_column_major = get_comp_basis(dim, "column_major")
+    hs_matrix_converted = convert_hs(
+        hs_matrix_column_major, comp_basis_column_major, c_sys.basis()
+    )
+    hs_matrix_truncated = truncate_hs(hs_matrix_converted)
+    return Gate(c_sys=c_sys, hs=hs_matrix_truncated)
 
 
-# TODO: implement
 def convert_gate_quara_to_qutip(quara_gate: Gate) -> Qobj:
-    pass
+    comp_basis = get_comp_basis(quara_gate.dim, "column_major")
+    hs_matrix = quara_gate.convert_basis(comp_basis)
+    return Qobj(hs_matrix, type="super")
