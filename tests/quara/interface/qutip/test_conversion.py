@@ -229,6 +229,26 @@ def test_convert_povm_qutip_to_quara_3qubit(povm_name):
     _test_convert_povm_qutip_to_quara("qubit", 3, povm_name)
 
 
+@pytest.mark.qutip
+@pytest.mark.onequtrit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qutip_povm_names_1qutrit()],
+)
+def test_convert_povm_qutip_to_quara_1qutrit(povm_name):
+    _test_convert_povm_qutip_to_quara("qutrit", 1, povm_name)
+
+
+@pytest.mark.qutip
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qutip_povm_names_2qutrit()],
+)
+def test_convert_povm_qutip_to_quara_2qutrit(povm_name):
+    _test_convert_povm_qutip_to_quara("qutrit", 2, povm_name)
+
+
 def _test_convert_povm_quara_to_qutip(mode, num, povm_name):
     # Arrange
     c_sys = generate_composite_system(mode, num)
