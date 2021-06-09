@@ -30,11 +30,19 @@ def test_get_qutip_gate_names(type: str):
 
 
 @pytest.mark.qutip
-@pytest.mark.parametrize(("type"), ["1qubit"])
+@pytest.mark.parametrize(("type"), ["1qubit", "2qubit"])
 def test_generate_qutip_gate_from_gate_name(type):
     get_gate_name_method_name = f"get_qutip_gate_names_{type}"
     get_gate_name_method = eval(get_gate_name_method_name)
     gate_names = get_gate_name_method()
     for gate_name in gate_names:
         generate_qutip_gate_from_gate_name(gate_name)
+    # TODO: check values
+
+
+@pytest.mark.qutip
+@pytest.mark.parametrize(("dim"), [2, 3, 4, 8, 9])
+def test_generate_qutip_identity_gate_from_gate_name(dim):
+    qutip_gate = generate_qutip_gate_from_gate_name("identity", dim)
+    assert qutip_gate.shape[0] == dim ** 2
     # TODO: check values
