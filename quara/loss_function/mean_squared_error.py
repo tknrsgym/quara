@@ -111,7 +111,9 @@ def compare_to_analytical(
             f"simulation_setting.estimator must be LinearEstimator, not {type(simulation_setting.estimator)}"
         )
 
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
+    num_data = simulation_setting.num_data
 
     qtomo = estimation_results[0].qtomography
     parameter = qtomo.on_para_eq_constraint
@@ -166,8 +168,10 @@ def compare_to_linear(
     )
 
     # calc mse of LinearEstimator
-    num_data = estimation_results[0].num_data
-    n_rep = len(estimation_results)
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
+    num_data = simulation_setting.num_data
+    n_rep = simulation_setting.n_rep
     qtomo = estimation_results[0].qtomography
     parameter = qtomo.on_para_eq_constraint
     true_object_copied = data_analysis._recreate_qoperation(

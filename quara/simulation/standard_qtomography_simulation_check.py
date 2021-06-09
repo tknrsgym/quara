@@ -171,7 +171,9 @@ class StandardQTomographySimulationCheck:
             == ProjectedLinearEstimator
         ):
             return physicality_violation_check.is_physical_qobjects_all(
-                self.simulation_result.estimation_results, show_detail
+                self.simulation_result.estimation_results,
+                num_data=self.simulation_result.simulation_setting.num_data,
+                show_detail=show_detail,
             )
         elif (
             type(self.simulation_result.simulation_setting.estimator) == LinearEstimator
@@ -181,7 +183,9 @@ class StandardQTomographySimulationCheck:
             ].estimated_qoperation.on_para_eq_constraint
             if para:
                 return physicality_violation_check.is_eq_constraint_satisfied_all(
-                    self.simulation_result.estimation_results, show_detail=show_detail
+                    self.simulation_result.estimation_results,
+                    self.simulation_result.simulation_setting.num_data,
+                    show_detail=show_detail,
                 )
             else:
                 if show_detail:
@@ -205,6 +209,7 @@ class StandardQTomographySimulationCheck:
                 if on_algo_eq_constraint:
                     result = physicality_violation_check.is_eq_constraint_satisfied_all(
                         self.simulation_result.estimation_results,
+                        self.simulation_result.simulation_setting.num_data,
                         show_detail=show_detail,
                     )
                     results.append(result)
@@ -213,6 +218,7 @@ class StandardQTomographySimulationCheck:
                     result = (
                         physicality_violation_check.is_ineq_constraint_satisfied_all(
                             self.simulation_result.estimation_results,
+                            self.simulation_result.simulation_setting.num_data,
                             show_detail=show_detail,
                         )
                     )

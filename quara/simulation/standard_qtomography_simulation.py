@@ -298,18 +298,22 @@ def _generate_empi_dists_and_calc_estimate(
 
 
 def re_estimate(
-    test_setting: EstimatorTestSetting, result: SimulationResult, n_rep_index: int
+    test_setting: EstimatorTestSetting,
+    simulation_result: SimulationResult,
+    n_rep_index: int,
 ) -> StandardQTomographyEstimationResult:
-    case_index = result.result_index["case_index"]
-    empi_dists_seq = result.estimation_results[n_rep_index].data
+    case_index = simulation_result.result_index["case_index"]
+    # TODO: remove
+    # empi_dists_seq = result.estimation_results[n_rep_index].data
+    empi_dists_seq = simulation_result.empi_dists_sequences[n_rep_index]
 
-    sim_setting = result.simulation_setting
+    sim_setting = simulation_result.simulation_setting
     qtomography = generate_qtomography(
         sim_setting,
         para=test_setting.parametrizations[case_index],
     )
 
-    estimator = copy.deepcopy(result.simulation_setting.estimator)
+    estimator = copy.deepcopy(simulation_result.simulation_setting.estimator)
     if isinstance(estimator, LossMinimizationEstimator):
         estimation_result = estimator.calc_estimate_sequence(
             qtomography,

@@ -308,13 +308,15 @@ def make_graph_trace(
 def make_graphs_eigenvalues(
     estimation_results: List[EstimationResult],
     true_object: "QOperation",
+    num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ) -> Union[List["Figure"], List[List["Figure"]]]:
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
     n_data = num_data[num_data_index]
     if type(true_object) == State:
         figs = _make_graphs_eigenvalues_state(
@@ -334,10 +336,12 @@ def make_graphs_eigenvalues(
 
 def make_graphs_sum_unphysical_eigenvalues(
     estimation_results: List[EstimationResult],
+    num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ):
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -384,10 +388,12 @@ def make_xbins(
 def make_graphs_sum_vecs(
     estimation_results: List["EstimatedResult"],
     true_object: "Povm",
+    num_data: List[int],
     num_data_index: int,
     bin_size: float = 0.0001,
 ) -> List["Figure"]:
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
 
     estimated_povms = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
@@ -556,10 +562,14 @@ def _make_graphs_eigenvalues_gate(
 
 
 def is_physical_qobjects_all(
-    estimation_results: List["EstimatiuonResult"], show_detail: bool = True
+    estimation_results: List["EstimatiuonResult"],
+    num_data: List[int],
+    show_detail: bool = True,
 ) -> bool:
     check_results = []
-    for i, num in enumerate(estimation_results[0].num_data):
+    # TODO: remove
+    # for i, num in enumerate(estimation_results[0].num_data):
+    for i, num in enumerate(num_data):
         unphysical_n = calc_unphysical_qobjects_n(estimation_results, num_data_index=i)
         result = unphysical_n == 0
         check_results.append(result)
@@ -696,10 +706,12 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
 
 def make_graphs_trace_error(
     estimation_results: List["EstimatedResult"],
+    num_data: List[int],
     num_data_index: int,
     bin_size: float = 0.0001,
 ):
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
     estimated_gates = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -754,9 +766,11 @@ def make_graph_trace_error_sum(
 
 def make_graphs_trace_error_sum(
     estimation_results: List["EstimatedResult"],
+    num_data: List[int],
     bin_size: float = 0.0001,
 ) -> list:
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
     figs = []
     for num_data_index, num in enumerate(num_data):
         fig = make_graph_trace_error_sum(
@@ -767,10 +781,11 @@ def make_graphs_trace_error_sum(
 
 
 def is_eq_constraint_satisfied_all(
-    estimation_results, show_detail: bool = True
+    estimation_results, num_data: List[int], show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
     para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
     eps = get_eq_const_eps(para)
 
@@ -795,10 +810,11 @@ def is_eq_constraint_satisfied_all(
 
 
 def is_ineq_constraint_satisfied_all(
-    estimation_results, show_detail: bool = True
+    estimation_results, num_data: List[int], show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
         check_results = [

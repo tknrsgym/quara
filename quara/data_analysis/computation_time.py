@@ -95,7 +95,10 @@ def make_histogram(
 
 
 def make_computation_time_histogram(
-    estimation_results: List["EstimationResult"], num_data_index: int, unit: str = "sec"
+    estimation_results: List["EstimationResult"],
+    num_data: List[int],
+    num_data_index: int,
+    unit: str = "sec",
 ):
     time_unit = 1
     if unit == "min":
@@ -106,7 +109,9 @@ def make_computation_time_histogram(
         error_message = f"'unit' must be 'min' or 'sec', not {unit}"
         raise ValueError(error_message)
 
-    n = estimation_results[0].num_data[num_data_index]
+    # TODO: remove
+    # n = estimation_results[0].num_data[num_data_index]
+    n = num_data[num_data_index]
     values = [
         result.computation_times[num_data_index] / time_unit
         for result in estimation_results
@@ -123,13 +128,16 @@ def make_computation_time_histogram(
 
 
 def make_computation_time_histograms(
-    estimation_results: List["EstimationResult"], unit: str = "sec"
+    estimation_results: List["EstimationResult"], num_data: List[int], unit: str = "sec"
 ):
-    num_data_len = len(estimation_results[0].num_data)
+    # TODO: remove
+    # num_data_len = len(estimation_results[0].num_data)
+    num_data_len = len(num_data)
+
     figs = []
     for i in range(num_data_len):
         fig = make_computation_time_histogram(
-            estimation_results, num_data_index=i, unit=unit
+            estimation_results, num_data=num_data, num_data_index=i, unit=unit
         )
         figs.append(fig)
     return figs

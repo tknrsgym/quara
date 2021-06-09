@@ -310,12 +310,14 @@ def make_mses_graph_estimation_results(
     estimation_results_list: List["LinearEstimationResult"],
     case_names: List[str],
     true_object,
+    num_data: List[int],
     title: str = "Mean squared error",
     additional_title_text: str = "",
     show_analytical_results: bool = False,
     estimator_list: list = None,
 ) -> "Figure":
-    num_data = estimation_results_list[0][0].num_data
+    # TODO: remove
+    # num_data = estimation_results_list[0][0].num_data
     mses_list = []
     error_bar_values_list = []
     n_rep = len(estimation_results_list[0])
@@ -338,9 +340,8 @@ def make_mses_graph_estimation_results(
             analytical_case_names,
             _,
             _,
-            _,
         ) = _make_data_for_graphs_mses_analytical(
-            estimation_results_list, true_object, estimator_list
+            estimation_results_list, num_data, true_object, estimator_list
         )
         mses_list += analytical_mses
         display_case_names += analytical_case_names
@@ -357,6 +358,7 @@ def make_mses_graph_estimation_results(
 
 def _make_data_for_graphs_mses_analytical(
     estimation_results_list: List["EstimationResult"],
+    num_data: List[int],
     true_object,
     estimator_list: List[Union["Estimator", str]],
 ):
@@ -364,7 +366,8 @@ def _make_data_for_graphs_mses_analytical(
         message = "`estimation_results_list` and `estimator_list` lengths do not match"
         raise ValueError(message)
 
-    num_data = estimation_results_list[0][0].num_data
+    # TODO; remove
+    # num_data = estimation_results_list[0][0].num_data
     mses_list = []
 
     qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
@@ -421,23 +424,24 @@ def _make_data_for_graphs_mses_analytical(
         short_names.append(short_name)
         parameters.append(parameter)
 
-    return mses_list, display_case_names, short_names, parameters, num_data
+    return mses_list, display_case_names, short_names, parameters
 
 
 def make_mses_graph_analytical(
     estimation_results_list: List["LinearEstimationResult"],
     true_object,
     estimator_list: list,
+    num_data: List[int],
 ) -> "Figure":
-    num_data = estimation_results_list[0][0].num_data
+    # TODO: remove
+    # num_data = estimation_results_list[0][0].num_data
     (
         mses_list,
         display_case_names,
         short_names,
         parameters,
-        num_data,
     ) = _make_data_for_graphs_mses_analytical(
-        estimation_results_list, true_object, estimator_list
+        estimation_results_list, num_data, true_object, estimator_list
     )
 
     figs = []
@@ -509,6 +513,7 @@ def make_mses_graphs_estimator(
     true_object,
 ) -> list:
     data_dict = {}
+    num_data = simulation_settings[0].num_data
 
     Category = namedtuple("Category", ["estimator", "loss", "algo"])
     for i, s in enumerate(simulation_settings):
@@ -553,6 +558,7 @@ def make_mses_graphs_estimator(
             additional_title_text=additional_title_text,
             show_analytical_results=True,
             estimator_list=target_dict["estimators"],
+            num_data=num_data,
         )
         fig.update_layout(title=dict(yanchor="bottom", y=0.96))
 
@@ -564,6 +570,7 @@ def make_mses_graphs_para(
     estimation_results_list: List["EstimationResult"],
     case_names: List[str],
     true_object: "QOperation",
+    num_data: List[int],
 ) -> list:
     def _get_parameter(estimation_results: List["EstimationResult"]) -> bool:
         return estimation_results[0].qtomography.on_para_eq_constraint
@@ -591,6 +598,7 @@ def make_mses_graphs_para(
             target_dict["estimation_results"],
             target_dict["case_names"],
             true_object,
+            num_data=num_data,
             additional_title_text=f"parametrization={target_dict['title']}",
         )
         figs.append(fig)
