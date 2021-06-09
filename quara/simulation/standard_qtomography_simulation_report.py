@@ -547,12 +547,14 @@ def generate_mse_analytical_div(
     true_object: "QOperation",
     estimator_list: list,
     num_data: List[int],
+    qtomography_list,
 ) -> str:
     figs = data_analysis.make_mses_graph_analytical(
         estimation_results_list=estimation_results_list,
         true_object=true_object,
         estimator_list=estimator_list,
         num_data=num_data,
+        qtmogorahpy_list=qtomography_list,
     )
 
     mse_div_list = []
@@ -1397,7 +1399,10 @@ def export_report(
 
     num_data = simulation_results[0].simulation_setting.num_data
     n_rep = simulation_results[0].simulation_setting.n_rep
-    qtomography_list = [results[0].qtomography for results in estimation_results_list]
+    # TODO: remove
+    # qtomography_list = [results[0].qtomography for results in estimation_results_list]
+    qtomography_list = [sim_result.qtomography for sim_result in simulation_results]
+    parameter_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
     for qtomography in qtomography_list:
         # set same CompositeSystem
         for qobj in qtomography._experiment.states:
@@ -1457,7 +1462,7 @@ def export_report(
 
     # 1. Comparison of analytical results
     mse_analytical_results_div = generate_mse_analytical_div(
-        estimation_results_list, true_object, estimator_list, num_data
+        estimation_results_list, true_object, estimator_list, num_data, qtomography_list
     )
     # 2. Comparison of parametrization
     mse_para_div = generate_figs_div(
@@ -1477,6 +1482,7 @@ def export_report(
         case_names=case_name_list,
         true_object=true_object,
         num_data=num_data,
+        parameter_list=parameter_list,
     )
 
     # Physicality Violation Test

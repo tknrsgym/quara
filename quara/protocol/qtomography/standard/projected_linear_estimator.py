@@ -1,3 +1,4 @@
+from quara.protocol.qtomography.qtomography import QTomography
 import time
 from typing import List, Tuple
 
@@ -14,15 +15,11 @@ from quara.protocol.qtomography.standard.linear_estimator import (
 class ProjectedLinearEstimationResult(LinearEstimationResult):
     def __init__(
         self,
-        qtomography: StandardQTomography,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
+        template_qoperation: QTomography,
     ):
-        super().__init__(
-            qtomography,
-            estimated_var_sequence,
-            computation_times,
-        )
+        super().__init__(estimated_var_sequence, computation_times, template_qoperation)
 
 
 class ProjectedLinearEstimator(LinearEstimator):
@@ -102,8 +99,8 @@ class ProjectedLinearEstimator(LinearEstimator):
                 proj_estimated_var_sequence.append(proj_estimate.to_var())
 
         result = ProjectedLinearEstimationResult(
-            qtomography,
             proj_estimated_var_sequence,
             proj_computation_times,
+            qtomography._template_qoperation,
         )
         return result

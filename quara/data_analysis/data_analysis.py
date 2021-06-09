@@ -1,3 +1,4 @@
+from quara.protocol import qtomography
 import time
 from typing import Callable, List, Optional, Union
 import copy
@@ -361,22 +362,24 @@ def _make_data_for_graphs_mses_analytical(
     num_data: List[int],
     true_object,
     estimator_list: List[Union["Estimator", str]],
+    qtomography_list,
 ):
     if len(estimation_results_list) != len(estimator_list):
         message = "`estimation_results_list` and `estimator_list` lengths do not match"
         raise ValueError(message)
 
-    # TODO; remove
+    # TODO: remove
     # num_data = estimation_results_list[0][0].num_data
     mses_list = []
 
-    qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
+    # TODO: remove
+    # qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
     qtomo_type_dict = {}
     QTomoType = namedtuple(
         "QTomoType", ["qtomography_name", "on_para_eq_constraint", "estimator_name"]
     )
 
-    for i, qtomo in enumerate(qtomo_list):
+    for i, qtomo in enumerate(qtomography_list):
         if type(estimator_list[i]) == str:
             estimator_name = estimator_list[i]
         else:
@@ -432,6 +435,7 @@ def make_mses_graph_analytical(
     true_object,
     estimator_list: list,
     num_data: List[int],
+    qtomography_list,
 ) -> "Figure":
     # TODO: remove
     # num_data = estimation_results_list[0][0].num_data
@@ -441,7 +445,7 @@ def make_mses_graph_analytical(
         short_names,
         parameters,
     ) = _make_data_for_graphs_mses_analytical(
-        estimation_results_list, num_data, true_object, estimator_list
+        estimation_results_list, num_data, true_object, estimator_list, qtomography_list
     )
 
     figs = []
@@ -571,16 +575,19 @@ def make_mses_graphs_para(
     case_names: List[str],
     true_object: "QOperation",
     num_data: List[int],
+    parameter_list: List[bool],
 ) -> list:
-    def _get_parameter(estimation_results: List["EstimationResult"]) -> bool:
-        return estimation_results[0].qtomography.on_para_eq_constraint
+    # TODO: remove
+    # def _get_parameter(estimation_results: List["EstimationResult"]) -> bool:
+    #     return estimation_results[0].qtomography.on_para_eq_constraint
 
     # Split data (True/False)
     true_dict = dict(title="True", estimation_results=[], case_names=[])
     false_dict = dict(title="False", estimation_results=[], case_names=[])
 
     for i, results in enumerate(estimation_results_list):
-        if _get_parameter(results):
+        if parameter_list[i]:
+            # if _get_parameter(results):
             # on_para_eq_constraint = True
             true_dict["estimation_results"].append(results)
             true_dict["case_names"].append(case_names[i])

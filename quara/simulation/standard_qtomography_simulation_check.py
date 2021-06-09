@@ -138,6 +138,7 @@ class StandardQTomographySimulationCheck:
         result_dict = execute_consistency_check(
             simulation_setting=self.simulation_result.simulation_setting,
             estimation_results=self.simulation_result.estimation_results,
+            qtomography=self.simulation_result.qtomography,
             eps=eps,
             show_detail=show_detail,
         )
@@ -148,6 +149,7 @@ class StandardQTomographySimulationCheck:
             result = check_mse_of_estimators(
                 simulation_setting=self.simulation_result.simulation_setting,
                 estimation_results=self.simulation_result.estimation_results,
+                qtomography=self.simulation_result.qtomography,
                 show_detail=show_detail,
             )
         except TypeError as e:

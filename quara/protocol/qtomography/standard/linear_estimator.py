@@ -14,11 +14,11 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
 class LinearEstimationResult(StandardQTomographyEstimationResult):
     def __init__(
         self,
-        qtomography: StandardQTomography,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
+        template_qoperation: QOperation,
     ):
-        super().__init__(qtomography, estimated_var_sequence, computation_times)
+        super().__init__(estimated_var_sequence, computation_times, template_qoperation)
 
 
 class LinearEstimator(StandardQTomographyEstimator):
@@ -78,8 +78,6 @@ class LinearEstimator(StandardQTomographyEstimator):
                 comp_time_sequence.append(comp_time)
 
         result = LinearEstimationResult(
-            qtomography,
-            estimate_sequence,
-            comp_time_sequence,
+            estimate_sequence, comp_time_sequence, qtomography._template_qoperation
         )
         return result

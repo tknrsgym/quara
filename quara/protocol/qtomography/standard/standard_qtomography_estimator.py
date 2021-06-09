@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
+from quara.objects import qoperation
 
 from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.qtomography_estimator import (
@@ -14,25 +15,26 @@ from quara.protocol.qtomography.standard.standard_qtomography import StandardQTo
 class StandardQTomographyEstimationResult(QTomographyEstimationResult):
     def __init__(
         self,
-        qtomography: StandardQTomography,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
+        template_qoperation: QOperation,
     ):
         super().__init__(computation_times)
 
-        self._qtomography: StandardQTomography = qtomography
         self._estimated_var_sequence: List[np.ndarray] = estimated_var_sequence
+        self._template_qoperation: QOperation = template_qoperation
 
-    @property
-    def qtomography(self) -> StandardQTomography:
-        """returns the StandardQTomography used for estimation.
+    # TODO: remove
+    # @property
+    # def qtomography(self) -> StandardQTomography:
+    #     """returns the StandardQTomography used for estimation.
 
-        Returns
-        -------
-        StandardQTomography
-            the StandardQTomography used for estimation.
-        """
-        return self._qtomography
+    #     Returns
+    #     -------
+    #     StandardQTomography
+    #         the StandardQTomography used for estimation.
+    #     """
+    #     return self._qtomography
 
     @property
     def estimated_var(self) -> np.ndarray:
@@ -79,8 +81,13 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         List[QOperation]
             the estimate sequence.
         """
+        # TODO: remove
+        # qoperations = [
+        #     self._qtomography.convert_var_to_qoperation(var)
+        #     for var in self._estimated_var_sequence
+        # ]
         qoperations = [
-            self._qtomography.convert_var_to_qoperation(var)
+            self._template_qoperation.generate_from_var(var)
             for var in self._estimated_var_sequence
         ]
         return qoperations
