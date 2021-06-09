@@ -287,6 +287,7 @@ def _generate_fig_info_list_list_div(
 
 def generate_sum_vecs_div(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     true_object: Povm,
     col_n: int,
@@ -453,6 +454,7 @@ def generate_eigenvalues_div(
     elif type(true_object) == Gate:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -700,6 +702,7 @@ def _generate_physicality_violation_test_div_for_povm(
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -710,6 +713,7 @@ def _generate_physicality_violation_test_div_for_povm(
 
         div = generate_sum_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -749,11 +753,11 @@ def _generate_physicality_violation_test_div_for_gate(
         # Test of equality constraint violation
         div = generate_fig_list_list_div(
             estimation_results=estimation_results,
-            num_data=num_data,
             case_id=case_id,
             fig_type="physicality-violation-eq-trace-error",
             make_graphs_func=physicality_violation_check.make_graphs_trace_error,
             col_n=4,
+            num_data=num_data,
         )
         # <h5> is dummy
         test_eq_const_divs += f"""
@@ -771,9 +775,9 @@ def _generate_physicality_violation_test_div_for_gate(
             case_id=case_id,
             fig_type="physicality-violation-eq-trace-sum-error",
             size=(_col2_fig_width, _col2_fig_height),
-            num_data=num_data,
             make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
             col_n=col_n,
+            num_data=num_data,
         )
 
         test_eq_const_error_sum_divs += f"""
@@ -784,6 +788,7 @@ def _generate_physicality_violation_test_div_for_gate(
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -794,6 +799,7 @@ def _generate_physicality_violation_test_div_for_gate(
 
         div = generate_sum_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -845,7 +851,7 @@ def generate_physicality_violation_test_div(
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_gate(
-            estimation_results_list, case_name_list, true_object, num_data
+            estimation_results_list, num_data, case_name_list, true_object
         )
     else:
         message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
@@ -1102,11 +1108,22 @@ def _make_fig_info_list_list(
     # num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
-        figs = make_graphs_func(
-            estimation_results=estimation_results,
-            num_data_index=num_data_index,
-            **kwargs,
-        )
+        func_parameter_names = make_graphs_func.__code__.co_varnames[
+            : make_graphs_func.__code__.co_argcount
+        ]
+        if "num_data" in func_parameter_names:
+            figs = make_graphs_func(
+                estimation_results=estimation_results,
+                num_data=num_data,
+                num_data_index=num_data_index,
+                **kwargs,
+            )
+        else:
+            figs = make_graphs_func(
+                estimation_results=estimation_results,
+                num_data_index=num_data_index,
+                **kwargs,
+            )
         if type(figs) != list:
             figs = [figs]
         fig_info_list = []

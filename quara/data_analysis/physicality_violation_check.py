@@ -706,8 +706,8 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
 
 def make_graphs_trace_error(
     estimation_results: List["EstimatedResult"],
-    num_data: List[int],
     num_data_index: int,
+    num_data: List[int],
     bin_size: float = 0.0001,
 ):
     # TODO: remove
@@ -736,10 +736,12 @@ def make_graphs_trace_error(
 
 def make_graph_trace_error_sum(
     estimation_results: List["EstimatedResult"],
+    num_data: List[int],
     num_data_index: int,
     bin_size: float = 0.0001,
 ):
-    num_data = estimation_results[0].num_data
+    # TODO: remove
+    # num_data = estimation_results[0].num_data
     estimated_gates = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -774,7 +776,10 @@ def make_graphs_trace_error_sum(
     figs = []
     for num_data_index, num in enumerate(num_data):
         fig = make_graph_trace_error_sum(
-            estimation_results, num_data_index, bin_size=bin_size
+            estimation_results,
+            num_data=num_data,
+            num_data_index=num_data_index,
+            bin_size=bin_size,
         )
         figs.append(fig)
     return figs
