@@ -71,7 +71,7 @@ def round_varz_vector(
     is_valid_required: bool = True,
     atol: float = None,
 ) -> np.ndarray:
-    """returns max{z , eps}.
+    """returns pointwise max{z , eps}.
 
     This function to be used to avoid divergence.
     Both the arguments z and eps must be negative real numbers.
@@ -176,7 +176,7 @@ def relative_entropy_vector(
     is_valid_required: bool = True,
     atol: float = None,
 ) -> np.ndarray:
-    """returns relative entropy of probability distributions q and p.
+    """returns pointwise relative entropy of probability distributions q and p.
 
     Parameters
     ----------
@@ -205,12 +205,12 @@ def relative_entropy_vector(
 
     q_truncated = truncate_computational_fluctuation(prob_dist_q, eps=eps_q)
 
-    q_round = round_varz_vector(q_truncated, eps_q, atol=atol)
+    q_round = round_varz_vector(prob_dist_q, eps_q, atol=atol)
     p_round = round_varz_vector(
         prob_dist_p, eps_p, is_valid_required=is_valid_required, atol=atol
     )
     q_div_p_round = round_varz_vector(q_round / p_round, eps_p, atol=atol)
-    vector = q_round * np.log(q_div_p_round)
+    vector = q_truncated * np.log(q_div_p_round)
 
     return vector
 
@@ -273,7 +273,7 @@ def gradient_relative_entropy_2nd_vector(
     is_valid_required: bool = True,
     atol: float = None,
 ) -> np.ndarray:
-    """returns gradient of relative entropy of probability distributions q and p.
+    """returns pointwise gradient of relative entropy of probability distributions q and p.
 
     Parameters
     ----------
@@ -307,9 +307,12 @@ def gradient_relative_entropy_2nd_vector(
     p_round = round_varz_vector(
         prob_dist_p, eps_p, is_valid_required=is_valid_required, atol=atol
     )
-    # TODO
-    vector = -np.diag(q_truncated / p_round) @ gradient_prob_dist_ps
+    coefficients = -q_truncated / p_round
+    vectors = []
+    for coefficient, gradient_prob_dist_p in zip(coefficients, gradient_prob_dist_ps):
+        vectors.append(coefficient * gradient_prob_dist_p)
 
+    vector = np.array(vectors, dtype=np.float64)
     return vector
 
 

@@ -46,36 +46,41 @@ class StandardQTomographyBasedWeightedRelativeEntropy(WeightedRelativeEntropy):
     def __init__(
         self,
         num_var: int = None,
-        func_prob_dists: List = None,
-        func_gradient_prob_dists: List = None,
-        func_hessian_prob_dists: List = None,
         prob_dists_q: List[np.ndarray] = None,
         weights: Union[List[float], List[np.float64]] = None,
     ):
-        """Constructor
+        """Constructor of StandardQTomography based WeightedRelativeEntropy.
 
         Parameters
         ----------
         num_var : int, optional
             number of variables, by default None
-        func_prob_dists : List[Callable[[np.ndarray], np.ndarray]], optional
-            functions map variables to a probability distribution.
-        func_gradient_prob_dists : List[Callable[[int, np.ndarray], np.ndarray]], optional
-            functions map variables and an index of variables to gradient of probability distributions.
-        func_hessian_prob_dists : List[Callable[[int, int, np.ndarray], np.ndarray]], optional
-            functions map variables and indices of variables to Hessian of probability distributions.
         prob_dists_q : List[np.ndarray], optional
             vectors of ``q``, by default None.
         weights : Union[List[float], List[np.float64]], optional
             weights, by default None
         """
+        if prob_dists_q:
+            self._prob_dists_q_flat = np.array(prob_dists_q, dtype=np.float64).flatten()
+
         super().__init__(
-            num_var,
-            func_prob_dists,
-            func_gradient_prob_dists,
-            func_hessian_prob_dists,
-            prob_dists_q,
+            num_var=num_var,
+            func_prob_dists=None,
+            func_gradient_prob_dists=None,
+            func_hessian_prob_dists=None,
+            prob_dists_q=prob_dists_q,
+            weights=weights,
         )
+
+    def _calc_extend_weights(self) -> None:
+        # calc the extend weights.
+        # "extend weights" is a vector that expands the weight vector to fit the size of the probability distributions.
+        # this is used in the "value" function and "gradient" function for fast computation.
+        if self.weights is not None:
+            extend_weights = []
+            for weight, prob_dist in zip(self.weights, self.prob_dists_q):
+                extend_weights += [weight] * len(prob_dist)
+            self._extend_weights = np.array(extend_weights, dtype=np.float64)
 
     def set_prob_dists_q(self, prob_dists_q: List[np.ndarray]) -> None:
         """sets vectors of ``q``, by default None.
@@ -98,6 +103,7 @@ class StandardQTomographyBasedWeightedRelativeEntropy(WeightedRelativeEntropy):
         """
         self._matA = np.copy(qt.calc_matA())
         self._vecB = np.copy(qt.calc_vecB())
+        self._calc_extend_weights()
 
         self._on_func_prob_dists = True
         self._update_on_value_true()
@@ -115,9 +121,7 @@ class StandardQTomographyBasedWeightedRelativeEntropy(WeightedRelativeEntropy):
             StandardQTomography to set the gradient of probability distributions.
         """
         self._matA = np.copy(qt.calc_matA())
-        self._num_var = qt.num_variables
-        # TODO
-        self._matA_deformed = self._matA.reshape((self.num_var, -1))
+        self._calc_extend_weights()
 
         self._on_func_gradient_prob_dists = True
         self._update_on_gradient_true()
@@ -128,16 +132,16 @@ class StandardQTomographyBasedWeightedRelativeEntropy(WeightedRelativeEntropy):
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.value`
         """
-        q = self.prob_dists_q
-        p = (self._matA @ var + self._vecB).reshape((self.num_var, -1))
-        if self.weights:
-            # TODO
-            vector = self.weights * relative_entropy_vector(
+        q = self._prob_dists_q_flat
+        p = self._matA @ var + self._vecB
+
+        if self.weights is not None:
+            vector = self._extend_weights * relative_entropy_vector(
                 q, p, is_valid_required=False
             )
         else:
-            vectors = relative_entropy_vector(q, p, is_valid_required=False)
-            val = np.sum(vectors)
+            vector = relative_entropy_vector(q, p, is_valid_required=False)
+        val = np.sum(vector)
 
         return val
 
@@ -146,14 +150,13 @@ class StandardQTomographyBasedWeightedRelativeEntropy(WeightedRelativeEntropy):
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`
         """
-        grad_ps = self._matA
-        # TODO
         q = self._prob_dists_q_flat
         p = self._matA @ var + self._vecB
+        grad_ps = self._matA
 
-        if self.weights:
-            weight_vector = np.array([self.weights, self.weights]).flatten("F")
-            grad = weight_vector * gradient_relative_entropy_2nd_vector(
+        if self.weights is not None:
+            # TODO
+            grad = np.diag(self._extend_weights) @ gradient_relative_entropy_2nd_vector(
                 q, p, grad_ps, is_valid_required=False
             )
         else:
@@ -165,38 +168,4 @@ class StandardQTomographyBasedWeightedRelativeEntropy(WeightedRelativeEntropy):
         return grad
 
     def hessian(self, var: np.ndarray) -> np.ndarray:
-        """returns the Hessian of Weighted Relative Entropy.
-
-        see :func:`~quara.data_analysis.loss_function.LossFunction.hessian`
-        """
-        hess = np.zeros((self.num_var, self.num_var), dtype=np.float64)
-        for index in range(len(self.func_prob_dists)):
-            # calc list of gradient p
-            tmp_grad_ps = []
-            for alpha in range(self.num_var):
-                tmp_grad_ps.append(self.func_gradient_prob_dists[index](alpha, var))
-            grad_ps = np.stack(tmp_grad_ps, 1)
-
-            # calc list of Hessian p
-            tmp_hess = []
-            for alpha in range(self.num_var):
-                tmp_hess_row = []
-                for beta in range(self.num_var):
-                    tmp_hess_row.append(
-                        self.func_hessian_prob_dists[index](alpha, beta, var)
-                    )
-                tmp_hess.append(tmp_hess_row)
-            hess_ps = np.array(tmp_hess).transpose(2, 0, 1)
-
-            q = self.prob_dists_q[index]
-            p = self._matA @ var + self._vecB
-            if self.weights:
-                hess += self.weights[index] * hessian_relative_entropy_2nd(
-                    q, p, grad_ps, hess_ps, is_valid_required=False
-                )
-            else:
-                hess += hessian_relative_entropy_2nd(
-                    q, p, grad_ps, hess_ps, is_valid_required=False
-                )
-
-        return hess
+        raise NotImplementedError()
