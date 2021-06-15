@@ -17,7 +17,7 @@ from quara.interface.qutip.qutip_gate_typical import (
 
 
 @pytest.mark.qutip
-@pytest.mark.parametrize(("type"), ["1qubit"])
+@pytest.mark.parametrize(("type"), ["1qubit", "2qubit", "3qubit", "1qutrit"])
 def test_get_qutip_gate_names(type: str):
     quara_method_name = f"get_gate_names_{type}"
     qutip_method_name = f"get_qutip_gate_names_{type}"
@@ -30,13 +30,40 @@ def test_get_qutip_gate_names(type: str):
 
 
 @pytest.mark.qutip
-@pytest.mark.parametrize(("type"), ["1qubit", "2qubit"])
-def test_generate_qutip_gate_from_gate_name(type):
+@pytest.mark.parametrize(
+    ("type", "dim", "ids"),
+    [
+        ("1qubit", 2, None),
+        ("2qubit", 4, [0, 1]),
+        ("2qubit", 4, [1, 0]),
+        ("3qubit", 8, [0, 1, 2]),
+        ("1qutrit", 3, None),
+    ],
+)
+def test_generate_qutip_gate_from_gate_name(type, dim, ids):
     get_gate_name_method_name = f"get_qutip_gate_names_{type}"
     get_gate_name_method = eval(get_gate_name_method_name)
     gate_names = get_gate_name_method()
     for gate_name in gate_names:
-        generate_qutip_gate_from_gate_name(gate_name)
+        generate_qutip_gate_from_gate_name(gate_name, dim, ids)
+    # TODO: check values
+
+
+@pytest.mark.qutip
+@pytest.mark.parametrize(
+    ("type", "dim", "ids"),
+    [
+        ("3qubit", 8, [2, 1, 0]),
+        ("3qubit", 8, [1, 2, 0]),
+    ],
+)
+def test_generate_qutip_gate_from_gate_name_not_implemented(type, dim, ids):
+    get_gate_name_method_name = f"get_qutip_gate_names_{type}"
+    get_gate_name_method = eval(get_gate_name_method_name)
+    gate_names = get_gate_name_method()
+    for gate_name in gate_names:
+        with pytest.raises(NotImplementedError):
+            generate_qutip_gate_from_gate_name(gate_name, dim, ids)
     # TODO: check values
 
 
