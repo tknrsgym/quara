@@ -197,7 +197,7 @@ class Gate(QOperation):
                 eigenvals[index] = 0
 
         new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
-        new_hs = to_hs_from_choi(new_choi_matrix, self.composite_system)
+        new_hs = to_hs_from_choi_with_dict(new_choi_matrix, self.composite_system)
         new_gate = Gate(
             c_sys=self.composite_system,
             hs=new_hs,
@@ -484,7 +484,11 @@ def to_hs_from_choi_with_dict(choi, c_sys: CompositeSystem) -> np.ndarray:
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
         non_zeros = c_sys._dict_from_choi_to_hs.get((alpha, beta), [])
         for i, j, coefficient in non_zeros:
+<<<<<<< HEAD
             hs[alpha, beta] += coefficient * choi[i, j]
+=======
+            hs[alpha, beta] += coefficient * choi[j, i]
+>>>>>>> c1b5b5c9e834ba36af94ae97160f68100afbfdf1
 
     return mutil.truncate_hs(hs)
 
