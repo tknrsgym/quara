@@ -21,6 +21,7 @@ from quara.objects.state import State
 from quara.simulation.effective_lindbladian_generation_setting import (
     EffectiveLindbladianGenerationSetting,
 )
+from quara.utils.number_util import to_stream
 
 
 class RandomEffectiveLindbladianGenerationSetting(
@@ -71,7 +72,13 @@ class RandomEffectiveLindbladianGenerationSetting(
                 f"strength_k_part must be non-negative number. strength_k_part is {strength_k_part}"
             )
 
-        super().__init__(c_sys, qoperation_base, lindbladian_base, ids=ids)
+        super().__init__(
+            c_sys,
+            qoperation_base,
+            lindbladian_base,
+            ids=ids,
+            is_seed_or_stream_required=True,
+        )
         self._strength_h_part = strength_h_part
         self._strength_k_part = strength_k_part
 
@@ -97,15 +104,21 @@ class RandomEffectiveLindbladianGenerationSetting(
         """
         return self._strength_k_part
 
-    def _generate_random_variables(self, strength: float):
+    def _generate_random_variables(
+        self,
+        strength: float,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
+    ):
         dim = self.composite_system.dim
-        random_variables = np.random.randn(dim ** 2 - 1)
+        stream = to_stream(seed_or_stream)
+        random_variables = stream.randn(dim ** 2 - 1)
         normalized_factor = 1 / np.sqrt(np.sum(random_variables ** 2))
         random_vector = strength * normalized_factor * random_variables
         return random_vector, random_variables
 
     def generate_random_effective_lindbladian_h_part(
         self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of h part of effective Lindbladian.
 
@@ -116,7 +129,7 @@ class RandomEffectiveLindbladianGenerationSetting(
         """
         # generate randum variables
         random_vector, random_variables = self._generate_random_variables(
-            self.strength_h_part
+            self.strength_h_part, seed_or_stream
         )
 
         # calc random h mat
@@ -133,6 +146,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian_d_part(
         self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of d part of effective Lindbladian.
 
@@ -143,7 +157,7 @@ class RandomEffectiveLindbladianGenerationSetting(
         """
         # generate randum variables
         random_vector, random_variables = self._generate_random_variables(
-            self.strength_k_part
+            self.strength_k_part, seed_or_stream
         )
         random_vector = np.abs(random_vector)
 
@@ -165,6 +179,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian(
         self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> Tuple[EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns effective Lindbladian base + random effective Lindbladian.
 
@@ -176,12 +191,12 @@ class RandomEffectiveLindbladianGenerationSetting(
         (
             random_h_part_cb,
             random_variables_h_part,
-        ) = self.generate_random_effective_lindbladian_h_part()
+        ) = self.generate_random_effective_lindbladian_h_part(seed_or_stream)
         (
             random_d_part_cb,
             random_variables_k_part,
             random_unitary,
-        ) = self.generate_random_effective_lindbladian_d_part()
+        ) = self.generate_random_effective_lindbladian_d_part(seed_or_stream)
         random_el_cb = random_h_part_cb + random_d_part_cb
 
         random_el_gb_tmp = convert_hs(
@@ -216,6 +231,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_state(
         self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> Tuple[State, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns state(composition of random effective Lindbladian and qoperation base).
 
@@ -231,7 +247,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_variables_k_part,
             random_unitary,
             random_el,
-        ) = self.generate_random_effective_lindbladian()
+        ) = self.generate_random_effective_lindbladian(seed_or_stream)
         new_object = compose_qoperations(el.to_gate(), self.qoperation_base)
         return (
             new_object,
@@ -243,6 +259,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_gate(
         self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> Tuple[Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns gate(composition of random effective Lindbladian and qoperation base).
 
@@ -258,7 +275,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_variables_k_part,
             random_unitary,
             random_el,
-        ) = self.generate_random_effective_lindbladian()
+        ) = self.generate_random_effective_lindbladian(seed_or_stream)
         new_object = compose_qoperations(el.to_gate(), self.qoperation_base)
         return (
             new_object,
@@ -270,6 +287,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_povm(
         self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> Tuple[Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns povm(composition of random effective Lindbladian and qoperation base).
 
@@ -285,7 +303,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_variables_k_part,
             random_unitary,
             random_el,
-        ) = self.generate_random_effective_lindbladian()
+        ) = self.generate_random_effective_lindbladian(seed_or_stream)
         new_object = compose_qoperations(self.qoperation_base, el.to_gate())
         return (
             new_object,

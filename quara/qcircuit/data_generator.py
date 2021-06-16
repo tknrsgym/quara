@@ -1,7 +1,8 @@
 import numpy as np
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from quara.settings import Settings
+from quara.utils.number_util import to_stream
 
 
 def _random_number_to_data(probdist: np.ndarray, random_number: np.float64) -> int:
@@ -14,7 +15,10 @@ def _random_number_to_data(probdist: np.ndarray, random_number: np.float64) -> i
 
 
 def generate_data_from_prob_dist(
-    prob_dist: np.ndarray, data_num: int, seed: int = None, atol: float = None
+    prob_dist: np.ndarray,
+    data_num: int,
+    seed_or_stream: Union[int, np.random.RandomState] = None,
+    atol: float = None,
 ) -> List[int]:
     """generates random data from a probability distribution.
 
@@ -29,8 +33,11 @@ def generate_data_from_prob_dist(
         a probability distribution used to generate random data.
     data_num : int
         length of the data.
-    seed : int, optional
-        a seed used to generate random data, by default None.
+    seed_or_stream : Union[int, np.random.RandomState], optional
+        If the type is int, it is assumed to be a seed used to generate random data.
+        If the type is RandomState, it is used to generate random data.
+        If argument is None, np.random is used to generate random data.
+        Default value is None.
     atol : float, optional
         the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
         checks ``absolute(the sum of probabilities - 1) <= atol`` in this function.
@@ -63,11 +70,9 @@ def generate_data_from_prob_dist(
             f"the sum of probabilities must equal 1. the sum of probabilities is {np.sum(prob_dist)}"
         )
 
-    if seed is not None:
-        np.random.seed(seed)
-
     # generate random numbers. 0 <= rand_val[i] < 1 for all i = 0,..., num_data - 1
-    rand_val = np.random.rand(data_num)
+    stream = to_stream(seed_or_stream)
+    rand_val = stream.rand(data_num)
 
     # use np.frompyfunc to apply the function '_random_number_to_data' to np.ndarray
     def curried_random_number_to_data(random_number):
