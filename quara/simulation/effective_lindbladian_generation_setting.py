@@ -13,6 +13,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         qoperation_base: Union[QOperation, Tuple[str]],
         lindbladian_base: Union[EffectiveLindbladian, str],
         ids: List[int] = None,
+        is_seed_or_stream_required: bool = False,
     ) -> None:
         """Constructor
 
@@ -34,7 +35,12 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         TypeError
             If the type of argument `lindbladian_base` is not EffectiveLindbladian or str.
         """
-        super().__init__(c_sys, qoperation_base, ids=ids)
+        super().__init__(
+            c_sys,
+            qoperation_base,
+            ids=ids,
+            is_seed_or_stream_required=is_seed_or_stream_required,
+        )
 
         if isinstance(lindbladian_base, EffectiveLindbladian):
             self._lindbladian_base = lindbladian_base
