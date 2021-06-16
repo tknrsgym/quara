@@ -312,6 +312,7 @@ def make_mses_graph_estimation_results(
     case_names: List[str],
     true_object,
     num_data: List[int],
+    qtomography_list: List["StandardQTomography"],
     title: str = "Mean squared error",
     additional_title_text: str = "",
     show_analytical_results: bool = False,
@@ -342,7 +343,11 @@ def make_mses_graph_estimation_results(
             _,
             _,
         ) = _make_data_for_graphs_mses_analytical(
-            estimation_results_list, num_data, true_object, estimator_list
+            estimation_results_list,
+            num_data,
+            true_object,
+            estimator_list,
+            qtomography_list,
         )
         mses_list += analytical_mses
         display_case_names += analytical_case_names
@@ -435,7 +440,7 @@ def make_mses_graph_analytical(
     true_object,
     estimator_list: list,
     num_data: List[int],
-    qtomography_list,
+    qtomography_list: List["StandardQTomography"],
 ) -> "Figure":
     # TODO: remove
     # num_data = estimation_results_list[0][0].num_data
@@ -515,6 +520,7 @@ def make_mses_graphs_estimator(
     estimation_results_list: List["EstimationResult"],
     simulation_settings: List["StandardQTomographySimulationSetting"],
     true_object,
+    qtomography_list: List["StandardQTomography"],
 ) -> list:
     data_dict = {}
     num_data = simulation_settings[0].num_data
@@ -525,6 +531,7 @@ def make_mses_graphs_estimator(
         loss_name = s.loss.__class__.__name__ if s.loss else None
         algo_name = s.algo.__class__.__name__ if s.algo else None
         results = estimation_results_list[i]
+        qtomography = qtomography_list[i]
         case_name = s.name
         category = Category(estimator_name, loss_name, algo_name)
 
@@ -534,13 +541,15 @@ def make_mses_graphs_estimator(
             data_dict[category]["estimators"].append(estimator_name)
             data_dict[category]["losses"].append(loss_name)
             data_dict[category]["algos"].append(algo_name)
+            data_dict[category]["qtomography_list"].append(qtomography)
         else:
             data_dict[category] = dict(
                 estimation_results=[results],
-                case_names=[s.name],
-                estimators=[s.estimator],
-                losses=[s.loss],
-                algos=[s.algo],
+                case_names=[s.name],  # TODO: case_name?
+                estimators=[s.estimator],  # TODO: estimator_name?
+                losses=[s.loss],  # TODO: loss_name?
+                algos=[s.algo],  # TODO: algo_name?
+                qtomography_list=[qtomography],
             )
     figs = []
 
@@ -563,6 +572,7 @@ def make_mses_graphs_estimator(
             show_analytical_results=True,
             estimator_list=target_dict["estimators"],
             num_data=num_data,
+            qtomography_list=target_dict["qtomography_list"],
         )
         fig.update_layout(title=dict(yanchor="bottom", y=0.96))
 
@@ -576,14 +586,15 @@ def make_mses_graphs_para(
     true_object: "QOperation",
     num_data: List[int],
     parameter_list: List[bool],
+    qtomography_list: List["StandardQTomography"],
 ) -> list:
     # TODO: remove
     # def _get_parameter(estimation_results: List["EstimationResult"]) -> bool:
     #     return estimation_results[0].qtomography.on_para_eq_constraint
 
     # Split data (True/False)
-    true_dict = dict(title="True", estimation_results=[], case_names=[])
-    false_dict = dict(title="False", estimation_results=[], case_names=[])
+    true_dict = dict(title="True", estimation_results=[], case_names=[], qtomography_list=[])
+    false_dict = dict(title="False", estimation_results=[], case_names=[], qtomography_list=[])
 
     for i, results in enumerate(estimation_results_list):
         if parameter_list[i]:
@@ -591,10 +602,12 @@ def make_mses_graphs_para(
             # on_para_eq_constraint = True
             true_dict["estimation_results"].append(results)
             true_dict["case_names"].append(case_names[i])
+            true_dict["qtomography_list"].append(qtomography_list[i])
         else:
             # on_para_eq_constraint = False
             false_dict["estimation_results"].append(results)
             false_dict["case_names"].append(case_names[i])
+            false_dict["qtomography_list"].append(qtomography_list[i])
 
     # Make figure
     figs = []
@@ -607,6 +620,7 @@ def make_mses_graphs_para(
             true_object,
             num_data=num_data,
             additional_title_text=f"parametrization={target_dict['title']}",
+            qtomography_list=target_dict["qtomography_list"],
         )
         figs.append(fig)
     return figs

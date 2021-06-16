@@ -554,7 +554,7 @@ def generate_mse_analytical_div(
         true_object=true_object,
         estimator_list=estimator_list,
         num_data=num_data,
-        qtmogorahpy_list=qtomography_list,
+        qtomography_list=qtomography_list,
     )
 
     mse_div_list = []
@@ -771,6 +771,7 @@ def _generate_physicality_violation_test_div_for_gate(
         # num_data_len = len(estimation_results_list[0][0].num_data)
         num_data_len = len(num_data)
         col_n = num_data_len if num_data_len <= 4 else 4
+
         div = generate_figs_div(
             func=_make_fig_info_list,
             estimation_results=estimation_results,
@@ -1472,6 +1473,7 @@ def export_report(
         estimation_results_list=estimation_results_list,
         simulation_settings=simulation_settings,
         true_object=true_object,
+        qtomography_list=qtomography_list,
     )
     # 3. Comparison of estimators
     mse_est_div = generate_figs_div(
@@ -1483,6 +1485,7 @@ def export_report(
         true_object=true_object,
         num_data=num_data,
         parameter_list=parameter_list,
+        qtomography_list=qtomography_list,
     )
 
     # Physicality Violation Test

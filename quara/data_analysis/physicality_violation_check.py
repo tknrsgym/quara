@@ -761,7 +761,10 @@ def make_graph_trace_error_sum(
     )
     title = f"N={num_data[num_data_index]}"
     fig.update_layout(title=title)
-    fig.update_xaxes(range=[0, fig.layout.xaxis.range[1]])
+    if fig.layout.xaxis.range is None:
+        fig.update_xaxes(range=[0, max(values)])
+    else:
+        fig.update_xaxes(range=[0, fig.layout.xaxis.range[1]])
 
     return fig
 
