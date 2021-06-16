@@ -67,9 +67,11 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         QOperation
             the estimate.
         """
-        qoperation = self._qtomography.convert_var_to_qoperation(
-            self._estimated_var_sequence[0]
-        )
+        # qoperation = self._qtomography.convert_var_to_qoperation(
+        #     self._estimated_var_sequence[0]
+        # )
+        var = self._estimated_var_sequence[0]
+        qoperation = self._template_qoperation.generate_from_var(var)
         return qoperation
 
     @property

@@ -32,7 +32,7 @@ class TestStandardQTomographyEstimationResult:
         computation_times = [0.1, 0.2]
 
         result = StandardQTomographyEstimationResult(
-            estimated_var_sequence, computation_times
+            estimated_var_sequence, computation_times, qtomography._template_qoperation
         )
 
         return result

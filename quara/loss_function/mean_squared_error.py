@@ -133,8 +133,8 @@ def compare_to_analytical(
     # MSE_Analytical
     analytical_mses = []
     for num in num_data:
-        analytical_mse = qtomo.calc_mse_linear_analytical(
-            true_object_copied, [num] * qtomo.num_schedules
+        analytical_mse = qtomography.calc_mse_linear_analytical(
+            true_object_copied, [num] * qtomography.num_schedules
         )
         analytical_mses.append(analytical_mse)
 
