@@ -359,6 +359,16 @@ def test_convert_gate_qutip_to_quara_1qutrit(gate_name):
     _test_convert_gate_qutip_to_quara("qutrit", 1, 3, gate_name)
 
 
+@pytest.mark.qutip
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_qutip_gate_names_2qutrit()],
+)
+def test_convert_gate_qutip_to_quara_2qutrit(gate_name):
+    _test_convert_gate_qutip_to_quara("qutrit", 2, 9, gate_name)
+
+
 def _test_convert_gate_quara_to_qutip(mode, num, dim, gate_name, ids=None):
     # Arrange
     c_sys = generate_composite_system(mode, num)
@@ -411,4 +421,14 @@ def test_convert_gate_quara_to_qutip_3qubit(gate_name):
     [(gate_name) for gate_name in get_qutip_gate_names_1qutrit()],
 )
 def test_convert_gate_quara_to_qutip_1qutrit(gate_name):
-    _test_convert_gate_quara_to_qutip("qutrit", 1, 2, gate_name)
+    _test_convert_gate_quara_to_qutip("qutrit", 1, 3, gate_name)
+
+
+@pytest.mark.qutip
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("gate_name"),
+    [(gate_name) for gate_name in get_qutip_gate_names_2qutrit()],
+)
+def test_convert_gate_quara_to_qutip_2qutrit(gate_name):
+    _test_convert_gate_quara_to_qutip("qutrit", 2, 9, gate_name)

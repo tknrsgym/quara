@@ -17,7 +17,7 @@ from quara.interface.qutip.qutip_gate_typical import (
 
 
 @pytest.mark.qutip
-@pytest.mark.parametrize(("type"), ["1qubit", "2qubit", "3qubit", "1qutrit"])
+@pytest.mark.parametrize(("type"), ["1qubit", "2qubit", "3qubit", "1qutrit", "2qutrit"])
 def test_get_qutip_gate_names(type: str):
     quara_method_name = f"get_gate_names_{type}"
     qutip_method_name = f"get_qutip_gate_names_{type}"
@@ -38,6 +38,7 @@ def test_get_qutip_gate_names(type: str):
         ("2qubit", 4, [1, 0]),
         ("3qubit", 8, [0, 1, 2]),
         ("1qutrit", 3, None),
+        ("2qutrit", 9, None),
     ],
 )
 def test_generate_qutip_gate_from_gate_name(type, dim, ids):

@@ -1,5 +1,8 @@
 from typing import List, Union
-from math import sqrt
+from math import pi
+
+import numpy as np
+from scipy.linalg import expm
 from qutip import (
     Qobj,
     to_super,
@@ -30,7 +33,7 @@ def get_qutip_gate_names_1qutrit() -> List[str]:
 
 
 def get_qutip_gate_names_2qutrit() -> List[str]:
-    raise NotImplementedError
+    return ["12xi90_i02z90"]
 
 
 def generate_qutip_gate_from_gate_name(
@@ -47,19 +50,19 @@ def generate_qutip_gate_from_gate_name(
     elif gate_name == "z":
         return to_super(sigmaz())
     elif gate_name == "zx90":
-        if ids == None or len(ids) != 2:
+        if ids == None or len(ids) != 2 or False in [i in ids for i in range(2)]:
             raise ValueError("ids is None or invalid value")
         if ids[0] < ids[1]:
-            matrix = (
-                tensor(identity(2), identity(2)) - 1j * tensor(sigmaz(), sigmax())
-            ) / sqrt(2)
+            hamiltonian = (
+                pi / 4 * np.kron(sigmaz().data.toarray(), sigmax().data.toarray())
+            )
         else:
-            matrix = (
-                tensor(identity(2), identity(2)) - 1j * tensor(sigmax(), sigmaz())
-            ) / sqrt(2)
-        return to_super(matrix)
+            hamiltonian = (
+                pi / 4 * np.kron(sigmax().data.toarray(), sigmaz().data.toarray())
+            )
+        return to_super(Qobj(expm(-1j * hamiltonian)))
     elif gate_name == "toffoli":
-        if ids == None or len(ids) != 3:
+        if ids == None or len(ids) != 3 or False in [i in ids for i in range(3)]:
             raise ValueError("ids is None or invalid value")
         if ids[2] == 2:
             matrix = (
@@ -73,12 +76,21 @@ def generate_qutip_gate_from_gate_name(
                 + tensor(ket2dm(tensor(basis(2, 1), basis(2, 1))), sigmax())
             )
         else:
+            # TODO: implement
             raise NotImplementedError("only for case where ids==[0,1,2] is implemented")
         return to_super(matrix)
     elif gate_name == "02y90":
-        return to_super(
-            Qobj([[1 / sqrt(2), 0, 0], [0, 1, 0], [0, 0, 1 / sqrt(2)]])
-            - 1j * Qobj([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]]) / sqrt(2)
+        hamiltonian = pi / 4 * np.array([[0, 0, -1j], [0, 0, 0], [1j, 0, 0]])
+        return to_super(Qobj(expm(-1j * hamiltonian)))
+    elif gate_name == "12xi90_i02z90":
+        hamiltonian = (
+            pi
+            / 4
+            * (
+                np.kron([[0, 0, 0], [0, 0, 1], [0, 1, 0]], np.eye(3))
+                + np.kron(np.eye(3), [[1, 0, 0], [0, 0, 0], [0, 0, -1]])
+            )
         )
+        return to_super(Qobj(expm(-1j * hamiltonian)))
     else:
         raise ValueError("gate_name is out of range")
