@@ -254,11 +254,7 @@ class StandardQst(StandardQTomography):
 
         see :func:`~quara.protocol.qtomography.standard.standard_qtomography.StandardQTomography.convert_var_to_qoperation`
         """
-        # template = self._set_qoperations.states[0]
         template = self._template_qoperation
-        # TODO: remove
-        print(f"{template=}")
-        print(f"{var=}")
 
         state = template.generate_from_var(var=var)
         return state

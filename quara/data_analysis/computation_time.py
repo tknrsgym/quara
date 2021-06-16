@@ -109,8 +109,6 @@ def make_computation_time_histogram(
         error_message = f"'unit' must be 'min' or 'sec', not {unit}"
         raise ValueError(error_message)
 
-    # TODO: remove
-    # n = estimation_results[0].num_data[num_data_index]
     n = num_data[num_data_index]
     values = [
         result.computation_times[num_data_index] / time_unit
@@ -130,8 +128,6 @@ def make_computation_time_histogram(
 def make_computation_time_histograms(
     estimation_results: List["EstimationResult"], num_data: List[int], unit: str = "sec"
 ):
-    # TODO: remove
-    # num_data_len = len(estimation_results[0].num_data)
     num_data_len = len(num_data)
 
     figs = []

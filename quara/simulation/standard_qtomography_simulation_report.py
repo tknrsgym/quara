@@ -182,9 +182,6 @@ def _save_fig_to_tmp_dir(fig: "Figure", fig_name: str) -> str:
 def _make_graph_trace_seq(
     estimation_results: List["EstimationResult"], num_data: List[int], case_id: int
 ) -> list:
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
-
     fig_info_list = []
     for i, num in enumerate(num_data):
         fig = physicality_violation_check.make_graph_trace(
@@ -236,8 +233,6 @@ def _make_graph_sum_vecs_seq(
     true_object: Povm,
 ) -> List[List["Figure"]]:
     fig_info_list_list = []
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
         figs = physicality_violation_check.make_graphs_sum_vecs(
@@ -306,8 +301,7 @@ def _generate_graph_eigenvalues_seq(
     true_object: "QOperation",
     bin_size: float = 0.0001,
 ) -> list:
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
+
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_eigenvalues(
@@ -389,8 +383,6 @@ def _generate_graph_eigenvalues_seq_3loop(
     case_id: int,
     true_object: "QOperation",
 ) -> list:
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     # For State
     fig_info_list3 = []
     for num_data_index in range(len(num_data)):
@@ -472,8 +464,6 @@ def _generate_graph_sum_eigenvalues_seq(
     case_id: int,
     true_object,
 ) -> List[List[dict]]:
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
@@ -767,8 +757,6 @@ def _generate_physicality_violation_test_div_for_gate(
             <h5></h5>
             {div}
             """
-        # TODO: remove
-        # num_data_len = len(estimation_results_list[0][0].num_data)
         num_data_len = len(num_data)
         col_n = num_data_len if num_data_len <= 4 else 4
 
@@ -1107,8 +1095,6 @@ def _make_fig_info_list_list(
     **kwargs,
 ) -> List[List["Figure"]]:
     fig_info_list_list = []
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
         func_parameter_names = make_graphs_func.__code__.co_varnames[
@@ -1211,8 +1197,7 @@ def generate_computation_time_of_estimators_table(
         num_list = []
         mean_list = []
         std_list = []
-        # TODO: remove
-        # num_data = estimation_results[0].num_data
+
         num_data = simulation_settings[0].num_data
         for i, num in enumerate(num_data):
             comp_times = [result.computation_times[i] for result in estimation_results]
@@ -1255,8 +1240,7 @@ def generate_computation_time_of_estimators_graph(
     simulation_settings: List[StandardQTomographySimulationSetting],
 ) -> str:
     all_divs = ""
-    # TODO: remove
-    # graph_n = len(estimation_results_list[0][0].num_data)
+
     graph_n = len(simulation_settings[0].num_data)
 
     col_n = graph_n if graph_n <= 4 else 4
@@ -1267,7 +1251,7 @@ def generate_computation_time_of_estimators_graph(
         div = generate_figs_div(
             func=_make_fig_info_list,
             estimation_results=estimation_results,
-            num_data=simulation_setting.num_data,  # TODO: 追加したがあとで見直す
+            num_data=simulation_setting.num_data,
             case_id=case_id,
             fig_type="computation_time",
             size=(_col2_fig_width, _col2_fig_height),
@@ -1400,8 +1384,6 @@ def export_report(
 
     num_data = simulation_results[0].simulation_setting.num_data
     n_rep = simulation_results[0].simulation_setting.n_rep
-    # TODO: remove
-    # qtomography_list = [results[0].qtomography for results in estimation_results_list]
     qtomography_list = [sim_result.qtomography for sim_result in simulation_results]
     parameter_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
     for qtomography in qtomography_list:

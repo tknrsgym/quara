@@ -318,8 +318,6 @@ def make_mses_graph_estimation_results(
     show_analytical_results: bool = False,
     estimator_list: list = None,
 ) -> "Figure":
-    # TODO: remove
-    # num_data = estimation_results_list[0][0].num_data
     mses_list = []
     error_bar_values_list = []
     n_rep = len(estimation_results_list[0])
@@ -373,12 +371,8 @@ def _make_data_for_graphs_mses_analytical(
         message = "`estimation_results_list` and `estimator_list` lengths do not match"
         raise ValueError(message)
 
-    # TODO: remove
-    # num_data = estimation_results_list[0][0].num_data
     mses_list = []
 
-    # TODO: remove
-    # qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
     qtomo_type_dict = {}
     QTomoType = namedtuple(
         "QTomoType", ["qtomography_name", "on_para_eq_constraint", "estimator_name"]
@@ -442,8 +436,7 @@ def make_mses_graph_analytical(
     num_data: List[int],
     qtomography_list: List["StandardQTomography"],
 ) -> "Figure":
-    # TODO: remove
-    # num_data = estimation_results_list[0][0].num_data
+
     (
         mses_list,
         display_case_names,
@@ -588,13 +581,13 @@ def make_mses_graphs_para(
     parameter_list: List[bool],
     qtomography_list: List["StandardQTomography"],
 ) -> list:
-    # TODO: remove
-    # def _get_parameter(estimation_results: List["EstimationResult"]) -> bool:
-    #     return estimation_results[0].qtomography.on_para_eq_constraint
-
     # Split data (True/False)
-    true_dict = dict(title="True", estimation_results=[], case_names=[], qtomography_list=[])
-    false_dict = dict(title="False", estimation_results=[], case_names=[], qtomography_list=[])
+    true_dict = dict(
+        title="True", estimation_results=[], case_names=[], qtomography_list=[]
+    )
+    false_dict = dict(
+        title="False", estimation_results=[], case_names=[], qtomography_list=[]
+    )
 
     for i, results in enumerate(estimation_results_list):
         if parameter_list[i]:

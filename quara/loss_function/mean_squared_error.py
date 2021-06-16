@@ -33,7 +33,7 @@ def check_mse_of_empirical_distributions(
     # MSE of Empirical Distributions
     empi_dists = data_analysis.extract_empi_dists_sequences(
         simulation_result.empi_dists_sequences
-    )  # TODO: check empi_distsでOKか？
+    )  # TODO: check empi_dists? empi_dists_sequence?
     xs_list_list = empi_dists
     ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
         num_data
@@ -115,11 +115,7 @@ def compare_to_analytical(
             f"simulation_setting.estimator must be LinearEstimator, not {type(simulation_setting.estimator)}"
         )
 
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     num_data = simulation_setting.num_data
-    # TODO: remove
-    # qtomo = estimation_results[0].qtomography
     parameter = qtomography.on_para_eq_constraint
     true_object_copied = data_analysis._recreate_qoperation(
         simulation_setting.true_object, on_para_eq_constraint=parameter
@@ -172,12 +168,8 @@ def compare_to_linear(
     )
 
     # calc mse of LinearEstimator
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     num_data = simulation_setting.num_data
     n_rep = simulation_setting.n_rep
-    # TODO: remove
-    # qtomo = estimation_results[0].qtomography
     parameter = qtomography.on_para_eq_constraint
     true_object_copied = data_analysis._recreate_qoperation(
         simulation_setting.true_object, on_para_eq_constraint=parameter

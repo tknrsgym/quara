@@ -315,8 +315,6 @@ def make_graphs_eigenvalues(
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     n_data = num_data[num_data_index]
     if type(true_object) == State:
         figs = _make_graphs_eigenvalues_state(
@@ -340,8 +338,6 @@ def make_graphs_sum_unphysical_eigenvalues(
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ):
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -392,9 +388,6 @@ def make_graphs_sum_vecs(
     num_data_index: int,
     bin_size: float = 0.0001,
 ) -> List["Figure"]:
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
-
     estimated_povms = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -567,8 +560,7 @@ def is_physical_qobjects_all(
     show_detail: bool = True,
 ) -> bool:
     check_results = []
-    # TODO: remove
-    # for i, num in enumerate(estimation_results[0].num_data):
+
     for i, num in enumerate(num_data):
         unphysical_n = calc_unphysical_qobjects_n(estimation_results, num_data_index=i)
         result = unphysical_n == 0
@@ -710,8 +702,6 @@ def make_graphs_trace_error(
     num_data: List[int],
     bin_size: float = 0.0001,
 ):
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     estimated_gates = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -740,8 +730,6 @@ def make_graph_trace_error_sum(
     num_data_index: int,
     bin_size: float = 0.0001,
 ):
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     estimated_gates = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -774,8 +762,6 @@ def make_graphs_trace_error_sum(
     num_data: List[int],
     bin_size: float = 0.0001,
 ) -> list:
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     figs = []
     for num_data_index, num in enumerate(num_data):
         fig = make_graph_trace_error_sum(
@@ -792,8 +778,6 @@ def is_eq_constraint_satisfied_all(
     estimation_results, num_data: List[int], show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
     para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
     eps = get_eq_const_eps(para)
 
@@ -821,8 +805,6 @@ def is_ineq_constraint_satisfied_all(
     estimation_results, num_data: List[int], show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    # TODO: remove
-    # num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
         check_results = [

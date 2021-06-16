@@ -24,18 +24,6 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         self._estimated_var_sequence: List[np.ndarray] = estimated_var_sequence
         self._template_qoperation: QOperation = template_qoperation
 
-    # TODO: remove
-    # @property
-    # def qtomography(self) -> StandardQTomography:
-    #     """returns the StandardQTomography used for estimation.
-
-    #     Returns
-    #     -------
-    #     StandardQTomography
-    #         the StandardQTomography used for estimation.
-    #     """
-    #     return self._qtomography
-
     @property
     def estimated_var(self) -> np.ndarray:
         """returns the estimate. the type of each estimate is ``np.ndarray``.
@@ -67,9 +55,6 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         QOperation
             the estimate.
         """
-        # qoperation = self._qtomography.convert_var_to_qoperation(
-        #     self._estimated_var_sequence[0]
-        # )
         var = self._estimated_var_sequence[0]
         qoperation = self._template_qoperation.generate_from_var(var)
         return qoperation
@@ -83,21 +68,11 @@ class StandardQTomographyEstimationResult(QTomographyEstimationResult):
         List[QOperation]
             the estimate sequence.
         """
-        # TODO: remove
-        # qoperations = [
-        #     self._qtomography.convert_var_to_qoperation(var)
-        #     for var in self._estimated_var_sequence
-        # ]
         qoperations = [
             self._template_qoperation.generate_from_var(var)
             for var in self._estimated_var_sequence
         ]
         return qoperations
-
-    # @property
-    # def num_data(self) -> List[int]:
-    #     num_data = [data[0][0] for data in self._data]
-    #     return num_data
 
 
 class StandardQTomographyEstimator(QTomographyEstimator):
