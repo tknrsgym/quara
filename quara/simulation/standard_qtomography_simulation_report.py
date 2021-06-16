@@ -1325,21 +1325,16 @@ def export_report_from_index(
     simulation_results = _load_simulation_results(
         input_root_dir, test_setting_index, sample_index, case_index=case_index
     )
-    check_results = []
-    for sim_result in simulation_results:
-        check_results.append(sim_result.check_result)
 
     export_report(
         output_path,
         simulation_results=simulation_results,
-        check_results=check_results,
     )
 
 
 def export_report(
     path: str,
     simulation_results: List[SimulationResult],
-    check_results: List["CheckResult"] = None,  # TODO: remove
     keep_tmp_files: bool = False,
     show_physicality_violation_check: bool = True,
 ):
