@@ -9,6 +9,7 @@ from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.qcircuit.experiment import Experiment
+from quara.utils.number_util import to_stream
 
 
 class StandardQst(StandardQTomography):
@@ -168,7 +169,11 @@ class StandardQst(StandardQTomography):
         raise NotImplementedError()
 
     def generate_empi_dist(
-        self, schedule_index: int, state: State, num_sum: int
+        self,
+        schedule_index: int,
+        state: State,
+        num_sum: int,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> Tuple[int, np.ndarray]:
         """Generate empirical distribution using the data generated from probability distribution of specified schedules.
 
@@ -180,6 +185,11 @@ class StandardQst(StandardQTomography):
             true object.
         num_sum : int
             the number of data to use to generate the experience distributions for each schedule.
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, it is assumed to be a seed used to generate random data.
+            If the type is RandomState, it is used to generate random data.
+            If argument is None, np.random is used to generate random data.
+            Default value is None.
 
         Returns
         -------
@@ -190,13 +200,17 @@ class StandardQst(StandardQTomography):
         state_index = self._get_target_index(tmp_experiment, schedule_index)
         tmp_experiment.states[state_index] = state
 
+        stream = to_stream(seed_or_stream)
         empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
-            schedule_index, [num_sum]
+            schedule_index, [num_sum], seed_or_stream=stream
         )
         return empi_dist_seq[0]
 
     def generate_empi_dists(
-        self, state: State, num_sum: int
+        self,
+        state: State,
+        num_sum: int,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> List[Tuple[int, np.ndarray]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -208,13 +222,19 @@ class StandardQst(StandardQTomography):
             tmp_experiment.states[state_index] = state
 
         num_sums = [num_sum] * self._num_schedules
-        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence([num_sums])
+        stream = to_stream(seed_or_stream)
+        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence(
+            [num_sums], seed_or_stream=stream
+        )
 
         empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
         return empi_dists
 
     def generate_empi_dists_sequence(
-        self, state: State, num_sums: List[int]
+        self,
+        state: State,
+        num_sums: List[int],
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> List[List[Tuple[int, np.ndarray]]]:
         """Generate sequence of empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -224,6 +244,11 @@ class StandardQst(StandardQTomography):
             true object.
         num_sums : List[int]
             list of the number of data to use to generate the experience distributions for each schedule.
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, it is assumed to be a seed used to generate random data.
+            If the type is RandomState, it is used to generate random data.
+            If argument is None, np.random is used to generate random data.
+            Default value is None.
 
         Returns
         -------
@@ -239,8 +264,9 @@ class StandardQst(StandardQTomography):
             state_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.states[state_index] = state
 
+        stream = to_stream(seed_or_stream)
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
-            list_num_sums_tmp
+            list_num_sums_tmp, seed_or_stream=stream
         )
         empi_dists_sequence = [
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
