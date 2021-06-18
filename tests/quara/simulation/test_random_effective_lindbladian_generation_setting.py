@@ -18,6 +18,24 @@ from quara.objects.povm import get_z_povm
 
 
 class TestRandomEffectiveLindbladianGenerationSetting:
+    def test_access_is_seed_or_stream_required(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        qoperation_base = get_z0_1q(c_sys)
+        hs = np.array(
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
+        lindbladian_base = EffectiveLindbladian(c_sys, hs)
+
+        # Act
+        actual = RandomEffectiveLindbladianGenerationSetting(
+            c_sys, qoperation_base, lindbladian_base, 1.0, 2.0
+        )
+
+        # Assert
+        assert actual.is_seed_or_stream_required == True
+
     def test_access_strength_h_part(self):
         ## init
         # Arrange
@@ -206,6 +224,52 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         uni = random_unitary @ random_unitary.T.conj()
         npt.assert_almost_equal(uni, np.eye(3), decimal=15)
         assert random_el.shape == (4, 4)
+
+    def test_stream(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        qoperation_base = get_z0_1q(c_sys)
+        hs = np.array(
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
+        lindbladian_base = EffectiveLindbladian(c_sys, hs)
+        generation_setting = RandomEffectiveLindbladianGenerationSetting(
+            c_sys, qoperation_base, lindbladian_base, 1.0, 2.0
+        )
+
+        ### generate
+        # Act(seed_or_stream: default)
+        seed = 7
+        np.random.seed(seed)
+        (
+            state1,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = generation_setting.generate()
+
+        # Act(seed_or_stream: int)
+        (
+            state2,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = generation_setting.generate(7)
+
+        # Act(seed_or_stream: RandomState)
+        (
+            state3,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = generation_setting.generate(np.random.RandomState(7))
+
+        npt.assert_almost_equal(state1.to_var(), state2.to_var(), decimal=15)
+        npt.assert_almost_equal(state2.to_var(), state3.to_var(), decimal=15)
 
     def test_generate_gate(self):
         # Arrange
