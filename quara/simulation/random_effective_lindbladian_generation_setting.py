@@ -122,6 +122,14 @@ class RandomEffectiveLindbladianGenerationSetting(
     ) -> Tuple[np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of h part of effective Lindbladian.
 
+        Parameters
+        ----------
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            If the type is RandomState, returns RandomState.
+            If argument is None, returns np.random.
+            Default value is None.
+
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
@@ -150,11 +158,20 @@ class RandomEffectiveLindbladianGenerationSetting(
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of d part of effective Lindbladian.
 
+        Parameters
+        ----------
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            If the type is RandomState, returns RandomState.
+            If argument is None, returns np.random.
+            Default value is None.
+
         Returns
         -------
         Tuple[np.ndarray, np.ndarray, np.ndarray]
             tuple of random HS matrix, ramdom variables and random unitary matrix.
         """
+        stream = to_stream(seed_or_stream)
         # generate randum variables
         random_vector, random_variables = self._generate_random_variables(
             self.strength_k_part, seed_or_stream
@@ -163,7 +180,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
         # generate randum variables
         dim = self.composite_system.dim
-        random_unitary = unitary_group.rvs(dim ** 2 - 1)
+        random_unitary = unitary_group.rvs(dim ** 2 - 1, random_state=stream)
 
         # calc random k mat
         random_k_mat = random_unitary @ np.diag(random_vector) @ random_unitary.T.conj()
@@ -183,20 +200,29 @@ class RandomEffectiveLindbladianGenerationSetting(
     ) -> Tuple[EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns effective Lindbladian base + random effective Lindbladian.
 
+        Parameters
+        ----------
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            If the type is RandomState, returns RandomState.
+            If argument is None, returns np.random.
+            Default value is None.
+
         Returns
         -------
         Tuple[ EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of effective Lindbladian, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
         """
+        stream = to_stream(seed_or_stream)
         (
             random_h_part_cb,
             random_variables_h_part,
-        ) = self.generate_random_effective_lindbladian_h_part(seed_or_stream)
+        ) = self.generate_random_effective_lindbladian_h_part(stream)
         (
             random_d_part_cb,
             random_variables_k_part,
             random_unitary,
-        ) = self.generate_random_effective_lindbladian_d_part(seed_or_stream)
+        ) = self.generate_random_effective_lindbladian_d_part(stream)
         random_el_cb = random_h_part_cb + random_d_part_cb
 
         random_el_gb_tmp = convert_hs(
@@ -235,19 +261,28 @@ class RandomEffectiveLindbladianGenerationSetting(
     ) -> Tuple[State, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns state(composition of random effective Lindbladian and qoperation base).
 
+        Parameters
+        ----------
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            If the type is RandomState, returns RandomState.
+            If argument is None, returns np.random.
+            Default value is None.
+
         Returns
         -------
         Tuple[ State, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of state, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
+        stream = to_stream(seed_or_stream)
         (
             el,
             random_variables_h_part,
             random_variables_k_part,
             random_unitary,
             random_el,
-        ) = self.generate_random_effective_lindbladian(seed_or_stream)
+        ) = self.generate_random_effective_lindbladian(stream)
         new_object = compose_qoperations(el.to_gate(), self.qoperation_base)
         return (
             new_object,
@@ -263,19 +298,28 @@ class RandomEffectiveLindbladianGenerationSetting(
     ) -> Tuple[Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns gate(composition of random effective Lindbladian and qoperation base).
 
+        Parameters
+        ----------
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            If the type is RandomState, returns RandomState.
+            If argument is None, returns np.random.
+            Default value is None.
+
         Returns
         -------
         Tuple[ Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of gate, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
+        stream = to_stream(seed_or_stream)
         (
             el,
             random_variables_h_part,
             random_variables_k_part,
             random_unitary,
             random_el,
-        ) = self.generate_random_effective_lindbladian(seed_or_stream)
+        ) = self.generate_random_effective_lindbladian(stream)
         new_object = compose_qoperations(el.to_gate(), self.qoperation_base)
         return (
             new_object,
@@ -291,19 +335,28 @@ class RandomEffectiveLindbladianGenerationSetting(
     ) -> Tuple[Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns povm(composition of random effective Lindbladian and qoperation base).
 
+        Parameters
+        ----------
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            If the type is RandomState, returns RandomState.
+            If argument is None, returns np.random.
+            Default value is None.
+
         Returns
         -------
         Tuple[ Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of povm, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
+        stream = to_stream(seed_or_stream)
         (
             el,
             random_variables_h_part,
             random_variables_k_part,
             random_unitary,
             random_el,
-        ) = self.generate_random_effective_lindbladian(seed_or_stream)
+        ) = self.generate_random_effective_lindbladian(stream)
         new_object = compose_qoperations(self.qoperation_base, el.to_gate())
         return (
             new_object,
@@ -312,3 +365,19 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_unitary,
             random_el,
         )
+
+    def generate(
+        self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
+    ):
+        stream = to_stream(seed_or_stream)
+        if type(self.qoperation_base) == State:
+            return self.generate_state(stream)
+
+        if type(self.qoperation_base) == Povm:
+            return self.generate_povm(stream)
+
+        if type(self.qoperation_base) == Gate:
+            return self.generate_gate(stream)
+
+        raise NotImplementedError()
