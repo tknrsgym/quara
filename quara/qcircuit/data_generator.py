@@ -86,7 +86,7 @@ def generate_data_from_prob_dist(
 def generate_dataset_from_prob_dists(
     prob_dists: List[np.ndarray],
     data_nums: List[int],
-    seeds: List[int] = None,
+    seeds_or_streams: List[Union[int, np.random.RandomState]] = None,
 ) -> List[List[int]]:
     """generates random dataset from probability distributions.
 
@@ -98,8 +98,11 @@ def generate_dataset_from_prob_dists(
         a list of probdist.
     data_nums : List[int]
         a list of data_num.
-    seeds : List[int], optional
-        a list of seed, by default None
+    seeds_or_streams : Union[int, np.random.RandomState], optional
+        If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+        If the type is RandomState, returns RandomState.
+        If argument is None, returns np.random.
+        Default value is None.
 
     Returns
     -------
@@ -111,7 +114,7 @@ def generate_dataset_from_prob_dists(
     ValueError
         the length of ``prob_dists`` does not equal the length of ``data_nums``.
     ValueError
-        ``seeds`` is not None and the length of ``prob_dists`` does not equal the length of ``seeds``.
+        ``seeds_or_streams`` is not None and the length of ``prob_dists`` does not equal the length of ``seeds_or_streams``.
     """
     # whether the length of prob_dists equals the length of data_nums.
     if len(prob_dists) != len(data_nums):
@@ -119,17 +122,17 @@ def generate_dataset_from_prob_dists(
             f"the length of prob_dists must equal the length of data_nums. the length of prob_dists is {len(prob_dists)}. the length of data_nums is {len(data_nums)}"
         )
 
-    # whether the length of prob_dists equals the length of seeds.
-    if seeds is not None:
-        if len(prob_dists) != len(seeds):
+    # whether the length of prob_dists equals the length of seeds_or_streams.
+    if seeds_or_streams is not None:
+        if len(prob_dists) != len(seeds_or_streams):
             raise ValueError(
-                f"the length of prob_dists must equal the length of seeds. the length of prob_dists is {len(prob_dists)}. the length of seeds is {len(seeds)}"
+                f"the length of prob_dists must equal the length of seeds_or_streams. the length of prob_dists is {len(prob_dists)}. the length of seeds_or_streams is {len(seeds_or_streams)}"
             )
 
     dataset = []
     for index, (prob_dist, data_num) in enumerate(zip(prob_dists, data_nums)):
-        seed = None if seeds is None else seeds[index]
-        data = generate_data_from_prob_dist(prob_dist, data_num, seed)
+        seed_or_stream = None if seeds_or_streams is None else seeds_or_streams[index]
+        data = generate_data_from_prob_dist(prob_dist, data_num, seed_or_stream)
         dataset.append(data)
 
     return dataset

@@ -1,6 +1,6 @@
 import collections
 import copy
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -9,6 +9,7 @@ from quara.objects.povm import Povm
 from quara.objects.state import State
 import quara.objects.operators as op
 from quara.qcircuit import data_generator
+from quara.utils.number_util import to_stream
 
 
 class QuaraScheduleItemError(Exception):
@@ -417,7 +418,12 @@ class Experiment:
             prob_dists.append(r)
         return prob_dists
 
-    def generate_data(self, schedule_index: int, data_num: int) -> List[int]:
+    def generate_data(
+        self,
+        schedule_index: int,
+        data_num: int,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
+    ) -> List[int]:
         """Runs the specified schedule to caluclate the probability distribution and generate random data.
 
         Parameters
@@ -426,6 +432,11 @@ class Experiment:
             Index of the schedule.
         data_num : int
             Length of the data.
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, it is assumed to be a seed used to generate random data.
+            If the type is RandomState, it is used to generate random data.
+            If argument is None, np.random is used to generate random data.
+            Default value is None.
 
         Returns
         -------
@@ -450,16 +461,28 @@ class Experiment:
         self._validate_schedule_index(schedule_index)
 
         prob_dist = self.calc_prob_dist(schedule_index)
-        data = data_generator.generate_data_from_prob_dist(prob_dist, data_num)
+        stream = to_stream(seed_or_stream)
+        data = data_generator.generate_data_from_prob_dist(
+            prob_dist, data_num, seed_or_stream=stream
+        )
         return data
 
-    def generate_dataset(self, data_nums: List[int]) -> List[List[np.ndarray]]:
+    def generate_dataset(
+        self,
+        data_nums: List[int],
+        seed_or_stream: Union[int, np.random.RandomState] = None,
+    ) -> List[List[np.ndarray]]:
         """Run all the schedules to caluclate the probability distribution and generate random data.
 
         Parameters
         ----------
         data_nums : List[int]
             A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, it is assumed to be a seed used to generate random data.
+            If the type is RandomState, it is used to generate random data.
+            If argument is None, np.random is used to generate random data.
+            Default value is None.
 
         Returns
         -------
@@ -471,13 +494,19 @@ class Experiment:
 
         prob_dists = self.calc_prob_dists()
 
+        stream = to_stream(seed_or_stream)
         dataset = data_generator.generate_dataset_from_prob_dists(
-            prob_dists=prob_dists, data_nums=data_nums
+            prob_dists=prob_dists,
+            data_nums=data_nums,
+            seeds_or_streams=[stream] * len(data_nums),
         )
         return dataset
 
     def generate_empi_dist_sequence(
-        self, schedule_index: int, num_sums: List[int]
+        self,
+        schedule_index: int,
+        num_sums: List[int],
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> List[Tuple[int, np.ndarray]]:
         """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
 
@@ -489,6 +518,11 @@ class Experiment:
             Index of schedule.
         num_sums : List[int]
             List of the number of data to caluclate the experience distribution
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, it is assumed to be a seed used to generate random data.
+            If the type is RandomState, it is used to generate random data.
+            If argument is None, np.random is used to generate random data.
+            Default value is None.
 
         Returns
         -------
@@ -502,14 +536,19 @@ class Experiment:
         prob_dist = self.calc_prob_dist(schedule_index)
         measurement_num = len(prob_dist)
 
-        data = self.generate_data(schedule_index=schedule_index, data_num=data_n)
+        stream = to_stream(seed_or_stream)
+        data = self.generate_data(
+            schedule_index=schedule_index, data_num=data_n, seed_or_stream=stream
+        )
         empi_dist = data_generator.calc_empi_dist_sequence(
             measurement_num=measurement_num, data=data, num_sums=num_sums
         )
         return empi_dist
 
     def generate_empi_dists_sequence(
-        self, list_num_sums: List[List[int]]
+        self,
+        list_num_sums: List[List[int]],
+        seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> List[List[Tuple[int, np.ndarray]]]:
         """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
 
@@ -517,6 +556,11 @@ class Experiment:
         ----------
         list_num_sums : List[List[int]]
             A list of the number of data to use to calculate the experience distribution for each schedule.
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, it is assumed to be a seed used to generate random data.
+            If the type is RandomState, it is used to generate random data.
+            If argument is None, np.random is used to generate random data.
+            Default value is None.
 
         Returns
         -------
@@ -527,7 +571,10 @@ class Experiment:
             self._validate_eq_schedule_len(num_sums, "list_num_sums")
 
         measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
-        datasets = self.generate_dataset(data_nums=list_num_sums[-1])
+        stream = to_stream(seed_or_stream)
+        datasets = self.generate_dataset(
+            data_nums=list_num_sums[-1], seed_or_stream=stream
+        )
 
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
