@@ -155,9 +155,11 @@ class StandardQTomographyBasedWeightedRelativeEntropy(WeightedRelativeEntropy):
         grad_ps = self._matA
 
         if self.weights is not None:
-            # TODO
-            grad = np.diag(self._extend_weights) @ gradient_relative_entropy_2nd_vector(
-                q, p, grad_ps, is_valid_required=False
+            grad = np.dot(
+                self._extend_weights,
+                gradient_relative_entropy_2nd_vector(
+                    q, p, grad_ps, is_valid_required=False
+                ),
             )
         else:
             vectors = gradient_relative_entropy_2nd_vector(
