@@ -57,7 +57,7 @@ def convert_povm_quara_to_qiskit(quara_povm: Povm) -> List[np.ndarray]:
     qiskit_povm = []
     quara_povm_vecs = quara_povm.vecs
     for vec in quara_povm_vecs:
-        mat = calc_mat_from_vector_adjoint(vec)
+        mat = calc_mat_from_vector_adjoint(vec)  ##違う
         qiskit_povm.append(mat)
     return qiskit_povm
 
@@ -78,3 +78,12 @@ def convert_empi_dists_qiskit_to_quara(
             quara_dists.append(tup)
             cts = cts + i
     return quara_dists
+
+
+def convert_empi_dists_quara_to_qiskit(
+    quara_dists: List[Tuple[int, np.ndarray]]
+) -> np.ndarray:
+    qiskit_dists = []
+    for i in quara_dists:
+        qiskit_dists = qiskit_dists + i[1]  ##未確認
+    return qiskit_dists
