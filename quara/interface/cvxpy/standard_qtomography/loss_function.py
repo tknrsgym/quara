@@ -538,7 +538,7 @@ class CvxpyApproximateRelativeEntropyWithZeroProbabilityTerm(CvxpyLossFunction):
                 if qi_j > self.eps_prob_zero:
                     t += (1 - self.sqt.get_coeffs_0th_vec(i)[j] / qi_j) * a
                 else:
-                    t += a
+                    t -= a
             ci = self.num_data_ratios[i]
             vec += ci * t
         return vec
