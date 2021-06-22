@@ -14,7 +14,11 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
             message = "`error_rate` must be between 0 and 1."
             raise ValueError(message)
 
-        super().__init__(c_sys=c_sys, qoperation_base=qoperation_base)
+        super().__init__(
+            c_sys=c_sys,
+            qoperation_base=qoperation_base,
+            is_seed_or_stream_required=False,
+        )
         self._error_rate = error_rate
 
     @property

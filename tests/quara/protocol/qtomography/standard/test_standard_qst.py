@@ -209,6 +209,22 @@ class TestStandardQst:
         assert actual[0] == expected[0]
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
+    def test_generate_empi_dist__seed_or_stream(self):
+        qst, c_sys = get_test_data()
+        state = get_z0_1q(c_sys)
+
+        # seed_or_stream : default
+        np.random.seed(7)
+        actual1 = qst.generate_empi_dist(0, state, 10)
+        # seed_or_stream : int
+        actual2 = qst.generate_empi_dist(0, state, 10, seed_or_stream=7)
+        # seed_or_stream : np.random.RandomState
+        actual3 = qst.generate_empi_dist(
+            0, state, 10, seed_or_stream=np.random.RandomState(7)
+        )
+        npt.assert_almost_equal(actual1[1], actual2[1], decimal=15)
+        npt.assert_almost_equal(actual2[1], actual3[1], decimal=15)
+
     def test_generate_empi_dists(self):
         qst, c_sys = get_test_data()
         state = get_z0_1q(c_sys)
