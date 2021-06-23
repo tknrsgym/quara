@@ -54,7 +54,7 @@ def make_test_data(test_data_dir):
         "n_sample": 2,
         "n_rep": 3,
         "num_data": [10, 100],
-        "seed": 777,
+        "seed_data": 777,
         "output_root_dir": test_data_dir,
     }
     random_test.execute(**setting)

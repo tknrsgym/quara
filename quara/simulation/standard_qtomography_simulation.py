@@ -51,7 +51,7 @@ class StandardQTomographySimulationSetting:
         true_object: "QOperation",
         tester_objects: List["QOperation"],
         estimator: "Estimator",
-        seed: int,
+        seed_data: int,
         n_rep: int,
         num_data: List[int],
         schedules: Union[str, List[List[int]]],
@@ -70,7 +70,7 @@ class StandardQTomographySimulationSetting:
         self.algo = copy.copy(algo)
         self.algo_option = algo_option
 
-        self.seed = seed
+        self.seed_data = seed_data
         self.n_rep = n_rep
         self.num_data = num_data
         self.eps_proj_physical = eps_proj_physical
@@ -106,7 +106,7 @@ class StandardQTomographySimulationSetting:
             loss_option=self.loss_option,
             algo=copy.deepcopy(self.algo),
             algo_option=self.algo_option,
-            seed=self.seed,
+            seed_data=self.seed_data,
             n_rep=self.n_rep,
             num_data=self.num_data,
             schedules=self.schedules,
@@ -146,7 +146,7 @@ class NoiseSetting:
 class EstimatorTestSetting:
     true_object: NoiseSetting
     tester_objects: List[NoiseSetting]
-    seed: int
+    seed_data: int
     n_rep: int
     num_data: List[int]
     n_sample: int
@@ -191,7 +191,7 @@ class EstimatorTestSetting:
             true_object=true_object,
             tester_objects=tester_objects,
             n_rep=self.n_rep,
-            seed=self.seed,
+            seed_data=self.seed_data,
             num_data=self.num_data,
             schedules=self.schedules,
             eps_proj_physical=self.eps_proj_physical_list[case_index],
@@ -426,20 +426,20 @@ def generate_qtomography(
     true_object = sim_setting.true_object
     tester_objects = sim_setting.tester_objects
     eps_proj_physical = sim_setting.eps_proj_physical
-    seed = sim_setting.seed
+    seed_data = sim_setting.seed_data
 
     if type(true_object) == State:
         return StandardQst(
             tester_objects,
             on_para_eq_constraint=para,
-            seed=seed,
+            seed=seed_data,
             eps_proj_physical=eps_proj_physical,
         )
     if type(true_object) == Povm:
         return StandardPovmt(
             tester_objects,
             on_para_eq_constraint=para,
-            seed=seed,
+            seed=seed_data,
             eps_proj_physical=eps_proj_physical,
             num_outcomes=len(true_object.vecs),
         )
@@ -451,7 +451,7 @@ def generate_qtomography(
             states=states,
             povms=povms,
             on_para_eq_constraint=para,
-            seed=seed,
+            seed=seed_data,
             eps_proj_physical=eps_proj_physical,
         )
     message = f"type of sim_setting.true_object must be State, Povm, or Gate, not {type(true_object)}"
