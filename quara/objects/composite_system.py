@@ -3,6 +3,7 @@ import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
+from scipy.sparse import csc_matrix, csr_matrix
 
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
@@ -85,11 +86,13 @@ class CompositeSystem:
         self._basis_basisconjugate = dict()
         self._dict_from_hs_to_choi = dict()
         self._dict_from_choi_to_hs = dict()
+        basis_basisconjugate_vec_tmp = []
         for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
             b_alpha = basis[alpha]
             b_beta = np.conjugate(basis[beta])
             matrix = np.kron(b_alpha, b_beta)
             self._basis_basisconjugate[(alpha, beta)] = matrix
+            basis_basisconjugate_vec_tmp.append(matrix.flatten())
 
             # calc _dict_from_hs_to_choi and _dict_from_choi_to_hs
             row_indices, column_indices = np.where(matrix != 0)
@@ -113,6 +116,10 @@ class CompositeSystem:
                     self._dict_from_choi_to_hs[(alpha, beta)] = [
                         (row_index, column_index, matrix[row_index, column_index])
                     ]
+        self._basis_basisconjugate_vec = np.array(basis_basisconjugate_vec_tmp)
+        self._basis_basisconjugateT_sparse = csr_matrix(
+            self._basis_basisconjugate_vec.T
+        )
 
     def comp_basis(self, mode: str = "row_major") -> MatrixBasis:
         """returns computational basis of CompositeSystem.

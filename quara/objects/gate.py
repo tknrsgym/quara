@@ -188,7 +188,7 @@ class Gate(QOperation):
         return new_gate
 
     def calc_proj_ineq_constraint(self) -> "Gate":
-        choi_matrix = self.to_choi_matrix()
+        choi_matrix = self.to_choi_matrix_with_sparsity()
         eigenvals, eigenvecs = np.linalg.eigh(choi_matrix)
 
         # project
@@ -298,7 +298,9 @@ class Gate(QOperation):
         atol = Settings.get_atol() if atol is None else atol
 
         # "A is CP"  <=> "C(A) >= 0"
-        return mutil.is_positive_semidefinite(self.to_choi_matrix(), atol=atol)
+        return mutil.is_positive_semidefinite(
+            self.to_choi_matrix_with_sparsity(), atol=atol
+        )
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.ndarray:
         """returns HS representation for ``other_basis``.
@@ -376,6 +378,21 @@ class Gate(QOperation):
 
         return choi
 
+    def to_choi_matrix_with_sparsity(self) -> np.ndarray:
+        """returns Choi matrix of gate.
+
+        this function uses the scipy.sparse module.
+
+        Returns
+        -------
+        np.ndarray
+            Choi matrix of gate.
+        """
+        c_sys = self.composite_system
+        choi_vec = c_sys._basis_basisconjugateT_sparse.dot(self._hs.flatten())
+        choi = choi_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
+        return choi
+
     def to_kraus_matrices(self) -> List[np.ndarray]:
         """returns Kraus matrices of gate.
 
@@ -393,7 +410,7 @@ class Gate(QOperation):
 
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
-        choi = self.to_choi_matrix()
+        choi = self.to_choi_matrix_with_sparsity()
         eigen_vals, eigen_vecs = np.linalg.eigh(choi)
         eigens = [
             (eigen_vals[index], eigen_vecs[:, index])
@@ -465,7 +482,7 @@ class Gate(QOperation):
         return copy.deepcopy(self.hs)
 
 
-def to_hs_from_choi(choi, c_sys: CompositeSystem) -> np.ndarray:
+def to_hs_from_choi(choi: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
     num_basis = len(c_sys.basis().basis)
     hs = np.zeros((num_basis, num_basis), dtype=np.float64)
 
@@ -477,7 +494,7 @@ def to_hs_from_choi(choi, c_sys: CompositeSystem) -> np.ndarray:
     return hs
 
 
-def to_hs_from_choi_with_dict(choi, c_sys: CompositeSystem) -> np.ndarray:
+def to_hs_from_choi_with_dict(choi: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
     num_basis = len(c_sys.basis())
     hs = np.zeros((num_basis, num_basis), dtype=np.complex128)
 
@@ -487,6 +504,12 @@ def to_hs_from_choi_with_dict(choi, c_sys: CompositeSystem) -> np.ndarray:
             hs[alpha, beta] += coefficient * choi[j, i]
 
     return mutil.truncate_hs(hs)
+
+
+def to_hs_from_choi_with_sparsity(
+    choi: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    pass
 
 
 def convert_var_index_to_gate_index(
