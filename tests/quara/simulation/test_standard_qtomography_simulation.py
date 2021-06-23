@@ -12,6 +12,16 @@ from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 
+from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.qoperation_typical import generate_qoperation
+from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
+from quara.simulation.standard_qtomography_simulation import (
+    StandardQTomographySimulationSetting,
+)
+
+
 import random_test
 
 
@@ -54,7 +64,8 @@ def make_test_data(test_data_dir):
         "n_sample": 2,
         "n_rep": 3,
         "num_data": [10, 100],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": test_data_dir,
     }
     random_test.execute(**setting)
@@ -137,3 +148,68 @@ class TestReEstimate:
         assert len(actual_results) == len(expected_results)
         for actual, expected in zip(actual_results, expected_results):
             assert_equal_estimation_result(actual, expected)
+
+
+def is_same_dist(a_dist: tuple, b_dist: tuple):
+    for a, b in zip(a_dist, b_dist):
+        if a[0] != b[0]:
+            return False
+        if not np.allclose(a[1], b[1]):
+            return False
+    return True
+
+
+def test_execute_simulation_with_seed_or_stream():
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    true_object = generate_qoperation(mode="state", name="y0", c_sys=c_sys)
+
+    povm_x = generate_qoperation(mode="povm", name="x", c_sys=c_sys)
+    povm_y = generate_qoperation(mode="povm", name="y", c_sys=c_sys)
+    povm_z = generate_qoperation(mode="povm", name="z", c_sys=c_sys)
+    tester_objects = [povm_x, povm_y, povm_z]
+
+    sim_setting = StandardQTomographySimulationSetting(
+        name="dummy name",
+        true_object=true_object,
+        tester_objects=tester_objects,
+        estimator=LinearEstimator(),
+        seed_data=888,
+        n_rep=5,
+        num_data=[10],
+        schedules=None,
+        eps_proj_physical=1e-13,
+    )
+
+    qtomography = sim.generate_qtomography(sim_setting, para=True, init_with_seed=False)
+
+    stream_data = np.random.RandomState(sim_setting.seed_data)
+
+    # Execute
+    sim_result = sim.execute_simulation(
+        qtomography=qtomography,
+        simulation_setting=sim_setting,
+        seed_or_stream=stream_data,
+    )
+    # Assert
+    # Verify that it is random.
+    a_list = sim_result.empi_dists_sequences[0]
+    # b_list = sim_result.empi_dists_sequences[1]
+
+    for b_list in sim_result.empi_dists_sequences[1:]:
+        assert is_same_dist(a_list[0], b_list[0]) is False
+
+    # Execute
+    stream_data_1 = np.random.RandomState(sim_setting.seed_data)
+    sim_result_1 = sim.execute_simulation(
+        qtomography=qtomography,
+        simulation_setting=sim_setting,
+        seed_or_stream=stream_data_1,
+    )
+
+    # Assert
+    # Confirmation of reproducibility
+    expected = sim_result.empi_dists_sequences
+    actual = sim_result_1.empi_dists_sequences
+    for a, e in zip(actual, expected):
+        assert is_same_dist(a[0], e[0])

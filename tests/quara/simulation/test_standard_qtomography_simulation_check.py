@@ -17,7 +17,7 @@ class TestStandardQTomographySimulationCheck:
             true_object=None,
             tester_objects=[],
             estimator=None,
-            seed=None,
+            seed_data=None,
             n_rep=None,
             num_data=[],
             schedules=None,
@@ -29,8 +29,8 @@ class TestStandardQTomographySimulationCheck:
             SimulationResult(
                 simulation_setting=source_dummy_setting,
                 estimation_results=source_dummy_results,
-                empi_dists_sequences=[], # Dummy
-                qtomography=None, # Dummy
+                empi_dists_sequences=[],  # Dummy
+                qtomography=None,  # Dummy
             )
         )
 

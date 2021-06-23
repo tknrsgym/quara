@@ -135,7 +135,8 @@ def execute(
     n_sample: int,
     n_rep: int,
     num_data: List[int],
-    seed: int,
+    seed_qoperation: int,
+    seed_data: int,
     output_root_dir: str,
     true_object_ids: List[int] = None,
     tester_ids: List[int] = None,
@@ -176,7 +177,8 @@ def execute(
         test_setting = EstimatorTestSetting(
             true_object=true_object_noise_setting,
             tester_objects=tester_object_noise_settings,
-            seed=seed,
+            seed_qoperation=seed_qoperation,
+            seed_data=seed_data,
             n_sample=n_sample,
             n_rep=n_rep,
             num_data=num_data,
@@ -217,7 +219,8 @@ def execute_qst_1qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_1qubit-"
         + get_current_time_string(),
@@ -247,7 +250,8 @@ def execute_qst_2qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_2qubit-"
         + get_current_time_string(),
@@ -277,7 +281,8 @@ def execute_qst_3qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_3qubit-"
         + get_current_time_string(),
@@ -308,7 +313,8 @@ def execute_qst_1qutrit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_1qutrit-"
         + get_current_time_string(),
@@ -341,7 +347,8 @@ def execute_qst_2qutrit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_2qutrit-"
         + get_current_time_string(),
@@ -369,7 +376,8 @@ def execute_povmt_1qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_1qubit-"
         + get_current_time_string(),
@@ -400,7 +408,8 @@ def execute_povmt_2qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_2qubit-"
         + get_current_time_string(),
@@ -431,7 +440,8 @@ def execute_povmt_3qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_3qubit-"
         + get_current_time_string(),
@@ -472,7 +482,8 @@ def execute_povmt_1qutrit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_1qutrit-"
         + get_current_time_string(),
@@ -516,7 +527,8 @@ def execute_povmt_2qutrit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_2qutrit-"
         + get_current_time_string(),
@@ -558,7 +570,8 @@ def execute_qpt_1qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_1qubit-"
         + get_current_time_string(),
@@ -591,7 +604,8 @@ def execute_qpt_2qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_2qubit-"
         + get_current_time_string(),
@@ -624,7 +638,8 @@ def execute_qpt_3qubit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_3qubit-"
         + get_current_time_string(),
@@ -669,7 +684,8 @@ def execute_qpt_1qutrit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_1qutrit-"
         + get_current_time_string(),
@@ -719,7 +735,8 @@ def execute_qpt_2qutrit():
         "n_sample": 1,
         "n_rep": 1,
         "num_data": [1000, 10000],
-        "seed": 777,
+        "seed_qoperation": 888,
+        "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_2qutrit-"
         + get_current_time_string(),

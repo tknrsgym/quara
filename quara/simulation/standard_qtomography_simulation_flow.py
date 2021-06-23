@@ -36,18 +36,25 @@ def execute_simulation_case_unit(
     )
     print(f"Case {case_index}: {sim_setting.name}")
 
-    # TODO:
     org_sim_setting = sim_setting.copy()
 
     # Generate QTomography
+    # Do not set the random number seed when initializing qtomography.
+    # Use the random number stream later when generating the empirical distribution.
     qtomography = sim.generate_qtomography(
         sim_setting,
         para=test_setting.parametrizations[case_index],
+        init_with_seed=False,
     )
+
+    # Generate a random number stream to generate the empirical distribution.
+    stream_data = np.random.RandomState(sim_setting.seed_data)
 
     # Execute
     sim_result = sim.execute_simulation(
-        qtomography=qtomography, simulation_setting=sim_setting
+        qtomography=qtomography,
+        simulation_setting=sim_setting,
+        seed_or_stream=stream_data,
     )
 
     # Simulation Check
