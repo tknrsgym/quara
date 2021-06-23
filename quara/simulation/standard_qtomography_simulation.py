@@ -134,6 +134,7 @@ class NoiseSetting:
         else:
             message = f"noise_setting.method='{self.method}' is not implemented."
             raise NotImplementedError(message)
+
         return target_class(
             qoperation_base=self.qoperation_base,
             c_sys=c_sys,
