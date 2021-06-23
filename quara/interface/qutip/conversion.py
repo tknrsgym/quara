@@ -15,6 +15,27 @@ from quara.utils.matrix_util import calc_mat_from_vector_adjoint, truncate_hs
 
 
 def convert_state_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> State:
+    """converts QuTip Qobj to Quara State.
+
+    Parameters
+    ----------
+    qutip_qobj: Qobj
+        Qobj representing quantum state.
+    c_sys : CompositeSystem
+        CompositeSystem containing state.
+
+    Returns
+    -------
+    State
+        Quara State.
+
+    Raises
+    ------
+    ValueError
+        Invalid Qobj type.
+    ValueError
+        Invalid argument for State constructor.
+    """
     data_array = qutip_qobj.data.toarray()
     if qutip_qobj.isket:
         density_mat = calc_mat_from_vector_adjoint(data_array.flatten())
@@ -34,6 +55,19 @@ def convert_state_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> St
 
 
 def convert_state_quara_to_qutip(quara_state: State) -> Qobj:
+    """converts Quara State to QuTip Qobj.
+
+    Parameters
+    ----------
+    quara_state: State
+        Quara State.
+
+    Returns
+    -------
+    Qobj
+        Qobj representing quantum state.
+
+    """
     density_mat = quara_state.to_density_matrix()
     return Qobj(density_mat)
 
@@ -41,6 +75,25 @@ def convert_state_quara_to_qutip(quara_state: State) -> Qobj:
 def convert_povm_qutip_to_quara(
     qutip_qobjs: List[Qobj], c_sys: CompositeSystem
 ) -> Povm:
+    """converts QuTip Qobj to Quara Povm.
+
+    Parameters
+    ----------
+    qutip_qobjs: List[Qobj]
+        List of Qobj representing POVM. The type of Qobj has to be 'oper'.
+    c_sys : CompositeSystem
+        CompositeSystem containing POVM.
+
+    Returns
+    -------
+    Povm
+        Quara Povm.
+
+    Raises
+    ------
+    ValueError
+        Invalid argument for Povm constructor.
+    """
     vecs = []
     for item in qutip_qobjs:
         matrix = item.data.toarray()
@@ -53,12 +106,43 @@ def convert_povm_qutip_to_quara(
 
 
 def convert_povm_quara_to_qutip(quara_povm: Povm) -> List[Qobj]:
+    """converts Quara Povm to QuTip Qobj.
+
+    Parameters
+    ----------
+    quara_povm: Povm
+        Quara Povm.
+
+    Returns
+    -------
+    List[Qobj]
+        List of Qobj representing POVM.
+    """
     matrices = quara_povm.matrices()
     qutip_povm = [Qobj(matrix) for matrix in matrices]
     return qutip_povm
 
 
 def convert_gate_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Gate:
+    """converts QuTip Qobj to Quara Gate.
+
+    Parameters
+    ----------
+    qutip_qobj: Qobj
+        Qobj representing quantum gate in super representation.
+    c_sys : CompositeSystem
+        CompositeSystem containing gate.
+
+    Returns
+    -------
+    Gate
+        Quara Gate.
+
+    Raises
+    ------
+    ValueError
+        Invalid argument for Gate constructor.
+    """
     hs_matrix_column_major = qutip_qobj.data.toarray()
     dim = int(np.sqrt(qutip_qobj.shape[0]))
     comp_basis_column_major = get_comp_basis(dim, "column_major")
@@ -70,6 +154,18 @@ def convert_gate_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Gat
 
 
 def convert_gate_quara_to_qutip(quara_gate: Gate) -> Qobj:
+    """converts Quara Gate to QuTip Qobj.
+
+    Parameters
+    ----------
+    quara_gate: Gate
+        Quara Gate.
+
+    Returns
+    -------
+    Qobj
+        Qobj representing quantum gate in super representation.
+    """
     comp_basis = get_comp_basis(quara_gate.dim, "column_major")
     hs_matrix = quara_gate.convert_basis(comp_basis)
     return Qobj(hs_matrix, type="super")
