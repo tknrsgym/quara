@@ -1,0 +1,18 @@
+numpy
+black
+plotly
+pytest
+pytest-cov
+sphinx>=3.0
+sphinx_rtd_theme
+ipykernel
+recommonmark
+pytest-randomly
+mypy
+nbsphinx
+plotly
+plotly-express
+tqdm
+xhtml2pdf
+psutil
+kaleido >= 0.1.0, <=0.1.0.post1
