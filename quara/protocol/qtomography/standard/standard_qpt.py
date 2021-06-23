@@ -76,6 +76,8 @@ class StandardQpt(StandardQTomography):
         self._set_coeffs(experiment, on_para_eq_constraint)
         self._on_para_eq_constraint = on_para_eq_constraint
 
+        self._template_qoperation = self._set_qoperations.gates[0]
+
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
             if (
@@ -245,7 +247,8 @@ class StandardQpt(StandardQTomography):
         self._C = np.array(c_list)
 
     def convert_var_to_qoperation(self, var: np.ndarray) -> Gate:
-        template = self._set_qoperations.gates[0]
+        # template = self._set_qoperations.gates[0]
+        template = self._template_qoperation
         gate = template.generate_from_var(var=var)
         return gate
 

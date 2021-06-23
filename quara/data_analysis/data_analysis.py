@@ -1,3 +1,4 @@
+from quara.protocol import qtomography
 import time
 from typing import Callable, List, Optional, Union
 import copy
@@ -19,6 +20,7 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
 )
 from quara.simulation.standard_qtomography_simulation import (
     StandardQTomographySimulationSetting,
+    SimulationResult,
 )
 from quara.utils import matrix_util
 from quara.protocol.qtomography.estimator import EstimationResult
@@ -309,12 +311,13 @@ def make_mses_graph_estimation_results(
     estimation_results_list: List["LinearEstimationResult"],
     case_names: List[str],
     true_object,
+    num_data: List[int],
+    qtomography_list: List["StandardQTomography"],
     title: str = "Mean squared error",
     additional_title_text: str = "",
     show_analytical_results: bool = False,
     estimator_list: list = None,
 ) -> "Figure":
-    num_data = estimation_results_list[0][0].num_data
     mses_list = []
     error_bar_values_list = []
     n_rep = len(estimation_results_list[0])
@@ -337,9 +340,12 @@ def make_mses_graph_estimation_results(
             analytical_case_names,
             _,
             _,
-            _,
         ) = _make_data_for_graphs_mses_analytical(
-            estimation_results_list, true_object, estimator_list
+            estimation_results_list,
+            num_data,
+            true_object,
+            estimator_list,
+            qtomography_list,
         )
         mses_list += analytical_mses
         display_case_names += analytical_case_names
@@ -356,23 +362,23 @@ def make_mses_graph_estimation_results(
 
 def _make_data_for_graphs_mses_analytical(
     estimation_results_list: List["EstimationResult"],
+    num_data: List[int],
     true_object,
     estimator_list: List[Union["Estimator", str]],
+    qtomography_list,
 ):
     if len(estimation_results_list) != len(estimator_list):
         message = "`estimation_results_list` and `estimator_list` lengths do not match"
         raise ValueError(message)
 
-    num_data = estimation_results_list[0][0].num_data
     mses_list = []
 
-    qtomo_list = [e_list[0].qtomography for e_list in estimation_results_list]
     qtomo_type_dict = {}
     QTomoType = namedtuple(
         "QTomoType", ["qtomography_name", "on_para_eq_constraint", "estimator_name"]
     )
 
-    for i, qtomo in enumerate(qtomo_list):
+    for i, qtomo in enumerate(qtomography_list):
         if type(estimator_list[i]) == str:
             estimator_name = estimator_list[i]
         else:
@@ -420,23 +426,24 @@ def _make_data_for_graphs_mses_analytical(
         short_names.append(short_name)
         parameters.append(parameter)
 
-    return mses_list, display_case_names, short_names, parameters, num_data
+    return mses_list, display_case_names, short_names, parameters
 
 
 def make_mses_graph_analytical(
     estimation_results_list: List["LinearEstimationResult"],
     true_object,
     estimator_list: list,
+    num_data: List[int],
+    qtomography_list: List["StandardQTomography"],
 ) -> "Figure":
-    num_data = estimation_results_list[0][0].num_data
+
     (
         mses_list,
         display_case_names,
         short_names,
         parameters,
-        num_data,
     ) = _make_data_for_graphs_mses_analytical(
-        estimation_results_list, true_object, estimator_list
+        estimation_results_list, num_data, true_object, estimator_list, qtomography_list
     )
 
     figs = []
@@ -506,8 +513,10 @@ def make_mses_graphs_estimator(
     estimation_results_list: List["EstimationResult"],
     simulation_settings: List["StandardQTomographySimulationSetting"],
     true_object,
+    qtomography_list: List["StandardQTomography"],
 ) -> list:
     data_dict = {}
+    num_data = simulation_settings[0].num_data
 
     Category = namedtuple("Category", ["estimator", "loss", "algo"])
     for i, s in enumerate(simulation_settings):
@@ -515,6 +524,7 @@ def make_mses_graphs_estimator(
         loss_name = s.loss.__class__.__name__ if s.loss else None
         algo_name = s.algo.__class__.__name__ if s.algo else None
         results = estimation_results_list[i]
+        qtomography = qtomography_list[i]
         case_name = s.name
         category = Category(estimator_name, loss_name, algo_name)
 
@@ -524,13 +534,15 @@ def make_mses_graphs_estimator(
             data_dict[category]["estimators"].append(estimator_name)
             data_dict[category]["losses"].append(loss_name)
             data_dict[category]["algos"].append(algo_name)
+            data_dict[category]["qtomography_list"].append(qtomography)
         else:
             data_dict[category] = dict(
                 estimation_results=[results],
-                case_names=[s.name],
-                estimators=[s.estimator],
-                losses=[s.loss],
-                algos=[s.algo],
+                case_names=[s.name],  # TODO: case_name?
+                estimators=[s.estimator],  # TODO: estimator_name?
+                losses=[s.loss],  # TODO: loss_name?
+                algos=[s.algo],  # TODO: algo_name?
+                qtomography_list=[qtomography],
             )
     figs = []
 
@@ -552,6 +564,8 @@ def make_mses_graphs_estimator(
             additional_title_text=additional_title_text,
             show_analytical_results=True,
             estimator_list=target_dict["estimators"],
+            num_data=num_data,
+            qtomography_list=target_dict["qtomography_list"],
         )
         fig.update_layout(title=dict(yanchor="bottom", y=0.96))
 
@@ -563,23 +577,30 @@ def make_mses_graphs_para(
     estimation_results_list: List["EstimationResult"],
     case_names: List[str],
     true_object: "QOperation",
+    num_data: List[int],
+    parameter_list: List[bool],
+    qtomography_list: List["StandardQTomography"],
 ) -> list:
-    def _get_parameter(estimation_results: List["EstimationResult"]) -> bool:
-        return estimation_results[0].qtomography.on_para_eq_constraint
-
     # Split data (True/False)
-    true_dict = dict(title="True", estimation_results=[], case_names=[])
-    false_dict = dict(title="False", estimation_results=[], case_names=[])
+    true_dict = dict(
+        title="True", estimation_results=[], case_names=[], qtomography_list=[]
+    )
+    false_dict = dict(
+        title="False", estimation_results=[], case_names=[], qtomography_list=[]
+    )
 
     for i, results in enumerate(estimation_results_list):
-        if _get_parameter(results):
+        if parameter_list[i]:
+            # if _get_parameter(results):
             # on_para_eq_constraint = True
             true_dict["estimation_results"].append(results)
             true_dict["case_names"].append(case_names[i])
+            true_dict["qtomography_list"].append(qtomography_list[i])
         else:
             # on_para_eq_constraint = False
             false_dict["estimation_results"].append(results)
             false_dict["case_names"].append(case_names[i])
+            false_dict["qtomography_list"].append(qtomography_list[i])
 
     # Make figure
     figs = []
@@ -590,7 +611,9 @@ def make_mses_graphs_para(
             target_dict["estimation_results"],
             target_dict["case_names"],
             true_object,
+            num_data=num_data,
             additional_title_text=f"parametrization={target_dict['title']}",
+            qtomography_list=target_dict["qtomography_list"],
         )
         figs.append(fig)
     return figs
@@ -675,7 +698,7 @@ def show_average_computation_times(
     fig.show()
 
 
-def extract_empi_dists(
+def extract_empi_dists_sequences_old(
     results: List["EstimationResult"],
 ) -> List[List[List[np.ndarray]]]:
     converted = []
@@ -693,19 +716,38 @@ def extract_empi_dists(
     return converted
 
 
+def extract_empi_dists_sequences(
+    source_empi_dists_sequences,
+) -> List[List[List[np.ndarray]]]:
+    converted = []
+    num_data_len = len(source_empi_dists_sequences[0])
+    n_rep = len(source_empi_dists_sequences)
+    for num_data_index in range(num_data_len):
+        converted_dists_seq = []
+        for rep_index in tqdm(range(n_rep)):
+            empi_dists_seq = source_empi_dists_sequences[rep_index]
+            empi_dists = empi_dists_seq[num_data_index]
+            # list of tuple -> list of np.ndarray
+            converted_dists = [data[1] for data in empi_dists]
+            converted_dists_seq.append(converted_dists)
+        converted.append(converted_dists_seq)
+    return converted
+
+
 def make_empi_dists_mse_graph(
-    estimation_results: List["LinearEstimationResult"], true_object: "QOperation"
+    simulation_result: SimulationResult, true_object: "QOperation"
 ):
-    qtomography = estimation_results[0]._qtomography
+    num_data = simulation_result.simulation_setting.num_data
+    n_rep = simulation_result.simulation_setting.n_rep
+    qtomography = simulation_result.qtomography
     num_schedules = qtomography.num_schedules
-    num_data = estimation_results[0].num_data
-    n_rep = len(estimation_results)
 
     # Data
     display_names = ["Empirical distributions"]
-    para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
+    para = qtomography.on_para_eq_constraint
     true_object_copied = _recreate_qoperation(true_object, para)
-    empi_dists = extract_empi_dists(estimation_results)
+    empi_dists = extract_empi_dists_sequences(simulation_result.empi_dists_sequences)
+
     xs_list_list = empi_dists
     ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
         num_data

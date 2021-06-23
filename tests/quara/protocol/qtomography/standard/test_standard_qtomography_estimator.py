@@ -25,19 +25,6 @@ class TestStandardQTomographyEstimationResult:
         povms = [povm_x, povm_y, povm_z]
         qtomography = StandardQst(povms, on_para_eq_constraint=False)
 
-        data = [
-            [
-                (10, np.array([0.5, 0.5], dtype=np.float64)),
-                (10, np.array([0.5, 0.5], dtype=np.float64)),
-                (10, np.array([1, 0], dtype=np.float64)),
-            ],
-            [
-                (10, np.array([0.5, 0.5], dtype=np.float64)),
-                (10, np.array([0.5, 0.5], dtype=np.float64)),
-                (10, np.array([1, 0], dtype=np.float64)),
-            ],
-        ]
-
         estimated_var_sequence = [
             np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2),
             np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2),
@@ -45,7 +32,7 @@ class TestStandardQTomographyEstimationResult:
         computation_times = [0.1, 0.2]
 
         result = StandardQTomographyEstimationResult(
-            qtomography, data, estimated_var_sequence, computation_times
+            estimated_var_sequence, computation_times, qtomography._template_qoperation
         )
 
         return result

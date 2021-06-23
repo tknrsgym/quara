@@ -5,6 +5,7 @@ from quara.simulation.standard_qtomography_simulation_check import (
 )
 from quara.simulation.standard_qtomography_simulation import (
     StandardQTomographySimulationSetting,
+    SimulationResult,
 )
 
 
@@ -25,7 +26,12 @@ class TestStandardQTomographySimulationCheck:
         source_dummy_results = None
 
         sim_check = StandardQTomographySimulationCheck(
-            source_dummy_setting, source_dummy_results
+            SimulationResult(
+                simulation_setting=source_dummy_setting,
+                estimation_results=source_dummy_results,
+                empi_dists_sequences=[], # Dummy
+                qtomography=None, # Dummy
+            )
         )
 
         source_results = [
@@ -103,4 +109,3 @@ MSE of estimators: {start_red}NG{end_color}
 Physicality Violation: {start_green}OK{end_color}
 ===============================
 """
-

@@ -76,6 +76,8 @@ class StandardPovmt(StandardQTomography):
         self._set_coeffs(experiment, on_para_eq_constraint)
         self._on_para_eq_constraint = on_para_eq_constraint
 
+        self._template_qoperation = self._set_qoperations.povms[0]
+
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
             if schedule[0][0] != "state" or schedule[1][0] != "povm":
@@ -297,7 +299,9 @@ class StandardPovmt(StandardQTomography):
                     self._coeffs_0th[(schedule_index, m_index)] = 0
 
     def convert_var_to_qoperation(self, var: np.ndarray) -> Povm:
-        template = self._set_qoperations.povms[0]
+        # template = self._set_qoperations.povms[0]
+        template = self._template_qoperation
+
         povm = template.generate_from_var(var=var)
         return povm
 

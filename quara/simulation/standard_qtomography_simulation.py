@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 import copy
 from collections import Counter
 import dataclasses
@@ -24,6 +24,7 @@ from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )
+from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
@@ -94,6 +95,23 @@ class StandardQTomographySimulationSetting:
         algo = None if self.algo is None else self.algo.__class__.__name__
         desc += f"\nAlgo: {algo}"
         return desc
+
+    def copy(self):
+        return StandardQTomographySimulationSetting(
+            name=self.name,
+            true_object=self.true_object,
+            tester_objects=self.tester_objects,
+            estimator=self.estimator,
+            loss=copy.deepcopy(self.loss),
+            loss_option=self.loss_option,
+            algo=copy.deepcopy(self.algo),
+            algo_option=self.algo_option,
+            seed=self.seed,
+            n_rep=self.n_rep,
+            num_data=self.num_data,
+            schedules=self.schedules,
+            eps_proj_physical=self.eps_proj_physical,
+        )
 
 
 @dataclasses.dataclass
@@ -182,10 +200,12 @@ class EstimatorTestSetting:
 
 @dataclasses.dataclass
 class SimulationResult:
-    result_index: dict
-    simulation_setting: StandardQTomographySimulationSetting
     estimation_results: List["EstimationResult"]
-    check_result: dict
+    empi_dists_sequences: List[List[Tuple[int, np.ndarray]]]
+    qtomography: StandardQTomography
+    simulation_setting: StandardQTomographySimulationSetting = None
+    result_index: dict = None
+    check_result: dict = None
 
     def to_pickle(self, path: Union[str, Path]) -> None:
         path = Path(path)
@@ -228,8 +248,9 @@ class SimulationResult:
 def execute_simulation(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
-) -> List[StandardQTomographyEstimationResult]:
-    estimation_results = generate_empi_dists_and_calc_estimate(
+) -> SimulationResult:
+    org_sim_setting = simulation_setting.copy()
+    simulation_result = generate_empi_dists_and_calc_estimate(
         qtomography=qtomography,
         true_object=simulation_setting.true_object,
         num_data=simulation_setting.num_data,
@@ -240,7 +261,8 @@ def execute_simulation(
         algo_option=simulation_setting.algo_option,
         iteration=simulation_setting.n_rep,
     )
-    return estimation_results
+    simulation_result.simulation_setting = org_sim_setting
+    return simulation_result
 
 
 # common
@@ -253,11 +275,11 @@ def _generate_empi_dists_and_calc_estimate(
     loss_option: ProbabilityBasedLossFunctionOption = None,
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
-) -> StandardQTomographyEstimationResult:
+) -> Tuple[StandardQTomographyEstimationResult, List[List[Tuple[int, np.ndarray]]]]:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
 
     if isinstance(estimator, LossMinimizationEstimator):
-        result = estimator.calc_estimate_sequence(
+        estimation_result = estimator.calc_estimate_sequence(
             qtomography,
             empi_dists_seq,
             loss=loss,
@@ -267,27 +289,29 @@ def _generate_empi_dists_and_calc_estimate(
             is_computation_time_required=True,
         )
     else:
-        result = estimator.calc_estimate_sequence(
+        estimation_result = estimator.calc_estimate_sequence(
             qtomography,
             empi_dists_seq,
             is_computation_time_required=True,
         )
-    return result
+    return estimation_result, empi_dists_seq
 
 
 def re_estimate(
-    test_setting: EstimatorTestSetting, result: SimulationResult, n_rep_index: int
+    test_setting: EstimatorTestSetting,
+    simulation_result: SimulationResult,
+    n_rep_index: int,
 ) -> StandardQTomographyEstimationResult:
-    case_index = result.result_index["case_index"]
-    empi_dists_seq = result.estimation_results[n_rep_index].data
+    case_index = simulation_result.result_index["case_index"]
+    empi_dists_seq = simulation_result.empi_dists_sequences[n_rep_index]
 
-    sim_setting = result.simulation_setting
+    sim_setting = simulation_result.simulation_setting
     qtomography = generate_qtomography(
         sim_setting,
         para=test_setting.parametrizations[case_index],
     )
 
-    estimator = copy.deepcopy(result.simulation_setting.estimator)
+    estimator = copy.deepcopy(simulation_result.simulation_setting.estimator)
     if isinstance(estimator, LossMinimizationEstimator):
         estimation_result = estimator.calc_estimate_sequence(
             qtomography,
@@ -356,13 +380,10 @@ def generate_empi_dists_and_calc_estimate(
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
     iteration: Optional[int] = None,
-) -> Union[
-    StandardQTomographyEstimationResult,
-    List[StandardQTomographyEstimationResult],
-]:
+) -> Union[Tuple[StandardQTomographyEstimationResult, list], SimulationResult,]:
 
     if iteration is None:
-        result = _generate_empi_dists_and_calc_estimate(
+        estimation_result, empi_dists_seq = _generate_empi_dists_and_calc_estimate(
             qtomography,
             true_object,
             num_data,
@@ -372,11 +393,12 @@ def generate_empi_dists_and_calc_estimate(
             algo=algo,
             algo_option=algo_option,
         )
-        return result
+        return estimation_result, empi_dists_seq
     else:
-        results = []
+        estimation_results = []
+        empi_dists_sequences = []
         for _ in tqdm(range(iteration)):
-            result = _generate_empi_dists_and_calc_estimate(
+            estimation_result, empi_dists_seq = _generate_empi_dists_and_calc_estimate(
                 qtomography,
                 true_object,
                 num_data,
@@ -386,8 +408,15 @@ def generate_empi_dists_and_calc_estimate(
                 algo=algo,
                 algo_option=algo_option,
             )
-            results.append(result)
-        return results
+            estimation_results.append(estimation_result)
+            empi_dists_sequences.append(empi_dists_seq)
+        simulation_result = SimulationResult(
+            qtomography=qtomography,
+            empi_dists_sequences=empi_dists_sequences,
+            estimation_results=estimation_results,
+        )
+
+        return simulation_result
 
 
 # Data Convert

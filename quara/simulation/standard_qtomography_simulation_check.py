@@ -1,3 +1,4 @@
+from quara import simulation
 from typing import List, Union
 import warnings
 
@@ -17,24 +18,16 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
 from quara.simulation.consistency_check import execute_consistency_check
-from quara.simulation.standard_qtomography_simulation import (
-    StandardQTomographySimulationSetting,
-)
+from quara.simulation.standard_qtomography_simulation import SimulationResult
 
 
 class StandardQTomographySimulationCheck:
-    def __init__(
-        self,
-        simulation_setting: StandardQTomographySimulationSetting,
-        estimation_results: List["EstimationResult"],
-    ) -> None:
-        self.simulation_setting = simulation_setting
-        self.estimation_results = estimation_results
+    def __init__(self, simulation_result: SimulationResult) -> None:
+        self.simulation_result = simulation_result
 
     def _print_summary(self, results) -> None:
         start_red = "\033[31m"
         start_green = "\033[32m"
-        start_yellow_bg = "\033[43m"
         end_color = "\033[0m"
         ok_text = f"{start_green}OK{end_color}"
         ng_text = f"{start_red}NG{end_color}"
@@ -60,7 +53,7 @@ class StandardQTomographySimulationCheck:
                 text_lines += f"{name}: {ok_text if result else ng_text}\n"
 
         summary = "========== Summary ============\n"
-        summary += f"Name: {self.simulation_setting.name}\n"
+        summary += f"Name: {self.simulation_result.simulation_setting.name}\n"
         summary += text_lines
         summary += "==============================="
         print(summary)
@@ -111,7 +104,7 @@ class StandardQTomographySimulationCheck:
         # numpy.bool_ -> bool to serialize to json
         total_result = bool(total_result)
         all_result_dict = {
-            "name": self.simulation_setting.name,
+            "name": self.simulation_result.simulation_setting.name,
             "total_result": total_result,
             "results": results,
         }
@@ -128,9 +121,13 @@ class StandardQTomographySimulationCheck:
     def execute_mse_of_empirical_distribution_check(
         self, show_detail: bool = True
     ) -> bool:
+        # result = check_mse_of_empirical_distributions(
+        #     simulation_setting=self.simulation_setting,
+        #     estimation_results=self.estimation_results,
+        #     show_detail=show_detail,
+        # )
         result = check_mse_of_empirical_distributions(
-            simulation_setting=self.simulation_setting,
-            estimation_results=self.estimation_results,
+            simulation_result=self.simulation_result,
             show_detail=show_detail,
         )
         return result
@@ -139,8 +136,9 @@ class StandardQTomographySimulationCheck:
         self, eps: float = None, show_detail: bool = True
     ) -> dict:
         result_dict = execute_consistency_check(
-            simulation_setting=self.simulation_setting,
-            estimation_results=self.estimation_results,
+            simulation_setting=self.simulation_result.simulation_setting,
+            estimation_results=self.simulation_result.estimation_results,
+            qtomography=self.simulation_result.qtomography,
             eps=eps,
             show_detail=show_detail,
         )
@@ -149,8 +147,9 @@ class StandardQTomographySimulationCheck:
     def execute_mse_of_estimators_check(self, show_detail: bool = True):
         try:
             result = check_mse_of_estimators(
-                simulation_setting=self.simulation_setting,
-                estimation_results=self.estimation_results,
+                simulation_setting=self.simulation_result.simulation_setting,
+                estimation_results=self.simulation_result.estimation_results,
+                qtomography=self.simulation_result.qtomography,
                 show_detail=show_detail,
             )
         except TypeError as e:
@@ -169,15 +168,26 @@ class StandardQTomographySimulationCheck:
         return result
 
     def execute_physicality_violation_check(self, show_detail: bool = True) -> bool:
-        if type(self.simulation_setting.estimator) == ProjectedLinearEstimator:
+        if (
+            type(self.simulation_result.simulation_setting.estimator)
+            == ProjectedLinearEstimator
+        ):
             return physicality_violation_check.is_physical_qobjects_all(
-                self.estimation_results, show_detail
+                self.simulation_result.estimation_results,
+                num_data=self.simulation_result.simulation_setting.num_data,
+                show_detail=show_detail,
             )
-        elif type(self.simulation_setting.estimator) == LinearEstimator:
-            para = self.estimation_results[0].estimated_qoperation.on_para_eq_constraint
+        elif (
+            type(self.simulation_result.simulation_setting.estimator) == LinearEstimator
+        ):
+            para = self.simulation_result.estimation_results[
+                0
+            ].estimated_qoperation.on_para_eq_constraint
             if para:
                 return physicality_violation_check.is_eq_constraint_satisfied_all(
-                    self.estimation_results, show_detail=show_detail
+                    self.simulation_result.estimation_results,
+                    self.simulation_result.simulation_setting.num_data,
+                    show_detail=show_detail,
                 )
             else:
                 if show_detail:
@@ -185,26 +195,33 @@ class StandardQTomographySimulationCheck:
                         "[Skipped] Physicality Violation Check \nIf on_para_eq_constraint is False in Linear Estimator, nothing is checked."
                     )
                 return True
-        elif type(self.simulation_setting.estimator) == LossMinimizationEstimator:
-            if self.simulation_setting.algo_option:
+        elif (
+            type(self.simulation_result.simulation_setting.estimator)
+            == LossMinimizationEstimator
+        ):
+            if self.simulation_result.simulation_setting.algo_option:
                 on_algo_eq_constraint = (
-                    self.simulation_setting.algo_option.on_algo_eq_constraint
+                    self.simulation_result.simulation_setting.algo_option.on_algo_eq_constraint
                 )
                 on_algo_ineq_constraint = (
-                    self.simulation_setting.algo_option.on_algo_ineq_constraint
+                    self.simulation_result.simulation_setting.algo_option.on_algo_ineq_constraint
                 )
 
                 results = []
                 if on_algo_eq_constraint:
                     result = physicality_violation_check.is_eq_constraint_satisfied_all(
-                        self.estimation_results, show_detail=show_detail
+                        self.simulation_result.estimation_results,
+                        self.simulation_result.simulation_setting.num_data,
+                        show_detail=show_detail,
                     )
                     results.append(result)
 
                 if on_algo_ineq_constraint:
                     result = (
                         physicality_violation_check.is_ineq_constraint_satisfied_all(
-                            self.estimation_results, show_detail=show_detail
+                            self.simulation_result.estimation_results,
+                            self.simulation_result.simulation_setting.num_data,
+                            show_detail=show_detail,
                         )
                     )
                     results.append(result)

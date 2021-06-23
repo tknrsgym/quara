@@ -36,24 +36,8 @@ def execute_simulation_case_unit(
     )
     print(f"Case {case_index}: {sim_setting.name}")
 
-    def _copy_sim_setting(source):
-        return StandardQTomographySimulationSetting(
-            name=source.name,
-            true_object=source.true_object,
-            tester_objects=source.tester_objects,
-            estimator=source.estimator,
-            loss=copy.deepcopy(source.loss),
-            loss_option=source.loss_option,
-            algo=copy.deepcopy(source.algo),
-            algo_option=source.algo_option,
-            seed=source.seed,
-            n_rep=source.n_rep,
-            num_data=source.num_data,
-            schedules=source.schedules,
-            eps_proj_physical=source.eps_proj_physical,
-        )
-
-    org_sim_setting = _copy_sim_setting(sim_setting)
+    # TODO:
+    org_sim_setting = sim_setting.copy()
 
     # Generate QTomography
     qtomography = sim.generate_qtomography(
@@ -62,12 +46,12 @@ def execute_simulation_case_unit(
     )
 
     # Execute
-    estimation_results = sim.execute_simulation(
+    sim_result = sim.execute_simulation(
         qtomography=qtomography, simulation_setting=sim_setting
     )
 
     # Simulation Check
-    sim_check = StandardQTomographySimulationCheck(sim_setting, estimation_results)
+    sim_check = StandardQTomographySimulationCheck(sim_result)
     check_result = sim_check.execute_all(show_detail=False, with_detail=True)
 
     # Show result
@@ -82,16 +66,14 @@ def execute_simulation_case_unit(
         case_index=case_index,
     )
 
-    # Store result
-    result = SimulationResult(
-        result_index=result_index,
-        simulation_setting=org_sim_setting,
-        estimation_results=estimation_results,
-        check_result=check_result,
-    )
+    # Add to SimulationResult
+    sim_result.simulation_setting = org_sim_setting
+    sim_result.result_index = result_index
+    sim_result.check_result = check_result
+
     # Save
-    write_result_case_unit(result, root_dir=root_dir)
-    return result
+    write_result_case_unit(sim_result, root_dir=root_dir)
+    return sim_result
 
 
 def execute_simulation_sample_unit(

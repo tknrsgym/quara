@@ -94,6 +94,8 @@ class StandardQst(StandardQTomography):
 
         self._on_para_eq_constraint = on_para_eq_constraint
 
+        self._template_qoperation = self._set_qoperations.states[0]
+
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
             if schedule[0][0] != "state" or schedule[1][0] != "povm":
@@ -278,7 +280,8 @@ class StandardQst(StandardQTomography):
 
         see :func:`~quara.protocol.qtomography.standard.standard_qtomography.StandardQTomography.convert_var_to_qoperation`
         """
-        template = self._set_qoperations.states[0]
+        template = self._template_qoperation
+
         state = template.generate_from_var(var=var)
         return state
 
