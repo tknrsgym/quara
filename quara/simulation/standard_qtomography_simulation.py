@@ -88,6 +88,7 @@ class StandardQTomographySimulationSetting:
 
         desc += f"\nn_rep: {self.n_rep}"
         desc += f"\nnum_data: {self.num_data}"
+        desc += f"\nseed_data: {self.seed_data}"
         desc += f"\nEstimator: {self.estimator.__class__.__name__}"
         desc += f"\neps_proj_physical: {self.eps_proj_physical}"
         loss = None if self.loss is None else self.loss.__class__.__name__
@@ -249,8 +250,12 @@ class SimulationResult:
 def execute_simulation(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
+    seed_or_stream: Union[int, np.random.RandomState] = None,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
+    if seed_or_stream is None:
+        seed_or_stream = simulation_setting.seed_data
+
     simulation_result = generate_empi_dists_and_calc_estimate(
         qtomography=qtomography,
         true_object=simulation_setting.true_object,
@@ -261,6 +266,7 @@ def execute_simulation(
         algo=simulation_setting.algo,
         algo_option=simulation_setting.algo_option,
         iteration=simulation_setting.n_rep,
+        seed_or_stream=seed_or_stream,
     )
     simulation_result.simulation_setting = org_sim_setting
     return simulation_result
@@ -276,8 +282,11 @@ def _generate_empi_dists_and_calc_estimate(
     loss_option: ProbabilityBasedLossFunctionOption = None,
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
+    seed_or_stream: Union[int, np.random.RandomState] = None,
 ) -> Tuple[StandardQTomographyEstimationResult, List[List[Tuple[int, np.ndarray]]]]:
-    empi_dists_seq = qtomography.generate_empi_dists_sequence(true_object, num_data)
+    empi_dists_seq = qtomography.generate_empi_dists_sequence(
+        true_object, num_data, seed_or_stream=seed_or_stream
+    )
 
     if isinstance(estimator, LossMinimizationEstimator):
         estimation_result = estimator.calc_estimate_sequence(
@@ -381,6 +390,7 @@ def generate_empi_dists_and_calc_estimate(
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
     iteration: Optional[int] = None,
+    seed_or_stream: Union[int, np.random.RandomState] = None,
 ) -> Union[Tuple[StandardQTomographyEstimationResult, list], SimulationResult,]:
 
     if iteration is None:
@@ -393,6 +403,7 @@ def generate_empi_dists_and_calc_estimate(
             loss_option=loss_option,
             algo=algo,
             algo_option=algo_option,
+            seed_or_stream=seed_or_stream,
         )
         return estimation_result, empi_dists_seq
     else:
@@ -408,9 +419,11 @@ def generate_empi_dists_and_calc_estimate(
                 loss_option=loss_option,
                 algo=algo,
                 algo_option=algo_option,
+                seed_or_stream=seed_or_stream,
             )
             estimation_results.append(estimation_result)
             empi_dists_sequences.append(empi_dists_seq)
+
         simulation_result = SimulationResult(
             qtomography=qtomography,
             empi_dists_sequences=empi_dists_sequences,
@@ -422,12 +435,17 @@ def generate_empi_dists_and_calc_estimate(
 
 # Data Convert
 def generate_qtomography(
-    sim_setting: StandardQTomographySimulationSetting, para: bool
+    sim_setting: StandardQTomographySimulationSetting,
+    para: bool,
+    init_with_seed: bool = True,
 ) -> "StandardQTomography":
     true_object = sim_setting.true_object
     tester_objects = sim_setting.tester_objects
     eps_proj_physical = sim_setting.eps_proj_physical
-    seed_data = sim_setting.seed_data
+    if init_with_seed:
+        seed_data = sim_setting.seed_data
+    else:
+        seed_data = None
 
     if type(true_object) == State:
         return StandardQst(
