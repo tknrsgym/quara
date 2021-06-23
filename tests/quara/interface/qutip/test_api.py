@@ -49,10 +49,10 @@ def get_tester_povm_names_1qutrit():
 
 @pytest.mark.qutip
 @pytest.mark.parametrize(
-    ("mode", "num", "true_state_name"),
-    [("qubit", 1, "z0"), ("qutrit", 1, "01z0")],
+    ("mode", "num", "true_state_name", "decimal"),
+    [("qubit", 1, "z0", 4), ("qutrit", 1, "01z0", 4)],
 )
-def test_estimate_standard_qst_for_qutip(mode, num, true_state_name):
+def test_estimate_standard_qst_for_qutip(mode, num, true_state_name, decimal):
     c_sys = generate_composite_system(mode, num)
     true_state = generate_state_from_name(c_sys, true_state_name)
     true_state_qutip = convert_state_quara_to_qutip(true_state)
@@ -88,16 +88,16 @@ def test_estimate_standard_qst_for_qutip(mode, num, true_state_name):
         npt.assert_array_almost_equal(
             estimated_state_qutip.data.toarray(),
             true_state_qutip.data.toarray(),
-            decimal=2,
+            decimal=decimal,
         )
 
 
 @pytest.mark.qutip
 @pytest.mark.parametrize(
-    ("mode", "num", "true_povm_name"),
-    [("qubit", 1, "z"), ("qutrit", 1, "z3")],
+    ("mode", "num", "true_povm_name", "decimal"),
+    [("qubit", 1, "z", 4), ("qutrit", 1, "z3", 4)],
 )
-def test_estimate_standard_povmt_for_qutip(mode, num, true_povm_name):
+def test_estimate_standard_povmt_for_qutip(mode, num, true_povm_name, decimal):
     c_sys = generate_composite_system(mode, num)
     true_povm = generate_povm_from_name(true_povm_name, c_sys)
     true_povm_qutip = convert_povm_quara_to_qutip(true_povm)
@@ -139,16 +139,16 @@ def test_estimate_standard_povmt_for_qutip(mode, num, true_povm_name):
             npt.assert_array_almost_equal(
                 estimated_item.data.toarray(),
                 true_item.data.toarray(),
-                decimal=2,
+                decimal=decimal,
             )
 
 
 @pytest.mark.qutip
 @pytest.mark.parametrize(
-    ("mode", "num", "true_gate_name"),
-    [("qubit", 1, "identity"), ("qutrit", 1, "identity")],
+    ("mode", "num", "true_gate_name", "decimal"),
+    [("qubit", 1, "identity", 4), ("qutrit", 1, "identity", 4)],
 )
-def test_estimate_standard_qpt_for_qutip(mode, num, true_gate_name):
+def test_estimate_standard_qpt_for_qutip(mode, num, true_gate_name, decimal):
     c_sys = generate_composite_system(mode, num)
     true_gate = generate_gate_from_gate_name(true_gate_name, c_sys)
     true_gate_qutip = convert_gate_quara_to_qutip(true_gate)
@@ -199,5 +199,5 @@ def test_estimate_standard_qpt_for_qutip(mode, num, true_gate_name):
         npt.assert_array_almost_equal(
             estimated_gate_qutip.data.toarray(),
             true_gate_qutip.data.toarray(),
-            decimal=2,
+            decimal=decimal,
         )
