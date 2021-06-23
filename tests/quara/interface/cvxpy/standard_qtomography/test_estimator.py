@@ -142,7 +142,7 @@ def get_names_2qutrit_gate_test() -> List[str]:
 def get_names_cvxpy_loss_test() -> List[str]:
     l = ["uniform_squared_error"]
     l.append("relative_entropy")
-    l.append("approximate_relative_entropy_without_zero_probability_term")
+    # l.append("approximate_relative_entropy_without_zero_probability_term")
     l.append("approximate_relative_entropy_with_zero_probability_term")
     l.append("approximate_relative_entropy_with_zero_probability_term_squared")
     return l
@@ -150,7 +150,7 @@ def get_names_cvxpy_loss_test() -> List[str]:
 
 def get_names_cvxopt_loss_test() -> List[str]:
     l = ["uniform_squared_error"]
-    l.append("approximate_relative_entropy_without_zero_probability_term")
+    # l.append("approximate_relative_entropy_without_zero_probability_term")
     l.append("approximate_relative_entropy_with_zero_probability_term")
     l.append("approximate_relative_entropy_with_zero_probability_term_squared")
     return l
@@ -186,15 +186,15 @@ def get_modes_constraint() -> List[str]:
 
 
 def _test_estimator_consistency_cvxpy(
-    mode_sys,
-    num_sys,
-    mode_tomo,
-    name_true,
-    name_loss,
-    mode_loss_form,
-    mode_constraint,
-    name_solver,
-    decimal,
+    mode_sys: str,
+    num_sys: int,
+    mode_tomo: str,
+    name_true: str,
+    name_loss: str,
+    mode_loss_form: str,
+    mode_constraint: str,
+    name_solver: str,
+    decimal: int,
 ):
     # CompositeSystem
     c_sys = generate_composite_system(mode=mode_sys, num=num_sys)
@@ -287,7 +287,7 @@ def _test_estimator_consistency_cvxpy(
         "decimal",
     ),
     [
-        ("qubit", 1, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 1, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_1qubit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -297,15 +297,15 @@ def _test_estimator_consistency_cvxpy(
     ],
 )
 def test_estimator_consistency_cvxpy_1qubit_state_mosek(
-    mode_sys,
-    num_sys,
-    mode_tomo,
-    name_true,
-    name_loss,
-    mode_loss_form,
-    mode_constraint,
-    name_solver,
-    decimal,
+    mode_sys: str,
+    num_sys: int,
+    mode_tomo: str,
+    name_true: str,
+    name_loss: str,
+    mode_loss_form: str,
+    mode_constraint: str,
+    name_solver: str,
+    decimal: int,
 ):
     _test_estimator_consistency_cvxpy(
         mode_sys,
@@ -336,7 +336,7 @@ def test_estimator_consistency_cvxpy_1qubit_state_mosek(
         "decimal",
     ),
     [
-        ("qubit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_1qubit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -385,7 +385,7 @@ def test_estimator_consistency_cvxpy_1qubit_povm_mosek(
         "decimal",
     ),
     [
-        ("qubit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_1qubit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -437,7 +437,7 @@ def test_estimator_consistency_cvxpy_1qubit_gate_mosek(
         "decimal",
     ),
     [
-        ("qubit", 2, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 2, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_2qubit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -486,7 +486,7 @@ def test_estimator_consistency_cvxpy_2qubit_state_mosek(
         "decimal",
     ),
     [
-        ("qubit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_2qubit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -535,7 +535,7 @@ def test_estimator_consistency_cvxpy_2qubit_povm_mosek(
         "decimal",
     ),
     [
-        ("qubit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_2qubit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -587,7 +587,7 @@ def test_estimator_consistency_cvxpy_2qubit_gate_mosek(
         "decimal",
     ),
     [
-        ("qubit", 3, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 3, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_3qubit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -636,7 +636,7 @@ def test_estimator_consistency_cvxpy_3qubit_state_mosek(
         "decimal",
     ),
     [
-        ("qubit", 3, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 3, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_3qubit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -685,7 +685,7 @@ def test_estimator_consistency_cvxpy_3qubit_povm_mosek(
         "decimal",
     ),
     [
-        ("qubit", 3, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qubit", 3, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_3qubit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -737,7 +737,7 @@ def test_estimator_consistency_cvxpy_3qubit_gate_mosek(
         "decimal",
     ),
     [
-        ("qutrit", 1, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qutrit", 1, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_1qutrit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -786,7 +786,7 @@ def test_estimator_consistency_cvxpy_1qutrit_state_mosek(
         "decimal",
     ),
     [
-        ("qutrit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qutrit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_1qutrit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -835,7 +835,7 @@ def test_estimator_consistency_cvxpy_1qutrit_povm_mosek(
         "decimal",
     ),
     [
-        ("qutrit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qutrit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_1qutrit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -887,7 +887,7 @@ def test_estimator_consistency_cvxpy_1qutrit_gate_mosek(
         "decimal",
     ),
     [
-        ("qutrit", 2, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qutrit", 2, "state", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_2qutrit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -936,7 +936,7 @@ def test_estimator_consistency_cvxpy_2qutrit_state_mosek(
         "decimal",
     ),
     [
-        ("qutrit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qutrit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_2qutrit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -985,7 +985,7 @@ def test_estimator_consistency_cvxpy_2qutrit_povm_mosek(
         "decimal",
     ),
     [
-        ("qutrit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 1e-8)
+        ("qutrit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "mosek", 4)
         for pro in product(
             get_names_2qutrit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -1037,7 +1037,7 @@ def test_estimator_consistency_cvxpy_2qutrit_gate_mosek(
         "decimal",
     ),
     [
-        ("qubit", 1, "state", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 1, "state", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_1qubit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -1086,7 +1086,7 @@ def test_estimator_consistency_cvxpy_1qubit_state_scs(
         "decimal",
     ),
     [
-        ("qubit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_1qubit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -1135,7 +1135,7 @@ def test_estimator_consistency_cvxpy_1qubit_povm_scs(
         "decimal",
     ),
     [
-        ("qubit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_1qubit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -1187,7 +1187,7 @@ def test_estimator_consistency_cvxpy_1qubit_gate_scs(
         "decimal",
     ),
     [
-        ("qubit", 2, "state", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 2, "state", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_2qubit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -1236,7 +1236,7 @@ def test_estimator_consistency_cvxpy_2qubit_state_scs(
         "decimal",
     ),
     [
-        ("qubit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_2qubit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -1285,7 +1285,7 @@ def test_estimator_consistency_cvxpy_2qubit_povm_scs(
         "decimal",
     ),
     [
-        ("qubit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_2qubit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -1337,7 +1337,7 @@ def test_estimator_consistency_cvxpy_2qubit_gate_scs(
         "decimal",
     ),
     [
-        ("qubit", 3, "state", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 3, "state", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_3qubit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -1386,7 +1386,7 @@ def test_estimator_consistency_cvxpy_3qubit_state_scs(
         "decimal",
     ),
     [
-        ("qubit", 3, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 3, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_3qubit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -1435,7 +1435,7 @@ def test_estimator_consistency_cvxpy_3qubit_povm_scs(
         "decimal",
     ),
     [
-        ("qubit", 3, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qubit", 3, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_3qubit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -1487,7 +1487,7 @@ def test_estimator_consistency_cvxpy_3qubit_gate_scs(
         "decimal",
     ),
     [
-        ("qutrit", 1, "state", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qutrit", 1, "state", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_1qutrit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -1536,7 +1536,7 @@ def test_estimator_consistency_cvxpy_1qutrit_state_scs(
         "decimal",
     ),
     [
-        ("qutrit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qutrit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_1qutrit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -1585,7 +1585,7 @@ def test_estimator_consistency_cvxpy_1qutrit_povm_scs(
         "decimal",
     ),
     [
-        ("qutrit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qutrit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_1qutrit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -1637,7 +1637,7 @@ def test_estimator_consistency_cvxpy_1qutrit_gate_scs(
         "decimal",
     ),
     [
-        ("qutrit", 2, "state", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qutrit", 2, "state", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_2qutrit_state_test(),
             get_names_cvxpy_loss_test(),
@@ -1686,7 +1686,7 @@ def test_estimator_consistency_cvxpy_2qutrit_state_scs(
         "decimal",
     ),
     [
-        ("qutrit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qutrit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_2qutrit_povm_test(),
             get_names_cvxpy_loss_test(),
@@ -1735,7 +1735,7 @@ def test_estimator_consistency_cvxpy_2qutrit_povm_scs(
         "decimal",
     ),
     [
-        ("qutrit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 1e-8)
+        ("qutrit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "scs", 4)
         for pro in product(
             get_names_2qutrit_gate_test(),
             get_names_cvxpy_loss_test(),
@@ -1787,7 +1787,7 @@ def test_estimator_consistency_cvxpy_2qutrit_gate_scs(
         "decimal",
     ),
     [
-        ("qubit", 1, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 1, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_1qubit_state_test(),
             get_names_cvxopt_loss_test(),
@@ -1836,7 +1836,7 @@ def test_estimator_consistency_cvxpy_1qubit_state_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_1qubit_povm_test(),
             get_names_cvxopt_loss_test(),
@@ -1885,7 +1885,7 @@ def test_estimator_consistency_cvxpy_1qubit_povm_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_1qubit_gate_test(),
             get_names_cvxopt_loss_test(),
@@ -1937,7 +1937,7 @@ def test_estimator_consistency_cvxpy_1qubit_gate_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 2, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 2, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_2qubit_state_test(),
             get_names_cvxopt_loss_test(),
@@ -1986,7 +1986,7 @@ def test_estimator_consistency_cvxpy_2qubit_state_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_2qubit_povm_test(),
             get_names_cvxopt_loss_test(),
@@ -2035,7 +2035,7 @@ def test_estimator_consistency_cvxpy_2qubit_povm_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_2qubit_gate_test(),
             get_names_cvxopt_loss_test(),
@@ -2087,7 +2087,7 @@ def test_estimator_consistency_cvxpy_2qubit_gate_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 3, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 3, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_3qubit_state_test(),
             get_names_cvxopt_loss_test(),
@@ -2136,7 +2136,7 @@ def test_estimator_consistency_cvxpy_3qubit_state_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 3, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 3, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_3qubit_povm_test(),
             get_names_cvxopt_loss_test(),
@@ -2185,7 +2185,7 @@ def test_estimator_consistency_cvxpy_3qubit_povm_cvxopt(
         "decimal",
     ),
     [
-        ("qubit", 3, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qubit", 3, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_3qubit_gate_test(),
             get_names_cvxopt_loss_test(),
@@ -2237,7 +2237,7 @@ def test_estimator_consistency_cvxpy_3qubit_gate_cvxopt(
         "decimal",
     ),
     [
-        ("qutrit", 1, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qutrit", 1, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_1qutrit_state_test(),
             get_names_cvxopt_loss_test(),
@@ -2286,7 +2286,7 @@ def test_estimator_consistency_cvxpy_1qutrit_state_cvxopt(
         "decimal",
     ),
     [
-        ("qutrit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qutrit", 1, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_1qutrit_povm_test(),
             get_names_cvxopt_loss_test(),
@@ -2335,7 +2335,7 @@ def test_estimator_consistency_cvxpy_1qutrit_povm_cvxopt(
         "decimal",
     ),
     [
-        ("qutrit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qutrit", 1, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_1qutrit_gate_test(),
             get_names_cvxopt_loss_test(),
@@ -2387,7 +2387,7 @@ def test_estimator_consistency_cvxpy_1qutrit_gate_cvxopt(
         "decimal",
     ),
     [
-        ("qutrit", 2, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qutrit", 2, "state", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_2qutrit_state_test(),
             get_names_cvxopt_loss_test(),
@@ -2436,7 +2436,7 @@ def test_estimator_consistency_cvxpy_2qutrit_state_cvxopt(
         "decimal",
     ),
     [
-        ("qutrit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qutrit", 2, "povm", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_2qutrit_povm_test(),
             get_names_cvxopt_loss_test(),
@@ -2485,7 +2485,7 @@ def test_estimator_consistency_cvxpy_2qutrit_povm_cvxopt(
         "decimal",
     ),
     [
-        ("qutrit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 1e-8)
+        ("qutrit", 2, "gate", pro[0], pro[1], pro[2], pro[3], "cvxopt", 4)
         for pro in product(
             get_names_2qutrit_gate_test(),
             get_names_cvxopt_loss_test(),
