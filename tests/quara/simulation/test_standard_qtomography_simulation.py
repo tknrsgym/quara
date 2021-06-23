@@ -54,6 +54,7 @@ def make_test_data(test_data_dir):
         "n_sample": 2,
         "n_rep": 3,
         "num_data": [10, 100],
+        "seed_qoperation": 888,
         "seed_data": 777,
         "output_root_dir": test_data_dir,
     }

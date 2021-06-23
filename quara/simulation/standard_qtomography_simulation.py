@@ -147,6 +147,7 @@ class EstimatorTestSetting:
     true_object: NoiseSetting
     tester_objects: List[NoiseSetting]
     seed_data: int
+    seed_qoperation: int
     n_rep: int
     num_data: List[int]
     n_sample: int
