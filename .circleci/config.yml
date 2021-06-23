@@ -85,6 +85,6 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not qutip" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit" -o "norecursedirs=quara/interface" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
