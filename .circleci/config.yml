@@ -6,7 +6,7 @@ workflows:
       - test-3.7
       - test-3.8
       - test-3.9
-      - test-3.9-for_user
+      - test-3.9-minimum_module
 jobs:
   test-3.7:
     docker:
@@ -68,7 +68,7 @@ jobs:
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
-  test-3.9-for_user:
+  test-3.9-minimum_module:
     docker:
       - image: circleci/python:3.9
     steps:
