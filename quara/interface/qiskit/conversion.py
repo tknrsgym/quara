@@ -1,9 +1,7 @@
 import numpy as np
 from typing import List, Tuple, Union
 
-from qiskit.ignis.verification.tomography.basis import TomographyBasis, default_basis
 from qiskit.quantum_info.operators import Operator
-from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 
 from quara.objects.state import State
 from quara.objects.povm import Povm
@@ -21,6 +19,23 @@ def convert_state_qiskit_to_quara(
     qiskit_state: np.ndarray,
     c_sys: CompositeSystem,
 ) -> State:
+
+    """converts densitymatrix in Qiskit to Quara State.
+
+    Parameters
+    ----------
+    qiskit_state: np.ndarray
+        this represents density matrix of quantum state.
+
+    c_sys: CompositeSystem
+        CompositeSystem contains state.
+
+    Returns
+    -------
+    State
+        Quara State.
+    """
+
     qiskit_state_vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
         qiskit_state, c_sys.basis()
     )
@@ -31,6 +46,20 @@ def convert_state_qiskit_to_quara(
 def convert_state_quara_to_qiskit(
     quara_state: State,
 ) -> np.ndarray:
+
+    """converts Quara State to densitymatrix in Qiskit.
+
+    Parameters
+    ----------
+    quara_state: State
+        Quara State.
+
+    Returns
+    -------
+    np.ndarray
+       Qiskit density matrix of quantum state.
+    """
+
     qiskit_state = quara_state.to_density_matrix()
     return qiskit_state
 
@@ -39,6 +68,23 @@ def convert_povm_qiskit_to_quara(
     qiskit_povm: List[np.ndarray],
     c_sys: CompositeSystem,
 ) -> Povm:
+
+    """converts Qiskit representation matrix to Quara Povm.
+
+    Parameters
+    ----------
+    qiskit_povm: np.ndarray
+        this represents representation matrix of quantum state.
+
+    c_sys: CompositeSystem
+        CompositeSystem contains state.
+
+    Returns
+    -------
+    Povm
+        Quara Povm.
+    """
+
     qiskit_povm_vec = []
     for mat in qiskit_povm:
         vec = calc_hermitian_matrix_expansion_coefficient_hermitian_basis(
@@ -52,6 +98,20 @@ def convert_povm_qiskit_to_quara(
 def convert_povm_quara_to_qiskit(
     quara_povm: Povm,
 ) -> List[np.ndarray]:
+
+    """converts Quara Povm to Qiskit representation matrix .
+
+    Parameters
+    ----------
+    quara_povm:Povm
+        Quara Povm.
+
+    Returns
+    -------
+    List[np.ndarray]
+       list of Qiskit representation matrix of quantum povm.
+    """
+
     qiskit_povm = quara_povm.matrices()
     return qiskit_povm
 
@@ -61,6 +121,26 @@ def convert_empi_dists_qiskit_to_quara(
     shots: Union[List, int],
     label: List[int],
 ) -> List[Tuple[int, np.ndarray]]:
+
+    """converts Qiskit empirical distribution to Quara empirical distribution.
+
+    Parameters
+    ----------
+    qiskit_dists: np.ndarray
+        this represents empirical distribution.
+
+    shots: Union[List, int]
+        shots represents the number of times.
+
+    label: List[int]
+        label provides the number of unit for one measurement.
+
+    Returns
+    -------
+    List[Tuple[int, np.ndarray]]
+        Quara empirical distribution.
+    """
+
     quara_dists = []
     cts = 0
     if type(shots) == int:
@@ -79,6 +159,20 @@ def convert_empi_dists_qiskit_to_quara(
 def convert_empi_dists_quara_to_qiskit(
     quara_dists: List[Tuple[int, np.ndarray]],
 ) -> np.ndarray:
+
+    """converts Quara empirical distribution to Qiskit empirical distribution.
+
+    Parameters
+    ----------
+    quara_dists: List[Tuple[int, np.ndarray]]
+        Quara empirical distribution.
+
+    Returns
+    -------
+    np.ndarray
+         Qiskit empirical distribution
+    """
+
     qiskit_dists = []
     for i in quara_dists:
         qiskit_dists = qiskit_dists + i[1]
