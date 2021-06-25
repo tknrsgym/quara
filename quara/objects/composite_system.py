@@ -86,7 +86,10 @@ class CompositeSystem:
         self._basis_basisconjugate = dict()
         self._dict_from_hs_to_choi = dict()
         self._dict_from_choi_to_hs = dict()
+        basis_tmp = []
         basis_basisconjugate_tmp = []
+        for b_alpha in basis:
+            basis_tmp.append(b_alpha.flatten())
         for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
@@ -116,6 +119,8 @@ class CompositeSystem:
                     self._dict_from_choi_to_hs[(alpha, beta)] = [
                         (row_index, column_index, matrix[row_index, column_index])
                     ]
+        basis_tmp = np.array(basis_tmp)
+        self._basis_T_sparse = csr_matrix(basis_tmp.T)
         basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)
         self._basisconjugate_basis_sparse = csr_matrix(
             basis_basisconjugate_tmp.conjugate()
