@@ -197,7 +197,7 @@ class Gate(QOperation):
                 eigenvals[index] = 0
 
         new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
-        new_hs = to_hs_from_choi_with_dict(new_choi_matrix, self.composite_system)
+        new_hs = to_hs_from_choi_with_sparsity(new_choi_matrix, self.composite_system)
         new_gate = Gate(
             c_sys=self.composite_system,
             hs=new_hs,
@@ -389,7 +389,7 @@ class Gate(QOperation):
             Choi matrix of gate.
         """
         c_sys = self.composite_system
-        choi_vec = c_sys._basis_basisconjugateT_sparse.dot(self._hs.flatten())
+        choi_vec = c_sys._basis_basisconjugate_T_sparse.dot(self._hs.flatten())
         choi = choi_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
         return choi
 
@@ -509,7 +509,10 @@ def to_hs_from_choi_with_dict(choi: np.ndarray, c_sys: CompositeSystem) -> np.nd
 def to_hs_from_choi_with_sparsity(
     choi: np.ndarray, c_sys: CompositeSystem
 ) -> np.ndarray:
-    pass
+    hs_vec = c_sys._basisconjugate_basis_sparse.dot(choi.flatten())
+    hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
+
+    return mutil.truncate_hs(hs)
 
 
 def convert_var_index_to_gate_index(

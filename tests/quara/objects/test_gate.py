@@ -1098,7 +1098,6 @@ def test_to_hs_from_choi_with_dict():
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-"""
 def test_to_hs_from_choi_with_sparsity():
     # Case 1:
     # Arrange
@@ -1135,7 +1134,6 @@ def test_to_hs_from_choi_with_sparsity():
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
-"""
 
 
 def test_convert_var_index_to_gate_index():
