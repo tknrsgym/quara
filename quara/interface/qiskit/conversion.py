@@ -94,3 +94,10 @@ def convert_gate_qiskit_to_quara(
     )
     quara_gate = Gate(c_sys, qiskit_gate_hs)
     return quara_gate
+
+
+def convert_gate_quara_to_qiskit(
+    quara_gate: Gate,
+) -> np.ndarray:
+    qiskit_gate = quara_gate.to_choi_matrix()
+    return qiskit_gate
