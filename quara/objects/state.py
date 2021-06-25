@@ -250,7 +250,7 @@ class State(QOperation):
             the projection of State on inequal constraint.
         """
         # calc engenvalues and engenvectors
-        density_matrix_orig = self.to_density_matrix()
+        density_matrix_orig = self.to_density_matrix_with_sparsity()
         eigenvals, eigenvecs = np.linalg.eigh(density_matrix_orig)
 
         # project
@@ -290,6 +290,21 @@ class State(QOperation):
         density = np.zeros((self._dim, self._dim), dtype=np.complex128)
         for coefficient, basis in zip(self._vec, self.composite_system.basis()):
             density += coefficient * basis
+        return density
+
+    def to_density_matrix_with_sparsity(self) -> np.ndarray:
+        """returns density matrix.
+
+        this function uses the scipy.sparse module.
+
+        Returns
+        -------
+        int
+            density matrix.
+        """
+        c_sys = self.composite_system
+        density_vec = c_sys._basis_T_sparse.dot(self.vec)
+        density = density_vec.reshape((self.dim, self.dim))
         return density
 
     def is_trace_one(self, atol: float = None) -> bool:

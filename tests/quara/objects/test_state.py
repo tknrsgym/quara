@@ -851,6 +851,14 @@ class TestState:
         expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_to_density_matrix_with_sparsity(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        actual = state.to_density_matrix_with_sparsity()
+        expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_is_trace_one(self):
         # case: True
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
