@@ -177,6 +177,29 @@ def convert_empi_dists_quara_to_qiskit(
     return qiskit_dists
 
 
+def convert_empi_dists_quara_to_qiskit_shots(
+    quara_dists: List[Tuple[int, np.ndarray]],
+) -> List[int]:
+
+    """returns the list of shots from Quara empirical distribution.
+
+    Parameters
+    ----------
+    quara_dists: List[Tuple[int, np.ndarray]]
+        Quara empirical distribution.
+
+    Returns
+    -------
+    List[int]
+        each number of shots.
+    """
+
+    qiskit_shots = []
+    for i in quara_dists:
+        qiskit_shots.append(i[0])
+    return qiskit_shots
+
+
 def convert_gate_qiskit_to_quara(
     qiskit_gate: np.ndarray,
     c_sys: CompositeSystem,
