@@ -1,8 +1,6 @@
 import numpy as np
 from typing import List, Tuple, Union
 
-from qiskit.quantum_info.operators import Operator
-
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
