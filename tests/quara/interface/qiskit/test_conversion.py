@@ -87,7 +87,7 @@ def _test_convert_povm_qiskit_to_quara(mode, num, povm_name):
 
     source = pauli_measurement_matrix(povm_name, 0)
     actual = convert_povm_qiskit_to_quara(source, c_sys)
-    npt.assert_almost_equal(actual, expected, dicimal=10)
+    npt.assert_almost_equal(actual.matrices, expected.matrices, dicimal=10)
 
 
 @pytest.mark.qiskit
@@ -98,3 +98,23 @@ def _test_convert_povm_qiskit_to_quara(mode, num, povm_name):
 )
 def test_convert_povm_qiskit_to_quara(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 1, povm_name)
+
+
+def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
+    # Arrange
+    c_sys = generate_composite_system(mode, num)
+    expected = pauli_measurement_matrix("Z", 0)
+
+    source = generate_povm_from_name(povm_name, c_sys)
+    actual = convert_povm_quara_to_qiskit(source)
+    npt.assert_almost_equal(actual, expected, dicimal=10)
+
+
+@pytest.mark.qiskit
+@pytest.mark.onequbit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qiskit_povm_names_1qubit()],
+)
+def test_convert_povm_quara_to_qiskit(povm_name):
+    _test_convert_povm_quara_to_qiskit("qubit", 1, povm_name)
