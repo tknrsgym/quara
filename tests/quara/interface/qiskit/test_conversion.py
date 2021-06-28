@@ -118,3 +118,6 @@ def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
 )
 def test_convert_povm_quara_to_qiskit(povm_name):
     _test_convert_povm_quara_to_qiskit("qubit", 1, povm_name)
+
+def _test_convert_empi_dists_qiskit_to_quara():
+    
