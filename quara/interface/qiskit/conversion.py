@@ -180,11 +180,28 @@ def convert_empi_dists_quara_to_qiskit(
 
 
 def convert_gate_qiskit_to_quara(
-    qiskit_gate: Operator,
+    qiskit_gate: np.ndarray,
     c_sys: CompositeSystem,
 ) -> Gate:
+
+    """converts qiskit gate unitary matrix to Quara Gate.
+
+    Parameters
+    ----------
+    qiskit_gate: np.ndarray
+         Qiskit unitary matrix.
+
+    c_sys: Compositesystem
+         CompositeSystem contains state.
+
+    Returns
+    -------
+    Gate
+         Quara gate.
+    """
+
     qiskit_gate_hs = calc_gate_mat_from_unitary_mat_with_hermitian_basis(
-        qiskit_gate.data, c_sys.basis()
+        qiskit_gate, c_sys.basis()
     )
     quara_gate = Gate(c_sys, qiskit_gate_hs)
     return quara_gate
@@ -193,5 +210,21 @@ def convert_gate_qiskit_to_quara(
 def convert_gate_quara_to_qiskit(
     quara_gate: Gate,
 ) -> np.ndarray:
-    qiskit_gate = quara_gate.to_choi_matrix()
+
+    """converts Quara Gate to qiskit gate unitary matrix.
+
+    Parameters
+    ----------
+    quara_gate: Gate
+         Quara gate.
+
+    Returns
+    -------
+    np.ndarray
+        Qiskit unitary matrix.
+
+    """
+
+    qiskit_gate_l = quara_gate.to_kraus_matrices()
+    qiskit_gate = qiskit_gate_l[0]
     return qiskit_gate
