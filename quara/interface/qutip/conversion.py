@@ -15,7 +15,7 @@ from quara.utils.matrix_util import calc_mat_from_vector_adjoint, truncate_hs
 
 
 def convert_state_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> State:
-    """converts QuTip Qobj to Quara State.
+    """converts QuTiP Qobj to Quara State.
 
     Parameters
     ----------
@@ -55,7 +55,7 @@ def convert_state_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> St
 
 
 def convert_state_quara_to_qutip(quara_state: State) -> Qobj:
-    """converts Quara State to QuTip Qobj.
+    """converts Quara State to QuTiP Qobj.
 
     Parameters
     ----------
@@ -75,7 +75,7 @@ def convert_state_quara_to_qutip(quara_state: State) -> Qobj:
 def convert_povm_qutip_to_quara(
     qutip_qobjs: List[Qobj], c_sys: CompositeSystem
 ) -> Povm:
-    """converts QuTip Qobj to Quara Povm.
+    """converts QuTiP Qobj to Quara Povm.
 
     Parameters
     ----------
@@ -106,7 +106,7 @@ def convert_povm_qutip_to_quara(
 
 
 def convert_povm_quara_to_qutip(quara_povm: Povm) -> List[Qobj]:
-    """converts Quara Povm to QuTip Qobj.
+    """converts Quara Povm to QuTiP Qobj.
 
     Parameters
     ----------
@@ -124,7 +124,7 @@ def convert_povm_quara_to_qutip(quara_povm: Povm) -> List[Qobj]:
 
 
 def convert_gate_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Gate:
-    """converts QuTip Qobj to Quara Gate.
+    """converts QuTiP Qobj to Quara Gate.
 
     Parameters
     ----------
@@ -154,7 +154,7 @@ def convert_gate_qutip_to_quara(qutip_qobj: Qobj, c_sys: CompositeSystem) -> Gat
 
 
 def convert_gate_quara_to_qutip(quara_gate: Gate) -> Qobj:
-    """converts Quara Gate to QuTip Qobj.
+    """converts Quara Gate to QuTiP Qobj.
 
     Parameters
     ----------
