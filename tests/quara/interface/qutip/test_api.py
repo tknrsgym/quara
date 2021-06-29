@@ -1,9 +1,9 @@
 from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
 from quara.interface.qutip.api import (
-    estimate_standard_povmt_for_qutip,
-    estimate_standard_qpt_for_qutip,
-    estimate_standard_qst_for_qutip,
+    estimate_standard_povmt_from_qutip,
+    estimate_standard_qpt_from_qutip,
+    estimate_standard_qst_from_qutip,
 )
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 import numpy as np
@@ -52,7 +52,7 @@ def get_tester_povm_names_1qutrit():
     ("mode", "num", "true_state_name", "decimal"),
     [("qubit", 1, "z0", 4), ("qutrit", 1, "01z0", 4)],
 )
-def test_estimate_standard_qst_for_qutip(mode, num, true_state_name, decimal):
+def test_estimate_standard_qst_from_qutip(mode, num, true_state_name, decimal):
     c_sys = generate_composite_system(mode, num)
     true_state = generate_state_from_name(c_sys, true_state_name)
     true_state_qutip = convert_state_quara_to_qutip(true_state)
@@ -77,7 +77,7 @@ def test_estimate_standard_qst_for_qutip(mode, num, true_state_name, decimal):
         prob_dists.append((1, np.array(prob_dist)))
 
     for estimator_name in ["linear", "least_squares"]:
-        estimated_state_qutip = estimate_standard_qst_for_qutip(
+        estimated_state_qutip = estimate_standard_qst_from_qutip(
             mode,
             num,
             tester_povms=tester_povms_qutip,
@@ -97,7 +97,7 @@ def test_estimate_standard_qst_for_qutip(mode, num, true_state_name, decimal):
     ("mode", "num", "true_povm_name", "decimal"),
     [("qubit", 1, "z", 4), ("qutrit", 1, "z3", 4)],
 )
-def test_estimate_standard_povmt_for_qutip(mode, num, true_povm_name, decimal):
+def test_estimate_standard_povmt_from_qutip(mode, num, true_povm_name, decimal):
     c_sys = generate_composite_system(mode, num)
     true_povm = generate_povm_from_name(true_povm_name, c_sys)
     true_povm_qutip = convert_povm_quara_to_qutip(true_povm)
@@ -126,7 +126,7 @@ def test_estimate_standard_povmt_for_qutip(mode, num, true_povm_name, decimal):
         prob_dists.append((1, np.array(prob_dist)))
 
     for estimator_name in ["linear", "least_squares"]:
-        estimated_povm_qutip = estimate_standard_povmt_for_qutip(
+        estimated_povm_qutip = estimate_standard_povmt_from_qutip(
             mode,
             num,
             tester_states=tester_states_qutip,
@@ -148,7 +148,7 @@ def test_estimate_standard_povmt_for_qutip(mode, num, true_povm_name, decimal):
     ("mode", "num", "true_gate_name", "decimal"),
     [("qubit", 1, "identity", 4), ("qutrit", 1, "identity", 4)],
 )
-def test_estimate_standard_qpt_for_qutip(mode, num, true_gate_name, decimal):
+def test_estimate_standard_qpt_from_qutip(mode, num, true_gate_name, decimal):
     c_sys = generate_composite_system(mode, num)
     true_gate = generate_gate_from_gate_name(true_gate_name, c_sys)
     true_gate_qutip = convert_gate_quara_to_qutip(true_gate)
@@ -187,7 +187,7 @@ def test_estimate_standard_qpt_for_qutip(mode, num, true_gate_name, decimal):
         prob_dists.append((1, np.array(prob_dist)))
 
     for estimator_name in ["linear", "least_squares"]:
-        estimated_gate_qutip = estimate_standard_qpt_for_qutip(
+        estimated_gate_qutip = estimate_standard_qpt_from_qutip(
             mode,
             num,
             tester_states=tester_states_qutip,

@@ -23,7 +23,6 @@ def get_qutip_povm_names_2qutrit() -> List[str]:
 
 
 def generate_qutip_povm_from_povm_name(povm_name: str) -> List[Qobj]:
-    # TODO: implement for qutrits
     if povm_name == "z":
         return [ket2dm(basis(2, i)) for i in range(2)]
     elif povm_name == "z_z":

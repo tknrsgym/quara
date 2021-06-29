@@ -53,7 +53,7 @@ def least_squares_estimator_wrapper(
     return result.estimated_qoperation
 
 
-def estimate_standard_qst_for_qutip(
+def estimate_standard_qst_from_qutip(
     mode_system: str,
     num_system: int,
     tester_povms: List[List[Qobj]],
@@ -107,7 +107,7 @@ def estimate_standard_qst_for_qutip(
     return convert_state_quara_to_qutip(estimated_state)
 
 
-def estimate_standard_povmt_for_qutip(
+def estimate_standard_povmt_from_qutip(
     mode_system: str,
     num_system: int,
     tester_states: List[Qobj],
@@ -168,7 +168,7 @@ def estimate_standard_povmt_for_qutip(
     return convert_povm_quara_to_qutip(estimated_povm)
 
 
-def estimate_standard_qpt_for_qutip(
+def estimate_standard_qpt_from_qutip(
     mode_system: str,
     num_system: int,
     tester_states: List[Qobj],
