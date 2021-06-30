@@ -11,6 +11,7 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import get_z_povm
 from quara.objects.state import (
     State,
+    to_vec_from_density_matrix_with_sparsity,
     convert_var_index_to_state_index,
     convert_state_index_to_var_index,
     convert_var_to_state,
@@ -1685,6 +1686,44 @@ class TestState:
         npt.assert_almost_equal(actual, expected, decimal=15)
         actual_qobj = State(c_sys, actual)
         assert actual_qobj.is_physical() == True
+
+
+def test_to_vec_from_density_matrix_with_sparsity():
+    # Case 1:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_x0_1q(c_sys)
+    density_matrix = state.to_density_matrix()
+    # Act
+    actual = to_vec_from_density_matrix_with_sparsity(density_matrix, c_sys)
+    # Assert
+    expected = state.vec
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 2:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_y0_1q(c_sys)
+    density_matrix = state.to_density_matrix()
+    # Act
+    actual = to_vec_from_density_matrix_with_sparsity(density_matrix, c_sys)
+    # Assert
+    expected = state.vec
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 3:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+    density_matrix = state.to_density_matrix()
+    # Act
+    actual = to_vec_from_density_matrix_with_sparsity(density_matrix, c_sys)
+    # Assert
+    expected = state.vec
+    npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_convert_var_index_to_state_index():

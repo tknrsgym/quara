@@ -260,10 +260,9 @@ class State(QOperation):
 
         # calc new vec
         density_matrix_new = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
-        vec_new = [
-            np.vdot(basis, density_matrix_new).real.astype(np.float64)
-            for basis in self.composite_system.basis()
-        ]
+        vec_new = to_vec_from_density_matrix_with_sparsity(
+            density_matrix_new, self.composite_system
+        )
 
         # create new State
         state = State(
@@ -321,7 +320,7 @@ class State(QOperation):
             True where trace of density matrix is one, False otherwise.
         """
         atol = Settings.get_atol() if atol is None else atol
-        tr = np.trace(self.to_density_matrix())
+        tr = np.trace(self.to_density_matrix_with_sparsity())
         return np.isclose(tr, 1, atol=atol)
 
     def is_hermitian(self, atol: float = None) -> bool:
@@ -337,7 +336,7 @@ class State(QOperation):
         bool
         True where density matrix, False otherwise.
         """
-        return mutil.is_hermitian(self.to_density_matrix(), atol=atol)
+        return mutil.is_hermitian(self.to_density_matrix_with_sparsity(), atol=atol)
 
     def is_positive_semidefinite(self, atol: float = None) -> bool:
         """returns whether density matrix is positive semidifinite.
@@ -352,7 +351,9 @@ class State(QOperation):
         bool
             True where density matrix is positive semidifinite, False otherwise.
         """
-        return mutil.is_positive_semidefinite(self.to_density_matrix(), atol=atol)
+        return mutil.is_positive_semidefinite(
+            self.to_density_matrix_with_sparsity(), atol=atol
+        )
 
     def calc_eigenvalues(self) -> List:
         """calculates eigen values of density matrix.
@@ -367,9 +368,9 @@ class State(QOperation):
             eigen values of density matrix.
         """
         if self.composite_system.is_basis_hermitian:
-            values = np.linalg.eigvalsh(self.to_density_matrix())
+            values = np.linalg.eigvalsh(self.to_density_matrix_with_sparsity())
         else:
-            values = np.linalg.eigvals(self.to_density_matrix())
+            values = np.linalg.eigvals(self.to_density_matrix_with_sparsity())
         values = sorted(values, reverse=True)
         return values
 
@@ -393,6 +394,29 @@ class State(QOperation):
 
     def _generate_from_var_func(self):
         return convert_var_to_state
+
+
+def to_vec_from_density_matrix_with_sparsity(
+    density_matrix: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    """converts density matrix to vec.
+
+    this function uses the sparsity of matrices to calculate.
+
+    Parameters
+    ----------
+    density_matrix : np.ndarray
+        density matrix of this state.
+    c_sys : CompositeSystem
+        CompositeSystem of this state.
+
+    Returns
+    -------
+    np.ndarray
+        vec of variables.
+    """
+    vec = c_sys._basisconjugate_sparse.dot(density_matrix.flatten())
+    return mutil.truncate_hs(vec)
 
 
 def convert_var_index_to_state_index(
