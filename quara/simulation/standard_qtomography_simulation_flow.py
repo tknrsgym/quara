@@ -91,7 +91,7 @@ def execute_simulation_sample_unit(
     sample_index,
     root_dir,
     pdf_mode: str = "only_ng",
-    stream_qoperation: Union[int, np.random.RandomState] = None,  # TODO: add type hint
+    stream_qoperation: Union[int, np.random.RandomState] = None,
 ) -> List[SimulationResult]:
     # Generate sample
     true_object = generation_settings.true_setting.generate(stream_qoperation)
