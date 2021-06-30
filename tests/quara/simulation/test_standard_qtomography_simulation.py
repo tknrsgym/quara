@@ -194,7 +194,6 @@ def test_execute_simulation_with_seed_or_stream():
     # Assert
     # Verify that it is random.
     a_list = sim_result.empi_dists_sequences[0]
-    # b_list = sim_result.empi_dists_sequences[1]
 
     for b_list in sim_result.empi_dists_sequences[1:]:
         assert is_same_dist(a_list[0], b_list[0]) is False
