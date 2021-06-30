@@ -192,11 +192,11 @@ class Gate(QOperation):
         eigenvals, eigenvecs = np.linalg.eigh(choi_matrix)
 
         # project
-        for index in range(len(eigenvals)):
-            if eigenvals[index] < 0:
-                eigenvals[index] = 0
+        diag = np.diag(eigenvals)
+        diag[diag < 0] = 0
 
-        new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
+        # calc new HS
+        new_choi_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
         new_hs = to_hs_from_choi_with_sparsity(new_choi_matrix, self.composite_system)
         new_gate = Gate(
             c_sys=self.composite_system,
