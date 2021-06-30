@@ -1,4 +1,5 @@
-from typing import List
+from itertools import starmap
+from typing import List, Union
 import copy
 import time
 from pathlib import Path
@@ -90,12 +91,14 @@ def execute_simulation_sample_unit(
     sample_index,
     root_dir,
     pdf_mode: str = "only_ng",
+    stream_qoperation: Union[int, np.random.RandomState] = None,
 ) -> List[SimulationResult]:
     # Generate sample
-    true_object = generation_settings.true_setting.generate()
+    true_object = generation_settings.true_setting.generate(stream_qoperation)
     true_object = true_object[0] if type(true_object) == tuple else true_object
+
     tester_objects = [
-        tester_setting.generate()
+        tester_setting.generate(stream_qoperation)
         for tester_setting in generation_settings.tester_settings
     ]
     tester_objects = [
@@ -143,6 +146,8 @@ def execute_simulation_test_setting_unit(
     n_sample = test_setting.n_sample
     results = []
 
+    stream_qoperation = np.random.RandomState(test_setting.seed_qoperation)
+
     for sample_index in range(n_sample):
         sample_results = execute_simulation_sample_unit(
             test_setting,
@@ -151,6 +156,7 @@ def execute_simulation_test_setting_unit(
             sample_index,
             root_dir,
             pdf_mode=pdf_mode,
+            stream_qoperation=stream_qoperation,
         )
         results += sample_results
 
