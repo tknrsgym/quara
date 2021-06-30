@@ -400,7 +400,7 @@ def to_vec_from_density_matrix_with_sparsity(
 ) -> np.ndarray:
     """converts density matrix to vec.
 
-    this function uses the sparsity of matrices to calculate.
+    this function uses the scipy.sparse module.
 
     Parameters
     ----------
