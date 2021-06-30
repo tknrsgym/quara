@@ -211,7 +211,7 @@ class Povm(QOperation):
         return povm
 
     def calc_proj_eq_constraint(self):
-        if not self.composite_system.basis().is_hermitian():
+        if not self.composite_system.is_basis_hermitian:
             raise ValueError("basis is not hermitian.")
 
         size = self.dim ** 2
@@ -246,21 +246,22 @@ class Povm(QOperation):
     def calc_proj_ineq_constraint(self) -> "Povm":
         new_vecs = []
 
-        for matrix in self.matrices():
+        for matrix in self.matrices_with_sparsity():
+            # calc engenvalues and engenvectors
             eigenvals, eigenvec = np.linalg.eigh(matrix)
 
+            # project
             #     |λ0          |
             # Λ = |    ...     |
             #     |        λd-1|
             diag = np.diag(eigenvals)
             diag[diag < 0] = 0
 
+            # calc new vecs
             new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
-            new_vec = [
-                np.vdot(basis, new_matrix).real.astype(np.float64)
-                for basis in self.composite_system.basis()
-            ]
-            new_vec = np.array(new_vec, dtype=np.float64)
+            new_vec = to_vec_from_matrix_with_sparsity(
+                new_matrix, self.composite_system
+            )
             new_vecs.append(new_vec)
 
         new_povm = Povm(
@@ -350,6 +351,24 @@ class Povm(QOperation):
             matrix_list.append(matrix)
         return matrix_list
 
+    def matrices_with_sparsity(self) -> List[np.ndarray]:
+        """returns matrices of measurements.
+
+        this function uses the scipy.sparse module.
+
+        Returns
+        -------
+        List[np.ndarray]
+            matrices of measurements.
+        """
+        c_sys = self.composite_system
+        matrix_list = []
+        for vec in self.vecs:
+            new_vec = c_sys._basis_T_sparse.dot(vec)
+            matrix = new_vec.reshape((self.dim, self.dim))
+            matrix_list.append(matrix)
+        return matrix_list
+
     def matrix(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns matrix of measurement.
 
@@ -373,6 +392,27 @@ class Povm(QOperation):
 
         return matrix
 
+    def matrix_with_sparsity(self, index: Union[int, Tuple]) -> np.ndarray:
+        """returns matrix of measurement.
+
+        this function uses the scipy.sparse module.
+
+        Parameters
+        ----------
+        index : Union[int, Tuple]
+            index of vec of measurement.
+            if type is int, then regardes it as the index for CompositeSystem.
+            if type is Tuple, then regardes it as the indices for earch ElementalSystems.
+        Returns
+        -------
+        np.ndarray
+            matrix of measurement.
+        """
+        vec = self.vec(index)
+        new_vec = c_sys._basis_T_sparse.dot(self.vec)
+        matrix = new_vec.reshape((self.dim, self.dim))
+        return matrix
+
     def is_hermitian(self) -> bool:
         """Returns whether the povm is a set of Hermit matrices.
 
@@ -381,7 +421,7 @@ class Povm(QOperation):
         bool
             If `True`, the povm is a set of Hermit matrices.
         """
-        for m in self.matrices():
+        for m in self.matrices_with_sparsity():
             if not mutil.is_hermitian(m):
                 return False
         return True
@@ -396,7 +436,7 @@ class Povm(QOperation):
         """
         atol = Settings.get_atol() if atol is None else atol
 
-        for m in self.matrices():
+        for m in self.matrices_with_sparsity():
             if not mutil.is_positive_semidefinite(m, atol):
                 return False
 
@@ -419,7 +459,7 @@ class Povm(QOperation):
     def _sum_matrix(self):
         size = [self.dim, self.dim]
         sum_matrix = np.zeros(size, dtype=np.complex128)
-        for m in self.matrices():
+        for m in self.matrices_with_sparsity():
             sum_matrix += np.reshape(m, size)
 
         return sum_matrix
@@ -442,13 +482,13 @@ class Povm(QOperation):
 
         size = [self._dim, self._dim]
         if index is not None:
-            v = self.matrices()[index]
+            v = self.matrices_with_sparsity()[index]
             w = np.linalg.eigvalsh(v)
             w = sorted(w, reverse=True)
             return w
         else:
             w_list = []
-            for v in self.matrices():
+            for v in self.matrices_with_sparsity():
                 w = np.linalg.eigvalsh(v)
                 w = sorted(w, reverse=True)
                 w_list.append(w)
@@ -515,6 +555,55 @@ class Povm(QOperation):
         with np.errstate(divide="ignore"):
             new_vecs = [vec / other for vec in self.vecs]
             return new_vecs
+
+
+def to_vec_from_matrix_with_sparsity(
+    matrix: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    """converts matrix to vec.
+
+    this function uses the scipy.sparse module.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        matrix of vec of this povm.
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+
+    Returns
+    -------
+    np.ndarray
+        vec of variables.
+    """
+    vec = c_sys._basisconjugate_sparse.dot(matrix.flatten())
+    return mutil.truncate_hs(vec)
+
+
+def to_vecs_from_matrices_with_sparsity(
+    matrices: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    """converts matrices to vecs.
+
+    this function uses the scipy.sparse module.
+
+    Parameters
+    ----------
+    matrices : np.ndarray
+        matrices of this povm.
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+
+    Returns
+    -------
+    np.ndarray
+        vecs of variables.
+    """
+    vecs = []
+    for matrix in matrices:
+        new_vec = to_vec_from_matrix_with_sparsity(matrix, c_sys)
+        vecs.append(new_vec)
+    return vecs
 
 
 def convert_var_index_to_povm_index(

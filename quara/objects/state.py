@@ -254,12 +254,11 @@ class State(QOperation):
         eigenvals, eigenvecs = np.linalg.eigh(density_matrix_orig)
 
         # project
-        for index in range(len(eigenvals)):
-            if eigenvals[index] < 0:
-                eigenvals[index] = 0
+        diag = np.diag(eigenvals)
+        diag[diag < 0] = 0
 
         # calc new vec
-        density_matrix_new = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
+        density_matrix_new = eigenvecs @ diag @ eigenvecs.T.conjugate()
         vec_new = to_vec_from_density_matrix_with_sparsity(
             density_matrix_new, self.composite_system
         )
@@ -401,7 +400,7 @@ def to_vec_from_density_matrix_with_sparsity(
 ) -> np.ndarray:
     """converts density matrix to vec.
 
-    this function uses the sparsity of matrices to calculate.
+    this function uses the scipy.sparse module.
 
     Parameters
     ----------

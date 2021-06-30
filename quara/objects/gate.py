@@ -192,11 +192,11 @@ class Gate(QOperation):
         eigenvals, eigenvecs = np.linalg.eigh(choi_matrix)
 
         # project
-        for index in range(len(eigenvals)):
-            if eigenvals[index] < 0:
-                eigenvals[index] = 0
+        diag = np.diag(eigenvals)
+        diag[diag < 0] = 0
 
-        new_choi_matrix = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T.conjugate()
+        # calc new HS
+        new_choi_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
         new_hs = to_hs_from_choi_with_sparsity(new_choi_matrix, self.composite_system)
         new_gate = Gate(
             c_sys=self.composite_system,
@@ -361,7 +361,7 @@ class Gate(QOperation):
     def to_choi_matrix_with_dict(self) -> np.ndarray:
         """returns Choi matrix of gate.
 
-        this function uses the sparsity of matrices to calculate.
+        this function uses the scipy.sparse module.
 
         Returns
         -------
@@ -483,6 +483,20 @@ class Gate(QOperation):
 
 
 def to_hs_from_choi(choi: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
+    """converts Choi matrix to HS representation of this gate.
+
+    Parameters
+    ----------
+    choi : np.ndarray
+        Choi matrix of this gate.
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+
+    Returns
+    -------
+    np.ndarray
+        HS representation of this gate.
+    """
     num_basis = len(c_sys.basis().basis)
     hs = np.zeros((num_basis, num_basis), dtype=np.float64)
 
@@ -495,6 +509,22 @@ def to_hs_from_choi(choi: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
 
 
 def to_hs_from_choi_with_dict(choi: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
+    """converts Choi matrix to HS representation of this gate.
+
+    this function uses dict to calculate fast.
+
+    Parameters
+    ----------
+    choi : np.ndarray
+        Choi matrix of this gate.
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+
+    Returns
+    -------
+    np.ndarray
+        HS representation of this gate.
+    """
     num_basis = len(c_sys.basis())
     hs = np.zeros((num_basis, num_basis), dtype=np.complex128)
 
@@ -509,6 +539,22 @@ def to_hs_from_choi_with_dict(choi: np.ndarray, c_sys: CompositeSystem) -> np.nd
 def to_hs_from_choi_with_sparsity(
     choi: np.ndarray, c_sys: CompositeSystem
 ) -> np.ndarray:
+    """converts Choi matrix to HS representation of this gate.
+
+    this function uses the scipy.sparse module.
+
+    Parameters
+    ----------
+    choi : np.ndarray
+        Choi matrix of this gate.
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+
+    Returns
+    -------
+    np.ndarray
+        HS representation of this gate.
+    """
     hs_vec = c_sys._basisconjugate_basis_sparse.dot(choi.flatten())
     hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
 
