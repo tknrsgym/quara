@@ -31,10 +31,10 @@ def check_mse_of_empirical_distributions(
     )
 
     # MSE of Empirical Distributions
-    empi_dists = data_analysis.extract_empi_dists_sequences(
+    empi_dists_sequences = data_analysis.extract_empi_dists_sequences(
         simulation_result.empi_dists_sequences
-    )  # TODO: check empi_dists? empi_dists_sequence?
-    xs_list_list = empi_dists
+    )
+    xs_list_list = empi_dists_sequences
     ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
         num_data
     )
