@@ -1375,7 +1375,7 @@ def export_report(
         # set same CompositeSystem
         tester_object._composite_system = true_object.composite_system
 
-    seed = simulation_settings[0].seed
+    seed = simulation_settings[0].seed_data
 
     num_data = simulation_results[0].simulation_setting.num_data
     n_rep = simulation_results[0].simulation_setting.n_rep

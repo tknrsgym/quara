@@ -10,7 +10,7 @@ import pytest
 from quara.simulation.standard_qtomography_simulation import SimulationResult
 from quara.simulation.standard_qtomography_simulation_flow import _print_summary
 
-import random_test
+from tests.quara.simulation import random_test
 
 
 def test_print_summary(capfd):

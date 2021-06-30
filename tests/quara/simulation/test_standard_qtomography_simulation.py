@@ -2,12 +2,16 @@ import pickle
 from pathlib import Path
 import shutil
 import os
+import glob
 
 import numpy as np
 import numpy.testing as npt
 import pytest
 
 from quara.simulation import standard_qtomography_simulation as sim
+from quara.simulation.standard_qtomography_simulation_flow import (
+    re_estimate_test_settings,
+)
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
@@ -22,7 +26,7 @@ from quara.simulation.standard_qtomography_simulation import (
 )
 
 
-import random_test
+from tests.quara.simulation import random_test
 
 
 def assert_equal_estimation_result(result_source, result_target):
@@ -76,14 +80,14 @@ def make_test_data(test_data_dir):
 @pytest.fixture(scope="class")
 def execute_simulation_fixture():
     # setup
-    test_data_dir = Path(os.path.dirname(__file__)) / "data/source_re_simulation_qst"
+    test_data_dir = Path(os.path.dirname(__file__)) / "data/re_simulation_qst/source"
     make_test_data(test_data_dir)
 
     # execute test
     yield {"test_data_root_dir": test_data_dir}
 
     # remove
-    shutil.rmtree(test_data_dir)
+    shutil.rmtree(test_data_dir.parent)
 
 
 @pytest.mark.usefixtures("execute_simulation_fixture")
@@ -148,6 +152,39 @@ class TestReEstimate:
         assert len(actual_results) == len(expected_results)
         for actual, expected in zip(actual_results, expected_results):
             assert_equal_estimation_result(actual, expected)
+
+    def test_re_estimate_flow(self, execute_simulation_fixture):
+        # Arrange
+        input_root_dir = execute_simulation_fixture["test_data_root_dir"]
+        output_root_dir = input_root_dir.parent / "target_re_estimate_flow"
+
+        # Act
+        re_estimated_all_results = re_estimate_test_settings(
+            input_root_dir=input_root_dir,
+            output_root_dir=output_root_dir,
+            pdf_mode="all",
+        )
+
+        # Assert
+        source_paths = glob.glob(f"{str(input_root_dir)}/*/*/case_*_result.pickle")
+        source_all_results = []
+        for source_path in sorted(source_paths):
+            with open(source_path, "rb") as f:
+                source_result = pickle.load(f)
+            source_all_results.append(source_result)
+
+        assert len(source_all_results) == len(re_estimated_all_results)
+        for expected_sim_result, actual_sim_result in zip(
+            source_all_results, re_estimated_all_results
+        ):
+            assert len(expected_sim_result.estimation_results) == len(
+                actual_sim_result.estimation_results
+            )
+            for expected, actual in zip(
+                expected_sim_result.estimation_results,
+                actual_sim_result.estimation_results,
+            ):
+                assert_equal_estimation_result(expected, actual)
 
 
 def is_same_dist(a_dist: tuple, b_dist: tuple):
