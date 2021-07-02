@@ -34,4 +34,7 @@ def generate_qiskit_gate_from_gate_name(
         gate = z.ZGate()
         mat = gate.__array__
 
+    elif gate_name == "zx90":
+        gate = 
+
     return mat
