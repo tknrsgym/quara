@@ -35,15 +35,19 @@ from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.composite_system_typical import generate_composite_system
-from quara.objects.state_typical import generate_state_from_name
+from quara.objects.state_typical import (
+    generate_state_from_name,
+    generate_qiskit_state_from_name
+)
 
 
 def _test_convert_state_qiskit_to_quara(mode, num, state_name):
     # Arrange
     c_sys = generate_composite_system(mode, num)
     expected = generate_state_from_name(c_sys, state_name)
+
     # density matrix
-    source = pauli_preparation_matrix(state_name)
+    source = generate_qiskit_state_from_name(state_name)
     actual = convert_state_qiskit_to_quara(source, c_sys)
     npt.assert_array_almost_equal(
         actual.to_density_matrix, expected.to_density_matrix, decimal=10
@@ -58,6 +62,24 @@ def _test_convert_state_qiskit_to_quara(mode, num, state_name):
 )
 def test_convert_state_qiskit_to_quara_1qubit(state_name):
     _test_convert_state_qiskit_to_quara("qubit", 1, state_name)
+
+@pytest.mark.qiskit
+@pytest.marak.twoqubit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qiskit_state_names_2qubit ]
+)
+def test_convert_state_qiskit_to_quara_2qubit(state_name):
+    _test_convert_state_qiskit_to_quara("qubit", 2, state_name)
+
+@pytest.mark.qiskit
+@pytest.marak.threequbit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qiskit_state_names_3qubit ]
+)
+def test_convert_state_qiskit_to_quara_3qubit(state_name):
+    _test_convert_state_qiskit_to_quara("qubit", 3, state_name)
 
 
 def _test_convert_state_quara_to_qiskit(mode, num, state_name):
@@ -119,5 +141,6 @@ def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
 def test_convert_povm_quara_to_qiskit(povm_name):
     _test_convert_povm_quara_to_qiskit("qubit", 1, povm_name)
 
-def _test_convert_empi_dists_qiskit_to_quara():
-    
+def _test_convert_empi_dists_qiskit_to_quara(mode, num, dist_name):
+    c_sys = ge
+    expected = 
