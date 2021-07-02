@@ -7,15 +7,15 @@ from qiskit.circuit.library.standard_gates import (
 )
 
 
-def get_qiskit_povm_names_1qubit() -> List[str]:
+def get_qiskit_gate_names_1qubit() -> List[str]:
     return ["x", "y", "z"]
 
 
-def get_qiskit_povm_names_2qubit() -> List[str]:
+def get_qiskit_gate_names_2qubit() -> List[str]:
     return ["zx90"]
 
 
-def get_qiskit_povm_names_3qubit() -> List[str]:
+def get_qiskit_gate_names_3qubit() -> List[str]:
     return ["toffoli"]
 
 
