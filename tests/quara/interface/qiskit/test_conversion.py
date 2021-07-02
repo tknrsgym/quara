@@ -29,6 +29,7 @@ from quara.interface.qiskit.qiskit_povm_typical import (
     get_qiskit_povm_names_1qubit,
     get_qiskit_povm_names_2qubit,
     get_qiskit_povm_names_3qubit,
+    generate_qiskit_povm_from_povm_name,
 )
 
 from quara.objects.state import State
@@ -125,7 +126,7 @@ def _test_convert_povm_qiskit_to_quara(mode, num, povm_name):
     c_sys = generate_composite_system(mode, num)
     expected = generate_povm_from_name(povm_name, c_sys)
 
-    source = pauli_measurement_matrix(povm_name, 0)
+    source = generate_qiskit_povm_from_povm_name(povm_name)
     actual = convert_povm_qiskit_to_quara(source, c_sys)
     npt.assert_almost_equal(actual.matrices, expected.matrices, dicimal=10)
 
@@ -139,6 +140,23 @@ def _test_convert_povm_qiskit_to_quara(mode, num, povm_name):
 def test_convert_povm_qiskit_to_quara(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 1, povm_name)
 
+@pytest.mark.qiskit
+@pytest.marak.twoqubit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qiskit_povm_names_2qubit ]
+)
+def test_convert_povm_qiskit_to_quara(povm_name):
+    _test_convert_povm_qiskit_to_quara("qubit", 2, povm_name)
+
+@pytest.mark.qiskit
+@pytest.marak.threequbit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qiskit_povm_names_3qubit ]
+)
+def test_convert_povm_qiskit_to_quara(povm_name):
+    _test_convert_povm_qiskit_to_quara("qubit", 3, povm_name)
 
 def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
     # Arrange
