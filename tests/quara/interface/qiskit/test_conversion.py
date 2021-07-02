@@ -65,7 +65,7 @@ def test_convert_state_qiskit_to_quara_1qubit(state_name):
     _test_convert_state_qiskit_to_quara("qubit", 1, state_name)
 
 @pytest.mark.qiskit
-@pytest.marak.twoqubit
+@pytest.mark.twoqubit
 @pytest.mark.parametrize(
     ("state_name"),
     [(state_name) for state_name in get_qiskit_state_names_2qubit ]
@@ -74,7 +74,7 @@ def test_convert_state_qiskit_to_quara_2qubit(state_name):
     _test_convert_state_qiskit_to_quara("qubit", 2, state_name)
 
 @pytest.mark.qiskit
-@pytest.marak.threequbit
+@pytest.mark.threequbit
 @pytest.mark.parametrize(
     ("state_name"),
     [(state_name) for state_name in get_qiskit_state_names_3qubit ]
@@ -103,7 +103,7 @@ def test_convert_state_quara_to_qiskit_1qubit(state_name):
     _test_convert_state_quara_to_qiskit("qubit", 1, state_name)
 
 @pytest.mark.qiskit
-@pytest.marak.twoqubit
+@pytest.mark.twoqubit
 @pytest.mark.parametrize(
     ("state_name"),
     [(state_name) for state_name in get_qiskit_state_names_2qubit ]
@@ -112,7 +112,7 @@ def test_convert_state_quara_to_qiskit_2qubit(state_name):
     _test_convert_state_quara_to_qiskit("qubit", 2, state_name)
 
 @pytest.mark.qiskit
-@pytest.marak.threequbit
+@pytest.mark.threequbit
 @pytest.mark.parametrize(
     ("state_name"),
     [(state_name) for state_name in get_qiskit_state_names_3qubit ]
@@ -141,7 +141,7 @@ def test_convert_povm_qiskit_to_quara(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 1, povm_name)
 
 @pytest.mark.qiskit
-@pytest.marak.twoqubit
+@pytest.mark.twoqubit
 @pytest.mark.parametrize(
     ("povm_name"),
     [(povm_name) for povm_name in get_qiskit_povm_names_2qubit ]
@@ -150,7 +150,7 @@ def test_convert_povm_qiskit_to_quara(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 2, povm_name)
 
 @pytest.mark.qiskit
-@pytest.marak.threequbit
+@pytest.mark.threequbit
 @pytest.mark.parametrize(
     ("povm_name"),
     [(povm_name) for povm_name in get_qiskit_povm_names_3qubit ]
@@ -158,10 +158,11 @@ def test_convert_povm_qiskit_to_quara(povm_name):
 def test_convert_povm_qiskit_to_quara(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 3, povm_name)
 
+
 def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
     # Arrange
     c_sys = generate_composite_system(mode, num)
-    expected = pauli_measurement_matrix("Z", 0)
+    expected = generate_qiskit_povm_from_povm_name(povm_name)
 
     source = generate_povm_from_name(povm_name, c_sys)
     actual = convert_povm_quara_to_qiskit(source)
@@ -176,6 +177,25 @@ def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
 )
 def test_convert_povm_quara_to_qiskit(povm_name):
     _test_convert_povm_quara_to_qiskit("qubit", 1, povm_name)
+
+@pytest.mark.qiskit
+@pytest.mark.twoqubit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qiskit_povm_names_2qubit ]
+)
+def test_convert_povm_quara_to_qiskit(povm_name):
+    _test_convert_povm_quara_to_qiskit("qubit", 2, povm_name)
+
+@pytest.mark.qiskit
+@pytest.mark.threequbit
+@pytest.mark.parametrize(
+    ("povm_name"),
+    [(povm_name) for povm_name in get_qiskit_povm_names_3qubit ]
+)
+def test_convert_povm_quara_to_qiskit(povm_name):
+    _test_convert_povm_quara_to_qiskit("qubit", 3, povm_name)
+
 
 def _test_convert_empi_dists_qiskit_to_quara(mode, num, dist_name):
     c_sys = ge
