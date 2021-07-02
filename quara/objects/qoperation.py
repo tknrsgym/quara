@@ -425,6 +425,22 @@ class QOperation:
 
         return _func_proj
 
+    def func_calc_proj_eq_constraint_with_var(
+        self, on_para_eq_constraint: bool = None
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
+        qobj_empty = self.generate_zero_obj()
+
+        def _func_proj(var: np.ndarray) -> np.ndarray:
+            new_var = self.calc_proj_eq_constraint_with_var(
+                self.composite_system, var, on_para_eq_constraint=on_para_eq_constraint
+            )
+            return new_var
+
+        return _func_proj
+
     @abstractmethod
     def calc_proj_ineq_constraint(self) -> "QOperation":
         """calculates the projection of QOperation on inequal constraint.
@@ -450,6 +466,22 @@ class QOperation:
             )
             qobj_result = qobj_tmp.calc_proj_ineq_constraint()
             return qobj_result.to_var()
+
+        return _func_proj
+
+    def func_calc_proj_ineq_constraint_with_var(
+        self, on_para_eq_constraint: bool = None
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
+        qobj_empty = self.generate_zero_obj()
+
+        def _func_proj(var: np.ndarray) -> np.ndarray:
+            new_var = self.calc_proj_ineq_constraint_with_var(
+                self.composite_system, var, on_para_eq_constraint=on_para_eq_constraint
+            )
+            return new_var
 
         return _func_proj
 
@@ -552,7 +584,7 @@ class QOperation:
         Parameters
         ----------
         is_iteration_history : bool, optional
-            whether this funstion returns iteration history, by default False.
+            whether this function returns iteration history, by default False.
 
         Returns
         -------
@@ -772,6 +804,163 @@ class QOperation:
             )
             qobj_result = qobj_tmp.calc_proj_physical()
             return qobj_result.to_var()
+
+        return _func_proj
+
+    def calc_proj_physical_with_var(
+        self,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+        is_iteration_history: bool = False,
+    ) -> Union[np.ndarray, Tuple[np.ndarray, Dict]]:
+        """calculates the projection of variables with physically correctness.
+
+        Parameters
+        ----------
+        var : np.ndarray
+            variables.
+        on_para_eq_constraint : bool, optional
+            whether this variables is on parameter equality constraint, by default True.
+        is_iteration_history : bool, optional
+            whether this function returns iteration history, by default False.
+
+        Returns
+        -------
+        Union[np.ndarray, Tuple[np.ndarray, Dict]]
+            if ``is_iteration_history`` is True, returns the projection of variables with physically correctness and iteration history.
+            otherwise, returns only the projection of variables with physically correctness.
+
+            iteration history forms the following dict:
+
+            .. line-block::
+                {
+                    "p": list of opject ``p``,
+                    "q": list of opject ``q``,
+                    "x": list of opject ``x``,
+                    "y": list of opject ``y``,
+                    "error_value": list of opject ``error_value``,
+                }
+
+            When step=0, "y" and "error_value" are not calculated, so None is set.
+        """
+        p_prev = self.generate_zero_obj().to_stacked_vector()
+        q_prev = self.generate_zero_obj().to_stacked_vector()
+        x_prev = self.convert_var_to_vec(
+            self.composite_system, var, on_para_eq_constraint
+        )
+        y_prev = None
+
+        p_next = x_next = q_next = y_next = None
+
+        # variables for debug
+        if is_iteration_history:
+            ps = [p_prev]
+            qs = [q_prev]
+            xs = [x_prev]
+            ys = [y_prev]
+            error_values = []
+
+        k = 0
+        is_stopping = False
+        while not is_stopping:
+            # shift variables
+            if (
+                p_next is not None
+                and q_next is not None
+                and x_next is not None
+                and y_next is not None
+            ):
+                p_prev = p_next
+                q_prev = q_next
+                x_prev = x_next
+                y_prev = y_next
+
+            if self.mode_proj_order == "eq_ineq":
+                y_next = self.calc_proj_eq_constraint_with_var(
+                    self.composite_system, x_prev + p_prev, on_para_eq_constraint=False
+                )
+                p_next = x_prev + p_prev - y_next
+                x_next = self.calc_proj_ineq_constraint_with_var(
+                    self.composite_system, y_next + q_prev, on_para_eq_constraint=False
+                )
+                q_next = y_next + q_prev - x_next
+            else:
+                y_next = self.calc_proj_ineq_constraint_with_var(
+                    self.composite_system, x_prev + p_prev, on_para_eq_constraint=False
+                )
+                p_next = x_prev + p_prev - y_next
+                x_next = self.calc_proj_eq_constraint_with_var(
+                    self.composite_system, y_next + q_prev, on_para_eq_constraint=False
+                )
+                q_next = y_next + q_prev - x_next
+
+            # logging
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"calc_proj_physical iteration={k}")
+                logger.debug(f"p_prev={p_prev}, p_next={p_next}")
+                logger.debug(f"q_prev={q_prev}, q_next={q_next}")
+                logger.debug(f"x_prev={x_prev}, x_next={x_next}")
+                logger.debug(f"y_prev={y_prev}, y_next={y_next}")
+
+            # check satisfied stopping criterion
+            if k >= 1:
+                (
+                    is_stopping,
+                    error_value,
+                ) = self._is_satisfied_stopping_criterion_birgin_raydan_vectors(
+                    p_prev,
+                    p_next,
+                    q_prev,
+                    q_next,
+                    x_prev,
+                    x_next,
+                    y_prev,
+                    y_next,
+                    self.eps_proj_physical,
+                )
+            else:
+                error_value = None
+
+            if is_iteration_history:
+                ps.append(p_next)
+                qs.append(q_next)
+                xs.append(x_next)
+                ys.append(y_next)
+                error_values.append(error_value)
+
+            # increase step
+            k += 1
+
+        x_next = self.convert_vec_to_var(
+            self.composite_system,
+            x_next,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
+        if is_iteration_history:
+            history = {
+                "p": ps,
+                "q": qs,
+                "x": xs,
+                "y": ys,
+                "error_value": error_values,
+            }
+            return x_next, history
+        else:
+            return x_next
+
+    def func_calc_proj_physical_with_var(
+        self,
+        on_para_eq_constraint: bool = None,
+        mode_proj_order: str = "eq_ineq",
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
+        def _func_proj(var: np.ndarray) -> np.ndarray:
+            new_var = self.calc_proj_physical_with_var(
+                var, on_para_eq_constraint=on_para_eq_constraint
+            )
+            return new_var
 
         return _func_proj
 

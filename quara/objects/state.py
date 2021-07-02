@@ -176,7 +176,7 @@ class State(QOperation):
         np.ndarray
             variable representation of State.
         """
-        return convert_state_to_var(
+        return convert_vec_to_var(
             c_sys=self.composite_system,
             vec=self.vec,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -241,6 +241,36 @@ class State(QOperation):
         )
         return state
 
+    @staticmethod
+    def calc_proj_eq_constraint_with_var(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """calculates the projection of State on equal constraint.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this variables.
+        var : np.ndarray
+            variables.
+        on_para_eq_constraint : bool, optional
+            whether this variables is on parameter equality constraint, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            the projection of State on equal constraint.
+        """
+        if on_para_eq_constraint:
+            new_var = var
+        else:
+            new_var = copy.deepcopy(var)
+            new_var[0] = 1 / np.sqrt(c_sys.dim)
+
+        return new_var
+
     def calc_proj_ineq_constraint(self) -> "State":
         """calculates the projection of State on inequal constraint.
 
@@ -258,9 +288,9 @@ class State(QOperation):
         diag[diag < 0] = 0
 
         # calc new vec
-        density_matrix_new = eigenvecs @ diag @ eigenvecs.T.conjugate()
+        new_density_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
         vec_new = to_vec_from_density_matrix_with_sparsity(
-            density_matrix_new, self.composite_system
+            self.composite_system, new_density_matrix
         )
 
         # create new State
@@ -276,6 +306,49 @@ class State(QOperation):
             eps_proj_physical=self.eps_proj_physical,
         )
         return state
+
+    @staticmethod
+    def calc_proj_ineq_constraint_with_var(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """calculates the projection of State on inequal constraint.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this variables.
+        var : np.ndarray
+            variables.
+        on_para_eq_constraint : bool, optional
+            whether this variables is on parameter equality constraint, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            the projection of State on inequal constraint.
+        """
+        # var to vec
+        vec = convert_var_to_vec(c_sys, var, on_para_eq_constraint)
+
+        # calc engenvalues and engenvectors
+        density_matrix_orig = to_density_matrix_from_var(
+            c_sys, vec, on_para_eq_constraint=False
+        )
+        eigenvals, eigenvecs = np.linalg.eigh(density_matrix_orig)
+
+        # project
+        diag = np.diag(eigenvals)
+        diag[diag < 0] = 0
+
+        # calc new vec
+        new_density_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
+        new_vec = to_vec_from_density_matrix_with_sparsity(c_sys, new_density_matrix)
+
+        # vec to var
+        new_var = convert_vec_to_var(c_sys, new_vec, on_para_eq_constraint)
+        return new_var
 
     def to_density_matrix(self) -> np.ndarray:
         """returns density matrix.
@@ -300,10 +373,7 @@ class State(QOperation):
         int
             density matrix.
         """
-        c_sys = self.composite_system
-        density_vec = c_sys._basis_T_sparse.dot(self.vec)
-        density = density_vec.reshape((self.dim, self.dim))
-        return density
+        return to_density_matrix_from_vec(self.composite_system, self.vec)
 
     def is_trace_one(self, atol: float = None) -> bool:
         """returns whether trace of density matrix is one.
@@ -394,9 +464,76 @@ class State(QOperation):
     def _generate_from_var_func(self):
         return convert_var_to_state
 
+    @staticmethod
+    def convert_var_to_vec(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """converts variables of state to vec of state.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this state.
+        var : np.ndarray
+            variables of state.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            vec of state.
+        """
+        return convert_var_to_vec(c_sys, var, on_para_eq_constraint)
+
+    @staticmethod
+    def convert_vec_to_var(
+        c_sys: CompositeSystem, vec: np.ndarray, on_para_eq_constraint: bool = True
+    ) -> np.ndarray:
+        """converts vec of state to variables of state.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this state.
+        vec : np.ndarray
+            vec of state.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            variables of state.
+        """
+        return convert_vec_to_var(c_sys, vec, on_para_eq_constraint)
+
+
+def to_density_matrix_from_vec(c_sys: CompositeSystem, vec: np.ndarray) -> np.ndarray:
+    """converts vec to density matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this state.
+    vec : np.ndarray
+        vec of state of this state.
+
+    Returns
+    -------
+    np.ndarray
+        density matrix of this state.
+    """
+    density_vec = c_sys._basis_T_sparse.dot(vec)
+    density = density_vec.reshape((c_sys.dim, c_sys.dim))
+    return density
+
 
 def to_vec_from_density_matrix_with_sparsity(
-    density_matrix: np.ndarray, c_sys: CompositeSystem
+    c_sys: CompositeSystem,
+    density_matrix: np.ndarray,
 ) -> np.ndarray:
     """converts density matrix to vec.
 
@@ -404,10 +541,10 @@ def to_vec_from_density_matrix_with_sparsity(
 
     Parameters
     ----------
-    density_matrix : np.ndarray
-        density matrix of this state.
     c_sys : CompositeSystem
         CompositeSystem of this state.
+    density_matrix : np.ndarray
+        density matrix of this state.
 
     Returns
     -------
@@ -416,6 +553,68 @@ def to_vec_from_density_matrix_with_sparsity(
     """
     vec = c_sys._basisconjugate_sparse.dot(density_matrix.flatten())
     return mutil.truncate_hs(vec)
+
+
+def to_density_matrix_from_var(
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    on_para_eq_constraint: bool = True,
+) -> np.ndarray:
+    """converts var to density matrix.
+
+    this function uses the scipy.sparse module.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this QOperation.
+    var : np.ndarray
+        variables.
+    on_para_eq_constraint : bool, optional
+        whether this QOperation is on parameter equality constraint, by default True
+
+    Returns
+    -------
+    np.ndarray
+        density matrix of this state.
+    """
+    # var to vec
+    vec = convert_var_to_vec(c_sys, var, on_para_eq_constraint)
+
+    # vec to density matrix
+    density = to_density_matrix_from_vec(c_sys, vec)
+    return density
+
+
+def to_var_from_density_matrix(
+    c_sys: CompositeSystem,
+    density_matrix: np.ndarray,
+    on_para_eq_constraint: bool = True,
+) -> np.ndarray:
+    """converts density matrix to vec.
+
+    this function uses the scipy.sparse module.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this QOperation.
+    density_matrix : np.ndarray
+        density matrix of this state.
+    on_para_eq_constraint : bool, optional
+        whether this QOperation is on parameter equality constraint, by default True
+
+    Returns
+    -------
+    np.ndarray
+        variables.
+    """
+    # density matrix to vec
+    vec = to_vec_from_density_matrix_with_sparsity(c_sys, density_matrix)
+
+    # vec to var
+    var = convert_vec_to_var(c_sys, vec, on_para_eq_constraint)
+    return var
 
 
 def convert_var_index_to_state_index(
@@ -460,6 +659,31 @@ def convert_state_index_to_var_index(
     return var_index
 
 
+def convert_var_to_vec(
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    on_para_eq_constraint: bool = True,
+) -> np.ndarray:
+    """converts variables of state to vec of state.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this state.
+    var : np.ndarray
+        variables of state.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    np.ndarray
+        vec of state.
+    """
+    vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if on_para_eq_constraint else var
+    return vec
+
+
 def convert_var_to_state(
     c_sys: CompositeSystem,
     var: np.ndarray,
@@ -502,10 +726,10 @@ def convert_var_to_state(
     return state
 
 
-def convert_state_to_var(
+def convert_vec_to_var(
     c_sys: CompositeSystem, vec: np.ndarray, on_para_eq_constraint: bool = True
 ) -> np.ndarray:
-    """converts vec of state to vec of variables.
+    """converts vec of state to variables of state.
 
     Parameters
     ----------
@@ -519,7 +743,7 @@ def convert_state_to_var(
     Returns
     -------
     np.ndarray
-        vec of variables.
+        variables of state.
     """
     var = np.delete(vec, 0) if on_para_eq_constraint else vec
     return var
