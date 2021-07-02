@@ -2,7 +2,6 @@ from typing import List
 import numpy as np
 from qiskit.ignis.verification.tomography.basis.paulibasis import (
     pauli_preparation_matrix,
-    pauli_measurement_matrix,
 )
 
 
@@ -27,7 +26,7 @@ def generate_qiskit_state_from_name(state_name: str) -> np.ndarray:
         mat = np.kron(Zp.T, Zp)
     elif state_name == "z0_z0_z0":
         mat1 = np.kron(Zp.T, Zp)
-        mat = np.kron(Zp.T, Zp)
+        mat = np.kron(Zp.T, mat1)
     else:
         raise ValueError("state_name is out of range")
 
