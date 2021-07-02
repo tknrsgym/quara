@@ -23,6 +23,7 @@ from quara.interface.qiskit.qiskit_state_typical import (
     get_qiskit_state_names_1qubit,
     get_qiskit_state_names_2qubit,
     get_qiskit_state_names_3qubit,
+    generate_qiskit_state_from_name,
 )
 from quara.interface.qiskit.qiskit_povm_typical import (
     get_qiskit_povm_names_1qubit,
@@ -36,8 +37,7 @@ from quara.objects.gate import Gate
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.state_typical import (
-    generate_state_from_name,
-    generate_qiskit_state_from_name
+    generate_state_from_name
 )
 
 
