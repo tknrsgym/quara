@@ -329,14 +329,9 @@ class State(QOperation):
         np.ndarray
             the projection of State on inequal constraint.
         """
-        # var to vec
-        vec = convert_var_to_vec(c_sys, var, on_para_eq_constraint)
-
         # calc engenvalues and engenvectors
-        density_matrix_orig = to_density_matrix_from_var(
-            c_sys, vec, on_para_eq_constraint=False
-        )
-        eigenvals, eigenvecs = np.linalg.eigh(density_matrix_orig)
+        density_matrix = to_density_matrix_from_var(c_sys, var, on_para_eq_constraint)
+        eigenvals, eigenvecs = np.linalg.eigh(density_matrix)
 
         # project
         diag = np.diag(eigenvals)
@@ -567,11 +562,11 @@ def to_density_matrix_from_var(
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this QOperation.
+        CompositeSystem of this state.
     var : np.ndarray
         variables.
     on_para_eq_constraint : bool, optional
-        whether this QOperation is on parameter equality constraint, by default True
+        whether this state is on parameter equality constraint, by default True
 
     Returns
     -------
@@ -591,18 +586,16 @@ def to_var_from_density_matrix(
     density_matrix: np.ndarray,
     on_para_eq_constraint: bool = True,
 ) -> np.ndarray:
-    """converts density matrix to vec.
-
-    this function uses the scipy.sparse module.
+    """converts density matrix to variables.
 
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this QOperation.
+        CompositeSystem of this state.
     density_matrix : np.ndarray
         density matrix of this state.
     on_para_eq_constraint : bool, optional
-        whether this QOperation is on parameter equality constraint, by default True
+        whether this state is on parameter equality constraint, by default True
 
     Returns
     -------
@@ -711,7 +704,7 @@ def convert_var_to_state(
     State
         converted state.
     """
-    vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if on_para_eq_constraint else var
+    vec = convert_var_to_vec(c_sys, var, on_para_eq_constraint)
     state = State(
         c_sys,
         vec,
