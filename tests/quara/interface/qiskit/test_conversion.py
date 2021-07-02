@@ -85,9 +85,9 @@ def test_convert_state_qiskit_to_quara_3qubit(state_name):
 def _test_convert_state_quara_to_qiskit(mode, num, state_name):
     # Arrange
     c_sys = generate_composite_system(mode, num)
-    expected = pauli_preparation_matrix(state_name)
+    expected = generate_qiskit_state_from_name(state_name)
 
-    source = generate_state_from_name(state_name)
+    source = generate_state_from_name(c_sys, state_name)
     actual = convert_state_quara_to_qiskit(source)
     npt.assert_almost_equal(actual, expected, dicimal=10)
 
@@ -100,6 +100,24 @@ def _test_convert_state_quara_to_qiskit(mode, num, state_name):
 )
 def test_convert_state_quara_to_qiskit_1qubit(state_name):
     _test_convert_state_quara_to_qiskit("qubit", 1, state_name)
+
+@pytest.mark.qiskit
+@pytest.marak.twoqubit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qiskit_state_names_2qubit ]
+)
+def test_convert_state_quara_to_qiskit_2qubit(state_name):
+    _test_convert_state_quara_to_qiskit("qubit", 2, state_name)
+
+@pytest.mark.qiskit
+@pytest.marak.threequbit
+@pytest.mark.parametrize(
+    ("state_name"),
+    [(state_name) for state_name in get_qiskit_state_names_3qubit ]
+)
+def test_convert_state_quara_to_qiksit_3qubit(state_name):
+    _test_convert_state_quara_to_qiskit("qubit", 3, state_name)
 
 
 def _test_convert_povm_qiskit_to_quara(mode, num, povm_name):
