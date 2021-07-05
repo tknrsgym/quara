@@ -25,15 +25,15 @@ def generate_qiskit_gate_from_gate_name(
 ) -> np.ndarray:
     if gate_name == "x":
         gate = x.XGate()
-        mat = gate.__array__
+        mat = gate.__array__()
 
     elif gate_name == "y":
         gate = y.YGate()
-        mat = gate.__array__
+        mat = gate.__array__()
 
     elif gate_name == "z":
         gate = z.ZGate()
-        mat = gate.__array__
+        mat = gate.__array__()
 
     elif gate_name == "zx90":
         gate = rzx.RZXGate(np.pi/2)
