@@ -1,7 +1,6 @@
 from _pytest.python import showfixtures
 from numpy.lib import source
 from quara.objects.gate_typical import generate_gate_from_gate_name
-from quara.objects import povm
 from quara.objects.povm_typical import generate_povm_from_name
 import numpy as np
 import numpy.testing as npt
@@ -41,14 +40,12 @@ from quara.interface.qiskit.qiskit_gate_typical import (
 from quara.interface.qiskit.qiskit_empi_dists_typical import (
     get_empi_dists_label,
     get_empi_dists_qiskit,
-    get_empi_dists_quara,
-    get_empi_dists_shots,
+    get_empi_dists_quara_int,
+    get_empi_dists_quara_list,
+    get_empi_dists_shots_int,
+    get_empi_dists_shots_list,
 )
 
-from quara.objects.state import State
-from quara.objects.povm import Povm
-from quara.objects.gate import Gate
-from quara.objects.composite_system import CompositeSystem
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.state_typical import generate_state_from_name
 
@@ -294,13 +291,27 @@ def _test_convert_empi_dists_qiskit_to_quara(
 
 
 @pytest.mark.qiskit
+@pytest.mark.shots_list
 @pytest.mark.parametrize(
     "empi_dists_quara, empi_dists_qiskit, shots, label",
     [
         (
-            get_empi_dists_quara,
+            get_empi_dists_quara_list,
             get_empi_dists_qiskit,
-            get_empi_dists_shots,
+            get_empi_dists_shots_list,
+            get_empi_dists_label,
+        )
+    ],
+)
+@pytest.mark.qiskit
+@pytest.mark.shots_int
+@pytest.mark.parametrize(
+    "empi_dists_quara, empi_dists_qiskit, shots, label",
+    [
+        (
+            get_empi_dists_quara_int,
+            get_empi_dists_qiskit,
+            get_empi_dists_shots_int,
             get_empi_dists_label,
         )
     ],
@@ -321,9 +332,16 @@ def _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit
 
 
 @pytest.mark.qiskit
+@pytest.mark.shots_list
 @pytest.mark.parametrize(
     "empi_dists_quara, empi_dists_qiskit",
-    [(get_empi_dists_quara, get_empi_dists_qiskit)],
+    [(get_empi_dists_quara_list, get_empi_dists_qiskit)],
+)
+@pytest.mark.qiskit
+@pytest.mark.shots_int
+@pytest.mark.parametrize(
+    "empi_dists_quara, empi_dists_qiskit",
+    [(get_empi_dists_quara_int, get_empi_dists_qiskit)],
 )
 def test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit):
     _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit)
@@ -337,8 +355,14 @@ def _test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots):
 
 
 @pytest.mark.qiskit
+@pytest.mark.shots_list
 @pytest.mark.parametrize(
-    "empi_dists_quara,shots", [(get_empi_dists_quara, get_empi_dists_shots)]
+    "empi_dists_quara,shots", [(get_empi_dists_quara_list, get_empi_dists_shots_list)]
+)
+@pytest.mark.qiskit
+@pytest.mark.shots_int
+@pytest.mark.parametrize(
+    "empi_dists_quara,shots", [(get_empi_dists_quara_int, get_empi_dists_shots_int)]
 )
 def test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots):
     _test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots)
