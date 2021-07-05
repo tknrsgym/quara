@@ -1,6 +1,7 @@
+from quara.objects import state
 from _pytest.monkeypatch import V
 import numpy as np
-from numpy import ndarray
+from numpy import ndarray, result_type
 from typing import List, Tuple, Union
 
 from quara.interface.qiskit.conversion import (
@@ -30,6 +31,7 @@ from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredErrorOption,
 )
 
+
 def least_squares_estimator_wrapper(
     qtomography: StandardQTomography,
     empi_dists: List[Tuple[int, ndarray]],
@@ -53,32 +55,74 @@ def least_squares_estimator_wrapper(
 
 
 def estimate_standard_qst_from_qiskit(
+    mode_system: str,
     num_system: int,
     tester_povms: List[List[np.ndarray]],
     empi_dists: np.ndarray,
-    shots: Union[List[int],int],
-    label:List[int],
+    shots: Union[List[int], int],
+    label: List[int],
     estimator_name: str,
     schedules: Union[List[List[Tuple]], str],
 ) -> np.ndarray:
 
-    c_sys = generate_composite_system("qubit", num_system)
+    c_sys = generate_composite_system(mode_system, num_system)
     tester_povms_quara = []
     for qiskit_povm in tester_povms:
         tester_povms_quara.append(convert_povm_qiskit_to_quara(qiskit_povm, c_sys))
-    
-    empi_dists_quara = convert_empi_dists_qiskit_to_quara(empi_dists,shots,label)
+
+    empi_dists_quara = convert_empi_dists_qiskit_to_quara(empi_dists, shots, label)
     qst = StandardQst(tester_povms_quara, schedules=schedules)
     if estimator_name == "linear":
         estimator = LinearEstimator()
-        result = estimator.calc_estimate(
-            qtomography=qst, empi_dists = empi_dists_quara
-        )
+        result = estimator.calc_estimate(qtomography=qst, empi_dists=empi_dists_quara)
         estimated_state = result.estimated_qoperation
     elif estimator_name == "least_squares":
-        estimated_state = least_squares_estimator_wrapper(qst, empi_dists_quara, "identity")
+        estimated_state = least_squares_estimator_wrapper(
+            qst, empi_dists_quara, "identity"
+        )
     else:
         raise ValueError("estimator_name is invalid")
     return convert_state_quara_to_qiskit(estimated_state)
 
-def estimate_standard_qpt_from_qiskit()
+
+def estimate_standard_qpt_from_qiskit(
+    mode_system: str,
+    num_system: int,
+    tester_states: List[List[np.ndarray]],
+    tester_povms: List[List[np.ndarray]],
+    empi_dists: np.ndarray,
+    shots: Union[List[int], int],
+    label: List[int],
+    estimator_name: str,
+    schedules: Union[List[List[Tuple]], str],
+) -> np.ndarray:
+
+    c_sys = generate_composite_system(mode_system, num_system)
+    tester_states_quara = []
+    for qiskit_state in tester_states:
+        tester_states_quara.append(convert_state_qiskit_to_quara(qiskit_state, c_sys))
+    tester_povms_quara = []
+    for qiskit_povms in tester_povms:
+        tester_povms_quara.append(convert_povm_qiskit_to_quara(qiskit_povms, c_sys))
+    empi_dists_quara = convert_empi_dists_qiskit_to_quara(empi_dists, shots, label)
+    qpt = StandardQpt(
+        states=tester_states_quara,
+        povms=tester_povms_quara,
+        on_para_eq_constraint=True,
+        schedules=schedules,
+    )
+    if estimator_name == "linear":
+        estimator = LinearEstimator()
+        result = estimator.calc_estimate(
+            qtomography=qpt,
+            empi_dists=empi_dists_quara,
+            is_computation_time_required=True,
+        )
+        estimate_gate = result.estimated_qoperation
+    elif estimator_name == "least_squares":
+        estimate_gate = least_squares_estimator_wrapper(
+            qpt, empi_dists_quara, "identity"
+        )
+    else:
+        raise ValueError("estimator is invalid")
+    return convert_povm_quara_to_qiskit(estimate_gate)
