@@ -309,3 +309,19 @@ def test_convert_empi_dists_qiskit_to_quara(
     _test_convert_empi_dists_qiskit_to_quara(
         empi_dists_quara, empi_dists_qiskit, shots, label
     )
+
+
+def _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit):
+    expected = empi_dists_qiskit
+    source = empi_dists_quara
+    actual = convert_empi_dists_quara_to_qiskit(source)
+    npt.assert_equal(expected, actual)
+
+
+@pytest.mark.qiskit
+@pytest.mark.parametrize(
+    "empi_dists_quara, empi_dists_qiskit",
+    [(get_empi_dists_quara, get_empi_dists_qiskit)],
+)
+def test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit):
+    _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit)
