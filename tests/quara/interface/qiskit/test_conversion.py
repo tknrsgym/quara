@@ -6,11 +6,6 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from qiskit.ignis.verification.tomography.basis.paulibasis import (
-    pauli_preparation_matrix,
-    pauli_measurement_matrix,
-)
-
 from quara.interface.qiskit.conversion import (
     convert_state_qiskit_to_quara,
     convert_state_quara_to_qiskit,
@@ -39,6 +34,13 @@ from quara.interface.qiskit.qiskit_gate_typical import (
     get_qiskit_gate_names_2qubit,
     get_qiskit_gate_names_3qubit,
     generate_qiskit_gate_from_gate_name,
+)
+
+from quara.interface.qiskit.qiskit_empi_dists_typical import (
+    get_empi_dists_label,
+    get_empi_dists_qiskit,
+    get_empi_dists_quara,
+    get_empi_dists_shots,
 )
 
 from quara.objects.state import State
@@ -210,7 +212,9 @@ def _test_convert_gate_qiskit_to_quara(mode, num, gate_name):
 
     source = generate_qiskit_gate_from_gate_name(gate_name)
     actual = convert_gate_qiskit_to_quara(source, c_sys)
-    npt.assert_almost_equal(actual, expected, dicimal=10)
+    npt.assert_almost_equal(
+        actual.to_kraus_matrices, expected.to_kraus_matrices, dicimal=10
+    )
 
 
 @pytest.mark.qiskit
@@ -276,3 +280,32 @@ def test_convert_gate_quara_to_qiskit(gate_name):
 )
 def test_convert_gate_quara_to_qiskit(gate_name):
     _test_convert_gate_quara_to_qiskit("qubit", 3, gate_name)
+
+
+def _test_convert_empi_dists_qiskit_to_quara(
+    empi_dists_quara, empi_dists_qiskit, shots, label
+):
+    expected = empi_dists_quara
+    source = empi_dists_qiskit
+    actual = convert_empi_dists_qiskit_to_quara(source, shots, label)
+    npt.assert_equal(expected, actual)
+
+
+@pytest.mark.qiskit
+@pytest.mark.parametrize(
+    "empi_dists_quara, empi_dists_qiskit, shots, label",
+    [
+        (
+            get_empi_dists_quara,
+            get_empi_dists_qiskit,
+            get_empi_dists_shots,
+            get_empi_dists_label,
+        )
+    ],
+)
+def test_convert_empi_dists_qiskit_to_quara(
+    empi_dists_quara, empi_dists_qiskit, shots, label
+):
+    _test_convert_empi_dists_qiskit_to_quara(
+        empi_dists_quara, empi_dists_qiskit, shots, label
+    )
