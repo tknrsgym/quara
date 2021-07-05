@@ -1,3 +1,4 @@
+from _pytest.python import showfixtures
 from numpy.lib import source
 from quara.objects.gate_typical import generate_gate_from_gate_name
 from quara.objects import povm
@@ -7,6 +8,7 @@ import numpy.testing as npt
 import pytest
 
 from quara.interface.qiskit.conversion import (
+    convert_empi_dists_quara_to_qiskit_shots,
     convert_state_qiskit_to_quara,
     convert_state_quara_to_qiskit,
     convert_povm_qiskit_to_quara,
@@ -325,3 +327,18 @@ def _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit
 )
 def test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit):
     _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit)
+
+
+def _test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots):
+    expected = shots
+    source = empi_dists_quara
+    actual = convert_empi_dists_quara_to_qiskit_shots(source)
+    npt.assert_equal(expected, actual)
+
+
+@pytest.mark.qiskit
+@pytest.mark.parametrize(
+    "empi_dists_quara,shots", [(get_empi_dists_quara, get_empi_dists_shots)]
+)
+def test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots):
+    _test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots)
