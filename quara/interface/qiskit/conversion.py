@@ -116,7 +116,7 @@ def convert_povm_quara_to_qiskit(
 
 def convert_empi_dists_qiskit_to_quara(
     qiskit_dists: np.ndarray,
-    shots: Union[List, int],
+    shots: Union[List[int], int],
     label: List[int],
 ) -> List[Tuple[int, np.ndarray]]:
 
@@ -127,7 +127,7 @@ def convert_empi_dists_qiskit_to_quara(
     qiskit_dists: np.ndarray
         this represents empirical distribution.
 
-    shots: Union[List, int]
+    shots: Union[List[int], int]
         shots represents the number of times.
 
     label: List[int]
