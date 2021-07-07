@@ -15,7 +15,7 @@ from quara.objects.gate import (
     convert_hs,
     convert_var_index_to_gate_index,
     convert_gate_index_to_var_index,
-    convert_gate_to_var,
+    convert_hs_to_var,
 )
 from quara.objects.matrix_basis import (
     MatrixBasis,
@@ -586,7 +586,7 @@ def convert_effective_lindbladian_to_var(
     np.ndarray
         vec of variables.
     """
-    return convert_gate_to_var(c_sys, hs, on_para_eq_constraint=on_para_eq_constraint)
+    return convert_hs_to_var(c_sys, hs, on_para_eq_constraint=on_para_eq_constraint)
 
 
 def calc_gradient_from_effective_lindbladian(

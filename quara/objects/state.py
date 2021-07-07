@@ -329,14 +329,9 @@ class State(QOperation):
         np.ndarray
             the projection of State on inequal constraint.
         """
-        # var to vec
-        vec = convert_var_to_vec(c_sys, var, on_para_eq_constraint)
-
         # calc engenvalues and engenvectors
-        density_matrix_orig = to_density_matrix_from_var(
-            c_sys, vec, on_para_eq_constraint=False
-        )
-        eigenvals, eigenvecs = np.linalg.eigh(density_matrix_orig)
+        density_matrix = to_density_matrix_from_var(c_sys, var, on_para_eq_constraint)
+        eigenvals, eigenvecs = np.linalg.eigh(density_matrix)
 
         # project
         diag = np.diag(eigenvals)
@@ -465,12 +460,12 @@ class State(QOperation):
         return convert_var_to_state
 
     @staticmethod
-    def convert_var_to_vec(
+    def convert_var_to_stacked_vector(
         c_sys: CompositeSystem,
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
     ) -> np.ndarray:
-        """converts variables of state to vec of state.
+        """converts variables of state to stacked vector of state.
 
         Parameters
         ----------
@@ -484,22 +479,24 @@ class State(QOperation):
         Returns
         -------
         np.ndarray
-            vec of state.
+            stacked vector of state.
         """
         return convert_var_to_vec(c_sys, var, on_para_eq_constraint)
 
     @staticmethod
-    def convert_vec_to_var(
-        c_sys: CompositeSystem, vec: np.ndarray, on_para_eq_constraint: bool = True
+    def convert_stacked_vector_to_var(
+        c_sys: CompositeSystem,
+        stacked_vector: np.ndarray,
+        on_para_eq_constraint: bool = True,
     ) -> np.ndarray:
-        """converts vec of state to variables of state.
+        """converts stacked vector of state to variables of state.
 
         Parameters
         ----------
         c_sys : CompositeSystem
             CompositeSystem of this state.
-        vec : np.ndarray
-            vec of state.
+        stacked_vector : np.ndarray
+            stacked vector of state.
         on_para_eq_constraint : bool, optional
             uses equal constraints, by default True.
 
@@ -508,7 +505,7 @@ class State(QOperation):
         np.ndarray
             variables of state.
         """
-        return convert_vec_to_var(c_sys, vec, on_para_eq_constraint)
+        return convert_vec_to_var(c_sys, stacked_vector, on_para_eq_constraint)
 
 
 def to_density_matrix_from_vec(c_sys: CompositeSystem, vec: np.ndarray) -> np.ndarray:
@@ -567,11 +564,11 @@ def to_density_matrix_from_var(
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this QOperation.
+        CompositeSystem of this state.
     var : np.ndarray
         variables.
     on_para_eq_constraint : bool, optional
-        whether this QOperation is on parameter equality constraint, by default True
+        whether this state is on parameter equality constraint, by default True
 
     Returns
     -------
@@ -591,18 +588,16 @@ def to_var_from_density_matrix(
     density_matrix: np.ndarray,
     on_para_eq_constraint: bool = True,
 ) -> np.ndarray:
-    """converts density matrix to vec.
-
-    this function uses the scipy.sparse module.
+    """converts density matrix to variables.
 
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this QOperation.
+        CompositeSystem of this state.
     density_matrix : np.ndarray
         density matrix of this state.
     on_para_eq_constraint : bool, optional
-        whether this QOperation is on parameter equality constraint, by default True
+        whether this state is on parameter equality constraint, by default True
 
     Returns
     -------
@@ -711,7 +706,7 @@ def convert_var_to_state(
     State
         converted state.
     """
-    vec = np.insert(var, 0, 1 / np.sqrt(c_sys.dim)) if on_para_eq_constraint else var
+    vec = convert_var_to_vec(c_sys, var, on_para_eq_constraint)
     state = State(
         c_sys,
         vec,

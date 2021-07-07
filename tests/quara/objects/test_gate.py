@@ -11,7 +11,7 @@ from quara.objects.gate import (
     convert_var_index_to_gate_index,
     convert_gate_index_to_var_index,
     convert_var_to_gate,
-    convert_gate_to_var,
+    convert_hs_to_var,
     calc_gradient_from_gate,
     calc_agf,
     convert_hs,
@@ -981,6 +981,47 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
         assert actual.eps_proj_physical is gate.eps_proj_physical
 
+    def test_calc_proj_eq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs = np.array(
+            [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+            dtype=np.float64,
+        )
+        gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=False)
+
+        # case 1: on_para_eq_constraint: default(True)
+        actual = gate.calc_proj_eq_constraint_with_var(c_sys, gate.to_var())
+        expected = np.array(
+            [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        actual = gate.calc_proj_eq_constraint_with_var(
+            c_sys, gate.to_var(), on_para_eq_constraint=True
+        )
+        expected = np.array(
+            [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        var = np.array(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
+        actual = gate.calc_proj_eq_constraint_with_var(
+            c_sys, var, on_para_eq_constraint=False
+        )
+        expected = np.array(
+            [1, 0, 0, 0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_ineq_constraint(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1007,6 +1048,92 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
         assert actual.eps_proj_physical is gate.eps_proj_physical
 
+    def test_calc_proj_ineq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate = get_x(c_sys)
+
+        # case 1: on_para_eq_constraint: default(True)
+        actual = gate.calc_proj_ineq_constraint_with_var(c_sys, gate.to_var())
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        actual = gate.calc_proj_ineq_constraint_with_var(
+            c_sys, gate.to_var(), on_para_eq_constraint=True
+        )
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        var = np.array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1])
+        actual = gate.calc_proj_ineq_constraint_with_var(
+            c_sys, var, on_para_eq_constraint=False
+        )
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_convert_var_to_stacked_vector(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate = get_x(c_sys)
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+
+        # case 1: on_para_eq_constraint: default(True)
+        var = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        actual = gate.convert_var_to_stacked_vector(c_sys, var)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        var = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        actual = gate.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=True
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        var = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+        actual = gate.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=False
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_convert_stacked_vector_to_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate = get_x(c_sys)
+        stacked_vector = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+
+        # case 1: on_para_eq_constraint: default(True)
+        actual = gate.convert_stacked_vector_to_var(c_sys, stacked_vector)
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        actual = gate.convert_stacked_vector_to_var(
+            c_sys, stacked_vector, on_para_eq_constraint=True
+        )
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        actual = gate.convert_stacked_vector_to_var(
+            c_sys, stacked_vector, on_para_eq_constraint=False
+        )
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 def test_to_hs_from_choi():
     # Case 1:
@@ -1016,7 +1143,7 @@ def test_to_hs_from_choi():
     gate = get_x(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1028,7 +1155,7 @@ def test_to_hs_from_choi():
     gate = get_y(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1040,7 +1167,7 @@ def test_to_hs_from_choi():
     gate = get_z(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1054,7 +1181,7 @@ def test_to_hs_from_choi():
     gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=False)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi(source_choi, c_sys)
+    actual = to_hs_from_choi(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=14)
@@ -1068,7 +1195,7 @@ def test_to_hs_from_choi_with_dict():
     gate = get_x(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi_with_dict(source_choi, c_sys)
+    actual = to_hs_from_choi_with_dict(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1080,7 +1207,7 @@ def test_to_hs_from_choi_with_dict():
     gate = get_y(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi_with_dict(source_choi, c_sys)
+    actual = to_hs_from_choi_with_dict(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1092,7 +1219,7 @@ def test_to_hs_from_choi_with_dict():
     gate = get_z(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi_with_dict(source_choi, c_sys)
+    actual = to_hs_from_choi_with_dict(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1106,7 +1233,7 @@ def test_to_hs_from_choi_with_sparsity():
     gate = get_x(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi_with_sparsity(source_choi, c_sys)
+    actual = to_hs_from_choi_with_sparsity(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1118,7 +1245,7 @@ def test_to_hs_from_choi_with_sparsity():
     gate = get_y(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi_with_sparsity(source_choi, c_sys)
+    actual = to_hs_from_choi_with_sparsity(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1130,7 +1257,7 @@ def test_to_hs_from_choi_with_sparsity():
     gate = get_z(c_sys)
     source_choi = gate.to_choi_matrix()
     # Act
-    actual = to_hs_from_choi_with_sparsity(source_choi, c_sys)
+    actual = to_hs_from_choi_with_sparsity(c_sys, source_choi)
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)
@@ -1259,7 +1386,7 @@ def test_convert_gate_to_var():
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = convert_gate_to_var(c_sys, hs)
+    actual = convert_hs_to_var(c_sys, hs)
     expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -1267,7 +1394,7 @@ def test_convert_gate_to_var():
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = convert_gate_to_var(c_sys, hs, on_para_eq_constraint=True)
+    actual = convert_hs_to_var(c_sys, hs, on_para_eq_constraint=True)
     expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -1275,7 +1402,7 @@ def test_convert_gate_to_var():
     hs = np.array(
         [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
     )
-    actual = convert_gate_to_var(c_sys, hs, on_para_eq_constraint=False)
+    actual = convert_hs_to_var(c_sys, hs, on_para_eq_constraint=False)
     expected = np.array(
         [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
     )
@@ -1294,13 +1421,13 @@ def test_convert_gate_to_var_2q():
     hs = hs.reshape(16, 16)
 
     # Act
-    actual = convert_gate_to_var(c_sys_2q, hs, on_para_eq_constraint=True)
+    actual = convert_hs_to_var(c_sys_2q, hs, on_para_eq_constraint=True)
     # Assert
     expected = np.array(list(range(16, 16 * 16)), dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
 
     # Act
-    actual = convert_gate_to_var(c_sys_2q, hs, on_para_eq_constraint=False)
+    actual = convert_hs_to_var(c_sys_2q, hs, on_para_eq_constraint=False)
     # Assert
     expected = np.array(list(range(16 * 16)), dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
