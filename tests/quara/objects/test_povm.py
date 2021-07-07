@@ -22,7 +22,7 @@ from quara.objects.povm import (
     convert_var_index_to_povm_index,
     convert_povm_index_to_var_index,
     convert_var_to_povm,
-    convert_povm_to_var,
+    convert_vecs_to_var,
     calc_gradient_from_povm,
     get_x_povm,
     get_xx_povm,
@@ -1389,6 +1389,59 @@ class TestPovm:
         assert actual_eq.is_identity_sum() is True
         assert not np.allclose(povm.vecs, actual_eq.vecs)
 
+    """
+    def test_convert_var_to_stacked_vector(self):
+        # TODO
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_z_povm(c_sys)
+
+        # Case 1: default
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_var_to_stacked_vector(c_sys, np.hstack(vecs))
+        expected = np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+    """
+
+    def test_convert_stacked_vector_to_var(self):
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_z_povm(c_sys)
+
+        # Case 1: default
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_stacked_vector_to_var(c_sys, np.hstack(vecs))
+        expected = np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_stacked_vector_to_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=True
+        )
+        expected = np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_stacked_vector_to_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        expected = np.array([1, 0, 0, 1, 1, 0, 0, -1] / np.sqrt(2), dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
@@ -1509,7 +1562,7 @@ def test_convert_var_to_povm():
         npt.assert_almost_equal(a, e, decimal=15)
 
 
-def test_convert_povm_to_var():
+def test_convert_vecs_to_var():
     # Arrange
     e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys])
@@ -1521,7 +1574,7 @@ def test_convert_povm_to_var():
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs)
+    actual = convert_vecs_to_var(c_sys, vecs)
 
     # Assert
     expected = np.array([2, 3, 5, 7], dtype=np.float64)
@@ -1534,7 +1587,7 @@ def test_convert_povm_to_var():
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs, on_para_eq_constraint=True)
+    actual = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint=True)
 
     # Assert
     expected = np.array([2, 3, 5, 7], dtype=np.float64)
@@ -1547,7 +1600,7 @@ def test_convert_povm_to_var():
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs, on_para_eq_constraint=False)
+    actual = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint=False)
 
     # Assert
     expected = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)
