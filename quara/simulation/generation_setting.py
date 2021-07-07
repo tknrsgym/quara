@@ -20,7 +20,7 @@ class QOperationGenerationSetting:
         self._composite_system = c_sys
         self._is_seed_or_stream_required = is_seed_or_stream_required
 
-        type_error_message = "Type of 'qooeration_base' must be QOperation or tuple of length 2 containing the string (`('state', 'z0')`, etc.), "
+        type_error_message = "Type of 'qoperation_base' must be QOperation or tuple of length 2 containing the string (`('state', 'z0')`, etc.), "
         type_error_message += f"not {type(qoperation_base)}"
         if isinstance(qoperation_base, QOperation):
             self._qoperation_base = qoperation_base

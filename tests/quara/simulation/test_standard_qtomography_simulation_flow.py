@@ -1,4 +1,5 @@
 from pathlib import Path
+from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 import shutil
 import os
 from collections import defaultdict
@@ -7,8 +8,19 @@ import itertools
 import numpy as np
 import pytest
 
-from quara.simulation.standard_qtomography_simulation import SimulationResult
-from quara.simulation.standard_qtomography_simulation_flow import _print_summary
+from quara.simulation.standard_qtomography_simulation import (
+    SimulationResult,
+    EstimatorTestSetting,
+    NoiseSetting,
+)
+from quara.simulation.standard_qtomography_simulation_flow import (
+    _print_summary,
+    execute_simulation_test_settings,
+)
+
+from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects import matrix_basis
 
 from tests.quara.simulation import random_test
 
@@ -173,6 +185,114 @@ def tmp_out_dir_fixture():
 
     # remove
     shutil.rmtree(tmp_out_dir)
+
+
+@pytest.mark.usefixtures("tmp_out_dir_fixture")
+class TestSimulationCheckOnOff:
+    def test_execute_simulation_flow_with_exec_check(self, tmp_out_dir_fixture):
+        tmp_out_dir = tmp_out_dir_fixture["tmp_out_dir"]
+
+        noise_para = {"error_rate": 0.01}
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        test_setting = EstimatorTestSetting(
+            true_object=NoiseSetting(
+                qoperation_base=("state", "x0"), method="depolarized", para=noise_para
+            ),
+            tester_objects=[
+                NoiseSetting(
+                    qoperation_base=("povm", "x"), method="depolarized", para=noise_para
+                ),
+                NoiseSetting(
+                    qoperation_base=("povm", "y"), method="depolarized", para=noise_para
+                ),
+                NoiseSetting(
+                    qoperation_base=("povm", "z"), method="depolarized", para=noise_para
+                ),
+            ],
+            seed_qoperation=888,
+            seed_data=777,
+            n_sample=1,
+            n_rep=3,
+            num_data=[5],
+            schedules="all",
+            case_names=["dummy_name"],
+            estimators=[LinearEstimator()],
+            eps_proj_physical_list=[1e-5],
+            algo_list=[(None, None)],
+            loss_list=[(None, None)],
+            parametrizations=[True],
+            c_sys=c_sys,
+        )
+        test_settings = [test_setting]
+
+        # Case 1:
+        # Act
+        all_results = execute_simulation_test_settings(
+            test_settings, tmp_out_dir, pdf_mode="none"
+        )
+        actual = set(r["name"] for r in all_results[0].check_result["results"])
+
+        # Assert
+        expected = {
+            "Consistency",
+            "MSE of Empirical Distributions",
+            "MSE of estimators",
+            "Physicality Violation",
+        }
+        assert actual == expected
+
+        # Case 2:
+        # Act
+        source_exec_check = {
+            "consistency": False,
+            "mse_of_estimators": True,
+            "mse_of_empi_dists": False,
+            "physicality_violation": True,
+        }
+        all_results = execute_simulation_test_settings(
+            test_settings,
+            tmp_out_dir,
+            pdf_mode="none",
+            exec_sim_check=source_exec_check,
+        )
+        actual = set(r["name"] for r in all_results[0].check_result["results"])
+        # Assert
+        expected = {
+            "MSE of estimators",
+            "Physicality Violation",
+        }
+        assert actual == expected
+
+        # Case3:
+        source_exec_check = {
+            "consistency": False,
+            "mse_of_estimators": False,
+            "mse_of_empi_dists": False,
+            "physicality_violation": False,
+        }
+        all_results = execute_simulation_test_settings(
+            test_settings,
+            tmp_out_dir,
+            pdf_mode="none",
+            exec_sim_check=source_exec_check,
+        )
+        actual = set(r["name"] for r in all_results[0].check_result["results"])
+
+        # Case4: invalid input
+        source_exec_check = {
+            "invalid": True,
+        }
+
+        with pytest.raises(KeyError):
+            # ValueError: The key 'invalid' of the argument 'exec_check' is invalid. 'exec_check' can be used with the following keys: ['consistency', 'mse_of_estimators', 'mse_of_empi_dists', 'physicality_violation']
+            _ = execute_simulation_test_settings(
+                test_settings,
+                tmp_out_dir,
+                pdf_mode="none",
+                exec_sim_check=source_exec_check,
+            )
 
 
 @pytest.mark.usefixtures("tmp_out_dir_fixture")

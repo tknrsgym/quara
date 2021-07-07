@@ -243,11 +243,27 @@ Physicality Violation: {start_green}OK{end_color}
         }
         assert actual == expected
 
-        # Case7: invalid input
+        # Case7: All False
+        source_exec_check = {
+            "consistency": False,
+            "mse_of_estimators": False,
+            "mse_of_empi_dists": False,
+            "physicality_violation": False,
+        }
+        check_result = sim_check.execute_all(
+            with_detail=True, exec_check=source_exec_check
+        )
+        actual = set(r["name"] for r in check_result["results"])
+
+        # Assert
+        expected = {}
+        assert actual == expected
+
+        # Case8: invalid input
         source_exec_check = {
             "invalid": True,
         }
 
-        with pytest.raises(ValueError):
+        with pytest.raises(KeyError):
             # ValueError: The key 'invalid' of the argument 'exec_check' is invalid. 'exec_check' can be used with the following keys: ['consistency', 'mse_of_estimators', 'mse_of_empi_dists', 'physicality_violation']
             _ = sim_check.execute_all(with_detail=True, exec_check=source_exec_check)

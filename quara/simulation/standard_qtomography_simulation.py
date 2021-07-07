@@ -119,7 +119,7 @@ class StandardQTomographySimulationSetting:
 class NoiseSetting:
     qoperation_base: Union[QOperation, str]
     method: str
-    para: bool
+    para: dict
     ids: List[int] = None
 
     def to_generation_setting(

@@ -78,7 +78,7 @@ class StandardQTomographySimulationCheck:
             for item in exec_check:
                 if item not in check_items:
                     error_message = f"The key '{item}' of the argument 'exec_check' is invalid. 'exec_check' can be used with the following keys: {check_items}"
-                    raise ValueError(error_message)
+                    raise KeyError(error_message)
 
             for item in check_items:
                 if item not in exec_check.keys():

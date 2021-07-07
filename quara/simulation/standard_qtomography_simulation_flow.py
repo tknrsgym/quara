@@ -102,13 +102,23 @@ def execute_simulation_sample_unit(
     exec_sim_check: dict = None,
 ) -> List[SimulationResult]:
     # Generate sample
-    true_object = generation_settings.true_setting.generate(stream_qoperation)
-    true_object = true_object[0] if type(true_object) == tuple else true_object
+    _f = generation_settings.true_setting.generate
+    if "seed_or_stream" in _f.__code__.co_varnames[: _f.__code__.co_argcount]:
+        true_object = generation_settings.true_setting.generate(
+            seed_or_stream=stream_qoperation
+        )
+        tester_objects = [
+            tester_setting.generate(stream_qoperation)
+            for tester_setting in generation_settings.tester_settings
+        ]
+    else:
+        true_object = generation_settings.true_setting.generate()
+        tester_objects = [
+            tester_setting.generate()
+            for tester_setting in generation_settings.tester_settings
+        ]
 
-    tester_objects = [
-        tester_setting.generate(stream_qoperation)
-        for tester_setting in generation_settings.tester_settings
-    ]
+    true_object = true_object[0] if type(true_object) == tuple else true_object
     tester_objects = [
         tester[0] if type(tester) == tuple else tester for tester in tester_objects
     ]
@@ -451,12 +461,16 @@ def re_estimate_test_setting_unit(
 
 
 def re_estimate_test_settings(
-    input_root_dir: str, output_root_dir: str, pdf_mode: str, exec_sim_check: dict=None
+    input_root_dir: str,
+    output_root_dir: str,
+    pdf_mode: str,
+    exec_sim_check: dict = None,
 ) -> List[SimulationResult]:
     # Load All Test Setting
     test_setting_pickle_paths = sorted(
         Path(input_root_dir).glob("*/test_setting.pickle")
     )
+    print(test_setting_pickle_paths)
     all_results = []
     for path in test_setting_pickle_paths:
         test_setting_index = path.parent.name  # directory name is test_setting_index
