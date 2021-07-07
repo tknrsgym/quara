@@ -64,7 +64,26 @@ class StandardQTomographySimulationCheck:
         show_summary: bool = True,
         show_detail: bool = True,
         with_detail: bool = False,
+        exec_check: dict = None,
     ) -> Union[bool, dict]:
+        check_items = [
+            "consistency",
+            "mse_of_estimators",
+            "mse_of_empi_dists",
+            "physicality_violation",
+        ]
+        if not exec_check:
+            exec_check = {item: True for item in check_items}
+        else:
+            for item in exec_check:
+                if item not in check_items:
+                    error_message = f"The key '{item}' of the argument 'exec_check' is invalid. 'exec_check' can be used with the following keys: {check_items}"
+                    raise KeyError(error_message)
+
+            for item in check_items:
+                if item not in exec_check.keys():
+                    exec_check[item] = True
+
         results = []
 
         def _to_result_dict(name: str, result: bool, detail: dict = None) -> dict:
@@ -75,30 +94,34 @@ class StandardQTomographySimulationCheck:
             return result_dict
 
         # MSE of Empirical Distributions
-        name = "MSE of Empirical Distributions"
-        result = self.execute_mse_of_empirical_distribution_check(
-            show_detail=show_detail
-        )
-        results.append(_to_result_dict(name, result))
+        if exec_check["mse_of_empi_dists"]:
+            name = "MSE of Empirical Distributions"
+            result = self.execute_mse_of_empirical_distribution_check(
+                show_detail=show_detail
+            )
+            results.append(_to_result_dict(name, result))
 
         # Consistency
-        name = "Consistency"
-        result = self.execute_consistency_check(
-            eps=consistency_check_eps, show_detail=show_detail
-        )
-        detail = result
-        result = detail["possibly_ok"]
-        results.append(_to_result_dict(name, result, detail))
+        if exec_check["consistency"]:
+            name = "Consistency"
+            result = self.execute_consistency_check(
+                eps=consistency_check_eps, show_detail=show_detail
+            )
+            detail = result
+            result = detail["possibly_ok"]
+            results.append(_to_result_dict(name, result, detail))
 
         # MSE of estimators
-        name = "MSE of estimators"
-        result = self.execute_mse_of_estimators_check(show_detail=show_detail)
-        results.append(_to_result_dict(name, result))
+        if exec_check["mse_of_estimators"]:
+            name = "MSE of estimators"
+            result = self.execute_mse_of_estimators_check(show_detail=show_detail)
+            results.append(_to_result_dict(name, result))
 
         # Pysicality Violation
-        name = "Physicality Violation"
-        result = self.execute_physicality_violation_check(show_detail=show_detail)
-        results.append(_to_result_dict(name, result))
+        if exec_check["physicality_violation"]:
+            name = "Physicality Violation"
+            result = self.execute_physicality_violation_check(show_detail=show_detail)
+            results.append(_to_result_dict(name, result))
 
         total_result = np.all([r["result"] for r in results])
         # numpy.bool_ -> bool to serialize to json

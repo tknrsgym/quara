@@ -186,6 +186,70 @@ class TestReEstimate:
             ):
                 assert_equal_estimation_result(expected, actual)
 
+    def test_re_estimate_with_exec_check(self, execute_simulation_fixture):
+        # Arrange
+        input_root_dir = execute_simulation_fixture["test_data_root_dir"]
+        output_root_dir = input_root_dir.parent / "target_re_estimate_flow"
+
+        # Case 1:
+        # Act
+        source_exec_sim_check = {
+            "consistency": False,
+        }
+        re_estimated_all_results = re_estimate_test_settings(
+            input_root_dir=input_root_dir,
+            output_root_dir=output_root_dir,
+            pdf_mode="all",
+            exec_sim_check=source_exec_sim_check,
+        )
+        actual = set(
+            r["name"] for r in re_estimated_all_results[0].check_result["results"]
+        )
+
+        # Assert
+        expected = {
+            "MSE of Empirical Distributions",
+            "MSE of estimators",
+            "Physicality Violation",
+        }
+        assert actual == expected
+
+        # Case 2:
+        # Act
+        source_exec_sim_check = {
+            "consistency": False,
+            "mse_of_estimators": False,
+            "mse_of_empi_dists": False,
+            "physicality_violation": False,
+        }
+        re_estimated_all_results = re_estimate_test_settings(
+            input_root_dir=input_root_dir,
+            output_root_dir=output_root_dir,
+            pdf_mode="all",
+            exec_sim_check=source_exec_sim_check,
+        )
+        actual = set(
+            r["name"] for r in re_estimated_all_results[0].check_result["results"]
+        )
+
+        # Assert
+        expected = set()
+        assert actual == expected
+
+        # Case3: invalid input
+        source_exec_sim_check = {
+            "invalid": True,
+        }
+
+        with pytest.raises(KeyError):
+            # ValueError: The key 'invalid' of the argument 'exec_check' is invalid. 'exec_check' can be used with the following keys: ['consistency', 'mse_of_estimators', 'mse_of_empi_dists', 'physicality_violation']
+            _ = re_estimate_test_settings(
+                input_root_dir=input_root_dir,
+                output_root_dir=output_root_dir,
+                pdf_mode="all",
+                exec_sim_check=source_exec_sim_check,
+            )
+
 
 def is_same_dist(a_dist: tuple, b_dist: tuple):
     for a, b in zip(a_dist, b_dist):

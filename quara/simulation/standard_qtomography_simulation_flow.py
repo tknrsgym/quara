@@ -34,6 +34,7 @@ def execute_simulation_case_unit(
     sample_index: int,
     test_setting_index: int,
     root_dir: str,
+    exec_sim_check: dict = None,
 ) -> SimulationResult:
     # Generate QTomographySimulationSetting
     sim_setting = test_setting.to_simulation_setting(
@@ -64,7 +65,9 @@ def execute_simulation_case_unit(
 
     # Simulation Check
     sim_check = StandardQTomographySimulationCheck(sim_result)
-    check_result = sim_check.execute_all(show_detail=False, with_detail=True)
+    check_result = sim_check.execute_all(
+        show_detail=False, with_detail=True, exec_check=exec_sim_check
+    )
 
     # Show result
     if not check_result["total_result"]:
@@ -96,15 +99,26 @@ def execute_simulation_sample_unit(
     root_dir,
     pdf_mode: str = "only_ng",
     stream_qoperation: Union[int, np.random.RandomState] = None,
+    exec_sim_check: dict = None,
 ) -> List[SimulationResult]:
     # Generate sample
-    true_object = generation_settings.true_setting.generate(stream_qoperation)
-    true_object = true_object[0] if type(true_object) == tuple else true_object
+    _f = generation_settings.true_setting.generate
+    if "seed_or_stream" in _f.__code__.co_varnames[: _f.__code__.co_argcount]:
+        true_object = generation_settings.true_setting.generate(
+            seed_or_stream=stream_qoperation
+        )
+        tester_objects = [
+            tester_setting.generate(stream_qoperation)
+            for tester_setting in generation_settings.tester_settings
+        ]
+    else:
+        true_object = generation_settings.true_setting.generate()
+        tester_objects = [
+            tester_setting.generate()
+            for tester_setting in generation_settings.tester_settings
+        ]
 
-    tester_objects = [
-        tester_setting.generate(stream_qoperation)
-        for tester_setting in generation_settings.tester_settings
-    ]
+    true_object = true_object[0] if type(true_object) == tuple else true_object
     tester_objects = [
         tester[0] if type(tester) == tuple else tester for tester in tester_objects
     ]
@@ -120,6 +134,7 @@ def execute_simulation_sample_unit(
             sample_index=sample_index,
             test_setting_index=test_setting_index,
             root_dir=root_dir,
+            exec_sim_check=exec_sim_check,
         )
         results.append(result)
 
@@ -128,12 +143,12 @@ def execute_simulation_sample_unit(
 
     # Save PDF
     if pdf_mode == "all":
-        write_pdf_report(results, root_dir)
+        write_pdf_report(results, root_dir, display_items=exec_sim_check)
     elif pdf_mode == "only_ng":
         total_results = [r.check_result["total_result"] for r in results]
         print(f"total_result={np.all(total_results)}")
         if not np.all(total_results):
-            write_pdf_report(results, root_dir)
+            write_pdf_report(results, root_dir, display_items=exec_sim_check)
     elif pdf_mode == "none":
         pass
     else:
@@ -144,7 +159,11 @@ def execute_simulation_sample_unit(
 
 
 def execute_simulation_test_setting_unit(
-    test_setting, test_setting_index, root_dir, pdf_mode: str = "only_ng"
+    test_setting,
+    test_setting_index,
+    root_dir,
+    exec_sim_check: dict = None,
+    pdf_mode: str = "only_ng",
 ) -> List[SimulationResult]:
     generation_settings = test_setting.to_generation_settings()
     n_sample = test_setting.n_sample
@@ -161,6 +180,7 @@ def execute_simulation_test_setting_unit(
             root_dir,
             pdf_mode=pdf_mode,
             stream_qoperation=stream_qoperation,
+            exec_sim_check=exec_sim_check,
         )
         results += sample_results
 
@@ -170,7 +190,10 @@ def execute_simulation_test_setting_unit(
 
 
 def execute_simulation_test_settings(
-    test_settings: List[EstimatorTestSetting], root_dir: str, pdf_mode: str = "only_ng"
+    test_settings: List[EstimatorTestSetting],
+    root_dir: str,
+    pdf_mode: str = "only_ng",
+    exec_sim_check: dict = None,
 ) -> List[SimulationResult]:
     all_results = []
     start = time.time()
@@ -180,7 +203,11 @@ def execute_simulation_test_settings(
         test_setting.to_pickle(path)
         print(f"Completed to write test_setting. {path}")
         test_results = execute_simulation_test_setting_unit(
-            test_setting, test_setting_index, root_dir, pdf_mode=pdf_mode
+            test_setting,
+            test_setting_index,
+            root_dir,
+            exec_sim_check=exec_sim_check,
+            pdf_mode=pdf_mode,
         )
         all_results += test_results
 
@@ -260,6 +287,7 @@ def re_estimate_case_unit(
     test_setting_index: int,
     output_root_dir: str,
     test_setting=None,
+    exec_sim_check: dict = None,
 ) -> SimulationResult:
 
     if test_setting is None:
@@ -331,7 +359,9 @@ def re_estimate_case_unit(
 
     # Simulation Check
     sim_check = StandardQTomographySimulationCheck(re_estimated_sim_result)
-    check_result = sim_check.execute_all(show_detail=False, with_detail=True)
+    check_result = sim_check.execute_all(
+        show_detail=False, with_detail=True, exec_check=exec_sim_check
+    )
 
     # Show result
     if not check_result["total_result"]:
@@ -351,6 +381,7 @@ def re_estimate_sample_unit(
     sample_index,
     output_root_dir,
     input_root_dir,
+    exec_sim_check: dict = None,
     pdf_mode: str = "only_ng",
 ) -> List[SimulationResult]:
 
@@ -371,6 +402,7 @@ def re_estimate_sample_unit(
             test_setting_index=test_setting_index,
             input_root_dir=input_root_dir,
             output_root_dir=output_root_dir,
+            exec_sim_check=exec_sim_check,
         )
         results.append(result)
 
@@ -379,12 +411,12 @@ def re_estimate_sample_unit(
 
     # Save PDF
     if pdf_mode == "all":
-        write_pdf_report(results, output_root_dir)
+        write_pdf_report(results, output_root_dir, display_items=exec_sim_check)
     elif pdf_mode == "only_ng":
         total_results = [r.check_result["total_result"] for r in results]
         print(f"total_result={np.all(total_results)}")
         if not np.all(total_results):
-            write_pdf_report(results, output_root_dir)
+            write_pdf_report(results, output_root_dir, display_items=exec_sim_check)
     elif pdf_mode == "none":
         pass
     else:
@@ -395,7 +427,11 @@ def re_estimate_sample_unit(
 
 
 def re_estimate_test_setting_unit(
-    test_setting_index, output_root_dir, input_root_dir, pdf_mode: str = "only_ng"
+    test_setting_index,
+    output_root_dir,
+    input_root_dir,
+    exec_sim_check: dict = None,
+    pdf_mode: str = "only_ng",
 ) -> List[SimulationResult]:
     # Load test setting from pickle
     test_setting_pickle_path = (
@@ -414,6 +450,7 @@ def re_estimate_test_setting_unit(
             sample_index=sample_index,
             input_root_dir=input_root_dir,
             output_root_dir=output_root_dir,
+            exec_sim_check=exec_sim_check,
             pdf_mode=pdf_mode,
         )
         results += sample_results
@@ -424,7 +461,10 @@ def re_estimate_test_setting_unit(
 
 
 def re_estimate_test_settings(
-    input_root_dir: str, output_root_dir: str, pdf_mode: str
+    input_root_dir: str,
+    output_root_dir: str,
+    pdf_mode: str,
+    exec_sim_check: dict = None,
 ) -> List[SimulationResult]:
     # Load All Test Setting
     test_setting_pickle_paths = sorted(
@@ -437,6 +477,7 @@ def re_estimate_test_settings(
             test_setting_index,
             input_root_dir=input_root_dir,
             output_root_dir=output_root_dir,
+            exec_sim_check=exec_sim_check,
             pdf_mode=pdf_mode,
         )
         all_results += test_results
@@ -473,7 +514,9 @@ def write_result_test_setting_unit(
     write_results(results, dir_path)
 
 
-def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
+def write_pdf_report(
+    results: List[SimulationResult], root_dir: str, display_items: dict = None
+) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
     sample_index = results[0].result_index["sample_index"]
 
@@ -486,6 +529,7 @@ def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
         test_setting_index=test_setting_index,
         sample_index=sample_index,
         output_path=path,
+        display_items=display_items,
     )
 
 
