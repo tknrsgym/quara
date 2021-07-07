@@ -1009,11 +1009,15 @@ class TestGate:
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # case 3: on_para_eq_constraint=False
+        var = np.array(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
         actual = gate.calc_proj_eq_constraint_with_var(
-            c_sys, gate.to_var(), on_para_eq_constraint=False
+            c_sys, var, on_para_eq_constraint=False
         )
         expected = np.array(
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            [1, 0, 0, 0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
