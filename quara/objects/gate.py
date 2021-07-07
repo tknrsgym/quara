@@ -278,19 +278,19 @@ class Gate(QOperation):
 
         # calc new HS
         new_choi_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
-        new_hs = to_hs_from_choi_with_sparsity(self.composite_system, new_choi_matrix)
+        new_hs = to_hs_from_choi_with_sparsity(c_sys, new_choi_matrix)
 
         # HS to var
         new_var = convert_hs_to_var(c_sys, new_hs, on_para_eq_constraint)
         return new_var
 
     @staticmethod
-    def convert_var_to_vec(
+    def convert_var_to_stacked_vector(
         c_sys: CompositeSystem,
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
     ) -> np.ndarray:
-        """converts variables of gate to vec of gate.
+        """converts variables of gate to stacked vector of gate.
 
         Parameters
         ----------
@@ -304,22 +304,22 @@ class Gate(QOperation):
         Returns
         -------
         np.ndarray
-            vec of gate.
+            stacked vector of gate.
         """
         return convert_var_to_vec(c_sys, var, on_para_eq_constraint)
 
     @staticmethod
-    def convert_vec_to_var(
+    def convert_stacked_vector_to_var(
         c_sys: CompositeSystem, vec: np.ndarray, on_para_eq_constraint: bool = True
     ) -> np.ndarray:
-        """converts vec of gate to variables of gate.
+        """converts stacked vector of gate to variables of gate.
 
         Parameters
         ----------
         c_sys : CompositeSystem
             CompositeSystem of this gate.
         vec : np.ndarray
-            vec of gate.
+            stacked_vector of gate.
         on_para_eq_constraint : bool, optional
             uses equal constraints, by default True.
 
@@ -595,6 +595,65 @@ class Gate(QOperation):
 
     def _copy(self):
         return copy.deepcopy(self.hs)
+
+    @staticmethod
+    def convert_var_to_stacked_vector(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """converts variables of gate to stacked vector of gate.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this gate.
+        var : np.ndarray
+            variables of gate.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            stacked vector of gate.
+        """
+        if on_para_eq_constraint:
+            head = np.zeros(c_sys.dim ** 2)
+            head[0] = 1
+            stacked_vector = np.insert(var, 0, head)
+        else:
+            stacked_vector = var
+
+        return stacked_vector
+
+    @staticmethod
+    def convert_stacked_vector_to_var(
+        c_sys: CompositeSystem,
+        stacked_vector: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """converts stacked vector of gate to variables of gate.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this gate.
+        stacked_vector : np.ndarray
+            stacked vector of gate.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            variables of gate.
+        """
+        return (
+            np.delete(stacked_vector, np.s_[:c_sys.dim ** 2])
+            if on_para_eq_constraint
+            else stacked_vector
+        )
 
 
 def to_choi_from_hs(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:

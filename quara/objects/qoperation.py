@@ -845,7 +845,7 @@ class QOperation:
         """
         p_prev = self.generate_zero_obj().to_stacked_vector()
         q_prev = self.generate_zero_obj().to_stacked_vector()
-        x_prev = self.convert_var_to_vec(
+        x_prev = self.convert_var_to_stacked_vector(
             self.composite_system, var, on_para_eq_constraint
         )
         y_prev = None
@@ -931,7 +931,7 @@ class QOperation:
             # increase step
             k += 1
 
-        x_next = self.convert_vec_to_var(
+        x_next = self.convert_stacked_vector_to_var(
             self.composite_system,
             x_next,
             on_para_eq_constraint=on_para_eq_constraint,

@@ -1415,47 +1415,55 @@ class TestState:
         assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
         assert actual.eps_proj_physical == source_eps_proj_physical
 
-    def test_convert_var_to_vec(self):
+    def test_convert_var_to_stacked_vector(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
 
         # case1: on_para_eq_constraint: default(True)
         var = np.array([2, 3, 4], dtype=np.float64)
-        actual = state.convert_var_to_vec(c_sys, var)
+        actual = state.convert_var_to_stacked_vector(c_sys, var)
         expected = np.array([1 / np.sqrt(2), 2, 3, 4], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # case2: on_para_eq_constraint=True
         var = np.array([2, 3, 4], dtype=np.float64)
-        actual = state.convert_var_to_vec(c_sys, var, on_para_eq_constraint=True)
+        actual = state.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=True
+        )
         expected = np.array([1 / np.sqrt(2), 2, 3, 4], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # case3: on_para_eq_constraint=False
         var = np.array([1, 2, 3, 4], dtype=np.float64)
-        actual = state.convert_var_to_vec(c_sys, var, on_para_eq_constraint=False)
+        actual = state.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=False
+        )
         expected = np.array([1, 2, 3, 4], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-    def test_convert_vec_to_var(self):
+    def test_convert_stacked_vector_to_var(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
         vec = np.array([1, 2, 3, 4], dtype=np.float64)
 
         # case1: on_para_eq_constraint: default(True)
-        actual = state.convert_vec_to_var(c_sys, vec)
+        actual = state.convert_stacked_vector_to_var(c_sys, vec)
         expected = np.array([2, 3, 4], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # case2: on_para_eq_constraint=True
-        actual = state.convert_vec_to_var(c_sys, vec, on_para_eq_constraint=True)
+        actual = state.convert_stacked_vector_to_var(
+            c_sys, vec, on_para_eq_constraint=True
+        )
         expected = np.array([2, 3, 4], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # case3: on_para_eq_constraint=False
-        actual = state.convert_vec_to_var(c_sys, vec, on_para_eq_constraint=False)
+        actual = state.convert_stacked_vector_to_var(
+            c_sys, vec, on_para_eq_constraint=False
+        )
         expected = np.array([1, 2, 3, 4], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 

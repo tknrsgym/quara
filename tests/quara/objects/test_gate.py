@@ -981,6 +981,43 @@ class TestGate:
         assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
         assert actual.eps_proj_physical is gate.eps_proj_physical
 
+    def test_calc_proj_eq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs = np.array(
+            [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+            dtype=np.float64,
+        )
+        gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=False)
+
+        # case 1: on_para_eq_constraint: default(True)
+        actual = gate.calc_proj_eq_constraint_with_var(c_sys, gate.to_var())
+        expected = np.array(
+            [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        actual = gate.calc_proj_eq_constraint_with_var(
+            c_sys, gate.to_var(), on_para_eq_constraint=True
+        )
+        expected = np.array(
+            [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        actual = gate.calc_proj_eq_constraint_with_var(
+            c_sys, gate.to_var(), on_para_eq_constraint=False
+        )
+        expected = np.array(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_ineq_constraint(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1006,6 +1043,92 @@ class TestGate:
         assert actual.on_algo_eq_constraint is gate.on_algo_eq_constraint
         assert actual.on_algo_ineq_constraint is gate.on_algo_ineq_constraint
         assert actual.eps_proj_physical is gate.eps_proj_physical
+
+    def test_calc_proj_ineq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate = get_x(c_sys)
+
+        # case 1: on_para_eq_constraint: default(True)
+        actual = gate.calc_proj_ineq_constraint_with_var(c_sys, gate.to_var())
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        actual = gate.calc_proj_ineq_constraint_with_var(
+            c_sys, gate.to_var(), on_para_eq_constraint=True
+        )
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        var = np.array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1])
+        actual = gate.calc_proj_ineq_constraint_with_var(
+            c_sys, var, on_para_eq_constraint=False
+        )
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1],
+            dtype=np.float64,
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_convert_var_to_stacked_vector(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate = get_x(c_sys)
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+
+        # case 1: on_para_eq_constraint: default(True)
+        var = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        actual = gate.convert_var_to_stacked_vector(c_sys, var)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        var = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        actual = gate.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=True
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        var = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+        actual = gate.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=False
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_convert_stacked_vector_to_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        gate = get_x(c_sys)
+        stacked_vector = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+
+        # case 1: on_para_eq_constraint: default(True)
+        actual = gate.convert_stacked_vector_to_var(c_sys, stacked_vector)
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        actual = gate.convert_stacked_vector_to_var(
+            c_sys, stacked_vector, on_para_eq_constraint=True
+        )
+        expected = np.array([0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        actual = gate.convert_stacked_vector_to_var(
+            c_sys, stacked_vector, on_para_eq_constraint=False
+        )
+        expected = np.array(
+            [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_to_hs_from_choi():
