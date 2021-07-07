@@ -236,8 +236,8 @@ class TestSimulationCheckOnOff:
 
         # Assert
         expected = {
-            "Consistency",
             "MSE of Empirical Distributions",
+            "Consistency",
             "MSE of estimators",
             "Physicality Violation",
         }
@@ -259,10 +259,7 @@ class TestSimulationCheckOnOff:
         )
         actual = set(r["name"] for r in all_results[0].check_result["results"])
         # Assert
-        expected = {
-            "MSE of estimators",
-            "Physicality Violation",
-        }
+        expected = {"MSE of estimators", "Physicality Violation"}
         assert actual == expected
 
         # Case3:
@@ -278,7 +275,11 @@ class TestSimulationCheckOnOff:
             pdf_mode="all",
             exec_sim_check=source_exec_check,
         )
+        # Act
         actual = set(r["name"] for r in all_results[0].check_result["results"])
+        # Assert
+        expected = set()
+        assert actual == expected
 
         # Case4: invalid input
         source_exec_check = {

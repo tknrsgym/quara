@@ -1344,7 +1344,7 @@ def setup_display_items(display_items: dict) -> dict:
     else:
         for item in display_items:
             if item not in expected_items:
-                error_message = f"The key '{item}' of the argument 'exec_check' is invalid. 'exec_check' can be used with the following keys: {check_items}"
+                error_message = f"The key '{item}' of the argument 'display_items' is invalid. 'display_items' can be used with the following keys: {expected_items}"
                 raise KeyError(error_message)
 
         for item in expected_items:

@@ -237,10 +237,7 @@ Physicality Violation: {start_green}OK{end_color}
         actual = set(r["name"] for r in check_result["results"])
 
         # Assert
-        expected = {
-            "Consistency",
-            "MSE of estimators",
-        }
+        expected = {"Consistency", "MSE of estimators"}
         assert actual == expected
 
         # Case7: All False
@@ -256,7 +253,7 @@ Physicality Violation: {start_green}OK{end_color}
         actual = set(r["name"] for r in check_result["results"])
 
         # Assert
-        expected = {}
+        expected = set()
         assert actual == expected
 
         # Case8: invalid input
