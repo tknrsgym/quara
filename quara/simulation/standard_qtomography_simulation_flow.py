@@ -143,12 +143,12 @@ def execute_simulation_sample_unit(
 
     # Save PDF
     if pdf_mode == "all":
-        write_pdf_report(results, root_dir)
+        write_pdf_report(results, root_dir, display_items=exec_sim_check)
     elif pdf_mode == "only_ng":
         total_results = [r.check_result["total_result"] for r in results]
         print(f"total_result={np.all(total_results)}")
         if not np.all(total_results):
-            write_pdf_report(results, root_dir)
+            write_pdf_report(results, root_dir, display_items=exec_sim_check)
     elif pdf_mode == "none":
         pass
     else:
@@ -411,12 +411,12 @@ def re_estimate_sample_unit(
 
     # Save PDF
     if pdf_mode == "all":
-        write_pdf_report(results, output_root_dir)
+        write_pdf_report(results, output_root_dir, display_items=exec_sim_check)
     elif pdf_mode == "only_ng":
         total_results = [r.check_result["total_result"] for r in results]
         print(f"total_result={np.all(total_results)}")
         if not np.all(total_results):
-            write_pdf_report(results, output_root_dir)
+            write_pdf_report(results, output_root_dir, display_items=exec_sim_check)
     elif pdf_mode == "none":
         pass
     else:
@@ -470,7 +470,6 @@ def re_estimate_test_settings(
     test_setting_pickle_paths = sorted(
         Path(input_root_dir).glob("*/test_setting.pickle")
     )
-    print(test_setting_pickle_paths)
     all_results = []
     for path in test_setting_pickle_paths:
         test_setting_index = path.parent.name  # directory name is test_setting_index
@@ -515,7 +514,9 @@ def write_result_test_setting_unit(
     write_results(results, dir_path)
 
 
-def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
+def write_pdf_report(
+    results: List[SimulationResult], root_dir: str, display_items: dict = None
+) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
     sample_index = results[0].result_index["sample_index"]
 
@@ -528,6 +529,7 @@ def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
         test_setting_index=test_setting_index,
         sample_index=sample_index,
         output_path=path,
+        display_items=display_items,
     )
 
 

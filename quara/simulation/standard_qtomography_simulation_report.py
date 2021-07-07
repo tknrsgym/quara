@@ -1321,22 +1321,43 @@ def export_report_from_index(
     sample_index: int,
     output_path: str,
     case_index: int = None,
+    display_items: dict = None,
 ) -> None:
     simulation_results = _load_simulation_results(
         input_root_dir, test_setting_index, sample_index, case_index=case_index
     )
 
     export_report(
-        output_path,
-        simulation_results=simulation_results,
+        output_path, simulation_results=simulation_results, display_items=display_items
     )
+
+
+def setup_display_items(display_items: dict) -> dict:
+    expected_items = [
+        "consistency",
+        "mse_of_estimators",
+        "mse_of_empi_dists",
+        "physicality_violation",
+    ]
+    if not display_items:
+        display_items = {item: True for item in expected_items}
+    else:
+        for item in display_items:
+            if item not in expected_items:
+                error_message = f"The key '{item}' of the argument 'exec_check' is invalid. 'exec_check' can be used with the following keys: {check_items}"
+                raise KeyError(error_message)
+
+        for item in expected_items:
+            if item not in display_items.keys():
+                display_items[item] = True
+    return display_items
 
 
 def export_report(
     path: str,
     simulation_results: List[SimulationResult],
     keep_tmp_files: bool = False,
-    show_physicality_violation_check: bool = True,
+    display_items: dict = None,
 ):
     """Output a PDF report with simulation settings and results.
 
@@ -1355,6 +1376,8 @@ def export_report(
     show_physicality_violation_check : bool, optional
         [description], by default True
     """
+    display_items = setup_display_items(display_items)
+
     estimation_results_list = []
     simulation_settings = []
     for sim_result in simulation_results:
@@ -1428,47 +1451,78 @@ def export_report(
     )
 
     # MSE of Empirical Distributions
-    print("​​Generating MSE of empirical distributions blocks ...")
-    empi_dists_mse_div = generate_empi_dist_mse_div(simulation_results[0], true_object)
+    empi_dists_mse_block = ""
+    if display_items["mse_of_empi_dists"]:
+        print("​​Generating MSE of empirical distributions blocks ...")
+        empi_dists_mse_div = generate_empi_dist_mse_div(
+            simulation_results[0], true_object
+        )
+        empi_dists_mse_block = f"""<h1>MSE of empirical distributions</h1>
+    <div>{empi_dists_mse_div}</div>"""
 
     # Consistency Test
-    print("​​Generating consictency test blocks ...")
-    consistency_check_table = generate_consistency_check_table(simulation_results)
+    consistency_check_block = ""
+    if display_items["consistency"]:
+        print("​​Generating consictency test blocks ...")
+        consistency_check_table = generate_consistency_check_table(simulation_results)
+        consistency_check_block = f"""<h1>Consistency test</h1>
+    <div>{consistency_check_table}</div>"""
 
-    # MSE
-    print("​Generating a graph for MSE ...")
+    # MSE of estimators
+    mse_of_est_block = ""
+    if display_items["mse_of_estimators"]:
+        print("​Generating a graph for MSE of estimators ...")
 
-    # 1. Comparison of analytical results
-    mse_analytical_results_div = generate_mse_analytical_div(
-        estimation_results_list, true_object, estimator_list, num_data, qtomography_list
-    )
-    # 2. Comparison of parametrization
-    mse_para_div = generate_figs_div(
-        _make_graphs_mses,
-        make_graphs_func=data_analysis.make_mses_graphs_estimator,
-        mse_type="estimator",
-        estimation_results_list=estimation_results_list,
-        simulation_settings=simulation_settings,
-        true_object=true_object,
-        qtomography_list=qtomography_list,
-    )
-    # 3. Comparison of estimators
-    mse_est_div = generate_figs_div(
-        _make_graphs_mses,
-        make_graphs_func=data_analysis.make_mses_graphs_para,
-        mse_type="para",
-        estimation_results_list=estimation_results_list,
-        case_names=case_name_list,
-        true_object=true_object,
-        num_data=num_data,
-        parameter_list=parameter_list,
-        qtomography_list=qtomography_list,
-    )
+        # 1. Comparison of analytical results
+        mse_analytical_results_div = generate_mse_analytical_div(
+            estimation_results_list,
+            true_object,
+            estimator_list,
+            num_data,
+            qtomography_list,
+        )
+        # 2. Comparison of parametrization
+        mse_para_div = generate_figs_div(
+            _make_graphs_mses,
+            make_graphs_func=data_analysis.make_mses_graphs_estimator,
+            mse_type="estimator",
+            estimation_results_list=estimation_results_list,
+            simulation_settings=simulation_settings,
+            true_object=true_object,
+            qtomography_list=qtomography_list,
+        )
+        # 3. Comparison of estimators
+        mse_est_div = generate_figs_div(
+            _make_graphs_mses,
+            make_graphs_func=data_analysis.make_mses_graphs_para,
+            mse_type="para",
+            estimation_results_list=estimation_results_list,
+            case_names=case_name_list,
+            true_object=true_object,
+            num_data=num_data,
+            parameter_list=parameter_list,
+            qtomography_list=qtomography_list,
+        )
+        mse_of_est_block = f"""
+<h1>MSE of estimators</h1>
+    <h2>Comparison of analytical results</h2>
+        <div>
+            {mse_analytical_results_div}
+        </div>
+    <h2>Comparison of parametrization</h2>
+        <div>
+            {mse_para_div}
+        </div>
+    <h2>Comparison of estimators</h2>
+        <div>
+            {mse_est_div}
+        </div>
+        """
 
     # Physicality Violation Test
     print("​​Generating physicality violation test blocks ...")
     physicality_violation_check_block = ""
-    if show_physicality_violation_check:
+    if display_items["physicality_violation"]:
         physicality_violation_test_div = generate_physicality_violation_test_div(
             estimation_results_list, case_name_list, true_object, num_data
         )
@@ -1530,23 +1584,9 @@ def export_report(
     </div>
 <h1>Computation time of estimators</h1>
     <div>{comp_time_of_est_div}</div>
-<h1>MSE of empirical distributions</h1>
-    <div>{empi_dists_mse_div}</div>
-<h1>Consistency test</h1>
-    <div>{consistency_check_table}</div>
-<h1>MSE of estimators</h1>
-    <h2>Comparison of analytical results</h2>
-        <div>
-            {mse_analytical_results_div}
-        </div>
-    <h2>Comparison of parametrization</h2>
-        <div>
-            {mse_para_div}
-        </div>
-    <h2>Comparison of estimators</h2>
-        <div>
-            {mse_est_div}
-        </div>
+{empi_dists_mse_block}
+{consistency_check_block}
+{mse_of_est_block}
 {physicality_violation_check_block}
 <div id="footer_content">
     <pdf:pagenumber>

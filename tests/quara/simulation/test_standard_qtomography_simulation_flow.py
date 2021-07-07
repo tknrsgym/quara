@@ -230,7 +230,7 @@ class TestSimulationCheckOnOff:
         # Case 1:
         # Act
         all_results = execute_simulation_test_settings(
-            test_settings, tmp_out_dir, pdf_mode="none"
+            test_settings, tmp_out_dir, pdf_mode="all"
         )
         actual = set(r["name"] for r in all_results[0].check_result["results"])
 
@@ -254,7 +254,7 @@ class TestSimulationCheckOnOff:
         all_results = execute_simulation_test_settings(
             test_settings,
             tmp_out_dir,
-            pdf_mode="none",
+            pdf_mode="all",
             exec_sim_check=source_exec_check,
         )
         actual = set(r["name"] for r in all_results[0].check_result["results"])
@@ -275,7 +275,7 @@ class TestSimulationCheckOnOff:
         all_results = execute_simulation_test_settings(
             test_settings,
             tmp_out_dir,
-            pdf_mode="none",
+            pdf_mode="all",
             exec_sim_check=source_exec_check,
         )
         actual = set(r["name"] for r in all_results[0].check_result["results"])
@@ -290,7 +290,7 @@ class TestSimulationCheckOnOff:
             _ = execute_simulation_test_settings(
                 test_settings,
                 tmp_out_dir,
-                pdf_mode="none",
+                pdf_mode="all",
                 exec_sim_check=source_exec_check,
             )
 
