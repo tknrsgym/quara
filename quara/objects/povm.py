@@ -265,33 +265,29 @@ class Povm(QOperation):
         np.ndarray
             the projection of povm on equal constraint.
         """
-        if on_para_eq_constraint:
-            new_var = var
-        else:
-            # var to vecs
-            new_var = copy.deepcopy(var)
-            vecs = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
+        # var to vecs
+        vecs = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
 
-            # project
-            size = c_sys.dim ** 2
-            m = len(vecs)
+        # project
+        size = c_sys.dim ** 2
+        m = len(vecs)
 
-            # c = [√d/m, 0, 0, ...]
-            c = np.hstack(
-                [
-                    np.array([np.sqrt(c_sys.dim) / m], dtype=np.float64),
-                    np.zeros(size - 1, dtype=np.float64),
-                ]
-            )
-            a_bar = np.sum(np.array(vecs), axis=0) / m
+        # c = [√d/m, 0, 0, ...]
+        c = np.hstack(
+            [
+                np.array([np.sqrt(c_sys.dim) / m], dtype=np.float64),
+                np.zeros(size - 1, dtype=np.float64),
+            ]
+        )
+        a_bar = np.sum(np.array(vecs), axis=0) / m
 
-            new_vecs = []
-            for vec in vecs:
-                new_vec = vec - a_bar + c
-                new_vecs.append(new_vec)
+        new_vecs = []
+        for vec in vecs:
+            new_vec = vec - a_bar + c
+            new_vecs.append(new_vec)
 
-            # vecs to var
-            new_var = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint)
+        # vecs to var
+        new_var = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint)
 
         return new_var
 

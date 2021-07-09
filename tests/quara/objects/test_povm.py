@@ -1156,7 +1156,7 @@ class TestPovm:
         with pytest.raises(TypeError):
             _ = 1 / povm_1
 
-    def test_calc_proj_eq_constraint(sefl):
+    def test_calc_proj_eq_constraint(self):
         # Case 1:
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
@@ -1181,6 +1181,42 @@ class TestPovm:
         for a, e in zip(actual.vecs, expected_vecs):
             npt.assert_almost_equal(a, e, decimal=15)
 
+    def test_calc_proj_eq_constraint_with_var(self):
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_x_povm(c_sys)
+
+        vec_1 = (
+            povm.vecs[0]
+            - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
+            + np.array([np.sqrt(2) / 2, 0, 0, 0])
+        )
+        vec_2 = (
+            povm.vecs[1]
+            - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
+            + np.array([np.sqrt(2) / 2, 0, 0, 0])
+        )
+        vecs = [vec_1, vec_2]
+
+        # Case 1: default
+        actual = povm.calc_proj_eq_constraint_with_var(c_sys, vec_1)
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        actual = povm.calc_proj_eq_constraint_with_var(
+            c_sys, vec_1, on_para_eq_constraint=True
+        )
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        actual = povm.calc_proj_eq_constraint_with_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        expected = np.hstack(vecs)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_ineq_constraint(self):
         # Case 1:
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
@@ -1198,6 +1234,34 @@ class TestPovm:
         assert len(actual.vecs) == len(expected_vecs)
         for a, e in zip(actual.vecs, expected_vecs):
             npt.assert_almost_equal(a, e, decimal=15)
+
+    def test_calc_proj_ineq_constraint_with_var(self):
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_x_povm(c_sys)
+
+        vec_1 = np.array([1 / np.sqrt(2), 1 / np.sqrt(2), 0, 0])
+        vec_2 = np.array([1 / np.sqrt(2), -1 / np.sqrt(2), 0, 0])
+        vecs = [vec_1, vec_2]
+
+        # Case 1: default
+        actual = povm.calc_proj_ineq_constraint_with_var(c_sys, vec_1)
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        actual = povm.calc_proj_ineq_constraint_with_var(
+            c_sys, vec_1, on_para_eq_constraint=True
+        )
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        actual = povm.calc_proj_ineq_constraint_with_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        expected = np.hstack(vecs)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_calc_gradient(self):
         # Arrange
@@ -1389,9 +1453,7 @@ class TestPovm:
         assert actual_eq.is_identity_sum() is True
         assert not np.allclose(povm.vecs, actual_eq.vecs)
 
-    """
     def test_convert_var_to_stacked_vector(self):
-        # TODO
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
         povm = get_z_povm(c_sys)
@@ -1401,10 +1463,28 @@ class TestPovm:
             np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
             np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
         ]
-        actual = povm.convert_var_to_stacked_vector(c_sys, np.hstack(vecs))
-        expected = np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64)
-        npt.assert_almost_equal(actual, expected, decimal=15)
-    """
+        actual = povm.convert_var_to_stacked_vector(c_sys, vecs[0])
+        npt.assert_almost_equal(actual, np.hstack(vecs), decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_var_to_stacked_vector(
+            c_sys, vecs[0], on_para_eq_constraint=True
+        )
+        npt.assert_almost_equal(actual, np.hstack(vecs), decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_var_to_stacked_vector(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        npt.assert_almost_equal(actual, np.hstack(vecs), decimal=15)
 
     def test_convert_stacked_vector_to_var(self):
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
