@@ -1,4 +1,4 @@
-from quara.objects import state
+from quara.objects import povm, state
 from _pytest.monkeypatch import V
 import numpy as np
 from numpy import ndarray, result_type
@@ -168,7 +168,7 @@ def estimate_standard_povmt_from_qiskit(
     return convert_povm_quara_to_qiskit(estimate_povm)
 
 
-def generate_empi_dists_from_qutip_state(
+def generate_empi_dists_from_qiskit_state(
     mode_system: str,
     num_system: int,
     true_state: List[List[np.ndarray]],
@@ -188,3 +188,28 @@ def generate_empi_dists_from_qutip_state(
         tester_povms_quara, is_physicality_required=True, schedules=schedules, seed=seed
     )
     return qst.generate_empi_dists(state=true_state_quara, num_sum=num_sum)
+
+
+def generate_empi_dists_from_qiskit_povm(
+    mode_system: str,
+    num_system: int,
+    true_povm: List[List[np.ndarray]],
+    tester_states: List[List[np.ndarray]],
+    num_sum: int,
+    seed: int,
+    schedules: Union[List[List[Tuple]], str],
+) -> List[Tuple[int, ndarray]]:
+
+    c_sys = generate_composite_system(mode_system, num_system)
+    tester_states_quara = []
+    for qiskit_state in tester_states:
+        tester_states_quara.append(convert_state_qiskit_to_quara(qiskit_state, c_sys))
+    true_povm_quara = convert_povm_qiskit_to_quara(true_povm, c_sys)
+
+    povmt = StandardPovmt(
+        tester_states_quara,
+        is_physicality_required=True,
+        schedules=schedules,
+        seed=seed,
+    )
+    return povmt.generate_empi_dists(povm=true_povm_quara, num_sum=num_sum)
