@@ -80,3 +80,7 @@ def test_estimate_standard_qst_from_qiskit(mode, num, true_state_name, decimal):
             true_state_qiskit,
             decimal=decimal,
         )
+
+
+@pytest.mark.qiskit
+@pytest.mark.parametrize
