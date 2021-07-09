@@ -15,6 +15,7 @@ from quara.interface.qiskit.conversion import (
     convert_empi_dists_quara_to_qiskit_shots,
     convert_povm_qiskit_to_quara,
     convert_state_quara_to_qiskit,
+    convert_state_qiskit_to_quara,
     convert_povm_quara_to_qiskit,
     convert_gate_quara_to_qiskit,
 )
@@ -83,4 +84,54 @@ def test_estimate_standard_qst_from_qiskit(mode, num, true_state_name, decimal):
 
 
 @pytest.mark.qiskit
-@pytest.mark.parametrize
+@pytest.mark.parametrize(
+    ("mode", "num", "true_povm_name", "decimal"), [("qubit", 1, "z", 4)]
+)
+def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal):
+    c_sys = generate_composite_system(mode, num)
+    true_povm = generate_povm_from_name(c_sys, true_povm_name)
+    true_povm_qiskit = convert_povm_quara_to_qiskit(true_povm)
+
+    get_tester_state_names_method_name = f"get_tester_povm_names_{int(num)}{mode}"
+    get_tester_state_names_method = eval(get_tester_state_names_method_name)
+    get_tester_state_names = get_tester_state_names_method()
+    tester_states = []
+    tester_states_qiskit = []
+    for tester_state_name in get_tester_state_names:
+        tester_state = generate_state_from_name(tester_state_name, c_sys)
+        tester_states.append(tester_state)
+        tester_states_qiskit.append(convert_state_qiskit_to_quara(tester_state, c_sys))
+
+    seed = 7896
+    povmt = StandardPovmt(
+        tester_states,
+        true_povm.num_outcomes,
+        on_para_eq_constraint=True,
+        schedules="all",
+        seed=seed,
+    )
+    prob_dists_arrays = povmt.calc_prob_dists(true_povm)
+    prob_dists = []
+    for prob_dist in prob_dists_arrays:
+        prob_dists.append((1, np.array(prob_dist)))
+
+    empi_dists_quara = convert_empi_dists_quara_to_qiskit(prob_dists)
+    shots = convert_empi_dists_quara_to_qiskit_shots(prob_dists)
+    label = [2, 2, 2]
+
+    for estimator_name in ["linear", "least_squares"]:
+        estimated_povm_qiskit = estimate_standard_povmt_from_qiskit(
+            mode,
+            num,
+            tester_states=tester_states_qiskit,
+            empi_dists=empi_dists_quara,
+            shots=shots,
+            label=label,
+            estimator_name=estimator_name,
+            schedules="all",
+        )
+        npt.assert_array_almost_equal(
+            estimated_povm_qiskit,
+            true_povm_qiskit,
+            decimal=decimal,
+        )
