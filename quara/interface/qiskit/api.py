@@ -6,6 +6,7 @@ from typing import List, Tuple, Union
 
 from quara.interface.qiskit.conversion import (
     convert_empi_dists_qiskit_to_quara,
+    convert_gate_qiskit_to_quara,
     convert_state_qiskit_to_quara,
     convert_state_quara_to_qiskit,
     convert_povm_qiskit_to_quara,
@@ -208,8 +209,39 @@ def generate_empi_dists_from_qiskit_povm(
 
     povmt = StandardPovmt(
         tester_states_quara,
-        is_physicality_required=True,
+        num_outcomes=true_povm_quara.num_outcomes,
+        on_para_eq_constraint=True,
         schedules=schedules,
         seed=seed,
     )
     return povmt.generate_empi_dists(povm=true_povm_quara, num_sum=num_sum)
+
+
+def generate_empi_dists_from_qiskit_gate(
+    mode_system: str,
+    num_system: int,
+    true_gate: np.ndarray,
+    tester_states: List[List[np.ndarray]],
+    tester_povms: List[List[np.ndarray]],
+    num_sum: int,
+    seed: int,
+    schedules: Union[List[List[Tuple]], str],
+) -> List[Tuple[int, ndarray]]:
+
+    c_sys = generate_composite_system(mode_system, num_system)
+    tester_states_quara = []
+    for qiskit_state in tester_states:
+        tester_states_quara.append(convert_state_qiskit_to_quara(qiskit_state, c_sys))
+    tester_povms_quara = []
+    for qiskit_povm in tester_povms:
+        tester_povms_quara.append(convert_povm_qiskit_to_quara(qiskit_povm, c_sys))
+    true_gate_quara = convert_gate_qiskit_to_quara(true_gate, c_sys)
+
+    qpt = StandardQpt(
+        tester_states_quara,
+        tester_povms_quara,
+        on_para_eq_constraint=True,
+        schedules=schedules,
+        seed=seed,
+    )
+    return qpt.generate_empi_dists(gate=true_gate_quara, num_sum=num_sum)
