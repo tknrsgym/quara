@@ -1,5 +1,3 @@
-from _pytest.python import showfixtures
-from numpy.lib import source
 from quara.objects.gate_typical import generate_gate_from_gate_name
 from quara.objects.povm_typical import generate_povm_from_name
 import numpy as np
