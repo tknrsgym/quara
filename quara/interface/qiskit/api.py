@@ -166,3 +166,25 @@ def estimate_standard_povmt_from_qiskit(
     else:
         raise ValueError("estimator is invalid")
     return convert_povm_quara_to_qiskit(estimate_povm)
+
+
+def generate_empi_dists_from_qutip_state(
+    mode_system: str,
+    num_system: int,
+    true_state: List[List[np.ndarray]],
+    tester_povms: List[List[np.ndarray]],
+    num_sum: int,
+    seed: int,
+    schedules: Union[List[List[Tuple]], str],
+) -> List[Tuple[int, ndarray]]:
+
+    c_sys = generate_composite_system(mode_system, num_system)
+    tester_povms_quara = []
+    for qiskit_povm in tester_povms:
+        tester_povms_quara.append(convert_povm_qiskit_to_quara(qiskit_povm, c_sys))
+    true_state_quara = convert_state_qiskit_to_quara(true_state, c_sys)
+
+    qst = StandardQst(
+        tester_povms_quara, is_physicality_required=True, schedules=schedules, seed=seed
+    )
+    return qst.generate_empi_dists(state=true_state_quara, num_sum=num_sum)
