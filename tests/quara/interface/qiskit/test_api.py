@@ -61,7 +61,7 @@ def test_estimate_standard_qst_from_qiskit(mode, num, true_state_name, decimal):
     for prob_dist in prob_dists_arrays:
         prob_dists.append((1, np.array(prob_dist)))
 
-    empi_dists_quara = convert_empi_dists_quara_to_qiskit(prob_dists)
+    empi_dists_qiskit = convert_empi_dists_quara_to_qiskit(prob_dists)
     shots = convert_empi_dists_quara_to_qiskit_shots(prob_dists)
     label = [2, 2, 2]
 
@@ -70,7 +70,7 @@ def test_estimate_standard_qst_from_qiskit(mode, num, true_state_name, decimal):
             mode,
             num,
             tester_povms=tester_povms_qiskit,
-            empi_dists=empi_dists_quara,
+            empi_dists=empi_dists_qiskit,
             shots=shots,
             label=label,
             estimator_name=estimator_name,
@@ -115,7 +115,7 @@ def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal)
     for prob_dist in prob_dists_arrays:
         prob_dists.append((1, np.array(prob_dist)))
 
-    empi_dists_quara = convert_empi_dists_quara_to_qiskit(prob_dists)
+    empi_dists_qiskit = convert_empi_dists_quara_to_qiskit(prob_dists)
     shots = convert_empi_dists_quara_to_qiskit_shots(prob_dists)
     label = [2, 2, 2]
 
@@ -124,7 +124,7 @@ def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal)
             mode,
             num,
             tester_states=tester_states_qiskit,
-            empi_dists=empi_dists_quara,
+            empi_dists=empi_dists_qiskit,
             shots=shots,
             label=label,
             estimator_name=estimator_name,
@@ -133,5 +133,70 @@ def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal)
         npt.assert_array_almost_equal(
             estimated_povm_qiskit,
             true_povm_qiskit,
+            decimal=decimal,
+        )
+
+
+@pytest.mark.qiskit
+@pytest.mark.parametrize(
+    ("mode", "num", "true_gate_name", "decimal"), [("qubit", 1, "identity", 4)]
+)
+def test_estimate_standard_qpt_from_qiskit(mode, num, true_gate_name, decimal):
+    c_sys = generate_composite_system(mode, num)
+    true_gate = generate_gate_from_gate_name(c_sys, true_gate_name)
+    true_gate_qiskit = convert_gate_quara_to_qiskit(true_gate)
+
+    get_tester_state_names_method_name = f"get_tester_povm_names_{int(num)}{mode}"
+    get_tester_state_names_method = eval(get_tester_state_names_method_name)
+    get_tester_state_names = get_tester_state_names_method()
+    tester_states = []
+    tester_states_qiskit = []
+    for tester_state_name in get_tester_state_names:
+        tester_state = generate_state_from_name(tester_state_name, c_sys)
+        tester_states.append(tester_state)
+        tester_states_qiskit.append(convert_state_qiskit_to_quara(tester_state, c_sys))
+
+    get_tester_povm_names_method_name = f"get_tester_povm_names_{int(num)}{mode}"
+    get_tester_povm_names_method = eval(get_tester_povm_names_method_name)
+    get_tester_povm_names = get_tester_povm_names_method()
+    tester_povms = []
+    tester_povms_qiskit = []
+    for tester_povm_name in get_tester_povm_names:
+        tester_povm = generate_povm_from_name(tester_povm_name, c_sys)
+        tester_povms.append(tester_povm)
+        tester_povms_qiskit.append(convert_povm_qiskit_to_quara(tester_povm, c_sys))
+
+    seed = 7896
+    qpt = StandardQpt(
+        tester_states,
+        tester_povms,
+        on_para_eq_constraint=True,
+        schedules="all",
+        seed=seed,
+    )
+    prob_dists_arrays = qpt.calc_prob_dists(true_gate)
+    prob_dists = []
+    for prob_dist in prob_dists_arrays:
+        prob_dists.append((1, np.array(prob_dist)))
+
+    empi_dists_qiskit = convert_empi_dists_quara_to_qiskit(prob_dists)
+    shots = convert_empi_dists_quara_to_qiskit_shots(prob_dists)
+    label = [2, 2, 2]
+
+    for estimator_name in ["linear", "least_squares"]:
+        estimated_gate_qiskit = estimate_standard_qpt_from_qiskit(
+            mode,
+            num,
+            tester_states=tester_states_qiskit,
+            tester_povms=tester_povms_qiskit,
+            empi_dists=empi_dists_qiskit,
+            shots=shots,
+            label=label,
+            estimator_name=estimator_name,
+            schedules="all",
+        )
+        npt.assert_array_almost_equal(
+            estimated_gate_qiskit,
+            true_gate_qiskit,
             decimal=decimal,
         )
