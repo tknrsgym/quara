@@ -66,6 +66,39 @@ def estimate_standard_qst_from_qiskit(
     schedules: Union[List[List[Tuple]], str],
 ) -> np.ndarray:
 
+    """Calculates estimate variables and returns an estimate of a quantum state by executing quantum state tomography of quara using tester POVMs and  empirical distirbutions.
+
+    Parameters
+    ----------
+    mode_system: str
+        "qubit"
+    num_system: int
+        number of qubits
+    tester_povms:List[List[np.ndarray]]
+        testers of QST
+    empi_dists:np.ndarray
+        empirical distribution to calculate estimators of variables
+    shots: int
+        sum number of shot
+    label: List[int]
+        label for kind of one POVM
+    estimator_name: str
+        "linear" or "least_squares"
+    schedules: Union[List[List[Tuple]],str]
+        schedule of the experiment
+
+    Returns
+    ---------
+    np.ndarray
+        estimated result of the quantum state
+
+    Raises
+    -------
+    ValueError
+        ``estimator name`` is invalid
+
+    """
+
     c_sys = generate_composite_system(mode_system, num_system)
     tester_povms_quara = []
     for qiskit_povm in tester_povms:
@@ -97,6 +130,41 @@ def estimate_standard_qpt_from_qiskit(
     estimator_name: str,
     schedules: Union[List[List[Tuple]], str],
 ) -> np.ndarray:
+
+    """Calculates estimate variables and returns an estimate of a quantum gate by executing quantum process tomography of quara using tester states, POVMs and  empirical distirbutions.
+
+    Parameters
+    ----------
+    mode_system: str
+        "qubit"
+    num_system: int
+        number of qubits
+    tester_states:List[List[np.ndarray]]
+        testers of QPT
+    tester_povms:List[List[np.ndarray]]
+        testers of QPT
+    empi_dists:np.ndarray
+        empirical distribution to calculate estimators of variables
+    shots: int
+        sum number of shot
+    label: List[int]
+        label for kind of one POVM
+    estimator_name: str
+        "linear" or "least_squares"
+    schedules: Union[List[List[Tuple]],str]
+        schedule of the experiment
+
+    Returns
+    ---------
+    np.ndarray
+        estimated result of the quantum gate
+
+    Raises
+    -------
+    ValueError
+        ``estimator name`` is invalid
+
+    """
 
     c_sys = generate_composite_system(mode_system, num_system)
     tester_states_quara = []
@@ -141,6 +209,41 @@ def estimate_standard_povmt_from_qiskit(
     schedules: Union[List[List[Tuple]], str],
 ) -> np.ndarray:
 
+    """Calculates estimate variables and returns an estimate of a quantum povm by executing quantum POVM tomography of quara using tester POVMs and  empirical distirbutions.
+
+    Parameters
+    ----------
+    mode_system: str
+        "qubit"
+    num_system: int
+        number of qubits
+    tester_states:List[List[np.ndarray]]
+        testers of POVMT
+    num_outcomes: int
+        number of outcome values of the POVM that will be estimated
+    empi_dists:np.ndarray
+        empirical distribution to calculate estimators of variables
+    shots: int
+        sum number of shot
+    label: List[int]
+        label for kind of one POVM
+    estimator_name: str
+        "linear" or "least_squares"
+    schedules: Union[List[List[Tuple]],str]
+        schedule of the experiment
+
+    Returns
+    ---------
+    np.ndarray
+        estimated result of the quantum POVM
+
+    Raises
+    -------
+    ValueError
+        ``estimator name`` is invalid
+
+    """
+
     c_sys = generate_composite_system(mode_system, num_system)
     tester_states_quara = []
     for qiskit_state in tester_states:
@@ -179,6 +282,31 @@ def generate_empi_dists_from_qiskit_state(
     schedules: Union[List[List[Tuple]], str],
 ) -> List[Tuple[int, ndarray]]:
 
+    """Generate empirical distributions using the data generated from probability distributions of specified schedules.
+
+    Parameters
+    ----------
+    mode_system: str
+        "qubit"
+    num_system: int
+        number of qubits
+    true_state: List[List[np.ndarray]]
+        true quantum state
+    tester_povms: List[List[np.ndarray]]
+        testers of QST
+    num_sum: int
+        number of observations per POVM
+    seed: int
+        seed number for generating random number
+    schedules: Union[List[List[Tuple]],str]
+        schedule of the experiment
+
+    Returns
+    ---------
+    List[Tuple[int, np.ndarray]]
+        empirical disribution which is a List of empirical probabilities.
+    """
+
     c_sys = generate_composite_system(mode_system, num_system)
     tester_povms_quara = []
     for qiskit_povm in tester_povms:
@@ -200,6 +328,31 @@ def generate_empi_dists_from_qiskit_povm(
     seed: int,
     schedules: Union[List[List[Tuple]], str],
 ) -> List[Tuple[int, ndarray]]:
+
+    """Generate empirical distributions using the data generated from probability distributions of specified schedules.
+
+    Parameters
+    ----------
+    mode_system: str
+        "qubit"
+    num_system: int
+        number of qubits
+    tester_states: List[List[np.ndarray]]
+        testers of POVMT
+    tester_povms: List[List[np.ndarray]]
+        true POVM
+    num_sum: int
+        number of observations per state
+    seed: int
+        seed number for generating random number
+    schedules: Union[List[List[Tuple]],str]
+        schedule of the experiment
+
+    Returns
+    ---------
+    List[Tuple[int, np.ndarray]]
+        empirical disribution which is a List of empirical probabilities.
+    """
 
     c_sys = generate_composite_system(mode_system, num_system)
     tester_states_quara = []
@@ -227,6 +380,31 @@ def generate_empi_dists_from_qiskit_gate(
     seed: int,
     schedules: Union[List[List[Tuple]], str],
 ) -> List[Tuple[int, ndarray]]:
+
+    """Generate empirical distributions using the data generated from probability distributions of specified schedules.
+
+    Parameters
+    ----------
+    mode_system: str
+        "qubit"
+    num_system: int
+        number of qubits
+    tester_states: List[List[np.ndarray]]
+        testers of QPT
+    tester_povms: List[List[np.ndarray]]
+        testers of QPT
+    num_sum: int
+        number of observations per POVM
+    seed: int
+        seed number for generating random number
+    schedules: Union[List[List[Tuple]],str]
+        schedule of the experiment
+
+    Returns
+    ---------
+    List[Tuple[int, np.ndarray]]
+        empirical disribution which is a List of empirical probabilities.
+    """
 
     c_sys = generate_composite_system(mode_system, num_system)
     tester_states_quara = []
