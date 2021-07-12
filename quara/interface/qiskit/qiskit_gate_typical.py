@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import numpy as np
 from qiskit.circuit.library.standard_gates import (
     rzx,
@@ -21,7 +21,7 @@ def get_qiskit_gate_names_3qubit() -> List[str]:
 
 
 def generate_qiskit_gate_from_gate_name(
-    gate_name: str,
+    gate_name: str, dim: Union[None, int] = None, ids: Union[None, List[int]] = None
 ) -> np.ndarray:
     if gate_name == "x":
         gate = x.XGate()
@@ -36,7 +36,13 @@ def generate_qiskit_gate_from_gate_name(
         mat = gate.__array__()
 
     elif gate_name == "zx90":
-        gate = rzx.RZXGate(np.pi / 2)
+        if ids == None or len(ids) != 2 or False in [i in ids for i in range(2)]:
+            raise ValueError("ids is None or invalid value")
+        if ids[0] < ids[1]:
+            hamiltonian = np.pi / 2
+        else:
+            hamiltonian = -np.pi / 2
+        gate = rzx.RZXGate(np.exp(hamiltonian))
         mat = gate.__array__()
 
     else:
