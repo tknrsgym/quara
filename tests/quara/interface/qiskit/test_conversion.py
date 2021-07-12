@@ -248,7 +248,7 @@ def _test_convert_gate_quara_to_qiskit(mode, num, gate_name):
 
     source = generate_gate_from_gate_name(gate_name, c_sys)
     actual = convert_gate_quara_to_qiskit(source)
-    npt.assert_almost_equal(actual, expected, dicimal=10)
+    npt.assert_almost_equal(actual, expected, decimal=10)
 
 
 @pytest.mark.qiskit
@@ -257,7 +257,7 @@ def _test_convert_gate_quara_to_qiskit(mode, num, gate_name):
     ("gate_name"),
     [(gate_name) for gate_name in get_qiskit_gate_names_1qubit()],
 )
-def test_convert_gate_quara_to_qiskit(gate_name):
+def test_convert_gate_quara_to_qiskit_1qubit(gate_name):
     _test_convert_gate_quara_to_qiskit("qubit", 1, gate_name)
 
 
@@ -266,7 +266,7 @@ def test_convert_gate_quara_to_qiskit(gate_name):
 @pytest.mark.parametrize(
     ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_2qubit()]
 )
-def test_convert_gate_quara_to_qiskit(gate_name):
+def test_convert_gate_quara_to_qiskit_2qubit(gate_name):
     _test_convert_gate_quara_to_qiskit("qubit", 2, gate_name)
 
 
