@@ -20,7 +20,9 @@ def get_qiskit_gate_names_3qubit() -> List[str]:
     return ["toffoli"]
 
 
-def generate_qiskit_gate_from_gate_name(gate_name: str) -> np.ndarray:
+def generate_qiskit_gate_from_gate_name(
+    gate_name: str, ids: Union[None, List[int]] = None
+) -> np.ndarray:
     if gate_name == "x":
         gate = x.XGate()
         mat = gate.__array__()
@@ -34,7 +36,12 @@ def generate_qiskit_gate_from_gate_name(gate_name: str) -> np.ndarray:
         mat = gate.__array__()
 
     elif gate_name == "cx":
-        gate = x.CXGate()
+        if ids == None or len(ids) != 2 or False in [i in ids for i in range(2)]:
+            raise ValueError("ids is None or invalid value")
+        elif ids[0] < ids[1]:
+            gate = x.CXGate()
+        else:
+            gate = x.CXGate(ctrl_state=0)
         mat = gate.__array__()
 
     else:
