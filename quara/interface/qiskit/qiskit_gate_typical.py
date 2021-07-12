@@ -36,11 +36,8 @@ def generate_qiskit_gate_from_gate_name(
         mat = gate.__array__()
 
     elif gate_name == "zx90":
-        gate = rzx.RZXGate(np.pi/2)
+        gate = rzx.RZXGate(np.pi / 2)
         mat = gate.__array__()
-
-    elif gate_name == "toffoli":
-        gate = 
 
     else:
         raise ValueError("gate_name is out of range")
