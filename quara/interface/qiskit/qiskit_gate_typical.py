@@ -13,16 +13,14 @@ def get_qiskit_gate_names_1qubit() -> List[str]:
 
 
 def get_qiskit_gate_names_2qubit() -> List[str]:
-    return ["zx90"]
+    return ["cx"]
 
 
 def get_qiskit_gate_names_3qubit() -> List[str]:
     return ["toffoli"]
 
 
-def generate_qiskit_gate_from_gate_name(
-    gate_name: str, dim: Union[None, int] = None, ids: Union[None, List[int]] = None
-) -> np.ndarray:
+def generate_qiskit_gate_from_gate_name(gate_name: str) -> np.ndarray:
     if gate_name == "x":
         gate = x.XGate()
         mat = gate.__array__()
@@ -35,14 +33,8 @@ def generate_qiskit_gate_from_gate_name(
         gate = z.ZGate()
         mat = gate.__array__()
 
-    elif gate_name == "zx90":
-        if ids == None or len(ids) != 2 or False in [i in ids for i in range(2)]:
-            raise ValueError("ids is None or invalid value")
-        if ids[0] < ids[1]:
-            hamiltonian = np.pi / 2
-        else:
-            hamiltonian = -np.pi / 2
-        gate = rzx.RZXGate(np.exp(hamiltonian))
+    elif gate_name == "cx":
+        gate = x.CXGate()
         mat = gate.__array__()
 
     else:
