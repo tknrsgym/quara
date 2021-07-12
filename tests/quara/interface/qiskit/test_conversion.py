@@ -57,7 +57,7 @@ def _test_convert_state_qiskit_to_quara(mode, num, state_name):
     source = generate_qiskit_state_from_name(state_name)
     actual = convert_state_qiskit_to_quara(source, c_sys)
     npt.assert_array_almost_equal(
-        actual.to_density_matrix, expected.to_density_matrix, decimal=10
+        actual.to_density_matrix(), expected.to_density_matrix(), decimal=10
     )
 
 
@@ -96,7 +96,7 @@ def _test_convert_state_quara_to_qiskit(mode, num, state_name):
 
     source = generate_state_from_name(c_sys, state_name)
     actual = convert_state_quara_to_qiskit(source)
-    npt.assert_almost_equal(actual, expected, dicimal=10)
+    npt.assert_almost_equal(actual, expected, decimal=10)
 
 
 @pytest.mark.qiskit
@@ -123,7 +123,7 @@ def test_convert_state_quara_to_qiskit_2qubit(state_name):
 @pytest.mark.parametrize(
     ("state_name"), [(state_name) for state_name in get_qiskit_state_names_3qubit()]
 )
-def test_convert_state_quara_to_qiksit_3qubit(state_name):
+def test_convert_state_quara_to_qiskit_3qubit(state_name):
     _test_convert_state_quara_to_qiskit("qubit", 3, state_name)
 
 
@@ -134,7 +134,7 @@ def _test_convert_povm_qiskit_to_quara(mode, num, povm_name):
 
     source = generate_qiskit_povm_from_povm_name(povm_name)
     actual = convert_povm_qiskit_to_quara(source, c_sys)
-    npt.assert_almost_equal(actual.matrices, expected.matrices, dicimal=10)
+    npt.assert_almost_equal(actual.matrices(), expected.matrices(), decimal=10)
 
 
 @pytest.mark.qiskit
@@ -143,7 +143,7 @@ def _test_convert_povm_qiskit_to_quara(mode, num, povm_name):
     ("povm_name"),
     [(povm_name) for povm_name in get_qiskit_povm_names_1qubit()],
 )
-def test_convert_povm_qiskit_to_quara(povm_name):
+def test_convert_povm_qiskit_to_quara_1qubit(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 1, povm_name)
 
 
@@ -152,7 +152,7 @@ def test_convert_povm_qiskit_to_quara(povm_name):
 @pytest.mark.parametrize(
     ("povm_name"), [(povm_name) for povm_name in get_qiskit_povm_names_2qubit()]
 )
-def test_convert_povm_qiskit_to_quara(povm_name):
+def test_convert_povm_qiskit_to_quara_2qubit(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 2, povm_name)
 
 
@@ -161,7 +161,7 @@ def test_convert_povm_qiskit_to_quara(povm_name):
 @pytest.mark.parametrize(
     ("povm_name"), [(povm_name) for povm_name in get_qiskit_povm_names_3qubit()]
 )
-def test_convert_povm_qiskit_to_quara(povm_name):
+def test_convert_povm_qiskit_to_quara_3qubit(povm_name):
     _test_convert_povm_qiskit_to_quara("qubit", 3, povm_name)
 
 
