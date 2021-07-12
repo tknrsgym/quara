@@ -203,11 +203,11 @@ def test_convert_povm_quara_to_qiskit_3qubit(povm_name):
     _test_convert_povm_quara_to_qiskit("qubit", 3, povm_name)
 
 
-def _test_convert_gate_qiskit_to_quara(mode, num, dim, gate_name, ids=None):
+def _test_convert_gate_qiskit_to_quara(mode, num, gate_name, ids=None):
     c_sys = generate_composite_system(mode, num)
     expected = generate_gate_from_gate_name(gate_name, c_sys, ids)
 
-    source = generate_qiskit_gate_from_gate_name(gate_name, dim, ids)
+    source = generate_qiskit_gate_from_gate_name(gate_name)
     actual = convert_gate_qiskit_to_quara(source, c_sys)
     npt.assert_almost_equal(
         actual.to_kraus_matrices(), expected.to_kraus_matrices(), decimal=10
@@ -221,7 +221,7 @@ def _test_convert_gate_qiskit_to_quara(mode, num, dim, gate_name, ids=None):
     [(gate_name) for gate_name in get_qiskit_gate_names_1qubit()],
 )
 def test_convert_gate_qiskit_to_quara_1qubit(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 1, 2, gate_name)
+    _test_convert_gate_qiskit_to_quara("qubit", 1, gate_name)
 
 
 @pytest.mark.qiskit
@@ -230,7 +230,7 @@ def test_convert_gate_qiskit_to_quara_1qubit(gate_name):
     ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_2qubit()]
 )
 def test_convert_gate_qiskit_to_quara_2qubit(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 2, 4, gate_name, [0, 1])
+    _test_convert_gate_qiskit_to_quara("qubit", 2, gate_name, ids=[0, 1])
 
 
 @pytest.mark.qiskit
@@ -242,7 +242,7 @@ def test_convert_gate_qiskit_to_quara_3qubit(gate_name):
     _test_convert_gate_qiskit_to_quara("qubit", 3, 8, gate_name)
 
 
-def _test_convert_gate_quara_to_qiskit(mode, num, gate_name):
+def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids=None):
     c_sys = generate_composite_system(mode, num)
     expected = generate_qiskit_gate_from_gate_name(gate_name)
 
@@ -292,7 +292,7 @@ def _test_convert_empi_dists_qiskit_to_quara(
         )
     ],
 )
-def test_convert_empi_dists_qiskit_to_quara(
+def test_convert_empi_dists_qiskit_to_quara_list(
     empi_dists_quara, empi_dists_qiskit, shots, label
 ):
     _test_convert_empi_dists_qiskit_to_quara(
