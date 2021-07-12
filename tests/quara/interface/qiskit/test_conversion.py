@@ -172,7 +172,7 @@ def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
 
     source = generate_povm_from_name(povm_name, c_sys)
     actual = convert_povm_quara_to_qiskit(source)
-    npt.assert_almost_equal(actual, expected, dicimal=10)
+    npt.assert_almost_equal(actual, expected, decimal=10)
 
 
 @pytest.mark.qiskit
@@ -181,7 +181,7 @@ def _test_convert_povm_quara_to_qiskit(mode, num, povm_name):
     ("povm_name"),
     [(povm_name) for povm_name in get_qiskit_povm_names_1qubit()],
 )
-def test_convert_povm_quara_to_qiskit(povm_name):
+def test_convert_povm_quara_to_qiskit_1qubit(povm_name):
     _test_convert_povm_quara_to_qiskit("qubit", 1, povm_name)
 
 
@@ -190,7 +190,7 @@ def test_convert_povm_quara_to_qiskit(povm_name):
 @pytest.mark.parametrize(
     ("povm_name"), [(povm_name) for povm_name in get_qiskit_povm_names_2qubit()]
 )
-def test_convert_povm_quara_to_qiskit(povm_name):
+def test_convert_povm_quara_to_qiskit_2qubit(povm_name):
     _test_convert_povm_quara_to_qiskit("qubit", 2, povm_name)
 
 
@@ -199,18 +199,18 @@ def test_convert_povm_quara_to_qiskit(povm_name):
 @pytest.mark.parametrize(
     ("povm_name"), [(povm_name) for povm_name in get_qiskit_povm_names_3qubit()]
 )
-def test_convert_povm_quara_to_qiskit(povm_name):
+def test_convert_povm_quara_to_qiskit_3qubit(povm_name):
     _test_convert_povm_quara_to_qiskit("qubit", 3, povm_name)
 
 
-def _test_convert_gate_qiskit_to_quara(mode, num, gate_name):
+def _test_convert_gate_qiskit_to_quara(mode, num, dim, gate_name, ids=None):
     c_sys = generate_composite_system(mode, num)
-    expected = generate_gate_from_gate_name(gate_name, c_sys)
+    expected = generate_gate_from_gate_name(gate_name, c_sys, ids)
 
-    source = generate_qiskit_gate_from_gate_name(gate_name)
+    source = generate_qiskit_gate_from_gate_name(gate_name, dim, ids)
     actual = convert_gate_qiskit_to_quara(source, c_sys)
     npt.assert_almost_equal(
-        actual.to_kraus_matrices, expected.to_kraus_matrices, dicimal=10
+        actual.to_kraus_matrices(), expected.to_kraus_matrices(), decimal=10
     )
 
 
@@ -220,8 +220,8 @@ def _test_convert_gate_qiskit_to_quara(mode, num, gate_name):
     ("gate_name"),
     [(gate_name) for gate_name in get_qiskit_gate_names_1qubit()],
 )
-def test_convert_gate_qiskit_to_quara(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 1, gate_name)
+def test_convert_gate_qiskit_to_quara_1qubit(gate_name):
+    _test_convert_gate_qiskit_to_quara("qubit", 1, 2, gate_name)
 
 
 @pytest.mark.qiskit
@@ -229,8 +229,8 @@ def test_convert_gate_qiskit_to_quara(gate_name):
 @pytest.mark.parametrize(
     ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_2qubit()]
 )
-def test_convert_gate_qiskit_to_quara(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 2, gate_name)
+def test_convert_gate_qiskit_to_quara_2qubit(gate_name):
+    _test_convert_gate_qiskit_to_quara("qubit", 2, 4, gate_name, [0, 1])
 
 
 @pytest.mark.qiskit
@@ -238,8 +238,8 @@ def test_convert_gate_qiskit_to_quara(gate_name):
 @pytest.mark.parametrize(
     ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_3qubit()]
 )
-def test_convert_gate_qiskit_to_quara(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 3, gate_name)
+def test_convert_gate_qiskit_to_quara_3qubit(gate_name):
+    _test_convert_gate_qiskit_to_quara("qubit", 3, 8, gate_name)
 
 
 def _test_convert_gate_quara_to_qiskit(mode, num, gate_name):
