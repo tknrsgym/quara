@@ -42,7 +42,7 @@ class MProcess(QOperation):
         )
         self._hss: np.ndarray = hss
 
-        for hs in enumerate(self._hss):
+        for i, hs in enumerate(self._hss):
             # whether HS representation is square matrix
             size = hs.shape
             if size[0] != size[1]:
