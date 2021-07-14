@@ -12,6 +12,7 @@ from quara.objects.gate import Gate
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import Povm
 from quara.objects.state import State
+from quara.objects.mprocess import MProcess
 from quara.settings import Settings
 from quara.utils import matrix_util
 
@@ -25,6 +26,9 @@ def tensor_product(*elements) -> Union[MatrixBasis, State, Povm, Gate]:
     - (MatrixBasis, MatrixBasis) -> MatrixBasis
     - (State, State) -> State
     - (Povm, Povm) -> Povm
+    - (MProcess, MProcess) -> MProcess
+    - (MProcess, Gate) -> MProcess
+    - (Gate, MProcess) -> MProcess
     - list conststs of these combinations
 
     Returns
@@ -232,6 +236,15 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
+    elif type(elem1) == MProcess and type(elem2) == MProcess:
+        # MProcess (x) MProcess -> MProcess
+        # TODO
+        raise NotImplementedError()
+    elif set(type(elem1), type(elem2)) == {MProcess, Gate}:
+        # MProcess (x) Gate -> MProcess
+        # MProcess (x) MProcess -> Gate
+        # TODO
+        raise NotImplementedError()
     else:
         raise TypeError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
