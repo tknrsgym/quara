@@ -36,6 +36,22 @@ def get_state_ensemble_z0_elements(c_sys: CompositeSystem):
     return states, prob_dist
 
 
+def get_state_ensemble_z1_elements(c_sys: CompositeSystem):
+    z0 = generate_state_from_name(state_name="z0", c_sys=c_sys)
+    z1 = generate_state_from_name(state_name="z0", c_sys=c_sys)
+    states = [z0, z1]
+    prob_dist = [0, 1]
+    return states, prob_dist
+
+
+def get_state_ensemble_x0_elements(c_sys: CompositeSystem):
+    z0 = generate_state_from_name(state_name="z0", c_sys=c_sys)
+    z1 = generate_state_from_name(state_name="z0", c_sys=c_sys)
+    states = [z0, z1]
+    prob_dist = [1 / 2, 1 / 2]
+    return states, prob_dist
+
+
 def generate_state_ensemble_from_name(c_sys, state_ensemble_name):
     # TODO:
     states, prob_dist = generate_state_ensemble_elements_from_name(
