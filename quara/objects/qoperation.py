@@ -846,7 +846,7 @@ class QOperation:
         p_prev = self.generate_zero_obj().to_stacked_vector()
         q_prev = self.generate_zero_obj().to_stacked_vector()
         x_prev = self.convert_var_to_stacked_vector(
-            self.composite_system, var, on_para_eq_constraint
+            self.composite_system, var, on_para_eq_constraint=on_para_eq_constraint
         )
         y_prev = None
 

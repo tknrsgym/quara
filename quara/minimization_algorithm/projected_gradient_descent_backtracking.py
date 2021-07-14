@@ -301,7 +301,7 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             option.on_algo_eq_constraint == True
             and option.on_algo_ineq_constraint == True
         ):
-            self._func_proj = setting_info.func_calc_proj_physical(
+            self._func_proj = setting_info.func_calc_proj_physical_with_var(
                 on_para_eq_constraint=setting_info.on_para_eq_constraint,
                 mode_proj_order=option.mode_proj_order,
             )
@@ -309,14 +309,14 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             option.on_algo_eq_constraint == True
             and option.on_algo_ineq_constraint == False
         ):
-            self._func_proj = setting_info.func_calc_proj_eq_constraint(
+            self._func_proj = setting_info.func_calc_proj_eq_constraint_with_var(
                 setting_info.on_para_eq_constraint
             )
         elif (
             option.on_algo_eq_constraint == False
             and option.on_algo_ineq_constraint == True
         ):
-            self._func_proj = setting_info.func_calc_proj_ineq_constraint(
+            self._func_proj = setting_info.func_calc_proj_ineq_constraint_with_var(
                 setting_info.on_para_eq_constraint
             )
         else:
