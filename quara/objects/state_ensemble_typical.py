@@ -57,7 +57,7 @@ def generate_state_ensemble_from_name(c_sys, state_ensemble_name):
     states, prob_dist = generate_state_ensemble_elements_from_name(
         state_ensemble_name, c_sys
     )
-    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+    state_ensemble = StateEnsemble(states=states, prob_dist=ProbDist(prob_dist))
     return state_ensemble
 
 
