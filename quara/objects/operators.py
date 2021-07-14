@@ -13,6 +13,8 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import Povm
 from quara.objects.state import State
 from quara.objects.mprocess import MProcess
+from quara.objects.state_ensemble import StateEnsemble
+from quara.objects.prob_dist import ProbDist
 from quara.settings import Settings
 from quara.utils import matrix_util
 
@@ -251,7 +253,9 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         )
 
 
-def compose_qoperations(*elements) -> Union[Gate, Povm, State, List[float]]:
+def compose_qoperations(
+    *elements,
+) -> Union[Gate, Povm, State, List[float], MProcess, StateEnsemble, ProbDist]:
     """calculates composition of qoperations.
 
     this function can calculate composition of the following combinations of types:
@@ -260,11 +264,19 @@ def compose_qoperations(*elements) -> Union[Gate, Povm, State, List[float]]:
     - (Gate, State) -> State
     - (Povm, Gate) -> Povm
     - (Povm, State) -> List[np.ndarray] dtype=np.float64(probability distribution)
+    - (MProcess, State) -> StateEnsemble
+    - (Povm, MProcess) -> Povm
+    - (Gate, MProcess) -> MProcess
+    - (MProcess, Gate) -> MProcess
+    - (MProcess, MProcess) -> MProcess
+    - (Mprocess, StateEnsemble) -> StateEnsemble
+    - (Gate, StateEnsemble) -> StateEnsemble
+    - (Povm, StateEnsemble) -> ProbDist
     - list conststs of these combinations
 
     Returns
     -------
-    Union[Gate, Povm, State, List[float]]
+    Union[Gate, Povm, State, List[float], MProcess, StateEnsemble, ProbDist]
         composition of qoperations.
 
     Raises
