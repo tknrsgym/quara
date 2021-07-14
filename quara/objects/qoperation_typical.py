@@ -22,6 +22,9 @@ from quara.objects.gate_typical import (
 from quara.objects.mprocess_typical import (
     generate_mprocess_object_from_mprocess_name_object_name,
 )
+from quara.objects.state_ensemble_typical import (
+    generate_state_ensemble_object_from_state_ensemble_name_object_name,
+)
 from quara.objects.effective_lindbladian_typical import (
     generate_effective_lindbladian_object_from_gate_name_object_name,
 )
@@ -97,6 +100,10 @@ def generate_qoperation_object(
         return generate_mprocess_object(
             mprocess_name=name, object_name=object_name, c_sys=c_sys
         )
+    elif mode == "state_ensemble":
+        return generate_state_ensemble_object(
+            state_ensemble_name=name, object_name=object_name, c_sys=c_sys
+        )
     else:
         error_message = "mode is out of range."
         raise ValueError(error_message)
@@ -164,6 +171,17 @@ def generate_mprocess_object(
 ) -> Union[np.ndarray, "Gate"]:
     res = generate_mprocess_object_from_mprocess_name_object_name(
         mprocess_name, object_name, c_sys
+    )
+    return res
+
+
+def generate_state_ensemble_object(
+    state_ensemble_name: str,
+    object_name: str,
+    c_sys: CompositeSystem = None,
+) -> Union[np.ndarray, "Gate"]:
+    res = generate_state_ensemble_object_from_state_ensemble_name_object_name(
+        state_ensemble_name, object_name, c_sys
     )
     return res
 

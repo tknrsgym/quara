@@ -36,3 +36,8 @@ class ProbDist:
             return target
         else:
             raise TypeError
+
+    def __repr__(self):
+        text = f"shape = {self.shepe}\n"
+        text += f"ps = {self._ps}"
+        return text
