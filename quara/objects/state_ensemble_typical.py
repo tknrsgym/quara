@@ -30,7 +30,7 @@ def generate_state_ensemble_elements_from_name(
 
 def get_state_ensemble_z0_elements(c_sys: CompositeSystem):
     z0 = generate_state_from_name(state_name="z0", c_sys=c_sys)
-    z1 = generate_state_from_name(state_name="z0", c_sys=c_sys)
+    z1 = generate_state_from_name(state_name="z1", c_sys=c_sys)
     states = [z0, z1]
     prob_dist = [1, 0]
     return states, prob_dist
