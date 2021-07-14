@@ -338,6 +338,30 @@ def _compose_qoperations(elem1, elem2):
         prob = np.array(prob_list, dtype=np.float64)
         prob = matrix_util.truncate_and_normalize(prob)
         return prob
+    elif type(elem1) == MProcess and type(elem2) == State:
+        # -> StateEnsemble
+        raise NotImplementedError()
+    elif type(elem1) == Povm and type(elem2) == MProcess:
+        # -> Povm
+        raise NotImplementedError()
+    elif type(elem1) == Gate and type(elem2) == MProcess:
+        # -> MProcess
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == Gate:
+        # -> MProcess
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == MProcess:
+        # -> MProcess
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == StateEnsemble:
+        # -> StateEnsemble
+        raise NotImplementedError()
+    elif type(elem1) == Gate and type(elem2) == StateEnsemble:
+        # -> StateEnsemble
+        raise NotImplementedError()
+    elif type(elem1) == Povm and type(elem2) == StateEnsemble:
+        # -> ProbDist
+        raise NotImplementedError()
     else:
         raise TypeError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
