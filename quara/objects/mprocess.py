@@ -77,7 +77,6 @@ class MProcess(QOperation):
         info = {}
         info["Type"] = self.__class__.__name__
         info["Dim"] = self.dim
-        info["Shape"] = self.shape
         info["HSs"] = self.hss
         return info
 
