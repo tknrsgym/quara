@@ -287,7 +287,7 @@ class Povm(QOperation):
             new_vecs.append(new_vec)
 
         # vecs to var
-        new_var = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint)
+        new_var = convert_vecs_to_var(c_sys, new_vecs, on_para_eq_constraint)
 
         return new_var
 
@@ -666,8 +666,11 @@ class Povm(QOperation):
         np.ndarray
             stacked vector of povm.
         """
-        vecs = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
-        stacked_vector = np.hstack(vecs)
+        if on_para_eq_constraint:
+            vecs = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
+            stacked_vector = np.hstack(vecs)
+        else:
+            stacked_vector = var
         return stacked_vector
 
     @staticmethod
@@ -692,8 +695,15 @@ class Povm(QOperation):
         np.ndarray
             variables of povm.
         """
-        vecs = convert_var_to_vecs(c_sys, stacked_vector, on_para_eq_constraint=False)
-        return convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint)
+        if on_para_eq_constraint:
+            vecs = convert_var_to_vecs(
+                c_sys, stacked_vector, on_para_eq_constraint=False
+            )
+            var = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint)
+        else:
+            var = stacked_vector
+
+        return var
 
 
 def to_matrices_from_vecs(
