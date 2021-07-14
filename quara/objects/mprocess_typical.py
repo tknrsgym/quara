@@ -23,7 +23,9 @@ def generate_mprocess_hss_from_name(mprocess_name: str):
 
 def get_mprocess_z_hss():
     hs_0 = (1 / 2) * np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
-    hs_1 = (1 / 2) * np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, -1]])
+    hs_1 = (1 / 2) * np.array(
+        [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+    )
     hss = [hs_0, hs_1]
     return hss
 
