@@ -19,6 +19,7 @@ class ProbDist:
         return self._shape
 
     def __getitem__(self, idx):
+        # Working in progress
         if type(idx) == int:
             # One-dimensional access
             # ex) prob_dist[0]
