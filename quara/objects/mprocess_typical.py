@@ -29,10 +29,11 @@ def get_mprocess_z_hss():
 
 
 def generate_mprocess_from_name(c_sys: CompositeSystem, mprocess_name: str) -> MProcess:
+    # TODO:
     # hss = generate_mprocess_hss_from_name(c_sys.basis(), mprocess_name)
     hss = generate_mprocess_hss_from_name(mprocess_name)
-    state = MProcess(hss=hss, c_sys=c_sys)
-    return state
+    mprocess = MProcess(hss=hss, c_sys=c_sys)
+    return mprocess
 
 
 def generate_mprocess_object_from_mprocess_name_object_name(
