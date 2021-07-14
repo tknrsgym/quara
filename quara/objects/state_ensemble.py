@@ -21,7 +21,9 @@ class StateEnsemble(QOperation):
     def _info(self):
         info = {}
         info["Type"] = self.__class__.__name__
-        info["States"] = "\n\n".join([s.__str__() for s in self.states])
-        info["ProbDist"] = self.prob_dist.__repr__()
+        info["States"] = "\n".join(
+            [f"states[{i}]: {s._info()['Vec']}" for i, s in enumerate(self.states)]
+        )
+        info["ProbDist"] = self.prob_dist.__str__()
 
         return info
