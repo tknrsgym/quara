@@ -4,7 +4,7 @@ import numpy as np
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.state import State
 from quara.objects.state_ensemble import StateEnsemble
-from quara.objects.prob_dist import ProbDist
+from quara.objects.multinomial_distribution import MultinomialDistribution
 
 from quara.objects.state_typical import get_state_names_1qubit, generate_state_from_name
 
@@ -57,7 +57,9 @@ def generate_state_ensemble_from_name(c_sys, state_ensemble_name):
     states, prob_dist = generate_state_ensemble_elements_from_name(
         state_ensemble_name, c_sys
     )
-    state_ensemble = StateEnsemble(states=states, prob_dist=ProbDist(prob_dist))
+    state_ensemble = StateEnsemble(
+        states=states, prob_dist=MultinomialDistribution(prob_dist)
+    )
     return state_ensemble
 
 

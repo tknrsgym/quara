@@ -2,11 +2,11 @@ from typing import List
 
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
-from quara.objects.prob_dist import ProbDist
+from quara.objects.multinomial_distribution import MultinomialDistribution
 
 
 class StateEnsemble(QOperation):
-    def __init__(self, states: List[State], prob_dist: ProbDist):
+    def __init__(self, states: List[State], prob_dist: MultinomialDistribution):
         self._states = states
         self._prob_dist = prob_dist
 
@@ -24,6 +24,6 @@ class StateEnsemble(QOperation):
         info["States"] = "\n".join(
             [f"states[{i}]: {s._info()['Vec']}" for i, s in enumerate(self.states)]
         )
-        info["ProbDist"] = self.prob_dist.__str__()
+        info["MultinomialDistribution"] = self.prob_dist.__str__()
 
         return info

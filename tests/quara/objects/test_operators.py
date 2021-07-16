@@ -53,6 +53,7 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
+from quara.objects.state_ensemble_typical import get_state_ensemble_z0_elements
 
 
 def test_tensor_product_Gate_Gate():
@@ -834,6 +835,24 @@ def test_compose_qoperations_Povm_State():
     px_z = compose_qoperations(compose_qoperations(povm, x_gate), state)
     p_xz = compose_qoperations(povm, compose_qoperations(x_gate, state))
     npt.assert_almost_equal(px_z, p_xz, decimal=15)
+
+
+"""
+def test_compose_qoperations_Povm_StateEnsemble():
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    vecs = [
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
+    ]
+    povm = Povm(c_sys, vecs)
+
+    # State Ensemble z0
+    state_ens = get_state_ensemble_z0_elements(c_sys)
+    actual = compose_qoperations(povm, state_ens)
+    expected = [1, 0]
+    npt.assert_almost_equal(actual, expected, decimal=15)
+"""
 
 
 def test_to_list():
