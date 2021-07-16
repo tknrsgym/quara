@@ -31,7 +31,7 @@ def get_empi_dists_shots_list() -> List[int]:
 
 
 def get_empi_dists_shots_int() -> int:
-    shots = 1000
+    shots = [1000, 1000, 1000]
     return shots
 
 
