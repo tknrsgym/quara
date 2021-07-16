@@ -29,7 +29,7 @@ def get_tester_state_names_1qubit():
     return ["x0", "y0", "z0", "z1"]
 
 
-def get_tester_povms_names_1qubit():
+def get_tester_povm_names_1qubit():
     return ["x", "y", "z"]
 
 
@@ -50,7 +50,7 @@ def test_estimate_standard_qst_from_qiskit(mode, num, true_state_name, decimal):
     for tester_povm_name in get_tester_povm_names:
         tester_povm = generate_povm_from_name(tester_povm_name, c_sys)
         tester_povms.append(tester_povm)
-        tester_povms_qiskit.append(convert_povm_qiskit_to_quara(tester_povm, c_sys))
+        tester_povms_qiskit.append(convert_povm_quara_to_qiskit(tester_povm))
 
     seed = 7896
     qst = StandardQst(
