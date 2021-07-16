@@ -384,6 +384,7 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
         algorithm_option: ProjectedGradientDescentBacktrackingOption,
+        max_iteration: int = 1000,
         on_iteration_history: bool = False,
     ) -> ProjectedGradientDescentBacktrackingResult:
         """optimizes using specified parameters.
@@ -396,6 +397,8 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             Loss Function Option
         algorithm_option : ProjectedGradientDescentBaseOption
             Projected Gradient Descent Base Algorithm Option
+        max_iteration: int, optional
+            maximun number of iterations, by default 1000.
         on_iteration_history : bool, optional
             whether to return iteration history, by default False
 
@@ -450,9 +453,8 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             alphas = []
         error_values = []
 
-        k = 0
         is_doing = True
-        while is_doing:
+        for k in range(1, max_iteration + 1):
             # shift variables
             if x_next is not None:
                 x_prev = x_next
@@ -466,7 +468,6 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
                 alpha = 0.5 * alpha
 
             x_next = x_prev + alpha * y_prev
-            k += 1
 
             # calc error value depend on "mode_stopping_criterion_gradient_descent"
             if (
@@ -501,14 +502,16 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             )
             value = np.sum(error_values[-sum_range:])
 
-            is_doing = True if value > eps else False
-
             # variables for iteration history
             if on_iteration_history:
                 fxs.append(loss_function.value(x_next))
                 xs.append(x_next)
                 ys.append(y_prev)
                 alphas.append(alpha)
+
+            is_doing = True if value > eps else False
+            if not is_doing:
+                break
 
         if on_iteration_history:
             computation_time = time.time() - start_time
