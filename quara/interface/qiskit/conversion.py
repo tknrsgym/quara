@@ -173,7 +173,7 @@ def convert_empi_dists_quara_to_qiskit(
 
     qiskit_dists = []
     for i in quara_dists:
-        qiskit_dists = qiskit_dists + i[1]
+        qiskit_dists = np.hstack((qiskit_dists, i[1]))
     return qiskit_dists
 
 
