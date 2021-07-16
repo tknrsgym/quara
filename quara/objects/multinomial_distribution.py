@@ -5,7 +5,7 @@ import numpy as np
 from typing import Tuple
 
 
-class ProbDist:
+class MultinomialDistribution:
     def __init__(self, ps: np.ndarray, shape: Tuple[int] = None):
         self._ps = ps
         self._shape = shape
