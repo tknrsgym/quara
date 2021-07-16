@@ -89,18 +89,18 @@ def test_estimate_standard_qst_from_qiskit(mode, num, true_state_name, decimal):
 )
 def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal):
     c_sys = generate_composite_system(mode, num)
-    true_povm = generate_povm_from_name(c_sys, true_povm_name)
+    true_povm = generate_povm_from_name(true_povm_name, c_sys)
     true_povm_qiskit = convert_povm_quara_to_qiskit(true_povm)
 
-    get_tester_state_names_method_name = f"get_tester_povm_names_{int(num)}{mode}"
+    get_tester_state_names_method_name = f"get_tester_state_names_{int(num)}{mode}"
     get_tester_state_names_method = eval(get_tester_state_names_method_name)
     get_tester_state_names = get_tester_state_names_method()
     tester_states = []
     tester_states_qiskit = []
     for tester_state_name in get_tester_state_names:
-        tester_state = generate_state_from_name(tester_state_name, c_sys)
+        tester_state = generate_state_from_name(c_sys, tester_state_name)
         tester_states.append(tester_state)
-        tester_states_qiskit.append(convert_state_qiskit_to_quara(tester_state, c_sys))
+        tester_states_qiskit.append(convert_state_quara_to_qiskit(tester_state))
 
     seed = 7896
     povmt = StandardPovmt(
@@ -127,6 +127,7 @@ def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal)
             empi_dists=empi_dists_qiskit,
             shots=shots,
             label=label,
+            num_outcomes=true_povm.num_outcomes,
             estimator_name=estimator_name,
             schedules="all",
         )
