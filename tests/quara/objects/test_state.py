@@ -1552,6 +1552,43 @@ class TestState:
         assert history["y"][0] == None
         assert history["error_value"][0] == None
 
+        # check max_iteration
+        max_iteration = 10
+        vec = np.array([1, 0, 0, 1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual, history = state.calc_proj_physical(
+            max_iteration=max_iteration, is_iteration_history=True
+        )
+        assert len(history["x"]) == max_iteration + 1
+
+    def test_calc_proj_physical_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # z0 -> z0
+        z0 = get_z0_1q(c_sys)
+        actual = z0.calc_proj_physical_with_var(z0.to_var())
+        expected = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+        # assert actual.is_physical(actual.eps_proj_physical) == True
+
+        # [1, 0, 0, 1] -> z0
+        vec = np.array([1, 0, 0, 1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = z0.calc_proj_physical_with_var(state.to_var())
+        expected = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=4)
+        # assert actual.is_physical(actual.eps_proj_physical) == True
+
+        # check max_iteration
+        max_iteration = 10
+        vec = np.array([1, 0, 0, 1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual, history = state.calc_proj_physical_with_var(
+            state.to_var(), max_iteration=max_iteration, is_iteration_history=True
+        )
+        assert len(history["x"]) == max_iteration + 1
+
     def test_calc_stopping_criterion_birgin_raydan_vectors(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])

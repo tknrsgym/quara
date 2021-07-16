@@ -577,12 +577,14 @@ class QOperation:
         return new_qoperation
 
     def calc_proj_physical(
-        self, is_iteration_history: bool = False
+        self, max_iteration: int = 1000, is_iteration_history: bool = False
     ) -> Union["QOperation", Tuple["QOperation", Dict]]:
         """calculates the projection of QOperation with physically correctness.
 
         Parameters
         ----------
+        max_iteration: int, optional
+            maximun number of iterations, by default 1000.
         is_iteration_history : bool, optional
             whether this function returns iteration history, by default False.
 
@@ -623,9 +625,8 @@ class QOperation:
             ys = [y_prev]
             error_values = []
 
-        k = 0
         is_stopping = False
-        while not is_stopping:
+        for k in range(max_iteration):
             # shift variables
             if (
                 p_next is not None
@@ -691,8 +692,8 @@ class QOperation:
                 ys.append(y_next)
                 error_values.append(error_value)
 
-            # increase step
-            k += 1
+            if is_stopping:
+                break
 
         if is_iteration_history:
             history = {
@@ -811,6 +812,7 @@ class QOperation:
         self,
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
+        max_iteration: int = 1000,
         is_iteration_history: bool = False,
     ) -> Union[np.ndarray, Tuple[np.ndarray, Dict]]:
         """calculates the projection of variables with physically correctness.
@@ -821,6 +823,8 @@ class QOperation:
             variables.
         on_para_eq_constraint : bool, optional
             whether this variables is on parameter equality constraint, by default True.
+        max_iteration: int, optional
+            maximun number of iterations, by default 1000.
         is_iteration_history : bool, optional
             whether this function returns iteration history, by default False.
 
@@ -860,9 +864,8 @@ class QOperation:
             ys = [y_prev]
             error_values = []
 
-        k = 0
         is_stopping = False
-        while not is_stopping:
+        for k in range(max_iteration):
             # shift variables
             if (
                 p_next is not None
@@ -928,8 +931,8 @@ class QOperation:
                 ys.append(y_next)
                 error_values.append(error_value)
 
-            # increase step
-            k += 1
+            if is_stopping:
+                break
 
         x_next = self.convert_stacked_vector_to_var(
             self.composite_system,
