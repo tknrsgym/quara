@@ -327,22 +327,20 @@ def _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit
 
 
 @pytest.mark.qiskit
-@pytest.mark.shots_list
 @pytest.mark.parametrize(
     ("empi_dists_quara, empi_dists_qiskit"),
     [(get_empi_dists_quara_list(), get_empi_dists_qiskit())],
 )
-def test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit):
+def test_convert_empi_dists_quara_to_qiskit_list(empi_dists_quara, empi_dists_qiskit):
     _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit)
 
 
 @pytest.mark.qiskit
-@pytest.mark.shots_int
 @pytest.mark.parametrize(
     ("empi_dists_quara, empi_dists_qiskit"),
     [(get_empi_dists_quara_int(), get_empi_dists_qiskit())],
 )
-def test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit):
+def test_convert_empi_dists_quara_to_qiskit_int(empi_dists_quara, empi_dists_qiskit):
     _test_convert_empi_dists_quara_to_qiskit(empi_dists_quara, empi_dists_qiskit)
 
 
