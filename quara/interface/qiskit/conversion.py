@@ -148,9 +148,9 @@ def convert_empi_dists_qiskit_to_quara(
             cts = cts + i
     else:
         for i in label:
-            tup = (shots[cts], qiskit_dists[cts : cts + i])
+            tup = (shots[cts], qiskit_dists[cts * i : cts * i + i])
             quara_dists.append(tup)
-            cts = cts + i
+            cts = cts + 1
     return quara_dists
 
 
