@@ -1,1 +1,1 @@
-"""Use this package to analyze data."""
+"""Use this module to analyze data."""
