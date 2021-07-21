@@ -372,7 +372,8 @@ def _compose_qoperations(elem1, elem2):
         prob_list = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
         prob = np.array(prob_list, dtype=np.float64)
         prob = matrix_util.truncate_and_normalize(prob)
-        return prob
+        dist = MultinomialDistribution(prob, prob.shape)
+        return dist
     elif type(elem1) == Povm and type(elem2) == StateEnsemble:
         # -> MultinomialDistribution
         raise NotImplementedError()
