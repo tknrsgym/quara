@@ -1,1 +1,1 @@
-"""simulation package"""
+"""Module for executing numerical simulation"""

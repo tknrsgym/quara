@@ -1,1 +1,1 @@
-"""Main logics for executing protocols."""
+"""Module for executing protocols"""

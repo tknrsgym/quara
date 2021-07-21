@@ -1,1 +1,1 @@
-"""minimization algorithm package"""
+"""Minimization algorithm module"""
