@@ -39,6 +39,9 @@ from quara.objects.povm import (
 )
 from quara.objects.state import get_x0_1q
 from quara.settings import Settings
+from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.qoperation_typical import generate_qoperation_object
+from quara.objects.operators import tensor_product
 
 
 class TestPovm:
@@ -419,6 +422,64 @@ class TestPovm:
         with pytest.raises(IndexError):
             # IndexError: specified index does not exist in the list of measurements.
             _ = povm1.vec(2)
+
+    def test_vec_multi_dimensional(self):
+        # Arrange
+        c_sys_2q = generate_composite_system(mode="qubit", num=2, ids_esys=[0, 1])
+        c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[2])
+        bell = generate_qoperation_object(
+            mode="povm", object_name="povm", name="bell", c_sys=c_sys_2q
+        )
+        z = generate_qoperation_object(
+            mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+        )
+        povm = tensor_product(bell, z)
+
+        # Case 1:
+        # Act
+        actual = povm.vec((0, 0))
+
+        # Assert
+        expected = povm.vecs[0]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2:
+        # Act
+        actual = povm.vec((0, 1))
+
+        # Assert
+        expected = povm.vecs[1]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3:
+        # Act
+        actual = povm.vec((3, 1))
+
+        # Assert
+        expected = povm.vecs[7]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_md_index2serial_index(self):
+        # Arrange
+        c_sys_2q = generate_composite_system(mode="qubit", num=2, ids_esys=[0, 1])
+        c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[2])
+        bell = generate_qoperation_object(
+            mode="povm", object_name="povm", name="bell", c_sys=c_sys_2q
+        )
+        z = generate_qoperation_object(
+            mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+        )
+        povm = tensor_product(bell, z)
+
+        # Act & Assert
+        assert povm._md_index2serial_index((0, 0)) == 0
+        assert povm._md_index2serial_index((0, 1)) == 1
+        assert povm._md_index2serial_index((1, 0)) == 2
+        assert povm._md_index2serial_index((1, 1)) == 3
+        assert povm._md_index2serial_index((2, 0)) == 4
+        assert povm._md_index2serial_index((2, 1)) == 5
+        assert povm._md_index2serial_index((3, 0)) == 6
+        assert povm._md_index2serial_index((3, 1)) == 7
 
     def test_is_physical(self):
         e_sys = esys.ElementalSystem(1, get_comp_basis())
