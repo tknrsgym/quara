@@ -189,7 +189,7 @@ def _tensor_product_StateEnsemble_StateEnsemble(elem1: StateEnsemble, elem2: Sta
             new_p = elem1.prob_dist[i] * elem2.prob_dist[j]
             new_states.append(new_state)
             new_prob_dist.append(new_p)
-    shape = (len(elem1.prob_dist.ps), len(elem2.prob_dist.ps))
+    shape = tuple(list(elem1.prob_dist.shape) + list(elem2.prob_dist.shape))
     new_md = MultinomialDistribution(new_prob_dist, shape=shape)
     return StateEnsemble(new_states, new_md)
 
@@ -397,8 +397,8 @@ def _compose_qoperations(elem1, elem2):
         return dist
     elif type(elem1) == Povm and type(elem2) == StateEnsemble:
         # -> MultinomialDistribution
-        # for state in elem2.states:
-        #     new_prob_dist = compose_qoperations(elem1, state)
+        for state in elem2.states:
+        #   new_prob_dist = compose_qoperations(elem1, state)
         raise NotImplementedError()
     else:
         raise TypeError(
