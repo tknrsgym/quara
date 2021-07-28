@@ -6,7 +6,7 @@ import numpy as np
 from scipy.stats import multinomial
 
 from quara.math.probability import validate_prob_dist
-from quara.utils.index_util import index_serial_from_index_tuple
+from quara.utils.index_util import index_serial_from_index_multi_dimensional
 from quara.utils.number_util import to_stream
 
 
@@ -73,7 +73,7 @@ class MultinomialDistribution:
         elif type(idx) == tuple:
             # Multidimensional access
             # ex) prob_dist[(0, 1)]
-            serial_index = index_serial_from_index_tuple(self._shape, idx)
+            serial_index = index_serial_from_index_multi_dimensional(self._shape, idx)
             return self._ps[serial_index]
         else:
             raise TypeError("unsupported type {type(idx)}")
