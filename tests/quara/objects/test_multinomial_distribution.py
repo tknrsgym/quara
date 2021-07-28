@@ -41,6 +41,10 @@ class TestMultinomialDistribution:
         dist = MultinomialDistribution(ps, shape)
         assert dist.shape == shape
 
+        ps = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float64)
+        dist = MultinomialDistribution(ps)
+        assert dist.shape == (4,)
+
         # Test that "shape" cannot be updated
         with pytest.raises(AttributeError):
             dist.shape = shape
