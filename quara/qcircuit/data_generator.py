@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Tuple, Union
 
+from quara.math.probability import validate_prob_dist
 from quara.settings import Settings
 from quara.utils.number_util import to_stream
 
@@ -54,21 +55,9 @@ def generate_data_from_prob_dist(
     ValueError
         the sum of probabilities does not equal 1.
     """
-    # whether each probability is a positive number.
-    for prob in prob_dist:
-        if prob < 0:
-            raise ValueError(
-                f"each probability must be a positive number. there is {prob} in a probability distribution"
-            )
-
     # whether the sum of probabilities equals 1.
-    sum_prob_dist = np.sum(prob_dist)
-
     atol = atol if atol else Settings.get_atol()
-    if not np.isclose(sum_prob_dist, 1, atol=atol, rtol=0.0):
-        raise ValueError(
-            f"the sum of probabilities must equal 1. the sum of probabilities is {np.sum(prob_dist)}"
-        )
+    validate_prob_dist(prob_dist, eps=atol)
 
     # generate random numbers. 0 <= rand_val[i] < 1 for all i = 0,..., num_data - 1
     stream = to_stream(seed_or_stream)

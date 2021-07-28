@@ -402,7 +402,7 @@ class Experiment:
             targets.appendleft(target)
 
         prob_dist = op.compose_qoperations(*targets)
-        return prob_dist
+        return prob_dist.ps
 
     def calc_prob_dists(self) -> List[np.ndarray]:
         """Caluclate probability distributions for all schedules.

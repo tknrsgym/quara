@@ -53,6 +53,7 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
+from quara.objects.state_ensemble_typical import get_state_ensemble_z0_elements
 
 
 def test_tensor_product_Gate_Gate():
@@ -813,19 +814,19 @@ def test_compose_qoperations_Povm_State():
     state = get_z0_1q(c_sys)
     actual = compose_qoperations(povm, state)
     expected = [1, 0]
-    npt.assert_almost_equal(actual, expected, decimal=15)
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
 
     # measurement z1 by Z-measurement
     state = get_z1_1q(c_sys)
     actual = compose_qoperations(povm, state)
     expected = [0, 1]
-    npt.assert_almost_equal(actual, expected, decimal=15)
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
 
     # measurement x0 by Z-measurement
     state = get_x0_1q(c_sys)
     actual = compose_qoperations(povm, state)
     expected = [0.5, 0.5]
-    npt.assert_almost_equal(actual, expected, decimal=15)
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
 
     # assert associativity
     # (POVM \circ X) \circ |1> = POVM \circ (X \circ |1>)
@@ -833,7 +834,25 @@ def test_compose_qoperations_Povm_State():
     x_gate = get_x(c_sys)
     px_z = compose_qoperations(compose_qoperations(povm, x_gate), state)
     p_xz = compose_qoperations(povm, compose_qoperations(x_gate, state))
-    npt.assert_almost_equal(px_z, p_xz, decimal=15)
+    npt.assert_almost_equal(px_z.ps, p_xz.ps, decimal=15)
+
+
+"""
+def test_compose_qoperations_Povm_StateEnsemble():
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    vecs = [
+        np.array([1, 0, 0, 0], dtype=np.float64),
+        np.array([0, 0, 0, 1], dtype=np.float64),
+    ]
+    povm = Povm(c_sys, vecs)
+
+    # State Ensemble z0
+    state_ens = get_state_ensemble_z0_elements(c_sys)
+    actual = compose_qoperations(povm, state_ens)
+    expected = [1, 0]
+    npt.assert_almost_equal(actual, expected, decimal=15)
+"""
 
 
 def test_to_list():
@@ -1027,7 +1046,7 @@ def test_scenario_1qubit(state, gate, povm, expected):
     actual = compose_qoperations(povm_obj, gate_obj, state_obj)
 
     # Assert
-    npt.assert_almost_equal(actual, expected, decimal=15)
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
 
 
 @pytest.mark.parametrize(
@@ -1065,7 +1084,7 @@ def test_scenario_2qubits_cnot(povm, expected):
     actual = compose_qoperations(povm_obj, cnot, state12)
 
     # Assert
-    npt.assert_almost_equal(actual, expected, decimal=15)
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
 
     ### case 2 (reverse cnot of case 1)
     # Prepare
@@ -1088,7 +1107,7 @@ def test_scenario_2qubits_cnot(povm, expected):
     actual = compose_qoperations(povm_obj, swap, cnot, state34)
 
     # Assert
-    npt.assert_almost_equal(actual, expected, decimal=14)
+    npt.assert_almost_equal(actual.ps, expected, decimal=14)
 
 
 @pytest.mark.parametrize(
@@ -1126,7 +1145,7 @@ def test_scenario_2qubits_cz(povm, expected):
     actual = compose_qoperations(povm_obj, swap, state12)
 
     # Assert
-    npt.assert_almost_equal(actual, expected, decimal=14)
+    npt.assert_almost_equal(actual.ps, expected, decimal=14)
 
     ### case 2 (reverse cz of case 1)
     # Prepare
@@ -1149,7 +1168,7 @@ def test_scenario_2qubits_cz(povm, expected):
     actual = compose_qoperations(povm_obj, swap, cz, state34)
 
     # Assert
-    npt.assert_almost_equal(actual, expected, decimal=14)
+    npt.assert_almost_equal(actual.ps, expected, decimal=14)
 
 
 @pytest.mark.parametrize(
@@ -1189,7 +1208,7 @@ def test_scenario_2qubits_swap(povm, expected):
     actual = compose_qoperations(povm_obj, swap, state12)
 
     # Assert
-    npt.assert_almost_equal(actual, expected, decimal=14)
+    npt.assert_almost_equal(actual.ps, expected, decimal=14)
 
     ### case 2 (use cnot instead of swap)
     # Prepare
@@ -1213,7 +1232,7 @@ def test_scenario_2qubits_swap(povm, expected):
     actual = compose_qoperations(povm_obj, cnot12, cnot21, cnot12, state34)
 
     # Assert
-    npt.assert_almost_equal(actual, expected, decimal=14)
+    npt.assert_almost_equal(actual.ps, expected, decimal=14)
 
 
 def _calculate_vecs(dim: int, density_matrix: np.array):
@@ -1419,4 +1438,4 @@ def test_scenario_tomographically_complete_sets(d):
 
             # Assert
             expected = prob_per_povm[alpha]
-            npt.assert_almost_equal(actual, expected, decimal=14)
+            npt.assert_almost_equal(actual.ps, expected, decimal=14)

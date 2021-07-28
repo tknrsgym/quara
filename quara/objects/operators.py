@@ -12,6 +12,9 @@ from quara.objects.gate import Gate
 from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import Povm
 from quara.objects.state import State
+from quara.objects.mprocess import MProcess
+from quara.objects.state_ensemble import StateEnsemble
+from quara.objects.multinomial_distribution import MultinomialDistribution
 from quara.settings import Settings
 from quara.utils import matrix_util
 
@@ -22,8 +25,14 @@ def tensor_product(*elements) -> Union[MatrixBasis, State, Povm, Gate]:
     this function can calculate tensor product of the following combinations of types:
 
     - (Gate, Gate) -> Gate
+    - (Gate, MProcess) -> MProcess
+    - (MProcess, Gate) -> MProcess
+    - (MProcess, MProcess) -> MProcess
     - (MatrixBasis, MatrixBasis) -> MatrixBasis
     - (State, State) -> State
+    - (State, StateEnsemble) -> StateEnsemble
+    - (StateEnsemble, State) -> StateEnsemble
+    - (StateEnsemble, StateEnsemble) -> StateEnsemble
     - (Povm, Povm) -> Povm
     - list conststs of these combinations
 
@@ -221,6 +230,15 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         return _tensor_product_Gate_Gate(elem1, elem2)
+    elif {type(elem1), type(elem2)} == {MProcess, Gate}:
+        # MProcess (x) Gate -> MProcess
+        # MProcess (x) MProcess -> Gate
+        # TODO
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == MProcess:
+        # MProcess (x) MProcess -> MProcess
+        # TODO
+        raise NotImplementedError()
     elif type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         new_basis = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
@@ -229,6 +247,15 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
         return _tensor_product_State_State(elem1, elem2)
+    elif {type(elem1), type(elem2)} == {State, StateEnsemble}:
+        # State (x) StateEnsemble -> StateEnsemble
+        # StateEnsemble (x) State -> StateEnsemble
+        # TODO
+        raise NotImplementedError()
+    elif type(elem1) == StateEnsemble and type(elem2) == StateEnsemble:
+        # StateEnsemble (x) StateEnsemble -> StateEnsemble
+        # TODO
+        raise NotImplementedError()
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
@@ -238,20 +265,32 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         )
 
 
-def compose_qoperations(*elements) -> Union[Gate, Povm, State, List[float]]:
+def compose_qoperations(
+    *elements,
+) -> Union[
+    Gate, Povm, State, List[float], MProcess, StateEnsemble, MultinomialDistribution
+]:
     """calculates composition of qoperations.
 
     this function can calculate composition of the following combinations of types:
 
     - (Gate, Gate) -> Gate
+    - (Gate, MProcess) -> MProcess
+    - (MProcess, Gate) -> MProcess
+    - (MProcess, MProcess) -> MProcess
     - (Gate, State) -> State
+    - (Gate, StateEnsemble) -> StateEnsemble
+    - (MProcess, State) -> StateEnsemble
+    - (Mprocess, StateEnsemble) -> StateEnsemble
     - (Povm, Gate) -> Povm
-    - (Povm, State) -> List[np.ndarray] dtype=np.float64(probability distribution)
+    - (Povm, MProcess) -> Povm
+    - (Povm, State) -> MultinomialDistribution
+    - (Povm, StateEnsemble) -> List[MultinomialDistribution]
     - list conststs of these combinations
 
     Returns
     -------
-    Union[Gate, Povm, State, List[float]]
+    Union[Gate, Povm, State, List[float], MProcess, StateEnsemble, MultinomialDistribution]
         composition of qoperations.
 
     Raises
@@ -289,6 +328,15 @@ def _compose_qoperations(elem1, elem2):
             is_physicality_required=is_physicality_required,
         )
         return gate
+    elif type(elem1) == Gate and type(elem2) == MProcess:
+        # -> MProcess
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == Gate:
+        # -> MProcess
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == MProcess:
+        # -> MProcess
+        raise NotImplementedError()
     elif type(elem1) == Gate and type(elem2) == State:
         # create State
         vec = elem1.hs @ elem2.vec
@@ -298,6 +346,15 @@ def _compose_qoperations(elem1, elem2):
             is_physicality_required=is_physicality_required,
         )
         return state
+    elif type(elem1) == Gate and type(elem2) == StateEnsemble:
+        # -> StateEnsemble
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == State:
+        # -> StateEnsemble
+        raise NotImplementedError()
+    elif type(elem1) == MProcess and type(elem2) == StateEnsemble:
+        # -> StateEnsemble
+        raise NotImplementedError()
     elif type(elem1) == Povm and type(elem2) == Gate:
         # calculate Povm
         vecs = [povm_element.conjugate() @ elem2.hs for povm_element in elem1.vecs]
@@ -307,12 +364,19 @@ def _compose_qoperations(elem1, elem2):
             is_physicality_required=is_physicality_required,
         )
         return povm
+    elif type(elem1) == Povm and type(elem2) == MProcess:
+        # -> Povm
+        raise NotImplementedError()
     elif type(elem1) == Povm and type(elem2) == State:
         # calculate probability distribution
         prob_list = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
         prob = np.array(prob_list, dtype=np.float64)
         prob = matrix_util.truncate_and_normalize(prob)
-        return prob
+        dist = MultinomialDistribution(prob, prob.shape)
+        return dist
+    elif type(elem1) == Povm and type(elem2) == StateEnsemble:
+        # -> MultinomialDistribution
+        raise NotImplementedError()
     else:
         raise TypeError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"

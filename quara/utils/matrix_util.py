@@ -6,6 +6,7 @@ from operator import add
 
 import numpy as np
 
+from quara.math.probability import validate_prob_dist
 from quara.settings import Settings
 
 
@@ -471,17 +472,8 @@ def calc_fisher_matrix(
     eps = eps if eps is not None else 1e-8
 
     ### validate
-    # each element of prob_dist must be between 0 and 1
-    for index, entry in enumerate(prob_dist):
-        if not (0.0 <= entry <= 1.0):
-            raise ValueError(
-                f"each element of prob_dist must be between 0 and 1. the sum of prob_dist[{index}]={entry}"
-            )
-
-    # the sum of prob_dist must be 1
-    sum = np.sum(prob_dist)
-    if not np.isclose(sum, 1.0, atol=eps, rtol=0.0):
-        raise ValueError(f"the sum of prob_dist must be 1. the sum of prob_dist={sum}")
+    # whether prob_dist is probability distribution
+    validate_prob_dist(prob_dist, eps=eps)
 
     # the size of prob_dist and grad_prob_dist must be equal
     size_prob_dist = prob_dist.shape[0]
