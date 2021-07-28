@@ -11,7 +11,7 @@ from quara.utils.number_util import to_stream
 
 
 class MultinomialDistribution:
-    def __init__(self, ps: np.ndarray, shape: Tuple[int]):
+    def __init__(self, ps: np.ndarray, shape: Tuple[int] = None):
         """Constructor
 
         Parameters
@@ -19,7 +19,8 @@ class MultinomialDistribution:
         ps : np.ndarray
             the probability distribution of multinomial distribution.
         shape : Tuple[int], optional
-            the shape of multinomial distribution.
+            the shape of multinomial distribution, by default None.
+            if shape is None, set len(ps).
 
         Raises
         ------
@@ -33,14 +34,16 @@ class MultinomialDistribution:
         # validation about probabiity
         validate_prob_dist(ps)
 
-        # validation about data size
-        if len(ps) != reduce(mul, shape):
-            raise ValueError(
-                f"the size of ps({len(ps)}) and shape({shape}) do not match."
-            )
-
+        if shape is None:
+            self._shape = (len(ps),)
+        else:
+            # validation about data size
+            if len(ps) != reduce(mul, shape):
+                raise ValueError(
+                    f"the size of ps({len(ps)}) and shape({shape}) do not match."
+                )
+            self._shape = shape
         self._ps = ps
-        self._shape = shape
 
     @property  # read only
     def ps(self) -> np.ndarray:
