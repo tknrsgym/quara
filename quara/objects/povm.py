@@ -387,6 +387,15 @@ class Povm(QOperation):
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
 
+    def _md_index2serial_index(self, md_index: Tuple[int]):
+        serial_index_array = np.array(range(self._num_outcomes)).reshape(
+            self.nums_local_outcomes
+        )
+        target = serial_index_array
+        for i in md_index:
+            target = target[i]
+        return target  # serial index
+
     def vec(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns vec of measurement by index.
 
@@ -394,8 +403,8 @@ class Povm(QOperation):
         ----------
         index : Union[int, Tuple]
             index of vec of measurement.
-            if type is int, then regardes it as the index for CompositeSystem.
-            if type is Tuple, then regardes it as the indices for earch ElementalSystems.
+            If type is an int, access is one-dimensional.
+            If type is tuple, access is multi-dimensional.
         Returns
         -------
         np.ndarray
@@ -415,16 +424,8 @@ class Povm(QOperation):
                     f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self.nums_local_outcomes)}"
                 )
 
-            # calculate index in _vecs by traversing the tuple from the back.
-            # for example, if length of _measurements is 3 and each numbers are len1, len2, len3,
-            # then index in _basis of tuple(x1, x2, x3) can be calculated the following expression:
-            #   x1 * (len2 * len3) + x2 * len3 + x3
-            temp_grobal_index = 0
-            temp_len = 1
-            for position, local_index in enumerate(reversed(index)):
-                temp_grobal_index += local_index * temp_len
-                temp_len = temp_len * (self.nums_local_outcomes[position])
-            return self._vecs[temp_grobal_index]
+            serial_index = self._md_index2serial_index(index)
+            return self._vecs[serial_index]
         else:
             return self._vecs[index]
 
