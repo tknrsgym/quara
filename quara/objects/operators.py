@@ -247,11 +247,14 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
         return _tensor_product_State_State(elem1, elem2)
-    elif {type(elem1), type(elem2)} == {State, StateEnsemble}:
+    elif type(elem1) == State and type(elem2) == StateEnsemble:
         # State (x) StateEnsemble -> StateEnsemble
+        new_states = [tensor_product(elem1, state) for state in elem2.states]
+        return StateEnsemble(new_states, elem2.prob_dist)
+    elif type(elem1) == StateEnsemble and type(elem2) == State:
         # StateEnsemble (x) State -> StateEnsemble
-        # TODO
-        raise NotImplementedError()
+        new_states = [tensor_product(state, elem2) for state in elem1.states]
+        return StateEnsemble(new_states, elem1.prob_dist)
     elif type(elem1) == StateEnsemble and type(elem2) == StateEnsemble:
         # StateEnsemble (x) StateEnsemble -> StateEnsemble
         # TODO
@@ -382,6 +385,8 @@ def _compose_qoperations(elem1, elem2):
         return dist
     elif type(elem1) == Povm and type(elem2) == StateEnsemble:
         # -> MultinomialDistribution
+        # for state in elem2.states:
+        #     new_prob_dist = compose_qoperations(elem1, state)
         raise NotImplementedError()
     else:
         raise TypeError(
