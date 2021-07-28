@@ -3,6 +3,8 @@ import copy
 from typing import List, Tuple, Union
 
 import numpy as np
+from scipy.stats import multinomial
+
 
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm
@@ -529,21 +531,12 @@ class Experiment:
         List[Tuple[int, np.ndarray]]
             A list of the numbers of data and empirical distribution.
         """
-        data_n = max(num_sums)
-        # Calculating to get the measurement_num.
-        # The probability distribution is calculated twice, in this function and in the generate_data method,
-        # so it should be improved.
         prob_dist = self.calc_prob_dist(schedule_index)
-        measurement_num = len(prob_dist)
+        empi_dist_sequence = data_generator.generate_empi_dist_sequence_from_prob_dist(
+            prob_dist, num_sums, seed_or_stream
+        )
 
-        stream = to_stream(seed_or_stream)
-        data = self.generate_data(
-            schedule_index=schedule_index, data_num=data_n, seed_or_stream=stream
-        )
-        empi_dist = data_generator.calc_empi_dist_sequence(
-            measurement_num=measurement_num, data=data, num_sums=num_sums
-        )
-        return empi_dist
+        return empi_dist_sequence
 
     def generate_empi_dists_sequence(
         self,
@@ -570,18 +563,13 @@ class Experiment:
         for num_sums in list_num_sums:
             self._validate_eq_schedule_len(num_sums, "list_num_sums")
 
-        measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
-        stream = to_stream(seed_or_stream)
-        datasets = self.generate_dataset(
-            data_nums=list_num_sums[-1], seed_or_stream=stream
-        )
-
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
-        empi_dists_sequence = data_generator.calc_empi_dists_sequence(
-            measurement_nums=measurement_nums,
-            dataset=datasets,
-            list_num_sums=list_num_sums_tmp,
+        prob_dists = self.calc_prob_dists()
+        empi_dists_sequence = (
+            data_generator.generate_empi_dists_sequence_from_prob_dists(
+                prob_dists, list_num_sums_tmp, seed_or_stream
+            )
         )
 
         return empi_dists_sequence
