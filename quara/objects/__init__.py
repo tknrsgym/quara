@@ -1,1 +1,1 @@
-"""The core objects of Quara: MatrixBasis, State, POVM, Gate, MProcess, StateEnsemble, etc."""
+"""The core objects of Quara: MatrixBasis, CompositeSystem, State, POVM, Gate, MProcess, StateEnsemble, etc."""

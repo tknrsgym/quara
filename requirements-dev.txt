@@ -3,13 +3,13 @@ black
 plotly
 pytest
 pytest-cov
-sphinx>=3.0
+sphinx == 4.0.2
 sphinx_rtd_theme
 ipykernel
 recommonmark
 pytest-randomly
 mypy
-nbsphinx
+nbsphinx == 0.8.6
 plotly
 plotly-express
 tqdm

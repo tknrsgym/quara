@@ -1,1 +1,1 @@
-"""logics for quantum circuits."""
+"""Module for quantum circuits"""

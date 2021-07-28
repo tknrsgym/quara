@@ -14,7 +14,7 @@ def read_file(filename):
 
 setup(
     name="quara",
-    version="0.1.1",
+    version="0.2.0",
     author="Takanori Sugiyama",
     author_email="quara@googlegroups.com",
     packages=find_packages(),
@@ -24,7 +24,7 @@ setup(
     license="Apache License 2.0",
     python_requires=">=3.7",
     install_requires=[
-        "numpy>=1.18",
+        "numpy",
         "scipy",
         "pandas",
         "tqdm",
@@ -48,7 +48,13 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: Microsoft :: Windows :: Windows 10",
     ],
-    keywords=["quara", "quantum characterization", "quantum tomography"],
+    keywords=[
+        "quantum computing",
+        "quantum information",
+        "quantum characterization",
+        "quantum tomography",
+        "quara",
+    ],
     include_package_data=True,
     package_data={"": ["LICENSE"]},
 )

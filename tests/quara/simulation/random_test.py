@@ -140,6 +140,7 @@ def execute(
     output_root_dir: str,
     true_object_ids: List[int] = None,
     tester_ids: List[int] = None,
+    pdf_mode: str = "none",
 ):
     c_sys = generate_composite_system(mode, n_qubit)
     (
@@ -194,7 +195,7 @@ def execute(
         test_settings.append(test_setting)
 
     all_results = execute_simulation_test_settings(
-        test_settings, output_root_dir, pdf_mode="none"
+        test_settings, output_root_dir, pdf_mode=pdf_mode
     )
     return all_results
 
@@ -742,3 +743,33 @@ def execute_qpt_2qutrit():
         + get_current_time_string(),
     }
     execute(**setting)
+
+
+def main():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 1,
+        "tomography_type": "state",
+        "true_objects": ["z0", "z1", "x0", "a"],
+        "tester_names": [("povm", name) for name in ["x", "y", "z"]],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        "n_sample": 2,
+        "n_rep": 3,
+        "num_data": [10, 100],
+        "seed_qoperation": 888,
+        "seed_data": 777,
+        "output_root_dir": output_root_dir_prefix
+        + "result_random_qst_1qubit-"
+        + get_current_time_string(),
+        "pdf_mode": "all",
+    }
+    execute(**setting)
+
+
+if __name__ == "__main__":
+    main()

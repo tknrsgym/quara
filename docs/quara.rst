@@ -22,6 +22,7 @@ Subpackages
    quara.qcircuit
    quara.simulation
    quara.utils
+   quara.interface
 
 Submodules
 ----------
