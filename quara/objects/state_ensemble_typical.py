@@ -58,7 +58,7 @@ def generate_state_ensemble_from_name(c_sys, state_ensemble_name):
         state_ensemble_name, c_sys
     )
     state_ensemble = StateEnsemble(
-        states=states, prob_dist=MultinomialDistribution(prob_dist)
+        states=states, prob_dist=MultinomialDistribution(prob_dist, shape=(len(prob_dist), ))
     )
     return state_ensemble
 
