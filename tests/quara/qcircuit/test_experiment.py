@@ -187,7 +187,6 @@ class TestExperiment:
         seed = 77
         experiment.reset_seed(seed)
         actual = experiment.generate_data(0, 10)
-        print(actual)
         expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         assert np.all(actual == expected)
 
@@ -502,8 +501,8 @@ class TestExperiment:
 
         # Assert
         expected_2 = [
-            (5, np.array([0.2, 0.8])),
-            (10, np.array([0.3, 0.7])),
+            (5, np.array([0.6, 0.4])),
+            (10, np.array([0.8, 0.2])),
             (15, np.array([8 / 15, 7 / 15])),
             (20, np.array([0.5, 0.5])),
         ]
@@ -544,7 +543,7 @@ class TestExperiment:
         # Assert
         expected = [
             [(5, np.array([1, 0])), (15, np.array([1, 0]))],
-            [(10, np.array([0.4, 0.6])), (20, np.array([0.55, 0.45]))],
+            [(10, np.array([0.5, 0.5])), (20, np.array([0.55, 0.45]))],
         ]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
