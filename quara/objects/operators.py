@@ -180,6 +180,19 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     return state
 
 
+def _tensor_product_StateEnsemble_StateEnsemble(elem1: StateEnsemble, elem2: StateEnsemble) -> StateEnsemble:
+    new_states = []
+    new_prob_dist = []
+    for i, state1 in enumerate(elem1.states):
+        for j, state2 in enumerate(elem2.states):
+            new_state = tensor_product(state1, state2)
+            new_p = elem1.prob_dist[i] * elem2.prob_dist[j]
+            new_states.append(new_state)
+            new_prob_dist.append(new_p)
+    shape = (len(elem1.prob_dist.ps), len(elem2.prob_dist.ps))
+    new_md = MultinomialDistribution(new_prob_dist, shape=shape)
+    return StateEnsemble(new_states, new_md)
+
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # Povm (x) Povm -> Povm
     e_sys_list = list(povm1.composite_system.elemental_systems)
@@ -257,8 +270,7 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         return StateEnsemble(new_states, elem1.prob_dist)
     elif type(elem1) == StateEnsemble and type(elem2) == StateEnsemble:
         # StateEnsemble (x) StateEnsemble -> StateEnsemble
-        # TODO
-        raise NotImplementedError()
+        return _tensor_product_StateEnsemble_StateEnsemble(elem1, elem2)
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
