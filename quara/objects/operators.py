@@ -310,13 +310,15 @@ def compose_qoperations(
 
 def _compose_qoperations(elem1, elem2):
     # check CompositeSystem
-    if elem1.composite_system != elem2.composite_system:
-        raise ValueError(f"Cannot compose different composite systems.")
+    # Skip if elem1 or elem2 is StateEnsemble.
+    if StateEnsemble not in {type(elem1), type(elem2)}:
+        if elem1.composite_system != elem2.composite_system:
+            raise ValueError(f"Cannot compose different composite systems.")
 
-    # is_physicality_required
-    is_physicality_required = (
-        elem1.is_physicality_required and elem2.is_physicality_required
-    )
+        # is_physicality_required
+        is_physicality_required = (
+            elem1.is_physicality_required and elem2.is_physicality_required
+        )
 
     # implement compose calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
@@ -348,7 +350,11 @@ def _compose_qoperations(elem1, elem2):
         return state
     elif type(elem1) == Gate and type(elem2) == StateEnsemble:
         # -> StateEnsemble
-        raise NotImplementedError()
+        new_states = []
+        for state in elem2.states:
+            new_state = compose_qoperations(elem1, state)
+            new_states.append(new_state)
+        return StateEnsemble(new_states, elem2.prob_dist)
     elif type(elem1) == MProcess and type(elem2) == State:
         # -> StateEnsemble
         raise NotImplementedError()
