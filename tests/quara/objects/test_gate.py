@@ -8,6 +8,8 @@ from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import (
     Gate,
+    is_tp,
+    is_cp,
     convert_var_index_to_gate_index,
     convert_gate_index_to_var_index,
     convert_var_to_gate,
@@ -1133,6 +1135,44 @@ class TestGate:
             [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1], dtype=np.float64
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_is_tp():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # case: TP
+    z = get_z(c_sys)
+    assert is_tp(c_sys, z.hs) == True
+
+    # case: not TP
+    hs = np.array(
+        [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], dtype=np.float64
+    )
+    gate = Gate(c_sys, hs, is_physicality_required=False)
+    assert is_tp(c_sys, hs) == False
+
+
+def test_is_cp():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # case: CP
+    x = get_x(c_sys)
+    assert is_cp(c_sys, x.hs) == True
+
+    y = get_y(c_sys)
+    assert is_cp(c_sys, y.hs) == True
+
+    z = get_z(c_sys)
+    assert is_cp(c_sys, z.hs) == True
+
+    # case: not CP
+    hs = np.array(
+        [[-1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+    )
+    gate = Gate(c_sys, hs, is_physicality_required=False)
+    assert is_cp(c_sys, gate.hs) == False
 
 
 def test_to_hs_from_choi():
