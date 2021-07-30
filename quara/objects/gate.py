@@ -370,34 +370,7 @@ class Gate(QOperation):
         bool
             True where the gate is TP, False otherwise.
         """
-        atol = Settings.get_atol() if atol is None else atol
-
-        # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
-        for index, basis in enumerate(self.composite_system.basis()):
-            # calculate Tr[B_\alpha]
-            trace_before_mapped = np.trace(basis)
-
-            # calculate Tr[A(B_\alpha)]
-            vec = np.zeros((self._dim ** 2))
-            vec[index] = 1
-            vec_after_mapped = self.hs @ vec
-
-            density = np.zeros((self._dim, self._dim), dtype=np.complex128)
-            for coefficient, basis in zip(
-                vec_after_mapped, self.composite_system.basis()
-            ):
-                density += coefficient * basis
-
-            trace_after_mapped = np.trace(density)
-
-            # check Tr[A(B_\alpha)] = Tr[B_\alpha]
-            tp_for_basis = np.isclose(
-                trace_after_mapped, trace_before_mapped, atol=atol, rtol=0.0
-            )
-            if not tp_for_basis:
-                return False
-
-        return True
+        return is_tp(self.composite_system, self.hs, atol)
 
     def is_cp(self, atol: float = None) -> bool:
         """returns whether gate is CP(Complete-Positivity-Preserving).
@@ -413,12 +386,7 @@ class Gate(QOperation):
         bool
             True where gate is CP, False otherwise.
         """
-        atol = Settings.get_atol() if atol is None else atol
-
-        # "A is CP"  <=> "C(A) >= 0"
-        return mutil.is_positive_semidefinite(
-            self.to_choi_matrix_with_sparsity(), atol=atol
-        )
+        return is_cp(self.composite_system, self.hs, atol)
 
     def convert_basis(self, other_basis: MatrixBasis) -> np.ndarray:
         """returns HS representation for ``other_basis``.
@@ -650,10 +618,60 @@ class Gate(QOperation):
             variables of gate.
         """
         return (
-            np.delete(stacked_vector, np.s_[:c_sys.dim ** 2])
+            np.delete(stacked_vector, np.s_[: c_sys.dim ** 2])
             if on_para_eq_constraint
             else stacked_vector
         )
+
+
+def is_tp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
+    """returns whether the gate is TP(trace-preserving map).
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    hs : np.ndarray
+        HS representation of this gate.
+    atol : float, optional
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        this function checks ``absolute(trace after mapped - trace before mapped) <= atol``.
+
+    Returns
+    -------
+    bool
+        True where the gate is TP, False otherwise.
+    """
+    atol = Settings.get_atol() if atol is None else atol
+
+    # if A:HS representation of gate, then A:TP <=> the first row of A is [1, 0,..., 0].
+    expected_row = np.zeros((c_sys.dim ** 2))
+    expected_row[0] = 1
+    return np.allclose(hs[0], expected_row, atol=atol, rtol=0.0)
+
+
+def is_cp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
+    """returns whether gate is CP(Complete-Positivity-Preserving).
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    hs : np.ndarray
+        HS representation of this gate.
+    atol : float, optional
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        this function ignores eigenvalues close zero.
+
+    Returns
+    -------
+    bool
+        True where gate is CP, False otherwise.
+    """
+    atol = Settings.get_atol() if atol is None else atol
+
+    # "A is CP"  <=> "C(A) >= 0"
+    return mutil.is_positive_semidefinite(to_choi_from_hs(c_sys, hs), atol=atol)
 
 
 def to_choi_from_hs(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:
