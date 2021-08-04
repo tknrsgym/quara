@@ -432,17 +432,7 @@ class Gate(QOperation):
         np.ndarray
             Choi matrix of gate.
         """
-        # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
-        c_sys = self.composite_system
-        num_basis = len(c_sys.basis())
-        tmp_list = []
-        for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
-            tmp = self._hs[alpha][beta] * c_sys.basis_basisconjugate((alpha, beta))
-            tmp_list.append(tmp)
-
-        # summing
-        choi = reduce(add, tmp_list)
-        return choi
+        return to_choi_from_hs(self.composite_system, self.hs)
 
     def to_choi_matrix_with_dict(self) -> np.ndarray:
         """returns Choi matrix of gate.
@@ -454,15 +444,7 @@ class Gate(QOperation):
         np.ndarray
             Choi matrix of gate.
         """
-        c_sys = self.composite_system
-        num_basis = len(c_sys.basis())
-        choi = np.zeros((num_basis, num_basis), dtype=np.complex128)
-        for i, j in itertools.product(range(num_basis), range(num_basis)):
-            non_zeros = c_sys._dict_from_hs_to_choi.get((i, j), [])
-            for alpha, beta, coefficient in non_zeros:
-                choi[i, j] += self.hs[alpha, beta] * coefficient
-
-        return choi
+        return to_choi_from_hs_with_dict(self.composite_system, self.hs)
 
     def to_choi_matrix_with_sparsity(self) -> np.ndarray:
         """returns Choi matrix of gate.
@@ -474,7 +456,7 @@ class Gate(QOperation):
         np.ndarray
             Choi matrix of gate.
         """
-        return to_choi_from_hs(self.composite_system, self._hs)
+        return to_choi_from_hs_with_sparsity(self.composite_system, self._hs)
 
     def to_kraus_matrices(self) -> List[np.ndarray]:
         """returns Kraus matrices of gate.
@@ -488,58 +470,9 @@ class Gate(QOperation):
         List[np.ndarray]
             Kraus matrices of gate.
         """
-        if not self.is_cp():
-            return []
-
-        # step1. calc the eigenvalue decomposition of Choi matrix.
-        #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
-        choi = self.to_choi_matrix_with_sparsity()
-        eigen_vals, eigen_vecs = np.linalg.eigh(choi)
-        eigens = [
-            (eigen_vals[index], eigen_vecs[:, index])
-            for index in range(len(eigen_vals))
-        ]
-        # filter non-zero eigen values
-        eigens = [
-            (eigen_val, eigen_vec)
-            for (eigen_val, eigen_vec) in eigens
-            if not np.isclose(eigen_val, 0, atol=Settings.get_atol())
-        ]
-        # sort large eigenvalue order
-        eigens = sorted(eigens, key=lambda x: x[0], reverse=True)
-
-        # step2. calc Kraus representaion.
-        #   K_{\alpha} = \sqrt{c_{\alpha}} unvec(|c_{\alpha}>)
-        _kraus = [
-            np.sqrt(eigen_val) * eigen_vec.reshape((self.dim, self.dim))
-            for (eigen_val, eigen_vec) in eigens
-        ]
-
-        # step3: fix phase
-        kraus = []
-        for k in _kraus:
-            # k_00 = k[0][0]
-
-            # ang = np.angle(k_00)
-            # _k = (np.e ** (-1j * ang)) * k
-            # kraus.append(_k)
-            for i, value in enumerate(k.flatten()):
-                if value == 0:
-                    continue
-                elif value < 0:
-                    print(f"debug: k[{i}] value < 0")
-                    e_i_theta = value / abs(value)
-                    _k = (1 / e_i_theta) * k
-
-                    # _k = (np.e ** (-1j * ang)) * k
-                    kraus.append(_k)
-                    break
-                else:
-                    kraus.append(k)
-                    break
-            else:
-                kraus.append(k)
-        return kraus
+        return to_kraus_matrices_from_hs(
+            self.composite_system, self.hs, self.eps_proj_physical
+        )
 
     def to_process_matrix(self) -> np.ndarray:
         """returns process matrix of gate.
@@ -549,14 +482,7 @@ class Gate(QOperation):
         np.ndarray
             process matrix of gate.
         """
-        # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
-        hs_comp = self.convert_to_comp_basis()
-        comp_basis = self.composite_system.comp_basis()
-        process_matrix = [
-            np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
-            for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
-        ]
-        return np.array(process_matrix).reshape((4, 4))
+        return to_process_matrix_from_hs(self.composite_system, self.hs)
 
     def _generate_from_var_func(self):
         return convert_var_to_gate
@@ -644,10 +570,36 @@ def is_tp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
     """
     atol = Settings.get_atol() if atol is None else atol
 
-    # if A:HS representation of gate, then A:TP <=> the first row of A is [1, 0,..., 0].
-    expected_row = np.zeros((c_sys.dim ** 2))
-    expected_row[0] = 1
-    return np.allclose(hs[0], expected_row, atol=atol, rtol=0.0)
+    if c_sys.is_orthonormal_hermitian_0thprop_identity is True:
+        # if A:HS representation of gate, then A:TP <=> the first row of A is [1, 0,..., 0].
+        expected_row = np.zeros((c_sys.dim ** 2))
+        expected_row[0] = 1
+        return np.allclose(hs[0], expected_row, atol=atol, rtol=0.0)
+    else:
+        # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
+        for index, basis in enumerate(c_sys.basis()):
+            # calculate Tr[B_\alpha]
+            trace_before_mapped = np.trace(basis)
+
+            # calculate Tr[A(B_\alpha)]
+            vec = np.zeros((c_sys.dim ** 2))
+            vec[index] = 1
+            vec_after_mapped = hs @ vec
+
+            density = np.zeros((c_sys.dim, c_sys.dim), dtype=np.complex128)
+            for coefficient, basis in zip(vec_after_mapped, c_sys.basis()):
+                density += coefficient * basis
+
+            trace_after_mapped = np.trace(density)
+
+            # check Tr[A(B_\alpha)] = Tr[B_\alpha]
+            tp_for_basis = np.isclose(
+                trace_after_mapped, trace_before_mapped, atol=atol, rtol=0.0
+            )
+            if not tp_for_basis:
+                return False
+
+        return True
 
 
 def is_cp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
@@ -671,10 +623,64 @@ def is_cp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
     atol = Settings.get_atol() if atol is None else atol
 
     # "A is CP"  <=> "C(A) >= 0"
-    return mutil.is_positive_semidefinite(to_choi_from_hs(c_sys, hs), atol=atol)
+    return mutil.is_positive_semidefinite(
+        to_choi_from_hs_with_sparsity(c_sys, hs), atol=atol
+    )
 
 
 def to_choi_from_hs(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:
+    """converts HS representation to Choi matrix of this gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    hs : np.ndarray
+        HS representation of this gate.
+
+    Returns
+    -------
+    np.ndarray
+        Choi matrix of this gate.
+    """
+    # C(A) = \sum_{\alpha, \beta} HS(A)_{\alpha, \beta} B_\alpha \otimes \overline{B_\beta}
+    num_basis = len(c_sys.basis())
+    tmp_list = []
+    for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
+        tmp = hs[alpha][beta] * c_sys.basis_basisconjugate((alpha, beta))
+        tmp_list.append(tmp)
+
+    # summing
+    choi = reduce(add, tmp_list)
+    return choi
+
+
+def to_choi_from_hs_with_dict(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:
+    """converts HS representation to Choi matrix of this gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    hs : np.ndarray
+        HS representation of this gate.
+
+    Returns
+    -------
+    np.ndarray
+        Choi matrix of this gate.
+    """
+    num_basis = len(c_sys.basis())
+    choi = np.zeros((num_basis, num_basis), dtype=np.complex128)
+    for i, j in itertools.product(range(num_basis), range(num_basis)):
+        non_zeros = c_sys._dict_from_hs_to_choi.get((i, j), [])
+        for alpha, beta, coefficient in non_zeros:
+            choi[i, j] += hs[alpha, beta] * coefficient
+
+    return choi
+
+
+def to_choi_from_hs_with_sparsity(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:
     """converts HS representation to Choi matrix of this gate.
 
     Parameters
@@ -773,6 +779,112 @@ def to_hs_from_choi_with_sparsity(
     return mutil.truncate_hs(hs)
 
 
+def to_kraus_matrices_from_hs(
+    c_sys: CompositeSystem, hs: np.ndarray, atol: float = None
+) -> List[np.ndarray]:
+    """returns Kraus matrices of gate.
+
+    this function returns Kraus matrices as list of ``np.ndarray`` with ``dtype=np.complex128``.
+    the list is sorted large eigenvalue order.
+    if HS of gate is not CP, then returns empty list because Kraus matrices does not exist.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    hs : np.ndarray
+        HS representation of this gate.
+    atol : float, optional
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+        this function ignores eigenvalues close zero.
+
+    Returns
+    -------
+    List[np.ndarray]
+        Kraus matrices of gate.
+    """
+    atol = Settings.get_atol() if atol is None else atol
+
+    if not is_cp(c_sys, hs, atol):
+        return []
+
+    # step1. calc the eigenvalue decomposition of Choi matrix.
+    #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
+    choi = to_choi_from_hs_with_sparsity(c_sys, hs)
+    eigen_vals, eigen_vecs = np.linalg.eigh(choi)
+    eigens = [
+        (eigen_vals[index], eigen_vecs[:, index]) for index in range(len(eigen_vals))
+    ]
+    # filter non-zero eigen values
+    eigens = [
+        (eigen_val, eigen_vec)
+        for (eigen_val, eigen_vec) in eigens
+        if not np.isclose(eigen_val, 0, atol=Settings.get_atol())
+    ]
+    # sort large eigenvalue order
+    eigens = sorted(eigens, key=lambda x: x[0], reverse=True)
+
+    # step2. calc Kraus representaion.
+    #   K_{\alpha} = \sqrt{c_{\alpha}} unvec(|c_{\alpha}>)
+    _kraus = [
+        np.sqrt(eigen_val) * eigen_vec.reshape((c_sys.dim, c_sys.dim))
+        for (eigen_val, eigen_vec) in eigens
+    ]
+
+    # step3: fix phase
+    kraus = []
+    for k in _kraus:
+        # k_00 = k[0][0]
+
+        # ang = np.angle(k_00)
+        # _k = (np.e ** (-1j * ang)) * k
+        # kraus.append(_k)
+        for i, value in enumerate(k.flatten()):
+            if value == 0:
+                continue
+            elif value < 0:
+                e_i_theta = value / abs(value)
+                _k = (1 / e_i_theta) * k
+
+                # _k = (np.e ** (-1j * ang)) * k
+                kraus.append(_k)
+                break
+            else:
+                kraus.append(k)
+                break
+        else:
+            kraus.append(k)
+    return kraus
+
+
+def to_process_matrix_from_hs(
+    c_sys: CompositeSystem,
+    hs: np.ndarray,
+) -> np.ndarray:
+    """returns process matrix of gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    hs : np.ndarray
+        HS representation of this gate.
+
+    Returns
+    -------
+    np.ndarray
+        process matrix of gate.
+    """
+    # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
+    comp_basis = c_sys.comp_basis()
+    hs_comp = convert_hs(hs, c_sys.basis(), comp_basis)
+    process_matrix = [
+        np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
+        for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
+    ]
+    return np.array(process_matrix).reshape((c_sys.dim ** 2, c_sys.dim ** 2))
+
+
 def to_choi_from_var(
     c_sys: CompositeSystem,
     var: np.ndarray,
@@ -798,7 +910,7 @@ def to_choi_from_var(
     hs = convert_var_to_hs(c_sys, var, on_para_eq_constraint)
 
     # hs to Choi matrix
-    choi = to_choi_from_hs(c_sys, hs)
+    choi = to_choi_from_hs_with_sparsity(c_sys, hs)
     return choi
 
 
@@ -824,7 +936,7 @@ def to_var_from_choi(
         variables.
     """
     # Choi matrix to hs
-    hs = to_choi_from_hs(c_sys, choi)
+    hs = to_choi_from_hs_with_sparsity(c_sys, choi)
 
     # hs to var
     var = convert_hs_to_var(c_sys, hs, on_para_eq_constraint)
