@@ -40,6 +40,11 @@ class QTomography:
                 raise ValueError(
                     f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(state)} is not so."
                 )
+            # whether entries of vec of State are real numbers
+            if not state is None and state.vec.dtype != np.float64:
+                raise ValueError(
+                    f"entries of vec of State must be real numbers. dtype of vec is {state.vec.dtype}"
+                )
         for gate in self._experiment.gates:
             if (
                 not gate is None
@@ -47,6 +52,11 @@ class QTomography:
             ):
                 raise ValueError(
                     f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(gate)} is not so."
+                )
+            # whether entries of HS representation of Gate are real numbers
+            if not gate is None and gate.hs.dtype != np.float64:
+                raise ValueError(
+                    f"entries of HS representation of Gate must be real numbers. dtype of HS is {gate.hs.dtype}"
                 )
         for povm in self._experiment.povms:
             if (
@@ -56,6 +66,13 @@ class QTomography:
                 raise ValueError(
                     f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(povm)} is not so."
                 )
+            # whether entries of vecs of Povm are real numbers
+            if not povm is None:
+                for vec in povm.vecs:
+                    if vec.dtype != np.float64:
+                        raise ValueError(
+                            f"entries of all vecs of Povm must be real numbers. some dtype of vecs are {vec.dtype}"
+                        )
 
         # validate ElementalSystem of SetQOperations
         for state in self._set_qoperations.states:
