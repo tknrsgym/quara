@@ -73,8 +73,20 @@ class TestMProcess:
         with pytest.raises(ValueError):
             MProcess(c_sys, hss, shape=(1,))
 
+        # Test
+        e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # Test that c_sys.is_orthonormal_hermitian_0thprop_identity == False
+        hs = np.array(
+            [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            dtype=np.float64,
+        )
+        with pytest.raises(ValueError):
+            MProcess(c_sys, [hs])
+
     def test_init_is_physicality_required(self):
-        e_sys = ElementalSystem(1, matrix_basis.get_comp_basis())
+        e_sys = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
 
         # gate is not TP
@@ -700,3 +712,18 @@ class TestMProcess:
             [[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]]
         )
         npt.assert_almost_equal(actual_1, expected_1, decimal=15)
+
+    """
+    def test_to_povm(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        actual = mprocess.to_povm()
+
+        # Assert
+        expected = 2
+        assert actual.vecs[0] == expected
+    """
