@@ -535,3 +535,168 @@ class TestMProcess:
         hss = [hs_0, hs_1]
         mprocess = MProcess(c_sys, hss, is_physicality_required=False)
         assert mprocess.is_cp() == False
+
+    def test_to_choi_matrix(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        choi_0 = mprocess.to_choi_matrix(0)
+        choi_1 = mprocess.to_choi_matrix(1)
+
+        # Assert
+        expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+        expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+        npt.assert_almost_equal(choi_0, expected_0, decimal=15)
+        npt.assert_almost_equal(choi_1, expected_1, decimal=15)
+
+    def test_to_choi_matrix(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        choi_0 = mprocess.to_choi_matrix(0)
+        choi_1 = mprocess.to_choi_matrix(1)
+
+        # Assert
+        expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+        expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+        npt.assert_almost_equal(choi_0, expected_0, decimal=15)
+        npt.assert_almost_equal(choi_1, expected_1, decimal=15)
+
+    def test_to_choi_matrix_with_dict(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        choi_0 = mprocess.to_choi_matrix_with_dict(0)
+        choi_1 = mprocess.to_choi_matrix_with_dict(1)
+
+        # Assert
+        expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+        expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+        npt.assert_almost_equal(choi_0, expected_0, decimal=15)
+        npt.assert_almost_equal(choi_1, expected_1, decimal=15)
+
+    def test_to_choi_matrix_with_sparsity(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        choi_0 = mprocess.to_choi_matrix_with_sparsity(0)
+        choi_1 = mprocess.to_choi_matrix_with_sparsity(1)
+
+        # Assert
+        expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+        expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+        npt.assert_almost_equal(choi_0, expected_0, decimal=15)
+        npt.assert_almost_equal(choi_1, expected_1, decimal=15)
+
+    @classmethod
+    def calc_sum_of_kraus(cls, kraus):
+        # calc \sum_{\alpha} K__{\alpha} K_{\alpha}^{\dagger}
+        sum = np.zeros(kraus[0].shape, dtype=np.complex128)
+        for matrix in kraus:
+            sum += matrix @ matrix.conj().T
+        return sum
+
+    def test_to_kraus_matrices(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        eye2 = np.eye(2, dtype=np.complex128)
+
+        hs_0 = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        hs_1 = np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        actual_0 = mprocess.to_kraus_matrices(0)
+        actual_1 = mprocess.to_kraus_matrices(1)
+
+        # Assert
+        expected_0 = [np.array([[0, 1], [1, 0]], dtype=np.complex128)]
+        assert len(actual_0) == 1
+        npt.assert_almost_equal(actual_0[0], expected_0[0], decimal=15)
+        npt.assert_almost_equal(
+            TestMProcess.calc_sum_of_kraus(actual_0), eye2, decimal=14
+        )
+
+        expected_1 = [np.array([[0, 1], [-1, 0]], dtype=np.complex128)]
+        assert len(actual_1) == 1
+        npt.assert_almost_equal(actual_1[0], expected_1[0], decimal=15)
+        npt.assert_almost_equal(
+            TestMProcess.calc_sum_of_kraus(actual_1), eye2, decimal=14
+        )
+
+    def test_to_process_matrix(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        hs_1 = np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        actual_0 = mprocess.to_process_matrix(0)
+        actual_1 = mprocess.to_process_matrix(1)
+
+        # Assert
+        expected_0 = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
+        npt.assert_almost_equal(actual_0, expected_0, decimal=15)
+
+        expected_1 = np.array(
+            [[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]]
+        )
+        npt.assert_almost_equal(actual_1, expected_1, decimal=15)

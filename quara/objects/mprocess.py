@@ -66,7 +66,6 @@ class MProcess(QOperation):
 
             # whether HS representation is real matrix
             if hs.dtype != np.float64:
-                print(f"hs={hs}")
                 raise ValueError(
                     f"HS must be real matrix. dtype of hss[{i}] is {hs.dtype}"
                 )
@@ -134,15 +133,16 @@ class MProcess(QOperation):
         """
         return self._hss
 
-    def hs(self, index: Union[int, Tuple]) -> np.ndarray:
+    def hs(self, index: Union[int, Tuple[int]]) -> np.ndarray:
         """returns HS representations of MProcess by index.
 
         Parameters
         ----------
-        index : Union[int, Tuple]
+        index : Union[int, Tuple[int]]
             index of HS of MProcess.
             If type is an int, access is one-dimensional.
             If type is tuple, access is multi-dimensional.
+
         Returns
         -------
         np.ndarray
@@ -334,3 +334,99 @@ class MProcess(QOperation):
             for hs in self.hss
         ]
         return converted_hss
+
+    def to_choi_matrix(self, outcome: Union[int, Tuple[int]]) -> np.ndarray:
+        """returns Choi matrix of gate.
+
+        Parameters
+        ----------
+        outcome : Union[int, Tuple[int]]
+            index of HS of MProcess.
+            If type is an int, access is one-dimensional.
+            If type is tuple, access is multi-dimensional.
+
+        Returns
+        -------
+        np.ndarray
+            Choi matrix of gate.
+        """
+        hs = self.hs(outcome)
+        return gate.to_choi_from_hs(self.composite_system, hs)
+
+    def to_choi_matrix_with_dict(self, outcome: Union[int, Tuple[int]]) -> np.ndarray:
+        """returns Choi matrix of gate.
+
+        Parameters
+        ----------
+        outcome : Union[int, Tuple[int]]
+            index of HS of MProcess.
+            If type is an int, access is one-dimensional.
+            If type is tuple, access is multi-dimensional.
+
+        Returns
+        -------
+        np.ndarray
+            Choi matrix of gate.
+        """
+        hs = self.hs(outcome)
+        return gate.to_choi_from_hs_with_dict(self.composite_system, hs)
+
+    def to_choi_matrix_with_sparsity(
+        self, outcome: Union[int, Tuple[int]]
+    ) -> np.ndarray:
+        """returns Choi matrix of gate.
+
+        Parameters
+        ----------
+        outcome : Union[int, Tuple[int]]
+            index of HS of MProcess.
+            If type is an int, access is one-dimensional.
+            If type is tuple, access is multi-dimensional.
+
+        Returns
+        -------
+        np.ndarray
+            Choi matrix of gate.
+        """
+        hs = self.hs(outcome)
+        return gate.to_choi_from_hs_with_sparsity(self.composite_system, hs)
+
+    def to_kraus_matrices(self, outcome: Union[int, Tuple[int]]) -> List[np.ndarray]:
+        """returns Kraus matrices of gate.
+
+        this function returns Kraus matrices as list of ``np.ndarray`` with ``dtype=np.complex128``.
+        the list is sorted large eigenvalue order.
+        if HS of gate is not CP, then returns empty list because Kraus matrices does not exist.
+
+        Parameters
+        ----------
+        outcome : Union[int, Tuple[int]]
+            index of HS of MProcess.
+            If type is an int, access is one-dimensional.
+            If type is tuple, access is multi-dimensional.
+
+        Returns
+        -------
+        List[np.ndarray]
+            Kraus matrices of gate.
+        """
+        hs = self.hs(outcome)
+        return gate.to_kraus_matrices_from_hs(self.composite_system, hs)
+
+    def to_process_matrix(self, outcome: Union[int, Tuple[int]]) -> np.ndarray:
+        """returns process matrix of gate.
+
+        Parameters
+        ----------
+        outcome : Union[int, Tuple[int]]
+            index of HS of MProcess.
+            If type is an int, access is one-dimensional.
+            If type is tuple, access is multi-dimensional.
+
+        Returns
+        -------
+        np.ndarray
+            process matrix of gate.
+        """
+        hs = self.hs(outcome)
+        return gate.to_process_matrix_from_hs(self.composite_system, hs)
