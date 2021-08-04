@@ -13,6 +13,7 @@ from quara.objects.matrix_basis import (
     get_comp_basis,
     get_normalized_pauli_basis,
 )
+from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
 from quara.settings import Settings
 from quara.utils.index_util import index_serial_from_index_multi_dimensional
@@ -48,6 +49,12 @@ class MProcess(QOperation):
         )
         self._hss: List[np.ndarray] = hss
         self._num_outcomes = len(self._hss)
+
+        # whether all ElementalSystem of this CompositeSystem are orthonormal, hermitian and 0th prop identity
+        if c_sys.is_orthonormal_hermitian_0thprop_identity == False:
+            raise ValueError(
+                "all ElementalSystem of this CompositeSystem must be orthonormal, hermitian and 0th prop identity."
+            )
 
         for i, hs in enumerate(self._hss):
             # whether HS representation is square matrix
@@ -430,3 +437,18 @@ class MProcess(QOperation):
         """
         hs = self.hs(outcome)
         return gate.to_process_matrix_from_hs(self.composite_system, hs)
+
+    def to_povm(self) -> Povm:
+        vecs = [hs[0] for hs in self.hss]
+        povm = Povm(
+            c_sys=self.composite_system,
+            vecs=vecs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return povm
