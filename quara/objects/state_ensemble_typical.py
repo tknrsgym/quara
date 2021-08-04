@@ -66,7 +66,9 @@ def generate_state_ensemble_from_name(
     )
     state_ensemble = StateEnsemble(
         states=states,
-        prob_dist=MultinomialDistribution(ps=np.array(prob_dist)),
+        prob_dist=MultinomialDistribution(
+            ps=np.array(prob_dist), shape=(len(prob_dist),)
+        ),  # TODO: remove shape
     )
     return state_ensemble
 
