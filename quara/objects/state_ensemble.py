@@ -45,6 +45,13 @@ class StateEnsemble(QOperation):
         return info
 
     def state(self, outcome: Union[int, Tuple[int]]):
-        shape = self.prob_dist.shape
-        serial_index = index_serial_from_index_multi_dimensional(nums_length=list(shape), index_multi_dimensional=outcome)
+        if type(outcome) == tuple:
+            shape = self.prob_dist.shape
+            serial_index = index_serial_from_index_multi_dimensional(nums_length=list(shape), index_multi_dimensional=outcome)
+        elif type(outcome) == int:
+            serial_index = outcome
+        else:
+            error_message = "Type of outcome must be int or tuple of int."
+            raise TypeError(error_message)
+
         return self._states[serial_index]
