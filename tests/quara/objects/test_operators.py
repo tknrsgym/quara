@@ -56,6 +56,7 @@ from quara.objects.state import (
 from quara.objects.state_ensemble import StateEnsemble
 from quara.objects.qoperation_typical import generate_qoperation_object
 from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.multinomial_distribution import MultinomialDistribution
 
 
 def test_tensor_product_Gate_Gate():
@@ -1489,3 +1490,41 @@ def test_tensor_product_StateEnsemble_StateEnsemble_shape_2_3():
     for a, e in zip(actual.states, expected):
         npt.assert_almost_equal(a.vec, e.vec, decimal=15)
     assert actual.shape == (2, 3)
+
+
+def test_tensor_product_State_StateEnsemble():
+    # State (x) StateEnsemble
+    c_sys_list = []
+    for i in range(3):
+        c_sys_list.append(generate_composite_system(mode="qubit", num=1, ids_esys=[i]))
+
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_list[0]
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_list[1]
+    )
+    state_y0 = generate_qoperation_object(
+        mode="state", object_name="state", name="y0", c_sys=c_sys_list[2]
+    )
+
+    states = [state_z0, state_z1]
+    ps = np.array([0.1, 0.9])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2,))
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+
+    # Act
+    actual = tensor_product(state_y0, state_ensemble)
+
+    # Assert
+    # check prob_dist
+    expected_prob_dist = state_ensemble.prob_dist
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist.ps, decimal=15)
+    assert expected_prob_dist.shape == (2,)
+
+    # check state
+    expected_state = tensor_product(state_y0, state_z0)
+    npt.assert_almost_equal(actual.states[0].vec, expected_state.vec)
+
+    expected_state = tensor_product(state_y0, state_z1)
+    npt.assert_almost_equal(actual.states[1].vec, expected_state.vec)
