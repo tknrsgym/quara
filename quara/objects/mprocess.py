@@ -250,16 +250,66 @@ class MProcess(QOperation):
         self._hss = [hs.copy() for _ in self.hss]
         self._is_physicality_required = False
 
-    def _generate_zero_obj(self):
+    def _generate_zero_obj(self) -> np.ndarray:
         hs = np.zeros(self.hs(0).shape, dtype=np.float64)
         new_hss = [hs.copy() for _ in self.hss]
         return new_hss
 
-    def _generate_origin_obj(self):
-        hs = np.zeros(hs.shape(0), dtype=np.float64)
+    def generate_zero_obj(self) -> "MProcess":
+        """returns zero object of QOperation.
+
+        Returns
+        -------
+        QOperation
+            zero object of QOperation.
+        """
+        hss = self._generate_zero_obj()
+        new_qoperation = MProcess(
+            self.composite_system,
+            hss,
+            shape=self.shape,
+            mode_sampling=self.mode_sampling,
+            random_seed_or_state=self.random_seed_or_state,
+            is_physicality_required=False,
+            is_estimation_object=False,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return new_qoperation
+
+    def _generate_origin_obj(self) -> np.ndarray:
+        hs = np.zeros(self.hs(0).shape, dtype=np.float64)
         hs[0][0] = 1 / len(self.hss)
         new_hss = [hs.copy() for _ in self.hss]
         return new_hss
+
+    def generate_origin_obj(self) -> "MProcess":
+        """returns origin object of MProcess.
+
+        Returns
+        -------
+        MProcess
+            origin object of MProcess.
+        """
+        hss = self._generate_origin_obj()
+        new_qoperation = MProcess(
+            self.composite_system,
+            hss,
+            shape=self.shape,
+            mode_sampling=self.mode_sampling,
+            random_seed_or_state=self.random_seed_or_state,
+            is_physicality_required=False,
+            is_estimation_object=False,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return new_qoperation
 
     def _check_shape(self, shape_left: Tuple[int], shape_right: Tuple[int]):
         if shape_left != shape_right:
@@ -438,6 +488,39 @@ class MProcess(QOperation):
         hs = self.hs(outcome)
         return gate.to_process_matrix_from_hs(self.composite_system, hs)
 
+    def _copy(self):
+        return (
+            copy.deepcopy(self.hss),
+            copy.deepcopy(self.shape),
+            copy.deepcopy(self.mode_sampling),
+            copy.deepcopy(self.random_seed_or_state),
+        )
+
+    def copy(self) -> "MProcess":
+        """returns copy of MProcess.
+
+        Returns
+        -------
+        MProcess
+            copy of MProcess.
+        """
+        hss, shape, mode_sampling, random_seed_or_state = self._copy()
+        new_qoperation = self.__class__(
+            self.composite_system,
+            hss,
+            shape=shape,
+            mode_sampling=mode_sampling,
+            random_seed_or_state=random_seed_or_state,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return new_qoperation
+
     def to_povm(self) -> Povm:
         vecs = [hs[0] for hs in self.hss]
         povm = Povm(
@@ -452,3 +535,86 @@ class MProcess(QOperation):
             eps_proj_physical=self.eps_proj_physical,
         )
         return povm
+
+
+def convert_hss_to_var(
+    c_sys: CompositeSystem, hss: List[np.ndarray], on_para_eq_constraint: bool = True
+) -> np.ndarray:
+    """converts hss of MProcess to variables.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this MProcess.
+    hss : np.ndarray
+        list of HS representation of this MProcess.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    np.ndarray
+        variables.
+    """
+    if on_para_eq_constraint:
+        tmp_hss = []
+        for index, hs in enumerate(hss):
+            if index == len(hss) - 1:
+                tmp_hss.append(np.delete(hs, 0, axis=0).flatten())
+            else:
+                tmp_hss.append(hs.flatten())
+        var = np.concatenate(tmp_hss)
+    else:
+        var = np.reshape(hss, -1)
+    return var
+
+
+# TODO
+def convert_var_to_hss(
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    on_para_eq_constraint: bool = True,
+) -> List[np.ndarray]:
+    """converts variables of MProcess to list of HS representation.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this MProcess.
+    var : np.ndarray
+        variables of gate.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    List[np.ndarray]
+        list of HS representation of this MProcess.
+    """
+    vector = copy.copy(var)
+    dim = c_sys.dim
+
+    if on_para_eq_constraint:
+
+        num_outcomes = vector.shape[0] // (dim ** 2 * dim ** 2) + 1
+        # [√d, 0, 0...]
+        total_vecs = np.hstack(
+            [
+                np.array(np.sqrt(dim)),
+                np.zeros(
+                    dim ** 2 - 1,
+                ),
+            ]
+        )
+        pre_vecs = vecs.reshape(measurement_n - 1, dim ** 2)
+        last_vec = total_vecs - pre_vecs.sum(axis=0)
+        vecs = np.append(pre_vecs, last_vec)
+    else:
+        num_outcomes = vector.shape[0] // (dim ** 2 * dim ** 2)
+
+    vec_list = []
+    reshaped_vecs = vector.reshape((num_outcomes, dim ** 2, dim ** 2))
+    # convert np.ndarray to list of np.ndarray
+    for vec in reshaped_vecs:
+        vec_list.append(vec)
+    return vec_list

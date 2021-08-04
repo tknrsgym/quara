@@ -6,7 +6,7 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.mprocess import MProcess
+from quara.objects.mprocess import MProcess, convert_hss_to_var, convert_var_to_hss
 from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.settings import Settings
 
@@ -398,6 +398,72 @@ class TestMProcess:
         assert mprocess.on_algo_ineq_constraint == True
         assert mprocess.eps_proj_physical == Settings.get_atol() / 10.0
 
+    def test_generate_zero_obj(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        z = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        mprocess = z.generate_zero_obj()
+        actual = mprocess.hss
+
+        # Assert
+        expected = [
+            np.array(
+                [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                dtype=np.float64,
+            ),
+            np.array(
+                [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                dtype=np.float64,
+            ),
+        ]
+        for a, e in zip(actual, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert mprocess.dim == 2
+        assert mprocess.shape == (2,)
+        assert mprocess.mode_sampling == False
+        assert mprocess.is_physicality_required == False
+        assert mprocess.is_estimation_object == False
+        assert mprocess.on_para_eq_constraint == True
+        assert mprocess.on_algo_eq_constraint == True
+        assert mprocess.on_algo_ineq_constraint == True
+        assert mprocess.eps_proj_physical == Settings.get_atol() / 10.0
+
+    def test_generate_origin_obj(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        z = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        mprocess = z.generate_origin_obj()
+        actual = mprocess.hss
+
+        # Assert
+        expected = [
+            np.array(
+                [[1 / 2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                dtype=np.float64,
+            ),
+            np.array(
+                [[1 / 2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                dtype=np.float64,
+            ),
+        ]
+        for a, e in zip(actual, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert mprocess.dim == 2
+        assert mprocess.shape == (2,)
+        assert mprocess.mode_sampling == False
+        assert mprocess.is_physicality_required == False
+        assert mprocess.is_estimation_object == False
+        assert mprocess.on_para_eq_constraint == True
+        assert mprocess.on_algo_eq_constraint == True
+        assert mprocess.on_algo_ineq_constraint == True
+        assert mprocess.eps_proj_physical == Settings.get_atol() / 10.0
+
     def test_add(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -713,6 +779,28 @@ class TestMProcess:
         )
         npt.assert_almost_equal(actual_1, expected_1, decimal=15)
 
+    def test_copy(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        actual = mprocess.copy()
+
+        # Assert
+        expected_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        expected_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        npt.assert_almost_equal(actual.hs(0), expected_0, decimal=15)
+        npt.assert_almost_equal(actual.hs(1), expected_1, decimal=15)
+        assert actual.shape == (2,)
+        assert actual.mode_sampling == False
+        assert actual.random_seed_or_state == None
+
     """
     def test_to_povm(self):
         # Arrange
@@ -722,8 +810,87 @@ class TestMProcess:
 
         # Act
         actual = mprocess.to_povm()
+        print(actual)
 
         # Assert
         expected = 2
         assert actual.vecs[0] == expected
     """
+
+
+def test_convert_hss_to_var():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    mprocess = generate_mprocess_from_name(c_sys, "z")
+
+    # case 1: on_para_eq_constraint=default(True)
+    actual = convert_hss_to_var(c_sys, mprocess.hss)
+    expected = (1 / 2) * np.array(
+        [
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [-1, 0, 0, 1],
+        ]
+    )
+    npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
+
+    # case 2: on_para_eq_constraint=True
+    actual = convert_hss_to_var(c_sys, mprocess.hss, on_para_eq_constraint=True)
+    expected = (1 / 2) * np.array(
+        [
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [-1, 0, 0, 1],
+        ]
+    )
+    npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
+
+    # case 3: on_para_eq_constraint=False
+    actual = convert_hss_to_var(c_sys, mprocess.hss, on_para_eq_constraint=False)
+    expected = (1 / 2) * np.array(
+        [
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
+            [1, 0, 0, -1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [-1, 0, 0, 1],
+        ]
+    )
+    npt.assert_almost_equal(actual, expected.flatten(), decimal=15)
+
+
+def test_convert_var_to_hss():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    expected = generate_mprocess_from_name(c_sys, "z")
+
+    # case 3: on_para_eq_constraint=False
+    var = (1 / 2) * np.array(
+        [
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
+            [1, 0, 0, -1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [-1, 0, 0, 1],
+        ]
+    )
+
+    actual = convert_var_to_hss(c_sys, var.flatten(), on_para_eq_constraint=False)
+    npt.assert_almost_equal(actual[0], expected.hs(0), decimal=15)
+    npt.assert_almost_equal(actual[1], expected.hs(1), decimal=15)
