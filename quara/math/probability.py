@@ -30,6 +30,8 @@ def validate_prob_dist(prob_dist: np.ndarray, eps: float = None) -> None:
             )
 
     # whether the sum of probabilities equals 1.
-    sum = np.sum(prob_dist)
-    if not np.isclose(sum, 1.0, atol=eps, rtol=0.0):
-        raise ValueError(f"the sum of prob_dist must be 1. the sum of prob_dist={sum}")
+    sum_p = np.sum(prob_dist)
+    if not np.isclose(sum_p, 1.0, atol=eps, rtol=0.0):
+        raise ValueError(
+            f"the sum of prob_dist must be 1. the sum of prob_dist={sum_p}"
+        )

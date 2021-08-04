@@ -28,7 +28,9 @@ def generate_state_ensemble_elements_from_name(
         return method(c_sys)
 
 
-def get_state_ensemble_z0_elements(c_sys: CompositeSystem):
+def get_state_ensemble_z0_elements(
+    c_sys: CompositeSystem,
+) -> Tuple[List[State], List[float]]:
     z0 = generate_state_from_name(state_name="z0", c_sys=c_sys)
     z1 = generate_state_from_name(state_name="z1", c_sys=c_sys)
     states = [z0, z1]
@@ -36,7 +38,9 @@ def get_state_ensemble_z0_elements(c_sys: CompositeSystem):
     return states, prob_dist
 
 
-def get_state_ensemble_z1_elements(c_sys: CompositeSystem):
+def get_state_ensemble_z1_elements(
+    c_sys: CompositeSystem,
+) -> Tuple[List[State], List[float]]:
     z0 = generate_state_from_name(state_name="z0", c_sys=c_sys)
     z1 = generate_state_from_name(state_name="z1", c_sys=c_sys)
     states = [z0, z1]
@@ -44,7 +48,9 @@ def get_state_ensemble_z1_elements(c_sys: CompositeSystem):
     return states, prob_dist
 
 
-def get_state_ensemble_x0_elements(c_sys: CompositeSystem):
+def get_state_ensemble_x0_elements(
+    c_sys: CompositeSystem,
+) -> Tuple[List[State], List[float]]:
     x0 = generate_state_from_name(state_name="x0", c_sys=c_sys)
     x1 = generate_state_from_name(state_name="x1", c_sys=c_sys)
     states = [x0, x1]
@@ -52,15 +58,16 @@ def get_state_ensemble_x0_elements(c_sys: CompositeSystem):
     return states, prob_dist
 
 
-def generate_state_ensemble_from_name(c_sys, state_ensemble_name):
-    # TODO:
+def generate_state_ensemble_from_name(
+    c_sys: CompositeSystem, state_ensemble_name: str
+) -> StateEnsemble:
     states, prob_dist = generate_state_ensemble_elements_from_name(
         state_ensemble_name, c_sys
     )
     state_ensemble = StateEnsemble(
         states=states,
         prob_dist=MultinomialDistribution(
-            prob_dist, shape=(len(prob_dist),)
+            ps=np.array(prob_dist), shape=(len(prob_dist),)
         ),  # TODO: remove shape
     )
     return state_ensemble
