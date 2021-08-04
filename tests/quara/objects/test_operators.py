@@ -53,7 +53,9 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
-from quara.objects.state_ensemble_typical import get_state_ensemble_z0_elements
+from quara.objects.state_ensemble import StateEnsemble
+from quara.objects.qoperation_typical import generate_qoperation_object
+from quara.objects.composite_system_typical import generate_composite_system
 
 
 def test_tensor_product_Gate_Gate():
@@ -1439,3 +1441,51 @@ def test_scenario_tomographically_complete_sets(d):
             # Assert
             expected = prob_per_povm[alpha]
             npt.assert_almost_equal(actual.ps, expected, decimal=14)
+
+
+def test_tensor_product_StateEnsemble_StateEnsemble_shape_2_3():
+    # Arrange
+    c_sys_1q_0 = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+    c_sys_1q_1 = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
+    c_sys_1q_2 = generate_composite_system(mode="qubit", num=1, ids_esys=[2])
+    c_sys_1q_3 = generate_composite_system(mode="qubit", num=1, ids_esys=[3])
+    c_sys_1q_4 = generate_composite_system(mode="qubit", num=1, ids_esys=[4])
+
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_1q_0
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_1q_1
+    )
+    state_y0 = generate_qoperation_object(
+        mode="state", object_name="state", name="y0", c_sys=c_sys_1q_2
+    )
+    state_y1 = generate_qoperation_object(
+        mode="state", object_name="state", name="y1", c_sys=c_sys_1q_3
+    )
+    state_x0 = generate_qoperation_object(
+        mode="state", object_name="state", name="x0", c_sys=c_sys_1q_4
+    )
+
+    se_0 = StateEnsemble([state_z0, state_z1], np.array([0.1, 0.9]))
+    se_1 = StateEnsemble([state_y0, state_y1, state_x0], np.array([0.05, 0.25, 0.7]))
+
+    # Act
+    actual = tensor_product(se_0, se_1)
+
+    # Assert
+    expected = np.array([0.005, 0.025, 0.07, 0.045, 0.225, 0.63])
+    npt.assert_almost_equal(actual.prob_dist.ps, expected, decimal=16)
+
+    expected = [
+        tensor_product(state_z0, state_y0),
+        tensor_product(state_z0, state_y1),
+        tensor_product(state_z0, state_x0),
+        tensor_product(state_z1, state_y0),
+        tensor_product(state_z1, state_y1),
+        tensor_product(state_z1, state_x0),
+    ]
+    assert len(actual.states) == len(expected)
+    for a, e in zip(actual.states, expected):
+        npt.assert_almost_equal(a.vec, e.vec, decimal=15)
+    assert actual.shape == (2, 3)
