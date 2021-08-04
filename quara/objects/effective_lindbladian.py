@@ -74,14 +74,6 @@ class EffectiveLindbladian(Gate):
             raise ValueError(
                 "basis is not a orthonormal Hermitian matrix basis and 0th prop I."
             )
-        dim = c_sys.dim
-        expected_B0 = np.eye(dim) / np.sqrt(dim)
-        if not np.allclose(
-            c_sys.basis()[0], expected_B0, atol=Settings.get_atol(), rtol=0.0
-        ):
-            raise ValueError(
-                "0th basis is not I/sqrt(dim). basis[0]={c_sys.basis()[0]}"
-            )
 
         super().__init__(
             c_sys,
