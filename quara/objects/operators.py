@@ -180,6 +180,22 @@ def _tensor_product_State_State(state1: State, state2: State) -> State:
     return state
 
 
+def _tensor_product_StateEnsemble_StateEnsemble(
+    elem1: StateEnsemble, elem2: StateEnsemble
+) -> StateEnsemble:
+    new_states = []
+    new_prob_dist = []
+    for i, state1 in enumerate(elem1.states):
+        for j, state2 in enumerate(elem2.states):
+            new_state = tensor_product(state1, state2)
+            new_p = elem1.prob_dist[i] * elem2.prob_dist[j]
+            new_states.append(new_state)
+            new_prob_dist.append(new_p)
+    shape = tuple(list(elem1.prob_dist.shape) + list(elem2.prob_dist.shape))
+    new_md = MultinomialDistribution(new_prob_dist, shape=shape)
+    return StateEnsemble(new_states, new_md)
+
+
 def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     # Povm (x) Povm -> Povm
     e_sys_list = list(povm1.composite_system.elemental_systems)
@@ -247,15 +263,17 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
         return _tensor_product_State_State(elem1, elem2)
-    elif {type(elem1), type(elem2)} == {State, StateEnsemble}:
+    elif type(elem1) == State and type(elem2) == StateEnsemble:
         # State (x) StateEnsemble -> StateEnsemble
+        new_states = [tensor_product(elem1, state) for state in elem2.states]
+        return StateEnsemble(new_states, elem2.prob_dist)
+    elif type(elem1) == StateEnsemble and type(elem2) == State:
         # StateEnsemble (x) State -> StateEnsemble
-        # TODO
-        raise NotImplementedError()
+        new_states = [tensor_product(state, elem2) for state in elem1.states]
+        return StateEnsemble(new_states, elem1.prob_dist)
     elif type(elem1) == StateEnsemble and type(elem2) == StateEnsemble:
         # StateEnsemble (x) StateEnsemble -> StateEnsemble
-        # TODO
-        raise NotImplementedError()
+        return _tensor_product_StateEnsemble_StateEnsemble(elem1, elem2)
     elif type(elem1) == Povm and type(elem2) == Povm:
         # Povm (x) Povm -> Povm
         return _tensor_product_Povm_Povm(elem1, elem2)
@@ -310,13 +328,15 @@ def compose_qoperations(
 
 def _compose_qoperations(elem1, elem2):
     # check CompositeSystem
-    if elem1.composite_system != elem2.composite_system:
-        raise ValueError(f"Cannot compose different composite systems.")
+    # Skip if elem1 or elem2 is StateEnsemble.
+    if StateEnsemble not in {type(elem1), type(elem2)}:
+        if elem1.composite_system != elem2.composite_system:
+            raise ValueError(f"Cannot compose different composite systems.")
 
-    # is_physicality_required
-    is_physicality_required = (
-        elem1.is_physicality_required and elem2.is_physicality_required
-    )
+        # is_physicality_required
+        is_physicality_required = (
+            elem1.is_physicality_required and elem2.is_physicality_required
+        )
 
     # implement compose calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
@@ -348,7 +368,11 @@ def _compose_qoperations(elem1, elem2):
         return state
     elif type(elem1) == Gate and type(elem2) == StateEnsemble:
         # -> StateEnsemble
-        raise NotImplementedError()
+        new_states = []
+        for state in elem2.states:
+            new_state = compose_qoperations(elem1, state)
+            new_states.append(new_state)
+        return StateEnsemble(new_states, elem2.prob_dist)
     elif type(elem1) == MProcess and type(elem2) == State:
         # -> StateEnsemble
         raise NotImplementedError()
@@ -376,7 +400,17 @@ def _compose_qoperations(elem1, elem2):
         return dist
     elif type(elem1) == Povm and type(elem2) == StateEnsemble:
         # -> MultinomialDistribution
-        raise NotImplementedError()
+        for i, state in enumerate(elem2.states):
+            # (Povm, State)
+            prob_dist = compose_qoperations(elem1, state)
+            ps = elem2.prob_dist[i] * prob_dist.ps
+            if i == 0:
+                new_prob_dist = ps
+            else:
+                new_prob_dist = np.hstack([new_prob_dist, ps])
+        shape = (len(elem2.states), elem1._num_outcomes)
+        new_md = MultinomialDistribution(ps=new_prob_dist, shape=shape)
+        return new_md
     else:
         raise TypeError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
