@@ -3,6 +3,7 @@ import numpy as np
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.multinomial_distribution import MultinomialDistribution
+from quara.utils.index_util import index_serial_from_index_multi_dimensional
 
 
 class StateEnsemble(QOperation):
@@ -44,4 +45,6 @@ class StateEnsemble(QOperation):
         return info
 
     def state(self, outcome: Union[int, Tuple[int]]):
-        pass
+        shape = self.prob_dist.shape
+        serial_index = index_serial_from_index_multi_dimensional(nums_length=list(shape), index_multi_dimensional=outcome)
+        return self._states[serial_index]
