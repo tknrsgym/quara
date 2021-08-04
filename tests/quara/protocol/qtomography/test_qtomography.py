@@ -4,7 +4,7 @@ import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import get_x
+from quara.objects.gate import Gate, get_x
 from quara.objects.matrix_basis import get_normalized_pauli_basis, get_comp_basis
 from quara.objects.povm import (
     Povm,
@@ -13,7 +13,7 @@ from quara.objects.povm import (
     get_z_povm,
 )
 from quara.objects.qoperations import SetQOperations
-from quara.objects.state import get_z0_1q
+from quara.objects.state import State, get_z0_1q
 from quara.protocol.qtomography.qtomography import QTomography
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.qcircuit.experiment import Experiment
@@ -86,6 +86,46 @@ class TestQTomography:
         set_qoperations = SetQOperations(states=[], gates=[], povms=[povm])
         with pytest.raises(ValueError):
             QTomography(experiment, set_qoperations)
+
+    # TODO QOperation have non-real parameters
+    """
+    def test_init_error_not_real(self):
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # state is invalid
+        vec = np.array([1j, 0, 0, 0], dtype=np.complex128)
+        state = State(c_sys, vec, is_physicality_required=False)
+
+        experiment = Experiment(states=[state], gates=[], povms=[], schedules=[])
+        set_qoperations = SetQOperations(states=[], gates=[], povms=[])
+        with pytest.raises(ValueError):
+            QTomography(experiment, set_qoperations)
+
+        # gate is invalid
+        hs = np.array(
+            [[1j, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            dtype=np.complex128,
+        )
+        gate = Gate(c_sys, hs, is_physicality_required=False)
+
+        experiment = Experiment(states=[], gates=[gate], povms=[], schedules=[])
+        set_qoperations = SetQOperations(states=[], gates=[], povms=[])
+        with pytest.raises(ValueError):
+            QTomography(experiment, set_qoperations)
+
+        # povm is invalid
+        vecs = [
+            np.array([1j, 0, 0, 0], dtype=np.complex128),
+            np.array([1j, 0, 0, 0], dtype=np.complex128),
+        ]
+        povm = Povm(c_sys, vecs, is_physicality_required=False)
+
+        experiment = Experiment(states=[], gates=[], povms=[povm], schedules=[])
+        set_qoperations = SetQOperations(states=[], gates=[], povms=[])
+        with pytest.raises(ValueError):
+            QTomography(experiment, set_qoperations)
+    """
 
     def test_num_schedules(self):
         experiment, set_qoperations = get_test_data()
