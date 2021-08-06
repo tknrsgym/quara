@@ -571,6 +571,272 @@ class TestMProcess:
         actual = mprocess.to_stacked_vector()
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_calc_gradient(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+
+        # case 1: on_para_eq_constraint=default(True)
+        mprocess = MProcess(c_sys, hss)
+
+        # var_index = 0
+        actual = mprocess.calc_gradient(0)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][0][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 1
+        actual = mprocess.calc_gradient(1)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][0][1] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 4
+        actual = mprocess.calc_gradient(4)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][1][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 16
+        actual = mprocess.calc_gradient(16)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[1][1][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 27
+        actual = mprocess.calc_gradient(27)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[1][3][3] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        ## case 2: on_para_eq_constraint=True
+        mprocess = MProcess(c_sys, hss, on_para_eq_constraint=True)
+
+        # var_index = 0
+        actual = mprocess.calc_gradient(0)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][0][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 1
+        actual = mprocess.calc_gradient(1)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][0][1] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 4
+        actual = mprocess.calc_gradient(4)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][1][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 16
+        actual = mprocess.calc_gradient(16)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[1][1][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 27
+        actual = mprocess.calc_gradient(27)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[1][3][3] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        ## case 3: on_para_eq_constraint=False
+        mprocess = MProcess(c_sys, hss, on_para_eq_constraint=False)
+
+        # var_index = 0
+        actual = mprocess.calc_gradient(0)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][0][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 1
+        actual = mprocess.calc_gradient(1)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][0][1] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 4
+        actual = mprocess.calc_gradient(4)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[0][1][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 16
+        actual = mprocess.calc_gradient(16)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[1][0][0] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        # var_index = 31
+        actual = mprocess.calc_gradient(31)
+        expected = [
+            np.zeros((4, 4), dtype=np.float64),
+            np.zeros((4, 4), dtype=np.float64),
+        ]
+        expected[1][3][3] = 1
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+    def test_calc_proj_ineq_constraint(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        actual = mprocess.calc_proj_ineq_constraint()
+
+        # Assert
+        expected = [
+            (1 / 2)
+            * np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+            (1 / 2)
+            * np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert mprocess.dim == 2
+        assert mprocess.shape == (2,)
+        assert mprocess.mode_sampling == False
+        assert mprocess.is_physicality_required == True
+        assert mprocess.is_estimation_object == True
+        assert mprocess.on_para_eq_constraint == True
+        assert mprocess.on_algo_eq_constraint == True
+        assert mprocess.on_algo_ineq_constraint == True
+        assert mprocess.eps_proj_physical == Settings.get_atol() / 10.0
+
+    def test_calc_proj_ineq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # case 1: on_para_eq_constraint=default(True)
+        actual = mprocess.calc_proj_ineq_constraint_with_var(c_sys, mprocess.to_var())
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        actual = mprocess.calc_proj_ineq_constraint_with_var(
+            c_sys, mprocess.to_var(), on_para_eq_constraint=True
+        )
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        actual = mprocess.calc_proj_ineq_constraint_with_var(
+            c_sys, mprocess.to_stacked_vector(), on_para_eq_constraint=False
+        )
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_generate_from_var(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1180,36 +1446,36 @@ def test_convert_var_index_to_mprocess_index():
 
     # case 1: on_para_eq_constraint=True
     assert convert_var_index_to_mprocess_index(
-        c_sys, 0, hss, on_para_eq_constraint=True
+        c_sys, hss, 0, on_para_eq_constraint=True
     ) == (0, 0, 0)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 1, hss, on_para_eq_constraint=True
+        c_sys, hss, 1, on_para_eq_constraint=True
     ) == (0, 0, 1)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 4, hss, on_para_eq_constraint=True
+        c_sys, hss, 4, on_para_eq_constraint=True
     ) == (0, 1, 0)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 16, hss, on_para_eq_constraint=True
+        c_sys, hss, 16, on_para_eq_constraint=True
     ) == (1, 1, 0)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 27, hss, on_para_eq_constraint=True
+        c_sys, hss, 27, on_para_eq_constraint=True
     ) == (1, 3, 3)
 
     # case 2: on_para_eq_constraint=False
     assert convert_var_index_to_mprocess_index(
-        c_sys, 0, hss, on_para_eq_constraint=False
+        c_sys, hss, 0, on_para_eq_constraint=False
     ) == (0, 0, 0)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 1, hss, on_para_eq_constraint=False
+        c_sys, hss, 1, on_para_eq_constraint=False
     ) == (0, 0, 1)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 4, hss, on_para_eq_constraint=False
+        c_sys, hss, 4, on_para_eq_constraint=False
     ) == (0, 1, 0)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 16, hss, on_para_eq_constraint=False
+        c_sys, hss, 16, on_para_eq_constraint=False
     ) == (1, 0, 0)
     assert convert_var_index_to_mprocess_index(
-        c_sys, 31, hss, on_para_eq_constraint=False
+        c_sys, hss, 31, on_para_eq_constraint=False
     ) == (1, 3, 3)
 
 

@@ -8,6 +8,7 @@ import numpy as np
 
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
 from quara.objects import gate
+from quara.objects.gate import Gate
 from quara.objects.matrix_basis import (
     MatrixBasis,
     get_comp_basis,
@@ -323,10 +324,13 @@ class MProcess(QOperation):
         return stacked_vec
 
     def calc_gradient(self, var_index: int) -> "MProcess":
-        gate = calc_gradient_from_gate(
+        mprocess = calc_gradient_from_mprocess(
             self.composite_system,
-            self.hs,
+            self.hss,
             var_index,
+            shape=self.shape,
+            mode_sampling=self.mode_sampling,
+            random_seed_or_state=self.random_seed_or_state,
             is_estimation_object=self.is_estimation_object,
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
@@ -334,7 +338,68 @@ class MProcess(QOperation):
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
         )
-        return gate
+        return mprocess
+
+    def calc_proj_eq_constraint(self) -> "MProcess":
+        pass
+
+    @staticmethod
+    def calc_proj_eq_constraint_with_var(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        pass
+
+    def calc_proj_ineq_constraint(self) -> "MProcess":
+        new_hss = []
+        dim = self.composite_system.dim
+        for hs in self.hss:
+            proj_hs = Gate.calc_proj_ineq_constraint_with_var(
+                self.composite_system, hs.flatten(), on_para_eq_constraint=False
+            ).reshape((dim ** 2, dim ** 2))
+            new_hss.append(proj_hs)
+
+        # create new MProcess
+        new_mprocess = MProcess(
+            c_sys=self.composite_system,
+            hss=new_hss,
+            shape=self.shape,
+            mode_sampling=self.mode_sampling,
+            random_seed_or_state=self.random_seed_or_state,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+
+        return new_mprocess
+
+    @staticmethod
+    def calc_proj_ineq_constraint_with_var(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        # var to hss
+        hss = convert_var_to_hss(
+            c_sys, var, on_para_eq_constraint=on_para_eq_constraint
+        )
+
+        # calc new var
+        new_var = np.array([], dtype=np.float64)
+        for hs_index, hs in enumerate(hss):
+            proj_hs = Gate.calc_proj_ineq_constraint_with_var(
+                c_sys, hs.flatten(), on_para_eq_constraint=False
+            )
+            if on_para_eq_constraint is True and hs_index == len(hss) - 1:
+                proj_hs = np.delete(proj_hs, np.s_[0 : c_sys.dim ** 2])
+            new_var = np.append(new_var, proj_hs)
+
+        return new_var
 
     def generate_from_var(
         self,
@@ -736,8 +801,8 @@ class MProcess(QOperation):
 
 def convert_var_index_to_mprocess_index(
     c_sys: CompositeSystem,
-    var_index: int,
     hss: List[np.ndarray],
+    var_index: int,
     on_para_eq_constraint: bool = True,
 ) -> Tuple[int, int, int]:
     """converts variable index to MProcess index.
@@ -746,10 +811,10 @@ def convert_var_index_to_mprocess_index(
     ----------
     c_sys : CompositeSystem
         CompositeSystem of this MProcess.
-    var_index : int
-        variable index.
     hss : List[np.ndarray]
         list of HS representation.
+    var_index : int
+        variable index.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
@@ -819,7 +884,7 @@ def convert_hss_to_var(
     ----------
     c_sys : CompositeSystem
         CompositeSystem of this MProcess.
-    hss : np.ndarray
+    hss : List[np.ndarray]
         list of HS representation of this MProcess.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
@@ -891,3 +956,61 @@ def convert_var_to_hss(
     for vec in reshaped_vecs:
         vec_list.append(vec)
     return vec_list
+
+
+def calc_gradient_from_mprocess(
+    c_sys: CompositeSystem,
+    hss: List[np.ndarray],
+    var_index: int,
+    shape: Tuple[int] = None,
+    mode_sampling: bool = False,
+    random_seed_or_state: Union[int, np.random.RandomState] = None,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
+    eps_proj_physical: float = None,
+) -> MProcess:
+    """calculates gradient from MProcess.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this MProcess.
+    hss : List[np.ndarray]
+        list of HS representation of this MProcess.
+    var_index : int
+        variable index.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    MProcess
+        MProcess with gradient as hss.
+    """
+    gradient = []
+    for _ in hss:
+        gradient.append(np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.float64))
+
+    (hs_index, row, col) = convert_var_index_to_mprocess_index(
+        c_sys, hss, var_index, on_para_eq_constraint
+    )
+    gradient[hs_index][row][col] = 1
+
+    mprocess = MProcess(
+        c_sys,
+        gradient,
+        shape=shape,
+        mode_sampling=mode_sampling,
+        random_seed_or_state=random_seed_or_state,
+        is_physicality_required=False,
+        is_estimation_object=is_estimation_object,
+        on_para_eq_constraint=on_para_eq_constraint,
+        on_algo_eq_constraint=on_algo_eq_constraint,
+        on_algo_ineq_constraint=on_algo_ineq_constraint,
+        mode_proj_order=mode_proj_order,
+        eps_proj_physical=eps_proj_physical,
+    )
+    return mprocess
