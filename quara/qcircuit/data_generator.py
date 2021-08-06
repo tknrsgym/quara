@@ -1,5 +1,7 @@
-import numpy as np
 from typing import List, Tuple, Union
+
+import numpy as np
+from scipy.stats import multinomial
 
 from quara.math.probability import validate_prob_dist
 from quara.settings import Settings
@@ -275,6 +277,86 @@ def calc_empi_dists_sequence(
         measurement_nums, dataset, list_num_sums
     ):
         empi_dists = calc_empi_dist_sequence(measurement_num, data, num_sums)
+        empi_dists_sequence.append(empi_dists)
+
+    return empi_dists_sequence
+
+
+def generate_empi_dist_sequence_from_prob_dist(
+    prob_dist: np.ndarray,
+    num_sums: List[int],
+    seed_or_stream: Union[int, np.random.RandomState] = None,
+) -> List[Tuple[int, np.ndarray]]:
+    """calculates a sequence of empirical distribution from probability distribution.
+
+    Parameters
+    ----------
+    prob_dist : np.ndarray
+        probability distribution.
+    num_sums : List[int]
+        list of number of trials
+    seed_or_stream : Union[int, np.random.RandomState], optional
+        If the type is int, it is assumed to be a seed used to generate random data.
+        If the type is RandomState, it is used to generate random data.
+        If argument is None, np.random is used to generate random data.
+        Default value is None.
+
+    Returns
+    -------
+    List[Tuple[int, np.ndarray]]
+        a sequence of empirical distribution.
+    """
+    stream = to_stream(seed_or_stream)
+    empi_dist_sequence = []
+    for num_sum in num_sums:
+        sampling = multinomial.rvs(num_sum, prob_dist, random_state=stream)
+        empi_dist = sampling / num_sum
+        empi_dist_sequence.append((num_sum, empi_dist))
+
+    return empi_dist_sequence
+
+
+def generate_empi_dists_sequence_from_prob_dists(
+    prob_dists: List[np.ndarray],
+    list_num_sums: List[List[int]],
+    seed_or_stream: Union[int, np.random.RandomState] = None,
+) -> List[List[Tuple[int, np.ndarray]]]:
+    """calculates a sequence of empirical distributions from probability distributions.
+
+    Parameters
+    ----------
+    prob_dists : List[np.ndarray]
+        probability distributions.
+    list_num_sums : List[List[int]]
+        list of number of trials
+    seed_or_stream : Union[int, np.random.RandomState], optional
+        If the type is int, it is assumed to be a seed used to generate random data.
+        If the type is RandomState, it is used to generate random data.
+        If argument is None, np.random is used to generate random data.
+        Default value is None.
+
+    Returns
+    -------
+    List[List[Tuple[int, np.ndarray]]]
+        a sequence of empirical distributions.
+
+    Raises
+    ------
+    ValueError
+        the length of ``prob_dists`` does not equal the length of ``list_num_sums``.
+    """
+    # whether the length of prob_dists equals the length of list_num_sums.
+    if len(prob_dists) != len(list_num_sums):
+        raise ValueError(
+            f"the length of prob_dists must equal the length of list_num_sums. the length of prob_dists is {len(prob_dists)}. the length of list_num_sums is {len(list_num_sums)}"
+        )
+
+    stream = to_stream(seed_or_stream)
+    empi_dists_sequence = []
+    for prob_dist, num_sums in zip(prob_dists, list_num_sums):
+        empi_dists = generate_empi_dist_sequence_from_prob_dist(
+            prob_dist, num_sums, stream
+        )
         empi_dists_sequence.append(empi_dists)
 
     return empi_dists_sequence

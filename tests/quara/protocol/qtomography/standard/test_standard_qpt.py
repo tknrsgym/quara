@@ -152,7 +152,7 @@ class TestStandardQpt:
 
         # schedule_index = 2
         actual = qpt.generate_empi_dist(2, gate, 10)
-        expected = (10, np.array([0.3, 0.7], dtype=np.float64))
+        expected = (10, np.array([0.5, 0.5], dtype=np.float64))
         assert actual[0] == expected[0]
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
@@ -175,18 +175,19 @@ class TestStandardQpt:
         gate = generate_gate_x(c_sys)
 
         actual = qpt.generate_empi_dists(gate, 10)
+        print(actual)
         expected = [
             (10, np.array([1.0, 0.0], dtype=np.float64)),
             (10, np.array([0.6, 0.4], dtype=np.float64)),
-            (10, np.array([0.3, 0.7], dtype=np.float64)),
-            (10, np.array([0.7, 0.3], dtype=np.float64)),
-            (10, np.array([0.0, 1.0], dtype=np.float64)),
             (10, np.array([0.5, 0.5], dtype=np.float64)),
-            (10, np.array([0.4, 0.6], dtype=np.float64)),
+            (10, np.array([0.6, 0.4], dtype=np.float64)),
+            (10, np.array([0.0, 1.0], dtype=np.float64)),
             (10, np.array([0.8, 0.2], dtype=np.float64)),
-            (10, np.array([0.0, 1.0], dtype=np.float64)),
-            (10, np.array([0.4, 0.6], dtype=np.float64)),
             (10, np.array([0.5, 0.5], dtype=np.float64)),
+            (10, np.array([0.5, 0.5], dtype=np.float64)),
+            (10, np.array([0.0, 1.0], dtype=np.float64)),
+            (10, np.array([0.3, 0.7], dtype=np.float64)),
+            (10, np.array([0.4, 0.6], dtype=np.float64)),
             (10, np.array([1.0, 0.0], dtype=np.float64)),
         ]
         for a, e in zip(actual, expected):
@@ -198,33 +199,34 @@ class TestStandardQpt:
         gate = generate_gate_x(c_sys)
 
         actual = qpt.generate_empi_dists_sequence(gate, [10, 20])
+        print(actual)
         expected = [
             [
                 (10, np.array([1.0, 0.0], dtype=np.float64)),
-                (10, np.array([0.3, 0.7], dtype=np.float64)),
-                (10, np.array([0.6, 0.4], dtype=np.float64)),
-                (10, np.array([0.4, 0.6], dtype=np.float64)),
-                (10, np.array([0.0, 1.0], dtype=np.float64)),
                 (10, np.array([0.5, 0.5], dtype=np.float64)),
-                (10, np.array([0.4, 0.6], dtype=np.float64)),
                 (10, np.array([0.8, 0.2], dtype=np.float64)),
+                (10, np.array([0.5, 0.5], dtype=np.float64)),
                 (10, np.array([0.0, 1.0], dtype=np.float64)),
+                (10, np.array([0.4, 0.6], dtype=np.float64)),
                 (10, np.array([0.6, 0.4], dtype=np.float64)),
-                (10, np.array([0.3, 0.7], dtype=np.float64)),
+                (10, np.array([0.5, 0.5], dtype=np.float64)),
+                (10, np.array([0.0, 1.0], dtype=np.float64)),
+                (10, np.array([0.4, 0.6], dtype=np.float64)),
+                (10, np.array([0.4, 0.6], dtype=np.float64)),
                 (10, np.array([1.0, 0.0], dtype=np.float64)),
             ],
             [
                 (20, np.array([1.0, 0.0], dtype=np.float64)),
-                (20, np.array([0.5, 0.5], dtype=np.float64)),
                 (20, np.array([0.55, 0.45], dtype=np.float64)),
-                (20, np.array([0.6, 0.4], dtype=np.float64)),
+                (20, np.array([0.5, 0.5], dtype=np.float64)),
+                (20, np.array([0.35, 0.65], dtype=np.float64)),
                 (20, np.array([0.0, 1.0], dtype=np.float64)),
                 (20, np.array([0.5, 0.5], dtype=np.float64)),
-                (20, np.array([0.4, 0.6], dtype=np.float64)),
-                (20, np.array([0.65, 0.35], dtype=np.float64)),
-                (20, np.array([0.0, 1.0], dtype=np.float64)),
                 (20, np.array([0.6, 0.4], dtype=np.float64)),
-                (20, np.array([0.3, 0.7], dtype=np.float64)),
+                (20, np.array([0.35, 0.65], dtype=np.float64)),
+                (20, np.array([0.0, 1.0], dtype=np.float64)),
+                (20, np.array([0.65, 0.35], dtype=np.float64)),
+                (20, np.array([0.5, 0.5], dtype=np.float64)),
                 (20, np.array([1.0, 0.0], dtype=np.float64)),
             ],
         ]

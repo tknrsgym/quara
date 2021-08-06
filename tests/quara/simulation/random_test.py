@@ -7,6 +7,10 @@ import numpy.testing as npt
 
 import quara.objects.qoperation_typical as qt
 from quara.objects.composite_system_typical import generate_composite_system
+from quara.loss_function.standard_qtomography_based_weighted_relative_entropy import (
+    StandardQTomographyBasedWeightedRelativeEntropy,
+    StandardQTomographyBasedWeightedRelativeEntropyOption,
+)
 from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
@@ -29,6 +33,7 @@ from quara.protocol.qtomography.standard.projected_linear_estimator import (
 from quara.simulation.standard_qtomography_simulation import (
     EstimatorTestSetting,
     NoiseSetting,
+    SimulationResult,
 )
 from quara.simulation.standard_qtomography_simulation_flow import (
     execute_simulation_test_settings,
@@ -40,6 +45,15 @@ output_root_dir_prefix = ""
 def get_current_time_string():
     now = datetime.datetime.now()
     return now.strftime("%Y%m%d-%H%M%S")
+
+
+def show_results(all_results: List[SimulationResult]) -> None:
+    print("========== Results ============")
+    for sim_result in all_results:
+        print(f"Name: {sim_result.simulation_setting.name}")
+        print(f"  true_object: {sim_result.simulation_setting.true_object.to_var()}")
+        for estimation_result in sim_result.estimation_results:
+            print(f"  estimate   : {estimation_result.estimated_var}")
 
 
 def generate_common_setting():
@@ -82,8 +96,14 @@ def generate_common_setting():
         # (None, None),
         (None, None),
         # (None, None),
-        (WeightedRelativeEntropy(), WeightedRelativeEntropyOption("identity")),
-        # (WeightedRelativeEntropy(), WeightedRelativeEntropyOption("identity")),
+        (
+            StandardQTomographyBasedWeightedRelativeEntropy(),
+            StandardQTomographyBasedWeightedRelativeEntropyOption("identity"),
+        ),
+        # (
+        #    StandardQTomographyBasedWeightedRelativeEntropy(),
+        #    StandardQTomographyBasedWeightedRelativeEntropyOption("identity"),
+        # ),
         (
             WeightedProbabilityBasedSquaredError(),
             WeightedProbabilityBasedSquaredErrorOption("identity"),
@@ -110,6 +130,50 @@ def generate_common_setting():
         # (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
         (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
         # (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
+    ]
+
+    eps_proj_physical_list = [1e-5] * len(case_names)
+
+    return (
+        case_names,
+        parametrizations,
+        estimators,
+        loss_list,
+        algo_list,
+        eps_proj_physical_list,
+    )
+
+
+def generate_common_setting_with_single_case():
+    # Generate settings for simulation with single case
+    case_names = [
+        "Maximum-Likelihood (True)",
+    ]
+
+    parametrizations = [
+        True,
+    ]
+
+    estimators = [
+        LossMinimizationEstimator(),
+    ]
+
+    loss_list = [
+        (
+            StandardQTomographyBasedWeightedRelativeEntropy(),
+            StandardQTomographyBasedWeightedRelativeEntropyOption("identity"),
+        ),
+    ]
+
+    def generate_pgdb_algo_option():
+        return ProjectedGradientDescentBacktrackingOption(
+            mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+            num_history_stopping_criterion_gradient_descent=1,
+            eps=1e-9,
+        )
+
+    algo_list = [
+        (ProjectedGradientDescentBacktracking(), generate_pgdb_algo_option()),
     ]
 
     eps_proj_physical_list = [1e-5] * len(case_names)
@@ -151,6 +215,7 @@ def execute(
         algo_list,
         eps_proj_physical_list,
     ) = generate_common_setting()
+    # ) = generate_common_setting_with_single_case()
 
     test_settings = []
     for index, true_object in enumerate(true_objects):
@@ -197,6 +262,7 @@ def execute(
     all_results = execute_simulation_test_settings(
         test_settings, output_root_dir, pdf_mode=pdf_mode
     )
+    # show_results(all_results)
     return all_results
 
 
