@@ -284,52 +284,6 @@ class Gate(QOperation):
         new_var = convert_hs_to_var(c_sys, new_hs, on_para_eq_constraint)
         return new_var
 
-    @staticmethod
-    def convert_var_to_stacked_vector(
-        c_sys: CompositeSystem,
-        var: np.ndarray,
-        on_para_eq_constraint: bool = True,
-    ) -> np.ndarray:
-        """converts variables of gate to stacked vector of gate.
-
-        Parameters
-        ----------
-        c_sys : CompositeSystem
-            CompositeSystem of this gate.
-        var : np.ndarray
-            variables of gate.
-        on_para_eq_constraint : bool, optional
-            uses equal constraints, by default True.
-
-        Returns
-        -------
-        np.ndarray
-            stacked vector of gate.
-        """
-        return convert_var_to_vec(c_sys, var, on_para_eq_constraint)
-
-    @staticmethod
-    def convert_stacked_vector_to_var(
-        c_sys: CompositeSystem, vec: np.ndarray, on_para_eq_constraint: bool = True
-    ) -> np.ndarray:
-        """converts stacked vector of gate to variables of gate.
-
-        Parameters
-        ----------
-        c_sys : CompositeSystem
-            CompositeSystem of this gate.
-        vec : np.ndarray
-            stacked_vector of gate.
-        on_para_eq_constraint : bool, optional
-            uses equal constraints, by default True.
-
-        Returns
-        -------
-        np.ndarray
-            variables of gate.
-        """
-        return convert_vec_to_var(c_sys, vec, on_para_eq_constraint)
-
     def _add_vec(self, other) -> np.ndarray:
         new_hs = self.hs + other.hs
         return new_hs
