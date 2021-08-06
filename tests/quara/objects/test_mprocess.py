@@ -6,9 +6,16 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.mprocess import MProcess, convert_hss_to_var, convert_var_to_hss
+from quara.objects.mprocess import (
+    MProcess,
+    convert_var_index_to_mprocess_index,
+    convert_mprocess_index_to_var_index,
+    convert_hss_to_var,
+    convert_var_to_hss,
+)
 from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.settings import Settings
+from quara.objects.povm_typical import generate_povm_from_name
 
 
 class TestMProcess:
@@ -464,6 +471,153 @@ class TestMProcess:
         assert mprocess.on_algo_ineq_constraint == True
         assert mprocess.eps_proj_physical == Settings.get_atol() / 10.0
 
+    def test_to_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+
+        # case 1: on_para_eq_constraint=default(True)
+        mprocess = MProcess(c_sys, hss)
+        actual = mprocess.to_var()
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        mprocess = MProcess(c_sys, hss, on_para_eq_constraint=True)
+        actual = mprocess.to_var()
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        mprocess = MProcess(c_sys, hss, on_para_eq_constraint=False)
+        actual = mprocess.to_var()
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_to_stacked_vector(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+
+        # case 1: on_para_eq_constraint=default(True)
+        mprocess = MProcess(c_sys, hss)
+        actual = mprocess.to_stacked_vector()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        mprocess = MProcess(c_sys, hss, on_para_eq_constraint=True)
+        actual = mprocess.to_stacked_vector()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        mprocess = MProcess(c_sys, hss, on_para_eq_constraint=False)
+        actual = mprocess.to_stacked_vector()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_generate_from_var(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        var = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+
+        # Act
+        actual = mprocess.generate_from_var(
+            var=var,
+            is_physicality_required=False,
+            is_estimation_object=False,
+            on_para_eq_constraint=False,
+            on_algo_eq_constraint=False,
+            on_algo_ineq_constraint=False,
+            mode_proj_order="ineq_eq",
+            eps_proj_physical=1e-1,
+        )
+
+        # Assert
+        assert actual.dim == 2
+        assert actual.shape == (2,)
+        assert actual.mode_sampling == False
+        assert actual.is_physicality_required == False
+        assert actual.is_estimation_object == False
+        assert actual.on_para_eq_constraint == False
+        assert actual.on_algo_eq_constraint == False
+        assert actual.on_algo_ineq_constraint == False
+        assert actual.eps_proj_physical == 1e-1
+        hs_0 = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2
+        hs_1 = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]) / 2
+        expected = [hs_0, hs_1]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
     def test_add(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -613,6 +767,62 @@ class TestMProcess:
         hss = [hs_0, hs_1]
         mprocess = MProcess(c_sys, hss, is_physicality_required=False)
         assert mprocess.is_cp() == False
+
+    def test_convert_basis(self):
+        ## case 1 : z
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        actual = mprocess.convert_basis(matrix_basis.get_comp_basis())
+
+        # Assert
+        expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+        expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+        npt.assert_almost_equal(actual[0], expected_0, decimal=15)
+        npt.assert_almost_equal(actual[1], expected_1, decimal=15)
+
+        ## case 2 : hs of x gate and y gate
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs_0 = np.array(
+            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+        )
+        hs_1 = np.array(
+            [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]],
+            dtype=np.float64,
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        actual = mprocess.convert_basis(matrix_basis.get_comp_basis())
+
+        # Assert
+        expected_0 = np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0], [1, 0, 0, 0]])
+        expected_1 = np.array(
+            [[0, 0, 0, 1], [0, 0, -1, 0], [0, -1, 0, 0], [1, 0, 0, 0]]
+        )
+        npt.assert_almost_equal(actual[0], expected_0, decimal=15)
+        npt.assert_almost_equal(actual[1], expected_1, decimal=15)
+
+    def test_convert_to_comp_basis(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        actual = mprocess.convert_to_comp_basis()
+
+        # Assert
+        expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+        expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
+        npt.assert_almost_equal(actual[0], expected_0, decimal=15)
+        npt.assert_almost_equal(actual[1], expected_1, decimal=15)
 
     def test_to_choi_matrix(self):
         # Arrange
@@ -801,7 +1011,145 @@ class TestMProcess:
         assert actual.mode_sampling == False
         assert actual.random_seed_or_state == None
 
-    """
+    def test_convert_var_to_stacked_vector(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+
+        # case 1: on_para_eq_constraint=default(True)
+        var = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        )
+
+        actual = mprocess.convert_var_to_stacked_vector(c_sys, var.flatten())
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        var = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        )
+
+        actual = mprocess.convert_var_to_stacked_vector(
+            c_sys, var.flatten(), on_para_eq_constraint=True
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        var = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        )
+
+        actual = mprocess.convert_var_to_stacked_vector(
+            c_sys, var.flatten(), on_para_eq_constraint=False
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_convert_stacked_vector_to_var(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+        stacked_vector = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+
+        # case 1: on_para_eq_constraint=default(True)
+        actual = mprocess.convert_stacked_vector_to_var(c_sys, stacked_vector)
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        actual = mprocess.convert_stacked_vector_to_var(
+            c_sys, stacked_vector, on_para_eq_constraint=True
+        )
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        actual = mprocess.convert_stacked_vector_to_var(
+            c_sys, stacked_vector, on_para_eq_constraint=False
+        )
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_to_povm(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -810,12 +1158,137 @@ class TestMProcess:
 
         # Act
         actual = mprocess.to_povm()
-        print(actual)
 
         # Assert
-        expected = 2
-        assert actual.vecs[0] == expected
-    """
+        expected = generate_povm_from_name("z", c_sys)
+        npt.assert_almost_equal(actual.vecs[0], expected.vecs[0], decimal=15)
+        npt.assert_almost_equal(actual.vecs[1], expected.vecs[1], decimal=15)
+
+
+def test_convert_var_index_to_mprocess_index():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    hs_0 = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    hs_1 = np.array(
+        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    hss = [hs_0, hs_1]
+
+    # case 1: on_para_eq_constraint=True
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 0, hss, on_para_eq_constraint=True
+    ) == (0, 0, 0)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 1, hss, on_para_eq_constraint=True
+    ) == (0, 0, 1)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 4, hss, on_para_eq_constraint=True
+    ) == (0, 1, 0)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 16, hss, on_para_eq_constraint=True
+    ) == (1, 1, 0)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 27, hss, on_para_eq_constraint=True
+    ) == (1, 3, 3)
+
+    # case 2: on_para_eq_constraint=False
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 0, hss, on_para_eq_constraint=False
+    ) == (0, 0, 0)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 1, hss, on_para_eq_constraint=False
+    ) == (0, 0, 1)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 4, hss, on_para_eq_constraint=False
+    ) == (0, 1, 0)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 16, hss, on_para_eq_constraint=False
+    ) == (1, 0, 0)
+    assert convert_var_index_to_mprocess_index(
+        c_sys, 31, hss, on_para_eq_constraint=False
+    ) == (1, 3, 3)
+
+
+def test_convert_mprocess_index_to_var_index():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    hs_0 = np.array(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    hs_1 = np.array(
+        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]], dtype=np.float64
+    )
+    hss = [hs_0, hs_1]
+
+    # case 1: on_para_eq_constraint=True
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (0, 0, 0), hss, on_para_eq_constraint=True
+        )
+        == 0
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (0, 0, 1), hss, on_para_eq_constraint=True
+        )
+        == 1
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (0, 1, 0), hss, on_para_eq_constraint=True
+        )
+        == 4
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (1, 1, 0), hss, on_para_eq_constraint=True
+        )
+        == 16
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (1, 3, 3), hss, on_para_eq_constraint=True
+        )
+        == 27
+    )
+
+    # case 2: on_para_eq_constraint=False
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (0, 0, 0), hss, on_para_eq_constraint=False
+        )
+        == 0
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (0, 0, 1), hss, on_para_eq_constraint=False
+        )
+        == 1
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (0, 1, 0), hss, on_para_eq_constraint=False
+        )
+        == 4
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (1, 0, 0), hss, on_para_eq_constraint=False
+        )
+        == 16
+    )
+    assert (
+        convert_mprocess_index_to_var_index(
+            c_sys, (1, 3, 3), hss, on_para_eq_constraint=False
+        )
+        == 31
+    )
 
 
 def test_convert_hss_to_var():
@@ -876,6 +1349,40 @@ def test_convert_var_to_hss():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     expected = generate_mprocess_from_name(c_sys, "z")
+
+    # case 1: on_para_eq_constraint=default(True)
+    var = (1 / 2) * np.array(
+        [
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [-1, 0, 0, 1],
+        ]
+    )
+
+    actual = convert_var_to_hss(c_sys, var.flatten())
+    npt.assert_almost_equal(actual[0], expected.hs(0), decimal=15)
+    npt.assert_almost_equal(actual[1], expected.hs(1), decimal=15)
+
+    # case 2: on_para_eq_constraint=True
+    var = (1 / 2) * np.array(
+        [
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 0, 0, 1],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [-1, 0, 0, 1],
+        ]
+    )
+
+    actual = convert_var_to_hss(c_sys, var.flatten(), on_para_eq_constraint=True)
+    npt.assert_almost_equal(actual[0], expected.hs(0), decimal=15)
+    npt.assert_almost_equal(actual[1], expected.hs(1), decimal=15)
 
     # case 3: on_para_eq_constraint=False
     var = (1 / 2) * np.array(

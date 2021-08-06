@@ -311,6 +311,120 @@ class MProcess(QOperation):
         )
         return new_qoperation
 
+    def to_var(self) -> np.ndarray:
+        return convert_hss_to_var(
+            c_sys=self.composite_system,
+            hss=self.hss,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+        )
+
+    def to_stacked_vector(self) -> np.ndarray:
+        stacked_vec = np.array(self.hss).flatten()
+        return stacked_vec
+
+    def calc_gradient(self, var_index: int) -> "MProcess":
+        gate = calc_gradient_from_gate(
+            self.composite_system,
+            self.hs,
+            var_index,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+        return gate
+
+    def generate_from_var(
+        self,
+        var: np.ndarray,
+        is_physicality_required: bool = None,
+        is_estimation_object: bool = None,
+        on_para_eq_constraint: bool = None,
+        on_algo_eq_constraint: bool = None,
+        on_algo_ineq_constraint: bool = None,
+        mode_proj_order: str = "eq_ineq",
+        eps_proj_physical: float = None,
+    ) -> "QOperation":
+        """generates QOperation from variables.
+        Parameters
+        ----------
+        var : np.ndarray
+        is_physicality_required : bool, optional
+            whether this QOperation is physicality required, by default None.
+            if this parameter is None, the value of this instance is set.
+        is_estimation_object : bool, optional
+            whether this QOperation is estimation object, by default None.
+            if this parameter is None, the value of this instance is set.
+        on_para_eq_constraint : bool, optional
+            whether this QOperation is on parameter equality constraint, by default None.
+            if this parameter is None, the value of this instance is set.
+        on_algo_eq_constraint : bool, optional
+            whether this QOperation is on algorithm equality constraint, by default None.
+            if this parameter is None, the value of this instance is set.
+        on_algo_ineq_constraint : bool, optional
+            whether this QOperation is on algorithm inequality constraint, by default None.
+            if this parameter is None, the value of this instance is set.
+        mode_proj_order : str, optional
+            the order in which the projections are performed, by default "eq_ineq".
+        eps_proj_physical : float, optional
+            epsiron that is projection algorithm error threshold for being physical, by default None.
+            if this parameter is None, the value of this instance is set.
+        Returns
+        -------
+        QOperation
+            generated QOperation.
+        """
+        is_physicality_required = (
+            self.is_physicality_required
+            if is_physicality_required is None
+            else is_physicality_required
+        )
+        is_estimation_object = (
+            self.is_estimation_object
+            if is_estimation_object is None
+            else is_estimation_object
+        )
+        on_para_eq_constraint = (
+            self.on_para_eq_constraint
+            if on_para_eq_constraint is None
+            else on_para_eq_constraint
+        )
+        on_algo_eq_constraint = (
+            self.on_algo_eq_constraint
+            if on_algo_eq_constraint is None
+            else on_algo_eq_constraint
+        )
+        on_algo_ineq_constraint = (
+            self.on_algo_ineq_constraint
+            if on_algo_ineq_constraint is None
+            else on_algo_ineq_constraint
+        )
+        eps_proj_physical = (
+            self.eps_proj_physical if eps_proj_physical is None else eps_proj_physical
+        )
+        c_sys = self.composite_system
+        hss = convert_var_to_hss(
+            c_sys, var, on_para_eq_constraint=on_para_eq_constraint
+        )
+
+        new_qoperation = MProcess(
+            c_sys=c_sys,
+            hss=hss,
+            shape=self.shape,
+            mode_sampling=self.mode_sampling,
+            random_seed_or_state=self.random_seed_or_state,
+            is_physicality_required=is_physicality_required,
+            is_estimation_object=is_estimation_object,
+            on_para_eq_constraint=on_para_eq_constraint,
+            on_algo_eq_constraint=on_algo_eq_constraint,
+            on_algo_ineq_constraint=on_algo_ineq_constraint,
+            mode_proj_order=mode_proj_order,
+            eps_proj_physical=eps_proj_physical,
+        )
+        return new_qoperation
+
     def _check_shape(self, shape_left: Tuple[int], shape_right: Tuple[int]):
         if shape_left != shape_right:
             raise ValueError(
@@ -355,7 +469,7 @@ class MProcess(QOperation):
         return True
 
     def convert_basis(self, other_basis: MatrixBasis) -> List[np.ndarray]:
-        """returns HS representations for ``other_basis``.
+        """returns list of HS representations for ``other_basis``.
         Parameters
         ----------
         other_basis : MatrixBasis
@@ -363,7 +477,7 @@ class MProcess(QOperation):
         Returns
         -------
         List[np.ndarray]
-            HS representations for ``other_basis``.
+            list of HS representations for ``other_basis``.
         """
         converted_hss = [
             gate.convert_hs(hs, self.composite_system.basis(), other_basis)
@@ -372,7 +486,7 @@ class MProcess(QOperation):
         return converted_hss
 
     def convert_to_comp_basis(self, mode: str = "row_major") -> List[np.ndarray]:
-        """returns HS representations for computational basis.
+        """returns list of HS representations for computational basis.
         Parameters
         ----------
         mode : str, optional
@@ -380,7 +494,7 @@ class MProcess(QOperation):
         Returns
         -------
         List[np.ndarray]
-            HS representations for computational basis.
+            list of HS representations for computational basis.
         """
         converted_hss = [
             gate.convert_hs(
@@ -521,8 +635,91 @@ class MProcess(QOperation):
         )
         return new_qoperation
 
+    @staticmethod
+    def convert_var_to_stacked_vector(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """converts variables of MProcess to stacked vector of MProcess.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this MProcess.
+        var : np.ndarray
+            variables of MProcess.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            stacked vector of MProcess.
+        """
+        if on_para_eq_constraint:
+
+            vector = copy.copy(var)
+            dim = c_sys.dim
+            hs_size = dim ** 2 * dim ** 2
+            num_outcomes = vector.shape[0] // hs_size + 1
+            one = np.zeros(dim ** 2, dtype=np.float64)
+            one[0] = 1
+            sum_first_row = np.zeros(dim ** 2, dtype=np.float64)
+            for outcome in range(num_outcomes - 1):
+                sum_first_row += vector[
+                    hs_size * outcome : hs_size * outcome + dim ** 2
+                ]
+            first_row_of_last_hs = one - sum_first_row
+            stacked_vector = np.insert(
+                vector, hs_size * (num_outcomes - 1), first_row_of_last_hs
+            )
+
+        else:
+            stacked_vector = var
+
+        return stacked_vector
+
+    @staticmethod
+    def convert_stacked_vector_to_var(
+        c_sys: CompositeSystem,
+        stacked_vector: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """converts stacked vector of MProcess to variables of MProcess.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this MProcess.
+        stacked_vector : np.ndarray
+            stacked vector of MProcess.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            variables of MProcess.
+        """
+        if on_para_eq_constraint:
+            dim = c_sys.dim
+            hs_size = dim ** 2 * dim ** 2
+            num_outcomes = stacked_vector.shape[0] // hs_size
+            var = np.delete(
+                stacked_vector,
+                np.s_[
+                    hs_size * (num_outcomes - 1) : hs_size * (num_outcomes - 1)
+                    + c_sys.dim ** 2
+                ],
+            )
+        else:
+            var = stacked_vector
+
+        return var
+
     def to_povm(self) -> Povm:
-        vecs = [hs[0] for hs in self.hss]
+        vecs = [np.sqrt(self.dim) * hs[0] for hs in self.hss]
         povm = Povm(
             c_sys=self.composite_system,
             vecs=vecs,
@@ -535,6 +732,82 @@ class MProcess(QOperation):
             eps_proj_physical=self.eps_proj_physical,
         )
         return povm
+
+
+def convert_var_index_to_mprocess_index(
+    c_sys: CompositeSystem,
+    var_index: int,
+    hss: List[np.ndarray],
+    on_para_eq_constraint: bool = True,
+) -> Tuple[int, int, int]:
+    """converts variable index to MProcess index.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this MProcess.
+    var_index : int
+        variable index.
+    hss : List[np.ndarray]
+        list of HS representation.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Tuple[int, int, int]
+        MProcess index.
+        first value of tuple is index of list of HS representation of this MProcess.
+        second value of tuple is row number of HS representation of this MProcess.
+        third value of tuple is column number of HS representation of this MProcess.
+    """
+    dim = c_sys.dim
+    hs_size = dim ** 2 * dim ** 2
+
+    (hs_index, matrix_index) = divmod(var_index, hs_size)
+    (row, col) = divmod(matrix_index, dim ** 2)
+    if on_para_eq_constraint:
+        if hs_index == len(hss) - 1:
+            row += 1
+    return (hs_index, row, col)
+
+
+def convert_mprocess_index_to_var_index(
+    c_sys: CompositeSystem,
+    mprocess_index: Tuple[int, int, int],
+    hss: List[np.ndarray],
+    on_para_eq_constraint: bool = True,
+) -> int:
+    """converts MProcess index to variable index.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this MProcess.
+    mprocess_index : Tuple[int, int, int]
+        MProcess index.
+        first value of tuple is index of list of HS representation of this MProcess.
+        second value of tuple is row number of HS representation of this MProcess.
+        third value of tuple is column number of HS representation of this MProcess.
+    hss : List[np.ndarray]
+        list of HS representation.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    int
+        variable index.
+    """
+    dim = c_sys.dim
+    hs_size = dim ** 2 * dim ** 2
+
+    (hs_index, row, col) = mprocess_index
+    var_index = hs_index * hs_size + row * dim ** 2 + col
+    if on_para_eq_constraint:
+        if hs_index == len(hss) - 1:
+            var_index -= dim ** 2
+    return var_index
 
 
 def convert_hss_to_var(
@@ -563,13 +836,12 @@ def convert_hss_to_var(
                 tmp_hss.append(np.delete(hs, 0, axis=0).flatten())
             else:
                 tmp_hss.append(hs.flatten())
-        var = np.concatenate(tmp_hss)
+        var = np.hstack(tmp_hss)
     else:
         var = np.reshape(hss, -1)
     return var
 
 
-# TODO
 def convert_var_to_hss(
     c_sys: CompositeSystem,
     var: np.ndarray,
@@ -591,26 +863,27 @@ def convert_var_to_hss(
     List[np.ndarray]
         list of HS representation of this MProcess.
     """
-    vector = copy.copy(var)
     dim = c_sys.dim
+    hs_size = dim ** 2 * dim ** 2
 
     if on_para_eq_constraint:
 
-        num_outcomes = vector.shape[0] // (dim ** 2 * dim ** 2) + 1
-        # [√d, 0, 0...]
-        total_vecs = np.hstack(
-            [
-                np.array(np.sqrt(dim)),
-                np.zeros(
-                    dim ** 2 - 1,
-                ),
-            ]
-        )
-        pre_vecs = vecs.reshape(measurement_n - 1, dim ** 2)
-        last_vec = total_vecs - pre_vecs.sum(axis=0)
-        vecs = np.append(pre_vecs, last_vec)
+        vector = copy.copy(var)
+        num_outcomes = vector.shape[0] // hs_size + 1
+
+        one = np.zeros(dim ** 2, dtype=np.float64)
+        one[0] = 1
+
+        sum_first_row = np.zeros(dim ** 2, dtype=np.float64)
+        for outcome in range(num_outcomes - 1):
+            sum_first_row += vector[hs_size * outcome : hs_size * outcome + dim ** 2]
+        first_row_of_last_hs = one - sum_first_row
+
+        vector = np.insert(vector, hs_size * (num_outcomes - 1), first_row_of_last_hs)
+
     else:
-        num_outcomes = vector.shape[0] // (dim ** 2 * dim ** 2)
+        vector = var
+        num_outcomes = vector.shape[0] // hs_size
 
     vec_list = []
     reshaped_vecs = vector.reshape((num_outcomes, dim ** 2, dim ** 2))
