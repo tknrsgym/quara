@@ -419,11 +419,11 @@ class TestSetQOperations:
 
     def test_var_empty(self):
         # Arrange
-        states, povms, gate, mprocesses = self.arrange_qoperations()
+        states, povms, gates, mprocesses = self.arrange_qoperations()
 
         # Empty QOperations
         # Arrange
-        sl_qope = qope.SetQOperations(states=[], povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(states=[], povms=povms, gates=gates, mprocesses=mprocesses)
         # Act
         actual = sl_qope.var_states()
         # Assert
@@ -435,7 +435,7 @@ class TestSetQOperations:
         assert actual == 0
 
         # Arrange
-        sl_qope = qope.SetQOperations(states=states, povms=[], gates=gates)
+        sl_qope = qope.SetQOperations(states=states, povms=[], gates=gates, mprocesses=mprocesses)
         # Act
         actual = sl_qope.var_povms()
         # Assert
@@ -447,7 +447,7 @@ class TestSetQOperations:
         assert actual == 0
 
         # Arrange
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=[])
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=[], mprocesses=mprocesses)
         # Act
         actual = sl_qope.var_gates()
         # Assert
@@ -458,9 +458,21 @@ class TestSetQOperations:
         # Assert
         assert actual == 0
 
+        # Arrange
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates, mprocesses=[])
+        # Act
+        actual = sl_qope.var_mprocesses()
+        # Assert
+        expected = np.array([], dtype=np.float64)
+        assert np.all(actual == expected)
+        # Act
+        actual = sl_qope.size_var_mprocesses()
+        # Assert
+        assert actual == 0
+
         # Total
         # Arrange
-        sl_qope = qope.SetQOperations(states=[], povms=[], gates=[])
+        sl_qope = qope.SetQOperations(states=[], povms=[], gates=[], mprocesses=[])
         # Act
         actual = sl_qope.var_total()
         # Assert
