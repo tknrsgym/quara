@@ -131,7 +131,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.dim
@@ -148,7 +148,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.num_outcomes
@@ -165,7 +165,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.hss
@@ -190,7 +190,7 @@ class TestMProcess:
         c_sys = CompositeSystem([e_sys])
 
         # case 1: one-dimensional
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         actual = mprocess.hs(0)
         expected = (1 / 2) * np.array(
@@ -225,7 +225,7 @@ class TestMProcess:
         c_sys = CompositeSystem([e_sys])
 
         # case 1: one-dimensional
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
         actual = mprocess.shape
         expected = (2,)
         assert actual == expected
@@ -244,7 +244,7 @@ class TestMProcess:
         assert actual == expected
 
         # Test that "shape" cannot be updated
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
         with pytest.raises(AttributeError):
             mprocess.shape = (2,)
 
@@ -303,7 +303,7 @@ class TestMProcess:
     def test_set_mode_sampling(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # case 1: mode_sampling=True, random_seed_or_state=None
         mprocess.set_mode_sampling(True)
@@ -382,7 +382,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         mprocess.set_zero()
@@ -409,7 +409,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        z = generate_mprocess_from_name(c_sys, "z")
+        z = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         mprocess = z.generate_zero_obj()
@@ -442,7 +442,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        z = generate_mprocess_from_name(c_sys, "z")
+        z = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         mprocess = z.generate_origin_obj()
@@ -759,7 +759,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.calc_proj_eq_constraint()
@@ -811,7 +811,7 @@ class TestMProcess:
     def test_calc_proj_eq_constraint_with_var(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # case 1: on_para_eq_constraint=default(True)
         actual = mprocess.calc_proj_eq_constraint_with_var(c_sys, mprocess.to_var())
@@ -868,7 +868,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.calc_proj_ineq_constraint()
@@ -920,7 +920,7 @@ class TestMProcess:
     def test_calc_proj_ineq_constraint_with_var(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # case 1: on_para_eq_constraint=default(True)
         actual = mprocess.calc_proj_ineq_constraint_with_var(c_sys, mprocess.to_var())
@@ -976,7 +976,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         var = (1 / 2) * np.array(
             [
@@ -1023,8 +1023,8 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess1 = generate_mprocess_from_name(c_sys, "z")
-        mprocess2 = generate_mprocess_from_name(c_sys, "z")
+        mprocess1 = generate_mprocess_from_name(c_sys, "z-type1")
+        mprocess2 = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess1 + mprocess2
@@ -1040,8 +1040,8 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess1 = generate_mprocess_from_name(c_sys, "z")
-        mprocess2 = generate_mprocess_from_name(c_sys, "z")
+        mprocess1 = generate_mprocess_from_name(c_sys, "z-type1")
+        mprocess2 = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess1 - mprocess2
@@ -1057,7 +1057,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess1 = generate_mprocess_from_name(c_sys, "z")
+        mprocess1 = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Case 1: mul
         # Act
@@ -1085,7 +1085,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess1 = generate_mprocess_from_name(c_sys, "z")
+        mprocess1 = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess1 / 2
@@ -1106,7 +1106,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.get_basis()
@@ -1174,7 +1174,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.convert_basis(matrix_basis.get_comp_basis())
@@ -1214,7 +1214,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.convert_to_comp_basis()
@@ -1394,7 +1394,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.copy()
@@ -1416,7 +1416,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
         expected = (1 / 2) * np.array(
             [
                 [1, 0, 0, 1],
@@ -1487,7 +1487,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
         stacked_vector = (1 / 2) * np.array(
             [
                 [1, 0, 0, 1],
@@ -1555,7 +1555,7 @@ class TestMProcess:
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
-        mprocess = generate_mprocess_from_name(c_sys, "z")
+        mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
         # Act
         actual = mprocess.to_povm()
@@ -1696,7 +1696,7 @@ def test_convert_hss_to_var():
     # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    mprocess = generate_mprocess_from_name(c_sys, "z")
+    mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
     # case 1: on_para_eq_constraint=default(True)
     actual = convert_hss_to_var(c_sys, mprocess.hss)
@@ -1749,7 +1749,7 @@ def test_convert_var_to_hss():
     # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
-    expected = generate_mprocess_from_name(c_sys, "z")
+    expected = generate_mprocess_from_name(c_sys, "z-type1")
 
     # case 1: on_para_eq_constraint=default(True)
     var = (1 / 2) * np.array(
