@@ -11,10 +11,35 @@ from quara.objects.operators import tensor_product
 
 class TestStateEnsemble:
     def test_init_unexpected(self):
+        # Case 1:
         invalid_eps_zero = -0.1
         with pytest.raises(ValueError):
             _ = se.StateEnsemble(
                 states="dummy", prob_dist="dummy", eps_zero=invalid_eps_zero
+            )
+        # Case 2: invalid length
+        c_sys = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+        state_z0 = generate_qoperation_object(
+            mode="state", object_name="state", name="z0", c_sys=c_sys
+        )
+        state_z1 = generate_qoperation_object(
+            mode="state", object_name="state", name="z1", c_sys=c_sys
+        )
+        state_y0 = generate_qoperation_object(
+            mode="state", object_name="state", name="y0", c_sys=c_sys
+        )
+        states = [state_z0, state_z1, state_y0]
+        prob_dist = MultinomialDistribution(ps=np.array([0.1, 0.9]), shape=(2,))
+
+        with pytest.raises(ValueError):
+            _ = se.StateEnsemble(states=states, prob_dist=prob_dist)
+
+        invalid_prob_dist = [0.1, 0.9]
+        with pytest.raises(TypeError):
+            # TypeError: Type of prob_dist muste be MultinomialDistribution, not <class 'list'>
+            _ = se.StateEnsemble(
+                states="dummy",
+                prob_dist=invalid_prob_dist,
             )
 
     def test_state(self):
@@ -69,7 +94,6 @@ class TestStateEnsemble:
 
         actual = state_ensemble.state((1, 2))
         npt.assert_almost_equal(actual.vec, state_x1.vec, decimal=15)
-
 
         # Case 2: serial index access
         # Act & Assert

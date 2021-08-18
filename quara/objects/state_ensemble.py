@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Type, Union
 import numpy as np
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
@@ -16,6 +16,19 @@ class StateEnsemble(QOperation):
         # Validation
         if eps_zero < 0:
             raise ValueError("eps_zero must be a non-negative value.")
+
+        if type(prob_dist) != MultinomialDistribution:
+            error_message = f"Type of prob_dist muste be MultinomialDistribution, not {type(prob_dist)}"
+            raise TypeError(error_message)
+
+        if len(states) != prob_dist.ps.size:
+            error_message = (
+                "The length of states and the length of prob_dists.ps must be the same."
+            )
+            error_message += (
+                f"(len(states) = {len(states)}, len(prob_dist.ps)={len(prob_dist.ps)}"
+            )
+            raise ValueError(error_message)
 
         # Set
         self._states: List[State] = states
@@ -47,7 +60,9 @@ class StateEnsemble(QOperation):
     def state(self, outcome: Union[int, Tuple[int]]):
         if type(outcome) == tuple:
             shape = self.prob_dist.shape
-            serial_index = index_serial_from_index_multi_dimensional(nums_length=list(shape), index_multi_dimensional=outcome)
+            serial_index = index_serial_from_index_multi_dimensional(
+                nums_length=list(shape), index_multi_dimensional=outcome
+            )
         elif type(outcome) == int:
             serial_index = outcome
         else:
