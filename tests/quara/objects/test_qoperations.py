@@ -423,7 +423,9 @@ class TestSetQOperations:
 
         # Empty QOperations
         # Arrange
-        sl_qope = qope.SetQOperations(states=[], povms=povms, gates=gates, mprocesses=mprocesses)
+        sl_qope = qope.SetQOperations(
+            states=[], povms=povms, gates=gates, mprocesses=mprocesses
+        )
         # Act
         actual = sl_qope.var_states()
         # Assert
@@ -435,7 +437,9 @@ class TestSetQOperations:
         assert actual == 0
 
         # Arrange
-        sl_qope = qope.SetQOperations(states=states, povms=[], gates=gates, mprocesses=mprocesses)
+        sl_qope = qope.SetQOperations(
+            states=states, povms=[], gates=gates, mprocesses=mprocesses
+        )
         # Act
         actual = sl_qope.var_povms()
         # Assert
@@ -447,7 +451,9 @@ class TestSetQOperations:
         assert actual == 0
 
         # Arrange
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=[], mprocesses=mprocesses)
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=[], mprocesses=mprocesses
+        )
         # Act
         actual = sl_qope.var_gates()
         # Assert
@@ -459,7 +465,9 @@ class TestSetQOperations:
         assert actual == 0
 
         # Arrange
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates, mprocesses=[])
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=[]
+        )
         # Act
         actual = sl_qope.var_mprocesses()
         # Assert
@@ -602,7 +610,39 @@ class TestSetQOperations:
         )
         povms = [povm_1, povm_2]
 
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+        # MProcess
+        hss = [
+            np.array(
+                [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+                dtype=np.float64,
+            ),
+            np.array(
+                [
+                    [17, 18, 19, 20],
+                    [21, 22, 23, 24],
+                    [25, 26, 27, 28],
+                    [29, 30, 31, 32],
+                ],
+                dtype=np.float64,
+            ),
+        ]
+        mprocess_1 = MProcess(
+            hss=hss,
+            c_sys=c_sys,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
+        )
+        mprocess_2 = MProcess(
+            hss=hss,
+            c_sys=c_sys,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+        mprocesses = [mprocess_1, mprocess_2]
+
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
 
         # Case 1-1: State0
         # Act
@@ -676,11 +716,33 @@ class TestSetQOperations:
         expected = 4 + 8
         assert actual == expected
 
-        # Case 4: Total
+        # Case 4-1: MProcess1
+        actual = sl_qope.size_var_mprocess(0)
+
+        # Assert
+        expected = 28
+        assert actual == expected
+
+        # Case 4-2: MProcess2
+        actual = sl_qope.size_var_mprocess(1)
+
+        # Assert
+        expected = 32
+        assert actual == expected
+
+        # Case 4-3: MProcess All
+        # Act
+        actual = sl_qope.size_var_mprocesses()
+
+        # Assert
+        expected = 28 + 32
+        assert actual == expected
+
+        # Case 5: Total
         actual = sl_qope.size_var_total()
 
         # Assert
-        expected = 3 + 4 + 12 + 16 + 4 + 8
+        expected = 3 + 4 + 12 + 16 + 4 + 8 + 28 + 32
         assert actual == expected
 
     def test_dim(self):
@@ -749,51 +811,6 @@ class TestSetQOperations:
         # Assert
         expected = 2
         assert actual == expected
-
-    def test_size_var(self):
-        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
-        c_sys = CompositeSystem([e_sys])
-
-        # State
-        vec_1 = np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
-        vec_2 = np.array([1, 2, 3, 4], dtype=np.float64)
-
-        state_1 = State(
-            c_sys=c_sys,
-            vec=vec_1,
-            is_physicality_required=False,
-            on_para_eq_constraint=True,
-        )
-        state_2 = State(
-            c_sys=c_sys,
-            vec=vec_2,
-            is_physicality_required=False,
-            on_para_eq_constraint=False,
-        )
-        states = [state_1, state_2]
-
-        # Gate
-        hs = np.array(
-            [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]], dtype=np.float64
-        )
-        gate_1 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=True)
-        gate_2 = Gate(c_sys=c_sys, hs=hs, on_para_eq_constraint=False)
-        gates = [gate_1, gate_2]
-
-        # Povm
-        vecs = [
-            np.array([2, 3, 5, 7], dtype=np.float64),
-            np.array([11, 13, 17, 19], dtype=np.float64),
-        ]
-        povm_1 = Povm(
-            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=True
-        )
-        povm_2 = Povm(
-            c_sys, vecs, is_physicality_required=False, on_para_eq_constraint=False
-        )
-        povms = [povm_1, povm_2]
-
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
     def _arrange_setqoperations(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
