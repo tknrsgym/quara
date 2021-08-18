@@ -3,9 +3,9 @@ from typing import List, Dict
 
 import numpy as np
 from quara.objects.qoperation import QOperation
-from quara.objects.state import State, convert_var_to_state
-from quara.objects.gate import Gate, convert_var_to_gate
-from quara.objects.povm import Povm, convert_var_to_povm
+from quara.objects.state import State
+from quara.objects.gate import Gate
+from quara.objects.povm import Povm
 from quara.objects.mprocess import MProcess
 
 
@@ -109,8 +109,8 @@ class SetQOperations:
         return self.povms[index].dim
 
     def dim_mprosess(self, index: int) -> int:
-        # TODO MProcess
-        raise NotImplementedError()
+        # returns the dimension of the total system of the i-th mprocess
+        raise self.mprocesses[index].dim
 
     def size_var_states(self) -> int:
         return len(self.var_states())
@@ -122,8 +122,7 @@ class SetQOperations:
         return len(self.var_povms())
 
     def size_var_mprocesses(self) -> int:
-        # TODO MProcess
-        return 0
+        return len(self.var_mprocesses())
 
     def size_var_state(self, index: int) -> int:
         return len(self.var_state(index=index))
@@ -134,9 +133,8 @@ class SetQOperations:
     def size_var_povm(self, index: int) -> int:
         return len(self.var_povm(index=index))
 
-    def size_var_mprocess(self) -> int:
-        # TODO MProcess
-        pass
+    def size_var_mprocess(self, index: int) -> int:
+        return len(self.var_mprocess(index=index))
 
     def size_var_total(self) -> int:
         total = sum(
@@ -208,16 +206,14 @@ class SetQOperations:
         self, type_operation: str, index: int
     ) -> int:
         # returns the index that is the place of the 'index'-th 'type_operation' starts in the whole var
-        target_operations: List[QOperation]
         if type_operation == "state":
-            target_operations = self.states
             get_size_func = self.size_var_state
         elif type_operation == "gate":
-            target_operations = self.gates
             get_size_func = self.size_var_gate
         elif type_operation == "povm":
-            target_operations = self.povms
             get_size_func = self.size_var_povm
+        elif type_operation == "mprocess":
+            get_size_func = self.size_var_mprocess
         else:
             raise ValueError(
                 "'{}' is an unsupported operation type.".format(type_operation)
@@ -258,6 +254,8 @@ class SetQOperations:
             type_operation = "gate"
         elif first_index_map["povm"] <= index_var_total < first_index_map["mprocess"]:
             type_operation = "povm"
+        elif first_index_map["mprocess"] <= index_var_total < self.size_var_total():
+            type_operation = "mprocess"
         else:
             raise IndexError(
                 f"index_var_total is out of range. index_var_total={index_var_total}"
@@ -286,9 +284,12 @@ class SetQOperations:
         elif type_operation == "povm":
             target_operations = self.povms
             get_size_func = self.size_var_povm
+        elif type_operation == "mprocess":
+            target_operations = self.mprocesses
+            get_size_func = self.size_var_mprocess
 
         first_index = 0
-        for i, target in enumerate(target_operations):
+        for i, _ in enumerate(target_operations):
             local_item_size = get_size_func(i)
             if first_index <= mid_level_index < first_index + local_item_size:
                 index_operations = i
@@ -304,7 +305,7 @@ class SetQOperations:
 
     def _all_qoperations(self) -> List["QOperations"]:
         # Do NOT change the order
-        return self.states + self.gates + self.povms
+        return self.states + self.gates + self.povms + self.mprocesses
 
     def set_qoperations_from_var_total(self, var_total: np.ndarray) -> "SetQOperations":
         # returns SetQOperations corresponding to var_total
@@ -317,13 +318,7 @@ class SetQOperations:
             )
             raise ValueError(error_message)
 
-        q_operation2func_map = {
-            State: convert_var_to_state,
-            Gate: convert_var_to_gate,
-            Povm: convert_var_to_povm,
-        }
-
-        new_q_operation_dict = {State: [], Gate: [], Povm: []}
+        new_q_operation_dict = {State: [], Gate: [], Povm: [], MProcess: []}
 
         all_q_operations = self._all_qoperations()
         start_index = 0
@@ -340,5 +335,6 @@ class SetQOperations:
             states=new_q_operation_dict[State],
             gates=new_q_operation_dict[Gate],
             povms=new_q_operation_dict[Povm],
+            mprocesses=new_q_operation_dict[MProcess],
         )
         return new_set_qoperations
