@@ -182,7 +182,14 @@ class SetQOperations:
         return vars
 
     def var_total(self) -> np.ndarray:
-        vars = np.hstack([self.var_states(), self.var_gates(), self.var_povms()])
+        vars = np.hstack(
+            [
+                self.var_states(),
+                self.var_gates(),
+                self.var_povms(),
+                self.var_mprocesses(),
+            ]
+        )
         return vars
 
     def _get_operation_type_to_total_index_map(self) -> Dict[str, int]:
