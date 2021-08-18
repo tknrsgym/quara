@@ -159,7 +159,9 @@ class TestSetQOperations:
         # Arrange
         states, povms, gates, mprocesses = self.arrange_qoperations()
 
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
 
         # Act & Assert
         expected = len(states)
@@ -172,6 +174,10 @@ class TestSetQOperations:
         # Act & Assert
         expected = len(gates)
         assert sl_qope.num_gates() == expected
+
+        # Act & Assert
+        expected = len(mprocesses)
+        assert sl_qope.num_mprocesses() == expected
 
     def test_var_state(self):
         # Arrange
