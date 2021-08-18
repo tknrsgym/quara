@@ -754,7 +754,117 @@ class TestMProcess:
         for a, e in zip(actual.hss, expected):
             npt.assert_almost_equal(a, e, decimal=15)
 
+    def test_calc_proj_eq_constraint(self):
+        ## case 1: z
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # Act
+        actual = mprocess.calc_proj_eq_constraint()
+
+        # Assert
+        expected = [
+            (1 / 2)
+            * np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+            (1 / 2)
+            * np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+        assert mprocess.dim == 2
+        assert mprocess.shape == (2,)
+        assert mprocess.mode_sampling == False
+        assert mprocess.is_physicality_required == True
+        assert mprocess.is_estimation_object == True
+        assert mprocess.on_para_eq_constraint == True
+        assert mprocess.on_algo_eq_constraint == True
+        assert mprocess.on_algo_ineq_constraint == True
+        assert mprocess.eps_proj_physical == Settings.get_atol() / 10.0
+
+        ## case 2:
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hss = [
+            (1 / 2)
+            * np.array([[1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+            (1 / 2)
+            * np.array([[1, 1, 1, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]),
+        ]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        actual = mprocess.calc_proj_eq_constraint()
+
+        # Assert
+        expected = [
+            (1 / 2)
+            * np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+            (1 / 2)
+            * np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+    def test_calc_proj_eq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        mprocess = generate_mprocess_from_name(c_sys, "z")
+
+        # case 1: on_para_eq_constraint=default(True)
+        actual = mprocess.calc_proj_eq_constraint_with_var(c_sys, mprocess.to_var())
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 2: on_para_eq_constraint=True
+        actual = mprocess.calc_proj_eq_constraint_with_var(
+            c_sys, mprocess.to_var(), on_para_eq_constraint=True
+        )
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case 3: on_para_eq_constraint=False
+        actual = mprocess.calc_proj_eq_constraint_with_var(
+            c_sys, mprocess.to_stacked_vector(), on_para_eq_constraint=False
+        )
+        expected = (1 / 2) * np.array(
+            [
+                [1, 0, 0, 1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1, 0, 0, 1],
+                [1, 0, 0, -1],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [-1, 0, 0, 1],
+            ]
+        ).flatten()
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_ineq_constraint(self):
+        ## case 1: z
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -781,6 +891,31 @@ class TestMProcess:
         assert mprocess.on_algo_eq_constraint == True
         assert mprocess.on_algo_ineq_constraint == True
         assert mprocess.eps_proj_physical == Settings.get_atol() / 10.0
+
+        ## case 2:
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hss = [
+            (1 / 2)
+            * np.array([[0, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]),
+            (1 / 2)
+            * np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]),
+        ]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+
+        # Act
+        actual = mprocess.calc_proj_ineq_constraint()
+
+        # Assert
+        expected = [
+            (1 / 4)
+            * np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]),
+            (1 / 4)
+            * np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
 
     def test_calc_proj_ineq_constraint_with_var(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

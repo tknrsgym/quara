@@ -341,7 +341,37 @@ class MProcess(QOperation):
         return mprocess
 
     def calc_proj_eq_constraint(self) -> "MProcess":
-        pass
+        dim = self.composite_system.dim
+        hss = copy.deepcopy(self.hss)
+
+        # calc new var
+        vec = np.zeros((dim ** 2))
+        for hs in hss:
+            vec += hs[0]
+        vec[0] -= 1
+
+        new_hss = []
+        for hs in hss:
+            hs[0] -= vec / len(hss)
+            new_hss.append(hs)
+
+        # create new MProcess
+        new_mprocess = MProcess(
+            c_sys=self.composite_system,
+            hss=new_hss,
+            shape=self.shape,
+            mode_sampling=self.mode_sampling,
+            random_seed_or_state=self.random_seed_or_state,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+        )
+
+        return new_mprocess
 
     @staticmethod
     def calc_proj_eq_constraint_with_var(
@@ -349,7 +379,28 @@ class MProcess(QOperation):
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
     ) -> np.ndarray:
-        pass
+        dim = c_sys.dim
+
+        # var to hss
+        hss = convert_var_to_hss(
+            c_sys, var, on_para_eq_constraint=on_para_eq_constraint
+        )
+
+        # calc new var
+        vec = np.zeros((dim ** 2))
+        for hs in hss:
+            vec += hs[0]
+        vec[0] -= 1
+
+        new_hss = []
+        for hs in hss:
+            hs[0] -= vec / len(hss)
+            new_hss.append(hs)
+
+        # hss to var
+        new_var = convert_hss_to_var(c_sys, new_hss, on_para_eq_constraint)
+
+        return new_var
 
     def calc_proj_ineq_constraint(self) -> "MProcess":
         new_hss = []
@@ -918,7 +969,7 @@ def convert_var_to_hss(
     ----------
     c_sys : CompositeSystem
         CompositeSystem of this MProcess.
-    var : np.ndarray
+    var : np.ndarrayd@y
         variables of gate.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
