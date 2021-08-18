@@ -400,17 +400,7 @@ def _compose_qoperations(elem1, elem2):
         return dist
     elif type(elem1) == Povm and type(elem2) == StateEnsemble:
         # -> MultinomialDistribution
-        for i, state in enumerate(elem2.states):
-            # (Povm, State)
-            prob_dist = compose_qoperations(elem1, state)
-            ps = elem2.prob_dist[i] * prob_dist.ps
-            if i == 0:
-                new_prob_dist = ps
-            else:
-                new_prob_dist = np.hstack([new_prob_dist, ps])
-        shape = (len(elem2.states), elem1._num_outcomes)
-        new_md = MultinomialDistribution(ps=new_prob_dist, shape=shape)
-        return new_md
+        return _compose_qoperations_Povm_StateEnsemble(elem1, elem2)
     else:
         raise TypeError(
             f"Unsupported type combination! type=({type(elem1)}, {type(elem2)})"
@@ -435,3 +425,20 @@ def _to_list(*elements):
     assert len(element_list) >= 2
 
     return element_list
+
+
+def _compose_qoperations_Povm_StateEnsemble(
+    elem1: Povm, elem2: StateEnsemble
+) -> MultinomialDistribution:
+    for i, state in enumerate(elem2.states):
+        # (Povm, State)
+        prob_dist = compose_qoperations(elem1, state)
+        ps = elem2.prob_dist[i] * prob_dist.ps
+        if i == 0:
+            new_prob_dist = ps
+        else:
+            new_prob_dist = np.hstack([new_prob_dist, ps])
+    shape = tuple(list(elem2.prob_dist.shape) + elem1.nums_local_outcomes)
+    # shape = (len(elem2.states), elem1._num_outcomes)
+    new_md = MultinomialDistribution(ps=new_prob_dist, shape=shape)
+    return new_md

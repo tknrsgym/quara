@@ -840,24 +840,6 @@ def test_compose_qoperations_Povm_State():
     npt.assert_almost_equal(px_z.ps, p_xz.ps, decimal=15)
 
 
-"""
-def test_compose_qoperations_Povm_StateEnsemble():
-    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
-    c_sys = CompositeSystem([e_sys])
-    vecs = [
-        np.array([1, 0, 0, 0], dtype=np.float64),
-        np.array([0, 0, 0, 1], dtype=np.float64),
-    ]
-    povm = Povm(c_sys, vecs)
-
-    # State Ensemble z0
-    state_ens = get_state_ensemble_z0_elements(c_sys)
-    actual = compose_qoperations(povm, state_ens)
-    expected = [1, 0]
-    npt.assert_almost_equal(actual, expected, decimal=15)
-"""
-
-
 def test_to_list():
     # Arrange & Act
     actual = _to_list(1, 2, 3)
@@ -1726,3 +1708,53 @@ def test_compose_qoperations_Gate_StateEnsemble_multi_dimension():
     actual = compose_qoperations(gate_z, state_ensemble)
 
     assert actual.prob_dist.shape == (2, 3)
+
+
+def test_compose_qoperations_Povm_StateEnsemble():
+    # Arrange
+    c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+    povm = generate_qoperation_object(
+        mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+    )
+    state_ens = generate_qoperation_object(
+        mode="state_ensemble", object_name="state_ensemble", name="z0", c_sys=c_sys_1q
+    )
+
+    # Act
+    actual = compose_qoperations(povm, state_ens)
+    # Assert
+    expected = np.array([1, 0, 0, 0])
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
+    assert actual.shape == (2, 2)
+
+
+def test_compose_qoperations_Povm_StateEnsemble_multidimension():
+    # Arrange
+    c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[101])
+    # StateEnsemble
+    names = ["z0", "z1", "y0", "y1", "x0", "x1"]
+    states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys_1q
+        )
+        for name in names
+    ]
+
+    ps = np.array([0.005, 0.025, 0.07, 0.045, 0.225, 0.63])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2, 3))
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+    # Povm
+    povm_z = generate_qoperation_object(
+        mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+    )
+    # Act
+    actual = compose_qoperations(povm_z, state_ensemble)
+    # Assert
+    expected = np.array(
+        [
+            [[0.005, 0], [0, 0.025], [0.035, 0.035]],
+            [[0.0225, 0.0225], [0.1125, 0.1125], [0.315, 0.315]],
+        ]
+    )
+    npt.assert_almost_equal(actual.ps, expected.flatten(), decimal=15)
+    assert actual.shape == (2, 3, 2)
