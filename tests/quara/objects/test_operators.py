@@ -53,7 +53,10 @@ from quara.objects.state import (
     get_z0_1q,
     get_z1_1q,
 )
-from quara.objects.state_ensemble_typical import get_state_ensemble_z0_elements
+from quara.objects.state_ensemble import StateEnsemble
+from quara.objects.qoperation_typical import generate_qoperation_object
+from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.multinomial_distribution import MultinomialDistribution
 
 
 def test_tensor_product_Gate_Gate():
@@ -837,24 +840,6 @@ def test_compose_qoperations_Povm_State():
     npt.assert_almost_equal(px_z.ps, p_xz.ps, decimal=15)
 
 
-"""
-def test_compose_qoperations_Povm_StateEnsemble():
-    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
-    c_sys = CompositeSystem([e_sys])
-    vecs = [
-        np.array([1, 0, 0, 0], dtype=np.float64),
-        np.array([0, 0, 0, 1], dtype=np.float64),
-    ]
-    povm = Povm(c_sys, vecs)
-
-    # State Ensemble z0
-    state_ens = get_state_ensemble_z0_elements(c_sys)
-    actual = compose_qoperations(povm, state_ens)
-    expected = [1, 0]
-    npt.assert_almost_equal(actual, expected, decimal=15)
-"""
-
-
 def test_to_list():
     # Arrange & Act
     actual = _to_list(1, 2, 3)
@@ -1439,3 +1424,337 @@ def test_scenario_tomographically_complete_sets(d):
             # Assert
             expected = prob_per_povm[alpha]
             npt.assert_almost_equal(actual.ps, expected, decimal=14)
+
+
+def test_tensor_product_StateEnsemble_StateEnsemble_shape_2_3():
+    # Arrange
+    c_sys_1q_0 = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+    c_sys_1q_1 = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
+    c_sys_1q_2 = generate_composite_system(mode="qubit", num=1, ids_esys=[2])
+    c_sys_1q_3 = generate_composite_system(mode="qubit", num=1, ids_esys=[3])
+    c_sys_1q_4 = generate_composite_system(mode="qubit", num=1, ids_esys=[4])
+
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_1q_0
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_1q_1
+    )
+    state_y0 = generate_qoperation_object(
+        mode="state", object_name="state", name="y0", c_sys=c_sys_1q_2
+    )
+    state_y1 = generate_qoperation_object(
+        mode="state", object_name="state", name="y1", c_sys=c_sys_1q_3
+    )
+    state_x0 = generate_qoperation_object(
+        mode="state", object_name="state", name="x0", c_sys=c_sys_1q_4
+    )
+    prob_dist = MultinomialDistribution(ps=np.array([0.1, 0.9]), shape=(2,))
+    se_0 = StateEnsemble([state_z0, state_z1], prob_dist)
+    prob_dist = MultinomialDistribution(ps=np.array([0.05, 0.25, 0.7]), shape=(3,))
+    se_1 = StateEnsemble([state_y0, state_y1, state_x0], prob_dist)
+
+    # Act
+    actual = tensor_product(se_0, se_1)
+
+    # Assert
+    expected = np.array([0.005, 0.025, 0.07, 0.045, 0.225, 0.63])
+    npt.assert_almost_equal(actual.prob_dist.ps, expected, decimal=16)
+
+    expected = [
+        tensor_product(state_z0, state_y0),
+        tensor_product(state_z0, state_y1),
+        tensor_product(state_z0, state_x0),
+        tensor_product(state_z1, state_y0),
+        tensor_product(state_z1, state_y1),
+        tensor_product(state_z1, state_x0),
+    ]
+    assert len(actual.states) == len(expected)
+    for a, e in zip(actual.states, expected):
+        npt.assert_almost_equal(a.vec, e.vec, decimal=15)
+    assert actual.prob_dist.shape == (2, 3)
+
+
+def test_tensor_product_State_StateEnsemble():
+    # State (x) StateEnsemble
+    c_sys_list = []
+    for i in range(3):
+        c_sys_list.append(generate_composite_system(mode="qubit", num=1, ids_esys=[i]))
+
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_list[0]
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_list[1]
+    )
+    state_y0 = generate_qoperation_object(
+        mode="state", object_name="state", name="y0", c_sys=c_sys_list[2]
+    )
+
+    states = [state_z0, state_z1]
+    ps = np.array([0.1, 0.9])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2,))
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+
+    # Act
+    actual = tensor_product(state_y0, state_ensemble)
+
+    # Assert
+    # check prob_dist
+    expected_prob_dist = state_ensemble.prob_dist
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist.ps, decimal=15)
+    assert expected_prob_dist.shape == (2,)
+
+    # check state
+    expected_state = tensor_product(state_y0, state_z0)
+    npt.assert_almost_equal(actual.states[0].vec, expected_state.vec)
+
+    expected_state = tensor_product(state_y0, state_z1)
+    npt.assert_almost_equal(actual.states[1].vec, expected_state.vec)
+
+
+def test_tensor_product_StateEnsemble_State():
+    # StateEnsemble (x)
+    c_sys_list = []
+    for i in range(3):
+        c_sys_list.append(generate_composite_system(mode="qubit", num=1, ids_esys=[i]))
+
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_list[0]
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_list[1]
+    )
+    state_y0 = generate_qoperation_object(
+        mode="state", object_name="state", name="y0", c_sys=c_sys_list[2]
+    )
+
+    states = [state_z0, state_z1]
+    ps = np.array([0.1, 0.9])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2,))
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+
+    # Act
+    actual = tensor_product(state_ensemble, state_y0)
+
+    # Assert
+    # check prob_dist
+    expected_prob_dist = state_ensemble.prob_dist
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist.ps, decimal=15)
+    assert expected_prob_dist.shape == (2,)
+
+    # check state
+    expected_state = tensor_product(state_z0, state_y0)
+    npt.assert_almost_equal(actual.states[0].vec, expected_state.vec)
+
+    expected_state = tensor_product(state_z1, state_y0)
+    npt.assert_almost_equal(actual.states[1].vec, expected_state.vec)
+
+
+def test_composite_qoperations_Gate_StateEnsemble():
+    # (Gate, StateEnsemble)
+    # Arrange
+    c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[101])
+
+    # StateEnsemble
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_1q
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_1q
+    )
+    states = [state_z0, state_z1]
+    ps = np.array([0.1, 0.9])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2,))
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+
+    # Gate
+    gate_z = generate_qoperation_object(
+        mode="gate", object_name="gate", name="x", c_sys=c_sys_1q
+    )
+
+    # Act
+    actual = compose_qoperations(gate_z, state_ensemble)
+
+    # Assert
+    # check prob_dist
+    expected_prob_dist = state_ensemble.prob_dist
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist.ps, decimal=15)
+    assert expected_prob_dist.shape == (2,)
+
+    expected_state = compose_qoperations(gate_z, state_z0)
+    npt.assert_almost_equal(actual.states[0].vec, expected_state.vec)
+
+    expected_state = compose_qoperations(gate_z, state_z1)
+    npt.assert_almost_equal(actual.states[1].vec, expected_state.vec)
+
+
+def test_composite_qoperations_Povm_StateEnsemble():
+    # (Povm, StateEnsemble)
+    c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[101])
+
+    # StateEnsemble
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_1q
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_1q
+    )
+    state_y0 = generate_qoperation_object(
+        mode="state", object_name="state", name="y0", c_sys=c_sys_1q
+    )
+    states = [state_z0, state_z1, state_y0]
+    ps = np.array([0.15, 0.35, 0.5])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(3,))
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+
+    povm_z = generate_qoperation_object(
+        mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+    )
+    actual = compose_qoperations(povm_z, state_ensemble)
+
+    # Assert
+    # 0.15 * [1, 0], 0.35 * [0, 1], 0.5 * [0.5, 0.5]
+    expected_ps = np.array([0.15, 0] + [0, 0.35] + [0.25, 0.25])
+    expected_shape = (3, 2)
+
+    npt.assert_almost_equal(actual.ps, expected_ps, decimal=15)
+    assert actual.shape == expected_shape
+
+
+def make_state_ensemble_2_3_different_c_sys():
+    c_sys_list = []
+    for i in range(6):
+        c_sys_list.append(generate_composite_system(mode="qubit", num=1, ids_esys=[i]))
+
+    state_z0 = generate_qoperation_object(
+        mode="state", object_name="state", name="z0", c_sys=c_sys_list[0]
+    )
+    state_z1 = generate_qoperation_object(
+        mode="state", object_name="state", name="z1", c_sys=c_sys_list[1]
+    )
+    state_y0 = generate_qoperation_object(
+        mode="state", object_name="state", name="y0", c_sys=c_sys_list[2]
+    )
+    state_y1 = generate_qoperation_object(
+        mode="state", object_name="state", name="y1", c_sys=c_sys_list[3]
+    )
+    state_x0 = generate_qoperation_object(
+        mode="state", object_name="state", name="x0", c_sys=c_sys_list[4]
+    )
+    state_x1 = generate_qoperation_object(
+        mode="state", object_name="state", name="x0", c_sys=c_sys_list[5]
+    )
+    states = [state_z0, state_z1, state_y0, state_y1, state_x0, state_x1]
+
+    ps = np.array([0.005, 0.025, 0.07, 0.045, 0.225, 0.63])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2, 3))
+
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+    return state_ensemble
+
+
+def make_state_ensemble_2_3_same_c_sys():
+    c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[101])
+    names = ["z0", "z1", "y0", "y1", "x0", "x1"]
+    states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys_1q
+        )
+        for name in names
+    ]
+
+    ps = np.array([0.005, 0.025, 0.07, 0.045, 0.225, 0.63])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2, 3))
+
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+    return state_ensemble
+
+
+def test_tensor_prodcut_State_StateEnsemble_multi_dimension():
+    # Arrange
+    c_sys = generate_composite_system(mode="qubit", num=1, ids_esys=[100])
+    state_ensemble = make_state_ensemble_2_3_different_c_sys()
+    state_a = generate_qoperation_object(
+        mode="state", object_name="state", name="a", c_sys=c_sys
+    )
+    # Act
+    actual = tensor_product(state_a, state_ensemble)
+
+    # Assert
+    assert actual.prob_dist.shape == (2, 3)
+
+
+def test_tensor_prodcut_StateEnsemble_State_multi_dimension():
+    # Arrange
+    c_sys = generate_composite_system(mode="qubit", num=1, ids_esys=[100])
+    state_ensemble = make_state_ensemble_2_3_different_c_sys()
+    state_a = generate_qoperation_object(
+        mode="state", object_name="state", name="a", c_sys=c_sys
+    )
+    actual = tensor_product(state_ensemble, state_a)
+
+    assert actual.prob_dist.shape == (2, 3)
+
+
+def test_compose_qoperations_Gate_StateEnsemble_multi_dimension():
+    # Arrange
+    state_ensemble = make_state_ensemble_2_3_same_c_sys()
+    c_sys = state_ensemble.states[0].composite_system
+    gate_z = generate_qoperation_object(
+        mode="gate", object_name="gate", name="z", c_sys=c_sys
+    )
+
+    actual = compose_qoperations(gate_z, state_ensemble)
+
+    assert actual.prob_dist.shape == (2, 3)
+
+
+def test_compose_qoperations_Povm_StateEnsemble():
+    # Arrange
+    c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+    povm = generate_qoperation_object(
+        mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+    )
+    state_ens = generate_qoperation_object(
+        mode="state_ensemble", object_name="state_ensemble", name="z0", c_sys=c_sys_1q
+    )
+
+    # Act
+    actual = compose_qoperations(povm, state_ens)
+    # Assert
+    expected = np.array([1, 0, 0, 0])
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
+    assert actual.shape == (2, 2)
+
+
+def test_compose_qoperations_Povm_StateEnsemble_multidimension():
+    # Arrange
+    c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[101])
+    # StateEnsemble
+    names = ["z0", "z1", "y0", "y1", "x0", "x1"]
+    states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys_1q
+        )
+        for name in names
+    ]
+
+    ps = np.array([0.005, 0.025, 0.07, 0.045, 0.225, 0.63])
+    prob_dist = MultinomialDistribution(ps=ps, shape=(2, 3))
+    state_ensemble = StateEnsemble(states=states, prob_dist=prob_dist)
+    # Povm
+    povm_z = generate_qoperation_object(
+        mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+    )
+    # Act
+    actual = compose_qoperations(povm_z, state_ensemble)
+    # Assert
+    expected = np.array(
+        [
+            [[0.005, 0], [0, 0.025], [0.035, 0.035]],
+            [[0.0225, 0.0225], [0.1125, 0.1125], [0.315, 0.315]],
+        ]
+    )
+    npt.assert_almost_equal(actual.ps, expected.flatten(), decimal=15)
+    assert actual.shape == (2, 3, 2)

@@ -31,6 +31,9 @@ class MultinomialDistribution:
         ValueError
             the size of ps and shape do not match.
         """
+        if type(ps) == list:
+            ps = np.array(ps)
+
         # validation about probabiity
         validate_prob_dist(ps)
 
