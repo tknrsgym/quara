@@ -158,6 +158,9 @@ class SetQOperations:
     def var_povm(self, index: int) -> np.ndarray:
         return self.povms[index].to_var()
 
+    def var_mprocess(self, index: int) -> np.ndarray:
+        return self.mprocesses[index].to_var()
+
     def var_states(self) -> List[float]:
         vars = [state.to_var() for state in self.states]
         vars = np.hstack(vars) if vars else np.array([])
@@ -170,6 +173,11 @@ class SetQOperations:
 
     def var_gates(self) -> np.ndarray:
         vars = [gate.to_var() for gate in self.gates]
+        vars = np.hstack(vars) if vars else np.array([])
+        return vars
+
+    def var_mprocesses(self) -> np.ndarray:
+        vars = [mprocess.to_var() for mprocess in self.mprocesses]
         vars = np.hstack(vars) if vars else np.array([])
         return vars
 
