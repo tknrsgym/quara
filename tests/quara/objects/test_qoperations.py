@@ -7,22 +7,16 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
+from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot
 from quara.objects.povm import (
     Povm,
     get_x_povm,
-    get_y_povm,
-    get_z_povm,
     get_xx_povm,
-    get_xy_povm,
-    get_yy_povm,
-    get_zz_povm,
 )
-from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q, get_bell_2q
+from quara.objects.state import State, get_x0_1q, get_y0_1q, get_bell_2q
 from quara.objects import qoperations as qope
 from quara.objects.mprocess import MProcess
 from quara.objects.qoperation_typical import (
-    generate_qoperation,
     generate_qoperation_object,
 )
 from quara.objects.composite_system_typical import generate_composite_system
