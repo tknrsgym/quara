@@ -12,15 +12,17 @@ from quara.objects.mprocess import MProcess
 class SetQOperations:
     def __init__(
         self,
-        states: List[State],
-        gates: List[Gate],
-        povms: List[Povm],
-        mprocesses: List[MProcess] = None,  # TODO: 暫定的にOptionalにしているため、後で修正する
+        states: List[State] = None,
+        gates: List[Gate] = None,
+        povms: List[Povm] = None,
+        mprocesses: List[MProcess] = None,
     ) -> None:
 
-        # TODO: 暫定的な処置。後で削除する
-        if mprocesses is None:
-            mprocesses = []
+        states = [] if states is None else states
+        gates = [] if gates is None else gates
+        povms = [] if povms is None else povms
+        mprocesses = [] if mprocesses is None else mprocesses
+
         # Validation
         self._validate_type(states, State)
         self._validate_type(povms, Povm)
