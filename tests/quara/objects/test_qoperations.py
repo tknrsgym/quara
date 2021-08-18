@@ -20,10 +20,16 @@ from quara.objects.povm import (
 )
 from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q, get_bell_2q
 from quara.objects import qoperations as qope
+from quara.objects.mprocess import MProcess
+from quara.objects.qoperation_typical import (
+    generate_qoperation,
+    generate_qoperation_object,
+)
+from quara.objects.composite_system_typical import generate_composite_system
 
 
 class TestSetQOperations:
-    def arrange_states_povms_gates(self):
+    def arrange_qoperations(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
         c_sys = CompositeSystem([e_sys])
@@ -44,47 +50,75 @@ class TestSetQOperations:
         gate_2 = get_x(c_sys)
         gate_3 = get_x(c_sys)
         gates = [gate_0, gate_1, gate_2, gate_3]
-        return states, povms, gates
+
+        # MProcess
+        c_sys_1 = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
+        names = ["z", "z", "z"]  # TODO: modify
+        mprocesses = [
+            generate_qoperation_object(
+                mode="mprocess", object_name="mprocess", name=name, c_sys=c_sys_1
+            )
+            for name in names
+        ]
+
+        return states, povms, gates, mprocesses
 
     def test_init(self):
         # Arrange
-        states, povms, gates = self.arrange_states_povms_gates()
+        states, povms, gates, mprocesses = self.arrange_qoperations()
 
         # Act
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
 
         # Assert
         assert sl_qope.states == states
         assert sl_qope.povms == povms
         assert sl_qope.gates == gates
+        assert sl_qope.mprocesses == mprocesses
 
     def test_init_exception(self):
         # Arrange
-        states, povms, gates = self.arrange_states_povms_gates()
+        states, povms, gates, mprocesses = self.arrange_qoperations()
 
         # Act & Assert
         ng_states = [states[0], 1]
         with pytest.raises(TypeError):
             # TypeError: 'states' must be a list of State.
-            _ = qope.SetQOperations(states=ng_states, povms=povms, gates=gates)
+            _ = qope.SetQOperations(
+                states=ng_states, povms=povms, gates=gates, mprocesses=mprocesses
+            )
 
         # Act & Assert
         ng_povms = [states[0], povms[0], povms[1]]
         with pytest.raises(TypeError):
             # TypeError: 'povms' must be a list of Povm.
-            _ = qope.SetQOperations(states=states, povms=ng_povms, gates=gates)
+            _ = qope.SetQOperations(
+                states=states, povms=ng_povms, gates=gates, mprocesses=mprocesses
+            )
 
         # Act & Assert
         ng_gates = [gates[0], states[0], gates[2], gates[3]]
         with pytest.raises(TypeError):
             # TypeError: 'gates' must be a list of Gate.
-            _ = qope.SetQOperations(states=states, povms=povms, gates=ng_gates)
+            _ = qope.SetQOperations(
+                states=states, povms=povms, gates=ng_gates, mprocesses=mprocesses
+            )
+
+        # Act & Assert
+        ng_mprocesses = [mprocesses[0], states[0], mprocesses[1], mprocesses[2]]
+        with pytest.raises(TypeError):
+            # TypeError: 'mprocesses' must be a list of MProcess.
+            _ = qope.SetQOperations(
+                states=states, povms=povms, gates=gates, mprocesses=ng_mprocesses
+            )
 
     def test_setter(self):
         # Arrange
-        states, povms, gates = self.arrange_states_povms_gates()
+        states, povms, gates, mprocesses = self.arrange_qoperations()
 
-        new_states, new_povms, new_gates = self.arrange_states_povms_gates()
+        new_states, new_povms, new_gates, new_mprocesses = self.arrange_qoperations()
 
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
@@ -123,7 +157,7 @@ class TestSetQOperations:
 
     def test_num(self):
         # Arrange
-        states, povms, gates = self.arrange_states_povms_gates()
+        states, povms, gates, mprocesses = self.arrange_qoperations()
 
         sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
 
@@ -141,7 +175,7 @@ class TestSetQOperations:
 
     def test_var_state(self):
         # Arrange
-        _, povms, gates = self.arrange_states_povms_gates()
+        _, povms, gates, mprocesses = self.arrange_qoperations()
 
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -155,7 +189,11 @@ class TestSetQOperations:
         states = [state_1, state_2]
 
         # Case 1:
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates,)
+        sl_qope = qope.SetQOperations(
+            states=states,
+            povms=povms,
+            gates=gates,
+        )
         # Act
         actual = sl_qope.var_state(0)
 
@@ -204,7 +242,7 @@ class TestSetQOperations:
 
     def test_var_states(self):
         # Arrange
-        _, povms, gates = self.arrange_states_povms_gates()
+        _, povms, gates, mprocesses = self.arrange_qoperations()
 
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -253,7 +291,7 @@ class TestSetQOperations:
 
     def test_var_povms(self):
         # Arrange
-        states, _, gates = self.arrange_states_povms_gates()
+        states, _, gates, mprocesses = self.arrange_qoperations()
 
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -311,7 +349,7 @@ class TestSetQOperations:
 
     def test_var_gates(self):
         # Arrange
-        states, povms, _ = self.arrange_states_povms_gates()
+        states, povms, _, mprocesses = self.arrange_qoperations()
 
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -381,7 +419,7 @@ class TestSetQOperations:
 
     def test_var_empty(self):
         # Arrange
-        states, povms, gates = self.arrange_states_povms_gates()
+        states, povms, gate, mprocesses = self.arrange_qoperations()
 
         # Empty QOperations
         # Arrange
@@ -941,83 +979,155 @@ class TestSetQOperations:
         set_qoperations = self._arrange_setqoperations()
 
         actual = set_qoperations.local_info_from_index_var_total(0)
-        expected = dict(type_operation="state", index_operations=0, index_var_local=0,)
+        expected = dict(
+            type_operation="state",
+            index_operations=0,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(2)
-        expected = dict(type_operation="state", index_operations=0, index_var_local=2,)
+        expected = dict(
+            type_operation="state",
+            index_operations=0,
+            index_var_local=2,
+        )
         assert actual == expected
 
         # states[1]
         actual = set_qoperations.local_info_from_index_var_total(3)
-        expected = dict(type_operation="state", index_operations=1, index_var_local=0,)
+        expected = dict(
+            type_operation="state",
+            index_operations=1,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(6)
-        expected = dict(type_operation="state", index_operations=1, index_var_local=3,)
+        expected = dict(
+            type_operation="state",
+            index_operations=1,
+            index_var_local=3,
+        )
         assert actual == expected
 
         # states[2]
         actual = set_qoperations.local_info_from_index_var_total(7)
-        expected = dict(type_operation="state", index_operations=2, index_var_local=0,)
+        expected = dict(
+            type_operation="state",
+            index_operations=2,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(22)
-        expected = dict(type_operation="state", index_operations=2, index_var_local=15,)
+        expected = dict(
+            type_operation="state",
+            index_operations=2,
+            index_var_local=15,
+        )
         assert actual == expected
 
         # gates[0]
         actual = set_qoperations.local_info_from_index_var_total(23)
-        expected = dict(type_operation="gate", index_operations=0, index_var_local=0,)
+        expected = dict(
+            type_operation="gate",
+            index_operations=0,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(34)
-        expected = dict(type_operation="gate", index_operations=0, index_var_local=11,)
+        expected = dict(
+            type_operation="gate",
+            index_operations=0,
+            index_var_local=11,
+        )
         assert actual == expected
 
         # gates[1]
         actual = set_qoperations.local_info_from_index_var_total(35)
-        expected = dict(type_operation="gate", index_operations=1, index_var_local=0,)
+        expected = dict(
+            type_operation="gate",
+            index_operations=1,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(50)
-        expected = dict(type_operation="gate", index_operations=1, index_var_local=15,)
+        expected = dict(
+            type_operation="gate",
+            index_operations=1,
+            index_var_local=15,
+        )
         assert actual == expected
 
         # gates[2]
         actual = set_qoperations.local_info_from_index_var_total(51)
-        expected = dict(type_operation="gate", index_operations=2, index_var_local=0,)
+        expected = dict(
+            type_operation="gate",
+            index_operations=2,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(62)
-        expected = dict(type_operation="gate", index_operations=2, index_var_local=11,)
+        expected = dict(
+            type_operation="gate",
+            index_operations=2,
+            index_var_local=11,
+        )
         assert actual == expected
 
         # povms[0]
         actual = set_qoperations.local_info_from_index_var_total(63)
-        expected = dict(type_operation="povm", index_operations=0, index_var_local=0,)
+        expected = dict(
+            type_operation="povm",
+            index_operations=0,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(66)
-        expected = dict(type_operation="povm", index_operations=0, index_var_local=3,)
+        expected = dict(
+            type_operation="povm",
+            index_operations=0,
+            index_var_local=3,
+        )
         assert actual == expected
 
         # povms[1]
         actual = set_qoperations.local_info_from_index_var_total(67)
-        expected = dict(type_operation="povm", index_operations=1, index_var_local=0,)
+        expected = dict(
+            type_operation="povm",
+            index_operations=1,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(74)
-        expected = dict(type_operation="povm", index_operations=1, index_var_local=7,)
+        expected = dict(
+            type_operation="povm",
+            index_operations=1,
+            index_var_local=7,
+        )
         assert actual == expected
 
         # povms[2]
         actual = set_qoperations.local_info_from_index_var_total(75)
-        expected = dict(type_operation="povm", index_operations=2, index_var_local=0,)
+        expected = dict(
+            type_operation="povm",
+            index_operations=2,
+            index_var_local=0,
+        )
         assert actual == expected
 
         actual = set_qoperations.local_info_from_index_var_total(78)
-        expected = dict(type_operation="povm", index_operations=2, index_var_local=3,)
+        expected = dict(
+            type_operation="povm",
+            index_operations=2,
+            index_var_local=3,
+        )
         assert actual == expected
 
     def test_set_qoperations_from_var_total_exception(self):

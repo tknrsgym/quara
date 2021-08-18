@@ -6,23 +6,33 @@ from quara.objects.qoperation import QOperation
 from quara.objects.state import State, convert_var_to_state
 from quara.objects.gate import Gate, convert_var_to_gate
 from quara.objects.povm import Povm, convert_var_to_povm
+from quara.objects.mprocess import MProcess
 
 
 class SetQOperations:
     def __init__(
-        self, states: List[State], gates: List[Gate], povms: List[Povm]
+        self,
+        states: List[State],
+        gates: List[Gate],
+        povms: List[Povm],
+        mprocesses: List[MProcess] = None,  # TODO: 暫定的にOptionalにしているため、後で修正する
     ) -> None:
+
+        # TODO: 暫定的な処置。後で削除する
+        if mprocesses is None:
+            mprocesses = []
         # Validation
         self._validate_type(states, State)
         self._validate_type(povms, Povm)
         self._validate_type(gates, Gate)
 
+        self._validate_type(mprocesses, MProcess)
+
         # Set
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
-        # TODO: List[MProcess]
-        self._mprocesses: list = []
+        self._mprocesses: List[MProcess] = mprocesses
 
     def _validate_type(self, targets, expected_type, arg_name: str = None) -> None:
         for target in targets:
@@ -30,6 +40,8 @@ class SetQOperations:
                 arg_name = (
                     arg_name if arg_name else expected_type.__name__.lower() + "s"
                 )
+                # ss -> es (ex: mprocesss -> mprocesses)
+                arg_name = arg_name[:-2] + "ses" if arg_name[-2:] == "ss" else arg_name
                 error_message = "'{}' must be a list of {}.".format(
                     arg_name, expected_type.__name__
                 )
@@ -62,6 +74,15 @@ class SetQOperations:
     def gates(self, value):
         self._validate_type(value, Gate)
         self._gates = value
+
+    @property
+    def mprocesses(self) -> List[MProcess]:
+        return self._mprocesses
+
+    @mprocesses.setter
+    def mprocesses(self, value):
+        self._validate_type(value, MProcess)
+        self._mprocesses = value
 
     def num_states(self):
         return len(self._states)
