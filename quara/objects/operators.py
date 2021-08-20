@@ -9,7 +9,7 @@ import numpy as np
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import MatrixBasis, convert_vec
 from quara.objects.povm import Povm
 from quara.objects.state import State
 from quara.objects.mprocess import MProcess
@@ -350,10 +350,18 @@ def _compose_qoperations(elem1, elem2):
         return gate
     elif type(elem1) == Gate and type(elem2) == MProcess:
         # -> MProcess
-        raise NotImplementedError()
+        hss = [elem1.hs @ hs for hs in elem2.hss]
+        mprocess = MProcess(
+            elem1.composite_system, hss, is_physicality_required=is_physicality_required
+        )
+        return mprocess
     elif type(elem1) == MProcess and type(elem2) == Gate:
         # -> MProcess
-        raise NotImplementedError()
+        hss = [hs @ elem2.hs for hs in elem1.hss]
+        mprocess = MProcess(
+            elem1.composite_system, hss, is_physicality_required=is_physicality_required
+        )
+        return mprocess
     elif type(elem1) == MProcess and type(elem2) == MProcess:
         # -> MProcess
         raise NotImplementedError()
@@ -375,7 +383,7 @@ def _compose_qoperations(elem1, elem2):
         return StateEnsemble(new_states, elem2.prob_dist)
     elif type(elem1) == MProcess and type(elem2) == State:
         # -> StateEnsemble
-        raise NotImplementedError()
+        return _compose_qoperations_MProcess_State(elem1, elem2)
     elif type(elem1) == MProcess and type(elem2) == StateEnsemble:
         # -> StateEnsemble
         raise NotImplementedError()
@@ -425,6 +433,66 @@ def _to_list(*elements):
     assert len(element_list) >= 2
 
     return element_list
+
+
+def _compose_qoperations_MProcess_State(elem1: MProcess, elem2: State) -> StateEnsemble:
+    # is_physicality_required
+    is_physicality_required = (
+        elem1.is_physicality_required and elem2.is_physicality_required
+    )
+
+    states = []
+    ps = []
+    if elem2.composite_system.is_orthonormal_hermitian_0thprop_identity:
+        for hs in elem1.hss:
+            Mx_rho = hs @ elem2.vec
+            p_x = np.sqrt(elem2.composite_system.dim) * Mx_rho[0]
+            if p_x == 0:
+                rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
+                state = State(
+                    elem2.composite_system,
+                    rho_x,
+                    is_physicality_required=False,
+                )
+            else:
+                rho_x = Mx_rho / p_x
+                state = State(
+                    elem2.composite_system,
+                    rho_x,
+                    is_physicality_required=is_physicality_required,
+                )
+            states.append(state)
+            ps.append(p_x)
+    else:
+        I_vec_cb = np.array([1, 0, 0, 1], dtype=np.float64)
+        I_vec_gb = convert_vec(
+            I_vec_cb,
+            elem2.composite_system.comp_basis(),
+            elem2.composite_system.basis(),
+        )
+        for hs in elem1.hss:
+            Mx_rho = hs @ elem2.vec
+            p_x = np.vdot(I_vec_gb, Mx_rho)
+            if p_x == 0:
+                rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
+                state = State(
+                    elem2.composite_system,
+                    rho_x,
+                    is_physicality_required=False,
+                )
+            else:
+                rho_x = Mx_rho / p_x
+                state = State(
+                    elem2.composite_system,
+                    rho_x,
+                    is_physicality_required=is_physicality_required,
+                )
+            states.append(state)
+            ps.append(p_x)
+
+    mult_dist = MultinomialDistribution(np.array(ps, dtype=np.float64))
+    state_ens = StateEnsemble(states, mult_dist)
+    return state_ens
 
 
 def _compose_qoperations_Povm_StateEnsemble(
