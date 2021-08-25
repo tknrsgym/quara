@@ -48,7 +48,7 @@ class TestSetQOperations:
 
         # MProcess
         c_sys_1 = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
-        names = ["z", "z", "z"]  # TODO: modify
+        names = ["x-type1", "y-type1", "z-type1"]
         mprocesses = [
             generate_qoperation_object(
                 mode="mprocess", object_name="mprocess", name=name, c_sys=c_sys_1
@@ -914,12 +914,13 @@ class TestSetQOperations:
         povms = [povm_2q, povm_2q, povm_1q]
 
         # MPRocess
-        # TODO: rename
         mprocess_1q = generate_qoperation_object(
-            mode="mprocess", object_name="mprocess", name="z", c_sys=c_sys_1q
+            mode="mprocess", object_name="mprocess", name="x-type1", c_sys=c_sys_1q
         )
-        # TODO: add 2q
-        mprocesses = [mprocess_1q]
+        mprocess_2q = generate_qoperation_object(
+            mode="mprocess", object_name="mprocess", name="bell-type1", c_sys=c_sys_2q
+        )
+        mprocesses = [mprocess_1q, mprocess_2q]
 
         sl_qope = qope.SetQOperations(
             states=states, gates=gates, povms=povms, mprocesses=mprocesses
@@ -965,9 +966,16 @@ class TestSetQOperations:
         assert actual == expected
 
         # Case 4: MProcess
+        # Act
         actual = sl_qope.dim_mprocess(0)
         # Assert
         expected = 2
+        assert actual == expected
+
+        # Act
+        actual = sl_qope.dim_mprocess(1)
+        # Assert
+        expected = 4
         assert actual == expected
 
     def _arrange_setqoperations(self):
