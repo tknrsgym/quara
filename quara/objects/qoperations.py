@@ -159,6 +159,8 @@ class SetQOperations:
         return self.povms[index].to_var()
 
     def var_mprocess(self, index: int) -> np.ndarray:
+        print(f"{index=}")
+        print(self.mprocesses[index].to_var())
         return self.mprocesses[index].to_var()
 
     def var_states(self) -> List[float]:
@@ -196,7 +198,7 @@ class SetQOperations:
         states_first_index = 0
         gates_first_index = self.size_var_states()
         povms_first_index = gates_first_index + self.size_var_gates()
-        mprocesses_first_index = povms_first_index + self.size_var_gates()
+        mprocesses_first_index = povms_first_index + self.size_var_povms()
         return dict(
             state=states_first_index,
             gate=gates_first_index,

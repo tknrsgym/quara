@@ -417,6 +417,66 @@ class TestSetQOperations:
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_var_mprocesses(self):
+        c_sys = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
+        # MProcess
+        hss = [
+            np.array(
+                [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+                dtype=np.float64,
+            ),
+            np.array(
+                [
+                    [17, 18, 19, 20],
+                    [21, 22, 23, 24],
+                    [25, 26, 27, 28],
+                    [29, 30, 31, 32],
+                ],
+                dtype=np.float64,
+            ),
+        ]
+        mprocess_1 = MProcess(
+            hss=hss,
+            c_sys=c_sys,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
+        )
+        mprocess_2 = MProcess(
+            hss=hss,
+            c_sys=c_sys,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+        mprocesses = [mprocess_1, mprocess_2]
+
+        sl_qope = qope.SetQOperations(
+            states=[], povms=[], gates=[], mprocesses=mprocesses
+        )
+
+        # Act
+        actual = sl_qope.var_mprocesses()
+
+        # Assert
+        expected = np.array(
+            list(range(1, 17)) + list(range(21, 33)) + list(range(1, 33))
+        )
+        # assert np.all(actual == expected)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Act
+        actual = sl_qope.var_mprocess(0)
+
+        # Assert
+        expected = np.array(list(range(1, 17)) + list(range(21, 33)))
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Act
+        actual = sl_qope.var_mprocess(1)
+
+        # Assert
+        expected = np.array(list(range(1, 33)))
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_var_empty(self):
         # Arrange
         states, povms, gates, mprocesses = self.arrange_qoperations()
@@ -555,14 +615,53 @@ class TestSetQOperations:
         povms = [povm_1, povm_2]
         expected_povms_var = [2, 3, 5, 7] + [2, 3, 5, 7, 11, 13, 17, 19]
 
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+        # MProcess
+        hss = [
+            np.array(
+                [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+                dtype=np.float64,
+            ),
+            np.array(
+                [
+                    [17, 18, 19, 20],
+                    [21, 22, 23, 24],
+                    [25, 26, 27, 28],
+                    [29, 30, 31, 32],
+                ],
+                dtype=np.float64,
+            ),
+        ]
+
+        mprocess_1 = MProcess(
+            hss=hss,
+            c_sys=c_sys,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
+        )
+        mprocess_2 = MProcess(
+            hss=hss,
+            c_sys=c_sys,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+        mprocesses = [mprocess_1, mprocess_2]
+        expected_mproesses_var = (
+            list(range(1, 17)) + list(range(21, 33)) + list(range(1, 33))
+        )
+
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
 
         # Act
         actual = sl_qope.var_total()
 
         # Assert
         expected = np.array(
-            expected_states_var + expected_gates_var + expected_povms_var,
+            expected_states_var
+            + expected_gates_var
+            + expected_povms_var
+            + expected_mproesses_var,
             dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
@@ -916,7 +1015,40 @@ class TestSetQOperations:
         )
         povms = [povm_1, povm_2, povm_3]
 
-        set_qoperations = qope.SetQOperations(states=states, povms=povms, gates=gates)
+        # MProcess
+        hss = [
+            np.array(
+                [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]],
+                dtype=np.float64,
+            ),
+            np.array(
+                [
+                    [17, 18, 19, 20],
+                    [21, 22, 23, 24],
+                    [25, 26, 27, 28],
+                    [29, 30, 31, 32],
+                ],
+                dtype=np.float64,
+            ),
+        ]
+
+        mprocess_1 = MProcess(
+            hss=hss,
+            c_sys=c_sys_1q,
+            is_physicality_required=False,
+            on_para_eq_constraint=True,
+        )
+        mprocess_2 = MProcess(
+            hss=hss,
+            c_sys=c_sys_1q,
+            is_physicality_required=False,
+            on_para_eq_constraint=False,
+        )
+        mprocesses = [mprocess_1, mprocess_2]
+
+        set_qoperations = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
         return set_qoperations
 
     def test_size_var_total(self):
@@ -928,6 +1060,15 @@ class TestSetQOperations:
 
         # Assert
         expected = 79
+        assert actual == expected
+
+    def test_get_operation_type_to_total_index_map(self):
+        # Arrange
+        set_qoperations = self._arrange_setqoperations()
+        # Act
+        actual = set_qoperations._get_operation_type_to_total_index_map()
+        # Assert
+        expected = {"state": 0, "gate": 23, "povm": 63, "mprocess": 79}
         assert actual == expected
 
     def test_index_var_total_from_local_info(self):
@@ -1003,6 +1144,23 @@ class TestSetQOperations:
         actual = set_qoperations.index_var_total_from_local_info("povm", 2, 3)
         assert actual == 78
         assert var_total[actual] == set_qoperations.povms[2].to_var()[3]
+
+        # MProcess
+        actual = set_qoperations.index_var_total_from_local_info("mprocess", 0, 0)
+        assert actual == 79
+        assert var_total[actual] == set_qoperations.mprocesses[0].to_var()[0]
+
+        actual = set_qoperations.index_var_total_from_local_info("mprocess", 0, 1)
+        assert actual == 80
+        assert var_total[actual] == set_qoperations.mprocesses[0].to_var()[1]
+
+        actual = set_qoperations.index_var_total_from_local_info("mprocess", 0, 27)
+        assert actual == 106
+        assert var_total[actual] == set_qoperations.mprocesses[0].to_var()[-1]
+
+        actual = set_qoperations.index_var_total_from_local_info("mprocess", 1, 0)
+        assert actual == 107
+        assert var_total[actual] == set_qoperations.mprocesses[1].to_var()[0]
 
     def test_local_info_from_index_var_total(self):
         set_qoperations = self._arrange_setqoperations()
@@ -1156,6 +1314,39 @@ class TestSetQOperations:
             type_operation="povm",
             index_operations=2,
             index_var_local=3,
+        )
+        assert actual == expected
+
+        # MProcess
+        actual = set_qoperations.local_info_from_index_var_total(103)
+        expected = dict(
+            type_operation="mprocess",
+            index_operations=0,
+            index_var_local=0,
+        )
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(130)
+        expected = dict(
+            type_operation="mprocess",
+            index_operations=0,
+            index_var_local=27,
+        )
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(131)
+        expected = dict(
+            type_operation="mprocess",
+            index_operations=1,
+            index_var_local=0,
+        )
+        assert actual == expected
+
+        actual = set_qoperations.local_info_from_index_var_total(132)
+        expected = dict(
+            type_operation="mprocess",
+            index_operations=1,
+            index_var_local=1,
         )
         assert actual == expected
 
