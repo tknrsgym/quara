@@ -1118,7 +1118,7 @@ class TestSetQOperations:
         actual = set_qoperations.size_var_total()
 
         # Assert
-        expected = 79
+        expected = 139
         assert actual == expected
 
     def test_get_operation_type_to_total_index_map(self):
@@ -1374,7 +1374,7 @@ class TestSetQOperations:
         assert actual == expected
 
         # MProcess
-        actual = set_qoperations.local_info_from_index_var_total(103)
+        actual = set_qoperations.local_info_from_index_var_total(79)
         expected = dict(
             type_operation="mprocess",
             index_operations=0,
@@ -1382,7 +1382,7 @@ class TestSetQOperations:
         )
         assert actual == expected
 
-        actual = set_qoperations.local_info_from_index_var_total(130)
+        actual = set_qoperations.local_info_from_index_var_total(106)
         expected = dict(
             type_operation="mprocess",
             index_operations=0,
@@ -1390,7 +1390,7 @@ class TestSetQOperations:
         )
         assert actual == expected
 
-        actual = set_qoperations.local_info_from_index_var_total(131)
+        actual = set_qoperations.local_info_from_index_var_total(107)
         expected = dict(
             type_operation="mprocess",
             index_operations=1,
@@ -1398,7 +1398,7 @@ class TestSetQOperations:
         )
         assert actual == expected
 
-        actual = set_qoperations.local_info_from_index_var_total(132)
+        actual = set_qoperations.local_info_from_index_var_total(108)
         expected = dict(
             type_operation="mprocess",
             index_operations=1,

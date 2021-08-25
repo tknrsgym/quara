@@ -159,8 +159,6 @@ class SetQOperations:
         return self.povms[index].to_var()
 
     def var_mprocess(self, index: int) -> np.ndarray:
-        print(f"{index=}")
-        print(self.mprocesses[index].to_var())
         return self.mprocesses[index].to_var()
 
     def var_states(self) -> List[float]:
