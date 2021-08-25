@@ -110,9 +110,9 @@ class SetQOperations:
         # returns the dimension of the total system of the i-th povm
         return self.povms[index].dim
 
-    def dim_mprosess(self, index: int) -> int:
+    def dim_mprocess(self, index: int) -> int:
         # returns the dimension of the total system of the i-th mprocess
-        raise self.mprocesses[index].dim
+        return self.mprocesses[index].dim
 
     def size_var_states(self) -> int:
         return len(self.var_states())

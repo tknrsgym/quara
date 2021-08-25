@@ -5,6 +5,7 @@ import numpy.testing as npt
 import pytest
 
 from quara.objects import matrix_basis
+from quara.objects import mprocess
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot
@@ -72,6 +73,33 @@ class TestSetQOperations:
         assert sl_qope.gates == gates
         assert sl_qope.mprocesses == mprocesses
 
+    def test_init_empty(self):
+        states, povms, gates, mprocesses = self.arrange_qoperations()
+
+        # Act
+        sl_qope = qope.SetQOperations(povms=povms, gates=gates, mprocesses=mprocesses)
+
+        # Assert
+        assert sl_qope.states == []
+
+        # Act
+        sl_qope = qope.SetQOperations(states=states, gates=gates, mprocesses=mprocesses)
+
+        # Assert
+        assert sl_qope.povms == []
+
+        # Act
+        sl_qope = qope.SetQOperations(states=states, povms=povms, mprocesses=mprocesses)
+
+        # Assert
+        assert sl_qope.gates == []
+
+        # Act
+        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+
+        # Assert
+        assert sl_qope.mprocesses == []
+
     def test_init_exception(self):
         # Arrange
         states, povms, gates, mprocesses = self.arrange_qoperations()
@@ -114,7 +142,9 @@ class TestSetQOperations:
 
         new_states, new_povms, new_gates, new_mprocesses = self.arrange_qoperations()
 
-        sl_qope = qope.SetQOperations(states=states, povms=povms, gates=gates)
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
 
         # Act & Assert
         ng_states = [states[0], 1]
@@ -124,6 +154,7 @@ class TestSetQOperations:
         assert sl_qope.states == states
 
         # Act & Assert
+        new_states = [states[1], states[0]]
         sl_qope.states = new_states
         assert sl_qope.states == new_states
 
@@ -135,6 +166,7 @@ class TestSetQOperations:
         assert sl_qope.povms == povms
 
         # Act & Assert
+        new_povms = [povms[1], povms[0]]
         sl_qope.povms = new_povms
         assert sl_qope.povms == new_povms
 
@@ -146,8 +178,19 @@ class TestSetQOperations:
         assert sl_qope.gates == gates
 
         # Act & Assert
+        new_gates = [gates[0], gates[1]]
         sl_qope.gates = new_gates
         assert sl_qope.gates == new_gates
+
+        # Act & Assert
+        ng_mprocesses = [mprocesses[0], states[0]]
+        with pytest.raises(TypeError):
+            # TypeError: 'mprocesses' must be a list of MProcess.
+            sl_qope.mprocesses = ng_mprocesses
+
+        new_mprocesses = [mprocesses[1], mprocesses[0]]
+        sl_qope.mprocesses = new_mprocesses
+        assert sl_qope.mprocesses == new_mprocesses
 
     def test_num(self):
         # Arrange
@@ -870,7 +913,17 @@ class TestSetQOperations:
 
         povms = [povm_2q, povm_2q, povm_1q]
 
-        sl_qope = qope.SetQOperations(states=states, gates=gates, povms=povms)
+        # MPRocess
+        # TODO: rename
+        mprocess_1q = generate_qoperation_object(
+            mode="mprocess", object_name="mprocess", name="z", c_sys=c_sys_1q
+        )
+        # TODO: add 2q
+        mprocesses = [mprocess_1q]
+
+        sl_qope = qope.SetQOperations(
+            states=states, gates=gates, povms=povms, mprocesses=mprocesses
+        )
 
         # Case 1: State
         # Act
@@ -907,6 +960,12 @@ class TestSetQOperations:
 
         # Act
         actual = sl_qope.dim_povm(2)
+        # Assert
+        expected = 2
+        assert actual == expected
+
+        # Case 4: MProcess
+        actual = sl_qope.dim_mprocess(0)
         # Assert
         expected = 2
         assert actual == expected
@@ -1084,9 +1143,6 @@ class TestSetQOperations:
         actual = set_qoperations.index_var_total_from_local_info("state", 0, 2)
         assert actual == 2
         assert var_total[actual] == set_qoperations.states[0].to_var()[2]
-        # NGでは？
-        actual = set_qoperations.index_var_total_from_local_info("state", 0, 3)
-        assert actual == 3
 
         # State[1]
         actual = set_qoperations.index_var_total_from_local_info("state", 1, 0)
@@ -1373,8 +1429,9 @@ class TestSetQOperations:
         source_states = list(range(1000, 1023))
         source_gates = list(range(2000, 2040))
         source_povms = list(range(3000, 3016))
+        source_mprocesses = list(range(4000, 4060))
         source_var_total = np.array(
-            source_states + source_gates + source_povms, np.float64
+            source_states + source_gates + source_povms + source_mprocesses, np.float64
         )
 
         # Act
@@ -1470,3 +1527,70 @@ class TestSetQOperations:
             )
             assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
             npt.assert_almost_equal(actual_item.to_var(), expected_vecs[i])
+
+        # MProcess
+        assert len(actual.mprocesses) == len(set_qoperations.mprocesses)
+
+        expected_hss_list = [
+            [
+                np.array(
+                    [
+                        [4000.0, 4001.0, 4002.0, 4003.0],
+                        [4004.0, 4005.0, 4006.0, 4007.0],
+                        [4008.0, 4009.0, 4010.0, 4011.0],
+                        [4012.0, 4013.0, 4014.0, 4015.0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [-3999.0, -4001.0, -4002.0, -4003.0],
+                        [4016.0, 4017.0, 4018.0, 4019.0],
+                        [4020.0, 4021.0, 4022.0, 4023.0],
+                        [4024.0, 4025.0, 4026.0, 4027.0],
+                    ]
+                ),
+            ],
+            [
+                np.array(
+                    [
+                        [4028.0, 4029.0, 4030.0, 4031.0],
+                        [4032.0, 4033.0, 4034.0, 4035.0],
+                        [4036.0, 4037.0, 4038.0, 4039.0],
+                        [4040.0, 4041.0, 4042.0, 4043.0],
+                    ]
+                ),
+                np.array(
+                    [
+                        [4044.0, 4045.0, 4046.0, 4047.0],
+                        [4048.0, 4049.0, 4050.0, 4051.0],
+                        [4052.0, 4053.0, 4054.0, 4055.0],
+                        [4056.0, 4057.0, 4058.0, 4059.0],
+                    ]
+                ),
+            ],
+        ]
+        for i, item in enumerate(zip(actual.mprocesses, set_qoperations.mprocesses)):
+            actual_item, compared_item = item
+            assert actual_item._composite_system is compared_item._composite_system
+            assert (
+                actual_item.on_para_eq_constraint == compared_item.on_para_eq_constraint
+            )
+            assert (
+                actual_item.is_physicality_required
+                == compared_item.is_physicality_required
+            )
+            assert (
+                actual_item.is_estimation_object == compared_item.is_estimation_object
+            )
+            assert (
+                actual_item.on_algo_eq_constraint == compared_item.on_algo_eq_constraint
+            )
+            assert (
+                actual_item.on_algo_ineq_constraint
+                == compared_item.on_algo_ineq_constraint
+            )
+            assert actual_item.eps_proj_physical == compared_item.eps_proj_physical
+            assert len(actual_item.hss) == len(expected_hss_list[i])
+
+            for a, e in zip(actual_item.hss, expected_hss_list[i]):
+                npt.assert_almost_equal(a, e)
