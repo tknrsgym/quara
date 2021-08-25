@@ -1,5 +1,6 @@
 import collections
 import copy
+from quara.objects.mprocess import MProcess
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -49,6 +50,7 @@ class Experiment:
         states: List[State],
         povms: List[Povm],
         gates: List[Gate],
+        mprocesses: List[MProcess],
         schedules: List[List[Tuple[str, int]]],
         seed: int = None,
     ) -> None:
@@ -57,13 +59,13 @@ class Experiment:
         self._validate_type(states, State)
         self._validate_type(povms, Povm)
         self._validate_type(gates, Gate)
+        self._validate_type(mprocesses, MProcess)
 
         # Set
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
-        # TODO: MProcess functions are not yet implemented. Only attributes are provided for future use.
-        self._mprocesses: list = []
+        self._mprocesses: list = mprocesses
 
         # Validate
         self._validate_schedules(schedules)
@@ -142,6 +144,29 @@ class Experiment:
             )
         else:
             self._gates = value
+
+    @property
+    def mprocesses(self) -> List[Gate]:
+        return self._mprocesses
+
+    @mprocesses.setter
+    def mprocesses(self, value):
+        self._validate_type(value, MProcess)
+
+        objdict = dict(
+            state=self._states,
+            povm=self._povms,
+            gate=self._gates,
+            mprocess=value,
+        )
+        try:
+            self._validate_schedules(self._schedules, objdict=objdict)
+        except QuaraScheduleItemError as e:
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'mprocesses' does not match schedules."
+            )
+        else:
+            self._mprocesses = value
 
     @property
     def schedules(self) -> List[List[Tuple[str, int]]]:
@@ -367,10 +392,11 @@ class Experiment:
         states = copy.copy(self.states)
         gates = copy.copy(self.gates)
         povms = copy.copy(self.povms)
+        mprocesses = copy.copy(self.mprocesses)
         schedules = copy.copy(self.schedules)
 
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules
+            states=states, gates=gates, povms=povms, mprocesses=mprocesses,schedules=schedules
         )
         return experiment
 
@@ -394,7 +420,7 @@ class Experiment:
         """
         self._validate_schedule_index(schedule_index)
         schedule = self.schedules[schedule_index]
-        key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
+        key_map = dict(state=self._states, gate=self._gates, povm=self._povms, mprocess=self._mprocesses)
         targets = collections.deque()
         for item in schedule:
             k, i = item
