@@ -5,6 +5,7 @@ from operator import add, mul, itemgetter
 from typing import List, Tuple, Union
 
 import numpy as np
+from scipy.stats import multinomial
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
@@ -464,7 +465,9 @@ def _compose_qoperations_MProcess_MProcess(
     return mprocess
 
 
-def _compose_qoperations_MProcess_State(elem1: MProcess, elem2: State) -> StateEnsemble:
+def _compose_qoperations_MProcess_State(
+    elem1: MProcess, elem2: State
+) -> Union[State, StateEnsemble]:
     # is_physicality_required
     is_physicality_required = (
         elem1.is_physicality_required and elem2.is_physicality_required
@@ -476,7 +479,8 @@ def _compose_qoperations_MProcess_State(elem1: MProcess, elem2: State) -> StateE
         for hs in elem1.hss:
             Mx_rho = hs @ elem2.vec
             p_x = np.sqrt(elem2.composite_system.dim) * Mx_rho[0]
-            if p_x == 0:
+            if p_x <= elem1.eps_proj_physical:
+                p_x = 0
                 rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
                 state = State(
                     elem2.composite_system,
@@ -502,7 +506,8 @@ def _compose_qoperations_MProcess_State(elem1: MProcess, elem2: State) -> StateE
         for hs in elem1.hss:
             Mx_rho = hs @ elem2.vec
             p_x = np.vdot(I_vec_gb, Mx_rho)
-            if p_x == 0:
+            if p_x <= elem1.eps_proj_physical:
+                p_x = 0
                 rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
                 state = State(
                     elem2.composite_system,
@@ -519,11 +524,18 @@ def _compose_qoperations_MProcess_State(elem1: MProcess, elem2: State) -> StateE
             states.append(state)
             ps.append(p_x)
 
-    mult_dist = MultinomialDistribution(
-        np.array(ps, dtype=np.float64), shape=elem1.shape
-    )
-    state_ens = StateEnsemble(states, mult_dist)
-    return state_ens
+    if elem1.mode_sampling:
+        # return State
+        sample = multinomial.rvs(1, ps)
+        sample_index = np.argmax(sample)
+        return states[sample_index]
+    else:
+        # return StateEnsemble
+        mult_dist = MultinomialDistribution(
+            np.array(ps, dtype=np.float64), shape=elem1.shape
+        )
+        state_ens = StateEnsemble(states, mult_dist)
+        return state_ens
 
 
 def _compose_qoperations_MProcess_StateEnsemble(
@@ -540,7 +552,8 @@ def _compose_qoperations_MProcess_StateEnsemble(
             for hs in elem1.hss:
                 Mx_rho = hs @ state_old.vec
                 p_x = np.sqrt(state_old.composite_system.dim) * Mx_rho[0]
-                if prob * p_x == 0:
+                if prob * p_x <= elem1.eps_proj_physical:
+                    p_x = 0
                     rho_x = np.zeros(state_old.vec.shape, dtype=state_old.vec.dtype)
                     state_new = State(
                         state_old.composite_system,
@@ -571,7 +584,8 @@ def _compose_qoperations_MProcess_StateEnsemble(
             for hs in elem1.hss:
                 Mx_rho = hs @ state_old.vec
                 p_x = np.vdot(I_vec_gb, Mx_rho)
-                if prob * p_x == 0:
+                if prob * p_x <= elem1.eps_proj_physical:
+                    p_x = 0
                     rho_x = np.zeros(state_old.vec.shape, dtype=state_old.vec.dtype)
                     state = State(
                         state_old.composite_system,
@@ -588,11 +602,13 @@ def _compose_qoperations_MProcess_StateEnsemble(
                 states.append(state)
                 ps.append(prob * p_x)
 
-    shape = elem2.prob_dist.shape + elem1.shape
-    mult_dist = MultinomialDistribution(np.array(ps, dtype=np.float64), shape=shape)
-    state_ens = StateEnsemble(states, mult_dist)
-
-    return state_ens
+    if elem1.mode_sampling:
+        pass
+    else:
+        shape = elem2.prob_dist.shape + elem1.shape
+        mult_dist = MultinomialDistribution(np.array(ps, dtype=np.float64), shape=shape)
+        state_ens = StateEnsemble(states, mult_dist)
+        return state_ens
 
 
 def _compose_qoperations_Povm_MProcess(elem1: Povm, elem2: MProcess) -> Povm:
