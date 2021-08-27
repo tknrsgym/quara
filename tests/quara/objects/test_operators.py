@@ -849,7 +849,6 @@ def test_compose_qoperations_MProcess_MProcess():
 
     # Act
     actual = compose_qoperations(mprocess_z1, mprocess_z2)
-    print(actual.hss)
 
     # Assert
     assert actual.shape == (2, 2)
@@ -900,7 +899,6 @@ def test_compose_qoperations_MProcess_State():
     c_sys = CompositeSystem([e_sys])
     state_z0 = generate_state_from_name(c_sys, "z0")
     mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
-    print(f"mprocess_z={mprocess_z.hss}")
 
     # Act
     actual = compose_qoperations(mprocess_z, state_z0)
@@ -915,6 +913,23 @@ def test_compose_qoperations_MProcess_State():
     expected_prob_dist = np.array([1, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
     """
+
+    # case 3: mode_sampling = True (return State)
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_z0 = generate_state_from_name(c_sys, "z0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+    mprocess_z._mode_sampling = True
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_z0)
+    print(actual.vec)
+
+    # Assert
+    assert type(actual) == State
+    expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+    npt.assert_almost_equal(actual.vec, expected, decimal=15)
 
 
 def test_compose_qoperations_MProcess_StateEnsemble():
@@ -1908,7 +1923,6 @@ def test_compose_qoperations_Povm_MProcess():
 
     # Act
     actual = compose_qoperations(povm_z, mprocess_z)
-    print(actual.vecs)
 
     # Assert
     assert len(actual.vecs) == 4
