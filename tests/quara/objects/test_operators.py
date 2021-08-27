@@ -856,8 +856,29 @@ def test_compose_qoperations_MProcess_State():
     expected_prob_dist = np.array([1, 0], dtype=np.float64)
     npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
 
+    # TODO allow complex numbers in variables
+    """
     ## case 2: is_orthonormal_hermitian_0thprop_identity = False
-    # TODO
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_z0 = generate_state_from_name(c_sys, "z0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+    print(f"mprocess_z={mprocess_z.hss}")
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_z0)
+    print(f"actual0={actual.states[0].vec}")
+    print(f"actual1={actual.states[1].vec}")
+
+    # Assert
+    assert len(actual.states) == 2
+    npt.assert_almost_equal(actual.states[0].vec, state_z0.vec, decimal=15)
+    npt.assert_almost_equal(
+        actual.states[1].vec, state_z0._generate_zero_obj(), decimal=15
+    )
+    expected_prob_dist = np.array([1, 0], dtype=np.float64)
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
+    """
 
 
 def test_compose_qoperations_Povm_Gate():
