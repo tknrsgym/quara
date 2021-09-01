@@ -211,8 +211,6 @@ class StandardQmpt(StandardQTomography):
             on_para_eq_constraint=on_para_eq_constraint,
         )
 
-        print(f"{c_qpt_dict=}")
-
         dim = self._experiment.states[0].dim
         schedule_n = len(self._experiment.schedules)
         for schedule_index in range(schedule_n):
