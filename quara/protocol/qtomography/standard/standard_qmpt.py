@@ -210,6 +210,9 @@ class StandardQmpt(StandardQTomography):
             schedules=self._experiment.schedules,
             on_para_eq_constraint=on_para_eq_constraint,
         )
+
+        print(f"{c_qpt_dict=}")
+
         dim = self._experiment.states[0].dim
         schedule_n = len(self._experiment.schedules)
         for schedule_index in range(schedule_n):
@@ -265,7 +268,6 @@ def cqpt_to_cqmpt(
     c_qpt: np.ndarray, m_mprocess: int, dim: int, on_para_eq_constraint: bool
 ) -> List[np.ndarray]:
     c_list = [c_qpt] * m_mprocess
-
     if on_para_eq_constraint:
         c_list = [c_qpt] * m_mprocess
         c_qmpt = block_diag(*c_list)
@@ -273,18 +275,30 @@ def cqpt_to_cqmpt(
         a_qmpt = c_qmpt
         b_qmpt = np.zeros(c_qmpt.shape[0])
     else:
-        d_qpt = c_qpt[:, : dim ** 2]
-        e_qpt = c_qpt[:, dim ** 2 :]
+        if len(c_qpt.shape) > 2:
+            d_qpt = c_qpt[:, : dim ** 2]
+            e_qpt = c_qpt[:, dim ** 2 :]
+        else:
+            d_qpt = c_qpt[: dim ** 2]
+            e_qpt = c_qpt[dim ** 2 :]
 
         c_list = [c_qpt] * (m_mprocess - 1)
         a_0_left = block_diag(*c_list)
-        a_0_right = np.zeros((a_0_left.shape[0], e_qpt.shape[1]))
+        if len(c_qpt.shape) > 2:
+            a_0_right = np.zeros((a_0_left.shape[0], e_qpt.shape[1]))
+        else:
+            a_0_right = np.zeros((a_0_left.shape[0], e_qpt.shape[0]))
+
         a_0 = np.hstack([a_0_left, a_0_right])
 
-        d_dash_right_size = (d_qpt.shape[0], c_qpt.shape[1] - d_qpt.shape[1])
+        if len(c_qpt.shape) > 2:
+            d_dash_right_size = (d_qpt.shape[0], c_qpt.shape[1] - d_qpt.shape[1])
+        else:
+            d_dash_right_size = c_qpt.shape[0] - d_qpt.shape[0]
+
         d_dash = np.hstack([-d_qpt, np.zeros(d_dash_right_size)])
 
-        a_1 = np.hstack([d_dash] * (m - 1) + [e_qpt])
+        a_1 = np.hstack([d_dash] * (m_mprocess - 1) + [e_qpt])
         a_qmpt = np.vstack([a_0, a_1])
 
         b_0 = np.zeros(d_qpt.shape[0] * (m_mprocess - 1))
