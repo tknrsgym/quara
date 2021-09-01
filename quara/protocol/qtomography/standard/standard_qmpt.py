@@ -197,40 +197,30 @@ class StandardQmpt(StandardQTomography):
         target_index = schedule[MPROCESS_ITEM_INDEX][1]
         return target_index
 
-    def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
-
+    def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool) -> None:
         # coeff0s and coeff1s
-        # self._coeffs_0th = dict()  # b
-        # self._coeffs_1st = dict()  # α
-        _, _, c_qpt = calc_c_qpt(
+        self._coeffs_0th = dict()  # b
+        self._coeffs_1st = dict()  # α
+
+        _, _, c_qpt_dict = calc_c_qpt(
             states=self._experiment.states,
             povms=self._experiment.povms,
             schedules=self._experiment.schedules,
             on_para_eq_constraint=on_para_eq_constraint,
         )
-        c_list = [c_qpt] * self._num_outcomes
         dim = self._experiment.mprocesses[0].dim
+        schedule_n = len(self._experiment.schedules)
+        for schedule_index in range(schedule_n):
+            c_qpt = c_qpt_dict[schedule_index]
+            a_qmpt, b_qmpt = cqpt_to_cqmpt(
+                c_qpt, m_mprocess=self._num_outcomes, dim=dim
+            )
 
-        if on_para_eq_constraint:
-            c_list = [c_qpt] * self._num_outcomes
-            c_qmpt = block_diag(c_list)  # for debug
-        else:
-            c_list = [c_qpt] * (self._num_outcomes - 1)
-            a_0_left = block_diag(c_list)
-            a_0_right = np.zeros((a_0_left.shape[0], c_qpt.shape[1]))
-            a_0 = np.hstack([a_0_left, a_0_right])
-
-            d_qpt = c_qpt[: dim ** 2]
-            e_qpt = c_qpt[dim ** 2 :]
-
-            d_dash_right_size = (d_qpt.shape[0], c_qpt.shape[1] - d_qpt.shape[1])
-            d_dash = np.hstack([-d_qpt, np.zeros(d_dash_right_size)])
-            a_1 = np.hstack([d_dash] * (self._num_outcomes - 1) + [e_qpt])
-            a_qmpt = np.vstack([a_0, a_1])
-
-            b_0 = np.zeros(d_qpt.shape[0] * (self._num_outcomes - 1))
-            b_1 = d_qpt.T[0]
-            b_qmpt = np.hstack([b_0, b_1])
+            for element_index, a in enumerate(a_qmpt):
+                self._coeffs_1st[(schedule_index, element_index)] = a
+                self._coeffs_0th[(schedule_index, element_index)] = b_qmpt[
+                    element_index
+                ]
 
     def generate_empi_dists(
         self,
@@ -266,30 +256,31 @@ class StandardQmpt(StandardQTomography):
         return empty_estimation_obj.copy()
 
 
-def cqpt_to_cqmpt(c_qpt, m, dim, on_para_eq_constraint) -> List[np.array]:
-    c_list = [c_qpt] * m
+def cqpt_to_cqmpt(c_qpt, m_mprocess, dim, on_para_eq_constraint) -> List[np.array]:
+    c_list = [c_qpt] * m_mprocess
 
     if on_para_eq_constraint:
-        c_list = [c_qpt] * m
-        c_qmpt = block_diag(c_list)
+        c_list = [c_qpt] * m_mprocess
+        c_qmpt = block_diag(*c_list)
 
         a_qmpt = c_qmpt
         b_qmpt = np.zeros(c_qmpt.shape[0])
     else:
-        c_list = [c_qpt] * (m - 1)
-        a_0_left = block_diag(c_list)
-        a_0_right = np.zeros((a_0_left.shape[0], c_qpt.shape[1]))
-        a_0 = np.hstack([a_0_left, a_0_right])
+        d_qpt = c_qpt[:, : dim ** 2]
+        e_qpt = c_qpt[:, dim ** 2 :]
 
-        d_qpt = c_qpt[: dim ** 2]
-        e_qpt = c_qpt[dim ** 2 :]
+        c_list = [c_qpt] * (m_mprocess - 1)
+        a_0_left = block_diag(*c_list)
+        a_0_right = np.zeros((a_0_left.shape[0], e_qpt.shape[1]))
+        a_0 = np.hstack([a_0_left, a_0_right])
 
         d_dash_right_size = (d_qpt.shape[0], c_qpt.shape[1] - d_qpt.shape[1])
         d_dash = np.hstack([-d_qpt, np.zeros(d_dash_right_size)])
+
         a_1 = np.hstack([d_dash] * (m - 1) + [e_qpt])
         a_qmpt = np.vstack([a_0, a_1])
 
-        b_0 = np.zeros(d_qpt.shape[0] * (m - 1))
+        b_0 = np.zeros(d_qpt.shape[0] * (m_mprocess - 1))
         b_1 = d_qpt.T[0]
         b_qmpt = np.hstack([b_0, b_1])
 
