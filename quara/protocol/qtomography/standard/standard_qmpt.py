@@ -42,13 +42,17 @@ class StandardQmpt(StandardQTomography):
                 schedules.append([("state", i), ("mprocess", 0), ("povm", j)])
 
         experiment = Experiment(
-            states=states, gates=[None], povms=povms, schedules=schedules, seed=seed
+            states=states,
+            mprocesses=[None],
+            povms=povms,
+            schedules=schedules,
+            seed=seed,
         )
         self._validate_schedules(schedules)
-
+        self._num_outcomes = num_outcomes
         # Make SetQOperation
         size = states[0].dim ** 2
-        hss = [np.zeros((size, size), dtype=np.float64) for _ in num_outcomes]
+        hss = [np.zeros((size, size), dtype=np.float64) for _ in range(num_outcomes)]
         mprocess = MProcess(
             c_sys=states[0].composite_system,
             hss=hss,
@@ -81,8 +85,6 @@ class StandardQmpt(StandardQTomography):
         self._on_para_eq_constraint = on_para_eq_constraint
 
         self._template_qoperation = self._set_qoperations.mprocesses[0]
-
-        self._num_outcomes = num_outcomes
 
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
@@ -208,12 +210,15 @@ class StandardQmpt(StandardQTomography):
             schedules=self._experiment.schedules,
             on_para_eq_constraint=on_para_eq_constraint,
         )
-        dim = self._experiment.mprocesses[0].dim
+        dim = self._experiment.states[0].dim
         schedule_n = len(self._experiment.schedules)
         for schedule_index in range(schedule_n):
             c_qpt = c_qpt_dict[schedule_index]
             a_qmpt, b_qmpt = cqpt_to_cqmpt(
-                c_qpt, m_mprocess=self._num_outcomes, dim=dim
+                c_qpt,
+                m_mprocess=self.num_outcomes,
+                dim=dim,
+                on_para_eq_constraint=on_para_eq_constraint,
             )
 
             for element_index, a in enumerate(a_qmpt):
@@ -256,7 +261,9 @@ class StandardQmpt(StandardQTomography):
         return empty_estimation_obj.copy()
 
 
-def cqpt_to_cqmpt(c_qpt, m_mprocess, dim, on_para_eq_constraint) -> List[np.array]:
+def cqpt_to_cqmpt(
+    c_qpt: np.ndarray, m_mprocess: int, dim: int, on_para_eq_constraint: bool
+) -> List[np.ndarray]:
     c_list = [c_qpt] * m_mprocess
 
     if on_para_eq_constraint:

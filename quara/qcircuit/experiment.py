@@ -54,7 +54,6 @@ class Experiment:
         mprocesses: List[MProcess] = None,
         seed: int = None,
     ) -> None:
-
         states = [] if states is None else states
         povms = [] if povms is None else povms
         gates = [] if gates is None else gates
@@ -70,7 +69,7 @@ class Experiment:
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
-        self._mprocesses: list = mprocesses
+        self._mprocesses: List[MProcess] = mprocesses
 
         # Validate
         self._validate_schedules(schedules)
@@ -401,7 +400,11 @@ class Experiment:
         schedules = copy.copy(self.schedules)
 
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, mprocesses=mprocesses,schedules=schedules
+            states=states,
+            gates=gates,
+            povms=povms,
+            mprocesses=mprocesses,
+            schedules=schedules,
         )
         return experiment
 
@@ -425,7 +428,12 @@ class Experiment:
         """
         self._validate_schedule_index(schedule_index)
         schedule = self.schedules[schedule_index]
-        key_map = dict(state=self._states, gate=self._gates, povm=self._povms, mprocess=self._mprocesses)
+        key_map = dict(
+            state=self._states,
+            gate=self._gates,
+            povm=self._povms,
+            mprocess=self._mprocesses,
+        )
         targets = collections.deque()
         for item in schedule:
             k, i = item
