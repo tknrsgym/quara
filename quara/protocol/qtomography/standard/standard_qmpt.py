@@ -3,7 +3,8 @@ from itertools import product
 from typing import List, Tuple, Union
 
 import numpy as np
-from quara.objects import mprocess
+from numpy.core.shape_base import block
+from scipy.linalg import block_diag
 
 from quara.objects.state import State
 from quara.objects.povm import Povm
@@ -11,6 +12,7 @@ from quara.objects.mprocess import MProcess
 from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
+from quara.protocol.qtomography.standard.standard_qpt import calc_c_qpt
 from quara.qcircuit.experiment import Experiment
 from quara.utils import matrix_util
 from quara.utils.number_util import to_stream
@@ -65,11 +67,10 @@ class StandardQmpt(StandardQTomography):
                 "the experiment is not valid. all CompositeSystem of testers must have same ElementalSystems."
             )
 
-        # TODO: modify
         if on_para_eq_constraint:
-            self._num_variables = mprocess.dim ** 4 - mprocess.dim ** 2
+            self._num_variables = num_outcomes * mprocess.dim ** 4 - mprocess.dim ** 2
         else:
-            self._num_variables = mprocess.dim ** 4
+            self._num_variables = num_outcomes * mprocess.dim ** 4
 
         # create map
         self._map_experiment_to_setqoperations = {("mprocess", 0): ("mprocess", 0)}
@@ -80,6 +81,8 @@ class StandardQmpt(StandardQTomography):
         self._on_para_eq_constraint = on_para_eq_constraint
 
         self._template_qoperation = self._set_qoperations.mprocesses[0]
+
+        self._num_outcomes = num_outcomes
 
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
@@ -100,6 +103,10 @@ class StandardQmpt(StandardQTomography):
     @property
     def on_para_eq_constraint(self):  # read only
         return self._on_para_eq_constraint
+
+    @property
+    def num_outcomes(self):
+        return self._num_outcomes
 
     def estimation_object_type(self) -> type:
         return MProcess
@@ -191,4 +198,99 @@ class StandardQmpt(StandardQTomography):
         return target_index
 
     def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
-        raise NotImplementedError()
+
+        # coeff0s and coeff1s
+        # self._coeffs_0th = dict()  # b
+        # self._coeffs_1st = dict()  # α
+        _, _, c_qpt = calc_c_qpt(
+            states=self._experiment.states,
+            povms=self._experiment.povms,
+            schedules=self._experiment.schedules,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
+        c_list = [c_qpt] * self._num_outcomes
+        dim = self._experiment.mprocesses[0].dim
+
+        if on_para_eq_constraint:
+            c_list = [c_qpt] * self._num_outcomes
+            c_qmpt = block_diag(c_list)  # for debug
+        else:
+            c_list = [c_qpt] * (self._num_outcomes - 1)
+            a_0_left = block_diag(c_list)
+            a_0_right = np.zeros((a_0_left.shape[0], c_qpt.shape[1]))
+            a_0 = np.hstack([a_0_left, a_0_right])
+
+            d_qpt = c_qpt[: dim ** 2]
+            e_qpt = c_qpt[dim ** 2 :]
+
+            d_dash_right_size = (d_qpt.shape[0], c_qpt.shape[1] - d_qpt.shape[1])
+            d_dash = np.hstack([-d_qpt, np.zeros(d_dash_right_size)])
+            a_1 = np.hstack([d_dash] * (self._num_outcomes - 1) + [e_qpt])
+            a_qmpt = np.vstack([a_0, a_1])
+
+            b_0 = np.zeros(d_qpt.shape[0] * (self._num_outcomes - 1))
+            b_1 = d_qpt.T[0]
+            b_qmpt = np.hstack([b_0, b_1])
+
+    def generate_empi_dists(
+        self,
+        mprocess: MProcess,
+        num_sum: int,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
+    ) -> List[Tuple[int, np.ndarray]]:
+        """Generate empirical distributions using the data generated from probability distributions of all schedules.
+
+        see :func:`~quara.protocol.qtomography.qtomography.QTomography.generate_empi_dists`
+        """
+        tmp_experiment = self._experiment.copy()
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            mprocess_index = self._get_target_index(tmp_experiment, schedule_index)
+            tmp_experiment.states[mprocess_index] = mprocess
+
+        num_sums = [num_sum] * self._num_schedules
+        stream = to_stream(seed_or_stream)
+        empi_dist_seq = tmp_experiment.generate_empi_dists_sequence(
+            [num_sums], seed_or_stream=stream
+        )
+
+        empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
+        return empi_dists
+
+    def convert_var_to_qoperation(self, var: np.ndarray) -> MProcess:
+        template = self._template_qoperation
+        mprocess = template.generate_from_var(var=var)
+        return mprocess
+
+    def generate_empty_estimation_obj_with_setting_info(self) -> QOperation:
+        empty_estimation_obj = self._set_qoperations.mprocesses[0]
+        return empty_estimation_obj.copy()
+
+
+def cqpt_to_cqmpt(c_qpt, m, dim, on_para_eq_constraint) -> List[np.array]:
+    c_list = [c_qpt] * m
+
+    if on_para_eq_constraint:
+        c_list = [c_qpt] * m
+        c_qmpt = block_diag(c_list)
+
+        a_qmpt = c_qmpt
+        b_qmpt = np.zeros(c_qmpt.shape[0])
+    else:
+        c_list = [c_qpt] * (m - 1)
+        a_0_left = block_diag(c_list)
+        a_0_right = np.zeros((a_0_left.shape[0], c_qpt.shape[1]))
+        a_0 = np.hstack([a_0_left, a_0_right])
+
+        d_qpt = c_qpt[: dim ** 2]
+        e_qpt = c_qpt[dim ** 2 :]
+
+        d_dash_right_size = (d_qpt.shape[0], c_qpt.shape[1] - d_qpt.shape[1])
+        d_dash = np.hstack([-d_qpt, np.zeros(d_dash_right_size)])
+        a_1 = np.hstack([d_dash] * (m - 1) + [e_qpt])
+        a_qmpt = np.vstack([a_0, a_1])
+
+        b_0 = np.zeros(d_qpt.shape[0] * (m - 1))
+        b_1 = d_qpt.T[0]
+        b_qmpt = np.hstack([b_0, b_1])
+
+    return a_qmpt, b_qmpt

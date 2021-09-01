@@ -47,13 +47,18 @@ class Experiment:
 
     def __init__(
         self,
-        states: List[State],
-        povms: List[Povm],
-        gates: List[Gate],
-        mprocesses: List[MProcess],
         schedules: List[List[Tuple[str, int]]],
+        states: List[State] = None,
+        povms: List[Povm] = None,
+        gates: List[Gate] = None,
+        mprocesses: List[MProcess] = None,
         seed: int = None,
     ) -> None:
+
+        states = [] if states is None else states
+        povms = [] if povms is None else povms
+        gates = [] if gates is None else gates
+        mprocesses = [] if mprocesses is None else mprocesses
 
         # Validation
         self._validate_type(states, State)
