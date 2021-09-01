@@ -80,14 +80,14 @@ class QTomography:
                 and not mprocess.composite_system.is_orthonormal_hermitian_0thprop_identity
             ):
                 raise ValueError(
-                    f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(povm)} is not so."
+                    f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(mprocess)} is not so."
                 )
             # whether entries of vecs of Povm are real numbers
-            if not povm is None:
-                for vec in povm.vecs:
-                    if vec.dtype != np.float64:
+            if not mprocess is None:
+                for hs in mprocess.hss:
+                    if hs.dtype != np.float64:
                         raise ValueError(
-                            f"entries of all vecs of Povm must be real numbers. some dtype of vecs are {vec.dtype}"
+                            f"entries of all hss of MProcess must be real numbers. some dtype of vecs are {hs.dtype}"
                         )
 
         # validate ElementalSystem of SetQOperations
@@ -114,6 +114,15 @@ class QTomography:
             ):
                 raise ValueError(
                     f"all ElementalSystem of SetQOperations must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(povm)} is not so."
+                )
+
+        for mprocess in self._set_qoperations.mprocesses:
+            if (
+                not mprocess is None
+                and not mprocess.composite_system.is_orthonormal_hermitian_0thprop_identity
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of SetQOperations must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(mprocess)} is not so."
                 )
 
     @property
