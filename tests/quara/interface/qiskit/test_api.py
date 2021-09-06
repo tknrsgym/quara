@@ -117,7 +117,7 @@ def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal)
 
     empi_dists_qiskit = convert_empi_dists_quara_to_qiskit(prob_dists)
     shots = convert_empi_dists_quara_to_qiskit_shots(prob_dists)
-    label = [2, 2, 2]
+    label = [2, 2, 2, 2]
 
     for estimator_name in ["linear", "least_squares"]:
         estimated_povm_qiskit = estimate_standard_povmt_from_qiskit(
