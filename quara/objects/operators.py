@@ -117,12 +117,9 @@ def _check_cross_elemental_system_position(
     return None
 
 
-def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
-    # create CompositeSystem
-    e_sys_list = list(gate1.composite_system._elemental_systems)
-    e_sys_list.extend(gate2.composite_system._elemental_systems)
-    c_sys = CompositeSystem(e_sys_list)
-
+def _tensor_product_hs_hs(
+    hs1: np.ndarray, hs2: np.ndarray, e_sys_list: List[ElementalSystem]
+) -> np.ndarray:
     # How to calculate HS(g1 \otimes g2)
     #
     # notice:
@@ -134,11 +131,11 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     #   see "Matrix Algebra From a Statistician's Perspective" section 16.3.
 
     # calculate |HS(g1)>> \otimes |HS(g2)>>
-    from_vec = np.kron(gate1.hs.flatten(), gate2.hs.flatten())
+    from_vec = np.kron(hs1.flatten(), hs2.flatten())
 
     # convert |HS(g1)>> \otimes |HS(g2)>> to |HS(g1 \otimes g2)>>
-    d1 = gate1.dim ** 2
-    d2 = gate2.dim ** 2
+    d1 = hs1.shape[0]
+    d2 = hs2.shape[0]
     permutation = np.kron(np.kron(np.eye(d1), _K(d2, d1)), np.eye(d2))
     to_vec = permutation @ from_vec
     to_hs = to_vec.reshape((d1 * d2, d1 * d2))
@@ -150,12 +147,101 @@ def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
     perm_matrix = matrix_util.calc_permutation_matrix(system_order, size_list)
     to_hs = perm_matrix @ to_hs @ perm_matrix.T
 
+    return to_hs
+
+
+def _tensor_product_Gate_Gate(gate1: Gate, gate2: Gate) -> Gate:
+    # create CompositeSystem
+    e_sys_list = list(gate1.composite_system._elemental_systems)
+    e_sys_list.extend(gate2.composite_system._elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
+
+    # calc HS(g1 \otimes g2)
+    to_hs = _tensor_product_hs_hs(gate1.hs, gate2.hs, e_sys_list)
+
     # create Gate
     is_physicality_required = (
         gate1.is_physicality_required and gate2.is_physicality_required
     )
     gate = Gate(c_sys, to_hs, is_physicality_required=is_physicality_required)
     return gate
+
+
+def _tensor_product_Gate_MProcess(elem1: MProcess, elem2: Gate) -> MProcess:
+    # create CompositeSystem
+    e_sys_list = list(elem1.composite_system._elemental_systems)
+    e_sys_list.extend(elem2.composite_system._elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
+
+    # calc list of HS(g1 \otimes g2)
+    hss = []
+    for hs2 in elem2.hss:
+        hs = _tensor_product_hs_hs(elem1.hs, hs2, e_sys_list)
+        hss.append(hs)
+
+    # create MProcess
+    is_physicality_required = (
+        elem1.is_physicality_required and elem2.is_physicality_required
+    )
+    mprocess = MProcess(
+        c_sys,
+        hss,
+        shape=elem2.shape,
+        is_physicality_required=is_physicality_required,
+    )
+    return mprocess
+
+
+def _tensor_product_MProcess_Gate(elem1: MProcess, elem2: Gate) -> MProcess:
+    # create CompositeSystem
+    e_sys_list = list(elem1.composite_system._elemental_systems)
+    e_sys_list.extend(elem2.composite_system._elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
+
+    # calc list of HS(g1 \otimes g2)
+    hss = []
+    for hs1 in elem1.hss:
+        hs = _tensor_product_hs_hs(hs1, elem2.hs, e_sys_list)
+        hss.append(hs)
+
+    # create MProcess
+    is_physicality_required = (
+        elem1.is_physicality_required and elem2.is_physicality_required
+    )
+    mprocess = MProcess(
+        c_sys,
+        hss,
+        shape=elem1.shape,
+        is_physicality_required=is_physicality_required,
+    )
+    return mprocess
+
+
+def _tensor_product_MProcess_MProcess(elem1: MProcess, elem2: MProcess) -> MProcess:
+    # create CompositeSystem
+    e_sys_list = list(elem1.composite_system._elemental_systems)
+    e_sys_list.extend(elem2.composite_system._elemental_systems)
+    c_sys = CompositeSystem(e_sys_list)
+
+    # calc list of HS(g1 \otimes g2)
+    hss = []
+    for hs2 in elem2.hss:
+        for hs1 in elem1.hss:
+            hs = _tensor_product_hs_hs(hs1, hs2, e_sys_list)
+            hss.append(hs)
+    shape = elem1.shape + elem2.shape
+
+    # create MProcess
+    is_physicality_required = (
+        elem1.is_physicality_required and elem2.is_physicality_required
+    )
+    mprocess = MProcess(
+        c_sys,
+        hss,
+        shape=shape,
+        is_physicality_required=is_physicality_required,
+    )
+    return mprocess
 
 
 def _tensor_product_State_State(state1: State, state2: State) -> State:
@@ -246,23 +332,26 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
 def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
+        # Gate (x) Gate -> Gate
         return _tensor_product_Gate_Gate(elem1, elem2)
-    elif {type(elem1), type(elem2)} == {MProcess, Gate}:
+    elif type(elem1) == Gate and type(elem2) == MProcess:
+        # Gate (x) MProcess -> MProcess
+        return _tensor_product_Gate_MProcess(elem1, elem2)
+    elif type(elem1) == MProcess and type(elem2) == Gate:
         # MProcess (x) Gate -> MProcess
-        # MProcess (x) MProcess -> Gate
-        # TODO
-        raise NotImplementedError()
+        return _tensor_product_MProcess_Gate(elem1, elem2)
     elif type(elem1) == MProcess and type(elem2) == MProcess:
         # MProcess (x) MProcess -> MProcess
-        # TODO
-        raise NotImplementedError()
+        return _tensor_product_MProcess_MProcess(elem1, elem2)
     elif type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
+        # MatrixBasis (x) MatrixBasis -> MatrixBasis
         new_basis = [
             np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
         ]
         m_basis = MatrixBasis(new_basis)
         return m_basis
     elif type(elem1) == State and type(elem2) == State:
+        # State (x) State -> State
         return _tensor_product_State_State(elem1, elem2)
     elif type(elem1) == State and type(elem2) == StateEnsemble:
         # State (x) StateEnsemble -> StateEnsemble
