@@ -179,6 +179,74 @@ def test_tensor_product_Gate_Gate_sort_ElementalSystem():
     npt.assert_almost_equal(xy_z.hs, zx_y.hs, decimal=15)
 
 
+def test_tensor_product_Gate_MProcess():
+    # case: HS(Z \otimes Z) on Pauli basis
+    # coincidentally HS(Z \otimes Z) = HS(Z) \otimes HS(Z)
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+
+    z1 = generate_gate_from_gate_name("z", c_sys1)
+    z2 = generate_mprocess_from_name(c_sys2, "z-type1")
+
+    actual = tensor_product(z1, z2)
+
+    expected = [
+        np.kron(z1.hs, z2.hss[0]),
+        np.kron(z1.hs, z2.hss[1]),
+    ]
+    for a, e in zip(actual.hss, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+    assert actual.shape == (2,)
+
+
+def test_tensor_product_MProcess_Gate():
+    # case: HS(Z \otimes Z) on Pauli basis
+    # coincidentally HS(Z \otimes Z) = HS(Z) \otimes HS(Z)
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+
+    z1 = generate_mprocess_from_name(c_sys1, "z-type1")
+    z2 = generate_gate_from_gate_name("z", c_sys2)
+
+    actual = tensor_product(z1, z2)
+
+    expected = [
+        np.kron(z1.hss[0], z2.hs),
+        np.kron(z1.hss[1], z2.hs),
+    ]
+    for a, e in zip(actual.hss, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+    assert actual.shape == (2,)
+
+
+def test_tensor_product_MProcess_MProcess():
+    # case: HS(Z \otimes Z) on Pauli basis
+    # coincidentally HS(Z \otimes Z) = HS(Z) \otimes HS(Z)
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys1 = CompositeSystem([e_sys1])
+    e_sys2 = ElementalSystem(2, matrix_basis.get_normalized_pauli_basis())
+    c_sys2 = CompositeSystem([e_sys2])
+
+    z1 = generate_mprocess_from_name(c_sys1, "z-type1")
+    z2 = generate_mprocess_from_name(c_sys2, "z-type1")
+
+    actual = tensor_product(z1, z2)
+
+    expected = [
+        np.kron(z1.hss[0], z2.hss[0]),
+        np.kron(z1.hss[1], z2.hss[0]),
+        np.kron(z1.hss[0], z2.hss[1]),
+        np.kron(z1.hss[1], z2.hss[1]),
+    ]
+    for a, e in zip(actual.hss, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+    assert actual.shape == (2, 2)
+
+
 def test_tensor_product_MatrixBasis_MatrixBasis():
     # tensor_product of computational basis (multi arguments)
     comp1 = matrix_basis.get_comp_basis()
