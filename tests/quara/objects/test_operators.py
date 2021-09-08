@@ -23,6 +23,8 @@ from quara.objects.gate import (
     get_y,
     get_z,
 )
+from quara.objects.gate_typical import generate_gate_from_gate_name
+from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.objects.operators import (
     _compose_qoperations,
     _tensor_product,
@@ -45,6 +47,7 @@ from quara.objects.povm import (
     get_zy_povm,
     get_zz_povm,
 )
+from quara.objects.povm_typical import generate_povm_from_name
 from quara.objects.state import (
     State,
     get_x0_1q,
@@ -54,6 +57,8 @@ from quara.objects.state import (
     get_z1_1q,
 )
 from quara.objects.state_ensemble import StateEnsemble
+from quara.objects.state_ensemble_typical import generate_state_ensemble_from_name
+from quara.objects.state_typical import generate_state_from_name
 from quara.objects.qoperation_typical import generate_qoperation_object
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.multinomial_distribution import MultinomialDistribution
@@ -719,6 +724,64 @@ def test_compose_qoperations_Gate_Gate():
     npt.assert_almost_equal(xy_z.hs, x_yz.hs, decimal=15)
 
 
+def test_compose_qoperations_Gate_MProcess():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    gate_x = generate_gate_from_gate_name("x", c_sys)
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+
+    # Act
+    actual = compose_qoperations(gate_x, mprocess_z)
+
+    # Assert
+    assert actual.shape == (2,)
+    assert len(actual.hss) == 2
+    expected_hs_0 = (
+        np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, -1]], dtype=np.float64
+        )
+        / 2
+    )
+    expected_hs_1 = (
+        np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, -1]], dtype=np.float64
+        )
+        / 2
+    )
+    npt.assert_almost_equal(actual.hss[0], expected_hs_0, decimal=15)
+    npt.assert_almost_equal(actual.hss[1], expected_hs_1, decimal=15)
+
+
+def test_compose_qoperations_MProcess_Gate():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+    gate_x = generate_gate_from_gate_name("x", c_sys)
+
+    # Act
+    actual = compose_qoperations(mprocess_z, gate_x)
+
+    # Assert
+    assert actual.shape == (2,)
+    assert len(actual.hss) == 2
+    expected_hs_0 = (
+        np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, -1]], dtype=np.float64
+        )
+        / 2
+    )
+    expected_hs_1 = (
+        np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, -1]], dtype=np.float64
+        )
+        / 2
+    )
+    npt.assert_almost_equal(actual.hss[0], expected_hs_0, decimal=15)
+    npt.assert_almost_equal(actual.hss[1], expected_hs_1, decimal=15)
+
+
 def test_compose_qoperations_Gate_State():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
@@ -775,6 +838,170 @@ def test_compose_qoperations_Gate_State():
     hz_1 = compose_qoperations(compose_qoperations(h_gate, z_gate), state)
     h_z1 = compose_qoperations(h_gate, compose_qoperations(z_gate, state))
     npt.assert_almost_equal(hz_1.vec, h_z1.vec, decimal=15)
+
+
+def test_compose_qoperations_MProcess_MProcess():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    mprocess_z1 = generate_mprocess_from_name(c_sys, "z-type1")
+    mprocess_z2 = generate_mprocess_from_name(c_sys, "z-type1")
+
+    # Act
+    actual = compose_qoperations(mprocess_z1, mprocess_z2)
+
+    # Assert
+    assert actual.shape == (2, 2)
+    assert len(actual.hss) == 4
+    expected_hs_0 = (
+        np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]], dtype=np.float64
+        )
+        / 2
+    )
+    expected_hs_3 = (
+        np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]], dtype=np.float64
+        )
+        / 2
+    )
+    npt.assert_almost_equal(actual.hss[0], expected_hs_0, decimal=15)
+    npt.assert_almost_equal(actual.hss[1], np.zeros((4, 4)), decimal=15)
+    npt.assert_almost_equal(actual.hss[2], np.zeros((4, 4)), decimal=15)
+    npt.assert_almost_equal(actual.hss[0], expected_hs_3, decimal=15)
+
+
+def test_compose_qoperations_MProcess_State():
+    ## case 1: is_orthonormal_hermitian_0thprop_identity = True
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_z0 = generate_state_from_name(c_sys, "z0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_z0)
+
+    # Assert
+    assert actual.prob_dist.shape == (2,)
+    assert len(actual.states) == 2
+    npt.assert_almost_equal(actual.states[0].vec, state_z0.vec, decimal=15)
+    npt.assert_almost_equal(
+        actual.states[1].vec, state_z0._generate_zero_obj(), decimal=15
+    )
+    expected_prob_dist = np.array([1, 0], dtype=np.float64)
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
+
+    # TODO allow complex numbers in variables
+    """
+    ## case 2: is_orthonormal_hermitian_0thprop_identity = False
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_z0 = generate_state_from_name(c_sys, "z0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_z0)
+
+    # Assert
+    assert actual.prob_dist.shape == (2, 2)
+    assert len(actual.states) == 2
+    npt.assert_almost_equal(actual.states[0].vec, state_z0.vec, decimal=15)
+    npt.assert_almost_equal(
+        actual.states[1].vec, state_z0._generate_zero_obj(), decimal=15
+    )
+    expected_prob_dist = np.array([1, 0], dtype=np.float64)
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
+    """
+
+    # case 3: mode_sampling = True (return State)
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_z0 = generate_state_from_name(c_sys, "z0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+    mprocess_z._mode_sampling = True
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_z0)
+
+    # Assert
+    assert type(actual) == State
+    expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+    npt.assert_almost_equal(actual.vec, expected, decimal=15)
+
+
+def test_compose_qoperations_MProcess_StateEnsemble():
+    ## case 1: is_orthonormal_hermitian_0thprop_identity = True
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_ens_z0 = generate_state_ensemble_from_name(c_sys, "x0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_ens_z0)
+
+    # Assert
+    assert actual.prob_dist.shape == (2, 2)
+    expected_z0 = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+    expected_z1 = np.array([1, 0, 0, -1], dtype=np.float64) / np.sqrt(2)
+    assert len(actual.states) == 4
+    npt.assert_almost_equal(actual.states[0].vec, expected_z0, decimal=15)
+    npt.assert_almost_equal(actual.states[1].vec, expected_z1, decimal=15)
+    npt.assert_almost_equal(actual.states[2].vec, expected_z0, decimal=15)
+    npt.assert_almost_equal(actual.states[3].vec, expected_z1, decimal=15)
+    expected_prob_dist = np.array([1 / 4, 1 / 4, 1 / 4, 1 / 4], dtype=np.float64)
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
+
+    # TODO allow complex numbers in variables
+    """
+    ## case 2: is_orthonormal_hermitian_0thprop_identity = False
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_comp_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_ens_z0 = generate_state_ensemble_from_name(c_sys, "x0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_ens_z0)
+
+    # Assert
+    assert actual.prob_dist.shape == (2, 2)
+    expected_z0 = np.array([1, 0, 0, 0], dtype=np.float64)
+    expected_z1 = np.array([0, 0, 0, 1], dtype=np.float64)
+    assert len(actual.states) == 4
+    npt.assert_almost_equal(actual.states[0].vec, expected_z0, decimal=15)
+    npt.assert_almost_equal(actual.states[1].vec, expected_z1, decimal=15)
+    npt.assert_almost_equal(actual.states[2].vec, expected_z0, decimal=15)
+    npt.assert_almost_equal(actual.states[3].vec, expected_z1, decimal=15)
+    expected_prob_dist = np.array([1 / 4, 1 / 4, 1 / 4, 1 / 4], dtype=np.float64)
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
+    """
+
+    # case 3: mode_sampling = True (return State)
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state_ens_z0 = generate_state_ensemble_from_name(c_sys, "z0")
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+    mprocess_z._mode_sampling = True
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_ens_z0)
+
+    # Assert
+    assert type(actual) == StateEnsemble
+    assert len(actual.states) == 2
+    assert len(actual.prob_dist.ps) == 2
+    assert actual.prob_dist.shape == (2,)
+    expected = [
+        np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2),
+        np.array([0, 0, 0, 0], dtype=np.float64),
+    ]
+    for a, e in zip(actual.states, expected):
+        npt.assert_almost_equal(a.vec, e, decimal=15)
+    npt.assert_almost_equal(actual.prob_dist.ps, [1, 0], decimal=15)
 
 
 def test_compose_qoperations_Povm_Gate():
@@ -1708,6 +1935,26 @@ def test_compose_qoperations_Gate_StateEnsemble_multi_dimension():
     actual = compose_qoperations(gate_z, state_ensemble)
 
     assert actual.prob_dist.shape == (2, 3)
+
+
+def test_compose_qoperations_Povm_MProcess():
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+    povm_z = generate_povm_from_name("z", c_sys)
+
+    # Act
+    actual = compose_qoperations(povm_z, mprocess_z)
+
+    # Assert
+    assert len(actual.vecs) == 4
+    expected_z0 = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+    expected_z1 = np.array([1, 0, 0, -1], dtype=np.float64) / np.sqrt(2)
+    npt.assert_almost_equal(actual.vecs[0], expected_z0, decimal=15)
+    npt.assert_almost_equal(actual.vecs[1], np.zeros(4), decimal=15)
+    npt.assert_almost_equal(actual.vecs[2], np.zeros(4), decimal=15)
+    npt.assert_almost_equal(actual.vecs[3], expected_z1, decimal=15)
 
 
 def test_compose_qoperations_Povm_StateEnsemble():
