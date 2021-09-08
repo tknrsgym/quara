@@ -245,6 +245,7 @@ def truncate_and_normalize(matrix: np.ndarray, eps: float = None) -> np.array:
 
     # truncate entries smaller than eps and normalize matrix along rows
     matrix = np.where(matrix < eps, 0, matrix)
+
     if matrix.ndim == 1:
         matrix = matrix / np.sum(matrix)
     else:
