@@ -135,7 +135,7 @@ def _tensor_product_hs_hs(
 
     # convert |HS(g1)>> \otimes |HS(g2)>> to |HS(g1 \otimes g2)>>
     d1 = hs1.shape[0]
-    d2 = hs1.shape[1]
+    d2 = hs2.shape[0]
     permutation = np.kron(np.kron(np.eye(d1), _K(d2, d1)), np.eye(d2))
     to_vec = permutation @ from_vec
     to_hs = to_vec.reshape((d1 * d2, d1 * d2))
