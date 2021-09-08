@@ -254,7 +254,7 @@ class StandardQpt(StandardQTomography):
 def calc_c_qpt(states, povms, schedules, on_para_eq_constraint: bool):
     coeffs_0th = dict()  # b
     coeffs_1st = dict()  # a
-    c_list = []
+    # c_list = []
     c_dict = dict()  # c
     STATE_ITEM_INDEX = 0
     POVM_ITEM_INDEX = 2
@@ -268,6 +268,7 @@ def calc_c_qpt(states, povms, schedules, on_para_eq_constraint: bool):
 
         vec_size = state.vec.shape[0]
         dim = np.sqrt(vec_size)
+        schedule_c_list = []
         for m_index, povm_vec in enumerate(povm.vecs):  # each measurement
             c = np.kron(povm_vec, state.vec.T)
 
@@ -278,8 +279,9 @@ def calc_c_qpt(states, povms, schedules, on_para_eq_constraint: bool):
             else:
                 coeffs_1st[(schedule_index, m_index)] = c
                 coeffs_0th[(schedule_index, m_index)] = 0
-            c_list.append(c)
-            c_dict[schedule_index] = c
+            # c_list.append(c)
+            schedule_c_list.append(c)
 
-    c = np.array(c_list)
+        c_dict[schedule_index] = np.array(schedule_c_list)
+
     return coeffs_0th, coeffs_1st, c_dict
