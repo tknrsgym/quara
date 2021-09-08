@@ -603,8 +603,21 @@ def _compose_qoperations_MProcess_StateEnsemble(
                 ps.append(prob * p_x)
 
     if elem1.mode_sampling:
-        pass
+        # return StateEnsemble
+        num_hss = len(elem1.hss)
+        new_states = []
+        for x_index, state in enumerate(elem2.states):
+            local_ps = ps[x_index * num_hss : (x_index + 1) * num_hss]
+            sample = multinomial.rvs(1, local_ps)
+            sample_index = np.argmax(sample)
+            new_states.append(states[x_index * num_hss + sample_index])
+        mult_dist = MultinomialDistribution(
+            np.array(elem2.prob_dist.ps, dtype=np.float64), shape=elem2.prob_dist.shape
+        )
+        state_ens = StateEnsemble(new_states, mult_dist)
+        return state_ens
     else:
+        # return StateEnsemble
         shape = elem2.prob_dist.shape + elem1.shape
         mult_dist = MultinomialDistribution(np.array(ps, dtype=np.float64), shape=shape)
         state_ens = StateEnsemble(states, mult_dist)
