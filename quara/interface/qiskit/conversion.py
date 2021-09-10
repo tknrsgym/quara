@@ -249,3 +249,17 @@ def convert_gate_quara_to_qiskit(
     qiskit_gate_l = quara_gate.to_kraus_matrices()
     qiskit_gate = qiskit_gate_l[0]
     return qiskit_gate
+
+
+def calc_swap_matrix(d: int) -> np.ndarray:
+
+    mat = np.zeros((d ** 2, d ** 2), dtype=np.complex64)
+    for k in range(d ** 2):
+        i1 = k // d
+        j1 = k % d
+        for l in range(d ** 2):
+            i2 = l // d
+            j2 = l % d
+            if i1 == j2 and j1 == i2:
+                mat[k][l] = 1
+    return mat
