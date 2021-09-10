@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 
 from quara.objects.state import State
 from quara.objects.povm import Povm
-from quara.objects.gate import Gate
+from quara.objects.gate import Gate, to_hs_from_choi
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate_typical import (
     calc_gate_mat_from_unitary_mat_with_hermitian_basis,
@@ -203,14 +203,15 @@ def convert_empi_dists_quara_to_qiskit_shots(
 def convert_gate_qiskit_to_quara(
     qiskit_gate: np.ndarray,
     c_sys: CompositeSystem,
+    dim: int,
 ) -> Gate:
 
-    """converts qiskit gate unitary matrix to Quara Gate.
+    """converts qiskit gate choi matrix to Quara Gate.
 
     Parameters
     ----------
     qiskit_gate: np.ndarray
-         Qiskit unitary matrix.
+         Qiskit choi matrix.
 
     c_sys: Compositesystem
          CompositeSystem contains state.
@@ -221,9 +222,9 @@ def convert_gate_qiskit_to_quara(
          Quara gate.
     """
 
-    qiskit_gate_hs = calc_gate_mat_from_unitary_mat_with_hermitian_basis(
-        qiskit_gate, c_sys.basis()
-    )
+    swap = calc_swap_matrix(dim)
+    qiskit_gate_for_quara = np.dot(swap, (np.dot(qiskit_gate, swap)))
+    qiskit_gate_hs = to_hs_from_choi(qiskit_gate_for_quara)
     quara_gate = Gate(c_sys, qiskit_gate_hs)
     return quara_gate
 
