@@ -14,6 +14,7 @@ from quara.interface.qiskit.conversion import (
     convert_empi_dists_quara_to_qiskit,
     convert_gate_qiskit_to_quara,
     convert_gate_quara_to_qiskit,
+    calc_swap_matrix,
 )
 from quara.interface.qiskit.qiskit_state_typical import (
     get_qiskit_state_names_1qubit,
@@ -33,6 +34,8 @@ from quara.interface.qiskit.qiskit_gate_typical import (
     get_qiskit_gate_names_2qubit,
     get_qiskit_gate_names_3qubit,
     generate_qiskit_gate_from_gate_name,
+    get_swap_matrix_2dim,
+    get_swap_matrix_3dim,
 )
 
 from quara.interface.qiskit.qiskit_empi_dists_typical import (
@@ -367,3 +370,17 @@ def test_convert_empi_dists_quara_to_qiskit_shots_list(empi_dists_quara, shots):
 )
 def test_convert_empi_dists_quara_to_qiskit_shots_int(empi_dists_quara, shots):
     _test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots)
+
+
+@pytest.mark.qiskit
+def test_calc_swap_matrix_2dim():
+    expected = get_swap_matrix_2dim()
+    actual = calc_swap_matrix(2)
+    npt.assert_equal(expected, actual)
+
+
+@pytest.mark.qiskit
+def test_calc_swap_matrix_3dim():
+    expected = get_swap_matrix_3dim()
+    actual = calc_swap_matrix(3)
+    npt.assert_equal(expected, actual)
