@@ -207,14 +207,13 @@ def test_convert_povm_quara_to_qiskit_3qubit(povm_name):
 
 
 def _test_convert_gate_qiskit_to_quara(mode, num, gate_name, ids=None):
+    dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
     expected = generate_gate_from_gate_name(gate_name, c_sys, ids)
 
     source = generate_qiskit_gate_from_gate_name(gate_name)
-    actual = convert_gate_qiskit_to_quara(source, c_sys)
-    npt.assert_almost_equal(
-        actual.to_kraus_matrices(), expected.to_kraus_matrices(), decimal=10
-    )
+    actual = convert_gate_qiskit_to_quara(source, c_sys, dim)
+    npt.assert_almost_equal(actual.hs, expected.hs, decimal=10)
 
 
 @pytest.mark.qiskit
