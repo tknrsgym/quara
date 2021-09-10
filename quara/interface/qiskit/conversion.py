@@ -216,6 +216,9 @@ def convert_gate_qiskit_to_quara(
     c_sys: Compositesystem
          CompositeSystem contains state.
 
+    dim: int
+         Dimension of system.
+
     Returns
     -------
     Gate
@@ -224,31 +227,36 @@ def convert_gate_qiskit_to_quara(
 
     swap = calc_swap_matrix(dim)
     qiskit_gate_for_quara = np.dot(swap, (np.dot(qiskit_gate, swap)))
-    qiskit_gate_hs = to_hs_from_choi(qiskit_gate_for_quara)
+    qiskit_gate_hs = to_hs_from_choi(qiskit_gate_for_quara, c_sys)
     quara_gate = Gate(c_sys, qiskit_gate_hs)
     return quara_gate
 
 
 def convert_gate_quara_to_qiskit(
     quara_gate: Gate,
+    dim: int,
 ) -> np.ndarray:
 
-    """converts Quara Gate to qiskit gate unitary matrix.
+    """converts Quara Gate to qiskit gate choi matrix.
 
     Parameters
     ----------
     quara_gate: Gate
          Quara gate.
 
+    dim: int
+         Dimension of system.
+
     Returns
     -------
     np.ndarray
-        Qiskit unitary matrix.
+        Qiskit choi matrix.
 
     """
 
-    qiskit_gate_l = quara_gate.to_kraus_matrices()
-    qiskit_gate = qiskit_gate_l[0]
+    swap = calc_swap_matrix(dim)
+    qiskit_gate_for_quara = quara_gate.to_choi_matrix()
+    qiskit_gate = np.dot(swap, (np.dot(qiskit_gate_for_quara, swap)))
     return qiskit_gate
 
 
