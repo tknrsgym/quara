@@ -107,6 +107,41 @@ def test_generate_mprocess_object_from_mprocess_name_object_name__set_pure_state
 
 
 @pytest.mark.parametrize(
+    ("mprocess_name", "expected_set_pure_state_vectors"),
+    [
+        (
+            "x-type1_z-type1",
+            [
+                [
+                    np.array([1, 0, 1, 0], dtype=np.complex128) / np.sqrt(2),
+                ],
+                [
+                    np.array([0, 1, 0, 1], dtype=np.complex128) / np.sqrt(2),
+                ],
+                [
+                    np.array([1, 0, -1, 0], dtype=np.complex128) / np.sqrt(2),
+                ],
+                [
+                    np.array([0, 1, 0, -1], dtype=np.complex128) / np.sqrt(2),
+                ],
+            ],
+        ),
+    ],
+)
+def test_generate_mprocess_object_from_mprocess_name_object_name__set_pure_state_vectors__tensor_product(
+    mprocess_name, expected_set_pure_state_vectors
+):
+    actual = generate_mprocess_object_from_mprocess_name_object_name(
+        mprocess_name, "set_pure_state_vectors"
+    )
+    for actual_vectors, expected_vectors in zip(
+        actual, expected_set_pure_state_vectors
+    ):
+        for actual_vec, expected_vec in zip(actual_vectors, expected_vectors):
+            npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
+
+
+@pytest.mark.parametrize(
     ("mprocess_name", "expected_set_kraus_matrices"),
     [
         (
@@ -182,6 +217,56 @@ def test_generate_mprocess_object_from_mprocess_name_object_name__set_kraus_matr
 
 
 @pytest.mark.parametrize(
+    ("mprocess_name", "expected_set_kraus_matrices"),
+    [
+        (
+            "x-type1_z-type1",
+            [
+                [
+                    np.array(
+                        [[1, 0, 1, 0], [0, 0, 0, 0], [1, 0, 1, 0], [0, 0, 0, 0]],
+                        dtype=np.complex128,
+                    )
+                    / 2,
+                ],
+                [
+                    np.array(
+                        [[0, 0, 0, 0], [0, 1, 0, 1], [0, 0, 0, 0], [0, 1, 0, 1]],
+                        dtype=np.complex128,
+                    )
+                    / 2,
+                ],
+                [
+                    np.array(
+                        [[1, 0, -1, 0], [0, 0, 0, 0], [-1, 0, 1, 0], [0, 0, 0, 0]],
+                        dtype=np.complex128,
+                    )
+                    / 2,
+                ],
+                [
+                    np.array(
+                        [[0, 0, 0, 0], [0, 1, 0, -1], [0, 0, 0, 0], [0, -1, 0, 1]],
+                        dtype=np.complex128,
+                    )
+                    / 2,
+                ],
+            ],
+        ),
+    ],
+)
+def test_generate_mprocess_object_from_mprocess_name_object_name__set_kraus_matrices__tensor_product(
+    mprocess_name, expected_set_kraus_matrices
+):
+    actual = generate_mprocess_object_from_mprocess_name_object_name(
+        mprocess_name, "set_kraus_matrices"
+    )
+    print(actual)
+    for actual_vectors, expected_vectors in zip(actual, expected_set_kraus_matrices):
+        for actual_vec, expected_vec in zip(actual_vectors, expected_vectors):
+            npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
+
+
+@pytest.mark.parametrize(
     ("mprocess_name", "expected_hss"),
     [
         (
@@ -212,6 +297,117 @@ def test_generate_mprocess_object_from_mprocess_name_object_name__hss(
         "hss",
         c_sys=c_sys,
     )
+    for actual_hs, expected_hs in zip(actual, expected_hss):
+        npt.assert_almost_equal(actual_hs, expected_hs, decimal=15)
+
+
+@pytest.mark.parametrize(
+    ("mprocess_name", "expected_hss"),
+    [
+        (
+            "x-type1_z-type1",
+            [
+                np.array(
+                    [
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+                np.array(
+                    [
+                        [0.25, 0, 0, -0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, -0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+                np.array(
+                    [
+                        [0.25, 0, 0, 0.25, -0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, -0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, -0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, -0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+                np.array(
+                    [
+                        [0.25, 0, 0, -0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, -0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+            ],
+        ),
+    ],
+)
+def test_generate_mprocess_object_from_mprocess_name_object_name__hss__tensor_product(
+    mprocess_name, expected_hss
+):
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+
+    actual = generate_mprocess_object_from_mprocess_name_object_name(
+        mprocess_name,
+        "hss",
+        c_sys=c_sys,
+    )
+    print(actual)
     for actual_hs, expected_hs in zip(actual, expected_hss):
         npt.assert_almost_equal(actual_hs, expected_hs, decimal=15)
 
@@ -258,3 +454,113 @@ def test_generate_mprocess_object_from_mprocess_name_object_name__mprocess(
     assert actual.on_algo_eq_constraint == True
     assert actual.on_algo_ineq_constraint == True
     assert actual.eps_proj_physical == Settings.get_atol() / 10.0
+
+
+@pytest.mark.parametrize(
+    ("mprocess_name", "expected_hss"),
+    [
+        (
+            "x-type1_z-type1",
+            [
+                np.array(
+                    [
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+                np.array(
+                    [
+                        [0.25, 0, 0, -0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, -0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+                np.array(
+                    [
+                        [0.25, 0, 0, 0.25, -0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, 0.25, -0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, -0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, -0.25, 0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+                np.array(
+                    [
+                        [0.25, 0, 0, -0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [-0.25, 0, 0, 0.25, 0.25, 0, 0, -0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0.25, 0, 0, -0.25, -0.25, 0, 0, 0.25, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    dtype=np.complex128,
+                ),
+            ],
+        ),
+    ],
+)
+def test_generate_mprocess_object_from_mprocess_name_object_name__mprocess__tensor_product(
+    mprocess_name, expected_hss
+):
+    e_sys0 = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys0, e_sys1])
+
+    actual = generate_mprocess_object_from_mprocess_name_object_name(
+        mprocess_name,
+        "mprocess",
+        c_sys=c_sys,
+    )
+    for actual_hs, expected_hs in zip(actual.hss, expected_hss):
+        npt.assert_almost_equal(actual_hs, expected_hs, decimal=15)

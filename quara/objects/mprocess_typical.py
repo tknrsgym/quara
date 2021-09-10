@@ -1,3 +1,4 @@
+from itertools import product
 from typing import List, Union
 import numpy as np
 
@@ -134,7 +135,26 @@ def generate_mprocess_set_kraus_matrices_from_name(
     ValueError
         mprocess_name is invalid.
     """
-    # TODO tensor product
+    # split and get each pure state vectors
+    single_mprocess_names = mprocess_name.split("_")
+    set_kraus_matrices_list = [
+        _generate_mprocess_set_kraus_matrices_from_name_from_single_name(
+            single_mprocess_name
+        )
+        for single_mprocess_name in single_mprocess_names
+    ]
+
+    # tensor product
+    temp = set_kraus_matrices_list[0]
+    for set_kraus_matrices in set_kraus_matrices_list[1:]:
+        temp = [np.kron(mat1, mat2) for mat1, mat2 in product(temp, set_kraus_matrices)]
+
+    return temp
+
+
+def _generate_mprocess_set_kraus_matrices_from_name_from_single_name(
+    mprocess_name: str,
+) -> List[List[np.ndarray]]:
     set_kraus_matrices = []
     if mprocess_name in get_mprocess_names_type1():
         set_pure_state_vectors = generate_mprocess_set_pure_state_vectors_from_name(
@@ -154,8 +174,9 @@ def generate_mprocess_set_kraus_matrices_from_name(
         method = eval(method_name)
         set_kraus_matrices = method()
     else:
-        # TODO message
-        raise ValueError(f"mprocess_name is not type 1. mprocess_name={mprocess_name}")
+        raise ValueError(
+            f"mprocess_name is out of range. mprocess_name={mprocess_name}"
+        )
 
     return set_kraus_matrices
 
@@ -182,25 +203,30 @@ def generate_mprocess_hss_from_name(
     ValueError
         mprocess_name is invalid.
     """
+    # check mprocess name
+    single_mprocess_names = mprocess_name.split("_")
+    mprocess_name_list = get_mprocess_names_type1() + get_mprocess_names_type2()
+    for single_mprocess_name in single_mprocess_names:
+        if single_mprocess_name not in mprocess_name_list:
+            raise ValueError(
+                f"mprocess_name is out of range. mprocess_name={single_mprocess_name}"
+            )
+
+    # generate hss
     size = c_sys.dim ** 2
-    hss = []
-    if mprocess_name in get_mprocess_names_type1() or get_mprocess_names_type2():
-        hss_cb = []
-        set_kraus_matrices = generate_mprocess_set_kraus_matrices_from_name(
-            mprocess_name
-        )
-        for kraus_matrices in set_kraus_matrices:
-            tmp_hs = np.zeros((size, size), dtype=np.complex128)
-            for kraus_matrix in kraus_matrices:
-                tmp_hs += np.kron(kraus_matrix, kraus_matrix.conjugate())
-            hss_cb.append(tmp_hs)
-        # TODO remove truncate_hs
-        hss = [
-            truncate_hs(convert_hs(hs_cb, c_sys.comp_basis(), c_sys.basis()))
-            for hs_cb in hss_cb
-        ]
-    else:
-        pass
+    hss_cb = []
+    set_kraus_matrices = generate_mprocess_set_kraus_matrices_from_name(mprocess_name)
+    for kraus_matrices in set_kraus_matrices:
+        tmp_hs = np.zeros((size, size), dtype=np.complex128)
+        for kraus_matrix in kraus_matrices:
+            kron_mat = np.kron(kraus_matrix, kraus_matrix.conjugate())
+            tmp_hs += np.kron(kraus_matrix, kraus_matrix.conjugate())
+        hss_cb.append(tmp_hs)
+    # TODO remove truncate_hs
+    hss = [
+        truncate_hs(convert_hs(hs_cb, c_sys.comp_basis(), c_sys.basis()))
+        for hs_cb in hss_cb
+    ]
 
     return hss
 
@@ -220,6 +246,17 @@ def generate_mprocess_from_name(c_sys: CompositeSystem, mprocess_name: str) -> M
     MProcess
         MProcess object.
     """
+
+    # check mprocess name
+    single_mprocess_names = mprocess_name.split("_")
+    mprocess_name_list = get_mprocess_names_type1() + get_mprocess_names_type2()
+    for single_mprocess_name in single_mprocess_names:
+        if single_mprocess_name not in mprocess_name_list:
+            raise ValueError(
+                f"mprocess_name is out of range. mprocess_name={single_mprocess_name}"
+            )
+
+    # generate mprocess
     hss = generate_mprocess_hss_from_name(mprocess_name, c_sys)
     mprocess = MProcess(hss=hss, c_sys=c_sys)
     return mprocess
