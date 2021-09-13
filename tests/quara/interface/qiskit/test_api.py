@@ -13,9 +13,7 @@ import pytest
 from quara.interface.qiskit.conversion import (
     convert_empi_dists_quara_to_qiskit,
     convert_empi_dists_quara_to_qiskit_shots,
-    convert_povm_qiskit_to_quara,
     convert_state_quara_to_qiskit,
-    convert_state_qiskit_to_quara,
     convert_povm_quara_to_qiskit,
     convert_gate_quara_to_qiskit,
 )
