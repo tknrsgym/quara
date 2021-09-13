@@ -1,6 +1,6 @@
 from typing import List, Union
 import numpy as np
-from qiskit.circuit.library.standard_gates import rzx, x, y, z, swap, CXGate
+from qiskit.circuit.library.standard_gates import rzx, x, y, z, swap
 from qiskit.quantum_info.operators.channel import Choi
 
 
@@ -37,6 +37,11 @@ def generate_qiskit_gate_from_gate_name(
             mat = Choi(gate)
         elif ids[1] < ids[0]:
             gate = x.CXGate(ctrl_state=1)
+            mat = Choi(gate)
+
+    elif gate_name == "toffoli":
+        if ids == [0, 1, 2]:
+            gate = x.CCXGate(ctrl_state=0)
             mat = Choi(gate)
 
     return mat
