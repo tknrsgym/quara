@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 from quara.interface.qiskit.conversion import (
     convert_empi_dists_qiskit_to_quara,
     convert_gate_qiskit_to_quara,
+    convert_gate_quara_to_qiskit,
     convert_state_qiskit_to_quara,
     convert_state_quara_to_qiskit,
     convert_povm_qiskit_to_quara,
@@ -194,7 +195,7 @@ def estimate_standard_qpt_from_qiskit(
         )
     else:
         raise ValueError("estimator is invalid")
-    return convert_povm_quara_to_qiskit(estimate_gate)
+    return convert_gate_quara_to_qiskit(estimate_gate)
 
 
 def estimate_standard_povmt_from_qiskit(
