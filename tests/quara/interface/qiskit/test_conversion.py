@@ -241,7 +241,7 @@ def test_convert_gate_qiskit_to_quara_2qubit(gate_name):
     ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_3qubit()]
 )
 def test_convert_gate_qiskit_to_quara_3qubit(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 3, 8, gate_name)
+    _test_convert_gate_qiskit_to_quara("qubit", 3, gate_name, ids=[0, 1, 2])
 
 
 def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids=None):
