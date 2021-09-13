@@ -1,7 +1,4 @@
-from quara.objects import povm, state
-from _pytest.monkeypatch import V
 import numpy as np
-from numpy import ndarray, result_type
 from typing import List, Tuple, Union
 
 from quara.interface.qiskit.conversion import (
