@@ -167,6 +167,7 @@ def estimate_standard_qpt_from_qiskit(
 
     """
 
+    dim = 2 ** num_system
     c_sys = generate_composite_system(mode_system, num_system)
     tester_states_quara = []
     for qiskit_state in tester_states:
@@ -195,7 +196,7 @@ def estimate_standard_qpt_from_qiskit(
         )
     else:
         raise ValueError("estimator is invalid")
-    return convert_gate_quara_to_qiskit(estimate_gate)
+    return convert_gate_quara_to_qiskit(estimate_gate, dim)
 
 
 def estimate_standard_povmt_from_qiskit(
