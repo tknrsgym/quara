@@ -232,7 +232,7 @@ def test_convert_gate_qiskit_to_quara_1qubit(gate_name):
     ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_2qubit()]
 )
 def test_convert_gate_qiskit_to_quara_2qubit(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 2, gate_name, ids=[1, 0])
+    _test_convert_gate_qiskit_to_quara("qubit", 2, gate_name, ids=[0, 1])
 
 
 @pytest.mark.qiskit
