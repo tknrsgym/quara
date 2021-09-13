@@ -143,9 +143,10 @@ def test_estimate_standard_povmt_from_qiskit(mode, num, true_povm_name, decimal)
     ("mode", "num", "true_gate_name", "decimal"), [("qubit", 1, "identity", 4)]
 )
 def test_estimate_standard_qpt_from_qiskit(mode, num, true_gate_name, decimal):
+    dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
     true_gate = generate_gate_from_gate_name(true_gate_name, c_sys)
-    true_gate_qiskit = convert_gate_quara_to_qiskit(true_gate)
+    true_gate_qiskit = convert_gate_quara_to_qiskit(true_gate, dim)
 
     get_tester_state_names_method_name = f"get_tester_state_names_{int(num)}{mode}"
     get_tester_state_names_method = eval(get_tester_state_names_method_name)
