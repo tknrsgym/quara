@@ -319,12 +319,9 @@ def compose_qoperations(
     """
     # convert argument to list
     element_list = _to_list(*elements)
-    # print(f"{element_list=}")
     # recursively calculate composition(calculate from tail to head of list)
     temp = element_list[-1]
     for elem in reversed(element_list[:-1]):
-        print("=======================")
-        print(f"elem={elem.__class__.__name__}, temp={temp.__class__.__name__}")
         temp = _compose_qoperations(elem, temp)
     return temp
 
@@ -340,7 +337,6 @@ def _compose_qoperations(elem1, elem2):
         is_physicality_required = (
             elem1.is_physicality_required and elem2.is_physicality_required
         )
-    print(f"🦛🦛🦛elem1={elem1.__class__.__name__}, elem2={elem2.__class__.__name__}")
 
     # implement compose calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
@@ -393,9 +389,7 @@ def _compose_qoperations(elem1, elem2):
         return StateEnsemble(new_states, elem2.prob_dist)
     elif type(elem1) == MProcess and type(elem2) == State:
         # -> StateEnsemble
-        print("!!! MProcess and State")
         state_ensemble = _compose_qoperations_MProcess_State(elem1, elem2)
-        # print("🌳", state_ensemble)
         return state_ensemble
     elif type(elem1) == MProcess and type(elem2) == StateEnsemble:
         # -> StateEnsemble
@@ -415,17 +409,12 @@ def _compose_qoperations(elem1, elem2):
     elif type(elem1) == Povm and type(elem2) == State:
         # calculate probability distribution
         prob_list = [np.vdot(povm_element, elem2.vec) for povm_element in elem1.vecs]
-        print(f"🐠{prob_list=}")
         prob = np.array(prob_list, dtype=np.float64)
-        print(f"🐠{prob=}")
         prob = matrix_util.truncate_and_normalize(prob)
-        print(f"🐠{prob=}")
-        print(f"🐠{prob.shape=}")
         dist = MultinomialDistribution(prob, prob.shape)
         return dist
     elif type(elem1) == Povm and type(elem2) == StateEnsemble:
         # -> MultinomialDistribution
-        print(f"🦁🦁🦁🦁🦁🦁")
         return _compose_qoperations_Povm_StateEnsemble(elem1, elem2)
     else:
         raise TypeError(
@@ -658,17 +647,11 @@ def _compose_qoperations_Povm_MProcess(elem1: Povm, elem2: MProcess) -> Povm:
 def _compose_qoperations_Povm_StateEnsemble(
     elem1: Povm, elem2: StateEnsemble
 ) -> MultinomialDistribution:
-    print("🐙🐙🐙🐙🐙🐙🐙🐙")
-    print(elem2)
-    print(f"🐙{elem2.states=}")
-    print(f"🐙{elem2.prob_dist.ps=}")
+    # print(elem2)
+    # print(f"{elem2.states=}")
+    # print(f"{elem2.prob_dist.ps=}")
     for i, state in enumerate(elem2.states):
         # (Povm, State)
-        print(f"{i=} --------------------")
-        print(state)
-        print(elem1)
-        # prob_dist = compose_qoperations(elem1, state)
-        # ps = elem2.prob_dist[i] * prob_dist.ps
         if elem2.prob_dist[i] == 0:
             ps = [0] * prob_dist.ps.size
             ps = np.array(ps).reshape(prob_dist.shape)
@@ -680,10 +663,10 @@ def _compose_qoperations_Povm_StateEnsemble(
             new_prob_dist = ps
         else:
             new_prob_dist = np.hstack([new_prob_dist, ps])
-        print(f"{prob_dist=}")
-        print(f"{new_prob_dist=}")
+        # print(f"{prob_dist=}")
+        # print(f"{new_prob_dist=}")
     shape = tuple(list(elem2.prob_dist.shape) + elem1.nums_local_outcomes)
-    print(f"{shape=}")
+    # print(f"{shape=}")
     # shape = (len(elem2.states), elem1._num_outcomes)
     new_md = MultinomialDistribution(ps=new_prob_dist, shape=shape)
     return new_md

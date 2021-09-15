@@ -441,10 +441,7 @@ class Experiment:
             if not target:
                 raise ValueError("{}s[{}] is None.".format(k, i))
             targets.appendleft(target)
-        print(f"🐱{item=}")
-        print(f"🐱{targets=}")
         prob_dist = op.compose_qoperations(*targets)
-        print(f"🐱calc_prob_dist内: {prob_dist=}")
         return prob_dist.ps
 
     def calc_prob_dists(self) -> List[np.ndarray]:
@@ -457,7 +454,7 @@ class Experiment:
         """
         prob_dists = []
         for i in range(len(self.schedules)):
-            print(f"🐹schedules: {i=}")
+            # print(f"🐹schedules: {i=}")
             r = self.calc_prob_dist(i)
             prob_dists.append(r)
         return prob_dists
@@ -613,5 +610,9 @@ class Experiment:
                 prob_dists, list_num_sums_tmp, seed_or_stream
             )
         )
-
+        print(f"🏡🏡🏡🏡🏡")
+        for p, e in zip(prob_dists, empi_dists_sequence):
+            print(f"prob: {p}")
+            print(f"empi: {e}")
+            print("=====================================")
         return empi_dists_sequence

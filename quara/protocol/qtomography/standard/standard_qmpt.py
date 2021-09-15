@@ -183,7 +183,6 @@ class StandardQmpt(StandardQTomography):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.mprocesses[target_index] = mprocess
 
-        print(f"{list_num_sums_tmp=}")
         stream = to_stream(seed_or_stream)
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
             list_num_sums_tmp, seed_or_stream=stream
@@ -211,6 +210,8 @@ class StandardQmpt(StandardQTomography):
             schedules=self._experiment.schedules,
             on_para_eq_constraint=on_para_eq_constraint,
         )
+
+        self._c_qpt_dict = c_qpt_dict
 
         dim = self._experiment.states[0].dim
         schedule_n = len(self._experiment.schedules)

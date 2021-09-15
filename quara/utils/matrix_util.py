@@ -613,7 +613,6 @@ def convert_list_by_permutation_matrix(
             if permutation_matrix[row, col] == 1:
                 new_list[row] = old_list[col]
                 break
-    # print(f"new_list={new_list}")
     return new_list
 
 
