@@ -366,3 +366,18 @@ def test_set_coeffs():
     # Assert
     assert actual.calc_matA().shape == (48, 28)
     assert actual.calc_vecB().shape == (48,)
+
+    # Case 1: on_para_eq_constarint = False
+    on_para_eq_constraint = False
+    num_outcomes = 2
+    actual = StandardQmpt(
+        tester_states,
+        tester_povms,
+        num_outcomes=num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        seed=7,
+    )
+
+    # Assert
+    assert actual.calc_matA().shape == (48, 32)
+    assert actual.calc_vecB().shape == (48,)
