@@ -230,6 +230,13 @@ class StandardQmpt(StandardQTomography):
                     element_index
                 ]
 
+    def calc_prob_dists(self, qope: QOperation) -> List[List[float]]:
+        tmp_experiment = self._experiment.copy()
+        for schedule_index in range(len(tmp_experiment.schedules)):
+            target_index = self._get_target_index(tmp_experiment, schedule_index)
+            tmp_experiment.mprocesses[target_index] = qope
+        return tmp_experiment.calc_prob_dists()
+
     def generate_empi_dists(
         self,
         mprocess: MProcess,
@@ -242,8 +249,8 @@ class StandardQmpt(StandardQTomography):
         """
         tmp_experiment = self._experiment.copy()
         for schedule_index in range(len(tmp_experiment.schedules)):
-            mprocess_index = self._get_target_index(tmp_experiment, schedule_index)
-            tmp_experiment.states[mprocess_index] = mprocess
+            target_index = self._get_target_index(tmp_experiment, schedule_index)
+            tmp_experiment.mprocesses[target_index] = mprocess
 
         num_sums = [num_sum] * self._num_schedules
         stream = to_stream(seed_or_stream)

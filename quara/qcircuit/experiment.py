@@ -454,7 +454,6 @@ class Experiment:
         """
         prob_dists = []
         for i in range(len(self.schedules)):
-            # print(f"🐹schedules: {i=}")
             r = self.calc_prob_dist(i)
             prob_dists.append(r)
         return prob_dists
