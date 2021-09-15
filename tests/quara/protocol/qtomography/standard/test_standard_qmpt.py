@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -8,6 +10,7 @@ from quara.protocol.qtomography.standard.standard_qmpt import (
     cqpt_to_cqmpt,
     StandardQmpt,
 )
+from quara.objects.mprocess import MProcess
 
 
 def test_cqpt_to_cqmpt():
@@ -381,3 +384,139 @@ def test_set_coeffs():
     # Assert
     assert actual.calc_matA().shape == (48, 32)
     assert actual.calc_vecB().shape == (48,)
+
+
+@pytest.mark.parametrize(("on_para_eq_constraint"), [(True), (False)])
+def test_compare_prob_dist_1qubit(on_para_eq_constraint: bool):
+    # Arrange
+    c_sys = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+
+    # Qmpt
+    num_outcomes = 2
+    qmpt = StandardQmpt(
+        tester_states,
+        tester_povms,
+        num_outcomes=num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        seed=7,
+    )
+
+    # TrueObject
+    true_object_name = "x-type1"
+    true_object = generate_qoperation_object(
+        mode="mprocess", object_name="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    schedule_n = len(qmpt._experiment.schedules)  # 12
+    actual_list = []
+    start = 0
+
+    # Act
+    for schedule_index in range(schedule_n):
+        povm_index = qmpt._experiment.schedules[schedule_index][2][1]
+        povm = qmpt._experiment.povms[povm_index]
+        num = qmpt.num_outcomes * povm._num_outcomes
+        end = start + num
+
+        A = qmpt.calc_matA()[start:end]
+        b = qmpt.calc_vecB()[start:end]
+
+        p = A @ true_object.to_var() + b
+
+        actual_list.append(np.array(p))
+        start = end
+
+    # Assert
+    expected_list = qmpt.calc_prob_dists(true_object)
+
+    for actual, expected in zip(actual_list, expected_list):
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+@pytest.mark.parametrize(("on_para_eq_constraint"), [(True), (False)])
+def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
+    c_sys = generate_composite_system(mode="qubit", num=2, ids_esys=[1, 2])
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(state_names, state_names)
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(povm_names, povm_names)
+    ]
+
+    # True Object
+    true_object_name = "x-type1_x-type1"
+    true_object = generate_qoperation_object(
+        mode="mprocess", object_name="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # StandardQmpt
+    # on_para_eq_constraint = True
+    num_outcomes = true_object.num_outcomes  # 4
+    qmpt = StandardQmpt(
+        tester_states,
+        tester_povms,
+        num_outcomes=num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        seed=7,
+    )
+
+    schedule_n = len(qmpt._experiment.schedules)  # 144
+    actual_list = []
+    start = 0
+
+    # Act
+    for schedule_index in range(schedule_n):
+        povm_index = qmpt._experiment.schedules[schedule_index][2][1]
+        povm = qmpt._experiment.povms[povm_index]
+        num = qmpt.num_outcomes * povm._num_outcomes
+        end = start + num
+
+        A = qmpt.calc_matA()[start:end]
+        b = qmpt.calc_vecB()[start:end]
+
+        p = A @ true_object.to_var() + b
+
+        actual_list.append(np.array(p))
+        start = end
+
+    # Assert
+    expected_list = qmpt.calc_prob_dists(true_object)
+
+    for actual, expected in zip(actual_list, expected_list):
+        npt.assert_almost_equal(actual, expected, decimal=15)
