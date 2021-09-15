@@ -325,6 +325,30 @@ class TestMProcess:
         with pytest.raises(ValueError):
             mprocess.set_mode_sampling(False, random_seed_or_state=1)
 
+    def test_access_eps_zero(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+
+        # case 1: default(10 ** -8)
+        mprocess = MProcess(c_sys, hss)
+        assert mprocess.eps_zero == 10 ** -8
+
+        # case 2: eps_zero=1
+        mprocess = MProcess(c_sys, hss, eps_zero=10 ** -5)
+        assert mprocess.eps_zero == 10 ** -5
+
+        # Test that "eps_zero" cannot be updated
+        with pytest.raises(AttributeError):
+            mprocess.eps_zero = 1
+
     def test_is_eq_constraint_satisfied(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])

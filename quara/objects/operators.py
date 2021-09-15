@@ -479,7 +479,7 @@ def _compose_qoperations_MProcess_State(
         for hs in elem1.hss:
             Mx_rho = hs @ elem2.vec
             p_x = np.sqrt(elem2.composite_system.dim) * Mx_rho[0]
-            if p_x <= elem1.eps_proj_physical:
+            if p_x <= elem1.eps_zero:
                 p_x = 0
                 rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
                 state = State(
@@ -506,7 +506,7 @@ def _compose_qoperations_MProcess_State(
         for hs in elem1.hss:
             Mx_rho = hs @ elem2.vec
             p_x = np.vdot(I_vec_gb, Mx_rho)
-            if p_x <= elem1.eps_proj_physical:
+            if p_x <= elem1.eps_zero:
                 p_x = 0
                 rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
                 state = State(
@@ -534,13 +534,14 @@ def _compose_qoperations_MProcess_State(
         mult_dist = MultinomialDistribution(
             np.array(ps, dtype=np.float64), shape=elem1.shape
         )
-        state_ens = StateEnsemble(states, mult_dist)
+        state_ens = StateEnsemble(states, mult_dist, eps_zero=elem1.eps_zero)
         return state_ens
 
 
 def _compose_qoperations_MProcess_StateEnsemble(
     elem1: MProcess, elem2: StateEnsemble
 ) -> StateEnsemble:
+    eps_zero = max(elem1.eps_zero, elem2.eps_zero)
     states = []
     ps = []
     if elem1.composite_system.is_orthonormal_hermitian_0thprop_identity:
@@ -552,7 +553,7 @@ def _compose_qoperations_MProcess_StateEnsemble(
             for hs in elem1.hss:
                 Mx_rho = hs @ state_old.vec
                 p_x = np.sqrt(state_old.composite_system.dim) * Mx_rho[0]
-                if prob * p_x <= elem1.eps_proj_physical:
+                if prob * p_x <= eps_zero:
                     p_x = 0
                     rho_x = np.zeros(state_old.vec.shape, dtype=state_old.vec.dtype)
                     state_new = State(
@@ -584,7 +585,7 @@ def _compose_qoperations_MProcess_StateEnsemble(
             for hs in elem1.hss:
                 Mx_rho = hs @ state_old.vec
                 p_x = np.vdot(I_vec_gb, Mx_rho)
-                if prob * p_x <= elem1.eps_proj_physical:
+                if prob * p_x <= eps_zero:
                     p_x = 0
                     rho_x = np.zeros(state_old.vec.shape, dtype=state_old.vec.dtype)
                     state = State(
@@ -614,13 +615,13 @@ def _compose_qoperations_MProcess_StateEnsemble(
         mult_dist = MultinomialDistribution(
             np.array(elem2.prob_dist.ps, dtype=np.float64), shape=elem2.prob_dist.shape
         )
-        state_ens = StateEnsemble(new_states, mult_dist)
+        state_ens = StateEnsemble(new_states, mult_dist, eps_zero=eps_zero)
         return state_ens
     else:
         # return StateEnsemble
         shape = elem2.prob_dist.shape + elem1.shape
         mult_dist = MultinomialDistribution(np.array(ps, dtype=np.float64), shape=shape)
-        state_ens = StateEnsemble(states, mult_dist)
+        state_ens = StateEnsemble(states, mult_dist, eps_zero=eps_zero)
         return state_ens
 
 
