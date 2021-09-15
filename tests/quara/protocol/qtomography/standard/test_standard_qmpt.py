@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -422,6 +424,69 @@ def test_compare_prob_dist_1qubit():
     )
 
     schedule_n = len(qmpt._experiment.schedules)  # 12
+    actual_list = []
+    start = 0
+
+    # Act
+    for schedule_index in range(schedule_n):
+        povm_index = qmpt._experiment.schedules[schedule_index][2][1]
+        povm = qmpt._experiment.povms[povm_index]
+        num = qmpt.num_outcomes * povm._num_outcomes
+        end = start + num
+
+        A = qmpt.calc_matA()[start:end]
+        b = qmpt.calc_vecB()[start:end]
+
+        p = A @ true_object.to_var() + b
+
+        actual_list.append(np.array(p))
+        start = end
+
+    # Assert
+    expected_list = qmpt.calc_prob_dists(true_object)
+
+    for actual, expected in zip(actual_list, expected_list):
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_compare_prob_dist_2qubit():
+    c_sys = generate_composite_system(mode="qubit", num=2, ids_esys=[1, 2])
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(state_names, state_names)
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(povm_names, povm_names)
+    ]
+
+    # True Object
+    true_object_name = "x-type1_x-type1"
+    true_object = generate_qoperation_object(
+        mode="mprocess", object_name="mprocess", name=true_object_name, c_sys=c_sys
+    )
+
+    # StandardQmpt
+    on_para_eq_constraint = True
+    num_outcomes = true_object.num_outcomes  # 4
+    qmpt = StandardQmpt(
+        tester_states,
+        tester_povms,
+        num_outcomes=num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        seed=7,
+    )
+
+    schedule_n = len(qmpt._experiment.schedules)  # 144
     actual_list = []
     start = 0
 
