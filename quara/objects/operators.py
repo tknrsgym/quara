@@ -737,12 +737,9 @@ def _compose_qoperations_Povm_MProcess(elem1: Povm, elem2: MProcess) -> Povm:
 def _compose_qoperations_Povm_StateEnsemble(
     elem1: Povm, elem2: StateEnsemble
 ) -> MultinomialDistribution:
-    # print(elem2)
-    # print(f"{elem2.states=}")
-    # print(f"{elem2.prob_dist.ps=}")
     for i, state in enumerate(elem2.states):
         # (Povm, State)
-        if elem2.prob_dist[i] == 0:
+        if elem2.prob_dist[i] < elem2.eps_zero:
             ps = [0] * prob_dist.ps.size
             ps = np.array(ps).reshape(prob_dist.shape)
         else:
@@ -753,10 +750,6 @@ def _compose_qoperations_Povm_StateEnsemble(
             new_prob_dist = ps
         else:
             new_prob_dist = np.hstack([new_prob_dist, ps])
-        # print(f"{prob_dist=}")
-        # print(f"{new_prob_dist=}")
     shape = tuple(list(elem2.prob_dist.shape) + elem1.nums_local_outcomes)
-    # print(f"{shape=}")
-    # shape = (len(elem2.states), elem1._num_outcomes)
     new_md = MultinomialDistribution(ps=new_prob_dist, shape=shape)
     return new_md

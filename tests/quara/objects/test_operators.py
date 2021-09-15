@@ -2034,12 +2034,47 @@ def test_compose_qoperations_Povm_MProcess():
 def test_compose_qoperations_Povm_StateEnsemble():
     # Arrange
     c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+    # Case 1
     povm = generate_qoperation_object(
         mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
     )
     state_ens = generate_qoperation_object(
         mode="state_ensemble", object_name="state_ensemble", name="z0", c_sys=c_sys_1q
     )
+
+    # Act
+    actual = compose_qoperations(povm, state_ens)
+    # Assert
+    expected = np.array([1, 0, 0, 0])
+    npt.assert_almost_equal(actual.ps, expected, decimal=15)
+    assert actual.shape == (2, 2)
+
+    # Case 2:
+    povm = generate_qoperation_object(
+        mode="povm", object_name="povm", name="x", c_sys=c_sys_1q
+    )
+    state_0 = State(
+        vec=np.array(
+            [1 / np.sqrt(2), 1 / np.sqrt(2), 0.0, 0.0],
+            dtype=np.float64,
+        ),
+        c_sys=c_sys_1q,
+    )
+    state_1 = State(
+        vec=np.array(
+            [
+                0,
+                0,
+                0,
+                0,
+            ],
+            dtype=np.float64,
+        ),
+        is_physicality_required=False,
+        c_sys=c_sys_1q,
+    )
+    ps = MultinomialDistribution(ps=[1, 0])
+    state_ens = StateEnsemble(states=[state_0, state_1], prob_dist=ps)
 
     # Act
     actual = compose_qoperations(povm, state_ens)
