@@ -11,7 +11,7 @@ from quara.protocol.qtomography.standard.standard_qmpt import (
 
 
 def test_cqpt_to_cqmpt():
-    # Case 1: on_para_eq_constraint=True
+    # Case 1: on_para_eq_constraint=False
     # Arrange
     c_qpt = np.array(list(range(1, 17)))
     dim = 2
@@ -19,7 +19,7 @@ def test_cqpt_to_cqmpt():
 
     # Act
     actual_a_qmpt, actual_b_qmpt = cqpt_to_cqmpt(
-        c_qpt=c_qpt, dim=dim, m_mprocess=m, on_para_eq_constraint=True
+        c_qpt=c_qpt, dim=dim, m_mprocess=m, on_para_eq_constraint=False
     )
 
     # Assert
@@ -182,10 +182,10 @@ def test_cqpt_to_cqmpt():
     expected_b_qmpt = np.array([0, 0, 0.0])
     npt.assert_almost_equal(actual_b_qmpt, expected_b_qmpt, decimal=15)
 
-    # Case 2: on_para_eq_constraint=False
+    # Case 2: on_para_eq_constraint=True
     # Act
     actual_a_qmpt, actual_b_qmpt = cqpt_to_cqmpt(
-        c_qpt=c_qpt, dim=dim, m_mprocess=m, on_para_eq_constraint=False
+        c_qpt=c_qpt, dim=dim, m_mprocess=m, on_para_eq_constraint=True
     )
     # Assert
     expected_a_qmpt = np.array(
