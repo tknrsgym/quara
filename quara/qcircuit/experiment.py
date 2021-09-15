@@ -610,9 +610,4 @@ class Experiment:
                 prob_dists, list_num_sums_tmp, seed_or_stream
             )
         )
-        print(f"🏡🏡🏡🏡🏡")
-        for p, e in zip(prob_dists, empi_dists_sequence):
-            print(f"prob: {p}")
-            print(f"empi: {e}")
-            print("=====================================")
         return empi_dists_sequence
