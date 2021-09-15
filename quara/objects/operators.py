@@ -739,9 +739,11 @@ def _compose_qoperations_Povm_StateEnsemble(
 ) -> MultinomialDistribution:
     for i, state in enumerate(elem2.states):
         # (Povm, State)
+
         if elem2.prob_dist[i] < elem2.eps_zero:
-            ps = [0] * prob_dist.ps.size
-            ps = np.array(ps).reshape(prob_dist.shape)
+            prob_dist_size = elem1.num_outcomes
+            ps = [0] * prob_dist_size
+            ps = np.array(ps)
         else:
             prob_dist = compose_qoperations(elem1, state)
             ps = elem2.prob_dist[i] * prob_dist.ps
