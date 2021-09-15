@@ -37,6 +37,7 @@ class MProcess(QOperation):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_zero: Union[float, np.float64] = 10 ** -8,
     ):
         super().__init__(
             c_sys=c_sys,
@@ -95,6 +96,13 @@ class MProcess(QOperation):
             self._shape = shape
 
         self.set_mode_sampling(mode_sampling, random_seed_or_state)
+
+        # whether eps_zero is a non-negative value.
+        if eps_zero < 0:
+            raise ValueError(
+                "eps_zero must be a non-negative value. eps_zero is {eps_zero}"
+            )
+        self._eps_zero: Union[float, np.float64] = eps_zero
 
         # whether the gate is physically correct
         if self.is_physicality_required and not self.is_physical():
@@ -239,6 +247,10 @@ class MProcess(QOperation):
         else:
             self._random_seed_or_state = None
             self._random_state = None
+
+    @property  # read only
+    def eps_zero(self):
+        return self._eps_zero
 
     def is_eq_constraint_satisfied(self, atol: float = None) -> bool:
         return self.is_sum_tp()
