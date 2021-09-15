@@ -10,6 +10,7 @@ from quara.protocol.qtomography.standard.standard_qmpt import (
     cqpt_to_cqmpt,
     StandardQmpt,
 )
+from quara.objects.mprocess import MProcess
 
 
 def test_cqpt_to_cqmpt():
@@ -385,7 +386,8 @@ def test_set_coeffs():
     assert actual.calc_vecB().shape == (48,)
 
 
-def test_compare_prob_dist_1qubit():
+@pytest.mark.parametrize(("on_para_eq_constraint"), [(True), (False)])
+def test_compare_prob_dist_1qubit(on_para_eq_constraint: bool):
     # Arrange
     c_sys = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
 
@@ -407,7 +409,6 @@ def test_compare_prob_dist_1qubit():
     ]
 
     # Qmpt
-    on_para_eq_constraint = True
     num_outcomes = 2
     qmpt = StandardQmpt(
         tester_states,
@@ -422,6 +423,10 @@ def test_compare_prob_dist_1qubit():
     true_object = generate_qoperation_object(
         mode="mprocess", object_name="mprocess", name=true_object_name, c_sys=c_sys
     )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
 
     schedule_n = len(qmpt._experiment.schedules)  # 12
     actual_list = []
@@ -449,7 +454,8 @@ def test_compare_prob_dist_1qubit():
         npt.assert_almost_equal(actual, expected, decimal=15)
 
 
-def test_compare_prob_dist_2qubit():
+@pytest.mark.parametrize(("on_para_eq_constraint"), [(True), (False)])
+def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
     c_sys = generate_composite_system(mode="qubit", num=2, ids_esys=[1, 2])
 
     # Tester Objects
@@ -474,9 +480,13 @@ def test_compare_prob_dist_2qubit():
     true_object = generate_qoperation_object(
         mode="mprocess", object_name="mprocess", name=true_object_name, c_sys=c_sys
     )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
 
     # StandardQmpt
-    on_para_eq_constraint = True
+    # on_para_eq_constraint = True
     num_outcomes = true_object.num_outcomes  # 4
     qmpt = StandardQmpt(
         tester_states,
