@@ -269,12 +269,6 @@ def cqpt_to_cqmpt(
 ) -> List[np.ndarray]:
     c_list = [c_qpt] * m_mprocess
     if on_para_eq_constraint:
-        c_list = [c_qpt] * m_mprocess
-        c_qmpt = block_diag(*c_list)
-
-        a_qmpt = c_qmpt
-        b_qmpt = np.zeros(c_qmpt.shape[0])
-    else:
         if len(c_qpt.shape) < 2:
             c_qpt = c_qpt.reshape((1, c_qpt.shape[0]))
         d_qpt = c_qpt[:, : dim ** 2]
@@ -295,5 +289,11 @@ def cqpt_to_cqmpt(
         b_0 = np.zeros(d_qpt.shape[0] * (m_mprocess - 1))
         b_1 = d_qpt.T[0]
         b_qmpt = np.hstack([b_0, b_1])
+    else:
+        c_list = [c_qpt] * m_mprocess
+        c_qmpt = block_diag(*c_list)
+
+        a_qmpt = c_qmpt
+        b_qmpt = np.zeros(c_qmpt.shape[0])
 
     return a_qmpt, b_qmpt
