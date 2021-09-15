@@ -408,7 +408,6 @@ def compose_qoperations(
     """
     # convert argument to list
     element_list = _to_list(*elements)
-
     # recursively calculate composition(calculate from tail to head of list)
     temp = element_list[-1]
     for elem in reversed(element_list[:-1]):
@@ -479,7 +478,8 @@ def _compose_qoperations(elem1, elem2):
         return StateEnsemble(new_states, elem2.prob_dist)
     elif type(elem1) == MProcess and type(elem2) == State:
         # -> StateEnsemble
-        return _compose_qoperations_MProcess_State(elem1, elem2)
+        state_ensemble = _compose_qoperations_MProcess_State(elem1, elem2)
+        return state_ensemble
     elif type(elem1) == MProcess and type(elem2) == StateEnsemble:
         # -> StateEnsemble
         return _compose_qoperations_MProcess_StateEnsemble(elem1, elem2)
@@ -736,15 +736,26 @@ def _compose_qoperations_Povm_MProcess(elem1: Povm, elem2: MProcess) -> Povm:
 def _compose_qoperations_Povm_StateEnsemble(
     elem1: Povm, elem2: StateEnsemble
 ) -> MultinomialDistribution:
+    # print(elem2)
+    # print(f"{elem2.states=}")
+    # print(f"{elem2.prob_dist.ps=}")
     for i, state in enumerate(elem2.states):
         # (Povm, State)
-        prob_dist = compose_qoperations(elem1, state)
-        ps = elem2.prob_dist[i] * prob_dist.ps
+        if elem2.prob_dist[i] == 0:
+            ps = [0] * prob_dist.ps.size
+            ps = np.array(ps).reshape(prob_dist.shape)
+        else:
+            prob_dist = compose_qoperations(elem1, state)
+            ps = elem2.prob_dist[i] * prob_dist.ps
+
         if i == 0:
             new_prob_dist = ps
         else:
             new_prob_dist = np.hstack([new_prob_dist, ps])
+        # print(f"{prob_dist=}")
+        # print(f"{new_prob_dist=}")
     shape = tuple(list(elem2.prob_dist.shape) + elem1.nums_local_outcomes)
+    # print(f"{shape=}")
     # shape = (len(elem2.states), elem1._num_outcomes)
     new_md = MultinomialDistribution(ps=new_prob_dist, shape=shape)
     return new_md

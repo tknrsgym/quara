@@ -245,6 +245,7 @@ def truncate_and_normalize(matrix: np.ndarray, eps: float = None) -> np.array:
 
     # truncate entries smaller than eps and normalize matrix along rows
     matrix = np.where(matrix < eps, 0, matrix)
+
     if matrix.ndim == 1:
         matrix = matrix / np.sum(matrix)
     else:
@@ -612,7 +613,6 @@ def convert_list_by_permutation_matrix(
             if permutation_matrix[row, col] == 1:
                 new_list[row] = old_list[col]
                 break
-    # print(f"new_list={new_list}")
     return new_list
 
 

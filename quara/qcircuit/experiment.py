@@ -1,5 +1,6 @@
 import collections
 import copy
+from quara.objects.mprocess import MProcess
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -46,24 +47,29 @@ class Experiment:
 
     def __init__(
         self,
-        states: List[State],
-        povms: List[Povm],
-        gates: List[Gate],
         schedules: List[List[Tuple[str, int]]],
+        states: List[State] = None,
+        povms: List[Povm] = None,
+        gates: List[Gate] = None,
+        mprocesses: List[MProcess] = None,
         seed: int = None,
     ) -> None:
+        states = [] if states is None else states
+        povms = [] if povms is None else povms
+        gates = [] if gates is None else gates
+        mprocesses = [] if mprocesses is None else mprocesses
 
         # Validation
         self._validate_type(states, State)
         self._validate_type(povms, Povm)
         self._validate_type(gates, Gate)
+        self._validate_type(mprocesses, MProcess)
 
         # Set
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
-        # TODO: MProcess functions are not yet implemented. Only attributes are provided for future use.
-        self._mprocesses: list = []
+        self._mprocesses: List[MProcess] = mprocesses
 
         # Validate
         self._validate_schedules(schedules)
@@ -142,6 +148,29 @@ class Experiment:
             )
         else:
             self._gates = value
+
+    @property
+    def mprocesses(self) -> List[Gate]:
+        return self._mprocesses
+
+    @mprocesses.setter
+    def mprocesses(self, value):
+        self._validate_type(value, MProcess)
+
+        objdict = dict(
+            state=self._states,
+            povm=self._povms,
+            gate=self._gates,
+            mprocess=value,
+        )
+        try:
+            self._validate_schedules(self._schedules, objdict=objdict)
+        except QuaraScheduleItemError as e:
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'mprocesses' does not match schedules."
+            )
+        else:
+            self._mprocesses = value
 
     @property
     def schedules(self) -> List[List[Tuple[str, int]]]:
@@ -367,10 +396,15 @@ class Experiment:
         states = copy.copy(self.states)
         gates = copy.copy(self.gates)
         povms = copy.copy(self.povms)
+        mprocesses = copy.copy(self.mprocesses)
         schedules = copy.copy(self.schedules)
 
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules
+            states=states,
+            gates=gates,
+            povms=povms,
+            mprocesses=mprocesses,
+            schedules=schedules,
         )
         return experiment
 
@@ -394,7 +428,12 @@ class Experiment:
         """
         self._validate_schedule_index(schedule_index)
         schedule = self.schedules[schedule_index]
-        key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
+        key_map = dict(
+            state=self._states,
+            gate=self._gates,
+            povm=self._povms,
+            mprocess=self._mprocesses,
+        )
         targets = collections.deque()
         for item in schedule:
             k, i = item
@@ -402,7 +441,6 @@ class Experiment:
             if not target:
                 raise ValueError("{}s[{}] is None.".format(k, i))
             targets.appendleft(target)
-
         prob_dist = op.compose_qoperations(*targets)
         return prob_dist.ps
 
@@ -416,6 +454,7 @@ class Experiment:
         """
         prob_dists = []
         for i in range(len(self.schedules)):
+            # print(f"🐹schedules: {i=}")
             r = self.calc_prob_dist(i)
             prob_dists.append(r)
         return prob_dists
@@ -571,5 +610,9 @@ class Experiment:
                 prob_dists, list_num_sums_tmp, seed_or_stream
             )
         )
-
+        print(f"🏡🏡🏡🏡🏡")
+        for p, e in zip(prob_dists, empi_dists_sequence):
+            print(f"prob: {p}")
+            print(f"empi: {e}")
+            print("=====================================")
         return empi_dists_sequence
