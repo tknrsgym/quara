@@ -33,15 +33,18 @@ def generate_qiskit_gate_from_gate_name(
 
     elif gate_name == "cx":
         if ids[0] < ids[1]:
-            gate = x.CXGate(ctrl_state=0)
-            mat = Choi(gate)
+            xx = get_xx_matrix_2dim()
+            gate_qiskit = x.CXGate(ctrl_state=0)
+            qis = gate_qiskit.__array__()
+            gate_quara = np.dot(xx, np.dot(qis, xx))
+            mat = Choi(gate_quara)
         elif ids[1] < ids[0]:
             gate = x.CXGate(ctrl_state=1)
             mat = Choi(gate)
 
     elif gate_name == "toffoli":
-        if ids == [0, 1, 2]:
-            gate = x.CCXGate(ctrl_state=0)
+        if ids == [2, 0, 1]:
+            gate = x.CCXGate(ctrl_state=3)
             mat = Choi(gate)
 
     return mat
@@ -67,4 +70,13 @@ def get_swap_matrix_3dim() -> np.ndarray:
     mat[6, 2] = 1
     mat[7, 5] = 1
     mat[8, 8] = 1
+    return mat
+
+
+def get_xx_matrix_2dim() -> np.ndarray:
+    mat = np.zeros((4, 4))
+    mat[0, 3] = 1
+    mat[1, 2] = 1
+    mat[2, 1] = 1
+    mat[3, 0] = 1
     return mat
