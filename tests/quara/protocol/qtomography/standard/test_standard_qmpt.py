@@ -4,8 +4,16 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quara.objects.qoperation_typical import generate_qoperation_object
+from quara.objects.qoperation_typical import (
+    generate_qoperation,
+    generate_qoperation_object,
+)
 from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.tester_typical import (
+    generate_tester_states,
+    generate_tester_povms,
+)
+from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.protocol.qtomography.standard.standard_qmpt import (
     cqpt_to_cqmpt,
     StandardQmpt,
@@ -520,3 +528,204 @@ def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
 
     for actual, expected in zip(actual_list, expected_list):
         npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [("z-type1", True), ("z-type1", False)],
+)
+def test_calc_estimate_1qubit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 1
+    c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LinearEstimator()
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt, empi_dists=empi_dists, is_computation_time_required=True
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [
+        ("x-type1_x-type1", True),
+        ("x-type1_x-type1", False),
+        ("bell-type1", True),
+        ("bell-type1", False),
+    ],
+)
+def test_calc_estimate_2qubit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 2
+    c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(state_names, repeat=num_qubits)
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(povm_names, repeat=num_qubits)
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LinearEstimator()
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt, empi_dists=empi_dists, is_computation_time_required=True
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=14)
+
+
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
+)
+def test_calc_estimate_1qutrit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 1
+    c_sys = generate_composite_system(mode="qutrit", num=num_qubits)
+
+    # Tester Objects
+    state_names = [
+        "01z0",
+        "12z0",
+        "02z1",
+        "01x0",
+        "01y0",
+        "12x0",
+        "12y0",
+        "02x0",
+        "02y0",
+    ]
+    povm_names = ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LinearEstimator()
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt, empi_dists=empi_dists, is_computation_time_required=True
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=14)
