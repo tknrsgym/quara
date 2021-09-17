@@ -36,6 +36,7 @@ from quara.interface.qiskit.qiskit_gate_typical import (
     generate_qiskit_gate_from_gate_name,
     get_swap_matrix_2dim,
     get_swap_matrix_3dim,
+    get_xx_matrix_2dim,
 )
 
 from quara.interface.qiskit.qiskit_empi_dists_typical import (
@@ -210,7 +211,6 @@ def _test_convert_gate_qiskit_to_quara(mode, num, gate_name, ids):
     dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
     expected = generate_gate_from_gate_name(gate_name, c_sys, ids)
-
     source = generate_qiskit_gate_from_gate_name(gate_name, ids)
     actual = convert_gate_qiskit_to_quara(source, c_sys, dim)
     npt.assert_almost_equal(actual.hs, expected.hs, decimal=10)
@@ -241,13 +241,19 @@ def test_convert_gate_qiskit_to_quara_2qubit(gate_name):
     ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_3qubit()]
 )
 def test_convert_gate_qiskit_to_quara_3qubit(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 3, gate_name, ids=[0, 1, 2])
+    _test_convert_gate_qiskit_to_quara("qubit", 3, gate_name, ids=[2, 0, 1])
 
 
 def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids):
     dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
-    expected = generate_qiskit_gate_from_gate_name(gate_name, ids)
+    if ids == [0, 1]:
+        expected_on_quara = generate_gate_from_gate_name(gate_name, c_sys, ids=[1, 0])
+        quara_choi = expected_on_quara.to_choi_matrix()
+        xx = get_xx_matrix_2dim()
+        expected = np.dot(xx, np.dot(xx, quara_choi))
+    else:
+        expected = generate_qiskit_gate_from_gate_name(gate_name, ids)
 
     source = generate_gate_from_gate_name(gate_name, c_sys, ids)
     actual = convert_gate_quara_to_qiskit(source, dim)
