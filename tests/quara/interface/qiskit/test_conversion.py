@@ -1,5 +1,7 @@
 from quara.objects.gate_typical import generate_gate_from_gate_name
 from quara.objects.povm_typical import generate_povm_from_name
+from qiskit.circuit.library.standard_gates import rzx, x, y, z, swap
+from qiskit.quantum_info.operators.channel import Choi
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -247,13 +249,7 @@ def test_convert_gate_qiskit_to_quara_3qubit(gate_name):
 def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids):
     dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
-    if ids == [0, 1]:
-        expected_on_quara = generate_gate_from_gate_name(gate_name, c_sys, ids=[1, 0])
-        quara_choi = expected_on_quara.to_choi_matrix()
-        xx = get_xx_matrix_2dim()
-        expected = np.dot(xx, np.dot(xx, quara_choi))
-    else:
-        expected = generate_qiskit_gate_from_gate_name(gate_name, ids)
+    expected = generate_qiskit_gate_from_gate_name(gate_name, ids)
 
     source = generate_gate_from_gate_name(gate_name, c_sys, ids)
     actual = convert_gate_quara_to_qiskit(source, dim)
