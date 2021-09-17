@@ -527,7 +527,7 @@ def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
     expected_list = qmpt.calc_prob_dists(true_object)
 
     for actual, expected in zip(actual_list, expected_list):
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=14)
 
 
 @pytest.mark.parametrize(
