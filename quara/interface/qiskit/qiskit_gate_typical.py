@@ -103,7 +103,7 @@ def generate_quara_gate_from_ids(
             xx = tensor_product(i0, tensor_product(x1, x2))
             gate = compose_qoperations(xx, compose_qoperations(qua, xx))
         elif ids == [2, 0, 1] or ids == [2, 1, 0]:
-            qua = generate_gate_from_gate_name("toffoli", ids=[2, 0, 1])
+            qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[2, 0, 1])
             gate = qua
 
     return gate
