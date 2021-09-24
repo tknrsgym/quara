@@ -258,8 +258,11 @@ def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids):
     dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
     expected = generate_qiskit_gate_from_gate_name(gate_name, ids)
-
-    source = generate_gate_from_gate_name(gate_name, c_sys, ids)
+    if ids == [0, 1]:
+        qua = generate_gate_from_gate_name("cx", c_sys, ids=[1, 0])
+        source = xx_conversion(qua, c_sys)
+    else:
+        source = generate_gate_from_gate_name(gate_name, c_sys, ids)
     actual = convert_gate_quara_to_qiskit(source, dim)
     npt.assert_almost_equal(actual, expected, decimal=10)
 
@@ -277,10 +280,14 @@ def test_convert_gate_quara_to_qiskit_1qubit(gate_name):
 @pytest.mark.qiskit
 @pytest.mark.twoqubit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_2qubit()]
+    ("gate_name,ids"),
+    [
+        ("cx", [0, 1]),
+        ("cx", [1, 0]),
+    ],
 )
-def test_convert_gate_quara_to_qiskit_2qubit_0(gate_name):
-    _test_convert_gate_quara_to_qiskit("qubit", 2, gate_name, ids=[0, 1])
+def test_convert_gate_quara_to_qiskit_2qubit(gate_name, ids):
+    _test_convert_gate_quara_to_qiskit("qubit", 2, gate_name, ids)
 
 
 @pytest.mark.qiskit
