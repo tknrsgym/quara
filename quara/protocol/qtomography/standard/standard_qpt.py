@@ -204,6 +204,9 @@ class StandardQpt(StandardQTomography):
         ]
         return empi_dists_sequence
 
+    def _testers(self) -> List[Union[State, Povm]]:
+        return self.experiment.states + self.experiment.povms
+
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         # 0:state -> 1:gate -> 2:povm

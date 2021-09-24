@@ -248,6 +248,9 @@ class StandardPovmt(StandardQTomography):
         ]
         return empi_dists_sequence
 
+    def _testers(self) -> List[State]:
+        return self.experiment.states
+
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         POVM_ITEM_INDEX = 1

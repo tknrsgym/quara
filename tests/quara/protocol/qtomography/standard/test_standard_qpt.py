@@ -133,6 +133,10 @@ class TestStandardQpt:
                 schedules=invalid_schedules,
             )
 
+    def test_testers(self):
+        qpt, _ = get_test_data()
+        assert len(qpt.testers) == 7
+
     def test_generate_empi_dist(self):
         qpt, c_sys = get_test_data()
         gate = generate_gate_x(c_sys)

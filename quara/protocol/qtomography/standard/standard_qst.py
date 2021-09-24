@@ -158,6 +158,9 @@ class StandardQst(StandardQTomography):
         ]
         return all(checks)
 
+    def _testers(self) -> List[Povm]:
+        return self.experiment.povms
+
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         state_index = schedule[0][1]

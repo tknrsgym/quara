@@ -36,6 +36,44 @@ from quara.minimization_algorithm.projected_gradient_descent_backtracking import
 )
 
 
+class TestStandardQmpt:
+    def test_testers(self):
+        # Arrange
+        num_qubits = 1
+        c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+        # Tester Objects
+        state_names = ["x0", "y0", "z0", "z1"]
+        povm_names = ["x", "y", "z"]
+
+        tester_states = [
+            generate_qoperation_object(
+                mode="state", object_name="state", name=name, c_sys=c_sys
+            )
+            for name in state_names
+        ]
+        tester_povms = [
+            generate_qoperation_object(
+                mode="povm", object_name="povm", name=name, c_sys=c_sys
+            )
+            for name in povm_names
+        ]
+
+        # True Object
+        true_object = generate_qoperation(mode="mprocess", name="x-type1", c_sys=c_sys)
+
+        # Qmpt
+        qmpt = StandardQmpt(
+            states=tester_states,
+            povms=tester_povms,
+            num_outcomes=true_object.num_outcomes,
+            on_para_eq_constraint=True,
+            schedules="all",
+        )
+
+        assert len(qmpt.testers) == 7
+
+
 def test_cqpt_to_cqmpt():
     # Case 1: on_para_eq_constraint=False
     # Arrange
@@ -1004,7 +1042,6 @@ def test_calc_estimate_MLE_1qutrit(true_object_name: str, on_para_eq_constraint:
         npt.assert_almost_equal(a, e, decimal=1)
 
 
-"""
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [("z-type1", True), ("z-type1", False)],
@@ -1080,7 +1117,6 @@ def test_calc_estimate_LSE_1qubit(true_object_name: str, on_para_eq_constraint: 
     # Assert
     for a, e in zip(actual.hss, true_object.hss):
         npt.assert_almost_equal(a, e, decimal=8)
-"""
 
 
 """
