@@ -42,10 +42,8 @@ def generate_qiskit_gate_from_gate_name(
 
     elif gate_name == "cx":
         if ids[0] < ids[1]:
-            gate_on_qiskit = x.CXGate(ctrl_state=1)
-            gate_on_qis = Choi(gate_on_qiskit)
-            swap = calc_swap_matrix(d=4)
-            mat = np.dot(swap, np.dot(gate_on_qis, swap))
+            gate = x.CXGate(ctrl_state=0)
+            mat = Choi(gate)
         elif ids[1] < ids[0]:
             gate = x.CXGate(ctrl_state=1)
             mat = Choi(gate)
