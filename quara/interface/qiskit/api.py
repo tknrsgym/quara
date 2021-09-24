@@ -33,7 +33,7 @@ from quara.loss_function.weighted_probability_based_squared_error import (
 
 def least_squares_estimator_wrapper(
     qtomography: StandardQTomography,
-    empi_dists: List[Tuple[int, ndarray]],
+    empi_dists: List[Tuple[int, np.ndarray]],
     mode_weight: str,
 ) -> QOperation:
     estimator = LossMinimizationEstimator()
@@ -279,7 +279,7 @@ def generate_empi_dists_from_qiskit_state(
     num_sum: int,
     seed: int,
     schedules: Union[List[List[Tuple]], str],
-) -> List[Tuple[int, ndarray]]:
+) -> List[Tuple[int, np.ndarray]]:
 
     """Generate empirical distributions using the data generated from probability distributions of specified schedules.
 
@@ -326,7 +326,7 @@ def generate_empi_dists_from_qiskit_povm(
     num_sum: int,
     seed: int,
     schedules: Union[List[List[Tuple]], str],
-) -> List[Tuple[int, ndarray]]:
+) -> List[Tuple[int, np.ndarray]]:
 
     """Generate empirical distributions using the data generated from probability distributions of specified schedules.
 
@@ -378,7 +378,7 @@ def generate_empi_dists_from_qiskit_gate(
     num_sum: int,
     seed: int,
     schedules: Union[List[List[Tuple]], str],
-) -> List[Tuple[int, ndarray]]:
+) -> List[Tuple[int, np.ndarray]]:
 
     """Generate empirical distributions using the data generated from probability distributions of specified schedules.
 
