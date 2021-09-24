@@ -919,6 +919,7 @@ def test_calc_estimate_MLE_2qubit(true_object_name: str, on_para_eq_constraint: 
         num_outcomes=true_object.num_outcomes,
         on_para_eq_constraint=on_para_eq_constraint,
         eps_proj_physical=1e-5,
+        eps_truncate_imaginary_part=1e-12,
         schedules="all",
     )
 
@@ -1042,6 +1043,7 @@ def test_calc_estimate_MLE_1qutrit(true_object_name: str, on_para_eq_constraint:
         npt.assert_almost_equal(a, e, decimal=1)
 
 
+"""
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [("z-type1", True), ("z-type1", False)],
@@ -1117,6 +1119,7 @@ def test_calc_estimate_LSE_1qubit(true_object_name: str, on_para_eq_constraint: 
     # Assert
     for a, e in zip(actual.hss, true_object.hss):
         npt.assert_almost_equal(a, e, decimal=8)
+"""
 
 
 """

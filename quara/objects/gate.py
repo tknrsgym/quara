@@ -29,6 +29,7 @@ class Gate(QOperation):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -69,6 +70,7 @@ class Gate(QOperation):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         self._hs: np.ndarray = hs
 
@@ -166,6 +168,7 @@ class Gate(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return gate
 
@@ -183,6 +186,7 @@ class Gate(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_gate
@@ -242,6 +246,7 @@ class Gate(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_gate
@@ -251,6 +256,7 @@ class Gate(QOperation):
         c_sys: CompositeSystem,
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
+        eps_truncate_imaginary_part: float = None,
     ) -> np.ndarray:
         """calculates the projection of Gate on inequal constraint.
 
@@ -262,6 +268,8 @@ class Gate(QOperation):
             variables.
         on_para_eq_constraint : bool, optional
             whether this variables is on parameter equality constraint, by default True.
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
         Returns
         -------
@@ -278,7 +286,11 @@ class Gate(QOperation):
 
         # calc new HS
         new_choi_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
-        new_hs = to_hs_from_choi_with_sparsity(c_sys, new_choi_matrix)
+        new_hs = to_hs_from_choi_with_sparsity(
+            c_sys,
+            new_choi_matrix,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
+        )
 
         # HS to var
         new_var = convert_hs_to_var(c_sys, new_hs, on_para_eq_constraint)
@@ -680,7 +692,9 @@ def to_hs_from_choi(c_sys: CompositeSystem, choi: np.ndarray) -> np.ndarray:
     return hs
 
 
-def to_hs_from_choi_with_dict(c_sys: CompositeSystem, choi: np.ndarray) -> np.ndarray:
+def to_hs_from_choi_with_dict(
+    c_sys: CompositeSystem, choi: np.ndarray, eps_truncate_imaginary_part: float = None
+) -> np.ndarray:
     """converts Choi matrix to HS representation of this gate.
 
     this function uses dict to calculate fast.
@@ -691,6 +705,8 @@ def to_hs_from_choi_with_dict(c_sys: CompositeSystem, choi: np.ndarray) -> np.nd
         CompositeSystem of this gate.
     choi : np.ndarray
         Choi matrix of this gate.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -705,11 +721,15 @@ def to_hs_from_choi_with_dict(c_sys: CompositeSystem, choi: np.ndarray) -> np.nd
         for i, j, coefficient in non_zeros:
             hs[alpha, beta] += coefficient * choi[j, i]
 
-    return mutil.truncate_hs(hs)
+    return mutil.truncate_hs(
+        hs, eps_truncate_imaginary_part=eps_truncate_imaginary_part
+    )
 
 
 def to_hs_from_choi_with_sparsity(
-    c_sys: CompositeSystem, choi: np.ndarray
+    c_sys: CompositeSystem,
+    choi: np.ndarray,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """converts Choi matrix to HS representation of this gate.
 
@@ -721,6 +741,8 @@ def to_hs_from_choi_with_sparsity(
         CompositeSystem of this gate.
     choi : np.ndarray
         Choi matrix of this gate.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -730,7 +752,9 @@ def to_hs_from_choi_with_sparsity(
     hs_vec = c_sys._basisconjugate_basis_sparse.dot(choi.flatten())
     hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
 
-    return mutil.truncate_hs(hs)
+    return mutil.truncate_hs(
+        hs, eps_truncate_imaginary_part=eps_truncate_imaginary_part
+    )
 
 
 def to_kraus_matrices_from_hs(
@@ -1002,6 +1026,7 @@ def convert_var_to_gate(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> Gate:
     """converts vec of variables to gate.
 
@@ -1030,6 +1055,7 @@ def convert_var_to_gate(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return gate
 
@@ -1067,6 +1093,7 @@ def calc_gradient_from_gate(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> Gate:
     """calculates gradient from gate.
 
@@ -1102,6 +1129,7 @@ def calc_gradient_from_gate(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return gate
 

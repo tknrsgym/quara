@@ -32,6 +32,7 @@ class Povm(QOperation):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -69,6 +70,7 @@ class Povm(QOperation):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
 
         # Set
@@ -207,6 +209,7 @@ class Povm(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return povm
 
@@ -240,6 +243,7 @@ class Povm(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_povm
 
@@ -308,7 +312,9 @@ class Povm(QOperation):
             # calc new vecs
             new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
             new_vec = to_vec_from_matrix_with_sparsity(
-                self.composite_system, new_matrix
+                self.composite_system,
+                new_matrix,
+                eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
             )
             new_vecs.append(new_vec)
 
@@ -322,6 +328,7 @@ class Povm(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_povm
@@ -331,6 +338,7 @@ class Povm(QOperation):
         c_sys: CompositeSystem,
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
+        eps_truncate_imaginary_part: float = None,
     ) -> np.ndarray:
         """calculates the projection of State on inequal constraint.
 
@@ -342,6 +350,8 @@ class Povm(QOperation):
             variables.
         on_para_eq_constraint : bool, optional
             whether this variables is on parameter equality constraint, by default True.
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
         Returns
         -------
@@ -364,7 +374,11 @@ class Povm(QOperation):
 
             # calc new vecs
             new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
-            new_vec = to_vec_from_matrix_with_sparsity(c_sys, new_matrix)
+            new_vec = to_vec_from_matrix_with_sparsity(
+                c_sys,
+                new_matrix,
+                eps_truncate_imaginary_part=eps_truncate_imaginary_part,
+            )
             new_vecs.append(new_vec)
 
         # vecs to var
@@ -733,7 +747,9 @@ def to_matrices_from_vecs(
 
 
 def to_vec_from_matrix_with_sparsity(
-    c_sys: CompositeSystem, matrix: np.ndarray
+    c_sys: CompositeSystem,
+    matrix: np.ndarray,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """converts matrix to vec.
 
@@ -745,6 +761,8 @@ def to_vec_from_matrix_with_sparsity(
         CompositeSystem of this povm.
     matrix : np.ndarray
         matrix of vec of this povm.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -752,7 +770,9 @@ def to_vec_from_matrix_with_sparsity(
         vec of variables.
     """
     vec = c_sys._basisconjugate_sparse.dot(matrix.flatten())
-    return mutil.truncate_hs(vec)
+    return mutil.truncate_hs(
+        vec, eps_truncate_imaginary_part=eps_truncate_imaginary_part
+    )
 
 
 def to_vecs_from_matrices_with_sparsity(
@@ -1028,6 +1048,7 @@ def calc_gradient_from_povm(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> Povm:
     """calculates gradient from gate.
 
@@ -1066,6 +1087,7 @@ def calc_gradient_from_povm(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return povm
 

@@ -26,6 +26,7 @@ class StandardQpt(StandardQTomography):
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
         seed: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
@@ -52,6 +53,7 @@ class StandardQpt(StandardQTomography):
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         set_qoperations = SetQOperations(states=[], gates=[gate], povms=[])
 
