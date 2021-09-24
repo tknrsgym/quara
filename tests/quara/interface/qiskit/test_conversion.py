@@ -370,7 +370,7 @@ def test_convert_empi_dists_quara_to_qiskit_int(empi_dists_quara, empi_dists_qis
 def _test_convert_empi_dists_quara_to_qiskit_shots(empi_dists_quara, shots):
     expected = shots
     source = empi_dists_quara
-    actual = convert_empi_dists_quara_to_qiskit_shots(source)
+    actual = convert_empi_dists_quara_to_qiskit_shots(quara_dists=source)
     npt.assert_equal(expected, actual)
 
 
