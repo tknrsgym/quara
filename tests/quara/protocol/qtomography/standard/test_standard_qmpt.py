@@ -647,8 +647,7 @@ def test_calc_estimate_LinearEstimator_1qubit(
         npt.assert_almost_equal(a, e, decimal=15)
 
 
-"""
-@pytest.mark.twoqubit
+@pytest.mark.time_consuming_test
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [
@@ -716,7 +715,6 @@ def test_calc_estimate_LinearEstimator_2qubit(
     # Assert
     for a, e in zip(actual.hss, true_object.hss):
         npt.assert_almost_equal(a, e, decimal=14)
-"""
 
 
 @pytest.mark.parametrize(
