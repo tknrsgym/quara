@@ -1,7 +1,16 @@
+from quara.objects.composite_system import CompositeSystem
 from typing import List, Union
 import numpy as np
 from qiskit.circuit.library.standard_gates import rzx, x, y, z, swap
 from qiskit.quantum_info.operators.channel import Choi
+from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.gate_typical import generate_gate_from_gate_name
+from quara.objects.operators import compose_qoperations, tensor_product
+from quara.interface.qiskit.conversion import (
+    calc_swap_matrix,
+    convert_empi_dists_qiskit_to_quara,
+)
+from quara.objects.gate import Gate
 
 
 def get_qiskit_gate_names_1qubit() -> List[str]:
@@ -33,11 +42,10 @@ def generate_qiskit_gate_from_gate_name(
 
     elif gate_name == "cx":
         if ids[0] < ids[1]:
-            xx = get_xx_matrix_2dim()
-            gate_qiskit = x.CXGate(ctrl_state=0)
-            qis = gate_qiskit.__array__()
-            gate_quara = np.dot(xx, np.dot(qis, xx))
-            mat = Choi(gate_quara)
+            gate_on_qiskit = x.CXGate(ctrl_state=1)
+            gate_on_qis = Choi(gate_on_qiskit)
+            swap = calc_swap_matrix(d=4)
+            mat = np.dot(swap, np.dot(gate_on_qis, swap))
         elif ids[1] < ids[0]:
             gate = x.CXGate(ctrl_state=1)
             mat = Choi(gate)
@@ -73,10 +81,11 @@ def get_swap_matrix_3dim() -> np.ndarray:
     return mat
 
 
-def get_xx_matrix_2dim() -> np.ndarray:
-    mat = np.zeros((4, 4))
-    mat[0, 3] = 1
-    mat[1, 2] = 1
-    mat[2, 1] = 1
-    mat[3, 0] = 1
-    return mat
+def xx_conversion(gate: Gate, c_sys: CompositeSystem) -> Gate:
+    c_sys_0 = CompositeSystem([c_sys[0]])
+    c_sys_1 = CompositeSystem([c_sys[1]])
+    x1 = generate_gate_from_gate_name("x", c_sys_0)
+    x2 = generate_gate_from_gate_name("x", c_sys_1)
+    xx = tensor_product(x1, x2)
+    converted_gate = compose_qoperations(xx, compose_qoperations(gate, xx))
+    return converted_gate
