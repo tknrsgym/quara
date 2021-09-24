@@ -4,6 +4,10 @@ from typing import List, Tuple
 import numpy as np
 
 from quara.objects.qoperation import QOperation
+from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.objects.qoperations import SetQOperations
 from quara.qcircuit.experiment import Experiment
 
@@ -23,9 +27,9 @@ class QTomography:
         Parameters
         ----------
         experiment : Experiment
-            Experiment class used in quantum tomography.
+            Experiment class used in quantum tomography, which is supposed to have tester objects.
         set_qoperations : SetQOperations
-            SetQOperations class used in quantum tomography.
+            SetQOperations class used in quantum tomography, which is supposed to have conditions of true object.
         """
         self._experiment = experiment
         self._num_schedules = len(self._experiment.schedules)
@@ -126,6 +130,28 @@ class QTomography:
                 )
 
     @property
+    def experiment(self) -> Experiment:
+        """returns Experiment class.
+
+        Returns
+        -------
+        Experiment
+            Experiment class.
+        """
+        return self._experiment
+
+    @property
+    def set_qoperations(self) -> SetQOperations:
+        """returns SetQOperations class.
+
+        Returns
+        -------
+        SetQOperations
+            SetQOperations class.
+        """
+        return self._set_qoperations
+
+    @property
     def num_schedules(self) -> int:
         """returns number of schedules.
 
@@ -146,6 +172,42 @@ class QTomography:
             sum of the number of all variables.
         """
         return self._num_variables
+
+    @property
+    def states(self) -> List[State]:
+        return self._experiment.states
+
+    @property
+    def povms(self) -> List[Povm]:
+        return self._experiment.povms
+
+    @property
+    def gates(self) -> List[Gate]:
+        return self._experiment.gates
+
+    @property
+    def mprocesses(self) -> List[MProcess]:
+        return self._experiment.mprocesses
+
+    @abstractmethod
+    def _testers(self) -> QOperation:
+        raise NotImplementedError()
+
+    @property
+    def testers(self) -> List[QOperation]:
+        """returns tester objects.
+
+        Returns
+        -------
+        List[QOperation]
+            tester objects.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        return self._testers()
 
     def reset_seed(self, seed: int = None) -> None:
         """reset new seed.

@@ -30,6 +30,7 @@ class StandardQmpt(StandardQTomography):
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
         seed: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
@@ -60,6 +61,7 @@ class StandardQmpt(StandardQTomography):
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         set_qoperations = SetQOperations(states=[], mprocesses=[mprocess], povms=[])
 
@@ -191,6 +193,9 @@ class StandardQmpt(StandardQTomography):
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
         ]
         return empi_dists_sequence
+
+    def _testers(self) -> List[Union[State, Povm]]:
+        return self.experiment.states + self.experiment.povms
 
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]

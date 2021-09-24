@@ -37,6 +37,7 @@ class MProcess(QOperation):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
         eps_zero: Union[float, np.float64] = 10 ** -8,
     ):
         super().__init__(
@@ -48,6 +49,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         self._hss: List[np.ndarray] = hss
         self._num_outcomes = len(self._hss)
@@ -290,6 +292,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -321,6 +324,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -349,6 +353,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return mprocess
 
@@ -381,6 +386,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_mprocess
@@ -419,7 +425,10 @@ class MProcess(QOperation):
         dim = self.composite_system.dim
         for hs in self.hss:
             proj_hs = Gate.calc_proj_ineq_constraint_with_var(
-                self.composite_system, hs.flatten(), on_para_eq_constraint=False
+                self.composite_system,
+                hs.flatten(),
+                on_para_eq_constraint=False,
+                eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
             ).reshape((dim ** 2, dim ** 2))
             new_hss.append(proj_hs)
 
@@ -437,6 +446,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_mprocess
@@ -446,6 +456,7 @@ class MProcess(QOperation):
         c_sys: CompositeSystem,
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
+        eps_truncate_imaginary_part: float = None,
     ) -> np.ndarray:
         # var to hss
         hss = convert_var_to_hss(
@@ -456,7 +467,10 @@ class MProcess(QOperation):
         new_var = np.array([], dtype=np.float64)
         for hs_index, hs in enumerate(hss):
             proj_hs = Gate.calc_proj_ineq_constraint_with_var(
-                c_sys, hs.flatten(), on_para_eq_constraint=False
+                c_sys,
+                hs.flatten(),
+                on_para_eq_constraint=False,
+                eps_truncate_imaginary_part=eps_truncate_imaginary_part,
             )
             if on_para_eq_constraint is True and hs_index == len(hss) - 1:
                 proj_hs = np.delete(proj_hs, np.s_[0 : c_sys.dim ** 2])
@@ -474,6 +488,7 @@ class MProcess(QOperation):
         on_algo_ineq_constraint: bool = None,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ) -> "QOperation":
         """generates QOperation from variables.
         Parameters
@@ -499,6 +514,9 @@ class MProcess(QOperation):
         eps_proj_physical : float, optional
             epsiron that is projection algorithm error threshold for being physical, by default None.
             if this parameter is None, the value of this instance is set.
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
+
         Returns
         -------
         QOperation
@@ -550,6 +568,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -760,6 +779,7 @@ class MProcess(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -1034,6 +1054,7 @@ def calc_gradient_from_mprocess(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> MProcess:
     """calculates gradient from MProcess.
 
@@ -1075,5 +1096,6 @@ def calc_gradient_from_mprocess(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return mprocess

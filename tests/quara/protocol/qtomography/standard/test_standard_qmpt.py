@@ -9,6 +9,7 @@ from quara.objects.qoperation_typical import (
     generate_qoperation_object,
 )
 from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.mprocess import MProcess
 from quara.objects.tester_typical import (
     generate_tester_states,
     generate_tester_povms,
@@ -18,7 +19,59 @@ from quara.protocol.qtomography.standard.standard_qmpt import (
     cqpt_to_cqmpt,
     StandardQmpt,
 )
-from quara.objects.mprocess import MProcess
+from quara.protocol.qtomography.standard.loss_minimization_estimator import (
+    LossMinimizationEstimator,
+)
+from quara.loss_function.standard_qtomography_based_weighted_relative_entropy import (
+    StandardQTomographyBasedWeightedRelativeEntropy,
+    StandardQTomographyBasedWeightedRelativeEntropyOption,
+)
+from quara.loss_function.weighted_probability_based_squared_error import (
+    WeightedProbabilityBasedSquaredError,
+    WeightedProbabilityBasedSquaredErrorOption,
+)
+from quara.minimization_algorithm.projected_gradient_descent_backtracking import (
+    ProjectedGradientDescentBacktracking,
+    ProjectedGradientDescentBacktrackingOption,
+)
+
+
+class TestStandardQmpt:
+    def test_testers(self):
+        # Arrange
+        num_qubits = 1
+        c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+        # Tester Objects
+        state_names = ["x0", "y0", "z0", "z1"]
+        povm_names = ["x", "y", "z"]
+
+        tester_states = [
+            generate_qoperation_object(
+                mode="state", object_name="state", name=name, c_sys=c_sys
+            )
+            for name in state_names
+        ]
+        tester_povms = [
+            generate_qoperation_object(
+                mode="povm", object_name="povm", name=name, c_sys=c_sys
+            )
+            for name in povm_names
+        ]
+
+        # True Object
+        true_object = generate_qoperation(mode="mprocess", name="x-type1", c_sys=c_sys)
+
+        # Qmpt
+        qmpt = StandardQmpt(
+            states=tester_states,
+            povms=tester_povms,
+            num_outcomes=true_object.num_outcomes,
+            on_para_eq_constraint=True,
+            schedules="all",
+        )
+
+        assert len(qmpt.testers) == 7
 
 
 def test_cqpt_to_cqmpt():
@@ -534,7 +587,9 @@ def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
     ("true_object_name", "on_para_eq_constraint"),
     [("z-type1", True), ("z-type1", False)],
 )
-def test_calc_estimate_1qubit(true_object_name: str, on_para_eq_constraint: bool):
+def test_calc_estimate_LinearEstimator_1qubit(
+    true_object_name: str, on_para_eq_constraint: bool
+):
     # Arrange
     num_qubits = 1
     c_sys = generate_composite_system(mode="qubit", num=num_qubits)
@@ -592,6 +647,7 @@ def test_calc_estimate_1qubit(true_object_name: str, on_para_eq_constraint: bool
         npt.assert_almost_equal(a, e, decimal=15)
 
 
+@pytest.mark.time_consuming_test
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [
@@ -601,7 +657,9 @@ def test_calc_estimate_1qubit(true_object_name: str, on_para_eq_constraint: bool
         ("bell-type1", False),
     ],
 )
-def test_calc_estimate_2qubit(true_object_name: str, on_para_eq_constraint: bool):
+def test_calc_estimate_LinearEstimator_2qubit(
+    true_object_name: str, on_para_eq_constraint: bool
+):
     # Arrange
     num_qubits = 2
     c_sys = generate_composite_system(mode="qubit", num=num_qubits)
@@ -663,7 +721,9 @@ def test_calc_estimate_2qubit(true_object_name: str, on_para_eq_constraint: bool
     ("true_object_name", "on_para_eq_constraint"),
     [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
 )
-def test_calc_estimate_1qutrit(true_object_name: str, on_para_eq_constraint: bool):
+def test_calc_estimate_LinearEstimator_1qutrit(
+    true_object_name: str, on_para_eq_constraint: bool
+):
     # Arrange
     num_qubits = 1
     c_sys = generate_composite_system(mode="qutrit", num=num_qubits)
@@ -729,3 +789,507 @@ def test_calc_estimate_1qutrit(true_object_name: str, on_para_eq_constraint: boo
     # Assert
     for a, e in zip(actual.hss, true_object.hss):
         npt.assert_almost_equal(a, e, decimal=14)
+
+
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [("z-type1", True), ("z-type1", False)],
+)
+def test_calc_estimate_MLE_1qubit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 1
+    c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        # eps_proj_physical=1e-5,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LossMinimizationEstimator()
+    loss = StandardQTomographyBasedWeightedRelativeEntropy()
+    loss_option = StandardQTomographyBasedWeightedRelativeEntropyOption("identity")
+    algo = ProjectedGradientDescentBacktracking()
+    algo_option = ProjectedGradientDescentBacktrackingOption(
+        mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+        num_history_stopping_criterion_gradient_descent=1,
+        eps=1e-9,
+    )
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt,
+        empi_dists=empi_dists,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+        is_computation_time_required=True,
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=6)
+
+
+"""
+@pytest.mark.twoqubit
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [
+        ("x-type1_x-type1", True),
+        ("x-type1_x-type1", False),
+        ("bell-type1", True),
+        ("bell-type1", False),
+    ],
+)
+def test_calc_estimate_MLE_2qubit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 2
+    c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(state_names, repeat=num_qubits)
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(povm_names, repeat=num_qubits)
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        eps_proj_physical=1e-5,
+        eps_truncate_imaginary_part=1e-12,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LossMinimizationEstimator()
+    loss = StandardQTomographyBasedWeightedRelativeEntropy()
+    loss_option = StandardQTomographyBasedWeightedRelativeEntropyOption("identity")
+    algo = ProjectedGradientDescentBacktracking()
+    algo_option = ProjectedGradientDescentBacktrackingOption(
+        mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+        num_history_stopping_criterion_gradient_descent=1,
+        eps=1e-9,
+    )
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt,
+        empi_dists=empi_dists,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+        is_computation_time_required=True,
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=1)
+"""
+
+
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
+)
+def test_calc_estimate_MLE_1qutrit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 1
+    c_sys = generate_composite_system(mode="qutrit", num=num_qubits)
+
+    # Tester Objects
+    state_names = [
+        "01z0",
+        "12z0",
+        "02z1",
+        "01x0",
+        "01y0",
+        "12x0",
+        "12y0",
+        "02x0",
+        "02y0",
+    ]
+    povm_names = ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        eps_proj_physical=1e-5,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LossMinimizationEstimator()
+    loss = StandardQTomographyBasedWeightedRelativeEntropy()
+    loss_option = StandardQTomographyBasedWeightedRelativeEntropyOption("identity")
+    algo = ProjectedGradientDescentBacktracking()
+    algo_option = ProjectedGradientDescentBacktrackingOption(
+        mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+        num_history_stopping_criterion_gradient_descent=1,
+        eps=1e-9,
+    )
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt,
+        empi_dists=empi_dists,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+        is_computation_time_required=True,
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=1)
+
+
+"""
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [("z-type1", True), ("z-type1", False)],
+)
+def test_calc_estimate_LSE_1qubit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 1
+    c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        # eps_proj_physical=1e-5,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LossMinimizationEstimator()
+    loss = WeightedProbabilityBasedSquaredError()
+    loss_option = WeightedProbabilityBasedSquaredErrorOption("identity")
+    algo = ProjectedGradientDescentBacktracking()
+    algo_option = ProjectedGradientDescentBacktrackingOption(
+        mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+        num_history_stopping_criterion_gradient_descent=1,
+        eps=1e-9,
+    )
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt,
+        empi_dists=empi_dists,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+        is_computation_time_required=True,
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=8)
+"""
+
+
+"""
+@pytest.mark.twoqutrit
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [
+        ("x-type1_x-type1", True),
+        ("x-type1_x-type1", False),
+        ("bell-type1", True),
+        ("bell-type1", False),
+    ],
+)
+def test_calc_estimate_LSE_2qubit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 2
+    c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+    # Tester Objects
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(state_names, repeat=num_qubits)
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=f"{a}_{b}", c_sys=c_sys
+        )
+        for a, b in itertools.product(povm_names, repeat=num_qubits)
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        eps_proj_physical=1e-5,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LossMinimizationEstimator()
+    loss = WeightedProbabilityBasedSquaredError()
+    loss_option = WeightedProbabilityBasedSquaredErrorOption("identity")
+    algo = ProjectedGradientDescentBacktracking()
+    algo_option = ProjectedGradientDescentBacktrackingOption(
+        mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+        num_history_stopping_criterion_gradient_descent=1,
+        eps=1e-9,
+    )
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt,
+        empi_dists=empi_dists,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+        is_computation_time_required=True,
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=4)
+"""
+
+
+"""
+@pytest.mark.onequtrit
+@pytest.mark.parametrize(
+    ("true_object_name", "on_para_eq_constraint"),
+    [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
+)
+def test_calc_estimate_LSE_1qutrit(true_object_name: str, on_para_eq_constraint: bool):
+    # Arrange
+    num_qubits = 1
+    c_sys = generate_composite_system(mode="qutrit", num=num_qubits)
+
+    # Tester Objects
+    state_names = [
+        "01z0",
+        "12z0",
+        "02z1",
+        "01x0",
+        "01y0",
+        "12x0",
+        "12y0",
+        "02x0",
+        "02y0",
+    ]
+    povm_names = ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+
+    # True Object
+    true_object = generate_qoperation(
+        mode="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    # Qmpt
+    qmpt = StandardQmpt(
+        states=tester_states,
+        povms=tester_povms,
+        num_outcomes=true_object.num_outcomes,
+        on_para_eq_constraint=on_para_eq_constraint,
+        eps_proj_physical=1e-5,
+        schedules="all",
+    )
+
+    # empi_dists
+    prob_dists = qmpt.calc_prob_dists(true_object)
+    empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+
+    # Estimator
+    estimator = LossMinimizationEstimator()
+    loss = WeightedProbabilityBasedSquaredError()
+    loss_option = WeightedProbabilityBasedSquaredErrorOption("identity")
+    algo = ProjectedGradientDescentBacktracking()
+    algo_option = ProjectedGradientDescentBacktrackingOption(
+        mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
+        num_history_stopping_criterion_gradient_descent=1,
+        eps=1e-9,
+    )
+
+    # Act
+    result = estimator.calc_estimate(
+        qtomography=qmpt,
+        empi_dists=empi_dists,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+        is_computation_time_required=True,
+    )
+    actual = result.estimated_qoperation
+
+    # Assert
+    for a, e in zip(actual.hss, true_object.hss):
+        npt.assert_almost_equal(a, e, decimal=1)
+"""

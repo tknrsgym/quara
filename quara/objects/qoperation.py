@@ -21,6 +21,7 @@ class QOperation:
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -42,6 +43,8 @@ class QOperation:
             the order in which the projections are performed, by default "eq_ineq"
         eps_proj_physical : float, optional
             epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
         Raises
         ------
@@ -70,6 +73,7 @@ class QOperation:
         self._on_algo_ineq_constraint: bool = on_algo_ineq_constraint
         self._mode_proj_order: str = mode_proj_order
         self._eps_proj_physical = eps_proj_physical
+        self._eps_truncate_imaginary_part = eps_truncate_imaginary_part
 
     def _validate_mode_proj_order(self, mode_proj_order):
         if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
@@ -174,6 +178,21 @@ class QOperation:
         """
         return self._eps_proj_physical
 
+    @property
+    def eps_truncate_imaginary_part(self) -> float:  # read only
+        """returns threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
+
+        Returns
+        -------
+        float
+            threshold to truncate imaginary part.
+        """
+        return self._eps_truncate_imaginary_part
+
+    @eps_truncate_imaginary_part.setter
+    def eps_truncate_imaginary_part(self, value):
+        self._eps_truncate_imaginary_part = value
+
     @abstractmethod
     def is_eq_constraint_satisfied(self, atol: float = None):
         raise NotImplementedError()
@@ -252,6 +271,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -287,6 +307,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -322,6 +343,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -479,7 +501,10 @@ class QOperation:
 
         def _func_proj(var: np.ndarray) -> np.ndarray:
             new_var = self.calc_proj_ineq_constraint_with_var(
-                self.composite_system, var, on_para_eq_constraint=on_para_eq_constraint
+                self.composite_system,
+                var,
+                on_para_eq_constraint=on_para_eq_constraint,
+                eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
             )
             return new_var
 
@@ -884,12 +909,18 @@ class QOperation:
                 )
                 p_next = x_prev + p_prev - y_next
                 x_next = self.calc_proj_ineq_constraint_with_var(
-                    self.composite_system, y_next + q_prev, on_para_eq_constraint=False
+                    self.composite_system,
+                    y_next + q_prev,
+                    on_para_eq_constraint=False,
+                    eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
                 )
                 q_next = y_next + q_prev - x_next
             else:
                 y_next = self.calc_proj_ineq_constraint_with_var(
-                    self.composite_system, x_prev + p_prev, on_para_eq_constraint=False
+                    self.composite_system,
+                    x_prev + p_prev,
+                    on_para_eq_constraint=False,
+                    eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
                 )
                 p_next = x_prev + p_prev - y_next
                 x_next = self.calc_proj_eq_constraint_with_var(
@@ -1036,6 +1067,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 
@@ -1110,6 +1142,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 
@@ -1135,6 +1168,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 
@@ -1165,6 +1199,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 

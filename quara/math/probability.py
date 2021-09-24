@@ -24,7 +24,8 @@ def validate_prob_dist(prob_dist: np.ndarray, eps: float = None) -> None:
 
     # whether each probability is a positive number.
     for prob in prob_dist:
-        if prob < 0:
+        # if prob < 0:
+        if prob < 0 and not np.isclose(prob, 0, atol=eps, rtol=0.0):
             raise ValueError(
                 f"each probability must be a non-negative number. there is {prob} in a probability distribution"
             )

@@ -188,7 +188,7 @@ def truncate_computational_fluctuation(
 
 def truncate_hs(
     hs: np.ndarray,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
     is_zero_imaginary_part_required: bool = True,
 ) -> np.ndarray:
     """truncate HS matrix to a real matrix.
@@ -197,8 +197,8 @@ def truncate_hs(
     ----------
     hs : np.ndarray
         HS matrix to truncate.
-    eps_proj_physical : float, optional
-        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
     is_zero_imaginary_part_required : bool, optional
         whether the imaginary part should be truncated to zero, by default True
 
@@ -212,7 +212,7 @@ def truncate_hs(
     ValueError
         `is_zero_imaginary_part_required` == True and some imaginary parts of entries of matrix != 0.
     """
-    tmp_hs = truncate_imaginary_part(hs, eps_proj_physical)
+    tmp_hs = truncate_imaginary_part(hs, eps=eps_truncate_imaginary_part)
 
     if is_zero_imaginary_part_required == True and np.any(tmp_hs.imag != 0):
         raise ValueError(
@@ -222,7 +222,7 @@ def truncate_hs(
     if is_zero_imaginary_part_required == True:
         tmp_hs = tmp_hs.real.astype(np.float64)
 
-    truncated_hs = truncate_computational_fluctuation(tmp_hs, eps_proj_physical)
+    truncated_hs = truncate_computational_fluctuation(tmp_hs, eps_truncate_imaginary_part)
     return truncated_hs
 
 
