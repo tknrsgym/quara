@@ -284,21 +284,13 @@ def test_convert_gate_quara_to_qiskit_2qubit(gate_name, ids):
 
 
 @pytest.mark.qiskit
-@pytest.mark.twoqubit
-@pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_2qubit()]
-)
-def test_convert_gate_quara_to_qiskit_2qubit_1(gate_name):
-    _test_convert_gate_quara_to_qiskit("qubit", 2, gate_name, ids=[1, 0])
-
-
-@pytest.mark.qiskit
 @pytest.mark.threequbit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_3qubit()]
+    ("gate_name,ids"),
+    [("tofolli", [0, 1, 2]), ("toffoli", [0, 2, 1]), ("tofolli", [2, 0, 1])],
 )
-def test_convert_gate_quara_to_qiskit_3qubit(gate_name):
-    _test_convert_gate_quara_to_qiskit("qubit", 3, gate_name, ids=[2, 0, 1])
+def test_convert_gate_quara_to_qiskit_3qubit(gate_name, ids):
+    _test_convert_gate_quara_to_qiskit("qubit", 3, gate_name, ids)
 
 
 def _test_convert_empi_dists_qiskit_to_quara(
