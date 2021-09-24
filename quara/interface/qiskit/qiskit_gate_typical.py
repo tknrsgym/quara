@@ -49,8 +49,16 @@ def generate_qiskit_gate_from_gate_name(
             mat = Choi(gate)
 
     elif gate_name == "toffoli":
-        if ids == [2, 0, 1]:
+        if ids == [2, 0, 1] or ids == [2, 1, 0]:
             gate = x.CCXGate(ctrl_state=3)
+            mat = Choi(gate)
+
+        elif ids == [1, 2, 0] or ids == [0, 2, 1]:
+            gate = x.CCXGate(ctrl_state=0)
+            mat = Choi(gate)
+
+        elif ids == [0, 1, 2] or ids == [1, 0, 2]:
+            gate = x.CCXGate(ctrl_state=1)
             mat = Choi(gate)
 
     return mat
@@ -76,7 +84,7 @@ def generate_quara_gate_from_ids(
             qua = generate_gate_from_gate_name(gate_name, c_sys, ids)
             gate = qua
 
-    elif gate_name == "tofolli":
+    elif gate_name == "toffoli":
         c_sys_0 = CompositeSystem([c_sys[0]])
         c_sys_1 = CompositeSystem([c_sys[1]])
         c_sys_2 = CompositeSystem([c_sys[2]])
@@ -85,17 +93,17 @@ def generate_quara_gate_from_ids(
         x2 = generate_gate_from_gate_name("x", c_sys_2)
 
         if ids == [0, 1, 2] or ids == [1, 0, 2]:
-            qua = generate_gate_from_gate_name("tofolli", c_sys, ids=[0, 1, 2])
+            qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[0, 1, 2])
             i0 = generate_gate_from_gate_name("identity", c_sys_0)
             xx = tensor_product(i0, tensor_product(x1, x2))
             gate = compose_qoperations(xx, compose_qoperations(qua, xx))
         elif ids == [0, 2, 1] or ids == [1, 2, 0]:
-            qua = generate_gate_from_gate_name("tofolli", c_sys, ids=[0, 2, 1])
+            qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[0, 2, 1])
             i0 = generate_gate_from_gate_name("identity", c_sys_0)
             xx = tensor_product(i0, tensor_product(x1, x2))
             gate = compose_qoperations(xx, compose_qoperations(qua, xx))
         elif ids == [2, 0, 1] or ids == [2, 1, 0]:
-            qua = generate_gate_from_gate_name("tofolli", ids=[2, 0, 1])
+            qua = generate_gate_from_gate_name("toffoli", ids=[2, 0, 1])
             gate = qua
 
     return gate
@@ -122,13 +130,3 @@ def get_swap_matrix_3dim() -> np.ndarray:
     mat[7, 5] = 1
     mat[8, 8] = 1
     return mat
-
-
-def xx_conversion(gate: Gate, c_sys: CompositeSystem) -> Gate:
-    c_sys_0 = CompositeSystem([c_sys[0]])
-    c_sys_1 = CompositeSystem([c_sys[1]])
-    x1 = generate_gate_from_gate_name("x", c_sys_0)
-    x2 = generate_gate_from_gate_name("x", c_sys_1)
-    xx = tensor_product(x1, x2)
-    converted_gate = compose_qoperations(xx, compose_qoperations(gate, xx))
-    return converted_gate
