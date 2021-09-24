@@ -262,6 +262,19 @@ def convert_gate_quara_to_qiskit(
 
 def calc_swap_matrix(d: int) -> np.ndarray:
 
+    """make swap matrix which convert choi matrix.
+    Parameters
+    ----------
+    d:int
+       dimension of matrix.
+
+    Returns
+    -------
+    np.ndarray
+        converted matrix between row-majored and column-majored.
+
+    """
+
     mat = np.zeros((d ** 2, d ** 2), dtype=np.complex64)
     for k in range(d ** 2):
         i1 = k // d
