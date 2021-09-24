@@ -126,6 +126,28 @@ class QTomography:
                 )
 
     @property
+    def experiment(self) -> Experiment:
+        """returns Experiment class.
+
+        Returns
+        -------
+        Experiment
+            Experiment class.
+        """
+        return self._experiment
+
+    @property
+    def set_qoperations(self) -> SetQOperations:
+        """returns SetQOperations class.
+
+        Returns
+        -------
+        SetQOperations
+            SetQOperations class.
+        """
+        return self._set_qoperations
+
+    @property
     def num_schedules(self) -> int:
         """returns number of schedules.
 

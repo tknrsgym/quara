@@ -127,6 +127,18 @@ class TestQTomography:
             QTomography(experiment, set_qoperations)
     """
 
+    def test_experiment(self):
+        experiment, set_qoperations = get_test_data()
+
+        qt = QTomography(experiment, set_qoperations)
+        assert len(qt.experiment.schedules) == 3
+
+    def test_set_qoperations(self):
+        experiment, set_qoperations = get_test_data()
+
+        qt = QTomography(experiment, set_qoperations)
+        assert qt.set_qoperations.num_states() == 1
+
     def test_num_schedules(self):
         experiment, set_qoperations = get_test_data()
 
