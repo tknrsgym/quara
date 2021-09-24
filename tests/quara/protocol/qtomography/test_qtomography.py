@@ -5,7 +5,9 @@ import numpy as np
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_x
+from quara.objects.gate_typical import generate_gate_from_gate_name
 from quara.objects.matrix_basis import get_normalized_pauli_basis, get_comp_basis
+from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.objects.povm import (
     Povm,
     get_x_povm,
@@ -144,6 +146,83 @@ class TestQTomography:
 
         qt = QTomography(experiment, set_qoperations)
         assert qt.num_schedules == 3
+
+    def test_access_states(self):
+        experiment, set_qoperations = get_test_data()
+
+        qt = QTomography(experiment, set_qoperations)
+        assert len(qt.states) == 1
+
+    def test_access_gates(self):
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        gate_x = generate_gate_from_gate_name("x", c_sys)
+        gate_y = generate_gate_from_gate_name("y", c_sys)
+        gates = [gate_x, gate_y]
+
+        povm_x = get_x_povm(c_sys)
+        povm_y = get_y_povm(c_sys)
+        povm_z = get_z_povm(c_sys)
+        povms = [povm_x, povm_y, povm_z]
+
+        schedules = []
+        for index in range(len(gates)):
+            schedule = [("state", 0), ("gate", index), ("povm", index)]
+            schedules.append(schedule)
+
+        seed = 7
+
+        experiment = Experiment(
+            states=[None], gates=gates, povms=povms, schedules=schedules, seed=seed
+        )
+        set_qoperations = SetQOperations(states=[get_z0_1q(c_sys)], gates=[], povms=[])
+
+        qt = QTomography(experiment, set_qoperations)
+        assert len(qt.gates) == 2
+
+    def test_access_povms(self):
+        experiment, set_qoperations = get_test_data()
+
+        qt = QTomography(experiment, set_qoperations)
+        assert len(qt.povms) == 1
+
+    def test_access_mprocesss(self):
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        mprocess_x = generate_mprocess_from_name(c_sys, "x-type1")
+        mprocess_y = generate_mprocess_from_name(c_sys, "y-type1")
+        mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+        mprocess_z2 = generate_mprocess_from_name(c_sys, "z-type1")
+        mprocesses = [mprocess_x, mprocess_y, mprocess_z, mprocess_z2]
+
+        povm_x = get_x_povm(c_sys)
+        povm_y = get_y_povm(c_sys)
+        povm_z = get_z_povm(c_sys)
+        povm_z2 = get_z_povm(c_sys)
+        povms = [povm_x, povm_y, povm_z, povm_z2]
+
+        schedules = []
+        for index in range(len(mprocesses)):
+            schedule = [("state", 0), ("mprocess", index), ("povm", index)]
+            schedules.append(schedule)
+
+        seed = 7
+
+        experiment = Experiment(
+            states=[None],
+            mprocesses=mprocesses,
+            povms=povms,
+            schedules=schedules,
+            seed=seed,
+        )
+        set_qoperations = SetQOperations(
+            states=[get_z0_1q(c_sys)], mprocesses=[], povms=[]
+        )
+
+        qt = QTomography(experiment, set_qoperations)
+        assert len(qt.mprocesses) == 4
 
     def test_reset_seed(self):
         # Set up

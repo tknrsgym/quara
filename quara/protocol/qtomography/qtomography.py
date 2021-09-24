@@ -4,6 +4,10 @@ from typing import List, Tuple
 import numpy as np
 
 from quara.objects.qoperation import QOperation
+from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.objects.qoperations import SetQOperations
 from quara.qcircuit.experiment import Experiment
 
@@ -168,6 +172,38 @@ class QTomography:
             sum of the number of all variables.
         """
         return self._num_variables
+
+    @property
+    def states(self) -> List[State]:
+        return self._experiment.states
+
+    @property
+    def povms(self) -> List[Povm]:
+        return self._experiment.povms
+
+    @property
+    def gates(self) -> List[Gate]:
+        return self._experiment.gates
+
+    @property
+    def mprocesses(self) -> List[MProcess]:
+        return self._experiment.mprocesses
+
+    @abstractmethod
+    def get_tester(self, index: int) -> QOperation:
+        """returns tester object with specified index.
+
+        Returns
+        -------
+        QOperation
+            tester object with specified index.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        raise NotImplementedError()
 
     def reset_seed(self, seed: int = None) -> None:
         """reset new seed.
