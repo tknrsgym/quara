@@ -185,7 +185,7 @@ class TestQTomography:
         experiment, set_qoperations = get_test_data()
 
         qt = QTomography(experiment, set_qoperations)
-        assert len(qt.povms) == 1
+        assert len(qt.povms) == 3
 
     def test_access_mprocesss(self):
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())
