@@ -93,12 +93,13 @@ def generate_quara_gate_from_ids(
         x2 = generate_gate_from_gate_name("x", c_sys_2)
 
         if ids == [0, 1, 2] or ids == [1, 0, 2]:
-            qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[0, 1, 2])
+            qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[2, 0, 1])
             i0 = generate_gate_from_gate_name("identity", c_sys_0)
-            xx = tensor_product(i0, tensor_product(x1, x2))
+            i2 = generate_gate_from_gate_name("identity", c_sys_2)
+            xx = tensor_product(i0, tensor_product(x1, i2))
             gate = compose_qoperations(xx, compose_qoperations(qua, xx))
         elif ids == [0, 2, 1] or ids == [1, 2, 0]:
-            qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[0, 2, 1])
+            qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[2, 0, 1])
             i0 = generate_gate_from_gate_name("identity", c_sys_0)
             xx = tensor_product(i0, tensor_product(x1, x2))
             gate = compose_qoperations(xx, compose_qoperations(qua, xx))
