@@ -107,6 +107,9 @@ def generate_quara_gate_from_ids(
             qua = generate_gate_from_gate_name("toffoli", c_sys, ids=[2, 0, 1])
             gate = qua
 
+    else:
+        gate = generate_gate_from_gate_name(gate_name, c_sys, ids=None)
+
     return gate
 
 
