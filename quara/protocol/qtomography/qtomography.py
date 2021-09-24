@@ -23,9 +23,9 @@ class QTomography:
         Parameters
         ----------
         experiment : Experiment
-            Experiment class used in quantum tomography.
+            Experiment class used in quantum tomography, which is supposed to have tester objects.
         set_qoperations : SetQOperations
-            SetQOperations class used in quantum tomography.
+            SetQOperations class used in quantum tomography, which is supposed to have conditions of true object.
         """
         self._experiment = experiment
         self._num_schedules = len(self._experiment.schedules)
