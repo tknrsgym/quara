@@ -38,7 +38,7 @@ from quara.interface.qiskit.qiskit_gate_typical import (
     generate_qiskit_gate_from_gate_name,
     get_swap_matrix_2dim,
     get_swap_matrix_3dim,
-    xx_conversion,
+    generate_quara_gate_from_ids,
 )
 
 from quara.interface.qiskit.qiskit_empi_dists_typical import (
@@ -212,11 +212,7 @@ def test_convert_povm_quara_to_qiskit_3qubit(povm_name):
 def _test_convert_gate_qiskit_to_quara(mode, num, gate_name, ids):
     dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
-    if ids == [0, 1]:
-        qua = generate_gate_from_gate_name("cx", c_sys, ids=[1, 0])
-        expected = xx_conversion(qua, c_sys)
-    else:
-        expected = generate_gate_from_gate_name(gate_name, c_sys, ids)
+    expected = generate_quara_gate_from_ids(gate_name, c_sys, ids)
     source = generate_qiskit_gate_from_gate_name(gate_name, ids)
     actual = convert_gate_qiskit_to_quara(source, c_sys, dim)
     npt.assert_almost_equal(actual.hs, expected.hs, decimal=10)
@@ -248,21 +244,18 @@ def test_convert_gate_qiskit_to_quara_2qubit(gate_name, ids):
 @pytest.mark.qiskit
 @pytest.mark.threequbit
 @pytest.mark.parametrize(
-    ("gate_name"), [(gate_name) for gate_name in get_qiskit_gate_names_3qubit()]
+    ("gate_name,ids"),
+    [("tofolli", [0, 1, 2]), ("toffoli", [0, 2, 1]), ("tofolli", [2, 0, 1])],
 )
-def test_convert_gate_qiskit_to_quara_3qubit(gate_name):
-    _test_convert_gate_qiskit_to_quara("qubit", 3, gate_name, ids=[2, 0, 1])
+def test_convert_gate_qiskit_to_quara_3qubit(gate_name, ids):
+    _test_convert_gate_qiskit_to_quara("qubit", 3, gate_name, ids)
 
 
 def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids):
     dim = 2 ** num
     c_sys = generate_composite_system(mode, num)
     expected = generate_qiskit_gate_from_gate_name(gate_name, ids)
-    if ids == [0, 1]:
-        qua = generate_gate_from_gate_name("cx", c_sys, ids=[1, 0])
-        source = xx_conversion(qua, c_sys)
-    else:
-        source = generate_gate_from_gate_name(gate_name, c_sys, ids)
+    source = generate_quara_gate_from_ids(gate_name, c_sys, ids)
     actual = convert_gate_quara_to_qiskit(source, dim)
     npt.assert_almost_equal(actual, expected, decimal=10)
 
