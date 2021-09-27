@@ -425,3 +425,13 @@ def generate_empi_dists_from_qiskit_gate(
         seed=seed,
     )
     return qpt.generate_empi_dists(gate=true_gate_quara, num_sum=num_sum)
+
+
+def generate_empi_dists_from_quara(
+    empi_dists_quara: List[Tuple[int, np.ndarray]]
+) -> Tuple[List[int], np.ndarray]:
+    empi_dists = convert_empi_dists_quara_to_qiskit(empi_dists_quara)
+    label = []
+    for i in empi_dists_quara:
+        label.append(np.size(i[1]))
+    return label, empi_dists
