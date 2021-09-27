@@ -313,7 +313,7 @@ def generate_empi_dists_from_qiskit_state(
     true_state_quara = convert_state_qiskit_to_quara(true_state, c_sys)
 
     qst = StandardQst(
-        tester_povms_quara, is_physicality_required=True, schedules=schedules, seed=seed
+        tester_povms_quara, on_para_eq_constraint=True, schedules=schedules, seed=seed
     )
     return qst.generate_empi_dists(state=true_state_quara, num_sum=num_sum)
 
