@@ -407,6 +407,7 @@ def generate_empi_dists_from_qiskit_gate(
         empirical disribution which is a List of empirical probabilities.
     """
 
+    dim = 2 ** num_system
     c_sys = generate_composite_system(mode_system, num_system)
     tester_states_quara = []
     for qiskit_state in tester_states:
@@ -414,7 +415,7 @@ def generate_empi_dists_from_qiskit_gate(
     tester_povms_quara = []
     for qiskit_povm in tester_povms:
         tester_povms_quara.append(convert_povm_qiskit_to_quara(qiskit_povm, c_sys))
-    true_gate_quara = convert_gate_qiskit_to_quara(true_gate, c_sys)
+    true_gate_quara = convert_gate_qiskit_to_quara(true_gate, c_sys, dim)
 
     qpt = StandardQpt(
         tester_states_quara,
