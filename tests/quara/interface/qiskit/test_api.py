@@ -1,9 +1,11 @@
+from numpy.testing._private.utils import assert_array_almost_equal
 from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
 from quara.interface.qiskit.api import (
     estimate_standard_povmt_from_qiskit,
     estimate_standard_qpt_from_qiskit,
     estimate_standard_qst_from_qiskit,
+    generate_empi_dists_from_quara,
 )
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 import numpy as np
@@ -200,3 +202,27 @@ def test_estimate_standard_qpt_from_qiskit(mode, num, true_gate_name, decimal):
             true_gate_qiskit,
             decimal=decimal,
         )
+
+
+@pytest.mark.qiskit
+def test_generate_empi_dists_from_quara_label():
+    true_empi_dists = [[2, 2, 2], np.array([0.864, 0.136, 0.844, 0.156, 0.49, 0.51])]
+    source = [
+        (1000, np.array([0.864, 0.136])),
+        (1000, np.array([0.844, 0.156])),
+        (1000, np.array([0.49, 0.51])),
+    ]
+    actual = generate_empi_dists_from_quara(source)
+    assert actual[0] == true_empi_dists[0]
+
+
+@pytest.mark.qiskit
+def test_generate_empi_dists_from_quara_dists():
+    true_empi_dists = [[2, 2, 2], np.array([0.864, 0.136, 0.844, 0.156, 0.49, 0.51])]
+    source = [
+        (1000, np.array([0.864, 0.136])),
+        (1000, np.array([0.844, 0.156])),
+        (1000, np.array([0.49, 0.51])),
+    ]
+    actual = generate_empi_dists_from_quara(source)
+    assert_array_almost_equal(true_empi_dists[1], actual[1])
