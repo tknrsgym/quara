@@ -3,6 +3,8 @@ from typing import List, Tuple, Union
 
 from quara.interface.qiskit.conversion import (
     convert_empi_dists_qiskit_to_quara,
+    convert_empi_dists_quara_to_qiskit,
+    convert_empi_dists_quara_to_qiskit_shots,
     convert_gate_qiskit_to_quara,
     convert_gate_quara_to_qiskit,
     convert_state_qiskit_to_quara,
