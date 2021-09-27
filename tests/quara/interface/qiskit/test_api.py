@@ -225,4 +225,4 @@ def test_generate_empi_dists_from_quara_dists():
         (1000, np.array([0.49, 0.51])),
     ]
     actual = generate_empi_dists_from_quara(source)
-    assert_array_almost_equal(true_empi_dists[1], actual[1])
+    npt.assert_array_almost_equal(true_empi_dists[1], actual[1])
