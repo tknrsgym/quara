@@ -430,6 +430,19 @@ def generate_empi_dists_from_qiskit_gate(
 def generate_empi_dists_from_quara(
     empi_dists_quara: List[Tuple[int, np.ndarray]]
 ) -> Tuple[List[int], np.ndarray]:
+
+    """Generate empirical distributions in qiskit and label from empirica distribution of quara.
+
+    Parameters
+    ----------
+    empi_dists_quara: List[Tuple[int, np.ndarray]]
+
+    Returns
+    ---------
+    Tuple[List[int], np.ndarray]
+        Tuple of label and empirical distribution.
+    """
+
     empi_dists = convert_empi_dists_quara_to_qiskit(empi_dists_quara)
     label = []
     for i in empi_dists_quara:
