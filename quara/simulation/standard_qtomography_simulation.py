@@ -37,7 +37,10 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
-from quara.simulation.generation_setting import QOperationGenerationSettings
+from quara.simulation.generation_setting import (
+    QOperationGenerationSettings,
+    QOperationGenerationSetting,
+)
 from quara.simulation.depolarized_qoperation_generation_setting import (
     DepolarizedQOperationGenerationSetting,
 )
@@ -127,6 +130,11 @@ class NoiseSetting:
     def to_generation_setting(
         self, c_sys: "CompositeSystem"
     ) -> "QOperationGenerationSetting":
+        if self.method is None:
+            return QOperationGenerationSetting(
+                qoperation_base=self.qoperation_base, c_sys=c_sys, ids=self.ids
+            )  # dummy
+
         name2class_map = {
             "depolarized": DepolarizedQOperationGenerationSetting,
             "random_effective_lindbladian": RandomEffectiveLindbladianGenerationSetting,

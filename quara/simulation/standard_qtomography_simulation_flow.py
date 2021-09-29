@@ -19,8 +19,8 @@ from quara.simulation import standard_qtomography_simulation as sim
 from quara.simulation.standard_qtomography_simulation import (
     EstimatorTestSetting,
     SimulationResult,
-    StandardQTomographySimulationSetting,
 )
+from quara.objects.qoperation_typical import generate_qoperation_object
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
@@ -112,11 +112,35 @@ def execute_simulation_sample_unit(
             for tester_setting in generation_settings.tester_settings
         ]
     else:
-        true_object = generation_settings.true_setting.generate()
-        tester_objects = [
-            tester_setting.generate()
-            for tester_setting in generation_settings.tester_settings
-        ]
+        # True Object
+        if test_setting.true_object.method is None:
+            name = test_setting.true_object.qoperation_base[1]
+            mode_name = test_setting.true_object.qoperation_base[0]
+            true_object = generate_qoperation_object(
+                mode=mode_name,
+                object_name=mode_name,
+                name=name,
+                c_sys=test_setting.c_sys,
+            )
+        else:
+            true_object = generation_settings.true_setting.generate()
+
+        # Tester Objects
+        tester_objects = []
+        for tester_setting in test_setting.tester_objects:
+            if tester_setting.method is None:
+                name = tester_setting.qoperation_base[1]
+                mode_name = tester_setting.qoperation_base[0]
+                tester_objects.append(
+                    generate_qoperation_object(
+                        mode=mode_name,
+                        object_name=mode_name,
+                        name=name,
+                        c_sys=test_setting.c_sys,
+                    )
+                )
+            else:
+                tester_objects.append(tester_setting.generate())
 
     true_object = true_object[0] if type(true_object) == tuple else true_object
     tester_objects = [

@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
@@ -300,9 +301,14 @@ def _recreate_qoperation(
             c_sys=true_object.composite_system,
             on_para_eq_constraint=on_para_eq_constraint,
         )
+    elif type(true_object) == MProcess:
+        true_object_copied = MProcess(
+            hss=true_object.hss,
+            c_sys=true_object.composite_system,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
     else:
-        print(type(true_object))
-        message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
+        message = f"true_object must be State, Povm, Gate, or MProcess, not {type(true_object)}"
         raise TypeError(message)
     return true_object_copied
 
