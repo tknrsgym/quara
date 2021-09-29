@@ -227,7 +227,7 @@ def convert_gate_qiskit_to_quara(
 
     swap = calc_swap_matrix(dim)
     qiskit_gate_for_quara = np.dot(swap, (np.dot(qiskit_gate, swap)))
-    qiskit_gate_hs = to_hs_from_choi(qiskit_gate_for_quara, c_sys)
+    qiskit_gate_hs = to_hs_from_choi(c_sys, qiskit_gate_for_quara)
     quara_gate = Gate(c_sys, qiskit_gate_hs)
     return quara_gate
 
