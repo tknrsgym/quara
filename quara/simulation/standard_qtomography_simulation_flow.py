@@ -112,6 +112,13 @@ def execute_simulation_sample_unit(
             for tester_setting in generation_settings.tester_settings
         ]
     else:
+        # TODO revert:
+        # true_object = generation_settings.true_setting.generate()
+        # tester_objects = [
+        #     tester_setting.generate()
+        #     for tester_setting in generation_settings.tester_settings
+        # ]
+
         # True Object
         if test_setting.true_object.method is None:
             name = test_setting.true_object.qoperation_base[1]
@@ -127,10 +134,10 @@ def execute_simulation_sample_unit(
 
         # Tester Objects
         tester_objects = []
-        for tester_setting in test_setting.tester_objects:
-            if tester_setting.method is None:
-                name = tester_setting.qoperation_base[1]
-                mode_name = tester_setting.qoperation_base[0]
+        for i, tester_noise_setting in enumerate(test_setting.tester_objects):
+            if tester_noise_setting.method is None:
+                name = tester_noise_setting.qoperation_base[1]
+                mode_name = tester_noise_setting.qoperation_base[0]
                 tester_objects.append(
                     generate_qoperation_object(
                         mode=mode_name,
@@ -140,7 +147,8 @@ def execute_simulation_sample_unit(
                     )
                 )
             else:
-                tester_objects.append(tester_setting.generate())
+                generation_setting = generation_settings.tester_settings[i]
+                tester_objects.append(generation_setting.generate())
 
     true_object = true_object[0] if type(true_object) == tuple else true_object
     tester_objects = [
