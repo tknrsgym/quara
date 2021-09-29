@@ -104,9 +104,9 @@ class MProcess(QOperation):
             )
         self._eps_zero: Union[float, np.float64] = eps_zero
 
-        # whether the gate is physically correct
+        # whether the mprocess is physically correct
         if self.is_physicality_required and not self.is_physical():
-            raise ValueError("the gate is not physically correct.")
+            raise ValueError("the mprocess is not physically correct.")
 
     def _info(self):
         info = {}
