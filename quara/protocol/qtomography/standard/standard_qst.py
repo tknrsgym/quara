@@ -22,6 +22,7 @@ class StandardQst(StandardQTomography):
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
         seed: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
@@ -39,6 +40,8 @@ class StandardQst(StandardQTomography):
             whether the parameters of QOperation are on equal constraint, by default False
         eps_proj_physical : float, optional
             threshold epsilon where the algorithm repeats the projection in order to make estimate object is physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
         seed : int, optional
             a seed used to generate random data, by default None.
 
@@ -67,6 +70,7 @@ class StandardQst(StandardQTomography):
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         set_qoperations = SetQOperations(states=[state], gates=[], povms=[])
 
@@ -157,6 +161,9 @@ class StandardQst(StandardQTomography):
             povms[0]._composite_system == povm._composite_system for povm in povms[1:]
         ]
         return all(checks)
+
+    def _testers(self) -> List[Povm]:
+        return self.experiment.povms
 
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]

@@ -38,6 +38,7 @@ class EffectiveLindbladian(Gate):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -85,6 +86,7 @@ class EffectiveLindbladian(Gate):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
 
         # whether the EffectiveLindbladian is physically correct

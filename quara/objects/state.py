@@ -29,6 +29,7 @@ class State(QOperation):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -70,6 +71,7 @@ class State(QOperation):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         self._vec: np.ndarray = vec
         size = self._vec.shape
@@ -215,6 +217,7 @@ class State(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return state
 
@@ -238,6 +241,7 @@ class State(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return state
 
@@ -290,7 +294,9 @@ class State(QOperation):
         # calc new vec
         new_density_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
         vec_new = to_vec_from_density_matrix_with_sparsity(
-            self.composite_system, new_density_matrix
+            self.composite_system,
+            new_density_matrix,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         # create new State
@@ -304,6 +310,7 @@ class State(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return state
 
@@ -312,6 +319,7 @@ class State(QOperation):
         c_sys: CompositeSystem,
         var: np.ndarray,
         on_para_eq_constraint: bool = True,
+        eps_truncate_imaginary_part: float = None,
     ) -> np.ndarray:
         """calculates the projection of State on inequal constraint.
 
@@ -323,6 +331,8 @@ class State(QOperation):
             variables.
         on_para_eq_constraint : bool, optional
             whether this variables is on parameter equality constraint, by default True.
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
         Returns
         -------
@@ -339,7 +349,11 @@ class State(QOperation):
 
         # calc new vec
         new_density_matrix = eigenvecs @ diag @ eigenvecs.T.conjugate()
-        new_vec = to_vec_from_density_matrix_with_sparsity(c_sys, new_density_matrix)
+        new_vec = to_vec_from_density_matrix_with_sparsity(
+            c_sys,
+            new_density_matrix,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
+        )
 
         # vec to var
         new_var = convert_vec_to_var(c_sys, new_vec, on_para_eq_constraint)
@@ -531,6 +545,7 @@ def to_density_matrix_from_vec(c_sys: CompositeSystem, vec: np.ndarray) -> np.nd
 def to_vec_from_density_matrix_with_sparsity(
     c_sys: CompositeSystem,
     density_matrix: np.ndarray,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """converts density matrix to vec.
 
@@ -542,6 +557,8 @@ def to_vec_from_density_matrix_with_sparsity(
         CompositeSystem of this state.
     density_matrix : np.ndarray
         density matrix of this state.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -549,7 +566,9 @@ def to_vec_from_density_matrix_with_sparsity(
         vec of variables.
     """
     vec = c_sys._basisconjugate_sparse.dot(density_matrix.flatten())
-    return mutil.truncate_hs(vec)
+    return mutil.truncate_hs(
+        vec, eps_truncate_imaginary_part=eps_truncate_imaginary_part
+    )
 
 
 def to_density_matrix_from_var(
@@ -754,6 +773,7 @@ def calc_gradient_from_state(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = 10 ** (-4),
+    eps_truncate_imaginary_part: float = None,
 ) -> State:
     """calculates gradient from State.
 
@@ -787,6 +807,7 @@ def calc_gradient_from_state(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return state
 

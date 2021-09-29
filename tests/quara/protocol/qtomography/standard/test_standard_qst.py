@@ -158,6 +158,10 @@ class TestStandardQst:
         qst, _ = get_test_data()
         assert qst.is_valid_experiment() == True
 
+    def test_testers(self):
+        qst, _ = get_test_data()
+        assert len(qst.testers) == 3
+
     def test_reset_seed(self):
         # Assert
         qst, c_sys = get_test_data()
