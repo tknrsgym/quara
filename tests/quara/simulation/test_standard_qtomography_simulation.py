@@ -1,5 +1,6 @@
 import pickle
 from pathlib import Path
+from quara.protocol.qtomography.standard.standard_qmpt import StandardQmpt
 import shutil
 import os
 import glob
@@ -15,6 +16,7 @@ from quara.simulation.standard_qtomography_simulation_flow import (
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
@@ -24,7 +26,8 @@ from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator
 from quara.simulation.standard_qtomography_simulation import (
     StandardQTomographySimulationSetting,
 )
-
+from quara.objects.qoperation_typical import generate_qoperation_object
+from quara.objects.composite_system_typical import generate_composite_system
 
 from tests.quara.simulation import random_test
 
@@ -313,3 +316,55 @@ def test_execute_simulation_with_seed_or_stream():
     actual = sim_result_1.empi_dists_sequences
     for a, e in zip(actual, expected):
         assert is_same_dist(a[0], e[0])
+
+
+def test_generate_qtomography_with_qmpt():
+    c_sys = generate_composite_system(mode="qubit", num=1, ids_esys=[1])
+
+    # Tester Object
+    state_names = ["x0", "y0", "z0", "z1"]
+    povm_names = ["x", "y", "z"]
+
+    tester_states = [
+        generate_qoperation_object(
+            mode="state", object_name="state", name=name, c_sys=c_sys
+        )
+        for name in state_names
+    ]
+    tester_povms = [
+        generate_qoperation_object(
+            mode="povm", object_name="povm", name=name, c_sys=c_sys
+        )
+        for name in povm_names
+    ]
+    tester_objects = tester_states + tester_povms
+
+    # True Object
+    true_object_name = "x-type1"
+    on_para_eq_constraint = True
+    true_object = generate_qoperation_object(
+        mode="mprocess", object_name="mprocess", name=true_object_name, c_sys=c_sys
+    )
+    if on_para_eq_constraint is False:
+        true_object = MProcess(
+            hss=true_object.hss, on_para_eq_constraint=False, c_sys=c_sys
+        )
+
+    sim_setting = StandardQTomographySimulationSetting(
+        name="dummy name",
+        true_object=true_object,
+        tester_objects=tester_objects,
+        estimator=LinearEstimator(),
+        seed_data=888,
+        n_rep=5,
+        num_data=[10],
+        schedules=None,
+        eps_proj_physical=1e-13,
+    )
+
+    actual = sim.generate_qtomography(
+        sim_setting, para=true_object.on_para_eq_constraint
+    )
+
+    assert type(actual) == StandardQmpt
+    assert actual.on_para_eq_constraint == on_para_eq_constraint

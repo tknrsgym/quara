@@ -15,6 +15,7 @@ from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 
 from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
@@ -31,11 +32,15 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
+from quara.protocol.qtomography.standard.standard_qmpt import StandardQmpt
 from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
     StandardQTomographyEstimator,
     StandardQTomographyEstimationResult,
 )
-from quara.simulation.generation_setting import QOperationGenerationSettings
+from quara.simulation.generation_setting import (
+    QOperationGenerationSettings,
+    QOperationGenerationSetting,
+)
 from quara.simulation.depolarized_qoperation_generation_setting import (
     DepolarizedQOperationGenerationSetting,
 )
@@ -125,6 +130,11 @@ class NoiseSetting:
     def to_generation_setting(
         self, c_sys: "CompositeSystem"
     ) -> "QOperationGenerationSetting":
+        if self.method is None:
+            return QOperationGenerationSetting(
+                qoperation_base=self.qoperation_base, c_sys=c_sys, ids=self.ids
+            )  # dummy
+
         name2class_map = {
             "depolarized": DepolarizedQOperationGenerationSetting,
             "random_effective_lindbladian": RandomEffectiveLindbladianGenerationSetting,
@@ -474,6 +484,19 @@ def generate_qtomography(
             seed=seed_data,
             eps_proj_physical=eps_proj_physical,
         )
+    if type(true_object) == MProcess:
+        states = [t for t in tester_objects if type(t) == State]
+        povms = [t for t in tester_objects if type(t) == Povm]
+
+        return StandardQmpt(
+            states=states,
+            povms=povms,
+            num_outcomes=true_object.num_outcomes,
+            on_para_eq_constraint=para,
+            seed=seed_data,
+            eps_proj_physical=eps_proj_physical,
+        )
+
     message = f"type of sim_setting.true_object must be State, Povm, or Gate, not {type(true_object)}"
     print(f"{sim_setting.true_object}")
     raise TypeError(message)

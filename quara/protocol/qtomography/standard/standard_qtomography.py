@@ -465,9 +465,11 @@ class StandardQTomography(QTomography):
         self, true_object: QOperation
     ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
+        class_name = self.__class__._estimated_qoperation_type.__name__.lower()
         attribute_name = (
-            self.__class__._estimated_qoperation_type.__name__.lower() + "s"
+            class_name + "es" if class_name.endswith("ss") else class_name + "s"
         )
+
         for schedule_index in range(len(tmp_experiment.schedules)):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             getattr(tmp_experiment, attribute_name)[target_index] = true_object
