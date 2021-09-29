@@ -112,13 +112,6 @@ def execute_simulation_sample_unit(
             for tester_setting in generation_settings.tester_settings
         ]
     else:
-        # TODO revert:
-        # true_object = generation_settings.true_setting.generate()
-        # tester_objects = [
-        #     tester_setting.generate()
-        #     for tester_setting in generation_settings.tester_settings
-        # ]
-
         # True Object
         if test_setting.true_object.method is None:
             name = test_setting.true_object.qoperation_base[1]
