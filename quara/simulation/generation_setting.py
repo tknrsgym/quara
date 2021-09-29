@@ -7,6 +7,7 @@ from quara.objects.qoperation_typical import generate_qoperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 
 
 class QOperationGenerationSetting:
@@ -63,6 +64,9 @@ class QOperationGenerationSetting:
         if type(self.qoperation_base) == Gate:
             return self.generate_gate()
 
+        if type(self.qoperation_base) == MProcess:
+            return self.generate_mprocess()
+
         raise NotImplementedError()
 
     @abstractmethod
@@ -75,6 +79,10 @@ class QOperationGenerationSetting:
 
     @abstractmethod
     def generate_gate(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def generate_mprocess(self):
         raise NotImplementedError()
 
 
