@@ -50,3 +50,10 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
         )
         new_object = compose_qoperations(dp, self.qoperation_base)
         return new_object
+
+    def generate_mprocess(self) -> "MProcess":
+        dp = get_depolarizing_channel(
+            p=self.error_rate, c_sys=self.qoperation_base.composite_system
+        )
+        new_object = compose_qoperations(dp, self.qoperation_base)
+        return new_object
