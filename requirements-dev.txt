@@ -18,3 +18,4 @@ psutil
 kaleido >= 0.1.0, <=0.1.0.post1
 qutip
 matplotlib
+pyquil

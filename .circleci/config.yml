@@ -14,6 +14,16 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install Forest SDK
+          command: |
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
+            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
+            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
+            cd forest-sdk-2.23.0-linux-deb
+            sudo ./forest-sdk-2.23.0-linux-deb.run
+            qvm --version
+            quilc --version
+      - run:
           name: Run installation
           command: |
             python3 -m venv venv
@@ -24,6 +34,8 @@ jobs:
       - run:
           name: Run tests
           command: |
+            nohup qvm -S &
+            nohup quilc -S &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
       - store_test_results:
@@ -34,6 +46,16 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install Forest SDK
+          command: |
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
+            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
+            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
+            cd forest-sdk-2.23.0-linux-deb
+            sudo ./forest-sdk-2.23.0-linux-deb.run
+            qvm --version
+            quilc --version
+      - run:
           name: Run installation
           command: |
             python3 -m venv venv
@@ -44,6 +66,8 @@ jobs:
       - run:
           name: Run tests
           command: |
+            nohup qvm -S &
+            nohup quilc -S &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
       - store_test_results:
@@ -54,6 +78,16 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install Forest SDK
+          command: |
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
+            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
+            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
+            cd forest-sdk-2.23.0-linux-deb
+            sudo ./forest-sdk-2.23.0-linux-deb.run
+            qvm --version
+            quilc --version
+      - run:
           name: Run installation
           command: |
             python3 -m venv venv
@@ -64,6 +98,8 @@ jobs:
       - run:
           name: Run tests
           command: |
+            nohup qvm -S &
+            nohup quilc -S &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
       - store_test_results:
@@ -73,6 +109,16 @@ jobs:
       - image: circleci/python:3.9
     steps:
       - checkout
+      - run:
+          name: Install Forest SDK
+          command: |
+            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
+            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
+            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
+            cd forest-sdk-2.23.0-linux-deb
+            sudo ./forest-sdk-2.23.0-linux-deb.run
+            qvm --version
+            quilc --version
       - run:
           name: Run installation
           command: |
@@ -84,6 +130,8 @@ jobs:
       - run:
           name: Run tests
           command: |
+            nohup qvm -S &
+            nohup quilc -S &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit" -o "norecursedirs=quara/interface" --junit-xml=test-results/pytest.xml
       - store_test_results:
