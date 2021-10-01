@@ -220,6 +220,7 @@ class TestSimulationCheckOnOff:
             case_names=["dummy_name"],
             estimators=[LinearEstimator()],
             eps_proj_physical_list=[1e-5],
+            eps_truncate_imaginary_part_list=[1e-5],
             algo_list=[(None, None)],
             loss_list=[(None, None)],
             parametrizations=[True],

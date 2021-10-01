@@ -30,6 +30,7 @@ class TestStandardQTomographySimulationCheck:
             num_data=[],
             schedules=None,
             eps_proj_physical=1e-13,
+            eps_truncate_imaginary_part=1e-13,
         )
         source_dummy_results = None
 
@@ -137,6 +138,7 @@ Physicality Violation: {start_green}OK{end_color}
             num_data=[10],
             schedules=None,
             eps_proj_physical=1e-13,
+            eps_truncate_imaginary_part=1e-13,
         )
         qtomography = generate_qtomography(
             sim_setting,
