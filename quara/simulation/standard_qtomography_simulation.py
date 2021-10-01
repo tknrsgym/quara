@@ -61,6 +61,7 @@ class StandardQTomographySimulationSetting:
         num_data: List[int],
         schedules: Union[str, List[List[int]]],
         eps_proj_physical: float,
+        eps_truncate_imaginary_part: float,
         loss=None,
         loss_option=None,
         algo=None,
@@ -79,6 +80,7 @@ class StandardQTomographySimulationSetting:
         self.n_rep = n_rep
         self.num_data = num_data
         self.eps_proj_physical = eps_proj_physical
+        self.eps_truncate_imaginary_part = eps_truncate_imaginary_part
 
         self.schedules = schedules
 
@@ -96,6 +98,7 @@ class StandardQTomographySimulationSetting:
         desc += f"\nseed_data: {self.seed_data}"
         desc += f"\nEstimator: {self.estimator.__class__.__name__}"
         desc += f"\neps_proj_physical: {self.eps_proj_physical}"
+        desc += f"\neps_truncate_imaginary_part: {self.eps_truncate_imaginary_part}"
         loss = None if self.loss is None else self.loss.__class__.__name__
         desc += f"\nLoss: {loss}"
         algo = None if self.algo is None else self.algo.__class__.__name__
@@ -117,6 +120,7 @@ class StandardQTomographySimulationSetting:
             num_data=self.num_data,
             schedules=self.schedules,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
 
@@ -167,6 +171,7 @@ class EstimatorTestSetting:
     case_names: List[str]
     estimators: List["Estimator"]
     eps_proj_physical_list: List[float]
+    eps_truncate_imaginary_part_list: List[float]
     algo_list: List[tuple]
     loss_list: List[tuple]
     parametrizations: List[bool]
@@ -208,6 +213,9 @@ class EstimatorTestSetting:
             num_data=self.num_data,
             schedules=self.schedules,
             eps_proj_physical=self.eps_proj_physical_list[case_index],
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part_list[
+                case_index
+            ],
         )
 
 
@@ -453,6 +461,7 @@ def generate_qtomography(
     true_object = sim_setting.true_object
     tester_objects = sim_setting.tester_objects
     eps_proj_physical = sim_setting.eps_proj_physical
+    eps_truncate_imaginary_part = sim_setting.eps_truncate_imaginary_part
     if init_with_seed:
         seed_data = sim_setting.seed_data
     else:
@@ -464,6 +473,7 @@ def generate_qtomography(
             on_para_eq_constraint=para,
             seed=seed_data,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
     if type(true_object) == Povm:
         return StandardPovmt(
@@ -471,6 +481,7 @@ def generate_qtomography(
             on_para_eq_constraint=para,
             seed=seed_data,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
             num_outcomes=len(true_object.vecs),
         )
     if type(true_object) == Gate:
@@ -483,6 +494,7 @@ def generate_qtomography(
             on_para_eq_constraint=para,
             seed=seed_data,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
     if type(true_object) == MProcess:
         states = [t for t in tester_objects if type(t) == State]
@@ -495,6 +507,7 @@ def generate_qtomography(
             on_para_eq_constraint=para,
             seed=seed_data,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
 
     message = f"type of sim_setting.true_object must be State, Povm, or Gate, not {type(true_object)}"

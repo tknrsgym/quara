@@ -133,6 +133,7 @@ def generate_common_setting():
     ]
 
     eps_proj_physical_list = [1e-5] * len(case_names)
+    eps_truncate_imaginary_part_list = [1e-5] * len(case_names)
 
     return (
         case_names,
@@ -141,6 +142,7 @@ def generate_common_setting():
         loss_list,
         algo_list,
         eps_proj_physical_list,
+        eps_truncate_imaginary_part_list,
     )
 
 
@@ -177,6 +179,7 @@ def generate_common_setting_with_single_case():
     ]
 
     eps_proj_physical_list = [1e-5] * len(case_names)
+    eps_truncate_imaginary_part_list = [1e-5] * len(case_names)
 
     return (
         case_names,
@@ -185,6 +188,7 @@ def generate_common_setting_with_single_case():
         loss_list,
         algo_list,
         eps_proj_physical_list,
+        eps_truncate_imaginary_part_list,
     )
 
 
@@ -214,6 +218,7 @@ def execute(
         loss_list,
         algo_list,
         eps_proj_physical_list,
+        eps_truncate_imaginary_part_list,
     ) = generate_common_setting()
     # ) = generate_common_setting_with_single_case()
 
@@ -252,6 +257,7 @@ def execute(
             case_names=case_names,
             estimators=estimators,
             eps_proj_physical_list=eps_proj_physical_list,
+            eps_truncate_imaginary_part_list=eps_truncate_imaginary_part_list,
             algo_list=algo_list,
             loss_list=loss_list,
             parametrizations=parametrizations,
@@ -806,6 +812,205 @@ def execute_qpt_2qutrit():
         "seed_data": 777,
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_2qutrit-"
+        + get_current_time_string(),
+    }
+    execute(**setting)
+
+
+def execute_qmpt_1qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 1,
+        "tomography_type": "mprocess",
+        "true_objects": [
+            "x-type1",
+            "y-type1",
+            "z-type1",
+        ],
+        "tester_names": [("state", name) for name in ["x0", "y0", "z0", "z1"]]
+        + [("povm", name) for name in ["x", "y", "z"]],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed_qoperation": 888,
+        "seed_data": 777,
+        "output_root_dir": output_root_dir_prefix
+        + "result_random_qmpt_1qubit-"
+        + get_current_time_string(),
+    }
+    execute(**setting)
+
+
+def execute_qmpt_2qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 2,
+        "tomography_type": "mprocess",
+        "true_objects": ["x-type1_x-type1", "bell-type1"],
+        "true_object_ids": [None, [0, 1]],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(["x0", "y0", "z0", "z1"], repeat=2)
+        ]
+        + [("povm", f"{a}_{b}") for a, b in product(["x", "y", "z"], repeat=2)],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed_qoperation": 888,
+        "seed_data": 777,
+        "output_root_dir": output_root_dir_prefix
+        + "result_random_qmpt_2qubit-"
+        + get_current_time_string(),
+    }
+    execute(**setting)
+
+
+def execute_qmpt_3qubit():
+    setting = {
+        "mode": "qubit",
+        "n_qubit": 3,
+        "tomography_type": "mprocess",
+        "true_objects": ["x-type1_x-type1_x-type1"],
+        "true_object_ids": [None, [0, 1, 2], [0, 1, 2]],
+        "tester_names": [
+            ("state", f"{a}_{b}_{c}")
+            for a, b, c in product(["x0", "y0", "z0", "z1"], repeat=3)
+        ]
+        + [("povm", f"{a}_{b}_{c}") for a, b, c in product(["x", "y", "z"], repeat=3)],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed_qoperation": 888,
+        "seed_data": 777,
+        "output_root_dir": output_root_dir_prefix
+        + "result_random_qmpt_3qubit-"
+        + get_current_time_string(),
+    }
+    execute(**setting)
+
+
+def execute_qmpt_1qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 1,
+        "tomography_type": "mprocess",
+        "true_objects": ["z3-type1", "z3-type2"],
+        "tester_names": [
+            ("state", name)
+            for name in [
+                "01z0",
+                "12z0",
+                "02z1",
+                "01x0",
+                "01y0",
+                "12x0",
+                "12y0",
+                "02x0",
+                "02y0",
+            ]
+        ]
+        + [
+            ("povm", name)
+            for name in ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"]
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed_qoperation": 888,
+        "seed_data": 777,
+        "output_root_dir": output_root_dir_prefix
+        + "result_random_qmpt_1qutrit-"
+        + get_current_time_string(),
+    }
+    execute(**setting)
+
+
+def execute_qmpt_2qutrit():
+    setting = {
+        "mode": "qutrit",
+        "n_qubit": 2,
+        "tomography_type": "mprocess",
+        "true_objects": ["z3-type1_z3-type2"],
+        "tester_names": [
+            ("state", f"{a}_{b}")
+            for a, b in product(
+                [
+                    "01z0",
+                    "12z0",
+                    "02z1",
+                    "01x0",
+                    "01y0",
+                    "12x0",
+                    "12y0",
+                    "02x0",
+                    "02y0",
+                ],
+                repeat=2,
+            )
+        ]
+        + [
+            ("povm", f"{a}_{b}")
+            for a, b in product(
+                ["01x3", "01y3", "z3", "12x3", "12y3", "02x3", "02y3"], repeat=2
+            )
+        ],
+        "noise_method": "random_effective_lindbladian",
+        "noise_para": {
+            "lindbladian_base": "identity",
+            "strength_h_part": 0.1,
+            "strength_k_part": 0.1,
+        },
+        # "noise_method": "depolarized",
+        # "noise_para": {
+        #    "error_rate": 0.1,
+        # },
+        "n_sample": 1,
+        "n_rep": 1,
+        "num_data": [1000, 10000],
+        "seed_qoperation": 888,
+        "seed_data": 777,
+        "output_root_dir": output_root_dir_prefix
+        + "result_random_qmpt_2qutrit-"
         + get_current_time_string(),
     }
     execute(**setting)
