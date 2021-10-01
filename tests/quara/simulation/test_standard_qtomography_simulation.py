@@ -283,6 +283,7 @@ def test_execute_simulation_with_seed_or_stream():
         num_data=[10],
         schedules=None,
         eps_proj_physical=1e-13,
+        eps_truncate_imaginary_part=1e-13,
     )
 
     qtomography = sim.generate_qtomography(sim_setting, para=True, init_with_seed=False)
@@ -360,6 +361,7 @@ def test_generate_qtomography_with_qmpt():
         num_data=[10],
         schedules=None,
         eps_proj_physical=1e-13,
+        eps_truncate_imaginary_part=1e-13,
     )
 
     actual = sim.generate_qtomography(
