@@ -18,6 +18,7 @@ from quara.data_analysis import computation_time as ctime
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.protocol.qtomography.estimator import EstimationResult
 from quara.simulation import consistency_check
 from quara.simulation import standard_qtomography_simulation_check
@@ -383,7 +384,6 @@ def _generate_graph_eigenvalues_seq_3loop(
     case_id: int,
     true_object: "QOperation",
 ) -> list:
-    # For State
     fig_info_list3 = []
     for num_data_index in range(len(num_data)):
         fig_list_list = physicality_violation_check.make_graphs_eigenvalues(
@@ -453,8 +453,20 @@ def generate_eigenvalues_div(
         v, _ = np.linalg.eig(true_object.to_choi_matrix())
         col_n = 2 if len(v) <= 2 else 4
         div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
+
+    elif type(true_object) == MProcess:
+        fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
+            estimation_results,
+            num_data=num_data,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        v, _ = np.linalg.eig(true_object.to_choi_matrix(0))
+        col_n = 2 if len(v) <= 2 else 4
+        div_html = _generate_eigenvalues_div_3loop(fig_info_list3, col_n=col_n)
     else:
-        raise TypeError()
+        error_message = f"The type of true_object must be Status, Povm, Gate, or MProcess, not {type(true_object)}."
+        raise TypeError(error_message)
     return div_html
 
 
@@ -492,6 +504,7 @@ def _generate_graph_sum_eigenvalues_seq(
             )
 
         fig_info_list_list.append(fig_info_list)
+
     return fig_info_list_list
 
 
@@ -803,7 +816,95 @@ def _generate_physicality_violation_test_div_for_gate(
         <h2>Test of equality constraint violation</h2>
         <h3>Error</h3>
         {test_eq_const_divs}
-        <h3>Sum of Error</h3>
+        <h3>Route Squared of Error</h3>
+        {test_eq_const_error_sum_divs}
+    """
+    ineq_all_div = f"""
+        <h2>Test of inequality constraint violation</h2>
+        <h3>Eigenvalue</h3>
+        {test_ineq_const_eigenvalues_divs}
+        <h3>Sum of unphysical eigenvalues </h3>
+        {test_ineq_const_sum_eigenvalues_divs}
+    """
+
+    return eq_all_div, ineq_all_div
+
+
+def _generate_physicality_violation_test_div_for_mprocess(
+    estimation_results_list: List[List["EstimationResult"]],
+    num_data: List[int],
+    case_name_list: List[str],
+    true_object: State,
+):
+    test_eq_const_divs = ""
+    test_eq_const_error_sum_divs = ""
+    test_ineq_const_eigenvalues_divs = ""
+    test_ineq_const_sum_eigenvalues_divs = ""
+
+    for case_id, case_name in enumerate(case_name_list):
+        estimation_results = estimation_results_list[case_id]
+        # Test of equality constraint violation
+        div = generate_fig_list_list_div(
+            estimation_results=estimation_results,
+            case_id=case_id,
+            fig_type="physicality-violation-eq-trace-error",
+            make_graphs_func=physicality_violation_check.make_graphs_trace_error,
+            col_n=4,
+            num_data=num_data,
+        )
+        # <h5> is dummy
+        test_eq_const_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            <h5></h5>
+            {div}
+            """
+        num_data_len = len(num_data)
+        col_n = num_data_len if num_data_len <= 4 else 4
+
+        div = generate_figs_div(
+            func=_make_fig_info_list,
+            estimation_results=estimation_results,
+            case_id=case_id,
+            fig_type="physicality-violation-eq-trace-sum-error",
+            size=(_col2_fig_width, _col2_fig_height),
+            make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
+            col_n=col_n,
+            num_data=num_data,
+        )
+
+        test_eq_const_error_sum_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            <h5></h5>
+            {div}
+        """
+        # Test of inequality constraint violation
+        div = generate_eigenvalues_div(
+            estimation_results,
+            num_data=num_data,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        test_ineq_const_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+        div = generate_sum_eigenvalues_div(
+            estimation_results,
+            num_data=num_data,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        test_ineq_const_sum_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+    eq_all_div = f"""
+        <h2>Test of equality constraint violation</h2>
+        <h3>Error</h3>
+        {test_eq_const_divs}
+        <h3>Route Squared of Error</h3>
         {test_eq_const_error_sum_divs}
     """
     ineq_all_div = f"""
@@ -842,6 +943,13 @@ def generate_physicality_violation_test_div(
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_gate(
+            estimation_results_list, num_data, case_name_list, true_object
+        )
+    elif type(true_object) == MProcess:
+        (
+            true_all_div,
+            false_all_div,
+        ) = _generate_physicality_violation_test_div_for_mprocess(
             estimation_results_list, num_data, case_name_list, true_object
         )
     else:
