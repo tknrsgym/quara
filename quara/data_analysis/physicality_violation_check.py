@@ -667,6 +667,8 @@ def calc_unphysical_qobjects_n(
             source, num_data_index=num_data_index
         )
     elif isinstance(sample, QOperation):
+        # TODO: remove
+        print(f"calc_unphysical_qobjects_n: {len(source)=}")
         estimated_qoperations = source
     else:
         message = f"`source` must be list of EstimationResult or QOperation, not list of {type(source)}"

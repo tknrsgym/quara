@@ -487,7 +487,6 @@ def _generate_graph_sum_eigenvalues_seq(
             estimation_results, num_data_index=num_data_index
         )
         fig_info_list = []
-
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
             fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
@@ -510,6 +509,9 @@ def _generate_graph_sum_eigenvalues_seq(
 
 def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
+    col_n = len(fig_info_list_list[0])
+    css_class = "box" if col_n <= 2 else "box_col4"
+
     for fig_info_list in fig_info_list_list:
         num = fig_info_list[0]["num"]
         n_unphysical = fig_info_list[0]["n_unphysical"]
@@ -519,7 +521,7 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
 
         for fig_info in fig_info_list:
             graph_subblock = (
-                f"<div class='box'><img src={fig_info['image_path']}></div>"
+                f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
             )
             graph_block_html += graph_subblock
 
