@@ -12,6 +12,7 @@ from quara.math.entropy import (
     gradient_relative_entropy_2nd_vector,
     hessian_relative_entropy_2nd,
 )
+from quara.math.matrix import multiply_veca_vecb, multiply_veca_vecb_matc
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 
 
@@ -64,6 +65,7 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
         """
         if prob_dists_q:
             self._prob_dists_q_flat = np.array(prob_dists_q, dtype=np.float64).flatten()
+        self._extend_weight_matrix = None
 
         super().__init__(
             num_var=num_var,
@@ -74,17 +76,23 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
             weight_matrices=weight_matrices,
         )
 
-    """
-    def _calc_extend_weights(self) -> None:
-        # calc the extend weights.
-        # "extend weights" is a vector that expands the weight vector to fit the size of the probability distributions.
+    def _calc_extend_weight_matrix(self) -> None:
+        # if weight_matrices is None, not calculate.
+        if self.weight_matrices is None:
+            return
+
+        # calc the extend weight matrix.
+        # if weight_matrices=[W0, W1, W2], then "extend weight matrix"=[[W0, 0, 0], [0, W1, 0], [0, 0, W2]].
         # this is used in the "value" function and "gradient" function for fast computation.
-        if self.weights is not None:
-            extend_weights = []
-            for weight, prob_dist in zip(self.weights, self.prob_dists_q):
-                extend_weights += [weight] * len(prob_dist)
-            self._extend_weights = np.array(extend_weights, dtype=np.float64)
-    """
+        zero = np.zeros((self.weight_matrices[0].shape))
+        size = len(self.weight_matrices)
+        block_matrix = []
+        for index, weight_matrix in enumerate(self.weight_matrices):
+            row = [zero] * size
+            row[index] = weight_matrix
+            block_matrix.append(row)
+
+        self._extend_weight_matrix = np.block(block_matrix)
 
     def set_prob_dists_q(self, prob_dists_q: List[np.ndarray]) -> None:
         """sets vectors of ``q``, by default None.
@@ -107,7 +115,7 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
         """
         self._matA = np.copy(qt.calc_matA())
         self._vecB = np.copy(qt.calc_vecB())
-        # self._calc_extend_weights()
+        self._calc_extend_weight_matrix()
 
         self._on_func_prob_dists = True
         self._update_on_value_true()
@@ -125,7 +133,7 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
             StandardQTomography to set the gradient of probability distributions.
         """
         self._matA = np.copy(qt.calc_matA())
-        # self._calc_extend_weights()
+        self._calc_extend_weight_matrix()
 
         self._on_func_gradient_prob_dists = True
         self._update_on_gradient_true()
@@ -138,17 +146,12 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
         """
         q = self._prob_dists_q_flat
         p = self._matA @ var + self._vecB
-        print(f"value p.shape={p.shape} q.shape={q.shape}")
-        print(f"value p={p} q={q}")
-        print(f"value matA={self._matA} vecB={self._vecB} var={var}")
+        vec = p - q
 
-        if self.weights is not None:
-            vector = self._extend_weights * relative_entropy_vector(
-                q, p, is_valid_required=False
-            )
+        if self._extend_weight_matrix is not None:
+            val = multiply_veca_vecb_matc(vec, vec, self._extend_weight_matrix)
         else:
-            vector = relative_entropy_vector(q, p, is_valid_required=False)
-        val = np.sum(vector)
+            val = multiply_veca_vecb(vec, vec)
 
         return val
 
@@ -159,20 +162,13 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
         """
         q = self._prob_dists_q_flat
         p = self._matA @ var + self._vecB
+        vec = p - q
         grad_ps = self._matA
 
-        if self.weights is not None:
-            grad = np.dot(
-                self._extend_weights,
-                gradient_relative_entropy_2nd_vector(
-                    q, p, grad_ps, is_valid_required=False
-                ),
-            )
+        if self._extend_weight_matrix is not None:
+            grad = 2 * grad_ps.T @ self._extend_weight_matrix @ vec
         else:
-            vectors = gradient_relative_entropy_2nd_vector(
-                q, p, grad_ps, is_valid_required=False
-            )
-            grad = np.sum(vectors, axis=0)
+            grad = 2 * grad_ps.T @ vec
 
         return grad
 

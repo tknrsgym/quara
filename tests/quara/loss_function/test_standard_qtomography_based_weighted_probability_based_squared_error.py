@@ -89,8 +89,6 @@ prob_dists_q = [
     np.array([1.0, 0.0], dtype=np.float64),
 ]
 
-weights = [1.0, 1.0, 2.0]
-
 
 def get_test_qst(on_para_eq_constraint=True):
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
@@ -160,10 +158,8 @@ class TestStandardQTomographyBasedWeightedProbabilityBasedSquaredError:
         )
         assert func.is_option_sufficient() == True
 
-    """
     def test_value(self):
         qt = get_test_qst(on_para_eq_constraint=False)
-
         loss_func = StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
             4,
             prob_dists_q,
@@ -173,27 +169,29 @@ class TestStandardQTomographyBasedWeightedProbabilityBasedSquaredError:
         # case1: var = [1, 0, 0, 1]/sqrt(2)
         var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.value(var)
-        expected = 0
-        npt.assert_almost_equal(actual, 0, decimal=15)
+        npt.assert_almost_equal(actual, 0.0, decimal=15)
 
         # case2: var = [1, 0, 0, 0.9]/sqrt(2)
         var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.value(var)
-        expected = np.log(2 / 1.9)
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual, 0.005, decimal=15)
 
-        # case3: var = [1, 0, 0, 0.9]/sqrt(2), weights = [1.0, 1.0, 2.0]
+        # case3: var = [1, 0, 0, 0.9]/sqrt(2), weight_matrices = {I, I, 2I}
+        weight_matrices = [
+            np.array([[1, 0], [0, 1]], dtype=np.float64),
+            np.array([[1, 0], [0, 1]], dtype=np.float64),
+            np.array([[2, 0], [0, 2]], dtype=np.float64),
+        ]
         loss_func = StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
             4,
             prob_dists_q,
-            weights=weights,
+            weight_matrices=weight_matrices,
         )
         loss_func.set_func_prob_dists_from_standard_qt(qt)
 
         var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.value(var)
-        expected = 2 * np.log(2 / 1.9)
-        npt.assert_almost_equal(actual, expected, decimal=14)
+        npt.assert_almost_equal(actual, 0.01, decimal=15)
 
         # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
         qt = get_test_qst(on_para_eq_constraint=True)
@@ -209,7 +207,6 @@ class TestStandardQTomographyBasedWeightedProbabilityBasedSquaredError:
 
     def test_gradient(self):
         qt = get_test_qst(on_para_eq_constraint=False)
-
         loss_func = StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
             4,
             prob_dists_q,
@@ -220,32 +217,33 @@ class TestStandardQTomographyBasedWeightedProbabilityBasedSquaredError:
         # case1: var = [1, 0, 0, 1]/sqrt(2)
         var = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.gradient(var)
-        expected = -np.array([5, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        expected = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
         # case2: var = [1, 0, 0, 0.9]/sqrt(2)
         var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.gradient(var)
-        expected = -np.array([4 + 2 / 1.9, 0, 0, 2 / 1.9], dtype=np.float64) / np.sqrt(
-            2
-        )
+        expected = np.array([0.0, 0.0, 0.0, -np.sqrt(2) / 10], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
-        # case3: var = [1, 0, 0, 0.9]/sqrt(2), weights = [1.0, 1.0, 2.0], weights = [1.0, 1.0, 2.0]
+        # case3: var = [1, 0, 0, 0.9]/sqrt(2), weight_matrices = {I, I, 2I}
+        weight_matrices = [
+            np.array([[1, 0], [0, 1]], dtype=np.float64),
+            np.array([[1, 0], [0, 1]], dtype=np.float64),
+            np.array([[2, 0], [0, 2]], dtype=np.float64),
+        ]
         loss_func = StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
             4,
             prob_dists_q,
-            weights=weights,
+            weight_matrices=weight_matrices,
         )
         loss_func.set_func_prob_dists_from_standard_qt(qt)
         loss_func.set_func_gradient_prob_dists_from_standard_qt(qt)
 
         var = np.array([1, 0, 0, 0.9], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.gradient(var)
-        expected = -np.array([4 + 4 / 1.9, 0, 0, 4 / 1.9], dtype=np.float64) / np.sqrt(
-            2
-        )
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        expected = np.array([0.0, 0.0, 0.0, -2 * np.sqrt(2) / 10], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=14)
 
         # case4: var = [0, 0, 1]/sqrt(2), on_para_eq_constraint=True
         qt = get_test_qst(on_para_eq_constraint=True)
@@ -257,6 +255,5 @@ class TestStandardQTomographyBasedWeightedProbabilityBasedSquaredError:
 
         var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.gradient(var)
-        expected = -np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        expected = np.array([0.0, 0.0, 0.0], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
-    """
