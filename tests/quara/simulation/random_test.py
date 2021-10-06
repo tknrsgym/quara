@@ -11,13 +11,9 @@ from quara.loss_function.standard_qtomography_based_weighted_relative_entropy im
     StandardQTomographyBasedWeightedRelativeEntropy,
     StandardQTomographyBasedWeightedRelativeEntropyOption,
 )
-from quara.loss_function.weighted_probability_based_squared_error import (
-    WeightedProbabilityBasedSquaredError,
-    WeightedProbabilityBasedSquaredErrorOption,
-)
-from quara.loss_function.weighted_relative_entropy import (
-    WeightedRelativeEntropy,
-    WeightedRelativeEntropyOption,
+from quara.loss_function.standard_qtomography_based_weighted_probability_based_squared_error import (
+    StandardQTomographyBasedWeightedProbabilityBasedSquaredError,
+    StandardQTomographyBasedWeightedProbabilityBasedSquaredErrorOption,
 )
 from quara.minimization_algorithm.projected_gradient_descent_backtracking import (
     ProjectedGradientDescentBacktracking,
@@ -105,12 +101,16 @@ def generate_common_setting():
         #    StandardQTomographyBasedWeightedRelativeEntropyOption("identity"),
         # ),
         (
-            WeightedProbabilityBasedSquaredError(),
-            WeightedProbabilityBasedSquaredErrorOption("identity"),
+            StandardQTomographyBasedWeightedProbabilityBasedSquaredError(),
+            StandardQTomographyBasedWeightedProbabilityBasedSquaredErrorOption(
+                "identity"
+            ),
         ),
         # (
-        #    WeightedProbabilityBasedSquaredError(),
-        #    WeightedProbabilityBasedSquaredErrorOption("identity"),
+        #    StandardQTomographyBasedWeightedProbabilityBasedSquaredError(),
+        #    StandardQTomographyBasedWeightedProbabilityBasedSquaredErrorOption(
+        #        "identity"
+        #    ),
         # ),
     ]
 
