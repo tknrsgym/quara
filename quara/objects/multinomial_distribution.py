@@ -11,7 +11,9 @@ from quara.utils.number_util import to_stream
 
 
 class MultinomialDistribution:
-    def __init__(self, ps: np.ndarray, shape: Tuple[int] = None):
+    def __init__(
+        self, ps: np.ndarray, shape: Tuple[int] = None, eps_zero: float = None
+    ):
         """Constructor
 
         Parameters
@@ -21,6 +23,8 @@ class MultinomialDistribution:
         shape : Tuple[int], optional
             the shape of multinomial distribution, by default None.
             if shape is None, set len(ps).
+        eps_zero : float, optional
+            threshold to determine probabilities as zero, by default 1e-8
 
         Raises
         ------
@@ -35,7 +39,7 @@ class MultinomialDistribution:
             ps = np.array(ps)
 
         # validation about probabiity
-        validate_prob_dist(ps)
+        validate_prob_dist(ps, validate_sum=False)
 
         if shape is None:
             self._shape = (len(ps),)
@@ -46,7 +50,27 @@ class MultinomialDistribution:
                     f"the size of ps({len(ps)}) and shape({shape}) do not match."
                 )
             self._shape = shape
+
         self._ps = ps
+        self._eps_zero = eps_zero if eps_zero else 1e-8
+
+        # adjust probability distribution
+        self._is_zero_dist = True
+        has_zero = False
+        for index, prob in enumerate(self.ps):
+            if prob < self.eps_zero:
+                self._ps[index] = 0.0
+                has_zero = True
+            else:
+                self._is_zero_dist = False
+
+        # normalize when is_zero_dist = False and ps has zero
+        if self.is_zero_dist == False and has_zero == True:
+            self._ps = self._ps / np.sum(self._ps)
+
+        # validation about probabiity
+        if self.is_zero_dist == False:
+            validate_prob_dist(self.ps, validate_sum=True)
 
     @property  # read only
     def ps(self) -> np.ndarray:
@@ -69,6 +93,28 @@ class MultinomialDistribution:
             the shape of multinomial distribution.
         """
         return self._shape
+
+    @property  # read only
+    def eps_zero(self) -> float:
+        """returns threshold to determine probabilities as zero.
+
+        Returns
+        -------
+        float
+            threshold to determine probabilities as zero.
+        """
+        return self._eps_zero
+
+    @property  # read only
+    def is_zero_dist(self) -> bool:
+        """returns whether all probabilities are zero.
+
+        Returns
+        -------
+        bool
+            whether all probabilities are zero.
+        """
+        return self._is_zero_dist
 
     def __getitem__(self, idx) -> np.float64:
         # Working in progress

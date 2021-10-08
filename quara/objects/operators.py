@@ -633,7 +633,17 @@ def _compose_qoperations_MProcess_StateEnsemble(
     eps_zero = max(elem1.eps_zero, elem2.eps_zero)
     states = []
     ps = []
-    if elem1.composite_system.is_orthonormal_hermitian_0thprop_identity:
+    if elem2.prob_dist.is_zero_dist == True:
+        # calc new ps
+        shape = elem2.prob_dist.shape + elem1.shape
+        length = 1
+        for value in shape:
+            length = length * value
+        ps = [0.0] * length
+
+        # calc new states
+        states = [elem2.states[0].generate_zero_obj() for _ in range(len(ps))]
+    elif elem1.composite_system.is_orthonormal_hermitian_0thprop_identity:
         for state_old, prob in zip(elem2.states, elem2.prob_dist):
             is_physicality_required = (
                 elem1.is_physicality_required and state_old.is_physicality_required

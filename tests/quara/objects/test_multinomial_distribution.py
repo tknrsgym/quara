@@ -49,6 +49,59 @@ class TestMultinomialDistribution:
         with pytest.raises(AttributeError):
             dist.shape = shape
 
+    def test_access_eps_zero(self):
+        ps = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float64)
+        shape = (4,)
+
+        # case1: eps_zero=default
+        dist = MultinomialDistribution(ps, shape)
+        assert dist.eps_zero == 1e-8
+
+        # case1: eps_zero=1e-10
+        eps_zero = 1e-10
+        dist = MultinomialDistribution(ps, shape, eps_zero)
+        assert dist.eps_zero == eps_zero
+
+        # Test that "eps_zero" cannot be updated
+        with pytest.raises(AttributeError):
+            dist.eps_zero = eps_zero
+
+    def test_is_zero_dist(self):
+        # case 1: is_zero_dist=False and do not adjust ps
+        ps = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float64)
+        shape = (4,)
+        actual = MultinomialDistribution(ps, shape)
+        expected = np.array([0.1, 0.2, 0.3, 0.4])
+        npt.assert_almost_equal(actual.ps, expected, decimal=15)
+        assert actual.is_zero_dist == False
+
+        # case 2: is_zero_dist=False and do adjust ps
+        ps = np.array([0.01, 0.2, 0.3, 0.49], dtype=np.float64)
+        shape = (4,)
+        eps_zero = 1e-1
+        actual = MultinomialDistribution(ps, shape, eps_zero)
+        expected = np.array([0.0, 0.2, 0.3, 0.49])
+        expected = expected / np.sum(expected)
+        npt.assert_almost_equal(actual.ps, expected, decimal=15)
+        assert actual.is_zero_dist == False
+
+        # case 3: is_zero_dist=True and do not adjust ps
+        ps = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+        shape = (4,)
+        actual = MultinomialDistribution(ps, shape)
+        expected = np.array([0.0, 0.0, 0.0, 0.0])
+        npt.assert_almost_equal(actual.ps, expected, decimal=15)
+        assert actual.is_zero_dist == True
+
+        # case 4: is_zero_dist=True and do adjust ps
+        ps = np.array([0.01, 0.0, 0.0, 0.0], dtype=np.float64)
+        shape = (4,)
+        eps_zero = 1e-1
+        actual = MultinomialDistribution(ps, shape, eps_zero)
+        expected = np.array([0.0, 0.0, 0.0, 0.0])
+        npt.assert_almost_equal(actual.ps, expected, decimal=15)
+        assert actual.is_zero_dist == True
+
     def test_getitem__int(self):
         factor = np.sum(range(30))
         ps = np.array(range(30)) / factor
