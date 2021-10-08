@@ -1078,6 +1078,36 @@ def test_compose_qoperations_MProcess_StateEnsemble():
     assert actual.eps_zero == 10 ** -4
 
 
+def test_compose_qoperations_MProcess_StateEnsemble_is_zero_dist():
+    ## case 1: is_orthonormal_hermitian_0thprop_identity = True
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    vec = np.array([0, 0, 0, 0], dtype=np.float64)
+    state_zero = State(c_sys, vec, is_physicality_required=False)
+    states = [state_zero, state_zero]
+    mult_dist = MultinomialDistribution(np.array([0.0, 0.0]))
+    state_ens = StateEnsemble(states, mult_dist)
+
+    mprocess_z = generate_mprocess_from_name(c_sys, "z-type1")
+    mprocess_z._eps_zero = 10 ** -5
+
+    # Act
+    actual = compose_qoperations(mprocess_z, state_ens)
+
+    # Assert
+    assert actual.prob_dist.shape == (2, 2)
+    expected_vec = np.array([0, 0, 0, 0], dtype=np.float64)
+    assert len(actual.states) == 4
+    npt.assert_almost_equal(actual.states[0].vec, expected_vec, decimal=15)
+    npt.assert_almost_equal(actual.states[1].vec, expected_vec, decimal=15)
+    npt.assert_almost_equal(actual.states[2].vec, expected_vec, decimal=15)
+    npt.assert_almost_equal(actual.states[3].vec, expected_vec, decimal=15)
+    expected_prob_dist = np.array([0, 0, 0, 0], dtype=np.float64)
+    npt.assert_almost_equal(actual.prob_dist.ps, expected_prob_dist, decimal=15)
+    assert actual.eps_zero == 10 ** -5
+
+
 def test_compose_qoperations_Povm_Gate():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
