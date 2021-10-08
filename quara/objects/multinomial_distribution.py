@@ -125,6 +125,86 @@ class MultinomialDistribution:
 
         return new_dist
 
+    def conditionalize(
+        self,
+        conditional_variable_indices: List[int],
+        conditional_variable_values: List[int],
+    ) -> "MultinomialDistribution":
+        """conditionalize MultinomialDistribution.
+
+        Parameters
+        ----------
+        conditional_variable_indices : List[int]
+            indices of the given event of the conditional probability.
+        conditional_variable_values : List[int]
+            values of the given event of the conditional probability.
+
+        Returns
+        -------
+        MultinomialDistribution
+            conditionalized MultinomialDistribution.
+
+        Raises
+        ------
+        ValueError
+            length of conditional_variable_indices does not equal conditional_variable_values.
+        ValueError
+            conditional_variable_indices has negative numbers.
+        ValueError
+            conditional_variable_values has negative numbers.
+        """
+        ### validate
+        if len(conditional_variable_indices) != len(conditional_variable_values):
+            raise ValueError(
+                "length of conditional_variable_indices must equal conditional_variable_values."
+                + f" length of conditional_variable_indices is {len(conditional_variable_indices)}."
+                + f" length of conditional_variable_values is {len(conditional_variable_values)}."
+            )
+
+        for val in conditional_variable_indices:
+            if val < 0:
+                raise ValueError(
+                    "conditional_variable_indices consists of non-negative numbers."
+                    + f" conditional_variable_indices={conditional_variable_indices}"
+                )
+
+        for val in conditional_variable_values:
+            if val < 0:
+                raise ValueError(
+                    "conditional_variable_values consists of non-negative numbers."
+                    + f" conditional_variable_values={conditional_variable_values}"
+                )
+
+        ### calc new ps
+        # to extract specific columns from old ps, calculate ixgrid of numpy.
+        num_variable = len(self.shape)
+        ix_args = []
+        for num_var in self.shape:
+            arg = [True] * num_var
+            ix_args.append(arg)
+
+        for var_index, var_value in zip(
+            conditional_variable_indices, conditional_variable_values
+        ):
+            arg = [False] * self.shape[var_index]
+            arg[var_value] = True
+            ix_args[var_index] = arg
+        ixgrid = np.ix_(*ix_args)
+
+        # extract specific columns from old ps
+        new_ps = self.ps.reshape(self.shape)[ixgrid]
+        new_ps = new_ps.flatten() / np.sum(new_ps)
+
+        ### calc new shape
+        new_shape_indices = [True] * num_variable
+        for var_index in conditional_variable_indices:
+            new_shape_indices[var_index] = False
+        new_shape = np.array(self.shape)[new_shape_indices]
+        new_shape = tuple(new_shape)
+
+        new_dist = MultinomialDistribution(new_ps, new_shape)
+        return new_dist
+
     def execute_random_sampling(
         self,
         num: int,

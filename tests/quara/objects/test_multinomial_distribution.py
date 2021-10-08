@@ -119,6 +119,39 @@ class TestMultinomialDistribution:
         with pytest.raises(ValueError):
             dist.marginalize([3])
 
+    def test_conditionalize(self):
+        factor = np.sum(range(30))
+        ps = np.array(range(30)) / factor
+        shape = (2, 3, 5)
+        dist = MultinomialDistribution(ps, shape)
+
+        # case 1:
+        actual = dist.conditionalize([0], [0])
+        tmp = ps.reshape(shape)[0]
+        expected = tmp / np.sum(tmp)
+        npt.assert_almost_equal(actual.ps, expected.flatten(), decimal=15)
+        assert actual.shape == (3, 5)
+
+        # case 2:
+        actual = dist.conditionalize([0, 2], [0, 3])
+        tmp = ps.reshape(shape)[0, :, 3]
+        expected = tmp / np.sum(tmp)
+        npt.assert_almost_equal(actual.ps, expected.flatten(), decimal=15)
+        assert actual.shape == (3,)
+
+    def test_conditionalize_error(self):
+        factor = np.sum(range(30))
+        ps = np.array(range(30)) / factor
+        shape = (2, 3, 5)
+        dist = MultinomialDistribution(ps, shape)
+
+        with pytest.raises(ValueError):
+            dist.conditionalize([0], [0, 1])
+        with pytest.raises(ValueError):
+            dist.conditionalize([-1], [0])
+        with pytest.raises(ValueError):
+            dist.conditionalize([0], [-1])
+
     def test_execute_random_sampling(self):
         ps = np.array([0.1, 0.2, 0.3, 0.4])
         shape = (4,)
