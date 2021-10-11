@@ -9,6 +9,8 @@ from quara.interface.forest.api import (
     calc_coefficient_matrix,
     calc_coefficients,
     generate_pauli_operator_from_pauli_string,
+    generate_preprocess_program,
+    generate_program_for_1qubit,
 )
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.povm_typical import generate_povm_from_name
@@ -25,11 +27,6 @@ from pyquil.operator_estimation import measure_observables
 from quara.objects.qoperation_typical import generate_qoperation
 
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
-
-
-@pytest.mark.forest
-def test_calc_empi_dist_from_observables():
-    pass
 
 
 @pytest.mark.forest
@@ -259,3 +256,47 @@ def test_calc_empi_dist_from_observables_3qubit(povm_name):
     _test_calc_empi_dist_from_observables(
         true_state, c_sys, qc, num_shots, qubits, p, povm_name
     )
+
+
+@pytest.mark.forest
+def test_generate_program_for_1qubit():
+    # Case: generates a Program with correct length when valid input is given
+    state_names = ["z0", "z1", "x0", "x1", "y0", "y1"]
+    qubits = list(range(10))
+    for state_name in state_names:
+        for qubit in qubits:
+            program = generate_program_for_1qubit(qubit, state_name)
+            if state_name == "z0":
+                assert len(program.instructions) == 0
+            elif state_name == "x1":
+                assert len(program.instructions) == 2
+            else:
+                assert len(program.instructions) == 1
+
+    # Case: invalid input
+    invalid_state_names = ["x", "y", "z", "X0", "x0_z0", "u0", "invlid_name"]
+    for invalid_state_name in invalid_state_names:
+        with pytest.raises(ValueError):
+            generate_program_for_1qubit(0, invalid_state_name)
+
+
+@pytest.mark.forest
+def test_generate_preprocess_program():
+    # Case: generates a Program when valid input is given
+    state_names = ["x0", "x0_y0", "x0_y0_z0"]
+    for state_name in state_names:
+        qubits = list(range(len(state_name.split("_"))))
+        generate_preprocess_program(qubits, state_name)
+
+    # Case: invalid input
+    invalid_state_names = ["x", "y", "z", "x_y", "X0_Y0", "x0y0", "u0", "invalid_name"]
+    for invalid_state_name in invalid_state_names:
+        with pytest.raises(ValueError):
+            qubits = list(range(len(invalid_state_name.split("_"))))
+            generate_preprocess_program(qubits, invalid_state_name)
+
+    # Case: number of qubits and state name doesn't match
+    state_name = "x0_y0_z0"
+    qubits = [0, 1]
+    with pytest.raises(AssertionError):
+        generate_preprocess_program(qubits, state_name)
