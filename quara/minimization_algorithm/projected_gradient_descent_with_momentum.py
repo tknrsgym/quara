@@ -12,7 +12,7 @@ from quara.minimization_algorithm.projected_gradient_descent import (
 )
 
 
-class ProjectedGradientDescentBacktrackingResult(ProjectedGradientDescentResult):
+class ProjectedGradientDescentWithMomentumResult(ProjectedGradientDescentResult):
     def __init__(
         self,
         value: np.ndarray,
@@ -20,45 +20,32 @@ class ProjectedGradientDescentBacktrackingResult(ProjectedGradientDescentResult)
         k: int = None,
         fx: List[np.ndarray] = None,
         x: List[np.ndarray] = None,
-        y: List[np.ndarray] = None,
-        alpha: List[float] = None,
+        moment: List[np.ndarray] = None,
         error_values: List[float] = None,
     ):
         super().__init__(value, computation_time, k, fx, x, error_values)
-        self._y: List[np.ndarray] = y
-        self._alpha: List[float] = alpha
+        self._moment: List[np.ndarray] = moment
 
     @property
-    def y(self) -> List[np.ndarray]:
-        """return the y per iteration.
+    def moment(self) -> List[np.ndarray]:
+        """return the moment per iteration.
 
         Returns
         -------
         List[np.ndarray]
-            the y per iteration.
+            the moment per iteration.
         """
-        return self._y
-
-    @property
-    def alpha(self) -> List[np.ndarray]:
-        """return the alpha per iteration.
-
-        Returns
-        -------
-        List[np.ndarray]
-            the alpha per iteration.
-        """
-        return self._alpha
+        return self._moment
 
 
-class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption):
+class ProjectedGradientDescentWithMomentumOption(ProjectedGradientDescentOption):
     def __init__(
         self,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
         var_start: np.ndarray = None,
-        mu: float = None,
-        gamma: float = 0.3,
+        r: float = 1.0,
+        moment_0: List[np.float] = None,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
         num_history_stopping_criterion_gradient_descent: int = 1,
         mode_proj_order: str = "eq_ineq",
@@ -74,10 +61,10 @@ class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption)
             whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.ndarray, optional
             initial variable for the algorithm, by default None
-        mu : float, optional
-            algorithm option ``mu``, by default None
-        gamma : float, optional
-            algorithm option ``gamma``, by default 0.3
+        r : float, optional
+            algorithm option ``r``, by default 1.0
+        moment_0 : List[np.float], optional
+            algorithm option ``moment_0``, by default None
         mode_stopping_criterion_gradient_descent : str, optional
             mode of stopping criterion for gradient descent, by default "single_difference_loss"
         num_history_stopping_criterion_gradient_descent : int, optional
@@ -98,36 +85,35 @@ class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption)
             eps=eps,
         )
 
-        if mu is None and var_start is not None:
-            mu = 3 / (2 * np.sqrt(var_start.shape[0]))
-        self._mu: float = mu
-
-        self._gamma: float = gamma
+        self._r: float = r
+        self._moment_0: List[np.float] = moment_0
 
     @property
-    def mu(self) -> float:
-        """returns algorithm option ``mu``.
+    def r(self) -> float:
+        """returns algorithm option ``r``.
+
+        :math:`\\gamma = \\frac{1}{2r\\sqrt{n}}`
 
         Returns
         -------
         float
-            algorithm option ``mu``.
+            algorithm option ``r``.
         """
-        return self._mu
+        return self._r
 
     @property
-    def gamma(self) -> float:
-        """returns algorithm option ``gamma``.
+    def moment_0(self) -> List[np.float]:
+        """returns algorithm option ``moment_0``.
 
         Returns
         -------
-        float
-            algorithm option ``gamma``.
+        List[np.float]
+            algorithm option ``moment_0``.
         """
-        return self._gamma
+        return self._moment_0
 
 
-class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
+class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
     def __init__(self, func_proj: Callable[[np.ndarray], np.ndarray] = None):
         """Constructor
 
@@ -167,9 +153,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
         """
         if self.option is None:
             return False
-        elif self.option.mu is not None and self.option.mu <= 0:
-            return False
-        elif self.option.gamma is None or self.option.gamma <= 0:
+        elif self.option.r is not None and self.option.r <= 0:
             return False
         elif self.option.eps is None or self.option.eps <= 0:
             return False
@@ -180,10 +164,10 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
         self,
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
-        algorithm_option: ProjectedGradientDescentBacktrackingOption,
+        algorithm_option: ProjectedGradientDescentWithMomentumOption,
         max_iteration: int = 1000,
         on_iteration_history: bool = False,
-    ) -> ProjectedGradientDescentBacktrackingResult:
+    ) -> ProjectedGradientDescentWithMomentumResult:
         """optimizes using specified parameters.
 
         Parameters
@@ -192,8 +176,8 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             Loss Function
         loss_function_option : LossFunctionOption
             Loss Function Option
-        algorithm_option : ProjectedGradientDescentBacktrackingOption
-            Projected Gradient Descent Backtracking Algorithm Option
+        algorithm_option : ProjectedGradientDescentWithMomentumOption
+            Projected Gradient Descent with Momentum Option
         max_iteration: int, optional
             maximun number of iterations, by default 1000.
         on_iteration_history : bool, optional
@@ -201,7 +185,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
 
         Returns
         -------
-        ProjectedGradientDescentBacktrackingResult
+        ProjectedGradientDescentWithMomentumResult
             the result of the optimization.
 
         Raises
@@ -228,17 +212,31 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             )
         else:
             x_prev = algorithm_option.var_start
-        x_next = None
-        if algorithm_option.mu:
-            mu = algorithm_option.mu
-        elif algorithm_option.var_start is not None:
-            mu = 3 / (2 * np.sqrt(len(algorithm_option.var_start)))
-        elif self._qt:
-            mu = 3 / (2 * np.sqrt(self._qt.num_variables))
+
+        if algorithm_option.r and self._qt:
+            gamma = 1 / (2 * algorithm_option.r * np.sqrt(self._qt.num_variables))
+        elif algorithm_option.r and algorithm_option.var_start is not None:
+            gamma = 1 / (
+                2 * algorithm_option.r * np.sqrt(len(algorithm_option.var_start))
+            )
         else:
             raise ValueError("unable to set the algorithm option mu.")
 
-        gamma = algorithm_option.gamma
+        if algorithm_option.moment_0:
+            moment_prev = algorithm_option.moment_0
+        elif algorithm_option.moment_0 is None and self._qt:
+            moment_prev = np.zeros(self._qt.num_variables)
+        elif (
+            algorithm_option.moment_0 is None and algorithm_option.var_start is not None
+        ):
+            moment_prev = np.zeros(len(algorithm_option.var_start))
+        else:
+            raise ValueError("unable to set the algorithm option mu.")
+
+        x_next = None
+        moment_next = None
+
+        zeta = 0.95
         eps = algorithm_option.eps
 
         # variables for debug
@@ -246,8 +244,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             start_time = time.time()
             fxs = [loss_function.value(x_prev)]
             xs = [x_prev]
-            ys = []
-            alphas = []
+            moments = [moment_prev]
         error_values = []
 
         is_doing = True
@@ -255,16 +252,10 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             # shift variables
             if x_next is not None:
                 x_prev = x_next
+                moment_prev = moment_next
 
-            y_prev = (
-                self.func_proj(x_prev - loss_function.gradient(x_prev) / mu) - x_prev
-            )
-
-            alpha = 1.0
-            while self._is_doing_for_alpha(x_prev, y_prev, alpha, gamma, loss_function):
-                alpha = 0.5 * alpha
-
-            x_next = x_prev + alpha * y_prev
+            moment_next = zeta * moment_prev - gamma * loss_function.gradient(x_prev)
+            x_next = self.func_proj(x_prev + moment_next)
 
             # calc error value depend on "mode_stopping_criterion_gradient_descent"
             if (
@@ -288,7 +279,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
                 algorithm_option.mode_stopping_criterion_gradient_descent
                 == "sum_absolute_difference_projected_gradient"
             ):
-                error_value = np.sqrt(np.sum(y_prev ** 2))
+                error_value = np.sqrt(np.sum(x_next ** 2))
             error_values.append(error_value)
 
             # calc sum of error values
@@ -303,8 +294,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             if on_iteration_history:
                 fxs.append(loss_function.value(x_next))
                 xs.append(x_next)
-                ys.append(y_prev)
-                alphas.append(alpha)
+                moments.append(moment_next)
 
             is_doing = True if value > eps else False
             if not is_doing:
@@ -312,31 +302,16 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
 
         if on_iteration_history:
             computation_time = time.time() - start_time
-            result = ProjectedGradientDescentBacktrackingResult(
+            result = ProjectedGradientDescentWithMomentumResult(
                 x_next,
                 computation_time=computation_time,
                 k=k,
                 fx=fxs,
                 x=xs,
-                y=ys,
-                alpha=alphas,
+                moment=moments,
                 error_values=error_values,
             )
             return result
         else:
-            result = ProjectedGradientDescentBacktrackingResult(x_next)
+            result = ProjectedGradientDescentWithMomentumResult(x_next)
             return result
-
-    def _is_doing_for_alpha(
-        self,
-        x_prev: np.ndarray,
-        y_prev: np.ndarray,
-        alpha: float,
-        gamma: float,
-        loss_function: LossFunction,
-    ) -> bool:
-        left_side = loss_function.value(x_prev + alpha * y_prev)
-        right_side = loss_function.value(x_prev) + gamma * alpha * (
-            np.dot(y_prev, loss_function.gradient(x_prev))
-        )
-        return left_side > right_side

@@ -146,7 +146,7 @@ class TestProjectedGradientDescentBacktrackingOption:
             option.mode_proj_order = "eq_ineq"
 
 
-class TestProjectedGradientDescentBase:
+class TestProjectedGradientDescentBacktracking:
     def test_access_func_proj(self):
         algo = ProjectedGradientDescentBacktracking()
         assert algo.func_proj is None
@@ -538,7 +538,7 @@ class TestProjectedGradientDescentBase:
         assert len(actual.fx) == actual.k + 1
         assert len(actual.x) == actual.k + 1
         assert len(actual.y) == actual.k
-        assert len(actual.alphas) == actual.k
+        assert len(actual.alpha) == actual.k
         assert type(actual.computation_time) == float
 
     def test_optimize_value_error(self):
