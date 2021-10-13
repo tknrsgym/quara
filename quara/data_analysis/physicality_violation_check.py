@@ -232,6 +232,18 @@ def make_prob_dist_histogram(
         ):
             x_range = ((ref_x - x_abs_min), (ref_x + x_abs_min))
             fig.update_xaxes(range=[x_range[0], x_range[1]], autorange=False)
+        else:
+            adujust_value = 1
+            x_range = [
+                (x_min - xbins["size"] * adujust_value),
+                (x_min + xbins["size"] * adujust_value),
+            ]
+            if ref_x < x_range[0]:
+                x_range[0] = ref_x
+            if ref_x > x_range[1]:
+                x_range[1] = ref_x
+            x_range = tuple(x_range)
+            fig.update_xaxes(range=[x_range[0], x_range[1]], autorange=False)
 
     # Title
     n_rep = len(values)
@@ -601,30 +613,9 @@ def _make_graphs_eigenvalues_gate(
 
     dim = estimated_gates[0].dim
 
-    figs = []
-    for i, values in enumerate(sorted_eigenvalues_list):
-        min_value = min(values)
-        max_value = max(values)
-        vlines = []
-        if (
-            (max_value <= 0)
-            or (min_value <= 0 <= max_value)
-            or (abs(min_value) <= abs(max_value - dim))
-        ):
-            vlines.append(0)
-        if (
-            (abs(min_value) >= abs(max_value - dim))
-            or (min_value <= dim <= max_value)
-            or (dim <= min_value)
-        ):
-            vlines.append(dim)
-
-        fig = make_prob_dist_histogram(
-            values, bin_size=bin_size, num_data=num_data, annotation_vlines=vlines
-        )
-        title = f"N={num_data}, i={i}"
-        fig.update_layout(title=title)
-        figs.append(fig)
+    figs = _make_graphs_eigenvalues(
+        sorted_eigenvalues_list, dim=dim, num_data=num_data, bin_size=bin_size
+    )
 
     return figs
 
