@@ -26,9 +26,9 @@ from quara.loss_function.standard_qtomography_based_weighted_relative_entropy im
     StandardQTomographyBasedWeightedRelativeEntropy,
     StandardQTomographyBasedWeightedRelativeEntropyOption,
 )
-from quara.loss_function.weighted_probability_based_squared_error import (
-    WeightedProbabilityBasedSquaredError,
-    WeightedProbabilityBasedSquaredErrorOption,
+from quara.loss_function.standard_qtomography_based_weighted_probability_based_squared_error import (
+    StandardQTomographyBasedWeightedProbabilityBasedSquaredError,
+    StandardQTomographyBasedWeightedProbabilityBasedSquaredErrorOption,
 )
 from quara.minimization_algorithm.projected_gradient_descent_backtracking import (
     ProjectedGradientDescentBacktracking,
@@ -1124,8 +1124,10 @@ def test_calc_estimate_LSE_1qubit(true_object_name: str, on_para_eq_constraint: 
 
     # Estimator
     estimator = LossMinimizationEstimator()
-    loss = WeightedProbabilityBasedSquaredError()
-    loss_option = WeightedProbabilityBasedSquaredErrorOption("identity")
+    loss = StandardQTomographyBasedWeightedProbabilityBasedSquaredError()
+    loss_option = StandardQTomographyBasedWeightedProbabilityBasedSquaredErrorOption(
+        "identity"
+    )
     algo = ProjectedGradientDescentBacktracking()
     algo_option = ProjectedGradientDescentBacktrackingOption(
         mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
@@ -1147,7 +1149,7 @@ def test_calc_estimate_LSE_1qubit(true_object_name: str, on_para_eq_constraint: 
 
     # Assert
     for a, e in zip(actual.hss, true_object.hss):
-        npt.assert_almost_equal(a, e, decimal=8)
+        npt.assert_almost_equal(a, e, decimal=7)
 
 
 @pytest.mark.time_consuming_test
@@ -1207,8 +1209,10 @@ def test_calc_estimate_LSE_2qubit(true_object_name: str, on_para_eq_constraint: 
 
     # Estimator
     estimator = LossMinimizationEstimator()
-    loss = WeightedProbabilityBasedSquaredError()
-    loss_option = WeightedProbabilityBasedSquaredErrorOption("identity")
+    loss = StandardQTomographyBasedWeightedProbabilityBasedSquaredError()
+    loss_option = StandardQTomographyBasedWeightedProbabilityBasedSquaredErrorOption(
+        "identity"
+    )
     algo = ProjectedGradientDescentBacktracking()
     algo_option = ProjectedGradientDescentBacktrackingOption(
         mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
@@ -1230,10 +1234,9 @@ def test_calc_estimate_LSE_2qubit(true_object_name: str, on_para_eq_constraint: 
 
     # Assert
     for a, e in zip(actual.hss, true_object.hss):
-        npt.assert_almost_equal(a, e, decimal=4)
+        npt.assert_almost_equal(a, e, decimal=2)
 
 
-@pytest.mark.time_consuming_test
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
@@ -1295,8 +1298,10 @@ def test_calc_estimate_LSE_1qutrit(true_object_name: str, on_para_eq_constraint:
 
     # Estimator
     estimator = LossMinimizationEstimator()
-    loss = WeightedProbabilityBasedSquaredError()
-    loss_option = WeightedProbabilityBasedSquaredErrorOption("identity")
+    loss = StandardQTomographyBasedWeightedProbabilityBasedSquaredError()
+    loss_option = StandardQTomographyBasedWeightedProbabilityBasedSquaredErrorOption(
+        "identity"
+    )
     algo = ProjectedGradientDescentBacktracking()
     algo_option = ProjectedGradientDescentBacktrackingOption(
         mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
