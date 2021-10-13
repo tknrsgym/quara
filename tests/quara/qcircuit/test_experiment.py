@@ -65,7 +65,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
         return exp
 
@@ -111,7 +111,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
         return exp
 
@@ -154,7 +154,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
         return exp
 
@@ -175,7 +175,7 @@ class TestExperiment:
         ]
         seed = 7
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules, seed=seed
+            states=states, gates=gates, povms=povms, schedules=schedules, seed_data=seed
         )
 
         # init
@@ -185,7 +185,7 @@ class TestExperiment:
 
         # reset
         seed = 77
-        experiment.reset_seed(seed)
+        experiment.reset_seed_data(seed)
         actual = experiment.generate_data(0, 10)
         expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         assert np.all(actual == expected)
@@ -207,7 +207,7 @@ class TestExperiment:
         ]
         seed = 7
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules, seed=seed
+            states=states, gates=gates, povms=povms, schedules=schedules, seed_data=seed
         )
         experiment_copy = experiment.copy()
 
@@ -273,7 +273,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
 
         # Act
@@ -306,7 +306,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
 
         # Act
@@ -391,7 +391,7 @@ class TestExperiment:
         assert actual == expected
 
         # Case 2:
-        exp.reset_seed(77)
+        exp.reset_seed_data(77)
         actual = exp.generate_data(schedule_index=1, data_num=20)
 
         # Assert
@@ -399,7 +399,7 @@ class TestExperiment:
         assert actual == expected
 
         # Case 3:
-        exp.reset_seed(7)
+        exp.reset_seed_data(7)
         actual = exp.generate_data(schedule_index=1, data_num=0)
 
         # Assert
@@ -579,7 +579,7 @@ class TestExperiment:
 
         # Act & Assert
         _ = Experiment(
-            states=states, povms=povms, gates=gates, schedules=schedules, seed=seed
+            states=states, povms=povms, gates=gates, schedules=schedules, seed_data=seed
         )
 
         # Arrange
@@ -593,7 +593,7 @@ class TestExperiment:
             povms=source_povms,
             gates=source_gates,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
 
         # Assert
@@ -631,7 +631,7 @@ class TestExperiment:
         ok_new_schedules = [schedules[1], schedules[0]]
 
         exp = Experiment(
-            states=states, povms=povms, gates=gates, schedules=schedules, seed=seed
+            states=states, povms=povms, gates=gates, schedules=schedules, seed_data=seed
         )
 
         # State

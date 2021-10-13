@@ -27,17 +27,20 @@ from quara.protocol.qtomography.standard.standard_qst import StandardQst
 
 
 # parameters for test
-mat_p = np.array(
-    [
-        [1, 1, 0, 0],
-        [1, -1, 0, 0],
-        [1, 0, 1, 0],
-        [1, 0, -1, 0],
-        [1, 0, 0, 1],
-        [1, 0, 0, -1],
-    ],
-    dtype=np.float64,
-) / np.sqrt(2)
+mat_p = (
+    np.array(
+        [
+            [1, 1, 0, 0],
+            [1, -1, 0, 0],
+            [1, 0, 1, 0],
+            [1, 0, -1, 0],
+            [1, 0, 0, 1],
+            [1, 0, 0, -1],
+        ],
+        dtype=np.float64,
+    )
+    / np.sqrt(2)
+)
 
 
 def _func_prob_dist(index: int):
@@ -112,7 +115,7 @@ def get_test_qst(on_para_eq_constraint=True):
     povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed_data=7)
     return qst
 
 
@@ -494,13 +497,21 @@ class TestWeightedProbabilityBasedSquaredErrorFunction:
         var = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
         actual = loss_func.hessian(var)
         expected = np.array(
-            [[2.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 2.0],], dtype=np.float64,
+            [
+                [2.0, 0.0, 0.0],
+                [0.0, 2.0, 0.0],
+                [0.0, 0.0, 2.0],
+            ],
+            dtype=np.float64,
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_on_prob_dists_q_False(self):
         loss_func = WeightedProbabilityBasedSquaredError(
-            4, func_prob_dists(), func_gradient_prob_dists(), func_hessian_prob_dists(),
+            4,
+            func_prob_dists(),
+            func_gradient_prob_dists(),
+            func_hessian_prob_dists(),
         )
         assert loss_func.on_value == False
         assert loss_func.on_gradient == False

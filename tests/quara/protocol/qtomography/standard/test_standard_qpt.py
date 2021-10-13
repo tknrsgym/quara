@@ -36,7 +36,10 @@ def get_test_data(on_para_eq_constraint=False):
     tester_povms = [get_x_povm(c_sys), get_y_povm(c_sys), get_z_povm(c_sys)]
 
     qpt = StandardQpt(
-        tester_states, tester_povms, on_para_eq_constraint=on_para_eq_constraint, seed=7
+        tester_states,
+        tester_povms,
+        on_para_eq_constraint=on_para_eq_constraint,
+        seed_data=7,
     )
 
     return qpt, c_sys
@@ -67,7 +70,7 @@ class TestStandardQpt:
 
         # Act
         qpt = StandardQpt(
-            tester_states, tester_povms, on_para_eq_constraint=True, seed=777
+            tester_states, tester_povms, on_para_eq_constraint=True, seed_data=777
         )
 
         # Assert
@@ -95,7 +98,7 @@ class TestStandardQpt:
             tester_states,
             tester_povms,
             on_para_eq_constraint=True,
-            seed=777,
+            seed_data=777,
             schedules="all",
         )
 
@@ -113,7 +116,7 @@ class TestStandardQpt:
             tester_states,
             tester_povms,
             on_para_eq_constraint=True,
-            seed=777,
+            seed_data=777,
             schedules=schedules,
         )
 
@@ -129,7 +132,7 @@ class TestStandardQpt:
                 tester_states,
                 tester_povms,
                 on_para_eq_constraint=True,
-                seed=777,
+                seed_data=777,
                 schedules=invalid_schedules,
             )
 

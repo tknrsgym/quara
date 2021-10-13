@@ -424,7 +424,7 @@ def test_set_coeffs():
         tester_povms,
         num_outcomes=num_outcomes,
         on_para_eq_constraint=on_para_eq_constraint,
-        seed=7,
+        seed_data=7,
     )
 
     # Assert
@@ -439,7 +439,7 @@ def test_set_coeffs():
         tester_povms,
         num_outcomes=num_outcomes,
         on_para_eq_constraint=on_para_eq_constraint,
-        seed=7,
+        seed_data=7,
     )
 
     # Assert
@@ -484,7 +484,7 @@ def test_compare_prob_dist_1qubit(on_para_eq_constraint: bool):
         tester_povms,
         num_outcomes=num_outcomes,
         on_para_eq_constraint=on_para_eq_constraint,
-        seed=7,
+        seed_data=7,
     )
 
     # TrueObject
@@ -545,7 +545,7 @@ def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
         tester_povms,
         num_outcomes=num_outcomes,
         on_para_eq_constraint=on_para_eq_constraint,
-        seed=7,
+        seed_data=7,
     )
 
     # Act
@@ -596,7 +596,7 @@ def test_compare_prob_dist_1qutrit(on_para_eq_constraint: bool):
         tester_povms,
         num_outcomes=num_outcomes,
         on_para_eq_constraint=on_para_eq_constraint,
-        seed=7,
+        seed_data=7,
     )
 
     # True Object
