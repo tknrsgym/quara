@@ -602,7 +602,22 @@ def generate_empi_dist_mse_div(
 
 
 def _convert_object_to_datafrane(qoperation: "QOperation") -> pd.DataFrame:
-    values = [v.__str__().replace("\n", "<br>") for v in qoperation._info().values()]
+    # values = [v.__str__().replace("\n", "<br>") for v in qoperation._info().values()]
+    # item_names = qoperation._info().keys()
+    values = []
+    max_line_width = 100
+    for value in qoperation._info().values():
+        if type(value) == list and type(value[0]) == np.ndarray:
+            lines_list = []
+            for a_array in value:
+                lines_list.append(np.array_str(a_array, max_line_width=max_line_width))
+            text = "\n,\n".join(lines_list).replace("\n", "<br>")
+        elif type(value) == np.ndarray:
+            text = np.array_str(value, max_line_width=max_line_width).replace("\n", "<br>")
+        else:
+            text = value.__str__().replace("\n", "<br>")
+        values.append(text)
+
     item_names = qoperation._info().keys()
     df = pd.DataFrame(values, item_names).rename(columns={0: "value"})
 
