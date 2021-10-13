@@ -232,6 +232,18 @@ def make_prob_dist_histogram(
         ):
             x_range = ((ref_x - x_abs_min), (ref_x + x_abs_min))
             fig.update_xaxes(range=[x_range[0], x_range[1]], autorange=False)
+        else:
+            adujust_value = 1
+            x_range = [
+                (x_min - xbins["size"] * adujust_value),
+                (x_min + xbins["size"] * adujust_value),
+            ]
+            if ref_x < x_range[0]:
+                x_range[0] = ref_x
+            if ref_x > x_range[1]:
+                x_range[1] = ref_x
+            x_range = tuple(x_range)
+            fig.update_xaxes(range=[x_range[0], x_range[1]], autorange=False)
 
     # Title
     n_rep = len(values)

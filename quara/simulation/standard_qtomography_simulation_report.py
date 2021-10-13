@@ -343,11 +343,12 @@ def _generate_eigenvalues_div(
 
 
 def _generate_eigenvalues_div_3loop(
-    fig_info_list3: List[List[List[dict]]], col_n: int
+    fig_info_list3: List[List[List[dict]]], col_n: int = None
 ) -> str:
     graph_block_html_all = ""
     fig_n = fig_info_list3[0][0]
-    col_n = len(fig_n) if len(fig_n) <= 4 else 4
+    if col_n is None:
+        col_n = len(fig_n) if len(fig_n) <= 4 else 4
     css_class = f"box_col{col_n}"
 
     for fig_info_list2 in fig_info_list3:  # num_data
@@ -602,10 +603,8 @@ def generate_empi_dist_mse_div(
 
 
 def _convert_object_to_datafrane(qoperation: "QOperation") -> pd.DataFrame:
-    # values = [v.__str__().replace("\n", "<br>") for v in qoperation._info().values()]
-    # item_names = qoperation._info().keys()
     values = []
-    max_line_width = 100
+    max_line_width = 120
     for value in qoperation._info().values():
         if type(value) == list and type(value[0]) == np.ndarray:
             lines_list = []
@@ -613,7 +612,9 @@ def _convert_object_to_datafrane(qoperation: "QOperation") -> pd.DataFrame:
                 lines_list.append(np.array_str(a_array, max_line_width=max_line_width))
             text = "\n,\n".join(lines_list).replace("\n", "<br>")
         elif type(value) == np.ndarray:
-            text = np.array_str(value, max_line_width=max_line_width).replace("\n", "<br>")
+            text = np.array_str(value, max_line_width=max_line_width).replace(
+                "\n", "<br>"
+            )
         else:
             text = value.__str__().replace("\n", "<br>")
         values.append(text)
