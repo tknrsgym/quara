@@ -25,7 +25,7 @@ class StandardPovmt(StandardQTomography):
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
         eps_truncate_imaginary_part: float = None,
-        seed: int = None,
+        seed_data: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         # Make Experment with states
@@ -35,7 +35,11 @@ class StandardPovmt(StandardQTomography):
             schedules = [[("state", i), ("povm", 0)] for i in range(len(states))]
 
         experiment = Experiment(
-            states=states, gates=[], povms=[None], schedules=schedules, seed=seed
+            states=states,
+            gates=[],
+            povms=[None],
+            schedules=schedules,
+            seed_data=seed_data,
         )
         self._validate_schedules(schedules)
 

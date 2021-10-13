@@ -27,7 +27,7 @@ class StandardQpt(StandardQTomography):
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
         eps_truncate_imaginary_part: float = None,
-        seed: int = None,
+        seed_data: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         # Make Experment with states
@@ -39,7 +39,11 @@ class StandardQpt(StandardQTomography):
                 schedules.append([("state", i), ("gate", 0), ("povm", j)])
 
         experiment = Experiment(
-            states=states, gates=[None], povms=povms, schedules=schedules, seed=seed
+            states=states,
+            gates=[None],
+            povms=povms,
+            schedules=schedules,
+            seed_data=seed_data,
         )
         self._validate_schedules(schedules)
 

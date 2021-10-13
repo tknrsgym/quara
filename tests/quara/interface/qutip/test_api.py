@@ -69,7 +69,7 @@ def test_estimate_standard_qst_from_qutip(mode, num, true_state_name, decimal):
 
     seed = 7896
     qst = StandardQst(
-        tester_povms, on_para_eq_constraint=True, schedules="all", seed=seed
+        tester_povms, on_para_eq_constraint=True, schedules="all", seed_data=seed
     )
     prob_dists_arrays = qst.calc_prob_dists(true_state)
     prob_dists = []
@@ -118,7 +118,7 @@ def test_estimate_standard_povmt_from_qutip(mode, num, true_povm_name, decimal):
         true_povm.num_outcomes,
         on_para_eq_constraint=True,
         schedules="all",
-        seed=seed,
+        seed_data=seed,
     )
     prob_dists_arrays = povmt.calc_prob_dists(true_povm)
     prob_dists = []
@@ -179,7 +179,7 @@ def test_estimate_standard_qpt_from_qutip(mode, num, true_gate_name, decimal):
         povms=tester_povms,
         on_para_eq_constraint=True,
         schedules="all",
-        seed=seed,
+        seed_data=seed,
     )
     prob_dists_arrays = qpt.calc_prob_dists(true_gate)
     prob_dists = []

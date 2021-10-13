@@ -220,9 +220,9 @@ class QTomography:
             new seed, None by default.
         """
         if seed:
-            self._experiment.reset_seed(seed)
+            self._experiment.reset_seed_data(seed)
         else:
-            self._experiment.reset_seed(self._experiment.seed)
+            self._experiment.reset_seed_data(self._experiment.seed_data)
 
     @abstractmethod
     def is_valid_experiment(self) -> bool:

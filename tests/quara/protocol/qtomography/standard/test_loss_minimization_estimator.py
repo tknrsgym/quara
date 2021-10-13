@@ -38,7 +38,7 @@ def get_test_data(on_para_eq_constraint=False):
     povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed_data=7)
 
     return qst, c_sys
 
@@ -325,7 +325,12 @@ class TestLossMinimizationEstimator:
         estimator = LossMinimizationEstimator()
 
         actual = estimator.calc_estimate_sequence(
-            qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+            qst,
+            empi_dists_seq,
+            loss,
+            loss_option,
+            algo,
+            algo_option,
         )
 
         expected = [
@@ -368,7 +373,12 @@ class TestLossMinimizationEstimator:
 
         with pytest.raises(ValueError):
             estimator.calc_estimate_sequence(
-                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+                qst,
+                empi_dists_seq,
+                loss,
+                loss_option,
+                algo,
+                algo_option,
             )
 
         # algo.is_loss_sufficient() is False
@@ -387,7 +397,12 @@ class TestLossMinimizationEstimator:
         estimator = LossMinimizationEstimator()
         with pytest.raises(ValueError):
             estimator.calc_estimate_sequence(
-                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+                qst,
+                empi_dists_seq,
+                loss,
+                loss_option,
+                algo,
+                algo_option,
             )
 
         # algo.is_option_sufficient() is False
@@ -406,7 +421,12 @@ class TestLossMinimizationEstimator:
         estimator = LossMinimizationEstimator()
         with pytest.raises(ValueError):
             estimator.calc_estimate_sequence(
-                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+                qst,
+                empi_dists_seq,
+                loss,
+                loss_option,
+                algo,
+                algo_option,
             )
 
         # algo.is_loss_and_option_sufficient() is False
@@ -425,7 +445,12 @@ class TestLossMinimizationEstimator:
         estimator = LossMinimizationEstimator()
         with pytest.raises(ValueError):
             estimator.calc_estimate_sequence(
-                qst, empi_dists_seq, loss, loss_option, algo, algo_option,
+                qst,
+                empi_dists_seq,
+                loss,
+                loss_option,
+                algo,
+                algo_option,
             )
 
     def test_calc_estimate__pgdb_opton__sum_absolute_difference_loss(self):

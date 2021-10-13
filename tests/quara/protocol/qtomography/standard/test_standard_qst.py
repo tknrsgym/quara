@@ -24,7 +24,7 @@ def get_test_data():
     povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=False, seed=7)
+    qst = StandardQst(povms, on_para_eq_constraint=False, seed_data=7)
 
     return qst, c_sys
 

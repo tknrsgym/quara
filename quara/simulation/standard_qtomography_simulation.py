@@ -471,7 +471,7 @@ def generate_qtomography(
         return StandardQst(
             tester_objects,
             on_para_eq_constraint=para,
-            seed=seed_data,
+            seed_data=seed_data,
             eps_proj_physical=eps_proj_physical,
             eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
@@ -479,7 +479,7 @@ def generate_qtomography(
         return StandardPovmt(
             tester_objects,
             on_para_eq_constraint=para,
-            seed=seed_data,
+            seed_data=seed_data,
             eps_proj_physical=eps_proj_physical,
             eps_truncate_imaginary_part=eps_truncate_imaginary_part,
             num_outcomes=len(true_object.vecs),
@@ -492,7 +492,7 @@ def generate_qtomography(
             states=states,
             povms=povms,
             on_para_eq_constraint=para,
-            seed=seed_data,
+            seed_data=seed_data,
             eps_proj_physical=eps_proj_physical,
             eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
@@ -505,7 +505,7 @@ def generate_qtomography(
             povms=povms,
             num_outcomes=true_object.num_outcomes,
             on_para_eq_constraint=para,
-            seed=seed_data,
+            seed_data=seed_data,
             eps_proj_physical=eps_proj_physical,
             eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )

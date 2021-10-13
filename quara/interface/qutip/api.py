@@ -272,7 +272,10 @@ def generate_empi_dists_from_qutip_state(
     true_state_quara = convert_state_qutip_to_quara(true_state, c_sys)
 
     qst = StandardQst(
-        tester_povms_quara, on_para_eq_constraint=True, schedules=schedules, seed=seed
+        tester_povms_quara,
+        on_para_eq_constraint=True,
+        schedules=schedules,
+        seed_data=seed,
     )
     return qst.generate_empi_dists(state=true_state_quara, num_sum=num_sum)
 
@@ -321,7 +324,7 @@ def generate_empi_dists_from_qutip_povm(
         num_outcomes=true_povm_quara.num_outcomes,
         on_para_eq_constraint=True,
         schedules=schedules,
-        seed=seed,
+        seed_data=seed,
     )
     return povmt.generate_empi_dists(povm=true_povm_quara, num_sum=num_sum)
 
@@ -376,6 +379,6 @@ def generate_empi_dists_from_qutip_gate(
         tester_povms_quara,
         on_para_eq_constraint=True,
         schedules=schedules,
-        seed=seed,
+        seed_data=seed,
     )
     return qpt.generate_empi_dists(gate=true_gate_quara, num_sum=num_sum)

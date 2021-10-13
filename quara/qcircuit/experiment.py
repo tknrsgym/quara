@@ -52,7 +52,7 @@ class Experiment:
         povms: List[Povm] = None,
         gates: List[Gate] = None,
         mprocesses: List[MProcess] = None,
-        seed: int = None,
+        seed_data: int = None,
     ) -> None:
         states = [] if states is None else states
         povms = [] if povms is None else povms
@@ -75,10 +75,10 @@ class Experiment:
         self._validate_schedules(schedules)
         # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
-        self._seed: int = seed
+        self._seed_data: int = seed_data
 
         # Set seed
-        self.reset_seed(self._seed)
+        self.reset_seed_data(self._seed_data)
 
     @property
     def states(self) -> List[State]:
@@ -182,20 +182,20 @@ class Experiment:
         self._schedules = value
 
     @property
-    def seed(self) -> int:
-        return self._seed
+    def seed_data(self) -> int:
+        return self._seed_data
 
-    def reset_seed(self, seed: int) -> None:
+    def reset_seed_data(self, seed_data: int) -> None:
         """reset new seed.
 
         Parameters
         ----------
-        seed : int
-            new seed.
+        seed_data : int
+            new seed for generating data.
         """
-        self._seed = seed
-        if self._seed is not None:
-            np.random.seed(self._seed)
+        self._seed_data = seed_data
+        if self._seed_data is not None:
+            np.random.seed(self._seed_data)
 
     def _validate_type(self, targets, expected_type) -> None:
         for target in targets:

@@ -35,7 +35,7 @@ def get_test_data(on_para_eq_constraint=False):
     qst = StandardQst(
         povms,
         on_para_eq_constraint=on_para_eq_constraint,
-        seed=7,
+        seed_data=7,
     )
 
     return qst, c_sys

@@ -38,7 +38,7 @@ def get_test_data():
     seed = 7
 
     experiment = Experiment(
-        states=[None], gates=[], povms=povms, schedules=schedules, seed=seed
+        states=[None], gates=[], povms=povms, schedules=schedules, seed_data=seed
     )
     set_qoperations = SetQOperations(states=[get_z0_1q(c_sys)], gates=[], povms=[])
 
@@ -174,7 +174,7 @@ class TestQTomography:
         seed = 7
 
         experiment = Experiment(
-            states=[None], gates=gates, povms=povms, schedules=schedules, seed=seed
+            states=[None], gates=gates, povms=povms, schedules=schedules, seed_data=seed
         )
         set_qoperations = SetQOperations(states=[get_z0_1q(c_sys)], gates=[], povms=[])
 
@@ -215,7 +215,7 @@ class TestQTomography:
             mprocesses=mprocesses,
             povms=povms,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
         set_qoperations = SetQOperations(
             states=[get_z0_1q(c_sys)], mprocesses=[], povms=[]
@@ -244,7 +244,7 @@ class TestQTomography:
         seed = 7
 
         experiment = Experiment(
-            states=[state_0], gates=[], povms=povms, schedules=schedules, seed=seed
+            states=[state_0], gates=[], povms=povms, schedules=schedules, seed_data=seed
         )
         set_qoperations = SetQOperations(states=[state_0], gates=[], povms=[])
 
@@ -257,12 +257,12 @@ class TestQTomography:
 
         # reset
         seed = 77
-        experiment.reset_seed(seed)
+        experiment.reset_seed_data(seed)
         actual = experiment.generate_data(1, 10)
         expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         assert np.all(actual == expected)
 
-        experiment.reset_seed(experiment.seed)
+        experiment.reset_seed_data(experiment.seed_data)
         actual = experiment.generate_data(1, 10)
         expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         assert np.all(actual == expected)

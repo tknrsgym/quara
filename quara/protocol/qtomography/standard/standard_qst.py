@@ -23,7 +23,7 @@ class StandardQst(StandardQTomography):
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
         eps_truncate_imaginary_part: float = None,
-        seed: int = None,
+        seed_data: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         """Constructor
@@ -57,7 +57,11 @@ class StandardQst(StandardQTomography):
             schedules = [[("state", 0), ("povm", i)] for i in range(len(povms))]
 
         experiment = Experiment(
-            states=[None], gates=[], povms=povms, schedules=schedules, seed=seed
+            states=[None],
+            gates=[],
+            povms=povms,
+            schedules=schedules,
+            seed_data=seed_data,
         )
 
         self._validate_schedules(schedules)

@@ -32,7 +32,7 @@ def get_test_data():
 
     # Act
     povmt = StandardPovmt(
-        tester_objects, on_para_eq_constraint=False, num_outcomes=2, seed=7
+        tester_objects, on_para_eq_constraint=False, num_outcomes=2, seed_data=7
     )
 
     return povmt, c_sys
