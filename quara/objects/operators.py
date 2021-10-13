@@ -554,9 +554,9 @@ def _compose_qoperations_MProcess_MProcess(
     return mprocess
 
 
-def _compose_qoperations_MProcess_State(
-    elem1: MProcess, elem2: State
-) -> Union[State, StateEnsemble]:
+def _compose_qoperations_MProcess_State_for_States(
+    elem1: MProcess, elem2: State, weight: float = 1.0
+) -> Tuple[State, List[float]]:
     # is_physicality_required
     is_physicality_required = (
         elem1.is_physicality_required and elem2.is_physicality_required
@@ -564,26 +564,18 @@ def _compose_qoperations_MProcess_State(
 
     states = []
     ps = []
+    Mx_rhos = []
+    truncate = False
     if elem1.composite_system.is_orthonormal_hermitian_0thprop_identity:
+        # calc Mx_rho and p_x before normalization
         for hs in elem1.hss:
             Mx_rho = hs @ elem2.vec
             p_x = np.sqrt(elem2.composite_system.dim) * Mx_rho[0]
-            if p_x <= elem1.eps_zero:
+            if weight * p_x <= elem1.eps_zero:
                 p_x = 0
-                rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
-                state = State(
-                    elem2.composite_system,
-                    rho_x,
-                    is_physicality_required=False,
-                )
-            else:
-                rho_x = Mx_rho / p_x
-                state = State(
-                    elem2.composite_system,
-                    rho_x,
-                    is_physicality_required=is_physicality_required,
-                )
-            states.append(state)
+                truncate = True
+
+            Mx_rhos.append(Mx_rho)
             ps.append(p_x)
     else:
         I_vec_cb = np.eye(elem1.composite_system.dim, dtype=np.float64).flatten()
@@ -592,26 +584,49 @@ def _compose_qoperations_MProcess_State(
             elem2.composite_system.comp_basis(),
             elem2.composite_system.basis(),
         )
+
+        # calc Mx_rho and p_x before normalization
         for hs in elem1.hss:
             Mx_rho = hs @ elem2.vec
             p_x = np.vdot(I_vec_gb, Mx_rho)
-            if p_x <= elem1.eps_zero:
+            if weight * p_x <= elem1.eps_zero:
                 p_x = 0
-                rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
-                state = State(
-                    elem2.composite_system,
-                    rho_x,
-                    is_physicality_required=False,
-                )
-            else:
-                rho_x = Mx_rho / p_x
-                state = State(
-                    elem2.composite_system,
-                    rho_x,
-                    is_physicality_required=is_physicality_required,
-                )
-            states.append(state)
+                truncate = True
+
+            Mx_rhos.append(Mx_rho)
             ps.append(p_x)
+
+    # normalize prob dist
+    if truncate and np.sum(ps) != 0:
+        ps = ps / np.sum(ps)
+
+    # calc rho_x(vec of State) after normalization
+    for Mx_rho, p_x in zip(Mx_rhos, ps):
+        if p_x == 0:
+            rho_x = np.zeros(elem2.vec.shape, dtype=elem2.vec.dtype)
+            state = State(
+                elem2.composite_system,
+                rho_x,
+                is_physicality_required=False,
+            )
+        else:
+            rho_x = Mx_rho / p_x
+            state = State(
+                elem2.composite_system,
+                rho_x,
+                is_physicality_required=is_physicality_required,
+            )
+        states.append(state)
+
+    ps = [weight * prob for prob in ps]
+
+    return states, ps
+
+
+def _compose_qoperations_MProcess_State(
+    elem1: MProcess, elem2: State
+) -> Union[State, StateEnsemble]:
+    states, ps = _compose_qoperations_MProcess_State_for_States(elem1, elem2)
 
     if elem1.mode_sampling:
         # return State
@@ -630,9 +645,6 @@ def _compose_qoperations_MProcess_State(
 def _compose_qoperations_MProcess_StateEnsemble(
     elem1: MProcess, elem2: StateEnsemble
 ) -> StateEnsemble:
-    eps_zero = max(elem1.eps_zero, elem2.eps_zero)
-    states = []
-    ps = []
     if elem2.prob_dist.is_zero_dist == True:
         # calc new ps
         shape = elem2.prob_dist.shape + elem1.shape
@@ -643,65 +655,17 @@ def _compose_qoperations_MProcess_StateEnsemble(
 
         # calc new states
         states = [elem2.states[0].generate_zero_obj() for _ in range(len(ps))]
-    elif elem1.composite_system.is_orthonormal_hermitian_0thprop_identity:
-        for state_old, prob in zip(elem2.states, elem2.prob_dist):
-            is_physicality_required = (
-                elem1.is_physicality_required and state_old.is_physicality_required
-            )
-
-            for hs in elem1.hss:
-                Mx_rho = hs @ state_old.vec
-                p_x = np.sqrt(state_old.composite_system.dim) * Mx_rho[0]
-                if prob * p_x <= eps_zero:
-                    p_x = 0
-                    rho_x = np.zeros(state_old.vec.shape, dtype=state_old.vec.dtype)
-                    state_new = State(
-                        state_old.composite_system,
-                        rho_x,
-                        is_physicality_required=False,
-                    )
-                else:
-                    rho_x = Mx_rho / p_x
-                    state_new = State(
-                        state_old.composite_system,
-                        rho_x,
-                        is_physicality_required=is_physicality_required,
-                    )
-                states.append(state_new)
-                ps.append(prob * p_x)
     else:
+        states = []
+        ps = []
         for state_old, prob in zip(elem2.states, elem2.prob_dist):
-            is_physicality_required = (
-                elem1.is_physicality_required and state_old.is_physicality_required
+            states_local, ps_local = _compose_qoperations_MProcess_State_for_States(
+                elem1, state_old, prob
             )
+            states.extend(states_local)
+            ps.extend(ps_local)
 
-            I_vec_cb = np.eye(elem1.composite_system.dim, dtype=np.float64).flatten()
-            I_vec_gb = convert_vec(
-                I_vec_cb,
-                state_old.composite_system.comp_basis(),
-                state_old.composite_system.basis(),
-            )
-            for hs in elem1.hss:
-                Mx_rho = hs @ state_old.vec
-                p_x = np.vdot(I_vec_gb, Mx_rho)
-                if prob * p_x <= eps_zero:
-                    p_x = 0
-                    rho_x = np.zeros(state_old.vec.shape, dtype=state_old.vec.dtype)
-                    state = State(
-                        state_old.composite_system,
-                        rho_x,
-                        is_physicality_required=False,
-                    )
-                else:
-                    rho_x = Mx_rho / p_x
-                    state = State(
-                        state_old.composite_system,
-                        rho_x,
-                        is_physicality_required=is_physicality_required,
-                    )
-                states.append(state)
-                ps.append(prob * p_x)
-
+    eps_zero = max(elem1.eps_zero, elem2.eps_zero)
     if elem1.mode_sampling:
         # return StateEnsemble
         num_hss = len(elem1.hss)
