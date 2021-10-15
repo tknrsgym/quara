@@ -34,12 +34,16 @@ jobs:
       - run:
           name: Run tests
           command: |
-            nohup qvm -S &
-            nohup quilc -S &
+            mkdir /tmp/artifacts
+            nohup qvm -S > /tmp/artifacts/qvm.log &
+            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
+      - store_artifacts:
+          path: /tmp/artifacts
+
   test-3.8:
     docker:
       - image: circleci/python:3.8
@@ -66,12 +70,15 @@ jobs:
       - run:
           name: Run tests
           command: |
-            nohup qvm -S &
-            nohup quilc -S &
+            mkdir /tmp/artifacts
+            nohup qvm -S > /tmp/artifacts/qvm.log &
+            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
+      - store_artifacts:
+          path: /tmp/artifacts
   test-3.9:
     docker:
       - image: circleci/python:3.9
@@ -98,12 +105,15 @@ jobs:
       - run:
           name: Run tests
           command: |
-            nohup qvm -S &
-            nohup quilc -S &
+            mkdir /tmp/artifacts
+            nohup qvm -S > /tmp/artifacts/qvm.log &
+            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
+      - store_artifacts:
+          path: /tmp/artifacts
   test-3.9-minimum_module:
     docker:
       - image: circleci/python:3.9
@@ -130,9 +140,12 @@ jobs:
       - run:
           name: Run tests
           command: |
-            nohup qvm -S &
-            nohup quilc -S &
+            mkdir /tmp/artifacts
+            nohup qvm -S > /tmp/artifacts/qvm.log &
+            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
             pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" -o "norecursedirs=quara/interface" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
+      - store_artifacts:
+          path: /tmp/artifacts
