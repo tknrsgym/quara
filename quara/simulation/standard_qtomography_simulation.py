@@ -291,6 +291,36 @@ def execute_simulation(
     return simulation_result
 
 
+def execute_estimation(
+    qtomography: "StandardQTomography",
+    simulation_setting: StandardQTomographySimulationSetting,
+    empi_dists_sequences: List[List[Tuple[int, np.ndarray]]],
+) -> SimulationResult:
+    org_sim_setting = simulation_setting.copy()
+
+    estimation_results = []
+    for empi_dists_seq in tqdm(empi_dists_sequences):
+        estimation_result = _execute_estimation(
+            qtomography=qtomography,
+            empi_dists_seq=empi_dists_seq,
+            estimator=simulation_setting.estimator,
+            loss=simulation_setting.loss,
+            loss_option=simulation_setting.loss_option,
+            algo=simulation_setting.algo,
+            algo_option=simulation_setting.algo_option,
+        )
+        estimation_results.append(estimation_result)
+
+    simulation_result = SimulationResult(
+        qtomography=qtomography,
+        empi_dists_sequences=empi_dists_sequences,
+        estimation_results=estimation_results,
+    )
+
+    simulation_result.simulation_setting = org_sim_setting
+    return simulation_result
+
+
 # common
 def _generate_empi_dists_and_calc_estimate(
     qtomography: "StandardQTomography",
@@ -306,7 +336,43 @@ def _generate_empi_dists_and_calc_estimate(
     empi_dists_seq = qtomography.generate_empi_dists_sequence(
         true_object, num_data, seed_or_stream=seed_or_stream
     )
+    estimation_result = _execute_estimation(
+        qtomography=qtomography,
+        empi_dists_seq=empi_dists_seq,
+        estimator=estimator,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+    )
+    # if isinstance(estimator, LossMinimizationEstimator):
+    #     estimation_result = estimator.calc_estimate_sequence(
+    #         qtomography,
+    #         empi_dists_seq,
+    #         loss=loss,
+    #         loss_option=loss_option,
+    #         algo=algo,
+    #         algo_option=algo_option,
+    #         is_computation_time_required=True,
+    #     )
+    # else:
+    #     estimation_result = estimator.calc_estimate_sequence(
+    #         qtomography,
+    #         empi_dists_seq,
+    #         is_computation_time_required=True,
+    #     )
+    return estimation_result, empi_dists_seq
 
+
+def _execute_estimation(
+    qtomography: "StandardQTomography",
+    empi_dists_seq: List[List[Tuple[int, np.ndarray]]],
+    estimator=StandardQTomographyEstimator,
+    loss: ProbabilityBasedLossFunction = None,
+    loss_option: ProbabilityBasedLossFunctionOption = None,
+    algo: MinimizationAlgorithm = None,
+    algo_option: MinimizationAlgorithmOption = None,
+) -> StandardQTomographyEstimationResult:
     if isinstance(estimator, LossMinimizationEstimator):
         estimation_result = estimator.calc_estimate_sequence(
             qtomography,
@@ -323,7 +389,7 @@ def _generate_empi_dists_and_calc_estimate(
             empi_dists_seq,
             is_computation_time_required=True,
         )
-    return estimation_result, empi_dists_seq
+    return estimation_result
 
 
 def re_estimate(

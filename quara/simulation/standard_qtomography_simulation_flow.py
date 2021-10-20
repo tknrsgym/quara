@@ -30,6 +30,7 @@ def execute_simulation_case_unit(
     test_setting,
     true_object,
     tester_objects,
+    empi_dists_sequences,  #
     case_index: int,
     sample_index: int,
     test_setting_index: int,
@@ -44,23 +45,28 @@ def execute_simulation_case_unit(
 
     org_sim_setting = sim_setting.copy()
 
-    # Generate QTomography
-    # Do not set the random number seed when initializing qtomography.
-    # Use the random number stream later when generating the empirical distribution.
+    # # Generate QTomography
+    # # Do not set the random number seed when initializing qtomography.
+    # # Use the random number stream later when generating the empirical distribution.
     qtomography = sim.generate_qtomography(
         sim_setting,
         para=test_setting.parametrizations[case_index],
         init_with_seed=False,
     )
 
-    # Generate a random number stream to generate the empirical distribution.
-    stream_data = np.random.RandomState(sim_setting.seed_data)
+    # # Generate a random number stream to generate the empirical distribution.
+    # stream_data = np.random.RandomState(sim_setting.seed_data)
 
     # Execute
-    sim_result = sim.execute_simulation(
+    # sim_result = sim.execute_simulation(
+    #     qtomography=qtomography,
+    #     simulation_setting=sim_setting,
+    #     seed_or_stream=stream_data,
+    # )
+    sim_result = sim.execute_estimation(
         qtomography=qtomography,
         simulation_setting=sim_setting,
-        seed_or_stream=stream_data,
+        empi_dists_sequences=empi_dists_sequences,
     )
 
     # Simulation Check
@@ -150,11 +156,35 @@ def execute_simulation_sample_unit(
     results = []
     case_n = len(test_setting.case_names)
 
+    # Generate QTomography
+    # Do not set the random number seed when initializing qtomography.
+    # Use the random number stream later when generating the empirical distribution.
+    dummy_case_index = 0
+    tmp_sim_setting = test_setting.to_simulation_setting(
+        true_object, tester_objects, dummy_case_index
+    )
+    tmp_qtomography = sim.generate_qtomography(
+        tmp_sim_setting,
+        para=test_setting.parametrizations[dummy_case_index],  # dummy
+        init_with_seed=False,
+    )
+
+    # Generate a random number stream to generate the empirical distribution.
+    stream_data = np.random.RandomState(tmp_sim_setting.seed_data)
+
+    empi_dists_sequences = []
+    for _ in range(test_setting.n_rep):
+        empi_dists_seq = tmp_qtomography.generate_empi_dists_sequence(
+            true_object, tmp_sim_setting.num_data, seed_or_stream=stream_data
+        )
+        empi_dists_sequences.append(empi_dists_seq)
+
     for case_index in range(case_n):
         result = execute_simulation_case_unit(
             test_setting,
             true_object=true_object,
             tester_objects=tester_objects,
+            empi_dists_sequences=empi_dists_sequences,
             case_index=case_index,
             sample_index=sample_index,
             test_setting_index=test_setting_index,
