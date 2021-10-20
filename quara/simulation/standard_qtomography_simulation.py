@@ -295,11 +295,13 @@ def execute_estimation(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
     empi_dists_sequences: List[List[Tuple[int, np.ndarray]]],
+    n_jobs: int = 1,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
+    # TODO: remove
     start = time.time()
-    n_jobs = -2  # 引数で指定可能にする. Noneの場合は並列化しない
+
     estimation_results = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
         [
             joblib.delayed(_execute_estimation)(
@@ -314,6 +316,7 @@ def execute_estimation(
             for empi_dists_seq in empi_dists_sequences
         ]
     )
+    # TODO: remove
     elapsed_time = time.time() - start
     print("🐥elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
@@ -329,7 +332,8 @@ def execute_estimation(
     #         algo_option=simulation_setting.algo_option,
     #     )
     #     estimation_results.append(estimation_result)
-
+    # elapsed_time = time.time() - start
+    # print("🐥elapsed_time:{0}".format(elapsed_time) + "[sec]")
     simulation_result = SimulationResult(
         qtomography=qtomography,
         empi_dists_sequences=empi_dists_sequences,

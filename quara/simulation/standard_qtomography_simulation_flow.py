@@ -9,6 +9,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import joblib
 
 from quara.simulation import standard_qtomography_simulation_report as report
 
@@ -172,15 +173,24 @@ def execute_simulation_sample_unit(
     # Generate a random number stream to generate the empirical distribution.
     stream_data = np.random.RandomState(tmp_sim_setting.seed_data)
 
-    empi_dists_sequences = []
-    import time
-
+    # TODO remove
     start = time.time()
-    for _ in range(test_setting.n_rep):
-        empi_dists_seq = tmp_qtomography.generate_empi_dists_sequence(
-            true_object, tmp_sim_setting.num_data, seed_or_stream=stream_data
-        )
-        empi_dists_sequences.append(empi_dists_seq)
+    n_jobs = -2
+    empi_dists_sequences = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
+        [
+            joblib.delayed(tmp_qtomography.generate_empi_dists_sequence)(
+                true_object, tmp_sim_setting.num_data, stream_data
+            )
+            for _ in range(test_setting.n_rep)
+        ]
+    )
+    # empi_dists_sequences = []
+
+    # for _ in range(test_setting.n_rep):
+    #     empi_dists_seq = tmp_qtomography.generate_empi_dists_sequence(
+    #         true_object, tmp_sim_setting.num_data, seed_or_stream=stream_data
+    #     )
+    #     empi_dists_sequences.append(empi_dists_seq)
     elapsed_time = time.time() - start
     print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
