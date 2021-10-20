@@ -333,6 +333,8 @@ def _generate_empi_dists_and_calc_estimate(
     algo_option: MinimizationAlgorithmOption = None,
     seed_or_stream: Union[int, np.random.RandomState] = None,
 ) -> Tuple[StandardQTomographyEstimationResult, List[List[Tuple[int, np.ndarray]]]]:
+    # TODO: remove
+    # print("❌❌❌❌")
     empi_dists_seq = qtomography.generate_empi_dists_sequence(
         true_object, num_data, seed_or_stream=seed_or_stream
     )

@@ -175,6 +175,8 @@ class StandardQmpt(StandardQTomography):
         num_sums: List[int],
         seed_or_stream: Union[int, np.random.RandomState] = None,
     ) -> List[List[Tuple[int, np.ndarray]]]:
+        # TODO: remove
+        # print("🐰🐰🐰")
         tmp_experiment = self._experiment.copy()
 
         list_num_sums = [num_sums] * self._num_schedules
