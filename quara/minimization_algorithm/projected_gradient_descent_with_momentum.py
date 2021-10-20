@@ -13,6 +13,14 @@ from quara.minimization_algorithm.projected_gradient_descent import (
 
 
 class ProjectedGradientDescentWithMomentumResult(ProjectedGradientDescentResult):
+    """This algorithm is based on the following:
+
+    Eliot Bolduc, George C. Knee, Erik M. Gauger & Jonathan Leach, "Projected gradient descent algorithms for quantum state tomography",
+
+    - npj Quantum Information volume 3, Article number: 44 (2017) https://www.nature.com/articles/s41534-017-0043-1
+    - arXiv:1612.09531 https://arxiv.org/abs/1612.09531
+    """
+
     def __init__(
         self,
         value: np.ndarray,
@@ -44,8 +52,8 @@ class ProjectedGradientDescentWithMomentumOption(ProjectedGradientDescentOption)
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
         var_start: np.ndarray = None,
-        r: float = 1.0,
-        moment_0: List[np.float] = None,
+        r: float = 2.0,
+        moment_0: List[float] = None,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
         num_history_stopping_criterion_gradient_descent: int = 1,
         mode_proj_order: str = "eq_ineq",
@@ -62,8 +70,8 @@ class ProjectedGradientDescentWithMomentumOption(ProjectedGradientDescentOption)
         var_start : np.ndarray, optional
             initial variable for the algorithm, by default None
         r : float, optional
-            algorithm option ``r``, by default 1.0
-        moment_0 : List[np.float], optional
+            algorithm option ``r``, by default 2.0
+        moment_0 : List[float], optional
             algorithm option ``moment_0``, by default None
         mode_stopping_criterion_gradient_descent : str, optional
             mode of stopping criterion for gradient descent, by default "single_difference_loss"
@@ -102,12 +110,12 @@ class ProjectedGradientDescentWithMomentumOption(ProjectedGradientDescentOption)
         return self._r
 
     @property
-    def moment_0(self) -> List[np.float]:
+    def moment_0(self) -> List[float]:
         """returns algorithm option ``moment_0``.
 
         Returns
         -------
-        List[np.float]
+        List[float]
             algorithm option ``moment_0``.
         """
         return self._moment_0
