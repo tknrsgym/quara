@@ -5,11 +5,11 @@ import dataclasses
 import pickle
 import time
 from pathlib import Path
-import json
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import joblib
 
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
@@ -298,18 +298,37 @@ def execute_estimation(
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
-    estimation_results = []
-    for empi_dists_seq in tqdm(empi_dists_sequences):
-        estimation_result = _execute_estimation(
-            qtomography=qtomography,
-            empi_dists_seq=empi_dists_seq,
-            estimator=simulation_setting.estimator,
-            loss=simulation_setting.loss,
-            loss_option=simulation_setting.loss_option,
-            algo=simulation_setting.algo,
-            algo_option=simulation_setting.algo_option,
-        )
-        estimation_results.append(estimation_result)
+    start = time.time()
+    n_jobs = -2  # 引数で指定可能にする. Noneの場合は並列化しない
+    estimation_results = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
+        [
+            joblib.delayed(_execute_estimation)(
+                qtomography,
+                empi_dists_seq,
+                simulation_setting.estimator,
+                simulation_setting.loss,
+                simulation_setting.loss_option,
+                simulation_setting.algo,
+                simulation_setting.algo_option,
+            )
+            for empi_dists_seq in empi_dists_sequences
+        ]
+    )
+    elapsed_time = time.time() - start
+    print("🐥elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
+    # estimation_results = []
+    # for empi_dists_seq in tqdm(empi_dists_sequences):
+    #     estimation_result = _execute_estimation(
+    #         qtomography=qtomography,
+    #         empi_dists_seq=empi_dists_seq,
+    #         estimator=simulation_setting.estimator,
+    #         loss=simulation_setting.loss,
+    #         loss_option=simulation_setting.loss_option,
+    #         algo=simulation_setting.algo,
+    #         algo_option=simulation_setting.algo_option,
+    #     )
+    #     estimation_results.append(estimation_result)
 
     simulation_result = SimulationResult(
         qtomography=qtomography,
@@ -319,6 +338,36 @@ def execute_estimation(
 
     simulation_result.simulation_setting = org_sim_setting
     return simulation_result
+
+
+# def execute_estimation(
+#     qtomography: "StandardQTomography",
+#     simulation_setting: StandardQTomographySimulationSetting,
+#     empi_dists_sequences: List[List[Tuple[int, np.ndarray]]],
+# ) -> SimulationResult:
+#     org_sim_setting = simulation_setting.copy()
+
+#     estimation_results = []
+#     for empi_dists_seq in tqdm(empi_dists_sequences):
+#         estimation_result = _execute_estimation(
+#             qtomography=qtomography,
+#             empi_dists_seq=empi_dists_seq,
+#             estimator=simulation_setting.estimator,
+#             loss=simulation_setting.loss,
+#             loss_option=simulation_setting.loss_option,
+#             algo=simulation_setting.algo,
+#             algo_option=simulation_setting.algo_option,
+#         )
+#         estimation_results.append(estimation_result)
+
+#     simulation_result = SimulationResult(
+#         qtomography=qtomography,
+#         empi_dists_sequences=empi_dists_sequences,
+#         estimation_results=estimation_results,
+#     )
+
+#     simulation_result.simulation_setting = org_sim_setting
+#     return simulation_result
 
 
 # common

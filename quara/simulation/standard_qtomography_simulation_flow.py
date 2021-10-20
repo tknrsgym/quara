@@ -173,11 +173,16 @@ def execute_simulation_sample_unit(
     stream_data = np.random.RandomState(tmp_sim_setting.seed_data)
 
     empi_dists_sequences = []
+    import time
+
+    start = time.time()
     for _ in range(test_setting.n_rep):
         empi_dists_seq = tmp_qtomography.generate_empi_dists_sequence(
             true_object, tmp_sim_setting.num_data, seed_or_stream=stream_data
         )
         empi_dists_sequences.append(empi_dists_seq)
+    elapsed_time = time.time() - start
+    print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
     for case_index in range(case_n):
         # TODO: remove
