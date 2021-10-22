@@ -681,7 +681,7 @@ def test_calc_estimate_LinearEstimator_1qubit(
         npt.assert_almost_equal(a, e, decimal=15)
 
 
-@pytest.mark.time_consuming_test
+@pytest.mark.qmpt_twoqubit
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [
@@ -751,6 +751,7 @@ def test_calc_estimate_LinearEstimator_2qubit(
         npt.assert_almost_equal(a, e, decimal=14)
 
 
+@pytest.mark.qmpt_onequtrit
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
@@ -902,7 +903,7 @@ def test_calc_estimate_MLE_1qubit(true_object_name: str, on_para_eq_constraint: 
         npt.assert_almost_equal(a, e, decimal=6)
 
 
-@pytest.mark.time_consuming_test
+@pytest.mark.qmpt_twoqubit
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [
@@ -986,6 +987,7 @@ def test_calc_estimate_MLE_2qubit(true_object_name: str, on_para_eq_constraint: 
         npt.assert_almost_equal(a, e, decimal=1)
 
 
+@pytest.mark.qmpt_onequtrit
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
@@ -1152,7 +1154,7 @@ def test_calc_estimate_LSE_1qubit(true_object_name: str, on_para_eq_constraint: 
         npt.assert_almost_equal(a, e, decimal=7)
 
 
-@pytest.mark.time_consuming_test
+@pytest.mark.qmpt_twoqubit
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [
@@ -1237,6 +1239,7 @@ def test_calc_estimate_LSE_2qubit(true_object_name: str, on_para_eq_constraint: 
         npt.assert_almost_equal(a, e, decimal=2)
 
 
+@pytest.mark.qmpt_onequtrit
 @pytest.mark.parametrize(
     ("true_object_name", "on_para_eq_constraint"),
     [("z3-type1", True), ("z3-type1", False), ("z2-type1", True), ("z2-type1", False)],
