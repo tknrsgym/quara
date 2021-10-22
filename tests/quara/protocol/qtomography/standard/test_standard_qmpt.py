@@ -507,6 +507,7 @@ def test_compare_prob_dist_1qubit(on_para_eq_constraint: bool):
         npt.assert_almost_equal(actual, expected, decimal=15)
 
 
+@pytest.mark.qmpt_twoqubit
 @pytest.mark.parametrize(("on_para_eq_constraint"), [(True), (False)])
 def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
     c_sys = generate_composite_system(mode="qubit", num=2, ids_esys=[1, 2])
@@ -559,6 +560,7 @@ def test_compare_prob_dist_2qubit(on_para_eq_constraint: bool):
         npt.assert_almost_equal(actual, expected, decimal=14)
 
 
+@pytest.mark.qmpt_onequtrit
 @pytest.mark.parametrize(("on_para_eq_constraint"), [(True), (False)])
 def test_compare_prob_dist_1qutrit(on_para_eq_constraint: bool):
     c_sys = generate_composite_system(mode="qutrit", num=1, ids_esys=[1])
