@@ -38,7 +38,7 @@ jobs:
             nohup qvm -S > /tmp/artifacts/qvm.log &
             nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
       - store_artifacts:
@@ -74,7 +74,7 @@ jobs:
             nohup qvm -S > /tmp/artifacts/qvm.log &
             nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit not qmpt_twoqubit not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_twoqubit not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
       - store_artifacts:
@@ -109,7 +109,7 @@ jobs:
             nohup qvm -S > /tmp/artifacts/qvm.log &
             nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
       - store_artifacts:
