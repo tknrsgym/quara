@@ -240,21 +240,9 @@ def execute_simulation_sample_unit(
             for case_index in range(case_n)
         ]
     )
+    # TODO: remove
     elapsed_time = time.time() - start
-    print("🐱elapsed_time:{0}".format(elapsed_time) + "[sec]")
-    # for case_index in range(case_n):
-    #     result = execute_simulation_case_unit(
-    #         test_setting,
-    #         true_object=true_object,
-    #         tester_objects=tester_objects,
-    #         empi_dists_sequences=empi_dists_sequences,
-    #         case_index=case_index,
-    #         sample_index=sample_index,
-    #         test_setting_index=test_setting_index,
-    #         root_dir=root_dir,
-    #         exec_sim_check=exec_sim_check,
-    #     )
-    #     results.append(result)
+    print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
     # Save
     write_result_sample_unit(results, root_dir=root_dir)

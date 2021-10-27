@@ -345,7 +345,7 @@ def execute_estimation_with_saved_empi_dists_sequences(
     )
     # TODO: remove
     elapsed_time = time.time() - start
-    print("🐭elapsed_time:{0}".format(elapsed_time) + "[sec]")
+    print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
     simulation_result = SimulationResult(
         qtomography=qtomography,
@@ -384,22 +384,8 @@ def execute_estimation(
     )
     # TODO: remove
     elapsed_time = time.time() - start
-    print("🐥elapsed_time:{0}".format(elapsed_time) + "[sec]")
+    print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
-    # estimation_results = []
-    # for empi_dists_seq in tqdm(empi_dists_sequences):
-    #     estimation_result = _execute_estimation(
-    #         qtomography=qtomography,
-    #         empi_dists_seq=empi_dists_seq,
-    #         estimator=simulation_setting.estimator,
-    #         loss=simulation_setting.loss,
-    #         loss_option=simulation_setting.loss_option,
-    #         algo=simulation_setting.algo,
-    #         algo_option=simulation_setting.algo_option,
-    #     )
-    #     estimation_results.append(estimation_result)
-    # elapsed_time = time.time() - start
-    # print("🐥elapsed_time:{0}".format(elapsed_time) + "[sec]")
     simulation_result = SimulationResult(
         qtomography=qtomography,
         empi_dists_sequences=empi_dists_sequences,
