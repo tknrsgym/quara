@@ -25,6 +25,7 @@ from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )
+from quara.protocol.qtomography.estimator import EstimationResult
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
@@ -291,6 +292,71 @@ def execute_simulation(
     return simulation_result
 
 
+def _load_and_execute_estimation(
+    empi_dists_path: str,
+    qtomography: "StandardQTomography",
+    empi_dists_seq: List[List[Tuple[int, np.ndarray]]],
+    estimator=StandardQTomographyEstimator,
+    loss: ProbabilityBasedLossFunction = None,
+    loss_option: ProbabilityBasedLossFunctionOption = None,
+    algo: MinimizationAlgorithm = None,
+    algo_option: MinimizationAlgorithmOption = None,
+) -> EstimationResult:
+    # Load
+    with open(empi_dists_path, "rb") as f:
+        empi_dists_path = pickle.load(f)
+    estimation_result = _execute_estimation(
+        qtomography=qtomography,
+        empi_dists_seq=empi_dists_seq,
+        estimator=estimator,
+        loss=loss,
+        loss_option=loss_option,
+        algo=algo,
+        algo_option=algo_option,
+    )
+    return estimation_result
+
+
+def execute_estimation_with_saved_empi_dists_sequences(
+    qtomography: "StandardQTomography",
+    simulation_setting: StandardQTomographySimulationSetting,
+    dir_path_empi_dists_sequences: Union[str, Path],
+    n_jobs: int = 1,
+) -> SimulationResult:
+    org_sim_setting = simulation_setting.copy()
+
+    # TODO: remove
+    start = time.time()
+
+    estimation_results = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
+        [
+            joblib.delayed(_load_and_execute_estimation)(
+                Path(dir_path_empi_dists_sequences)
+                / f"empi_dists_{empi_dists_index}.pickle",
+                qtomography,
+                simulation_setting.estimator,
+                simulation_setting.loss,
+                simulation_setting.loss_option,
+                simulation_setting.algo,
+                simulation_setting.algo_option,
+            )
+            for empi_dists_index in range(simulation_setting.n_rep)
+        ]
+    )
+    # TODO: remove
+    elapsed_time = time.time() - start
+    print("🐭elapsed_time:{0}".format(elapsed_time) + "[sec]")
+
+    simulation_result = SimulationResult(
+        qtomography=qtomography,
+        empi_dists_sequences=dir_path_empi_dists_sequences,  # TODO
+        estimation_results=estimation_results,
+    )
+
+    simulation_result.simulation_setting = org_sim_setting
+    return simulation_result
+
+
 def execute_estimation(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
@@ -386,8 +452,6 @@ def _generate_empi_dists_and_calc_estimate(
     algo_option: MinimizationAlgorithmOption = None,
     seed_or_stream: Union[int, np.random.RandomState] = None,
 ) -> Tuple[StandardQTomographyEstimationResult, List[List[Tuple[int, np.ndarray]]]]:
-    # TODO: remove
-    # print("❌❌❌❌")
     empi_dists_seq = qtomography.generate_empi_dists_sequence(
         true_object, num_data, seed_or_stream=seed_or_stream
     )
@@ -400,22 +464,6 @@ def _generate_empi_dists_and_calc_estimate(
         algo=algo,
         algo_option=algo_option,
     )
-    # if isinstance(estimator, LossMinimizationEstimator):
-    #     estimation_result = estimator.calc_estimate_sequence(
-    #         qtomography,
-    #         empi_dists_seq,
-    #         loss=loss,
-    #         loss_option=loss_option,
-    #         algo=algo,
-    #         algo_option=algo_option,
-    #         is_computation_time_required=True,
-    #     )
-    # else:
-    #     estimation_result = estimator.calc_estimate_sequence(
-    #         qtomography,
-    #         empi_dists_seq,
-    #         is_computation_time_required=True,
-    #     )
     return estimation_result, empi_dists_seq
 
 
