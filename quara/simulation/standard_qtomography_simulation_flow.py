@@ -194,15 +194,21 @@ def execute_simulation_sample_unit(
     #     ]
     # )
     empi_dists_sequences = []
-    dir_path = Path(root_dir) / str(sample_index) / "empi_dists_sequences"
-    dir_path.mkdir(parents=True, exist_ok=True)
+    if data_saving == "on_storage":
+        # TODO:
+        # dir_path = Path(root_dir) / str(sample_index) / "empi_dists_sequences"
+        # dir_path.mkdir(parents=True, exist_ok=True)
+        raise NotImplementedError()
+
     for i in range(test_setting.n_rep):
         empi_dists_seq = tmp_qtomography.generate_empi_dists_sequence(
             true_object, tmp_sim_setting.num_data, seed_or_stream=stream_data
         )
-        if data_saving == "on_strage":
-            with open(dir_path / f"empi_dists_seq_{i}.pickle", "wb") as f:
-                pickle.dump(empi_dists_seq, f)
+        if data_saving == "on_storage":
+            # TODO:
+            # with open(dir_path / f"empi_dists_seq_{i}.pickle", "wb") as f:
+            #     pickle.dump(empi_dists_seq, f)
+            raise NotImplementedError()
         else:
             # on_memory
             empi_dists_sequences.append(empi_dists_seq)
@@ -277,6 +283,7 @@ def execute_simulation_test_setting_unit(
     exec_sim_check: Dict[str, bool] = None,
     pdf_mode: str = "only_ng",
     parallel_mode: Dict[str, int] = None,
+    data_saving: str = "on_memory",
 ) -> List[SimulationResult]:
     generation_settings = test_setting.to_generation_settings()
     n_sample = test_setting.n_sample
@@ -295,6 +302,7 @@ def execute_simulation_test_setting_unit(
             stream_qoperation=stream_qoperation,
             exec_sim_check=exec_sim_check,
             parallel_mode=parallel_mode,
+            data_saving=data_saving,
         )
         results += sample_results
 
@@ -309,6 +317,7 @@ def execute_simulation_test_settings(
     pdf_mode: str = "only_ng",
     exec_sim_check: Dict[str, bool] = None,
     parallel_mode: Dict[str, int] = None,
+    data_saving: str = "on_memory",
 ) -> List[SimulationResult]:
     all_results = []
     start = time.time()
@@ -324,6 +333,7 @@ def execute_simulation_test_settings(
             exec_sim_check=exec_sim_check,
             pdf_mode=pdf_mode,
             parallel_mode=parallel_mode,
+            data_saving=data_saving,
         )
         all_results += test_results
 
