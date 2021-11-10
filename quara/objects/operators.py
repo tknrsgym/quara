@@ -388,7 +388,7 @@ def compose_qoperations(
     - (MProcess, MProcess) -> MProcess
     - (Gate, State) -> State
     - (Gate, StateEnsemble) -> StateEnsemble
-    - (MProcess, State) -> StateEnsemble
+    - (MProcess, State) -> State or StateEnsemble
     - (Mprocess, StateEnsemble) -> StateEnsemble
     - (Povm, Gate) -> Povm
     - (Povm, MProcess) -> Povm
@@ -477,7 +477,7 @@ def _compose_qoperations(elem1, elem2):
             new_states.append(new_state)
         return StateEnsemble(new_states, elem2.prob_dist)
     elif type(elem1) == MProcess and type(elem2) == State:
-        # -> StateEnsemble
+        # -> State or StateEnsemble
         state_ensemble = _compose_qoperations_MProcess_State(elem1, elem2)
         return state_ensemble
     elif type(elem1) == MProcess and type(elem2) == StateEnsemble:
