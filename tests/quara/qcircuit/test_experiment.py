@@ -8,6 +8,7 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
+from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.objects.povm import (
     Povm,
     get_x_povm,
@@ -64,6 +65,33 @@ class TestExperiment:
             states=state_list,
             povms=povm_list,
             gates=gate_list,
+            schedules=schedules,
+            seed_data=seed,
+        )
+        return exp
+
+    def array_experiment_data_with_all_mode(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_povm(c_sys1), get_y_povm(c_sys1)]
+        mprocess_list = [
+            generate_mprocess_from_name(c_sys1, "x-type1"),
+            generate_mprocess_from_name(c_sys1, "y-type1"),
+        ]
+        schedules = [
+            [("state", 0), ("gate", 0), ("mprocess", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("mprocess", 0), ("povm", 1)],
+        ]
+        seed = 7
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            mprocesses=mprocess_list,
             schedules=schedules,
             seed_data=seed,
         )
@@ -157,6 +185,48 @@ class TestExperiment:
             seed_data=seed,
         )
         return exp
+
+    def test_qoperations(self):
+        # Arrange
+        experiment = self.array_experiment_data_with_all_mode()
+
+        # Act & Assert
+        assert len(experiment.qoperations("state")) == 2
+
+        # Act & Assert
+        assert len(experiment.qoperations("povm")) == 2
+
+        # Act & Assert
+        assert len(experiment.qoperations("gate")) == 2
+
+        # Act & Assert
+        assert len(experiment.qoperations("mprocess")) == 2
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            experiment.qoperations("unsupported")
+
+
+    def test_num_qoperations(self):
+        # Arrange
+        experiment = self.array_experiment_data_with_all_mode()
+
+        # Act & Assert
+        assert experiment.num_qoperations("state") == 2
+
+        # Act & Assert
+        assert experiment.num_qoperations("povm") == 2
+
+        # Act & Assert
+        assert experiment.num_qoperations("gate") == 2
+
+        # Act & Assert
+        assert experiment.num_qoperations("mprocess") == 2
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            experiment.num_qoperations("unsupported")
+
 
     def test_reset_seed(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

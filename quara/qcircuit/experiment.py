@@ -172,6 +172,68 @@ class Experiment:
         else:
             self._mprocesses = value
 
+    def qoperations(
+        self, mode: str
+    ) -> Union[List[State], List[Povm], List[Gate], List[MProcess]]:
+        """returns qoperations with specified mode.
+
+        Parameters
+        ----------
+        mode : str
+            mode to get qoperations.
+            mode can be "state", "povm", "gate", or "mprocess".
+
+        Returns
+        -------
+        Union[List[State], List[Povm], List[Gate], List[MProcess]]
+            qoperations with specified mode.
+
+        Raises
+        ------
+        ValueError
+            Unsupported mode is specified.
+        """
+        if mode == "state":
+            return self.states
+        elif mode == "povm":
+            return self.povms
+        elif mode == "gate":
+            return self.gates
+        elif mode == "mprocess":
+            return self.mprocesses
+        else:
+            raise ValueError(f"Unsupported mode is specified. mode={mode}")
+
+    def num_qoperations(self, mode: str) -> int:
+        """returns number of qoperations with specified mode.
+
+        Parameters
+        ----------
+        mode : str
+            mode to get number of qoperations.
+            mode can be "state", "povm", "gate", or "mprocess".
+
+        Returns
+        -------
+        int
+            number of qoperations with specified mode.
+
+        Raises
+        ------
+        ValueError
+            Unsupported mode is specified.
+        """
+        if mode == "state":
+            return len(self.states)
+        elif mode == "povm":
+            return len(self.povms)
+        elif mode == "gate":
+            return len(self.gates)
+        elif mode == "mprocess":
+            return len(self.mprocesses)
+        else:
+            raise ValueError(f"An unsupported mode is specified. mode={mode}")
+
     @property
     def schedules(self) -> List[List[Tuple[str, int]]]:
         return self._schedules
