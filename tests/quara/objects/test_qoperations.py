@@ -192,6 +192,30 @@ class TestSetQOperations:
         sl_qope.mprocesses = new_mprocesses
         assert sl_qope.mprocesses == new_mprocesses
 
+    def test_qoperations(self):
+        # Arrange
+        states, povms, gates, mprocesses = self.arrange_qoperations()
+
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
+
+        # Act & Assert
+        assert len(sl_qope.qoperations("state")) == len(states)
+
+        # Act & Assert
+        assert len(sl_qope.qoperations("povm")) == len(povms)
+
+        # Act & Assert
+        assert len(sl_qope.qoperations("gate")) == len(gates)
+
+        # Act & Assert
+        assert len(sl_qope.qoperations("mprocess")) == len(mprocesses)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            sl_qope.qoperations("unsupported")
+
     def test_num(self):
         # Arrange
         states, povms, gates, mprocesses = self.arrange_qoperations()
@@ -215,6 +239,30 @@ class TestSetQOperations:
         # Act & Assert
         expected = len(mprocesses)
         assert sl_qope.num_mprocesses() == expected
+
+    def test_num_qoperations(self):
+        # Arrange
+        states, povms, gates, mprocesses = self.arrange_qoperations()
+
+        sl_qope = qope.SetQOperations(
+            states=states, povms=povms, gates=gates, mprocesses=mprocesses
+        )
+
+        # Act & Assert
+        assert sl_qope.num_qoperations("state") == len(states)
+
+        # Act & Assert
+        assert sl_qope.num_qoperations("povm") == len(povms)
+
+        # Act & Assert
+        assert sl_qope.num_qoperations("gate") == len(gates)
+
+        # Act & Assert
+        assert sl_qope.num_qoperations("mprocess") == len(mprocesses)
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            sl_qope.num_qoperations("unsupported")
 
     def test_var_state(self):
         # Arrange
@@ -1129,11 +1177,11 @@ class TestSetQOperations:
         expected = 139
         assert actual == expected
 
-    def test_get_operation_type_to_total_index_map(self):
+    def test_get_operation_mode_to_total_index_map(self):
         # Arrange
         set_qoperations = self._arrange_setqoperations()
         # Act
-        actual = set_qoperations._get_operation_type_to_total_index_map()
+        actual = set_qoperations._get_operation_mode_to_total_index_map()
         # Assert
         expected = {"state": 0, "gate": 23, "povm": 63, "mprocess": 79}
         assert actual == expected
@@ -1231,7 +1279,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(0)
         expected = dict(
-            type_operation="state",
+            mode="state",
             index_operations=0,
             index_var_local=0,
         )
@@ -1239,7 +1287,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(2)
         expected = dict(
-            type_operation="state",
+            mode="state",
             index_operations=0,
             index_var_local=2,
         )
@@ -1248,7 +1296,7 @@ class TestSetQOperations:
         # states[1]
         actual = set_qoperations.local_info_from_index_var_total(3)
         expected = dict(
-            type_operation="state",
+            mode="state",
             index_operations=1,
             index_var_local=0,
         )
@@ -1256,7 +1304,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(6)
         expected = dict(
-            type_operation="state",
+            mode="state",
             index_operations=1,
             index_var_local=3,
         )
@@ -1265,7 +1313,7 @@ class TestSetQOperations:
         # states[2]
         actual = set_qoperations.local_info_from_index_var_total(7)
         expected = dict(
-            type_operation="state",
+            mode="state",
             index_operations=2,
             index_var_local=0,
         )
@@ -1273,7 +1321,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(22)
         expected = dict(
-            type_operation="state",
+            mode="state",
             index_operations=2,
             index_var_local=15,
         )
@@ -1282,7 +1330,7 @@ class TestSetQOperations:
         # gates[0]
         actual = set_qoperations.local_info_from_index_var_total(23)
         expected = dict(
-            type_operation="gate",
+            mode="gate",
             index_operations=0,
             index_var_local=0,
         )
@@ -1290,7 +1338,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(34)
         expected = dict(
-            type_operation="gate",
+            mode="gate",
             index_operations=0,
             index_var_local=11,
         )
@@ -1299,7 +1347,7 @@ class TestSetQOperations:
         # gates[1]
         actual = set_qoperations.local_info_from_index_var_total(35)
         expected = dict(
-            type_operation="gate",
+            mode="gate",
             index_operations=1,
             index_var_local=0,
         )
@@ -1307,7 +1355,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(50)
         expected = dict(
-            type_operation="gate",
+            mode="gate",
             index_operations=1,
             index_var_local=15,
         )
@@ -1316,7 +1364,7 @@ class TestSetQOperations:
         # gates[2]
         actual = set_qoperations.local_info_from_index_var_total(51)
         expected = dict(
-            type_operation="gate",
+            mode="gate",
             index_operations=2,
             index_var_local=0,
         )
@@ -1324,7 +1372,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(62)
         expected = dict(
-            type_operation="gate",
+            mode="gate",
             index_operations=2,
             index_var_local=11,
         )
@@ -1333,7 +1381,7 @@ class TestSetQOperations:
         # povms[0]
         actual = set_qoperations.local_info_from_index_var_total(63)
         expected = dict(
-            type_operation="povm",
+            mode="povm",
             index_operations=0,
             index_var_local=0,
         )
@@ -1341,7 +1389,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(66)
         expected = dict(
-            type_operation="povm",
+            mode="povm",
             index_operations=0,
             index_var_local=3,
         )
@@ -1350,7 +1398,7 @@ class TestSetQOperations:
         # povms[1]
         actual = set_qoperations.local_info_from_index_var_total(67)
         expected = dict(
-            type_operation="povm",
+            mode="povm",
             index_operations=1,
             index_var_local=0,
         )
@@ -1358,7 +1406,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(74)
         expected = dict(
-            type_operation="povm",
+            mode="povm",
             index_operations=1,
             index_var_local=7,
         )
@@ -1367,7 +1415,7 @@ class TestSetQOperations:
         # povms[2]
         actual = set_qoperations.local_info_from_index_var_total(75)
         expected = dict(
-            type_operation="povm",
+            mode="povm",
             index_operations=2,
             index_var_local=0,
         )
@@ -1375,7 +1423,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(78)
         expected = dict(
-            type_operation="povm",
+            mode="povm",
             index_operations=2,
             index_var_local=3,
         )
@@ -1384,7 +1432,7 @@ class TestSetQOperations:
         # MProcess
         actual = set_qoperations.local_info_from_index_var_total(79)
         expected = dict(
-            type_operation="mprocess",
+            mode="mprocess",
             index_operations=0,
             index_var_local=0,
         )
@@ -1392,7 +1440,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(106)
         expected = dict(
-            type_operation="mprocess",
+            mode="mprocess",
             index_operations=0,
             index_var_local=27,
         )
@@ -1400,7 +1448,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(107)
         expected = dict(
-            type_operation="mprocess",
+            mode="mprocess",
             index_operations=1,
             index_var_local=0,
         )
@@ -1408,7 +1456,7 @@ class TestSetQOperations:
 
         actual = set_qoperations.local_info_from_index_var_total(108)
         expected = dict(
-            type_operation="mprocess",
+            mode="mprocess",
             index_operations=1,
             index_var_local=1,
         )
