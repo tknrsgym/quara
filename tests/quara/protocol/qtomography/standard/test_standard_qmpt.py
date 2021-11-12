@@ -5,14 +5,19 @@ import numpy.testing as npt
 import pytest
 
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.mprocess import MProcess
+from quara.objects.povm import (
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
+)
 from quara.objects.qoperation_typical import (
     generate_qoperation,
     generate_qoperation_object,
 )
-from quara.objects.composite_system_typical import generate_composite_system
-from quara.objects.mprocess import MProcess
 from quara.objects.tester_typical import (
     generate_tester_states,
     generate_tester_povms,
