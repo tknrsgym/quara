@@ -104,15 +104,8 @@ class StandardPovmt(StandardQTomography):
         return Povm
 
     def is_valid_experiment(self) -> bool:
-        states = self._experiment.states
-        if len(states) <= 1:
-            return True
-
-        checks = [
-            states[0]._composite_system == state._composite_system
-            for state in states[1:]
-        ]
-        return all(checks)
+        is_ok_states = self.is_all_same_composite_systems(self._experiment.states)
+        return is_ok_states
 
     def _generate_matS(self):
         STATE_ITEM_INDEX = 0

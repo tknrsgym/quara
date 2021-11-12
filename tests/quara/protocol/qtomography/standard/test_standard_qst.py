@@ -155,8 +155,23 @@ class TestStandardQst:
         assert qst.estimation_object_type() == State
 
     def test_is_valid_experiment(self):
+        # is_valid_experiment == True
         qst, _ = get_test_data()
         assert qst.is_valid_experiment() == True
+
+        # is_valid_experiment == False
+        e_sys0 = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys0 = CompositeSystem([e_sys0])
+        e_sys1 = ElementalSystem(1, get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        povm_x = get_x_povm(c_sys1)
+        povm_y = get_y_povm(c_sys0)
+        povm_z = get_z_povm(c_sys0)
+        povms = [povm_x, povm_y, povm_z]
+
+        qst.experiment.povms = povms
+        assert qst.is_valid_experiment() == False
 
     def test_testers(self):
         qst, _ = get_test_data()

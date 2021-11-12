@@ -115,19 +115,9 @@ class StandardQmpt(StandardQTomography):
     def estimation_object_type(self) -> type:
         return MProcess
 
-    def _is_all_same_composite_systems(self, targets):
-        if len(targets) <= 1:
-            return True
-
-        checks = [
-            targets[0]._composite_system == target._composite_system
-            for target in targets[1:]
-        ]
-        return all(checks)
-
     def is_valid_experiment(self) -> bool:
-        is_ok_states = self._is_all_same_composite_systems(self._experiment.states)
-        is_ok_povms = self._is_all_same_composite_systems(self._experiment.povms)
+        is_ok_states = self.is_all_same_composite_systems(self._experiment.states)
+        is_ok_povms = self.is_all_same_composite_systems(self._experiment.povms)
 
         return is_ok_states and is_ok_povms
 

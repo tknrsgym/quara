@@ -239,6 +239,35 @@ class TestStandardPovmt:
         # Act & Assert
         assert actual.estimation_object_type() == Povm
 
+    def test_is_valid_experiment(self):
+        # Array
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        e_sys1 = ElementalSystem(1, get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        # |+><+|
+        state_x0 = get_x0_1q(c_sys)
+        state_x_not_same = get_x0_1q(c_sys1)
+        # |+i><+i|
+        state_y0 = get_y0_1q(c_sys)
+        # |0><0|
+        state_z0 = get_z0_1q(c_sys)
+        # |1><1|
+        state_z1 = get_z1_1q(c_sys)
+        states = [state_x0, state_y0, state_z0, state_z1]
+        states_not_same = [state_x_not_same, state_y0, state_z0, state_z1]
+
+        # is_valid_experiment == True
+        # Act
+        actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=True)
+        assert actual.is_valid_experiment() == True
+
+        # is_valid_experiment == False
+        # Act
+        actual.experiment.states = states_not_same
+        assert actual.is_valid_experiment() == False
+
     def test_generate_empty_estimation_obj_with_setting_info(self):
         # Array
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())

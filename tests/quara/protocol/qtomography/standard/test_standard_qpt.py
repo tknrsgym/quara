@@ -140,6 +140,25 @@ class TestStandardQpt:
         qpt, _ = get_test_data()
         assert len(qpt.testers) == 7
 
+    def test_is_valid_experiment(self):
+        # is_valid_experiment == True
+        qpt, _ = get_test_data()
+        assert qpt.is_valid_experiment() == True
+
+        # is_valid_experiment == False
+        e_sys0 = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys0 = CompositeSystem([e_sys0])
+        e_sys1 = ElementalSystem(1, get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        povm_x = get_x_povm(c_sys1)
+        povm_y = get_y_povm(c_sys0)
+        povm_z = get_z_povm(c_sys0)
+        povms = [povm_x, povm_y, povm_z]
+
+        qpt.experiment.povms = povms
+        assert qpt.is_valid_experiment() == False
+
     def test_generate_empi_dist(self):
         qpt, c_sys = get_test_data()
         gate = generate_gate_x(c_sys)

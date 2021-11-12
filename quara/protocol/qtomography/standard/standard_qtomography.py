@@ -208,6 +208,28 @@ class StandardQTomography(QTomography):
         """
         raise NotImplementedError()
 
+    def is_all_same_composite_systems(self, targets: List[QOperation]) -> bool:
+        """check all qoperations have same composite systems.
+
+        Parameters
+        ----------
+        targets : List[QOperation]
+            list of qoperations.
+
+        Returns
+        -------
+        bool
+            whether all qoperations have same composite systems.
+        """
+        if len(targets) <= 1:
+            return True
+
+        checks = [
+            targets[0]._composite_system == target._composite_system
+            for target in targets[1:]
+        ]
+        return all(checks)
+
     def calc_prob_dist(self, qope: QOperation, schedule_index: int) -> List[float]:
         """calculates a probability distribution.
 
