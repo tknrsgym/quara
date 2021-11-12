@@ -160,11 +160,8 @@ class StandardQst(StandardQTomography):
         bool
             whether the experiment is valid.
         """
-        povms = self._experiment.povms
-        checks = [
-            povms[0]._composite_system == povm._composite_system for povm in povms[1:]
-        ]
-        return all(checks)
+        is_ok_povms = self.is_all_same_composite_systems(self._experiment.povms)
+        return is_ok_povms
 
     def _testers(self) -> List[Povm]:
         return self.experiment.povms
