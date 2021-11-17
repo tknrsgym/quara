@@ -567,7 +567,7 @@ def re_estimate_test_setting_unit(
         results += sample_results
 
     # Save
-    write_result_test_setting_unit(results, output_root_dir)
+    write_result_test_setting_unit(results, output_root_dir, test_setting_index)
     return results
 
 

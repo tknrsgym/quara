@@ -261,13 +261,14 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         ) = generation_setting.generate(7)
 
         # Act(seed_or_stream: RandomState)
+        random_gen = np.random.Generator(np.random.MT19937(7))
         (
             state3,
             random_variables_h_part,
             random_variables_k_part,
             random_unitary,
             random_el,
-        ) = generation_setting.generate(np.random.RandomState(7))
+        ) = generation_setting.generate(random_gen)
 
         npt.assert_almost_equal(state1.to_var(), state2.to_var(), decimal=15)
         npt.assert_almost_equal(state2.to_var(), state3.to_var(), decimal=15)

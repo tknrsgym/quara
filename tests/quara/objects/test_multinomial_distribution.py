@@ -235,9 +235,8 @@ class TestMultinomialDistribution:
             np.array([6, 24, 27, 43]),
             np.array([8, 20, 25, 47]),
         ]
-        actual = dist.execute_random_sampling(
-            num, size, random_state=np.random.RandomState(7)
-        )
+        random_gen = np.random.Generator(np.random.MT19937(7))
+        actual = dist.execute_random_sampling(num, size, random_state=random_gen)
         assert len(actual) == size
         for a, e in zip(actual, expected):
             assert np.sum(a) == num

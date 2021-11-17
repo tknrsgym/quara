@@ -192,9 +192,8 @@ class TestStandardQpt:
         # seed_or_stream : int
         actual2 = qpt.generate_empi_dist(0, gate, 10, seed_or_stream=7)
         # seed_or_stream : np.random.RandomState
-        actual3 = qpt.generate_empi_dist(
-            0, gate, 10, seed_or_stream=np.random.RandomState(7)
-        )
+        random_gen = np.random.Generator(np.random.MT19937(7))
+        actual3 = qpt.generate_empi_dist(0, gate, 10, seed_or_stream=random_gen)
 
     def test_generate_empi_dists(self):
         qpt, c_sys = get_test_data()

@@ -112,7 +112,7 @@ class RandomEffectiveLindbladianGenerationSetting(
     ):
         dim = self.composite_system.dim
         stream = to_stream(seed_or_stream)
-        random_variables = stream.randn(dim ** 2 - 1)
+        random_variables = stream.standard_normal(dim ** 2 - 1)
         normalized_factor = 1 / np.sqrt(np.sum(random_variables ** 2))
         random_vector = strength * normalized_factor * random_variables
         return random_vector, random_variables

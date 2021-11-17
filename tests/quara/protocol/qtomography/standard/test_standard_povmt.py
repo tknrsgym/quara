@@ -547,9 +547,8 @@ class TestStandardPovmt:
         # seed_or_stream : int
         actual2 = povmt.generate_empi_dist(0, povm, 10, seed_or_stream=7)
         # seed_or_stream : np.random.RandomState
-        actual3 = povmt.generate_empi_dist(
-            0, povm, 10, seed_or_stream=np.random.RandomState(7)
-        )
+        random_gen = np.random.Generator(np.random.MT19937(7))
+        actual3 = povmt.generate_empi_dist(0, povm, 10, seed_or_stream=random_gen)
         npt.assert_almost_equal(actual1[1], actual2[1], decimal=15)
         npt.assert_almost_equal(actual2[1], actual3[1], decimal=15)
 

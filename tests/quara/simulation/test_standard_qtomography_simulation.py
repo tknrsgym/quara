@@ -288,13 +288,13 @@ def test_execute_simulation_with_seed_or_stream():
 
     qtomography = sim.generate_qtomography(sim_setting, para=True, init_with_seed=False)
 
-    stream_data = np.random.RandomState(sim_setting.seed_data)
+    random_gen = np.random.Generator(np.random.MT19937(sim_setting.seed_data))
 
     # Execute
     sim_result = sim.execute_simulation(
         qtomography=qtomography,
         simulation_setting=sim_setting,
-        seed_or_stream=stream_data,
+        seed_or_stream=random_gen,
     )
     # Assert
     # Verify that it is random.
@@ -304,11 +304,11 @@ def test_execute_simulation_with_seed_or_stream():
         assert is_same_dist(a_list[0], b_list[0]) is False
 
     # Execute
-    stream_data_1 = np.random.RandomState(sim_setting.seed_data)
+    random_gen = np.random.Generator(np.random.MT19937(sim_setting.seed_data))
     sim_result_1 = sim.execute_simulation(
         qtomography=qtomography,
         simulation_setting=sim_setting,
-        seed_or_stream=stream_data_1,
+        seed_or_stream=random_gen,
     )
 
     # Assert

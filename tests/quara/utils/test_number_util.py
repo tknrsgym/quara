@@ -51,6 +51,7 @@ def test_to_stream():
     assert actual.randint(10) == 9
 
     # seed_or_stream = RandomState(7)
-    actual = number_util.to_stream(np.random.RandomState(7))
+    random_gen = np.random.Generator(np.random.MT19937(77))
+    actual = number_util.to_stream(random_gen)
     assert actual.randint(10) == 4
     assert actual.randint(10) == 9
