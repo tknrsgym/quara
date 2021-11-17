@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 import json
 import pickle
+import itertools
 
 import numpy as np
 from numpy.random import Generator, MT19937, SeedSequence
@@ -55,9 +56,6 @@ def execute_simulation_case_unit(
         para=test_setting.parametrizations[case_index],
         init_with_seed=False,
     )
-
-    # # Generate a random number stream to generate the empirical distribution.
-    # stream_data = np.random.RandomState(sim_setting.seed_data)
 
     # Execute
     if data_saving == "on_memory":
@@ -213,7 +211,6 @@ def execute_simulation_sample_unit(
     else:
         per_estimator_execution_n_jobs = 1
 
-    start = time.time()
     results = joblib.Parallel(n_jobs=per_estimator_unit_n_jobs, verbose=2)(
         [
             joblib.delayed(execute_simulation_case_unit)(
@@ -231,9 +228,6 @@ def execute_simulation_sample_unit(
             for case_index in range(case_n)
         ]
     )
-    # TODO: remove
-    elapsed_time = time.time() - start
-    print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
     # Save
     write_result_sample_unit(results, root_dir=root_dir)
@@ -268,25 +262,37 @@ def execute_simulation_test_setting_unit(
     n_sample = test_setting.n_sample
     results = []
 
-    stream_qoperation = np.random.RandomState(test_setting.seed_qoperation)
+    sg = SeedSequence(test_setting.seed_qoperation)
+    # The default for RandomState is MT19937, so use this.
+    # Change it if necessary(PCG64, PCG64DXSM, etc.).
+    gens_qperations = [Generator(MT19937(s)) for s in sg.spawn(n_sample)]
 
-    for sample_index in range(n_sample):
-        sample_results = execute_simulation_sample_unit(
-            test_setting,
-            generation_settings,
-            test_setting_index,
-            sample_index,
-            root_dir,
-            pdf_mode=pdf_mode,
-            stream_qoperation=stream_qoperation,
-            exec_sim_check=exec_sim_check,
-            parallel_mode=parallel_mode,
-            data_saving=data_saving,
-        )
-        results += sample_results
+    if type(parallel_mode) == dict and "per_sample_unit" in parallel_mode:
+        n_jobs = parallel_mode["per_sample_unit"]
+    else:
+        n_jobs = 1
+
+    results = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
+        [
+            joblib.delayed(execute_simulation_sample_unit)(
+                test_setting,
+                generation_settings,
+                test_setting_index,
+                sample_index,
+                root_dir,
+                pdf_mode,
+                random_gen,
+                exec_sim_check,
+                parallel_mode,
+                data_saving,
+            )
+            for sample_index, random_gen in enumerate(gens_qperations)
+        ]
+    )
+    results = list(itertools.chain.from_iterable(results))
 
     # Save
-    write_result_test_setting_unit(results, root_dir)
+    write_result_test_setting_unit(results, root_dir, test_setting_index)
     return results
 
 
@@ -611,9 +617,8 @@ def write_result_sample_unit(results: List[SimulationResult], root_dir: str) -> 
 
 
 def write_result_test_setting_unit(
-    results: List[SimulationResult], root_dir: str
+    results: List[SimulationResult], root_dir: str, test_setting_index: int
 ) -> None:
-    test_setting_index = results[0].result_index["test_setting_index"]
     dir_path = Path(root_dir) / str(test_setting_index)
 
     write_results(results, dir_path)
