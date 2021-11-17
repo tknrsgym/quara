@@ -366,8 +366,8 @@ def hessian_relative_entropy_2nd(
                 p, eps_p, is_valid_required=is_valid_required, atol=atol
             )
             mat_grad_p = np.array([grad_p], dtype=np.float64)
-            val += (
-                -q * hess_p / p_round + (q / p_round ** 2) * mat_grad_p.T @ mat_grad_p
+            val += -q * hess_p / p_round + (q / p_round ** 2) * (
+                mat_grad_p.T @ mat_grad_p
             )
 
     return val
