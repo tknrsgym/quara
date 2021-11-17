@@ -5,6 +5,22 @@ import pytest
 import quara.utils.matrix_util as util
 
 
+def test_is_real():
+    # cases: real
+    target_matrix = np.array([[1, 2], [1.0, -2]], dtype=np.complex128)
+    assert util.is_real(target_matrix)
+
+    target_matrix = np.array([[0.001j, 0], [0, 0]], dtype=np.complex128)
+    assert util.is_real(target_matrix, atol=1e-2)
+
+    # cases: not real
+    target_matrix = np.array([[1j, 2], [1.0, -2]], dtype=np.complex128)
+    assert not util.is_real(target_matrix)
+
+    target_matrix = np.array([[0.01j, 0], [0, 0]], dtype=np.complex128)
+    assert not util.is_real(target_matrix, atol=1e-2)
+
+
 def test_is_unitary():
     # cases: unitary
     target_matrix = np.array([[1, 0], [0, 1]], dtype=np.complex128)
