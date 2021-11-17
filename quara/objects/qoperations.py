@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Dict
+from typing import List, Dict, Union
 
 import numpy as np
 from quara.objects.qoperation import QOperation
@@ -86,6 +86,38 @@ class SetQOperations:
         self._validate_type(value, MProcess)
         self._mprocesses = value
 
+    def qoperations(
+        self, mode: str
+    ) -> Union[List[State], List[Povm], List[Gate], List[MProcess]]:
+        """returns qoperations with specified mode.
+
+        Parameters
+        ----------
+        mode : str
+            mode to get qoperations.
+            mode can be "state", "povm", "gate", or "mprocess".
+
+        Returns
+        -------
+        Union[List[State], List[Povm], List[Gate], List[MProcess]]
+            qoperations with specified mode.
+
+        Raises
+        ------
+        ValueError
+            Unsupported mode is specified.
+        """
+        if mode == "state":
+            return self.states
+        elif mode == "povm":
+            return self.povms
+        elif mode == "gate":
+            return self.gates
+        elif mode == "mprocess":
+            return self.mprocesses
+        else:
+            raise ValueError(f"Unsupported mode is specified. mode={mode}")
+
     def num_states(self):
         return len(self._states)
 
@@ -97,6 +129,36 @@ class SetQOperations:
 
     def num_mprocesses(self):
         return len(self._mprocesses)
+
+    def num_qoperations(self, mode: str) -> int:
+        """returns number of qoperations with specified mode.
+
+        Parameters
+        ----------
+        mode : str
+            mode to get number of qoperations.
+            mode can be "state", "povm", "gate", or "mprocess".
+
+        Returns
+        -------
+        int
+            number of qoperations with specified mode.
+
+        Raises
+        ------
+        ValueError
+            Unsupported mode is specified.
+        """
+        if mode == "state":
+            return self.num_states()
+        elif mode == "povm":
+            return self.num_povms()
+        elif mode == "gate":
+            return self.num_gates()
+        elif mode == "mprocess":
+            return self.num_mprocesses()
+        else:
+            raise ValueError(f"An unsupported mode is specified. mode={mode}")
 
     def dim_state(self, index: int) -> int:
         # returns the dimension of the total system of the i-th state
@@ -192,7 +254,7 @@ class SetQOperations:
         )
         return vars
 
-    def _get_operation_type_to_total_index_map(self) -> Dict[str, int]:
+    def _get_operation_mode_to_total_index_map(self) -> Dict[str, int]:
         states_first_index = 0
         gates_first_index = self.size_var_states()
         povms_first_index = gates_first_index + self.size_var_gates()
@@ -204,22 +266,18 @@ class SetQOperations:
             mprocess=mprocesses_first_index,
         )
 
-    def _get_operation_item_var_first_index(
-        self, type_operation: str, index: int
-    ) -> int:
-        # returns the index that is the place of the 'index'-th 'type_operation' starts in the whole var
-        if type_operation == "state":
+    def _get_operation_item_var_first_index(self, mode: str, index: int) -> int:
+        # returns the index that is the place of the 'index'-th 'mode' starts in the whole var
+        if mode == "state":
             get_size_func = self.size_var_state
-        elif type_operation == "gate":
+        elif mode == "gate":
             get_size_func = self.size_var_gate
-        elif type_operation == "povm":
+        elif mode == "povm":
             get_size_func = self.size_var_povm
-        elif type_operation == "mprocess":
+        elif mode == "mprocess":
             get_size_func = self.size_var_mprocess
         else:
-            raise ValueError(
-                "'{}' is an unsupported operation type.".format(type_operation)
-            )
+            raise ValueError("'{}' is an unsupported operation type.".format(mode))
 
         target_item_first_index = 0
         for i in range(index):
@@ -227,66 +285,66 @@ class SetQOperations:
         return target_item_first_index
 
     def index_var_total_from_local_info(
-        self, type_operation: str, index_operations: int, index_var_local: int
+        self, mode: str, index_operations: int, index_var_local: int
     ):
         # Returns the index in the optimization variable from local information.
         # The local information consists of type of the operation, its number in the list of operations of that type,
         # and the index in the variable that characterizes the operation.
         supported_types = ["state", "povm", "gate", "mprocess"]
-        if type_operation not in supported_types:
+        if mode not in supported_types:
             raise ValueError(
                 "'{}' is an unsupported operation type. Supported Operations: {}.".format(
-                    type_operation, ",".join(supported_types)
+                    mode, ",".join(supported_types)
                 )
             )
-        first_index_map = self._get_operation_type_to_total_index_map()
+        first_index_map = self._get_operation_mode_to_total_index_map()
         index_var_total = (
-            first_index_map[type_operation]
-            + self._get_operation_item_var_first_index(type_operation, index_operations)
+            first_index_map[mode]
+            + self._get_operation_item_var_first_index(mode, index_operations)
             + index_var_local
         )
         return index_var_total
 
-    def _get_type_operation_from_index_var_total(self, index_var_total: int) -> str:
-        first_index_map = self._get_operation_type_to_total_index_map()
-        type_operation: str
+    def _get_mode_from_index_var_total(self, index_var_total: int) -> str:
+        first_index_map = self._get_operation_mode_to_total_index_map()
+        mode: str
         if 0 <= index_var_total < first_index_map["gate"]:
-            type_operation = "state"
+            mode = "state"
         elif first_index_map["gate"] <= index_var_total < first_index_map["povm"]:
-            type_operation = "gate"
+            mode = "gate"
         elif first_index_map["povm"] <= index_var_total < first_index_map["mprocess"]:
-            type_operation = "povm"
+            mode = "povm"
         elif first_index_map["mprocess"] <= index_var_total < self.size_var_total():
-            type_operation = "mprocess"
+            mode = "mprocess"
         else:
             raise IndexError(
                 f"index_var_total is out of range. index_var_total={index_var_total}"
             )
-        return type_operation
+        return mode
 
     def local_info_from_index_var_total(self, index_var_total: int) -> dict:
         # Type Operation
-        type_operation = self._get_type_operation_from_index_var_total(index_var_total)
+        mode = self._get_mode_from_index_var_total(index_var_total)
 
         # Index Operations
         #   This function is split to make it easier to test.
-        #   However, first_index_map is called twice, in this method and in _get_type_operation_from_index_var_total,
+        #   However, first_index_map is called twice, in this method and in _get_mode_from_index_var_total,
         #   so if speed is slow, it should be modified.
-        first_index_map = self._get_operation_type_to_total_index_map()
-        mid_level_index = index_var_total - first_index_map[type_operation]
+        first_index_map = self._get_operation_mode_to_total_index_map()
+        mid_level_index = index_var_total - first_index_map[mode]
 
         # Index Var Total
         target_operations: List[QOperation]
-        if type_operation == "state":
+        if mode == "state":
             target_operations = self.states
             get_size_func = self.size_var_state
-        elif type_operation == "gate":
+        elif mode == "gate":
             target_operations = self.gates
             get_size_func = self.size_var_gate
-        elif type_operation == "povm":
+        elif mode == "povm":
             target_operations = self.povms
             get_size_func = self.size_var_povm
-        elif type_operation == "mprocess":
+        elif mode == "mprocess":
             target_operations = self.mprocesses
             get_size_func = self.size_var_mprocess
 
@@ -299,7 +357,7 @@ class SetQOperations:
             first_index += local_item_size
 
         local_info = dict(
-            type_operation=type_operation,
+            mode=mode,
             index_operations=index_operations,
             index_var_local=index_var_local,
         )

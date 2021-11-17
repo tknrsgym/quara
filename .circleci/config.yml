@@ -11,18 +11,27 @@ jobs:
   test-3.7:
     docker:
       - image: circleci/python:3.7
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
-          name: Install Forest SDK
+          name: Monitor RAM
           command: |
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
-            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
-            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
-            cd forest-sdk-2.23.0-linux-deb
-            sudo ./forest-sdk-2.23.0-linux-deb.run
-            qvm --version
-            quilc --version
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
       - run:
           name: Run installation
           command: |
@@ -34,31 +43,35 @@ jobs:
       - run:
           name: Run tests
           command: |
-            mkdir /tmp/artifacts
-            nohup qvm -S > /tmp/artifacts/qvm.log &
-            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
-      - store_artifacts:
-          path: /tmp/artifacts
 
   test-3.8:
     docker:
       - image: circleci/python:3.8
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
-          name: Install Forest SDK
+          name: Monitor RAM
           command: |
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
-            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
-            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
-            cd forest-sdk-2.23.0-linux-deb
-            sudo ./forest-sdk-2.23.0-linux-deb.run
-            qvm --version
-            quilc --version
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
       - run:
           name: Run installation
           command: |
@@ -70,30 +83,34 @@ jobs:
       - run:
           name: Run tests
           command: |
-            mkdir /tmp/artifacts
-            nohup qvm -S > /tmp/artifacts/qvm.log &
-            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
-      - store_artifacts:
-          path: /tmp/artifacts
   test-3.9:
     docker:
       - image: circleci/python:3.9
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
-          name: Install Forest SDK
+          name: Monitor RAM
           command: |
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
-            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
-            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
-            cd forest-sdk-2.23.0-linux-deb
-            sudo ./forest-sdk-2.23.0-linux-deb.run
-            qvm --version
-            quilc --version
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
       - run:
           name: Run installation
           command: |
@@ -105,30 +122,34 @@ jobs:
       - run:
           name: Run tests
           command: |
-            mkdir /tmp/artifacts
-            nohup qvm -S > /tmp/artifacts/qvm.log &
-            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
-      - store_artifacts:
-          path: /tmp/artifacts
   test-3.9-minimum_module:
     docker:
       - image: circleci/python:3.9
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
-          name: Install Forest SDK
+          name: Monitor RAM
           command: |
-            sudo ln -s /usr/lib/x86_64-linux-gnu/libffi.so.7 /usr/lib/x86_64-linux-gnu/libffi.so.6
-            sudo wget http://downloads.rigetti.com/qcs-sdk/forest-sdk-2.23.0-linux-deb.tar.bz2
-            tar -xf forest-sdk-2.23.0-linux-deb.tar.bz2
-            cd forest-sdk-2.23.0-linux-deb
-            sudo ./forest-sdk-2.23.0-linux-deb.run
-            qvm --version
-            quilc --version
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
       - run:
           name: Run installation
           command: |
@@ -140,12 +161,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            mkdir /tmp/artifacts
-            nohup qvm -S > /tmp/artifacts/qvm.log &
-            nohup quilc -S > /tmp/artifacts/quilc.log &
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit and not time_consuming_test" -o "norecursedirs=quara/interface" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 -o "norecursedirs=quara/interface" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
-      - store_artifacts:
-          path: /tmp/artifacts

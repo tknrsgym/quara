@@ -12,7 +12,17 @@ from quara.minimization_algorithm.projected_gradient_descent import (
 )
 
 
-class ProjectedGradientDescentBacktrackingResult(ProjectedGradientDescentResult):
+class ProjectedFastIterativeShrinkageThresholdingAlgorithmResult(
+    ProjectedGradientDescentResult
+):
+    """This algorithm is based on the following:
+
+    Eliot Bolduc, George C. Knee, Erik M. Gauger & Jonathan Leach, "Projected gradient descent algorithms for quantum state tomography",
+
+    - npj Quantum Information volume 3, Article number: 44 (2017) https://www.nature.com/articles/s41534-017-0043-1
+    - arXiv:1612.09531 https://arxiv.org/abs/1612.09531
+    """
+
     def __init__(
         self,
         value: np.ndarray,
@@ -20,45 +30,20 @@ class ProjectedGradientDescentBacktrackingResult(ProjectedGradientDescentResult)
         k: int = None,
         fx: List[np.ndarray] = None,
         x: List[np.ndarray] = None,
-        y: List[np.ndarray] = None,
-        alpha: List[float] = None,
         error_values: List[float] = None,
     ):
         super().__init__(value, computation_time, k, fx, x, error_values)
-        self._y: List[np.ndarray] = y
-        self._alpha: List[float] = alpha
-
-    @property
-    def y(self) -> List[np.ndarray]:
-        """return the y per iteration.
-
-        Returns
-        -------
-        List[np.ndarray]
-            the y per iteration.
-        """
-        return self._y
-
-    @property
-    def alpha(self) -> List[np.ndarray]:
-        """return the alpha per iteration.
-
-        Returns
-        -------
-        List[np.ndarray]
-            the alpha per iteration.
-        """
-        return self._alpha
 
 
-class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption):
+class ProjectedFastIterativeShrinkageThresholdingAlgorithmOption(
+    ProjectedGradientDescentOption
+):
     def __init__(
         self,
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
         var_start: np.ndarray = None,
-        mu: float = None,
-        gamma: float = 0.3,
+        delta: float = None,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
         num_history_stopping_criterion_gradient_descent: int = 1,
         mode_proj_order: str = "eq_ineq",
@@ -74,10 +59,8 @@ class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption)
             whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.ndarray, optional
             initial variable for the algorithm, by default None
-        mu : float, optional
-            algorithm option ``mu``, by default None
-        gamma : float, optional
-            algorithm option ``gamma``, by default 0.3
+        delta : float, optional
+            algorithm option ``r``, by default None
         mode_stopping_criterion_gradient_descent : str, optional
             mode of stopping criterion for gradient descent, by default "single_difference_loss"
         num_history_stopping_criterion_gradient_descent : int, optional
@@ -98,36 +81,21 @@ class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption)
             eps=eps,
         )
 
-        if mu is None and var_start is not None:
-            mu = 3 / (2 * np.sqrt(var_start.shape[0]))
-        self._mu: float = mu
-
-        self._gamma: float = gamma
+        self._delta: float = delta
 
     @property
-    def mu(self) -> float:
-        """returns algorithm option ``mu``.
+    def delta(self) -> float:
+        """returns algorithm option ``delta``.
 
         Returns
         -------
         float
-            algorithm option ``mu``.
+            algorithm option ``delta``.
         """
-        return self._mu
-
-    @property
-    def gamma(self) -> float:
-        """returns algorithm option ``gamma``.
-
-        Returns
-        -------
-        float
-            algorithm option ``gamma``.
-        """
-        return self._gamma
+        return self._delta
 
 
-class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
+class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDescent):
     def __init__(self, func_proj: Callable[[np.ndarray], np.ndarray] = None):
         """Constructor
 
@@ -167,9 +135,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
         """
         if self.option is None:
             return False
-        elif self.option.mu is not None and self.option.mu <= 0:
-            return False
-        elif self.option.gamma is None or self.option.gamma <= 0:
+        elif self.option.delta is not None and self.option.delta <= 0:
             return False
         elif self.option.eps is None or self.option.eps <= 0:
             return False
@@ -180,10 +146,10 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
         self,
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
-        algorithm_option: ProjectedGradientDescentBacktrackingOption,
+        algorithm_option: ProjectedFastIterativeShrinkageThresholdingAlgorithmOption,
         max_iteration: int = 1000,
         on_iteration_history: bool = False,
-    ) -> ProjectedGradientDescentBacktrackingResult:
+    ) -> ProjectedFastIterativeShrinkageThresholdingAlgorithmResult:
         """optimizes using specified parameters.
 
         Parameters
@@ -192,8 +158,8 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             Loss Function
         loss_function_option : LossFunctionOption
             Loss Function Option
-        algorithm_option : ProjectedGradientDescentBacktrackingOption
-            Projected Gradient Descent Backtracking Algorithm Option
+        algorithm_option : ProjectedFastIterativeShrinkageThresholdingAlgorithmOption
+            Projected Fast Iterative Shrinkage-Thresholding Algorithm Option
         max_iteration: int, optional
             maximun number of iterations, by default 1000.
         on_iteration_history : bool, optional
@@ -201,7 +167,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
 
         Returns
         -------
-        ProjectedGradientDescentBacktrackingResult
+        ProjectedFastIterativeShrinkageThresholdingAlgorithmResult
             the result of the optimization.
 
         Raises
@@ -228,43 +194,40 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             )
         else:
             x_prev = algorithm_option.var_start
-        x_next = None
-        if algorithm_option.mu:
-            mu = algorithm_option.mu
-        elif algorithm_option.var_start is not None:
-            mu = 3 / (2 * np.sqrt(len(algorithm_option.var_start)))
-        elif self._qt:
-            mu = 3 / (2 * np.sqrt(self._qt.num_variables))
-        else:
-            raise ValueError("unable to set the algorithm option mu.")
 
-        gamma = algorithm_option.gamma
+        if algorithm_option.delta:
+            delta = algorithm_option.delta
+        elif algorithm_option.delta is None and self._qt:
+            delta = 1 / (10 * np.sqrt(self._qt.num_variables))
+        elif algorithm_option.delta is None and algorithm_option.var_start is not None:
+            delta = 1 / (10 * np.sqrt(len(algorithm_option.var_start)))
+        else:
+            raise ValueError("unable to set the algorithm option delta.")
+
         eps = algorithm_option.eps
+        x_prev_prev = x_prev
+        x_next = None
 
         # variables for debug
         if on_iteration_history:
             start_time = time.time()
             fxs = [loss_function.value(x_prev)]
             xs = [x_prev]
-            ys = []
-            alphas = []
         error_values = []
 
         is_doing = True
         for k in range(1, max_iteration + 1):
             # shift variables
             if x_next is not None:
+                x_prev_prev = x_prev
                 x_prev = x_next
 
-            y_prev = (
-                self.func_proj(x_prev - loss_function.gradient(x_prev) / mu) - x_prev
+            tmp = (
+                x_prev
+                + (k - 2) / (k + 1) * (x_prev - x_prev_prev)
+                - delta * loss_function.gradient(x_prev)
             )
-
-            alpha = 1.0
-            while self._is_doing_for_alpha(x_prev, y_prev, alpha, gamma, loss_function):
-                alpha = 0.5 * alpha
-
-            x_next = x_prev + alpha * y_prev
+            x_next = self.func_proj(tmp)
 
             # calc error value depend on "mode_stopping_criterion_gradient_descent"
             if (
@@ -288,7 +251,7 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
                 algorithm_option.mode_stopping_criterion_gradient_descent
                 == "sum_absolute_difference_projected_gradient"
             ):
-                error_value = np.sqrt(np.sum(y_prev ** 2))
+                error_value = np.sqrt(np.sum(x_next ** 2))
             error_values.append(error_value)
 
             # calc sum of error values
@@ -303,8 +266,6 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             if on_iteration_history:
                 fxs.append(loss_function.value(x_next))
                 xs.append(x_next)
-                ys.append(y_prev)
-                alphas.append(alpha)
 
             is_doing = True if value > eps else False
             if not is_doing:
@@ -312,31 +273,15 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
 
         if on_iteration_history:
             computation_time = time.time() - start_time
-            result = ProjectedGradientDescentBacktrackingResult(
+            result = ProjectedFastIterativeShrinkageThresholdingAlgorithmResult(
                 x_next,
                 computation_time=computation_time,
                 k=k,
                 fx=fxs,
                 x=xs,
-                y=ys,
-                alpha=alphas,
                 error_values=error_values,
             )
             return result
         else:
-            result = ProjectedGradientDescentBacktrackingResult(x_next)
+            result = ProjectedFastIterativeShrinkageThresholdingAlgorithmResult(x_next)
             return result
-
-    def _is_doing_for_alpha(
-        self,
-        x_prev: np.ndarray,
-        y_prev: np.ndarray,
-        alpha: float,
-        gamma: float,
-        loss_function: LossFunction,
-    ) -> bool:
-        left_side = loss_function.value(x_prev + alpha * y_prev)
-        right_side = loss_function.value(x_prev) + gamma * alpha * (
-            np.dot(y_prev, loss_function.gradient(x_prev))
-        )
-        return left_side > right_side

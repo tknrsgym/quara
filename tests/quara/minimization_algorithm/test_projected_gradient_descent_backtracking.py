@@ -146,7 +146,7 @@ class TestProjectedGradientDescentBacktrackingOption:
             option.mode_proj_order = "eq_ineq"
 
 
-class TestProjectedGradientDescentBase:
+class TestProjectedGradientDescentBacktracking:
     def test_access_func_proj(self):
         algo = ProjectedGradientDescentBacktracking()
         assert algo.func_proj is None
