@@ -1,4 +1,3 @@
-from itertools import starmap
 from typing import List, Union, Dict
 import copy
 import time
@@ -7,8 +6,8 @@ import json
 import pickle
 
 import numpy as np
+from numpy.random import Generator, MT19937, SeedSequence
 import pandas as pd
-from tqdm import tqdm
 import joblib
 
 from quara.simulation import standard_qtomography_simulation_report as report
@@ -181,37 +180,29 @@ def execute_simulation_sample_unit(
     )
 
     # Generate a random number stream to generate the empirical distribution.
-    stream_data = np.random.RandomState(tmp_sim_setting.seed_data)
+    if type(parallel_mode) == dict and "per_data_generation" in parallel_mode:
+        per_data_generation_n_jobs = parallel_mode["per_data_generation"]
+    else:
+        per_data_generation_n_jobs = 1
 
-    # TODO remove
-    # n_jobs = -2
-    # empi_dists_sequences = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
-    #     [
-    #         joblib.delayed(tmp_qtomography.generate_empi_dists_sequence)(
-    #             true_object, tmp_sim_setting.num_data, stream_data
-    #         )
-    #         for _ in range(test_setting.n_rep)
-    #     ]
-    # )
-    empi_dists_sequences = []
+    sg = SeedSequence(tmp_sim_setting.seed_data)
+    # The default for RandomState is MT19937, so use this.
+    # Change it if necessary(PCG64, PCG64DXSM, etc.).
+    stream_datas = [Generator(MT19937(s)) for s in sg.spawn(tmp_sim_setting.n_rep)]
+
+    empi_dists_sequences = joblib.Parallel(
+        n_jobs=per_data_generation_n_jobs, verbose=2
+    )(
+        [
+            joblib.delayed(tmp_qtomography.generate_empi_dists_sequence)(
+                true_object, tmp_sim_setting.num_data, s
+            )
+            for s in stream_datas
+        ]
+    )
+
     if data_saving == "on_storage":
-        # TODO:
-        # dir_path = Path(root_dir) / str(sample_index) / "empi_dists_sequences"
-        # dir_path.mkdir(parents=True, exist_ok=True)
         raise NotImplementedError()
-
-    for i in range(test_setting.n_rep):
-        empi_dists_seq = tmp_qtomography.generate_empi_dists_sequence(
-            true_object, tmp_sim_setting.num_data, seed_or_stream=stream_data
-        )
-        if data_saving == "on_storage":
-            # TODO:
-            # with open(dir_path / f"empi_dists_seq_{i}.pickle", "wb") as f:
-            #     pickle.dump(empi_dists_seq, f)
-            raise NotImplementedError()
-        else:
-            # on_memory
-            empi_dists_sequences.append(empi_dists_seq)
 
     if type(parallel_mode) == dict and "per_estimator_unit" in parallel_mode:
         per_estimator_unit_n_jobs = parallel_mode["per_estimator_unit"]
