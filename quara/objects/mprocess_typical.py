@@ -468,9 +468,9 @@ def get_mprocess_belltype1_set_pure_state_vectors() -> List[List[np.ndarray]]:
 def get_mprocess_xtype2_set_kraus_matrices() -> List[List[np.ndarray]]:
     """return the set of Kraus matrices of MProcess for `x-type2`.
 
-    :math:`|K_{0,0}\\rangle = |+\\rangle\\langle +|`
+    :math:`K_{0,0} = |+\\rangle\\langle +|`
 
-    :math:`|K_{1,0}\\rangle = |+\\rangle\\langle -|`
+    :math:`K_{1,0} = |+\\rangle\\langle -|`
 
     Returns
     -------
@@ -491,9 +491,9 @@ def get_mprocess_xtype2_set_kraus_matrices() -> List[List[np.ndarray]]:
 def get_mprocess_ytype2_set_kraus_matrices() -> List[List[np.ndarray]]:
     """return the set of Kraus matrices of MProcess for `y-type2`.
 
-    :math:`|K_{0,0}\\rangle = |+i\\rangle\\langle +i|`
+    :math:`K_{0,0} = |+i\\rangle\\langle +i|`
 
-    :math:`|K_{1,0}\\rangle = |+i\\rangle\\langle -i|`
+    :math:`K_{1,0} = |+i\\rangle\\langle -i|`
 
     Returns
     -------
@@ -514,9 +514,9 @@ def get_mprocess_ytype2_set_kraus_matrices() -> List[List[np.ndarray]]:
 def get_mprocess_ztype2_set_kraus_matrices() -> List[List[np.ndarray]]:
     """return the set of Kraus matrices of MProcess for `z-type2`.
 
-    :math:`|K_{0,0}\\rangle = |0\\rangle\\langle 0|`
+    :math:`K_{0,0} = |0\\rangle\\langle 0|`
 
-    :math:`|K_{1,0}\\rangle = |0\\rangle\\langle 1|`
+    :math:`K_{1,0} = |0\\rangle\\langle 1|`
 
     Returns
     -------
@@ -537,11 +537,11 @@ def get_mprocess_ztype2_set_kraus_matrices() -> List[List[np.ndarray]]:
 def get_mprocess_z3type2_set_kraus_matrices() -> List[List[np.ndarray]]:
     """return the set of Kraus matrices of MProcess for `z3-type2`.
 
-    :math:`|K_{0,0}\\rangle = |0\\rangle\\langle 0|`
+    :math:`K_{0,0} = |0\\rangle\\langle 0|`
 
-    :math:`|K_{1,0}\\rangle = |0\\rangle\\langle 1|`
+    :math:`K_{1,0} = |0\\rangle\\langle 1|`
 
-    :math:`|K_{2,0}\\rangle = |0\\rangle\\langle 2|`
+    :math:`K_{2,0} = |0\\rangle\\langle 2|`
 
     Returns
     -------
@@ -565,11 +565,11 @@ def get_mprocess_z3type2_set_kraus_matrices() -> List[List[np.ndarray]]:
 def get_mprocess_z2type2_set_kraus_matrices() -> List[List[np.ndarray]]:
     """return the set of Kraus matrices of MProcess for `z2-type2`.
 
-    :math:`|K_{0,0}\\rangle = |0\\rangle\\langle 0|`
+    :math:`K_{0,0} = |0\\rangle\\langle 0|`
 
-    :math:`|K_{1,0}\\rangle = |0\\rangle\\langle 1|`
+    :math:`K_{1,0} = |0\\rangle\\langle 1|`
 
-    :math:`|K_{1,1}\\rangle = |0\\rangle\\langle 2|`
+    :math:`K_{1,1} = |0\\rangle\\langle 2|`
 
     Returns
     -------
