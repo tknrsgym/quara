@@ -293,6 +293,11 @@ def _generate_povm_matrices_from_single_name(povm_name: str) -> List[np.ndarray]
                 generate_state_density_mat_from_name("01z1")
                 + generate_state_density_mat_from_name("02z1"),
             ]
+        else:
+            method_name = "get_povm_" + povm_name.replace("-", "") + "_povm_matrices"
+            method = eval(method_name)
+            matrices = method()
+
     return matrices
 
 
@@ -383,3 +388,46 @@ def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
     """
     vecs = generate_povm_vectors_from_name(povm_name, c_sys.basis())
     return Povm(c_sys, vecs)
+
+
+def get_povm_xxparity_povm_matrices() -> List[List[np.ndarray]]:
+    """return the POVM matrices of POVM for `xx-parity`.
+
+    :math:`\\frac{1}{2}\\begin{pmatrix} 1 & 0 & 0 & 1 \\\\ 0 & 1 & 1 & 0 \\\\ 0 & 1 & 1 & 0 \\\\ 1 & 0 & 0 & 1 \\end{pmatrix}`
+
+    :math:`\\frac{1}{2}\\begin{pmatrix} 1 & 0 & 0 & -1 \\\\ 0 & 1 & -1 & 0 \\\\ 0 & -1 & 1 & 0 \\\\ -1 & 0 & 0 & 1 \\end{pmatrix}`
+
+    Returns
+    -------
+    List[List[np.ndarray]]
+        the POVM matrices of POVM for `xx-parity`.
+    """
+    k0 = 0.5 * np.array(
+        [[1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 0], [1, 0, 0, 1]], dtype=np.complex128
+    )
+    k1 = 0.5 * np.array(
+        [[1, 0, 0, -1], [0, 1, -1, 0], [0, -1, 1, 0], [-1, 0, 0, 1]],
+        dtype=np.complex128,
+    )
+    return [k0, k1]
+
+
+def get_povm_zzparity_povm_matrices() -> List[List[np.ndarray]]:
+    """return the POVM matrices of POVM for `zz-parity`.
+
+    :math:`\\begin{pmatrix} 1 & 0 & 0 & 0 \\\\ 0 & 0 & 0 & 0 \\\\ 0 & 0 & 0 & 0 \\\\ 0 & 0 & 0 & 1 \\end{pmatrix}`
+
+    :math:`\\begin{pmatrix} 0 & 0 & 0 & 0 \\\\ 0 & 1 & 0 & 0 \\\\ 0 & 0 & 1 & 0 \\\\ 0 & 0 & 0 & 0 \\end{pmatrix}`
+
+    Returns
+    -------
+    List[List[np.ndarray]]
+        the POVM matrices of POVM for `zz-parity`.
+    """
+    k0 = np.array(
+        [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]], dtype=np.complex128
+    )
+    k1 = np.array(
+        [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]], dtype=np.complex128
+    )
+    return [k0, k1]
