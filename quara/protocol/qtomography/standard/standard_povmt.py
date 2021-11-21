@@ -333,3 +333,7 @@ class StandardPovmt(StandardQTomography):
         assert schedule_index >= 0
         assert schedule_index < self.num_schedules
         return self._num_outcomes
+
+    @property
+    def num_outcomes_estimate(self):
+        return self._num_outcomes
