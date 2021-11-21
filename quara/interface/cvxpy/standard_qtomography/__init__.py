@@ -1,1 +1,0 @@
-"""cvxpy standard qtomography package"""
