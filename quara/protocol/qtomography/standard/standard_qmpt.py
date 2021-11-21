@@ -233,7 +233,7 @@ class StandardQmpt(StandardQTomography):
             c_qpt = c_qpt_dict[schedule_index]
             a_qmpt, b_qmpt = cqpt_to_cqmpt(
                 c_qpt,
-                m_mprocess=self.num_outcomes,
+                m_mprocess=self.num_outcomes_estimate,
                 dim=dim,
                 on_para_eq_constraint=on_para_eq_constraint,
             )
