@@ -15,7 +15,7 @@ from quara.objects.gate import (
     convert_hs,
     convert_var_index_to_gate_index,
     convert_gate_index_to_var_index,
-    convert_gate_to_var,
+    convert_hs_to_var,
 )
 from quara.objects.matrix_basis import (
     MatrixBasis,
@@ -38,6 +38,7 @@ class EffectiveLindbladian(Gate):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -74,14 +75,6 @@ class EffectiveLindbladian(Gate):
             raise ValueError(
                 "basis is not a orthonormal Hermitian matrix basis and 0th prop I."
             )
-        dim = c_sys.dim
-        expected_B0 = np.eye(dim) / np.sqrt(dim)
-        if not np.allclose(
-            c_sys.basis()[0], expected_B0, atol=Settings.get_atol(), rtol=0.0
-        ):
-            raise ValueError(
-                "0th basis is not I/sqrt(dim). basis[0]={c_sys.basis()[0]}"
-            )
 
         super().__init__(
             c_sys,
@@ -93,6 +86,7 @@ class EffectiveLindbladian(Gate):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
 
         # whether the EffectiveLindbladian is physically correct
@@ -202,7 +196,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            h_part = _truncate_hs(h_part, self.eps_proj_physical)
+            h_part = _truncate_hs(h_part, self.eps_truncate_imaginary_part)
 
         return h_part
 
@@ -233,7 +227,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            j_part = _truncate_hs(j_part, self.eps_proj_physical)
+            j_part = _truncate_hs(j_part, self.eps_truncate_imaginary_part)
 
         return j_part
 
@@ -264,7 +258,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            k_part = _truncate_hs(k_part, self.eps_proj_physical)
+            k_part = _truncate_hs(k_part, self.eps_truncate_imaginary_part)
 
         return k_part
 
@@ -296,7 +290,7 @@ class EffectiveLindbladian(Gate):
                 self.composite_system.comp_basis(),
                 self.composite_system.basis(),
             )
-            d_part = _truncate_hs(d_part, self.eps_proj_physical)
+            d_part = _truncate_hs(d_part, self.eps_truncate_imaginary_part)
 
         return d_part
 
@@ -317,6 +311,7 @@ class EffectiveLindbladian(Gate):
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return lindbladian
 
@@ -332,6 +327,7 @@ class EffectiveLindbladian(Gate):
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_lindbladian
@@ -359,6 +355,7 @@ class EffectiveLindbladian(Gate):
             on_algo_eq_constraint=self.on_algo_eq_constraint,
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_lindbladian
@@ -460,6 +457,7 @@ class EffectiveLindbladian(Gate):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return gate
 
@@ -527,6 +525,7 @@ def convert_var_to_effective_lindbladian(
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> EffectiveLindbladian:
     """converts vec of variables to EffectiveLindbladian.
 
@@ -538,6 +537,8 @@ def convert_var_to_effective_lindbladian(
         vec of variables.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -563,6 +564,7 @@ def convert_var_to_effective_lindbladian(
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return lindbladian
 
@@ -586,7 +588,7 @@ def convert_effective_lindbladian_to_var(
     np.ndarray
         vec of variables.
     """
-    return convert_gate_to_var(c_sys, hs, on_para_eq_constraint=on_para_eq_constraint)
+    return convert_hs_to_var(c_sys, hs, on_para_eq_constraint=on_para_eq_constraint)
 
 
 def calc_gradient_from_effective_lindbladian(
@@ -598,6 +600,7 @@ def calc_gradient_from_effective_lindbladian(
     on_algo_eq_constraint: bool = True,
     on_algo_ineq_constraint: bool = True,
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> EffectiveLindbladian:
     """calculates gradient from EffectiveLindbladian.
 
@@ -611,6 +614,8 @@ def calc_gradient_from_effective_lindbladian(
         variable index.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -632,6 +637,7 @@ def calc_gradient_from_effective_lindbladian(
         on_algo_eq_constraint=on_algo_eq_constraint,
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return lindbladian
 
@@ -709,10 +715,10 @@ def _calc_k_part_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.nda
 
 def _truncate_hs(
     hs: np.ndarray,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
     is_zero_imaginary_part_required: bool = True,
 ) -> np.ndarray:
-    tmp_hs = mutil.truncate_imaginary_part(hs, eps_proj_physical)
+    tmp_hs = mutil.truncate_imaginary_part(hs, eps_truncate_imaginary_part)
 
     if is_zero_imaginary_part_required == True and np.any(tmp_hs.imag != 0):
         raise ValueError(
@@ -722,7 +728,9 @@ def _truncate_hs(
     if is_zero_imaginary_part_required == True:
         tmp_hs = tmp_hs.real.astype(np.float64)
 
-    truncated_hs = mutil.truncate_computational_fluctuation(tmp_hs, eps_proj_physical)
+    truncated_hs = mutil.truncate_computational_fluctuation(
+        tmp_hs, eps_truncate_imaginary_part
+    )
     return truncated_hs
 
 
@@ -731,7 +739,7 @@ def generate_hs_from_hjk(
     h_mat: np.ndarray,
     j_mat: np.ndarray,
     k_mat: np.ndarray,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from h matrix, j matrix and k matrix.
 
@@ -770,7 +778,9 @@ def generate_hs_from_hjk(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(
+        lindbladian_tmp, eps_truncate_imaginary_part
+    )
 
     return lindbladian_hermitian_basis
 
@@ -787,6 +797,7 @@ def generate_effective_lindbladian_from_hjk(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ):
     """generates EffectiveLindbladian from h matrix, j matrix and k matrix.
 
@@ -814,6 +825,8 @@ def generate_effective_lindbladian_from_hjk(
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
         epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -834,6 +847,7 @@ def generate_effective_lindbladian_from_hjk(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return effective_lindbladian
 
@@ -841,7 +855,7 @@ def generate_effective_lindbladian_from_hjk(
 def generate_hs_from_h(
     c_sys: CompositeSystem,
     h_mat: np.ndarray,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from h matrix.
 
@@ -868,7 +882,9 @@ def generate_hs_from_h(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(
+        lindbladian_tmp, eps_truncate_imaginary_part
+    )
 
     return lindbladian_hermitian_basis
 
@@ -883,6 +899,7 @@ def generate_effective_lindbladian_from_h(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ):
     """generates EffectiveLindbladian from h matrix.
 
@@ -906,6 +923,8 @@ def generate_effective_lindbladian_from_h(
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
         epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -926,6 +945,7 @@ def generate_effective_lindbladian_from_h(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return effective_lindbladian
 
@@ -934,7 +954,7 @@ def generate_hs_from_hk(
     c_sys: CompositeSystem,
     h_mat: np.ndarray,
     k_mat: np.ndarray,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from h matrix and k matrix.
 
@@ -973,7 +993,9 @@ def generate_hs_from_hk(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(
+        lindbladian_tmp, eps_truncate_imaginary_part
+    )
 
     return lindbladian_hermitian_basis
 
@@ -989,6 +1011,7 @@ def generate_effective_lindbladian_from_hk(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ):
     """generates EffectiveLindbladian from h matrix and k matrix.
 
@@ -1016,6 +1039,8 @@ def generate_effective_lindbladian_from_hk(
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
         epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -1036,6 +1061,7 @@ def generate_effective_lindbladian_from_hk(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return effective_lindbladian
 
@@ -1043,7 +1069,7 @@ def generate_effective_lindbladian_from_hk(
 def generate_hs_from_k(
     c_sys: CompositeSystem,
     k_mat: np.ndarray,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates HS matrix of EffectiveLindbladian from k matrix.
 
@@ -1076,7 +1102,9 @@ def generate_hs_from_k(
     lindbladian_tmp = convert_hs(
         lindbladian_comp_basis, c_sys.comp_basis(), c_sys.basis()
     )
-    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(
+        lindbladian_tmp, eps_truncate_imaginary_part
+    )
 
     return lindbladian_hermitian_basis
 
@@ -1091,6 +1119,7 @@ def generate_effective_lindbladian_from_k(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ):
     """generates EffectiveLindbladian from k matrix.
 
@@ -1116,6 +1145,8 @@ def generate_effective_lindbladian_from_k(
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
         epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -1136,6 +1167,7 @@ def generate_effective_lindbladian_from_k(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return effective_lindbladian
 
@@ -1170,7 +1202,7 @@ def generate_j_part_cb_from_jump_operators(
 def generate_j_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
     basis: MatrixBasis,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates j part of EffectiveLindbladian from jump operators.
 
@@ -1182,8 +1214,8 @@ def generate_j_part_gb_from_jump_operators(
         jump operators to generate j part.
     basis : MatrixBasis
         MatrixBasis to present j part.
-    eps_proj_physical : float, optional
-        error threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -1192,7 +1224,7 @@ def generate_j_part_gb_from_jump_operators(
     """
     j_part_cb = generate_j_part_cb_from_jump_operators(jump_operators)
     j_part_gb = convert_hs(j_part_cb, get_comp_basis(basis.dim), basis)
-    j_part_gb = _truncate_hs(j_part_gb, eps_proj_physical)
+    j_part_gb = _truncate_hs(j_part_gb, eps_truncate_imaginary_part)
     return j_part_gb
 
 
@@ -1221,7 +1253,7 @@ def generate_k_part_cb_from_jump_operators(
 def generate_k_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
     basis: MatrixBasis,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates k part of EffectiveLindbladian from jump operators.
 
@@ -1233,8 +1265,8 @@ def generate_k_part_gb_from_jump_operators(
         jump operators to generate k part.
     basis : MatrixBasis
         MatrixBasis to present k part.
-    eps_proj_physical : float, optional
-        error threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -1243,7 +1275,7 @@ def generate_k_part_gb_from_jump_operators(
     """
     k_part_cb = generate_k_part_cb_from_jump_operators(jump_operators)
     k_part_gb = convert_hs(k_part_cb, get_comp_basis(basis.dim), basis)
-    k_part_gb = _truncate_hs(k_part_gb, eps_proj_physical)
+    k_part_gb = _truncate_hs(k_part_gb, eps_truncate_imaginary_part)
     return k_part_gb
 
 
@@ -1273,7 +1305,7 @@ def generate_d_part_cb_from_jump_operators(
 def generate_d_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
     basis: MatrixBasis,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates d part of EffectiveLindbladian from jump operators.
 
@@ -1285,8 +1317,8 @@ def generate_d_part_gb_from_jump_operators(
         jump operators to generate d part.
     basis : MatrixBasis
         MatrixBasis to present d part.
-    eps_proj_physical : float, optional
-        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -1295,7 +1327,7 @@ def generate_d_part_gb_from_jump_operators(
     """
     d_part_cb = generate_d_part_cb_from_jump_operators(jump_operators)
     d_part_gb = convert_hs(d_part_cb, get_comp_basis(basis.dim), basis)
-    d_part_gb = _truncate_hs(d_part_gb, eps_proj_physical)
+    d_part_gb = _truncate_hs(d_part_gb, eps_truncate_imaginary_part)
     return d_part_gb
 
 
@@ -1309,6 +1341,7 @@ def generate_effective_lindbladian_from_jump_operators(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ):
     """generates EffectiveLindbladian from jump operators.
 
@@ -1332,6 +1365,8 @@ def generate_effective_lindbladian_from_jump_operators(
         the order in which the projections are performed, by default "eq_ineq"
     eps_proj_physical : float, optional
         epsilon that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
     Returns
     -------
@@ -1342,7 +1377,9 @@ def generate_effective_lindbladian_from_jump_operators(
     lindbladian_tmp = generate_d_part_gb_from_jump_operators(
         jump_operators, c_sys.basis()
     )
-    lindbladian_hermitian_basis = _truncate_hs(lindbladian_tmp, eps_proj_physical)
+    lindbladian_hermitian_basis = _truncate_hs(
+        lindbladian_tmp, eps_truncate_imaginary_part
+    )
 
     # init
     effective_lindbladian = EffectiveLindbladian(
@@ -1355,5 +1392,6 @@ def generate_effective_lindbladian_from_jump_operators(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return effective_lindbladian

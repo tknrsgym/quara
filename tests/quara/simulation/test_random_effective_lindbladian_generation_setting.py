@@ -13,6 +13,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.gate import get_x
+from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.objects.state import get_z0_1q
 from quara.objects.povm import get_z_povm
 
@@ -317,6 +318,62 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         # Assert
         assert gate.hs.shape == (4, 4)
         assert gate.is_physical() == True
+        assert len(random_variables_h_part) == 3
+        assert len(random_variables_k_part) == 3
+        assert random_unitary.shape == (3, 3)
+        uni = random_unitary @ random_unitary.T.conj()
+        npt.assert_almost_equal(uni, np.eye(3), decimal=15)
+        assert random_el.shape == (4, 4)
+
+    def test_generate_mprocess(self):
+        # Arrange
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        qoperation_base = generate_mprocess_from_name(c_sys, "z-type1")
+
+        hs = np.array(
+            [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float64
+        )
+        lindbladian_base = EffectiveLindbladian(c_sys, hs)
+        generation_setting = RandomEffectiveLindbladianGenerationSetting(
+            c_sys, qoperation_base, lindbladian_base, 1.0, 2.0
+        )
+
+        ### generate_mprocess
+        # Act
+        (
+            mprocess,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = generation_setting.generate_mprocess()
+
+        # Assert
+        assert len(mprocess.hss) == 2
+        assert mprocess.hss[0].shape == (4, 4)
+        assert mprocess.is_physical() == True
+        assert len(random_variables_h_part) == 3
+        assert len(random_variables_k_part) == 3
+        assert random_unitary.shape == (3, 3)
+        uni = random_unitary @ random_unitary.T.conj()
+        npt.assert_almost_equal(uni, np.eye(3), decimal=15)
+        assert random_el.shape == (4, 4)
+
+        ### generate
+        # Act
+        (
+            mprocess,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = generation_setting.generate()
+
+        # Assert
+        assert len(mprocess.hss) == 2
+        assert mprocess.hss[0].shape == (4, 4)
+        assert mprocess.is_physical() == True
         assert len(random_variables_h_part) == 3
         assert len(random_variables_k_part) == 3
         assert random_unitary.shape == (3, 3)

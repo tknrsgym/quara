@@ -21,6 +21,7 @@ class QOperation:
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -42,6 +43,8 @@ class QOperation:
             the order in which the projections are performed, by default "eq_ineq"
         eps_proj_physical : float, optional
             epsiron that is projection algorithm error threshold for being physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
 
         Raises
         ------
@@ -70,6 +73,7 @@ class QOperation:
         self._on_algo_ineq_constraint: bool = on_algo_ineq_constraint
         self._mode_proj_order: str = mode_proj_order
         self._eps_proj_physical = eps_proj_physical
+        self._eps_truncate_imaginary_part = eps_truncate_imaginary_part
 
     def _validate_mode_proj_order(self, mode_proj_order):
         if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
@@ -174,6 +178,21 @@ class QOperation:
         """
         return self._eps_proj_physical
 
+    @property
+    def eps_truncate_imaginary_part(self) -> float:  # read only
+        """returns threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
+
+        Returns
+        -------
+        float
+            threshold to truncate imaginary part.
+        """
+        return self._eps_truncate_imaginary_part
+
+    @eps_truncate_imaginary_part.setter
+    def eps_truncate_imaginary_part(self, value):
+        self._eps_truncate_imaginary_part = value
+
     @abstractmethod
     def is_eq_constraint_satisfied(self, atol: float = None):
         raise NotImplementedError()
@@ -252,6 +271,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -287,6 +307,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -322,6 +343,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qoperation
 
@@ -425,6 +447,22 @@ class QOperation:
 
         return _func_proj
 
+    def func_calc_proj_eq_constraint_with_var(
+        self, on_para_eq_constraint: bool = None
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
+        qobj_empty = self.generate_zero_obj()
+
+        def _func_proj(var: np.ndarray) -> np.ndarray:
+            new_var = self.calc_proj_eq_constraint_with_var(
+                self.composite_system, var, on_para_eq_constraint=on_para_eq_constraint
+            )
+            return new_var
+
+        return _func_proj
+
     @abstractmethod
     def calc_proj_ineq_constraint(self) -> "QOperation":
         """calculates the projection of QOperation on inequal constraint.
@@ -450,6 +488,25 @@ class QOperation:
             )
             qobj_result = qobj_tmp.calc_proj_ineq_constraint()
             return qobj_result.to_var()
+
+        return _func_proj
+
+    def func_calc_proj_ineq_constraint_with_var(
+        self, on_para_eq_constraint: bool = None
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
+        qobj_empty = self.generate_zero_obj()
+
+        def _func_proj(var: np.ndarray) -> np.ndarray:
+            new_var = self.calc_proj_ineq_constraint_with_var(
+                self.composite_system,
+                var,
+                on_para_eq_constraint=on_para_eq_constraint,
+                eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+            )
+            return new_var
 
         return _func_proj
 
@@ -545,14 +602,16 @@ class QOperation:
         return new_qoperation
 
     def calc_proj_physical(
-        self, is_iteration_history: bool = False
+        self, max_iteration: int = 1000, is_iteration_history: bool = False
     ) -> Union["QOperation", Tuple["QOperation", Dict]]:
         """calculates the projection of QOperation with physically correctness.
 
         Parameters
         ----------
+        max_iteration: int, optional
+            maximun number of iterations, by default 1000.
         is_iteration_history : bool, optional
-            whether this funstion returns iteration history, by default False.
+            whether this function returns iteration history, by default False.
 
         Returns
         -------
@@ -591,9 +650,8 @@ class QOperation:
             ys = [y_prev]
             error_values = []
 
-        k = 0
         is_stopping = False
-        while not is_stopping:
+        for k in range(max_iteration):
             # shift variables
             if (
                 p_next is not None
@@ -659,8 +717,8 @@ class QOperation:
                 ys.append(y_next)
                 error_values.append(error_value)
 
-            # increase step
-            k += 1
+            if is_stopping:
+                break
 
         if is_iteration_history:
             history = {
@@ -775,6 +833,171 @@ class QOperation:
 
         return _func_proj
 
+    def calc_proj_physical_with_var(
+        self,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+        max_iteration: int = 1000,
+        is_iteration_history: bool = False,
+    ) -> Union[np.ndarray, Tuple[np.ndarray, Dict]]:
+        """calculates the projection of variables with physically correctness.
+
+        Parameters
+        ----------
+        var : np.ndarray
+            variables.
+        on_para_eq_constraint : bool, optional
+            whether this variables is on parameter equality constraint, by default True.
+        max_iteration: int, optional
+            maximun number of iterations, by default 1000.
+        is_iteration_history : bool, optional
+            whether this function returns iteration history, by default False.
+
+        Returns
+        -------
+        Union[np.ndarray, Tuple[np.ndarray, Dict]]
+            if ``is_iteration_history`` is True, returns the projection of variables with physically correctness and iteration history.
+            otherwise, returns only the projection of variables with physically correctness.
+
+            iteration history forms the following dict:
+
+            .. line-block::
+                {
+                    "p": list of opject ``p``,
+                    "q": list of opject ``q``,
+                    "x": list of opject ``x``,
+                    "y": list of opject ``y``,
+                    "error_value": list of opject ``error_value``,
+                }
+
+            When step=0, "y" and "error_value" are not calculated, so None is set.
+        """
+        p_prev = self.generate_zero_obj().to_stacked_vector()
+        q_prev = self.generate_zero_obj().to_stacked_vector()
+        x_prev = self.convert_var_to_stacked_vector(
+            self.composite_system, var, on_para_eq_constraint=on_para_eq_constraint
+        )
+        y_prev = None
+
+        p_next = x_next = q_next = y_next = None
+
+        # variables for debug
+        if is_iteration_history:
+            ps = [p_prev]
+            qs = [q_prev]
+            xs = [x_prev]
+            ys = [y_prev]
+            error_values = []
+
+        is_stopping = False
+        for k in range(max_iteration):
+            # shift variables
+            if (
+                p_next is not None
+                and q_next is not None
+                and x_next is not None
+                and y_next is not None
+            ):
+                p_prev = p_next
+                q_prev = q_next
+                x_prev = x_next
+                y_prev = y_next
+
+            if self.mode_proj_order == "eq_ineq":
+                y_next = self.calc_proj_eq_constraint_with_var(
+                    self.composite_system, x_prev + p_prev, on_para_eq_constraint=False
+                )
+                p_next = x_prev + p_prev - y_next
+                x_next = self.calc_proj_ineq_constraint_with_var(
+                    self.composite_system,
+                    y_next + q_prev,
+                    on_para_eq_constraint=False,
+                    eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+                )
+                q_next = y_next + q_prev - x_next
+            else:
+                y_next = self.calc_proj_ineq_constraint_with_var(
+                    self.composite_system,
+                    x_prev + p_prev,
+                    on_para_eq_constraint=False,
+                    eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+                )
+                p_next = x_prev + p_prev - y_next
+                x_next = self.calc_proj_eq_constraint_with_var(
+                    self.composite_system, y_next + q_prev, on_para_eq_constraint=False
+                )
+                q_next = y_next + q_prev - x_next
+
+            # logging
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"calc_proj_physical iteration={k}")
+                logger.debug(f"p_prev={p_prev}, p_next={p_next}")
+                logger.debug(f"q_prev={q_prev}, q_next={q_next}")
+                logger.debug(f"x_prev={x_prev}, x_next={x_next}")
+                logger.debug(f"y_prev={y_prev}, y_next={y_next}")
+
+            # check satisfied stopping criterion
+            if k >= 1:
+                (
+                    is_stopping,
+                    error_value,
+                ) = self._is_satisfied_stopping_criterion_birgin_raydan_vectors(
+                    p_prev,
+                    p_next,
+                    q_prev,
+                    q_next,
+                    x_prev,
+                    x_next,
+                    y_prev,
+                    y_next,
+                    self.eps_proj_physical,
+                )
+            else:
+                error_value = None
+
+            if is_iteration_history:
+                ps.append(p_next)
+                qs.append(q_next)
+                xs.append(x_next)
+                ys.append(y_next)
+                error_values.append(error_value)
+
+            if is_stopping:
+                break
+
+        x_next = self.convert_stacked_vector_to_var(
+            self.composite_system,
+            x_next,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
+        if is_iteration_history:
+            history = {
+                "p": ps,
+                "q": qs,
+                "x": xs,
+                "y": ys,
+                "error_value": error_values,
+            }
+            return x_next, history
+        else:
+            return x_next
+
+    def func_calc_proj_physical_with_var(
+        self,
+        on_para_eq_constraint: bool = None,
+        mode_proj_order: str = "eq_ineq",
+    ) -> Callable[[np.ndarray], np.ndarray]:
+        if on_para_eq_constraint is None:
+            on_para_eq_constraint = self._on_para_eq_constraint
+
+        def _func_proj(var: np.ndarray) -> np.ndarray:
+            new_var = self.calc_proj_physical_with_var(
+                var, on_para_eq_constraint=on_para_eq_constraint
+            )
+            return new_var
+
+        return _func_proj
+
     def __add__(self, other):
         # Validation
         if type(other) != type(self):
@@ -844,6 +1067,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 
@@ -918,6 +1142,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 
@@ -943,6 +1168,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 
@@ -973,6 +1199,7 @@ class QOperation:
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qobject
 

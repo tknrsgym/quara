@@ -1,8 +1,11 @@
 import collections
 import copy
+from quara.objects.mprocess import MProcess
 from typing import List, Tuple, Union
 
 import numpy as np
+from scipy.stats import multinomial
+
 
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm
@@ -44,33 +47,38 @@ class Experiment:
 
     def __init__(
         self,
-        states: List[State],
-        povms: List[Povm],
-        gates: List[Gate],
         schedules: List[List[Tuple[str, int]]],
-        seed: int = None,
+        states: List[State] = None,
+        povms: List[Povm] = None,
+        gates: List[Gate] = None,
+        mprocesses: List[MProcess] = None,
+        seed_data: int = None,
     ) -> None:
+        states = [] if states is None else states
+        povms = [] if povms is None else povms
+        gates = [] if gates is None else gates
+        mprocesses = [] if mprocesses is None else mprocesses
 
         # Validation
         self._validate_type(states, State)
         self._validate_type(povms, Povm)
         self._validate_type(gates, Gate)
+        self._validate_type(mprocesses, MProcess)
 
         # Set
         self._states: List[State] = states
         self._povms: List[Povm] = povms
         self._gates: List[Gate] = gates
-        # TODO: MProcess functions are not yet implemented. Only attributes are provided for future use.
-        self._mprocesses: list = []
+        self._mprocesses: List[MProcess] = mprocesses
 
         # Validate
         self._validate_schedules(schedules)
         # Set
         self._schedules: List[List[Tuple[str, int]]] = schedules
-        self._seed: int = seed
+        self._seed_data: int = seed_data
 
         # Set seed
-        self.reset_seed(self._seed)
+        self.reset_seed_data(self._seed_data)
 
     @property
     def states(self) -> List[State]:
@@ -142,6 +150,91 @@ class Experiment:
             self._gates = value
 
     @property
+    def mprocesses(self) -> List[Gate]:
+        return self._mprocesses
+
+    @mprocesses.setter
+    def mprocesses(self, value):
+        self._validate_type(value, MProcess)
+
+        objdict = dict(
+            state=self._states,
+            povm=self._povms,
+            gate=self._gates,
+            mprocess=value,
+        )
+        try:
+            self._validate_schedules(self._schedules, objdict=objdict)
+        except QuaraScheduleItemError as e:
+            raise QuaraScheduleItemError(
+                e.args[0] + "\nNew 'mprocesses' does not match schedules."
+            )
+        else:
+            self._mprocesses = value
+
+    def qoperations(
+        self, mode: str
+    ) -> Union[List[State], List[Povm], List[Gate], List[MProcess]]:
+        """returns qoperations with specified mode.
+
+        Parameters
+        ----------
+        mode : str
+            mode to get qoperations.
+            mode can be "state", "povm", "gate", or "mprocess".
+
+        Returns
+        -------
+        Union[List[State], List[Povm], List[Gate], List[MProcess]]
+            qoperations with specified mode.
+
+        Raises
+        ------
+        ValueError
+            Unsupported mode is specified.
+        """
+        if mode == "state":
+            return self.states
+        elif mode == "povm":
+            return self.povms
+        elif mode == "gate":
+            return self.gates
+        elif mode == "mprocess":
+            return self.mprocesses
+        else:
+            raise ValueError(f"Unsupported mode is specified. mode={mode}")
+
+    def num_qoperations(self, mode: str) -> int:
+        """returns number of qoperations with specified mode.
+
+        Parameters
+        ----------
+        mode : str
+            mode to get number of qoperations.
+            mode can be "state", "povm", "gate", or "mprocess".
+
+        Returns
+        -------
+        int
+            number of qoperations with specified mode.
+
+        Raises
+        ------
+        ValueError
+            Unsupported mode is specified.
+        """
+        if mode == "state":
+            return len(self.states)
+        elif mode == "povm":
+            return len(self.povms)
+        elif mode == "gate":
+            return len(self.gates)
+        elif mode == "mprocess":
+            return len(self.mprocesses)
+        else:
+            raise ValueError(f"An unsupported mode is specified. mode={mode}")
+
+    @property
     def schedules(self) -> List[List[Tuple[str, int]]]:
         return self._schedules
 
@@ -151,20 +244,20 @@ class Experiment:
         self._schedules = value
 
     @property
-    def seed(self) -> int:
-        return self._seed
+    def seed_data(self) -> int:
+        return self._seed_data
 
-    def reset_seed(self, seed: int) -> None:
+    def reset_seed_data(self, seed_data: int) -> None:
         """reset new seed.
 
         Parameters
         ----------
-        seed : int
-            new seed.
+        seed_data : int
+            new seed for generating data.
         """
-        self._seed = seed
-        if self._seed is not None:
-            np.random.seed(self._seed)
+        self._seed_data = seed_data
+        if self._seed_data is not None:
+            np.random.seed(self._seed_data)
 
     def _validate_type(self, targets, expected_type) -> None:
         for target in targets:
@@ -365,10 +458,15 @@ class Experiment:
         states = copy.copy(self.states)
         gates = copy.copy(self.gates)
         povms = copy.copy(self.povms)
+        mprocesses = copy.copy(self.mprocesses)
         schedules = copy.copy(self.schedules)
 
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules
+            states=states,
+            gates=gates,
+            povms=povms,
+            mprocesses=mprocesses,
+            schedules=schedules,
         )
         return experiment
 
@@ -392,7 +490,12 @@ class Experiment:
         """
         self._validate_schedule_index(schedule_index)
         schedule = self.schedules[schedule_index]
-        key_map = dict(state=self._states, gate=self._gates, povm=self._povms)
+        key_map = dict(
+            state=self._states,
+            gate=self._gates,
+            povm=self._povms,
+            mprocess=self._mprocesses,
+        )
         targets = collections.deque()
         for item in schedule:
             k, i = item
@@ -400,9 +503,8 @@ class Experiment:
             if not target:
                 raise ValueError("{}s[{}] is None.".format(k, i))
             targets.appendleft(target)
-
         prob_dist = op.compose_qoperations(*targets)
-        return prob_dist
+        return prob_dist.ps
 
     def calc_prob_dists(self) -> List[np.ndarray]:
         """Caluclate probability distributions for all schedules.
@@ -529,21 +631,12 @@ class Experiment:
         List[Tuple[int, np.ndarray]]
             A list of the numbers of data and empirical distribution.
         """
-        data_n = max(num_sums)
-        # Calculating to get the measurement_num.
-        # The probability distribution is calculated twice, in this function and in the generate_data method,
-        # so it should be improved.
         prob_dist = self.calc_prob_dist(schedule_index)
-        measurement_num = len(prob_dist)
+        empi_dist_sequence = data_generator.generate_empi_dist_sequence_from_prob_dist(
+            prob_dist, num_sums, seed_or_stream
+        )
 
-        stream = to_stream(seed_or_stream)
-        data = self.generate_data(
-            schedule_index=schedule_index, data_num=data_n, seed_or_stream=stream
-        )
-        empi_dist = data_generator.calc_empi_dist_sequence(
-            measurement_num=measurement_num, data=data, num_sums=num_sums
-        )
-        return empi_dist
+        return empi_dist_sequence
 
     def generate_empi_dists_sequence(
         self,
@@ -570,18 +663,12 @@ class Experiment:
         for num_sums in list_num_sums:
             self._validate_eq_schedule_len(num_sums, "list_num_sums")
 
-        measurement_nums = [len(prob_dist) for prob_dist in self.calc_prob_dists()]
-        stream = to_stream(seed_or_stream)
-        datasets = self.generate_dataset(
-            data_nums=list_num_sums[-1], seed_or_stream=stream
-        )
-
         list_num_sums_tmp = [list(num_sums) for num_sums in zip(*list_num_sums)]
 
-        empi_dists_sequence = data_generator.calc_empi_dists_sequence(
-            measurement_nums=measurement_nums,
-            dataset=datasets,
-            list_num_sums=list_num_sums_tmp,
+        prob_dists = self.calc_prob_dists()
+        empi_dists_sequence = (
+            data_generator.generate_empi_dists_sequence_from_prob_dists(
+                prob_dists, list_num_sums_tmp, seed_or_stream
+            )
         )
-
         return empi_dists_sequence

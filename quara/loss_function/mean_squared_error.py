@@ -11,26 +11,30 @@ from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
 )
 from quara.simulation.standard_qtomography_simulation import (
+    SimulationResult,
     generate_empi_dists_and_calc_estimate,
 )
 
 
 def check_mse_of_empirical_distributions(
-    simulation_setting, estimation_results, show_detail: bool = True
+    simulation_result: SimulationResult, show_detail: bool = True
 ) -> bool:
-    qtomography = estimation_results[0].qtomography
-    num_data = estimation_results[0].num_data
+    num_data = simulation_result.simulation_setting.num_data
+    n_rep = simulation_result.simulation_setting.n_rep
+    qtomography = simulation_result.qtomography
     num_schedules = qtomography.num_schedules
-    n_rep = len(estimation_results)
 
     parameter = qtomography.on_para_eq_constraint
     true_object_copied = data_analysis._recreate_qoperation(
-        simulation_setting.true_object, on_para_eq_constraint=parameter
+        simulation_result.simulation_setting.true_object,
+        on_para_eq_constraint=parameter,
     )
 
     # MSE of Empirical Distributions
-    empi_dists = data_analysis.extract_empi_dists(estimation_results)
-    xs_list_list = empi_dists
+    empi_dists_sequences = data_analysis.extract_empi_dists_sequences(
+        simulation_result.empi_dists_sequences
+    )
+    xs_list_list = empi_dists_sequences
     ys_list_list = [[qtomography.calc_prob_dists(true_object_copied)] * n_rep] * len(
         num_data
     )
@@ -73,6 +77,7 @@ def check_mse_of_empirical_distributions(
 def check_mse_of_estimators(
     simulation_setting: "StandardQTomographySimulation",
     estimation_results: List["EstimationResult"],
+    qtomography,
     show_detail: bool = True,
 ) -> bool:
     def _is_maximum_likelihood(simulation_setting) -> bool:
@@ -84,12 +89,14 @@ def check_mse_of_estimators(
 
     if type(simulation_setting.estimator) == LinearEstimator:
         result = compare_to_analytical(
-            simulation_setting, estimation_results, show_detail
+            simulation_setting, estimation_results, qtomography, show_detail
         )
     elif type(
         simulation_setting.estimator
     ) == ProjectedLinearEstimator or _is_maximum_likelihood(simulation_setting):
-        result = compare_to_linear(simulation_setting, estimation_results, show_detail)
+        result = compare_to_linear(
+            simulation_setting, estimation_results, qtomography, show_detail
+        )
     else:
         message = f"Estimator must be LinearEstimator, ProjectedLinearEstimator, or Maximum-likelihood."
         raise TypeError(message)
@@ -100,6 +107,7 @@ def check_mse_of_estimators(
 def compare_to_analytical(
     simulation_setting,
     estimation_results: List["EstimationResult"],
+    qtomography,
     show_detail: bool = True,
 ) -> bool:
     if type(simulation_setting.estimator) != LinearEstimator:
@@ -107,10 +115,8 @@ def compare_to_analytical(
             f"simulation_setting.estimator must be LinearEstimator, not {type(simulation_setting.estimator)}"
         )
 
-    num_data = estimation_results[0].num_data
-
-    qtomo = estimation_results[0].qtomography
-    parameter = qtomo.on_para_eq_constraint
+    num_data = simulation_setting.num_data
+    parameter = qtomography.on_para_eq_constraint
     true_object_copied = data_analysis._recreate_qoperation(
         simulation_setting.true_object, on_para_eq_constraint=parameter
     )
@@ -123,8 +129,8 @@ def compare_to_analytical(
     # MSE_Analytical
     analytical_mses = []
     for num in num_data:
-        analytical_mse = qtomo.calc_mse_linear_analytical(
-            true_object_copied, [num] * qtomo.num_schedules
+        analytical_mse = qtomography.calc_mse_linear_analytical(
+            true_object_copied, [num] * qtomography.num_schedules
         )
         analytical_mses.append(analytical_mse)
 
@@ -154,7 +160,7 @@ def compare_to_analytical(
 
 
 def compare_to_linear(
-    simulation_setting, estimation_results, show_detail: bool = True
+    simulation_setting, estimation_results, qtomography, show_detail: bool = True
 ) -> bool:
     # calc mse
     mses, *_ = data_analysis.convert_to_series(
@@ -162,18 +168,17 @@ def compare_to_linear(
     )
 
     # calc mse of LinearEstimator
-    num_data = estimation_results[0].num_data
-    n_rep = len(estimation_results)
-    qtomo = estimation_results[0].qtomography
-    parameter = qtomo.on_para_eq_constraint
+    num_data = simulation_setting.num_data
+    n_rep = simulation_setting.n_rep
+    parameter = qtomography.on_para_eq_constraint
     true_object_copied = data_analysis._recreate_qoperation(
         simulation_setting.true_object, on_para_eq_constraint=parameter
     )
 
     # generate empi dists and calc estimate
     linear_estimator = LinearEstimator()
-    linear_estimation_results = generate_empi_dists_and_calc_estimate(
-        qtomography=qtomo,
+    sim_result = generate_empi_dists_and_calc_estimate(
+        qtomography=qtomography,
         true_object=true_object_copied,
         num_data=num_data,
         estimator=linear_estimator,
@@ -181,7 +186,7 @@ def compare_to_linear(
     )
     # calc
     linear_mses, *_ = data_analysis.convert_to_series(
-        linear_estimation_results, true_object_copied
+        sim_result.estimation_results, true_object_copied
     )
 
     # compare

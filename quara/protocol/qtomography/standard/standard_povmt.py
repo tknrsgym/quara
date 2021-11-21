@@ -24,7 +24,8 @@ class StandardPovmt(StandardQTomography):
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
-        seed: int = None,
+        eps_truncate_imaginary_part: float = None,
+        seed_data: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         # Make Experment with states
@@ -34,7 +35,11 @@ class StandardPovmt(StandardQTomography):
             schedules = [[("state", i), ("povm", 0)] for i in range(len(states))]
 
         experiment = Experiment(
-            states=states, gates=[], povms=[None], schedules=schedules, seed=seed
+            states=states,
+            gates=[],
+            povms=[None],
+            schedules=schedules,
+            seed_data=seed_data,
         )
         self._validate_schedules(schedules)
 
@@ -51,6 +56,7 @@ class StandardPovmt(StandardQTomography):
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
 
         set_qoperations = SetQOperations(states=[], gates=[], povms=[povm])
@@ -76,6 +82,8 @@ class StandardPovmt(StandardQTomography):
         self._set_coeffs(experiment, on_para_eq_constraint)
         self._on_para_eq_constraint = on_para_eq_constraint
 
+        self._template_qoperation = self._set_qoperations.povms[0]
+
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
             if schedule[0][0] != "state" or schedule[1][0] != "povm":
@@ -96,15 +104,8 @@ class StandardPovmt(StandardQTomography):
         return Povm
 
     def is_valid_experiment(self) -> bool:
-        states = self._experiment.states
-        if len(states) <= 1:
-            return True
-
-        checks = [
-            states[0]._composite_system == state._composite_system
-            for state in states[1:]
-        ]
-        return all(checks)
+        is_ok_states = self.is_all_same_composite_systems(self._experiment.states)
+        return is_ok_states
 
     def _generate_matS(self):
         STATE_ITEM_INDEX = 0
@@ -246,6 +247,9 @@ class StandardPovmt(StandardQTomography):
         ]
         return empi_dists_sequence
 
+    def _testers(self) -> List[State]:
+        return self.experiment.states
+
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         POVM_ITEM_INDEX = 1
@@ -297,7 +301,9 @@ class StandardPovmt(StandardQTomography):
                     self._coeffs_0th[(schedule_index, m_index)] = 0
 
     def convert_var_to_qoperation(self, var: np.ndarray) -> Povm:
-        template = self._set_qoperations.povms[0]
+        # template = self._set_qoperations.povms[0]
+        template = self._template_qoperation
+
         povm = template.generate_from_var(var=var)
         return povm
 

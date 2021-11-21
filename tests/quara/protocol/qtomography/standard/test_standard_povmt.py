@@ -32,7 +32,7 @@ def get_test_data():
 
     # Act
     povmt = StandardPovmt(
-        tester_objects, on_para_eq_constraint=False, num_outcomes=2, seed=7
+        tester_objects, on_para_eq_constraint=False, num_outcomes=2, seed_data=7
     )
 
     return povmt, c_sys
@@ -198,6 +198,25 @@ class TestStandardPovmt:
         with pytest.raises(ValueError):
             _ = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=False)
 
+    def test_testers(self):
+        # Array
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # |+><+|
+        state_x0 = get_x0_1q(c_sys)
+        # |+i><+i|
+        state_y0 = get_y0_1q(c_sys)
+        # |0><0|
+        state_z0 = get_z0_1q(c_sys)
+        # |1><1|
+        state_z1 = get_z1_1q(c_sys)
+        states = [state_x0, state_y0, state_z0, state_z1]
+
+        # Act
+        actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=True)
+        assert len(actual.testers) == 4
+
     def test_estimation_object_type(self):
         # Array
         e_sys = ElementalSystem(0, get_normalized_pauli_basis())
@@ -219,6 +238,35 @@ class TestStandardPovmt:
 
         # Act & Assert
         assert actual.estimation_object_type() == Povm
+
+    def test_is_valid_experiment(self):
+        # Array
+        e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        e_sys1 = ElementalSystem(1, get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        # |+><+|
+        state_x0 = get_x0_1q(c_sys)
+        state_x_not_same = get_x0_1q(c_sys1)
+        # |+i><+i|
+        state_y0 = get_y0_1q(c_sys)
+        # |0><0|
+        state_z0 = get_z0_1q(c_sys)
+        # |1><1|
+        state_z1 = get_z1_1q(c_sys)
+        states = [state_x0, state_y0, state_z0, state_z1]
+        states_not_same = [state_x_not_same, state_y0, state_z0, state_z1]
+
+        # is_valid_experiment == True
+        # Act
+        actual = StandardPovmt(states, num_outcomes=2, on_para_eq_constraint=True)
+        assert actual.is_valid_experiment() == True
+
+        # is_valid_experiment == False
+        # Act
+        actual.experiment.states = states_not_same
+        assert actual.is_valid_experiment() == False
 
     def test_generate_empty_estimation_obj_with_setting_info(self):
         # Array
@@ -467,7 +515,7 @@ class TestStandardPovmt:
 
         # schedule_index = 0
         actual = povmt.generate_empi_dist(0, povm, 10)
-        expected = (10, np.array([0.5, 0.5], dtype=np.float64))
+        expected = (10, np.array([0.3, 0.7], dtype=np.float64))
         assert actual[0] == expected[0]
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
@@ -511,7 +559,7 @@ class TestStandardPovmt:
 
         actual = povmt.generate_empi_dists(povm, 10)
         expected = [
-            (10, np.array([0.5, 0.5], dtype=np.float64)),
+            (10, np.array([0.3, 0.7], dtype=np.float64)),
             (10, np.array([0.6, 0.4], dtype=np.float64)),
             (10, np.array([1.0, 0.0], dtype=np.float64)),
             (10, np.array([0.0, 1.0], dtype=np.float64)),
@@ -528,14 +576,14 @@ class TestStandardPovmt:
         print(actual)
         expected = [
             [
-                (10, np.array([0.5, 0.5], dtype=np.float64)),
                 (10, np.array([0.3, 0.7], dtype=np.float64)),
+                (10, np.array([0.5, 0.5], dtype=np.float64)),
                 (10, np.array([1.0, 0.0], dtype=np.float64)),
                 (10, np.array([0.0, 1.0], dtype=np.float64)),
             ],
             [
+                (20, np.array([0.6, 0.4], dtype=np.float64)),
                 (20, np.array([0.55, 0.45], dtype=np.float64)),
-                (20, np.array([0.5, 0.5], dtype=np.float64)),
                 (20, np.array([1.0, 0.0], dtype=np.float64)),
                 (20, np.array([0.0, 1.0], dtype=np.float64)),
             ],

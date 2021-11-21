@@ -1,8 +1,10 @@
-from typing import List
+from itertools import starmap
+from typing import List, Union
 import copy
 import time
 from pathlib import Path
 import json
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -17,7 +19,10 @@ from quara.simulation import standard_qtomography_simulation as sim
 from quara.simulation.standard_qtomography_simulation import (
     EstimatorTestSetting,
     SimulationResult,
-    StandardQTomographySimulationSetting,
+)
+from quara.objects.qoperation_typical import generate_qoperation_object
+from quara.protocol.qtomography.standard.loss_minimization_estimator import (
+    LossMinimizationEstimator,
 )
 
 
@@ -29,6 +34,7 @@ def execute_simulation_case_unit(
     sample_index: int,
     test_setting_index: int,
     root_dir: str,
+    exec_sim_check: dict = None,
 ) -> SimulationResult:
     # Generate QTomographySimulationSetting
     sim_setting = test_setting.to_simulation_setting(
@@ -36,39 +42,32 @@ def execute_simulation_case_unit(
     )
     print(f"Case {case_index}: {sim_setting.name}")
 
-    def _copy_sim_setting(source):
-        return StandardQTomographySimulationSetting(
-            name=source.name,
-            true_object=source.true_object,
-            tester_objects=source.tester_objects,
-            estimator=source.estimator,
-            loss=copy.deepcopy(source.loss),
-            loss_option=source.loss_option,
-            algo=copy.deepcopy(source.algo),
-            algo_option=source.algo_option,
-            seed=source.seed,
-            n_rep=source.n_rep,
-            num_data=source.num_data,
-            schedules=source.schedules,
-            eps_proj_physical=source.eps_proj_physical,
-        )
-
-    org_sim_setting = _copy_sim_setting(sim_setting)
+    org_sim_setting = sim_setting.copy()
 
     # Generate QTomography
+    # Do not set the random number seed when initializing qtomography.
+    # Use the random number stream later when generating the empirical distribution.
     qtomography = sim.generate_qtomography(
         sim_setting,
         para=test_setting.parametrizations[case_index],
+        init_with_seed=False,
     )
 
+    # Generate a random number stream to generate the empirical distribution.
+    stream_data = np.random.RandomState(sim_setting.seed_data)
+
     # Execute
-    estimation_results = sim.execute_simulation(
-        qtomography=qtomography, simulation_setting=sim_setting
+    sim_result = sim.execute_simulation(
+        qtomography=qtomography,
+        simulation_setting=sim_setting,
+        seed_or_stream=stream_data,
     )
 
     # Simulation Check
-    sim_check = StandardQTomographySimulationCheck(sim_setting, estimation_results)
-    check_result = sim_check.execute_all(show_detail=False, with_detail=True)
+    sim_check = StandardQTomographySimulationCheck(sim_result)
+    check_result = sim_check.execute_all(
+        show_detail=False, with_detail=True, exec_check=exec_sim_check
+    )
 
     # Show result
     if not check_result["total_result"]:
@@ -82,16 +81,14 @@ def execute_simulation_case_unit(
         case_index=case_index,
     )
 
-    # Store result
-    result = SimulationResult(
-        result_index=result_index,
-        simulation_setting=org_sim_setting,
-        estimation_results=estimation_results,
-        check_result=check_result,
-    )
+    # Add to SimulationResult
+    sim_result.simulation_setting = org_sim_setting
+    sim_result.result_index = result_index
+    sim_result.check_result = check_result
+
     # Save
-    write_result_case_unit(result, root_dir=root_dir)
-    return result
+    write_result_case_unit(sim_result, root_dir=root_dir)
+    return sim_result
 
 
 def execute_simulation_sample_unit(
@@ -101,14 +98,52 @@ def execute_simulation_sample_unit(
     sample_index,
     root_dir,
     pdf_mode: str = "only_ng",
+    stream_qoperation: Union[int, np.random.RandomState] = None,
+    exec_sim_check: dict = None,
 ) -> List[SimulationResult]:
     # Generate sample
-    true_object = generation_settings.true_setting.generate()
+    _f = generation_settings.true_setting.generate
+    if "seed_or_stream" in _f.__code__.co_varnames[: _f.__code__.co_argcount]:
+        true_object = generation_settings.true_setting.generate(
+            seed_or_stream=stream_qoperation
+        )
+        tester_objects = [
+            tester_setting.generate(stream_qoperation)
+            for tester_setting in generation_settings.tester_settings
+        ]
+    else:
+        # True Object
+        if test_setting.true_object.method is None:
+            name = test_setting.true_object.qoperation_base[1]
+            mode_name = test_setting.true_object.qoperation_base[0]
+            true_object = generate_qoperation_object(
+                mode=mode_name,
+                object_name=mode_name,
+                name=name,
+                c_sys=test_setting.c_sys,
+            )
+        else:
+            true_object = generation_settings.true_setting.generate()
+
+        # Tester Objects
+        tester_objects = []
+        for i, tester_noise_setting in enumerate(test_setting.tester_objects):
+            if tester_noise_setting.method is None:
+                name = tester_noise_setting.qoperation_base[1]
+                mode_name = tester_noise_setting.qoperation_base[0]
+                tester_objects.append(
+                    generate_qoperation_object(
+                        mode=mode_name,
+                        object_name=mode_name,
+                        name=name,
+                        c_sys=test_setting.c_sys,
+                    )
+                )
+            else:
+                generation_setting = generation_settings.tester_settings[i]
+                tester_objects.append(generation_setting.generate())
+
     true_object = true_object[0] if type(true_object) == tuple else true_object
-    tester_objects = [
-        tester_setting.generate()
-        for tester_setting in generation_settings.tester_settings
-    ]
     tester_objects = [
         tester[0] if type(tester) == tuple else tester for tester in tester_objects
     ]
@@ -124,6 +159,7 @@ def execute_simulation_sample_unit(
             sample_index=sample_index,
             test_setting_index=test_setting_index,
             root_dir=root_dir,
+            exec_sim_check=exec_sim_check,
         )
         results.append(result)
 
@@ -132,12 +168,12 @@ def execute_simulation_sample_unit(
 
     # Save PDF
     if pdf_mode == "all":
-        write_pdf_report(results, root_dir)
+        write_pdf_report(results, root_dir, display_items=exec_sim_check)
     elif pdf_mode == "only_ng":
         total_results = [r.check_result["total_result"] for r in results]
         print(f"total_result={np.all(total_results)}")
         if not np.all(total_results):
-            write_pdf_report(results, root_dir)
+            write_pdf_report(results, root_dir, display_items=exec_sim_check)
     elif pdf_mode == "none":
         pass
     else:
@@ -148,11 +184,17 @@ def execute_simulation_sample_unit(
 
 
 def execute_simulation_test_setting_unit(
-    test_setting, test_setting_index, root_dir, pdf_mode: str = "only_ng"
+    test_setting,
+    test_setting_index,
+    root_dir,
+    exec_sim_check: dict = None,
+    pdf_mode: str = "only_ng",
 ) -> List[SimulationResult]:
     generation_settings = test_setting.to_generation_settings()
     n_sample = test_setting.n_sample
     results = []
+
+    stream_qoperation = np.random.RandomState(test_setting.seed_qoperation)
 
     for sample_index in range(n_sample):
         sample_results = execute_simulation_sample_unit(
@@ -162,6 +204,8 @@ def execute_simulation_test_setting_unit(
             sample_index,
             root_dir,
             pdf_mode=pdf_mode,
+            stream_qoperation=stream_qoperation,
+            exec_sim_check=exec_sim_check,
         )
         results += sample_results
 
@@ -171,7 +215,10 @@ def execute_simulation_test_setting_unit(
 
 
 def execute_simulation_test_settings(
-    test_settings: List[EstimatorTestSetting], root_dir: str, pdf_mode: str = "only_ng"
+    test_settings: List[EstimatorTestSetting],
+    root_dir: str,
+    pdf_mode: str = "only_ng",
+    exec_sim_check: dict = None,
 ) -> List[SimulationResult]:
     all_results = []
     start = time.time()
@@ -181,7 +228,11 @@ def execute_simulation_test_settings(
         test_setting.to_pickle(path)
         print(f"Completed to write test_setting. {path}")
         test_results = execute_simulation_test_setting_unit(
-            test_setting, test_setting_index, root_dir, pdf_mode=pdf_mode
+            test_setting,
+            test_setting_index,
+            root_dir,
+            exec_sim_check=exec_sim_check,
+            pdf_mode=pdf_mode,
         )
         all_results += test_results
 
@@ -253,6 +304,211 @@ def _print_summary(results: List[SimulationResult], elapsed_time: float) -> None
     print(summary_text)
 
 
+# re-estimate
+def re_estimate_case_unit(
+    input_root_dir: str,
+    case_index: int,
+    sample_index: int,
+    test_setting_index: int,
+    output_root_dir: str,
+    test_setting=None,
+    exec_sim_check: dict = None,
+) -> SimulationResult:
+
+    if test_setting is None:
+        test_setting_pickle_path = (
+            f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
+        )
+        with open(test_setting_pickle_path, "rb") as f:
+            test_setting = pickle.load(f)
+
+    # Load pickle
+    simulation_result_path = (
+        Path(input_root_dir)
+        / str(test_setting_index)
+        / str(sample_index)
+        / f"case_{case_index}_result.pickle"
+    )
+    with open(simulation_result_path, "rb") as f:
+        source_sim_result = pickle.load(f)
+
+    sim_setting = source_sim_result.simulation_setting
+    empi_dists_seqences = source_sim_result.empi_dists_sequences
+    print(f"Case {case_index}: {sim_setting.name}")
+    org_sim_setting = sim_setting.copy()
+
+    # Generate QTomography
+    qtomography = sim.generate_qtomography(
+        sim_setting,
+        para=test_setting.parametrizations[case_index],
+    )
+
+    # Re-estimate
+    estimation_results = []
+    for n_rep_index in range(sim_setting.n_rep):
+        empi_dists_seq = source_sim_result.empi_dists_sequences[n_rep_index]
+        estimator = copy.deepcopy(source_sim_result.simulation_setting.estimator)
+
+        if isinstance(estimator, LossMinimizationEstimator):
+            estimation_result = estimator.calc_estimate_sequence(
+                qtomography,
+                empi_dists_seq,
+                loss=sim_setting.loss,
+                loss_option=sim_setting.loss_option,
+                algo=sim_setting.algo,
+                algo_option=sim_setting.algo_option,
+                is_computation_time_required=True,
+            )
+        else:
+            estimation_result = estimator.calc_estimate_sequence(
+                qtomography,
+                empi_dists_seq,
+                is_computation_time_required=True,
+            )
+
+        estimation_results.append(estimation_result)
+
+    result_index = dict(
+        test_setting_index=test_setting_index,
+        sample_index=sample_index,
+        case_index=case_index,
+    )
+
+    re_estimated_sim_result = SimulationResult(
+        estimation_results=estimation_results,
+        empi_dists_sequences=empi_dists_seqences,
+        qtomography=qtomography,
+        simulation_setting=sim_setting,
+        result_index=result_index,
+    )
+
+    # Simulation Check
+    sim_check = StandardQTomographySimulationCheck(re_estimated_sim_result)
+    check_result = sim_check.execute_all(
+        show_detail=False, with_detail=True, exec_check=exec_sim_check
+    )
+
+    # Show result
+    if not check_result["total_result"]:
+        start_red = "\033[31m"
+        end_color = "\033[0m"
+        print(f"Total Result: {start_red}NG{end_color}")
+
+    re_estimated_sim_result.simulation_setting = org_sim_setting
+    re_estimated_sim_result.check_result = check_result
+    # Save
+    write_result_case_unit(re_estimated_sim_result, root_dir=output_root_dir)
+    return re_estimated_sim_result
+
+
+def re_estimate_sample_unit(
+    test_setting_index,
+    sample_index,
+    output_root_dir,
+    input_root_dir,
+    exec_sim_check: dict = None,
+    pdf_mode: str = "only_ng",
+) -> List[SimulationResult]:
+
+    # Load test setting pickle
+    test_setting_pickle_path = (
+        f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
+    )
+    with open(test_setting_pickle_path, "rb") as f:
+        test_setting = pickle.load(f)
+
+    case_n = len(test_setting.case_names)
+    results = []
+    for case_index in range(case_n):
+        result = re_estimate_case_unit(
+            test_setting=test_setting,
+            case_index=case_index,
+            sample_index=sample_index,
+            test_setting_index=test_setting_index,
+            input_root_dir=input_root_dir,
+            output_root_dir=output_root_dir,
+            exec_sim_check=exec_sim_check,
+        )
+        results.append(result)
+
+    # Save
+    write_result_sample_unit(results, root_dir=output_root_dir)
+
+    # Save PDF
+    if pdf_mode == "all":
+        write_pdf_report(results, output_root_dir, display_items=exec_sim_check)
+    elif pdf_mode == "only_ng":
+        total_results = [r.check_result["total_result"] for r in results]
+        print(f"total_result={np.all(total_results)}")
+        if not np.all(total_results):
+            write_pdf_report(results, output_root_dir, display_items=exec_sim_check)
+    elif pdf_mode == "none":
+        pass
+    else:
+        message = "`pdf_mode` must be 'all', 'only_ng', or 'none'."
+        raise ValueError(message)
+
+    return results
+
+
+def re_estimate_test_setting_unit(
+    test_setting_index,
+    output_root_dir,
+    input_root_dir,
+    exec_sim_check: dict = None,
+    pdf_mode: str = "only_ng",
+) -> List[SimulationResult]:
+    # Load test setting from pickle
+    test_setting_pickle_path = (
+        f"{input_root_dir}/{test_setting_index}/test_setting.pickle"
+    )
+    with open(test_setting_pickle_path, "rb") as f:
+        test_setting = pickle.load(f)
+
+    n_sample = test_setting.n_sample
+
+    results = []
+
+    for sample_index in range(n_sample):
+        sample_results = re_estimate_sample_unit(
+            test_setting_index=test_setting_index,
+            sample_index=sample_index,
+            input_root_dir=input_root_dir,
+            output_root_dir=output_root_dir,
+            exec_sim_check=exec_sim_check,
+            pdf_mode=pdf_mode,
+        )
+        results += sample_results
+
+    # Save
+    write_result_test_setting_unit(results, output_root_dir)
+    return results
+
+
+def re_estimate_test_settings(
+    input_root_dir: str,
+    output_root_dir: str,
+    pdf_mode: str,
+    exec_sim_check: dict = None,
+) -> List[SimulationResult]:
+    # Load All Test Setting
+    test_setting_pickle_paths = sorted(
+        Path(input_root_dir).glob("*/test_setting.pickle")
+    )
+    all_results = []
+    for path in test_setting_pickle_paths:
+        test_setting_index = path.parent.name  # directory name is test_setting_index
+        test_results = re_estimate_test_setting_unit(
+            test_setting_index,
+            input_root_dir=input_root_dir,
+            output_root_dir=output_root_dir,
+            exec_sim_check=exec_sim_check,
+            pdf_mode=pdf_mode,
+        )
+        all_results += test_results
+    return all_results
+
+
 # writer
 def write_results(results: List[SimulationResult], dir_path: str) -> None:
     dir_path = Path(dir_path)
@@ -283,7 +539,9 @@ def write_result_test_setting_unit(
     write_results(results, dir_path)
 
 
-def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
+def write_pdf_report(
+    results: List[SimulationResult], root_dir: str, display_items: dict = None
+) -> None:
     test_setting_index = results[0].result_index["test_setting_index"]
     sample_index = results[0].result_index["sample_index"]
 
@@ -296,24 +554,25 @@ def write_pdf_report(results: List[SimulationResult], root_dir: str) -> None:
         test_setting_index=test_setting_index,
         sample_index=sample_index,
         output_path=path,
+        display_items=display_items,
     )
 
 
-def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
-    test_setting_index = result.result_index["test_setting_index"]
-    sample_index = result.result_index["sample_index"]
-    case_index = result.result_index["case_index"]
+def write_result_case_unit(sim_result: SimulationResult, root_dir: str) -> None:
+    test_setting_index = sim_result.result_index["test_setting_index"]
+    sample_index = sim_result.result_index["sample_index"]
+    case_index = sim_result.result_index["case_index"]
 
     # Save pickle
     dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
     path = dir_path / f"case_{case_index}_result.pickle"
-    result.to_pickle(path)
+    sim_result.to_pickle(path)
 
     # Save JSON
     # EstimationResult cannot be converted to JSON.
     # Therefore, alternative text is used.
     alternative_results = []
-    for r in result.check_result["results"]:
+    for r in sim_result.check_result["results"]:
         if r["name"] == "Consistency":
             alternative_text = "EstimationResult generated in the process of ConsistencyCheck is not dumped to json, check the pickle."
             new_r = copy.deepcopy(r)
@@ -322,7 +581,7 @@ def write_result_case_unit(result: SimulationResult, root_dir: str) -> None:
         else:
             alternative_results.append(r)
 
-    alternative_check_result = copy.deepcopy(result.check_result)
+    alternative_check_result = copy.deepcopy(sim_result.check_result)
     alternative_check_result["results"] = alternative_results
 
     path = dir_path / f"case_{case_index}_check_result.json"

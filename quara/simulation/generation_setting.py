@@ -7,6 +7,7 @@ from quara.objects.qoperation_typical import generate_qoperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 
 
 class QOperationGenerationSetting:
@@ -20,7 +21,7 @@ class QOperationGenerationSetting:
         self._composite_system = c_sys
         self._is_seed_or_stream_required = is_seed_or_stream_required
 
-        type_error_message = "Type of 'qooeration_base' must be QOperation or tuple of length 2 containing the string (`('state', 'z0')`, etc.), "
+        type_error_message = "Type of 'qoperation_base' must be QOperation or tuple of length 2 containing the string (`('state', 'z0')`, etc.), "
         type_error_message += f"not {type(qoperation_base)}"
         if isinstance(qoperation_base, QOperation):
             self._qoperation_base = qoperation_base
@@ -63,6 +64,9 @@ class QOperationGenerationSetting:
         if type(self.qoperation_base) == Gate:
             return self.generate_gate()
 
+        if type(self.qoperation_base) == MProcess:
+            return self.generate_mprocess()
+
         raise NotImplementedError()
 
     @abstractmethod
@@ -75,6 +79,10 @@ class QOperationGenerationSetting:
 
     @abstractmethod
     def generate_gate(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def generate_mprocess(self):
         raise NotImplementedError()
 
 

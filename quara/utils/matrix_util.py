@@ -6,6 +6,7 @@ from operator import add
 
 import numpy as np
 
+from quara.math.probability import validate_prob_dist
 from quara.settings import Settings
 
 
@@ -187,7 +188,7 @@ def truncate_computational_fluctuation(
 
 def truncate_hs(
     hs: np.ndarray,
-    eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
     is_zero_imaginary_part_required: bool = True,
 ) -> np.ndarray:
     """truncate HS matrix to a real matrix.
@@ -196,8 +197,8 @@ def truncate_hs(
     ----------
     hs : np.ndarray
         HS matrix to truncate.
-    eps_proj_physical : float, optional
-        threshold to truncate, by default :func:`~quara.settings.Settings.get_atol`
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
     is_zero_imaginary_part_required : bool, optional
         whether the imaginary part should be truncated to zero, by default True
 
@@ -211,7 +212,7 @@ def truncate_hs(
     ValueError
         `is_zero_imaginary_part_required` == True and some imaginary parts of entries of matrix != 0.
     """
-    tmp_hs = truncate_imaginary_part(hs, eps_proj_physical)
+    tmp_hs = truncate_imaginary_part(hs, eps=eps_truncate_imaginary_part)
 
     if is_zero_imaginary_part_required == True and np.any(tmp_hs.imag != 0):
         raise ValueError(
@@ -221,7 +222,7 @@ def truncate_hs(
     if is_zero_imaginary_part_required == True:
         tmp_hs = tmp_hs.real.astype(np.float64)
 
-    truncated_hs = truncate_computational_fluctuation(tmp_hs, eps_proj_physical)
+    truncated_hs = truncate_computational_fluctuation(tmp_hs, eps_truncate_imaginary_part)
     return truncated_hs
 
 
@@ -244,6 +245,7 @@ def truncate_and_normalize(matrix: np.ndarray, eps: float = None) -> np.array:
 
     # truncate entries smaller than eps and normalize matrix along rows
     matrix = np.where(matrix < eps, 0, matrix)
+
     if matrix.ndim == 1:
         matrix = matrix / np.sum(matrix)
     else:
@@ -471,17 +473,8 @@ def calc_fisher_matrix(
     eps = eps if eps is not None else 1e-8
 
     ### validate
-    # each element of prob_dist must be between 0 and 1
-    for index, entry in enumerate(prob_dist):
-        if not (0.0 <= entry <= 1.0):
-            raise ValueError(
-                f"each element of prob_dist must be between 0 and 1. the sum of prob_dist[{index}]={entry}"
-            )
-
-    # the sum of prob_dist must be 1
-    sum = np.sum(prob_dist)
-    if not np.isclose(sum, 1.0, atol=eps, rtol=0.0):
-        raise ValueError(f"the sum of prob_dist must be 1. the sum of prob_dist={sum}")
+    # whether prob_dist is probability distribution
+    validate_prob_dist(prob_dist, eps=eps)
 
     # the size of prob_dist and grad_prob_dist must be equal
     size_prob_dist = prob_dist.shape[0]
@@ -620,7 +613,6 @@ def convert_list_by_permutation_matrix(
             if permutation_matrix[row, col] == 1:
                 new_list[row] = old_list[col]
                 break
-    # print(f"new_list={new_list}")
     return new_list
 
 

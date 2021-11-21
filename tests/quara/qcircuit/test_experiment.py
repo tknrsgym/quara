@@ -8,6 +8,7 @@ from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
+from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.objects.povm import (
     Povm,
     get_x_povm,
@@ -65,7 +66,34 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
+        )
+        return exp
+
+    def array_experiment_data_with_all_mode(self):
+        # Array
+        e_sys1 = ElementalSystem(1, matrix_basis.get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        state_list = [get_x0_1q(c_sys1), get_y0_1q(c_sys1)]
+        gate_list = [get_i(c_sys1), get_x(c_sys1)]
+        povm_list = [get_x_povm(c_sys1), get_y_povm(c_sys1)]
+        mprocess_list = [
+            generate_mprocess_from_name(c_sys1, "x-type1"),
+            generate_mprocess_from_name(c_sys1, "y-type1"),
+        ]
+        schedules = [
+            [("state", 0), ("gate", 0), ("mprocess", 0), ("povm", 0)],
+            [("state", 0), ("gate", 0), ("mprocess", 0), ("povm", 1)],
+        ]
+        seed = 7
+        exp = Experiment(
+            states=state_list,
+            povms=povm_list,
+            gates=gate_list,
+            mprocesses=mprocess_list,
+            schedules=schedules,
+            seed_data=seed,
         )
         return exp
 
@@ -111,7 +139,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
         return exp
 
@@ -154,9 +182,51 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
         return exp
+
+    def test_qoperations(self):
+        # Arrange
+        experiment = self.array_experiment_data_with_all_mode()
+
+        # Act & Assert
+        assert len(experiment.qoperations("state")) == 2
+
+        # Act & Assert
+        assert len(experiment.qoperations("povm")) == 2
+
+        # Act & Assert
+        assert len(experiment.qoperations("gate")) == 2
+
+        # Act & Assert
+        assert len(experiment.qoperations("mprocess")) == 2
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            experiment.qoperations("unsupported")
+
+
+    def test_num_qoperations(self):
+        # Arrange
+        experiment = self.array_experiment_data_with_all_mode()
+
+        # Act & Assert
+        assert experiment.num_qoperations("state") == 2
+
+        # Act & Assert
+        assert experiment.num_qoperations("povm") == 2
+
+        # Act & Assert
+        assert experiment.num_qoperations("gate") == 2
+
+        # Act & Assert
+        assert experiment.num_qoperations("mprocess") == 2
+
+        # Act & Assert
+        with pytest.raises(ValueError):
+            experiment.num_qoperations("unsupported")
+
 
     def test_reset_seed(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -175,7 +245,7 @@ class TestExperiment:
         ]
         seed = 7
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules, seed=seed
+            states=states, gates=gates, povms=povms, schedules=schedules, seed_data=seed
         )
 
         # init
@@ -185,9 +255,8 @@ class TestExperiment:
 
         # reset
         seed = 77
-        experiment.reset_seed(seed)
+        experiment.reset_seed_data(seed)
         actual = experiment.generate_data(0, 10)
-        print(actual)
         expected = [1, 1, 1, 0, 0, 1, 0, 1, 0, 1]
         assert np.all(actual == expected)
 
@@ -208,7 +277,7 @@ class TestExperiment:
         ]
         seed = 7
         experiment = Experiment(
-            states=states, gates=gates, povms=povms, schedules=schedules, seed=seed
+            states=states, gates=gates, povms=povms, schedules=schedules, seed_data=seed
         )
         experiment_copy = experiment.copy()
 
@@ -274,7 +343,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
 
         # Act
@@ -307,7 +376,7 @@ class TestExperiment:
             povms=povm_list,
             gates=gate_list,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
 
         # Act
@@ -392,7 +461,7 @@ class TestExperiment:
         assert actual == expected
 
         # Case 2:
-        exp.reset_seed(77)
+        exp.reset_seed_data(77)
         actual = exp.generate_data(schedule_index=1, data_num=20)
 
         # Assert
@@ -400,7 +469,7 @@ class TestExperiment:
         assert actual == expected
 
         # Case 3:
-        exp.reset_seed(7)
+        exp.reset_seed_data(7)
         actual = exp.generate_data(schedule_index=1, data_num=0)
 
         # Assert
@@ -502,8 +571,8 @@ class TestExperiment:
 
         # Assert
         expected_2 = [
-            (5, np.array([0.2, 0.8])),
-            (10, np.array([0.3, 0.7])),
+            (5, np.array([0.6, 0.4])),
+            (10, np.array([0.8, 0.2])),
             (15, np.array([8 / 15, 7 / 15])),
             (20, np.array([0.5, 0.5])),
         ]
@@ -544,7 +613,7 @@ class TestExperiment:
         # Assert
         expected = [
             [(5, np.array([1, 0])), (15, np.array([1, 0]))],
-            [(10, np.array([0.4, 0.6])), (20, np.array([0.55, 0.45]))],
+            [(10, np.array([0.5, 0.5])), (20, np.array([0.55, 0.45]))],
         ]
         assert len(actual) == len(expected)
         for a, e in zip(actual, expected):
@@ -580,7 +649,7 @@ class TestExperiment:
 
         # Act & Assert
         _ = Experiment(
-            states=states, povms=povms, gates=gates, schedules=schedules, seed=seed
+            states=states, povms=povms, gates=gates, schedules=schedules, seed_data=seed
         )
 
         # Arrange
@@ -594,7 +663,7 @@ class TestExperiment:
             povms=source_povms,
             gates=source_gates,
             schedules=schedules,
-            seed=seed,
+            seed_data=seed,
         )
 
         # Assert
@@ -632,7 +701,7 @@ class TestExperiment:
         ok_new_schedules = [schedules[1], schedules[0]]
 
         exp = Experiment(
-            states=states, povms=povms, gates=gates, schedules=schedules, seed=seed
+            states=states, povms=povms, gates=gates, schedules=schedules, seed_data=seed
         )
 
         # State

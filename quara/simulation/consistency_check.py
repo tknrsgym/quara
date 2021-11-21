@@ -46,6 +46,7 @@ def calc_mse_of_true_estimated(
 def execute_consistency_check(
     simulation_setting: "StandardQTomographySimulationSetting",
     estimation_results: List["EstimationResult"],
+    qtomography,
     eps=None,
     show_detail: bool = True,
 ) -> dict:
@@ -53,7 +54,7 @@ def execute_consistency_check(
         eps = 10 ** (-10)
     value, estimation_result = calc_mse_of_true_estimated(
         true_object=simulation_setting.true_object,
-        qtomography=estimation_results[0].qtomography,
+        qtomography=qtomography,
         estimator=simulation_setting.estimator,
         loss=simulation_setting.loss,
         loss_option=simulation_setting.loss_option,

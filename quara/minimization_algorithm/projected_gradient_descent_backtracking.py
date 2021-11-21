@@ -5,17 +5,14 @@ import numpy as np
 
 
 from quara.loss_function.loss_function import LossFunction, LossFunctionOption
-from quara.minimization_algorithm.minimization_algorithm import (
-    MinimizationAlgorithm,
-    MinimizationAlgorithmOption,
-    MinimizationResult,
+from quara.minimization_algorithm.projected_gradient_descent import (
+    ProjectedGradientDescent,
+    ProjectedGradientDescentOption,
+    ProjectedGradientDescentResult,
 )
-from quara.math import func_proj
-from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
-from quara.settings import Settings
 
 
-class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
+class ProjectedGradientDescentBacktrackingResult(ProjectedGradientDescentResult):
     def __init__(
         self,
         value: np.ndarray,
@@ -27,46 +24,9 @@ class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
         alpha: List[float] = None,
         error_values: List[float] = None,
     ):
-        super().__init__(value, computation_time)
-        self._k: int = k
-        self._fx: List[np.ndarray] = fx
-        self._x: List[np.ndarray] = x
+        super().__init__(value, computation_time, k, fx, x, error_values)
         self._y: List[np.ndarray] = y
         self._alpha: List[float] = alpha
-        self._error_values: List[float] = error_values
-
-    @property
-    def k(self) -> int:
-        """returns the number of iterations.
-
-        Returns
-        -------
-        int
-            the number of iterations.
-        """
-        return self._k
-
-    @property
-    def fx(self) -> List[np.ndarray]:
-        """return the value of f(x) per iteration.
-
-        Returns
-        -------
-        List[np.ndarray]
-            the value of f(x) per iteration.
-        """
-        return self._fx
-
-    @property
-    def x(self) -> List[np.ndarray]:
-        """return the x per iteration.
-
-        Returns
-        -------
-        List[np.ndarray]
-            the x per iteration.
-        """
-        return self._x
 
     @property
     def y(self) -> List[np.ndarray]:
@@ -90,19 +50,8 @@ class ProjectedGradientDescentBacktrackingResult(MinimizationResult):
         """
         return self._alpha
 
-    @property
-    def error_values(self) -> List[np.ndarray]:
-        """return the error_values per iteration.
 
-        Returns
-        -------
-        List[np.ndarray]
-            the error_values per iteration.
-        """
-        return self._error_values
-
-
-class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
+class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption):
     def __init__(
         self,
         on_algo_eq_constraint: bool = True,
@@ -143,6 +92,10 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             var_start=var_start,
+            mode_stopping_criterion_gradient_descent=mode_stopping_criterion_gradient_descent,
+            num_history_stopping_criterion_gradient_descent=num_history_stopping_criterion_gradient_descent,
+            mode_proj_order=mode_proj_order,
+            eps=eps,
         )
 
         if mu is None and var_start is not None:
@@ -150,39 +103,6 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         self._mu: float = mu
 
         self._gamma: float = gamma
-
-        if not mode_stopping_criterion_gradient_descent in [
-            "single_difference_loss",
-            "sum_absolute_difference_loss",
-            "sum_absolute_difference_variable",
-            "sum_absolute_difference_projected_gradient",
-        ]:
-            raise ValueError(
-                f"unsupported 'mode_stopping_criterion_gradient_descent'={mode_stopping_criterion_gradient_descent}"
-            )
-        self._mode_stopping_criterion_gradient_descent = (
-            mode_stopping_criterion_gradient_descent
-        )
-
-        if type(num_history_stopping_criterion_gradient_descent) != int:
-            raise ValueError(
-                f"type(num_history_stopping_criterion_gradient_descent) is not int. type={type(num_history_stopping_criterion_gradient_descent)}"
-            )
-        if num_history_stopping_criterion_gradient_descent < 1:
-            raise ValueError(
-                f"num_history_stopping_criterion_gradient_descent must be greater than or equal to 1. num_history_stopping_criterion_gradient_descent={num_history_stopping_criterion_gradient_descent}"
-            )
-        self._num_history_stopping_criterion_gradient_descent = (
-            num_history_stopping_criterion_gradient_descent
-        )
-
-        if not mode_proj_order in ["eq_ineq", "ineq_eq"]:
-            raise ValueError(f"unsupported mode_proj_order={mode_proj_order}")
-        self._mode_proj_order: str = mode_proj_order
-
-        if eps is None:
-            eps = Settings.get_atol() / 10.0
-        self._eps: float = eps
 
     @property
     def mu(self) -> float:
@@ -206,52 +126,8 @@ class ProjectedGradientDescentBacktrackingOption(MinimizationAlgorithmOption):
         """
         return self._gamma
 
-    @property
-    def mode_stopping_criterion_gradient_descent(self) -> str:
-        """returns mode of stopping criterion for gradient descent.
 
-        Returns
-        -------
-        str
-            mode of stopping criterion for gradient descent.
-        """
-        return self._mode_stopping_criterion_gradient_descent
-
-    @property
-    def num_history_stopping_criterion_gradient_descent(self) -> int:
-        """returns number of history to be used stopping criterion for gradient descent.
-
-        Returns
-        -------
-        int
-            number of history to be used stopping criterion for gradient descent.
-        """
-        return self._num_history_stopping_criterion_gradient_descent
-
-    @property
-    def mode_proj_order(self) -> str:
-        """returns the order in which the projections are performed.
-
-        Returns
-        -------
-        str
-            the order in which the projections are performed.
-        """
-        return self._mode_proj_order
-
-    @property
-    def eps(self) -> float:
-        """returns algorithm option ``eps``.
-
-        Returns
-        -------
-        float
-            algorithm option ``eps``.
-        """
-        return self._eps
-
-
-class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
+class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
     def __init__(self, func_proj: Callable[[np.ndarray], np.ndarray] = None):
         """Constructor
 
@@ -260,67 +136,9 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
         func_proj : Callable[[np.ndarray], np.ndarray], optional
             function of projection, by default None
         """
-        super().__init__()
-        self._func_proj: Callable[[np.ndarray], np.ndarray] = func_proj
+        super().__init__(func_proj)
         self._is_gradient_required: bool = True
         self._is_hessian_required: bool = False
-        self._qt: StandardQTomography = None
-
-    @property
-    def func_proj(self) -> Callable[[np.ndarray], np.ndarray]:
-        """returns function of projection.
-
-        Returns
-        -------
-        Callable[[np.ndarray], np.ndarray]
-            function of projection.
-        """
-        return self._func_proj
-
-    def set_constraint_from_standard_qt_and_option(
-        self,
-        qt: StandardQTomography,
-        option: ProjectedGradientDescentBacktrackingOption,
-    ) -> None:
-        """sets constraint from StandardQTomography and Algorithm Option.
-
-        Parameters
-        ----------
-        qt : StandardQTomography
-            StandardQTomography to set constraint.
-        option : ProjectedGradientDescentBacktrackingOption
-            Algorithm Option.
-        """
-        self._qt = qt
-
-        if self._func_proj is not None:
-            return
-
-        setting_info = self._qt.generate_empty_estimation_obj_with_setting_info()
-        if (
-            option.on_algo_eq_constraint == True
-            and option.on_algo_ineq_constraint == True
-        ):
-            self._func_proj = setting_info.func_calc_proj_physical(
-                on_para_eq_constraint=setting_info.on_para_eq_constraint,
-                mode_proj_order=option.mode_proj_order,
-            )
-        elif (
-            option.on_algo_eq_constraint == True
-            and option.on_algo_ineq_constraint == False
-        ):
-            self._func_proj = setting_info.func_calc_proj_eq_constraint(
-                setting_info.on_para_eq_constraint
-            )
-        elif (
-            option.on_algo_eq_constraint == False
-            and option.on_algo_ineq_constraint == True
-        ):
-            self._func_proj = setting_info.func_calc_proj_ineq_constraint(
-                setting_info.on_para_eq_constraint
-            )
-        else:
-            self._func_proj = func_proj.proj_to_self()
 
     def is_loss_sufficient(self) -> bool:
         """returns whether the loss is sufficient.
@@ -358,32 +176,12 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
         else:
             return True
 
-    def is_loss_and_option_sufficient(self) -> bool:
-        """returns whether the loss and the option are sufficient.
-
-        Returns
-        -------
-        bool
-            whether the loss and the option are sufficient.
-        """
-        # validate when option.var_start exists
-        if (
-            self.option is not None
-            and self.option.var_start is not None
-            and self.loss is not None
-        ):
-            num_var_option = self.option.var_start.shape[0]
-            num_var_loss = self.loss.num_var
-            if num_var_option != num_var_loss:
-                return False
-
-        return True
-
     def optimize(
         self,
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
         algorithm_option: ProjectedGradientDescentBacktrackingOption,
+        max_iteration: int = 1000,
         on_iteration_history: bool = False,
     ) -> ProjectedGradientDescentBacktrackingResult:
         """optimizes using specified parameters.
@@ -394,14 +192,16 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             Loss Function
         loss_function_option : LossFunctionOption
             Loss Function Option
-        algorithm_option : ProjectedGradientDescentBaseOption
-            Projected Gradient Descent Base Algorithm Option
+        algorithm_option : ProjectedGradientDescentBacktrackingOption
+            Projected Gradient Descent Backtracking Algorithm Option
+        max_iteration: int, optional
+            maximun number of iterations, by default 1000.
         on_iteration_history : bool, optional
             whether to return iteration history, by default False
 
         Returns
         -------
-        ProjectedGradientDescentBaseResult
+        ProjectedGradientDescentBacktrackingResult
             the result of the optimization.
 
         Raises
@@ -431,7 +231,7 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
         x_next = None
         if algorithm_option.mu:
             mu = algorithm_option.mu
-        elif algorithm_option.var_start:
+        elif algorithm_option.var_start is not None:
             mu = 3 / (2 * np.sqrt(len(algorithm_option.var_start)))
         elif self._qt:
             mu = 3 / (2 * np.sqrt(self._qt.num_variables))
@@ -450,9 +250,8 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             alphas = []
         error_values = []
 
-        k = 0
         is_doing = True
-        while is_doing:
+        for k in range(1, max_iteration + 1):
             # shift variables
             if x_next is not None:
                 x_prev = x_next
@@ -466,7 +265,6 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
                 alpha = 0.5 * alpha
 
             x_next = x_prev + alpha * y_prev
-            k += 1
 
             # calc error value depend on "mode_stopping_criterion_gradient_descent"
             if (
@@ -501,14 +299,16 @@ class ProjectedGradientDescentBacktracking(MinimizationAlgorithm):
             )
             value = np.sum(error_values[-sum_range:])
 
-            is_doing = True if value > eps else False
-
             # variables for iteration history
             if on_iteration_history:
                 fxs.append(loss_function.value(x_next))
                 xs.append(x_next)
                 ys.append(y_prev)
                 alphas.append(alpha)
+
+            is_doing = True if value > eps else False
+            if not is_doing:
+                break
 
         if on_iteration_history:
             computation_time = time.time() - start_time

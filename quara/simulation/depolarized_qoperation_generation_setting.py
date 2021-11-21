@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 from quara.objects.qoperation import QOperation
 from quara.objects.gate import get_depolarizing_channel
@@ -8,7 +8,11 @@ from quara.simulation.generation_setting import QOperationGenerationSetting
 
 class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
     def __init__(
-        self, c_sys, qoperation_base: Union[QOperation, Tuple[str]], error_rate: float
+        self,
+        c_sys,
+        qoperation_base: Union[QOperation, Tuple[str]],
+        error_rate: float,
+        ids: List[int] = None,
     ) -> None:
         if not (0 <= error_rate <= 1):
             message = "`error_rate` must be between 0 and 1."
@@ -18,6 +22,7 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
             c_sys=c_sys,
             qoperation_base=qoperation_base,
             is_seed_or_stream_required=False,
+            ids=ids,
         )
         self._error_rate = error_rate
 
@@ -40,6 +45,13 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
         return new_object
 
     def generate_gate(self) -> "Gate":
+        dp = get_depolarizing_channel(
+            p=self.error_rate, c_sys=self.qoperation_base.composite_system
+        )
+        new_object = compose_qoperations(dp, self.qoperation_base)
+        return new_object
+
+    def generate_mprocess(self) -> "MProcess":
         dp = get_depolarizing_channel(
             p=self.error_rate, c_sys=self.qoperation_base.composite_system
         )

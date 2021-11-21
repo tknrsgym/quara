@@ -29,7 +29,7 @@ def get_test_data(on_para_eq_constraint=False):
     povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed_data=7)
 
     return qst, c_sys
 
@@ -179,10 +179,10 @@ class TestProjectedLinearEstimator:
             for result in result_sequences_tmp
         ]
         expected = [
-            0.00367945828346161,
-            0.00055245044790706,
-            6.635211672514839e-05,
-            6.13382544367555e-06,
+            2.5798942775e-03,
+            6.1298930117e-04,
+            1.8648078324e-04,
+            1.2302962861e-05,
         ]
         npt.assert_almost_equal(actual, expected, decimal=10)
 
@@ -214,9 +214,9 @@ class TestProjectedLinearEstimator:
             for result in result_sequences_tmp
         ]
         expected = [
-            0.00367945828346161,
-            0.000552450447907059,
-            6.635211672514742e-05,
-            6.133825443675581e-06,
+            2.5798942775e-03,
+            6.1298930118e-04,
+            1.8648078324e-04,
+            1.2302962861e-05,
         ]
         npt.assert_almost_equal(actual, expected, decimal=10)

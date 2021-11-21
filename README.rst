@@ -54,7 +54,7 @@ Install
 
 Citation
 =================================
-If you use Quara in your research, please cite as per the included `BibTeX file <https://github.com/tknrsgym/quara/blob/master/quara.bib>`_. 
+If you use Quara in your research, please cite as per the included `CITATION.cff file <https://github.com/tknrsgym/quara/blob/master/CITATION.cff>`_. 
 
 
 License

@@ -58,6 +58,46 @@ def test_generate_povm_object_from_povm_name_object_name():
         npt.assert_almost_equal(a, e, decimal=15)
 
 
+@pytest.mark.twoqubit
+@pytest.mark.parametrize(
+    ("povm_name", "expected_matrices"),
+    [
+        (
+            "xxparity",
+            [
+                0.5
+                * np.array(
+                    [[1, 0, 0, 1], [0, 1, 1, 0], [0, 1, 1, 0], [1, 0, 0, 1]],
+                    dtype=np.complex128,
+                ),
+                0.5
+                * np.array(
+                    [[1, 0, 0, -1], [0, 1, -1, 0], [0, -1, 1, 0], [-1, 0, 0, 1]],
+                    dtype=np.complex128,
+                ),
+            ],
+        ),
+        (
+            "zzparity",
+            [
+                np.array(
+                    [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]],
+                    dtype=np.complex128,
+                ),
+                np.array(
+                    [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+                    dtype=np.complex128,
+                ),
+            ],
+        ),
+    ],
+)
+def test_generate_povm_matrices_from_name_2qubit(povm_name, expected_matrices):
+    actual = povm_typical.generate_povm_matrices_from_name(povm_name)
+    for a, e in zip(actual, expected_matrices):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
 @pytest.mark.parametrize(
     ("povm_name", "expected_vecs"),
     [
@@ -97,6 +137,28 @@ def test_generate_povm_from_name_1qubit(povm_name, expected_vecs):
 @pytest.mark.parametrize(
     ("povm_name", "expected_vecs"),
     [
+        (
+            "xxparity",
+            [
+                np.array(
+                    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64
+                ),
+                np.array(
+                    [1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float64
+                ),
+            ],
+        ),
+        (
+            "zzparity",
+            [
+                np.array(
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], dtype=np.float64
+                ),
+                np.array(
+                    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1], dtype=np.float64
+                ),
+            ],
+        ),
         (
             "bell",
             [
@@ -152,6 +214,7 @@ def test_generate_povm_from_name_2qubit(povm_name, expected_vecs):
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.twoqubit
 def get_z_tensors(num_tensor: int):
     z = [
         np.array([1, 1], dtype=np.float64),
@@ -196,6 +259,7 @@ def test_generate_povm_from_name_3qubit(povm_name, expected_vecs):
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.onequtrit
 @pytest.mark.parametrize(
     ("povm_name", "expected_vecs"),
     [
@@ -335,6 +399,7 @@ def test_generate_povm_from_name_1qutrit(povm_name, expected_vecs):
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.twoqutrit
 def test_generate_povm_from_name_2qutrit_z3_z3():
     # Arrange
     e_sys0 = ElementalSystem(0, get_normalized_gell_mann_basis())
@@ -369,6 +434,7 @@ def test_generate_povm_from_name_2qutrit_z3_z3():
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.twoqutrit
 def test_generate_povm_from_name_2qutrit_z2_z2():
     # Arrange
     e_sys0 = ElementalSystem(0, get_normalized_gell_mann_basis())
@@ -403,6 +469,7 @@ def test_generate_povm_from_name_2qutrit_z2_z2():
         npt.assert_almost_equal(actual_vec, expected_vec, decimal=15)
 
 
+@pytest.mark.twoqutrit
 def test_generate_povm_from_name_2qutrit_01x3_12y3():
     # Arrange
     e_sys0 = ElementalSystem(0, get_normalized_gell_mann_basis())

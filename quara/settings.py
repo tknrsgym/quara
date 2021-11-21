@@ -1,3 +1,6 @@
+"""Module for global settings"""
+
+
 class Settings:
     __first_default_atol = 1e-13
     __atol = __first_default_atol

@@ -26,7 +26,8 @@ class StandardQpt(StandardQTomography):
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
-        seed: int = None,
+        eps_truncate_imaginary_part: float = None,
+        seed_data: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         # Make Experment with states
@@ -38,7 +39,11 @@ class StandardQpt(StandardQTomography):
                 schedules.append([("state", i), ("gate", 0), ("povm", j)])
 
         experiment = Experiment(
-            states=states, gates=[None], povms=povms, schedules=schedules, seed=seed
+            states=states,
+            gates=[None],
+            povms=povms,
+            schedules=schedules,
+            seed_data=seed_data,
         )
         self._validate_schedules(schedules)
 
@@ -52,6 +57,7 @@ class StandardQpt(StandardQTomography):
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         set_qoperations = SetQOperations(states=[], gates=[gate], povms=[])
 
@@ -76,6 +82,8 @@ class StandardQpt(StandardQTomography):
         self._set_coeffs(experiment, on_para_eq_constraint)
         self._on_para_eq_constraint = on_para_eq_constraint
 
+        self._template_qoperation = self._set_qoperations.gates[0]
+
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
             if (
@@ -99,19 +107,9 @@ class StandardQpt(StandardQTomography):
     def estimation_object_type(self) -> type:
         return Gate
 
-    def _is_all_same_composite_systems(self, targets):
-        if len(targets) <= 1:
-            return True
-
-        checks = [
-            targets[0]._composite_system == target._composite_system
-            for target in targets[1:]
-        ]
-        return all(checks)
-
     def is_valid_experiment(self) -> bool:
-        is_ok_states = self._is_all_same_composite_systems(self._experiment.states)
-        is_ok_povms = self._is_all_same_composite_systems(self._experiment.povms)
+        is_ok_states = self.is_all_same_composite_systems(self._experiment.states)
+        is_ok_povms = self.is_all_same_composite_systems(self._experiment.povms)
 
         return is_ok_states and is_ok_povms
 
@@ -202,6 +200,9 @@ class StandardQpt(StandardQTomography):
         ]
         return empi_dists_sequence
 
+    def _testers(self) -> List[Union[State, Povm]]:
+        return self.experiment.states + self.experiment.povms
+
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
         # 0:state -> 1:gate -> 2:povm
@@ -210,42 +211,19 @@ class StandardQpt(StandardQTomography):
         return target_index
 
     def _set_coeffs(self, experiment: Experiment, on_para_eq_constraint: bool):
-
-        # coeff0s and coeff1s
-        self._coeffs_0th = dict()  # b
-        self._coeffs_1st = dict()  # α
-        STATE_ITEM_INDEX = 0
-        POVM_ITEM_INDEX = 2
-
-        # Create C
-        total_index = 0
-        c_list = []
-        for schedule_index, schedule in enumerate(self._experiment.schedules):
-            state_index = schedule[STATE_ITEM_INDEX][1]
-            state = self._experiment.states[state_index]
-
-            povm_index = schedule[POVM_ITEM_INDEX][1]
-            povm = self._experiment.povms[povm_index]
-
-            vec_size = state.vec.shape[0]
-            dim = np.sqrt(vec_size)
-            for m_index, povm_vec in enumerate(povm.vecs):  # each measurement
-                c = np.kron(povm_vec, state.vec.T)
-
-                if on_para_eq_constraint:
-                    a = c[int(dim * dim) :]
-                    self._coeffs_1st[(schedule_index, m_index)] = a
-                    self._coeffs_0th[(schedule_index, m_index)] = c[0]
-                else:
-                    self._coeffs_1st[(schedule_index, m_index)] = c
-                    self._coeffs_0th[(schedule_index, m_index)] = 0
-                total_index += 1
-                c_list.append(c)
-        # for debugging and test
-        self._C = np.array(c_list)
+        b, a, c = calc_c_qpt(
+            states=self._experiment.states,
+            povms=self._experiment.povms,
+            schedules=self._experiment.schedules,
+            on_para_eq_constraint=on_para_eq_constraint,
+        )
+        self._coeffs_0th = b
+        self._coeffs_1st = a
+        self._C = c
 
     def convert_var_to_qoperation(self, var: np.ndarray) -> Gate:
-        template = self._set_qoperations.gates[0]
+        # template = self._set_qoperations.gates[0]
+        template = self._template_qoperation
         gate = template.generate_from_var(var=var)
         return gate
 
@@ -270,3 +248,39 @@ class StandardQpt(StandardQTomography):
         assert schedule_index < self.num_schedules
         povm_index = self._experiment.schedules[schedule_index][2][1]
         return len(self._experiment._povms[povm_index].vecs)
+
+
+def calc_c_qpt(states, povms, schedules, on_para_eq_constraint: bool):
+    coeffs_0th = dict()  # b
+    coeffs_1st = dict()  # a
+    # c_list = []
+    c_dict = dict()  # c
+    STATE_ITEM_INDEX = 0
+    POVM_ITEM_INDEX = 2
+
+    for schedule_index, schedule in enumerate(schedules):
+        state_index = schedule[STATE_ITEM_INDEX][1]
+        state = states[state_index]
+
+        povm_index = schedule[POVM_ITEM_INDEX][1]
+        povm = povms[povm_index]
+
+        vec_size = state.vec.shape[0]
+        dim = np.sqrt(vec_size)
+        schedule_c_list = []
+        for m_index, povm_vec in enumerate(povm.vecs):  # each measurement
+            c = np.kron(povm_vec, state.vec.T)
+
+            if on_para_eq_constraint:
+                a = c[int(dim * dim) :]
+                coeffs_1st[(schedule_index, m_index)] = a
+                coeffs_0th[(schedule_index, m_index)] = c[0]
+            else:
+                coeffs_1st[(schedule_index, m_index)] = c
+                coeffs_0th[(schedule_index, m_index)] = 0
+            # c_list.append(c)
+            schedule_c_list.append(c)
+
+        c_dict[schedule_index] = np.array(schedule_c_list)
+
+    return coeffs_0th, coeffs_1st, c_dict

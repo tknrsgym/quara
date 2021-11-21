@@ -22,7 +22,8 @@ class StandardQst(StandardQTomography):
         is_estimation_object: bool = False,
         on_para_eq_constraint: bool = False,
         eps_proj_physical: float = None,
-        seed: int = None,
+        eps_truncate_imaginary_part: float = None,
+        seed_data: int = None,
         schedules: Union[str, List[List[Tuple]]] = "all",
     ):
         """Constructor
@@ -39,6 +40,8 @@ class StandardQst(StandardQTomography):
             whether the parameters of QOperation are on equal constraint, by default False
         eps_proj_physical : float, optional
             threshold epsilon where the algorithm repeats the projection in order to make estimate object is physical, by default :func:`~quara.settings.Settings.get_atol` / 10.0
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
         seed : int, optional
             a seed used to generate random data, by default None.
 
@@ -54,7 +57,11 @@ class StandardQst(StandardQTomography):
             schedules = [[("state", 0), ("povm", i)] for i in range(len(povms))]
 
         experiment = Experiment(
-            states=[None], gates=[], povms=povms, schedules=schedules, seed=seed
+            states=[None],
+            gates=[],
+            povms=povms,
+            schedules=schedules,
+            seed_data=seed_data,
         )
 
         self._validate_schedules(schedules)
@@ -67,6 +74,7 @@ class StandardQst(StandardQTomography):
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
         set_qoperations = SetQOperations(states=[state], gates=[], povms=[])
 
@@ -93,6 +101,8 @@ class StandardQst(StandardQTomography):
         self._set_coeffs(experiment, on_para_eq_constraint, state.dim)
 
         self._on_para_eq_constraint = on_para_eq_constraint
+
+        self._template_qoperation = self._set_qoperations.states[0]
 
     def _validate_schedules(self, schedules):
         for i, schedule in enumerate(schedules):
@@ -150,11 +160,11 @@ class StandardQst(StandardQTomography):
         bool
             whether the experiment is valid.
         """
-        povms = self._experiment.povms
-        checks = [
-            povms[0]._composite_system == povm._composite_system for povm in povms[1:]
-        ]
-        return all(checks)
+        is_ok_povms = self.is_all_same_composite_systems(self._experiment.povms)
+        return is_ok_povms
+
+    def _testers(self) -> List[Povm]:
+        return self.experiment.povms
 
     def _get_target_index(self, experiment: Experiment, schedule_index: int) -> int:
         schedule = experiment.schedules[schedule_index]
@@ -278,7 +288,8 @@ class StandardQst(StandardQTomography):
 
         see :func:`~quara.protocol.qtomography.standard.standard_qtomography.StandardQTomography.convert_var_to_qoperation`
         """
-        template = self._set_qoperations.states[0]
+        template = self._template_qoperation
+
         state = template.generate_from_var(var=var)
         return state
 

@@ -27,7 +27,7 @@ def get_test_data(on_para_eq_constraint=False):
     povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed_data=7)
 
     return qst, c_sys
 
@@ -129,10 +129,10 @@ class TestLinearEstimator:
         ]
         print(f"mse={actual}")
         expected = [
-            0.0037000000000000036,
-            0.0005530000000000015,
-            6.636000000000025e-05,
-            6.1338999999999626e-06,
+            2.600000000000003e-03,
+            6.140000000000014e-04,
+            1.865700000000002e-04,
+            1.230320000000009e-05,
         ]
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -164,9 +164,9 @@ class TestLinearEstimator:
         ]
         print(f"mse={actual}")
         expected = [
-            0.0037000000000000045,
-            0.0005530000000000005,
-            6.635999999999932e-05,
-            6.133899999999996e-06,
+            2.600000000000003e-03,
+            6.140000000000014e-04,
+            1.865700000000002e-04,
+            1.230320000000009e-05,
         ]
         npt.assert_almost_equal(actual, expected, decimal=15)

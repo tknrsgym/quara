@@ -1,1 +1,1 @@
-"""mathematical package"""
+"""Mathematics module"""

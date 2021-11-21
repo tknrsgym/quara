@@ -4,6 +4,10 @@ from typing import List, Tuple
 import numpy as np
 
 from quara.objects.qoperation import QOperation
+from quara.objects.state import State
+from quara.objects.povm import Povm
+from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.objects.qoperations import SetQOperations
 from quara.qcircuit.experiment import Experiment
 
@@ -23,9 +27,9 @@ class QTomography:
         Parameters
         ----------
         experiment : Experiment
-            Experiment class used in quantum tomography.
+            Experiment class used in quantum tomography, which is supposed to have tester objects.
         set_qoperations : SetQOperations
-            SetQOperations class used in quantum tomography.
+            SetQOperations class used in quantum tomography, which is supposed to have conditions of true object.
         """
         self._experiment = experiment
         self._num_schedules = len(self._experiment.schedules)
@@ -40,6 +44,11 @@ class QTomography:
                 raise ValueError(
                     f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(state)} is not so."
                 )
+            # whether entries of vec of State are real numbers
+            if not state is None and state.vec.dtype != np.float64:
+                raise ValueError(
+                    f"entries of vec of State must be real numbers. dtype of vec is {state.vec.dtype}"
+                )
         for gate in self._experiment.gates:
             if (
                 not gate is None
@@ -47,6 +56,11 @@ class QTomography:
             ):
                 raise ValueError(
                     f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(gate)} is not so."
+                )
+            # whether entries of HS representation of Gate are real numbers
+            if not gate is None and gate.hs.dtype != np.float64:
+                raise ValueError(
+                    f"entries of HS representation of Gate must be real numbers. dtype of HS is {gate.hs.dtype}"
                 )
         for povm in self._experiment.povms:
             if (
@@ -56,6 +70,29 @@ class QTomography:
                 raise ValueError(
                     f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(povm)} is not so."
                 )
+            # whether entries of vecs of Povm are real numbers
+            if not povm is None:
+                for vec in povm.vecs:
+                    if vec.dtype != np.float64:
+                        raise ValueError(
+                            f"entries of all vecs of Povm must be real numbers. some dtype of vecs are {vec.dtype}"
+                        )
+
+        for mprocess in self._experiment.mprocesses:
+            if (
+                not mprocess is None
+                and not mprocess.composite_system.is_orthonormal_hermitian_0thprop_identity
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of Experiment must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(mprocess)} is not so."
+                )
+            # whether entries of vecs of Povm are real numbers
+            if not mprocess is None:
+                for hs in mprocess.hss:
+                    if hs.dtype != np.float64:
+                        raise ValueError(
+                            f"entries of all hss of MProcess must be real numbers. some dtype of vecs are {hs.dtype}"
+                        )
 
         # validate ElementalSystem of SetQOperations
         for state in self._set_qoperations.states:
@@ -83,6 +120,37 @@ class QTomography:
                     f"all ElementalSystem of SetQOperations must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(povm)} is not so."
                 )
 
+        for mprocess in self._set_qoperations.mprocesses:
+            if (
+                not mprocess is None
+                and not mprocess.composite_system.is_orthonormal_hermitian_0thprop_identity
+            ):
+                raise ValueError(
+                    f"all ElementalSystem of SetQOperations must be orthonormal, hermitian and 0th prop I. the ElementalSystem of {str(mprocess)} is not so."
+                )
+
+    @property
+    def experiment(self) -> Experiment:
+        """returns Experiment class.
+
+        Returns
+        -------
+        Experiment
+            Experiment class.
+        """
+        return self._experiment
+
+    @property
+    def set_qoperations(self) -> SetQOperations:
+        """returns SetQOperations class.
+
+        Returns
+        -------
+        SetQOperations
+            SetQOperations class.
+        """
+        return self._set_qoperations
+
     @property
     def num_schedules(self) -> int:
         """returns number of schedules.
@@ -105,6 +173,42 @@ class QTomography:
         """
         return self._num_variables
 
+    @property
+    def states(self) -> List[State]:
+        return self._experiment.states
+
+    @property
+    def povms(self) -> List[Povm]:
+        return self._experiment.povms
+
+    @property
+    def gates(self) -> List[Gate]:
+        return self._experiment.gates
+
+    @property
+    def mprocesses(self) -> List[MProcess]:
+        return self._experiment.mprocesses
+
+    @abstractmethod
+    def _testers(self) -> QOperation:
+        raise NotImplementedError()
+
+    @property
+    def testers(self) -> List[QOperation]:
+        """returns tester objects.
+
+        Returns
+        -------
+        List[QOperation]
+            tester objects.
+
+        Raises
+        ------
+        NotImplementedError
+            this function does not be implemented in the subclass.
+        """
+        return self._testers()
+
     def reset_seed(self, seed: int = None) -> None:
         """reset new seed.
 
@@ -116,9 +220,9 @@ class QTomography:
             new seed, None by default.
         """
         if seed:
-            self._experiment.reset_seed(seed)
+            self._experiment.reset_seed_data(seed)
         else:
-            self._experiment.reset_seed(self._experiment.seed)
+            self._experiment.reset_seed_data(self._experiment.seed_data)
 
     @abstractmethod
     def is_valid_experiment(self) -> bool:

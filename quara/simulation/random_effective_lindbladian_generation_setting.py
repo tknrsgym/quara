@@ -14,6 +14,7 @@ from quara.objects.effective_lindbladian import (
     _truncate_hs,
 )
 from quara.objects.gate import Gate, convert_hs
+from quara.objects.mprocess import MProcess
 from quara.objects.operators import compose_qoperations
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
@@ -329,6 +330,43 @@ class RandomEffectiveLindbladianGenerationSetting(
             random_el,
         )
 
+    def generate_mprocess(
+        self,
+        seed_or_stream: Union[int, np.random.RandomState] = None,
+    ) -> Tuple[MProcess, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
+        """generates random effective Lindbladian and returns mprocess(composition of random effective Lindbladian and qoperation base).
+
+        Parameters
+        ----------
+        seed_or_stream : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            If the type is RandomState, returns RandomState.
+            If argument is None, returns np.random.
+            Default value is None.
+
+        Returns
+        -------
+        Tuple[ Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
+            tuple of gate, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
+
+        """
+        stream = to_stream(seed_or_stream)
+        (
+            el,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        ) = self.generate_random_effective_lindbladian(stream)
+        new_object = compose_qoperations(el.to_gate(), self.qoperation_base)
+        return (
+            new_object,
+            random_variables_h_part,
+            random_variables_k_part,
+            random_unitary,
+            random_el,
+        )
+
     def generate_povm(
         self,
         seed_or_stream: Union[int, np.random.RandomState] = None,
@@ -379,5 +417,8 @@ class RandomEffectiveLindbladianGenerationSetting(
 
         if type(self.qoperation_base) == Gate:
             return self.generate_gate(stream)
+
+        if type(self.qoperation_base) == MProcess:
+            return self.generate_mprocess(stream)
 
         raise NotImplementedError()

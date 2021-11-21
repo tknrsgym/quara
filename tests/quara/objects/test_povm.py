@@ -22,7 +22,7 @@ from quara.objects.povm import (
     convert_var_index_to_povm_index,
     convert_povm_index_to_var_index,
     convert_var_to_povm,
-    convert_povm_to_var,
+    convert_vecs_to_var,
     calc_gradient_from_povm,
     get_x_povm,
     get_xx_povm,
@@ -39,6 +39,9 @@ from quara.objects.povm import (
 )
 from quara.objects.state import get_x0_1q
 from quara.settings import Settings
+from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.qoperation_typical import generate_qoperation_object
+from quara.objects.operators import tensor_product
 
 
 class TestPovm:
@@ -419,6 +422,64 @@ class TestPovm:
         with pytest.raises(IndexError):
             # IndexError: specified index does not exist in the list of measurements.
             _ = povm1.vec(2)
+
+    def test_vec_multi_dimensional(self):
+        # Arrange
+        c_sys_2q = generate_composite_system(mode="qubit", num=2, ids_esys=[0, 1])
+        c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[2])
+        bell = generate_qoperation_object(
+            mode="povm", object_name="povm", name="bell", c_sys=c_sys_2q
+        )
+        z = generate_qoperation_object(
+            mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+        )
+        povm = tensor_product(bell, z)
+
+        # Case 1:
+        # Act
+        actual = povm.vec((0, 0))
+
+        # Assert
+        expected = povm.vecs[0]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2:
+        # Act
+        actual = povm.vec((0, 1))
+
+        # Assert
+        expected = povm.vecs[1]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3:
+        # Act
+        actual = povm.vec((3, 1))
+
+        # Assert
+        expected = povm.vecs[7]
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_md_index2serial_index(self):
+        # Arrange
+        c_sys_2q = generate_composite_system(mode="qubit", num=2, ids_esys=[0, 1])
+        c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[2])
+        bell = generate_qoperation_object(
+            mode="povm", object_name="povm", name="bell", c_sys=c_sys_2q
+        )
+        z = generate_qoperation_object(
+            mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+        )
+        povm = tensor_product(bell, z)
+
+        # Act & Assert
+        assert povm._md_index2serial_index((0, 0)) == 0
+        assert povm._md_index2serial_index((0, 1)) == 1
+        assert povm._md_index2serial_index((1, 0)) == 2
+        assert povm._md_index2serial_index((1, 1)) == 3
+        assert povm._md_index2serial_index((2, 0)) == 4
+        assert povm._md_index2serial_index((2, 1)) == 5
+        assert povm._md_index2serial_index((3, 0)) == 6
+        assert povm._md_index2serial_index((3, 1)) == 7
 
     def test_is_physical(self):
         e_sys = esys.ElementalSystem(1, get_comp_basis())
@@ -1156,7 +1217,7 @@ class TestPovm:
         with pytest.raises(TypeError):
             _ = 1 / povm_1
 
-    def test_calc_proj_eq_constraint(sefl):
+    def test_calc_proj_eq_constraint(self):
         # Case 1:
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
         c_sys = csys.CompositeSystem([e_sys])
@@ -1181,6 +1242,42 @@ class TestPovm:
         for a, e in zip(actual.vecs, expected_vecs):
             npt.assert_almost_equal(a, e, decimal=15)
 
+    def test_calc_proj_eq_constraint_with_var(self):
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_x_povm(c_sys)
+
+        vec_1 = (
+            povm.vecs[0]
+            - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
+            + np.array([np.sqrt(2) / 2, 0, 0, 0])
+        )
+        vec_2 = (
+            povm.vecs[1]
+            - (1 / 2) * np.array([2 / np.sqrt(2), 0, 0, 0])
+            + np.array([np.sqrt(2) / 2, 0, 0, 0])
+        )
+        vecs = [vec_1, vec_2]
+
+        # Case 1: default
+        actual = povm.calc_proj_eq_constraint_with_var(c_sys, vec_1)
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        actual = povm.calc_proj_eq_constraint_with_var(
+            c_sys, vec_1, on_para_eq_constraint=True
+        )
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        actual = povm.calc_proj_eq_constraint_with_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        expected = np.hstack(vecs)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_ineq_constraint(self):
         # Case 1:
         e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
@@ -1198,6 +1295,34 @@ class TestPovm:
         assert len(actual.vecs) == len(expected_vecs)
         for a, e in zip(actual.vecs, expected_vecs):
             npt.assert_almost_equal(a, e, decimal=15)
+
+    def test_calc_proj_ineq_constraint_with_var(self):
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_x_povm(c_sys)
+
+        vec_1 = np.array([1 / np.sqrt(2), 1 / np.sqrt(2), 0, 0])
+        vec_2 = np.array([1 / np.sqrt(2), -1 / np.sqrt(2), 0, 0])
+        vecs = [vec_1, vec_2]
+
+        # Case 1: default
+        actual = povm.calc_proj_ineq_constraint_with_var(c_sys, vec_1)
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        actual = povm.calc_proj_ineq_constraint_with_var(
+            c_sys, vec_1, on_para_eq_constraint=True
+        )
+        expected = vec_1
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        actual = povm.calc_proj_ineq_constraint_with_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        expected = np.hstack(vecs)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_calc_gradient(self):
         # Arrange
@@ -1389,6 +1514,75 @@ class TestPovm:
         assert actual_eq.is_identity_sum() is True
         assert not np.allclose(povm.vecs, actual_eq.vecs)
 
+    def test_convert_var_to_stacked_vector(self):
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_z_povm(c_sys)
+
+        # Case 1: default
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_var_to_stacked_vector(c_sys, vecs[0])
+        npt.assert_almost_equal(actual, np.hstack(vecs), decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_var_to_stacked_vector(
+            c_sys, vecs[0], on_para_eq_constraint=True
+        )
+        npt.assert_almost_equal(actual, np.hstack(vecs), decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_var_to_stacked_vector(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        npt.assert_almost_equal(actual, np.hstack(vecs), decimal=15)
+
+    def test_convert_stacked_vector_to_var(self):
+        e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys = csys.CompositeSystem([e_sys])
+        povm = get_z_povm(c_sys)
+
+        # Case 1: default
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_stacked_vector_to_var(c_sys, np.hstack(vecs))
+        expected = np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 2: on_para_eq_constraint=True
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_stacked_vector_to_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=True
+        )
+        expected = np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # Case 3: on_para_eq_constraint=False
+        vecs = [
+            np.array([1, 0, 0, 1] / np.sqrt(2), dtype=np.float64),
+            np.array([1, 0, 0, -1] / np.sqrt(2), dtype=np.float64),
+        ]
+        actual = povm.convert_stacked_vector_to_var(
+            c_sys, np.hstack(vecs), on_para_eq_constraint=False
+        )
+        expected = np.array([1, 0, 0, 1, 1, 0, 0, -1] / np.sqrt(2), dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
 
 def test_convert_var_index_to_povm_index():
     # Arrange
@@ -1509,7 +1703,7 @@ def test_convert_var_to_povm():
         npt.assert_almost_equal(a, e, decimal=15)
 
 
-def test_convert_povm_to_var():
+def test_convert_vecs_to_var():
     # Arrange
     e_sys = esys.ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = csys.CompositeSystem([e_sys])
@@ -1521,7 +1715,7 @@ def test_convert_povm_to_var():
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs)
+    actual = convert_vecs_to_var(c_sys, vecs)
 
     # Assert
     expected = np.array([2, 3, 5, 7], dtype=np.float64)
@@ -1534,7 +1728,7 @@ def test_convert_povm_to_var():
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs, on_para_eq_constraint=True)
+    actual = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint=True)
 
     # Assert
     expected = np.array([2, 3, 5, 7], dtype=np.float64)
@@ -1547,7 +1741,7 @@ def test_convert_povm_to_var():
     ]
 
     # Act
-    actual = convert_povm_to_var(c_sys, vecs, on_para_eq_constraint=False)
+    actual = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint=False)
 
     # Assert
     expected = np.array([2, 3, 5, 7, 11, 13, 17, 19], dtype=np.float64)

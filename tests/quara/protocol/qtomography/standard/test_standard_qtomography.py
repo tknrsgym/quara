@@ -47,7 +47,7 @@ def get_test_data_qst(on_para_eq_constraint=True):
     povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7)
+    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed_data=7)
 
     return qst, c_sys
 
@@ -67,7 +67,7 @@ def get_test_data_povmt(on_para_eq_constraint=True):
     tester_objects = [state_x0, state_y0, state_z0, state_z1]
 
     povmt = StandardQst(
-        tester_objects, on_para_eq_constraint=on_para_eq_constraint, seed=777
+        tester_objects, on_para_eq_constraint=on_para_eq_constraint, seed_data=777
     )
 
     return povmt, c_sys

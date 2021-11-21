@@ -12,6 +12,7 @@ from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.settings import Settings
 
 
@@ -48,7 +49,7 @@ def _get_sorted_eigenvalues_list_for_state(
 
 def get_sorted_eigenvalues_list(
     estimated_qobjects: List["QOperation"],
-) -> List[List[float]]:
+) -> Union[List[List[float]], List[List[List[float]]]]:
     qobject_type = type(estimated_qobjects[0])
     if qobject_type == State:
         sorted_eigenvalues_list = _get_sorted_eigenvalues_list_for_state(
@@ -58,8 +59,13 @@ def get_sorted_eigenvalues_list(
         raise NotImplementedError()
     elif qobject_type == Gate:
         sorted_eigenvalues_list = _get_sorted_eigenvalue_for_gate(estimated_qobjects)
+    elif qobject_type == MProcess:
+        # List of List of List
+        sorted_eigenvalues_list = _get_sorted_eigenvalue_for_mprocess(
+            estimated_qobjects
+        )
     else:
-        message = f"estimated_qobjects must be a list of State, Povm, or Gate, not {qobject_type}"
+        message = f"estimated_qobjects must be a list of State, Povm, Gate, or MProcess, not {qobject_type}"
         raise TypeError(message)
 
     return sorted_eigenvalues_list
@@ -226,6 +232,18 @@ def make_prob_dist_histogram(
         ):
             x_range = ((ref_x - x_abs_min), (ref_x + x_abs_min))
             fig.update_xaxes(range=[x_range[0], x_range[1]], autorange=False)
+        else:
+            adujust_value = 1
+            x_range = [
+                (x_min - xbins["size"] * adujust_value),
+                (x_min + xbins["size"] * adujust_value),
+            ]
+            if ref_x < x_range[0]:
+                x_range[0] = ref_x
+            if ref_x > x_range[1]:
+                x_range[1] = ref_x
+            x_range = tuple(x_range)
+            fig.update_xaxes(range=[x_range[0], x_range[1]], autorange=False)
 
     # Title
     n_rep = len(values)
@@ -308,13 +326,13 @@ def make_graph_trace(
 def make_graphs_eigenvalues(
     estimation_results: List[EstimationResult],
     true_object: "QOperation",
+    num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ) -> Union[List["Figure"], List[List["Figure"]]]:
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-    num_data = estimation_results[0].num_data
     n_data = num_data[num_data_index]
     if type(true_object) == State:
         figs = _make_graphs_eigenvalues_state(
@@ -326,6 +344,10 @@ def make_graphs_eigenvalues(
         )
     elif type(true_object) == Gate:
         figs = _make_graphs_eigenvalues_gate(estimated_qoperations, n_data, bin_size)
+    elif type(true_object) == MProcess:
+        figs = _make_graphs_eigenvalues_mprocess(
+            estimated_qoperations, n_data, bin_size
+        )
     else:
         message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
         raise TypeError(message)
@@ -334,10 +356,10 @@ def make_graphs_eigenvalues(
 
 def make_graphs_sum_unphysical_eigenvalues(
     estimation_results: List[EstimationResult],
+    num_data: List[int],
     num_data_index: int = 0,
     bin_size: float = 0.0001,
 ):
-    num_data = estimation_results[0].num_data
     estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -355,6 +377,10 @@ def make_graphs_sum_unphysical_eigenvalues(
         dim = sample_object.dim
         figs = _make_graphs_sum_unphysical_eigenvalues(
             estimated_qoperations, n_data, bin_size, expected_values=(0, dim)
+        )
+    elif type(sample_object) == MProcess:
+        figs = _make_graphs_sum_unphysical_eigenvalues_for_mprocess(
+            estimated_qoperations, n_data, bin_size
         )
     return figs
 
@@ -384,11 +410,10 @@ def make_xbins(
 def make_graphs_sum_vecs(
     estimation_results: List["EstimatedResult"],
     true_object: "Povm",
+    num_data: List[int],
     num_data_index: int,
     bin_size: float = 0.0001,
 ) -> List["Figure"]:
-    num_data = estimation_results[0].num_data
-
     estimated_povms = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
@@ -519,14 +544,22 @@ def _get_sorted_eigenvalue_for_gate(gates: List[Gate]) -> list:
     return sorted_eigenvalues_list
 
 
-def _make_graphs_eigenvalues_gate(
-    estimated_gates: List[Gate], num_data: int, bin_size: float = 0.0001
+def _get_sorted_eigenvalue_for_mprocess(mprocesses: List[MProcess]) -> list:
+    num_outcomes = mprocesses[0].num_outcomes
+    sorted_eigenvalues_lists = [[] for _ in range(num_outcomes)]
+
+    for mprocess in mprocesses:
+        for hss_index in range(num_outcomes):
+            choi_matrix = mprocess.to_choi_matrix(hss_index)
+            eigenvals, _ = np.linalg.eig(choi_matrix)
+            sorted_eigenvalues = [eig.real for eig in sorted(eigenvals, reverse=True)]
+            sorted_eigenvalues_lists[hss_index].append(sorted_eigenvalues)
+    return sorted_eigenvalues_lists
+
+
+def _make_graphs_eigenvalues(
+    sorted_eigenvalues_list, dim, num_data: int, bin_size: float = 0.0001
 ):
-    sorted_eigenvalues_list = _get_sorted_eigenvalue_for_gate(estimated_gates)
-    sorted_eigenvalues_list = np.array(sorted_eigenvalues_list).T
-
-    dim = estimated_gates[0].dim
-
     figs = []
     for i, values in enumerate(sorted_eigenvalues_list):
         min_value = min(values)
@@ -548,18 +581,53 @@ def _make_graphs_eigenvalues_gate(
         fig = make_prob_dist_histogram(
             values, bin_size=bin_size, num_data=num_data, annotation_vlines=vlines
         )
-        title = f"N={num_data}, i={i}"
+        title = f"N={num_data}, α={i}"
         fig.update_layout(title=title)
         figs.append(fig)
+    return figs
+
+
+def _make_graphs_eigenvalues_mprocess(
+    estimated_mprocesses: List[MProcess], num_data: int, bin_size: float = 0.0001
+) -> List[List["Figure"]]:
+    sorted_eigenvalues_lists = _get_sorted_eigenvalue_for_mprocess(estimated_mprocesses)
+    sorted_eigenvalues_lists = [
+        np.array(s_list).T for s_list in sorted_eigenvalues_lists
+    ]
+
+    dim = estimated_mprocesses[0].dim
+    fig_list_list = []
+    for sorted_eigenvalues_list in sorted_eigenvalues_lists:
+        figs = _make_graphs_eigenvalues(
+            sorted_eigenvalues_list, dim=dim, num_data=num_data, bin_size=bin_size
+        )
+        fig_list_list.append(figs)
+    return fig_list_list
+
+
+def _make_graphs_eigenvalues_gate(
+    estimated_gates: List[Gate], num_data: int, bin_size: float = 0.0001
+) -> List["Figure"]:
+    sorted_eigenvalues_list = _get_sorted_eigenvalue_for_gate(estimated_gates)
+    sorted_eigenvalues_list = np.array(sorted_eigenvalues_list).T
+
+    dim = estimated_gates[0].dim
+
+    figs = _make_graphs_eigenvalues(
+        sorted_eigenvalues_list, dim=dim, num_data=num_data, bin_size=bin_size
+    )
 
     return figs
 
 
 def is_physical_qobjects_all(
-    estimation_results: List["EstimatiuonResult"], show_detail: bool = True
+    estimation_results: List["EstimatiuonResult"],
+    num_data: List[int],
+    show_detail: bool = True,
 ) -> bool:
     check_results = []
-    for i, num in enumerate(estimation_results[0].num_data):
+
+    for i, num in enumerate(num_data):
         unphysical_n = calc_unphysical_qobjects_n(estimation_results, num_data_index=i)
         result = unphysical_n == 0
         check_results.append(result)
@@ -663,6 +731,48 @@ def _make_graphs_sum_unphysical_eigenvalues(
     return figs
 
 
+def _make_graphs_sum_unphysical_eigenvalues_for_mprocess(
+    estimated_qobjects: List[MProcess],
+    num_data: int,
+    bin_size: float = 0.0001,
+    expected_value=0,
+    show_n_unphysical: bool = False,
+) -> List["Figure"]:
+    sorted_eigenvalues_lists = get_sorted_eigenvalues_list(estimated_qobjects)
+    less_lists = []
+    dummy_value = 1
+    for sorted_eigenvalues_list in sorted_eigenvalues_lists:
+        less_list, _ = get_sum_of_eigenvalues_violation(
+            sorted_eigenvalues_list, expected_values=(expected_value, dummy_value)
+        )
+        less_lists.append(less_list)
+
+    n_rep = len(sorted_eigenvalues_lists[0])
+    figs = []
+    n_unphysical = calc_unphysical_qobjects_n(estimated_qobjects)
+    additional_title_text = (
+        f"<br>Number of unphysical estimates={n_unphysical}"
+        if show_n_unphysical
+        else None
+    )
+    # Figure 1
+    xaxis_title_text = f"Sum of negative eigenvalues (<{expected_value})"
+
+    for x_index, less_list in enumerate(less_lists):
+        fig = make_prob_dist_histogram(
+            less_list,
+            bin_size=bin_size,
+            num_data=num_data,
+            annotation_vlines=[expected_value],
+            xaxis_title_text=xaxis_title_text,
+            title=f"N={num_data}, Nrep={n_rep}, x={x_index}",
+            additional_title_text=additional_title_text,
+        )
+        figs.append(fig)
+
+    return figs
+
+
 def _make_graphs_sum_unphysical_eigenvalues_for_povm(
     estimated_povms: List["Povm"], num_data: int, bin_size: float = 0.0001
 ) -> List["Figure"]:
@@ -697,19 +807,57 @@ def _make_graphs_sum_unphysical_eigenvalues_for_povm(
 def make_graphs_trace_error(
     estimation_results: List["EstimatedResult"],
     num_data_index: int,
+    num_data: List[int],
     bin_size: float = 0.0001,
 ):
-    num_data = estimation_results[0].num_data
-    estimated_gates = _convert_result_to_qoperation(
+    estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-    size = estimated_gates[0].dim ** 2
+    size = estimated_qoperations[0].dim ** 2
     expected = np.zeros((1, size))
     expected[0][0] = 1
     expected = expected.flatten().tolist()
     figs = []
+    type_qoperation = type(estimated_qoperations[0])
+    if type_qoperation not in [Gate, MProcess]:
+        raise TypeError(
+            f"The type of estimation_results.qoperation must be Gate or MProcess, not {type(type_qoperation)}"
+        )
+
     for i in range(size):
-        values = [gate.hs[0][i] for gate in estimated_gates]
+        if type_qoperation == Gate:
+            values = [gate.hs[0][i] for gate in estimated_qoperations]
+        elif type_qoperation == MProcess:
+            values = [sum(mprocess.hss)[0][i] for mprocess in estimated_qoperations]
+        fig = make_prob_dist_histogram(
+            values,
+            bin_size=bin_size,
+            num_data=num_data,
+            annotation_vlines=[expected[i]],
+        )
+        title = f"N={num_data[num_data_index]}, α={i}"
+        fig.update_layout(title=title)
+        figs.append(fig)
+    return figs
+
+
+def make_graphs_trace_error_for_mprocess(
+    estimation_results: List["EstimatedResult"],
+    num_data_index: int,
+    num_data: List[int],
+    bin_size: float = 0.0001,
+):
+    estimated_mprocesses = _convert_result_to_qoperation(
+        estimation_results, num_data_index=num_data_index
+    )
+    size = estimated_mprocesses[0].dim ** 2
+    expected = np.zeros((1, size))
+    expected[0][0] = 1
+    expected = expected.flatten().tolist()
+    figs = []
+
+    for i in range(size):
+        values = [sum(mprocess.hss)[0][i] for mprocess in estimated_mprocesses]
         fig = make_prob_dist_histogram(
             values,
             bin_size=bin_size,
@@ -724,21 +872,33 @@ def make_graphs_trace_error(
 
 def make_graph_trace_error_sum(
     estimation_results: List["EstimatedResult"],
+    num_data: List[int],
     num_data_index: int,
     bin_size: float = 0.0001,
 ):
-    num_data = estimation_results[0].num_data
-    estimated_gates = _convert_result_to_qoperation(
+    estimated_qoperations = _convert_result_to_qoperation(
         estimation_results, num_data_index=num_data_index
     )
-    size = estimated_gates[0].dim ** 2
+    size = estimated_qoperations[0].dim ** 2
     expected = np.zeros((1, size))
     expected[0][0] = 1
     expected = expected.flatten().tolist()
     values = []
 
-    for gate in estimated_gates:
-        value = sum([(gate.hs[0][i] - expected[i]) ** 2 for i in range(size)])
+    type_qoperation = type(estimated_qoperations[0])
+    if type_qoperation not in [Gate, MProcess]:
+        raise TypeError(
+            f"The type of estimation_results.qoperation must be Gate or MProcess, not {type(type_qoperation)}"
+        )
+
+    for qoperation in estimated_qoperations:
+        if type_qoperation == Gate:
+            value = sum([(qoperation.hs[0][i] - expected[i]) ** 2 for i in range(size)])
+        elif type_qoperation == MProcess:
+            value = sum(
+                [(sum(qoperation.hss)[0][i] - expected[i]) ** 2 for i in range(size)]
+            )
+
         value = np.sqrt(value)
         values.append(value)
 
@@ -747,30 +907,35 @@ def make_graph_trace_error_sum(
     )
     title = f"N={num_data[num_data_index]}"
     fig.update_layout(title=title)
-    fig.update_xaxes(range=[0, fig.layout.xaxis.range[1]])
+    if fig.layout.xaxis.range is None:
+        fig.update_xaxes(range=[0, max(values)])
+    else:
+        fig.update_xaxes(range=[0, fig.layout.xaxis.range[1]])
 
     return fig
 
 
 def make_graphs_trace_error_sum(
     estimation_results: List["EstimatedResult"],
+    num_data: List[int],
     bin_size: float = 0.0001,
 ) -> list:
-    num_data = estimation_results[0].num_data
     figs = []
     for num_data_index, num in enumerate(num_data):
         fig = make_graph_trace_error_sum(
-            estimation_results, num_data_index, bin_size=bin_size
+            estimation_results,
+            num_data=num_data,
+            num_data_index=num_data_index,
+            bin_size=bin_size,
         )
         figs.append(fig)
     return figs
 
 
 def is_eq_constraint_satisfied_all(
-    estimation_results, show_detail: bool = True
+    estimation_results, num_data: List[int], show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    num_data = estimation_results[0].num_data
     para = estimation_results[0].estimated_qoperation.on_para_eq_constraint
     eps = get_eq_const_eps(para)
 
@@ -795,10 +960,9 @@ def is_eq_constraint_satisfied_all(
 
 
 def is_ineq_constraint_satisfied_all(
-    estimation_results, show_detail: bool = True
+    estimation_results, num_data: List[int], show_detail: bool = True
 ) -> bool:
     all_check_results = []
-    num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
         check_results = [

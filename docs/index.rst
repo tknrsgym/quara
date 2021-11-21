@@ -24,6 +24,7 @@ Welcome to Quara's documentation!
 
    ./tutorials/tutorial_for_system_state_measurement_gate
    ./tutorials/tutorial_for_standardqtomography
+   ./tutorials/tutorial_for_standardqtomography_from_qutip
 
 .. toctree::
    :caption: Limitations
@@ -34,7 +35,7 @@ Welcome to Quara's documentation!
 .. toctree::
    :caption: API Reference
 
-   api_reference.rst
+   api_reference
 
 .. toctree::
    :caption: Contributing

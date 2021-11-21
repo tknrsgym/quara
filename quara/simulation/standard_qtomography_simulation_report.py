@@ -18,10 +18,12 @@ from quara.data_analysis import computation_time as ctime
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.protocol.qtomography.estimator import EstimationResult
 from quara.simulation import consistency_check
 from quara.simulation import standard_qtomography_simulation_check
 from quara.simulation.standard_qtomography_simulation import (
+    SimulationResult,
     StandardQTomographySimulationSetting,
 )
 
@@ -179,10 +181,8 @@ def _save_fig_to_tmp_dir(fig: "Figure", fig_name: str) -> str:
 
 
 def _make_graph_trace_seq(
-    estimation_results: List["EstimationResult"], case_id: int
+    estimation_results: List["EstimationResult"], num_data: List[int], case_id: int
 ) -> list:
-    num_data = estimation_results[0].num_data
-
     fig_info_list = []
     for i, num in enumerate(num_data):
         fig = physicality_violation_check.make_graph_trace(
@@ -217,21 +217,30 @@ def _generate_trace_div(fig_info_list: List[dict]) -> str:
     return graph_block_html
 
 
-def generate_trace_div(estimation_results: List["EstimationResult"], case_id: int):
-    fig_info_list = _make_graph_trace_seq(estimation_results, case_id=case_id)
+def generate_trace_div(
+    estimation_results: List["EstimationResult"], num_data: List[int], case_id: int
+):
+    fig_info_list = _make_graph_trace_seq(
+        estimation_results, num_data=num_data, case_id=case_id
+    )
     div_html = _generate_trace_div(fig_info_list)
     return div_html
 
 
 def _make_graph_sum_vecs_seq(
-    estimation_results: List["EstimationResult"], case_id: int, true_object: Povm
+    estimation_results: List["EstimationResult"],
+    num_data: List[int],
+    case_id: int,
+    true_object: Povm,
 ) -> List[List["Figure"]]:
     fig_info_list_list = []
-    num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
         figs = physicality_violation_check.make_graphs_sum_vecs(
-            estimation_results, true_object, num_data_index=num_data_index
+            estimation_results,
+            true_object,
+            num_data=num_data,
+            num_data_index=num_data_index,
         )
         fig_info_list = []
         for alpha, fig in enumerate(figs):
@@ -274,12 +283,13 @@ def _generate_fig_info_list_list_div(
 
 def generate_sum_vecs_div(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     true_object: Povm,
     col_n: int,
 ):
     fig_info_list_list = _make_graph_sum_vecs_seq(
-        estimation_results, case_id=case_id, true_object=true_object
+        estimation_results, num_data=num_data, case_id=case_id, true_object=true_object
     )
     div_html = _generate_fig_info_list_list_div(fig_info_list_list, col_n=col_n)
     return div_html
@@ -287,16 +297,18 @@ def generate_sum_vecs_div(
 
 def _generate_graph_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     true_object: "QOperation",
     bin_size: float = 0.0001,
 ) -> list:
-    num_data = estimation_results[0].num_data
+
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_eigenvalues(
             estimation_results,
             true_object,
+            num_data=num_data,
             num_data_index=num_data_index,
             bin_size=bin_size,
         )
@@ -331,11 +343,12 @@ def _generate_eigenvalues_div(
 
 
 def _generate_eigenvalues_div_3loop(
-    fig_info_list3: List[List[List[dict]]], col_n: int
+    fig_info_list3: List[List[List[dict]]], col_n: int = None
 ) -> str:
     graph_block_html_all = ""
     fig_n = fig_info_list3[0][0]
-    col_n = len(fig_n) if len(fig_n) <= 4 else 4
+    if col_n is None:
+        col_n = len(fig_n) if len(fig_n) <= 4 else 4
     css_class = f"box_col{col_n}"
 
     for fig_info_list2 in fig_info_list3:  # num_data
@@ -368,16 +381,16 @@ def _generate_eigenvalues_div_3loop(
 
 def _generate_graph_eigenvalues_seq_3loop(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     true_object: "QOperation",
 ) -> list:
-    num_data = estimation_results[0].num_data
-    # For State
     fig_info_list3 = []
     for num_data_index in range(len(num_data)):
         fig_list_list = physicality_violation_check.make_graphs_eigenvalues(
             estimation_results,
             true_object,
+            num_data=num_data,
             num_data_index=num_data_index,
         )
         fig_info_list2 = []
@@ -407,12 +420,14 @@ def _generate_graph_eigenvalues_seq_3loop(
 
 def generate_eigenvalues_div(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     true_object: "QOperation",
 ):
     if type(true_object) == State:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -422,6 +437,7 @@ def generate_eigenvalues_div(
     elif type(true_object) == Povm:
         fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -431,34 +447,47 @@ def generate_eigenvalues_div(
     elif type(true_object) == Gate:
         fig_info_list_list = _generate_graph_eigenvalues_seq(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
         v, _ = np.linalg.eig(true_object.to_choi_matrix())
         col_n = 2 if len(v) <= 2 else 4
         div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
+
+    elif type(true_object) == MProcess:
+        fig_info_list3 = _generate_graph_eigenvalues_seq_3loop(
+            estimation_results,
+            num_data=num_data,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        v, _ = np.linalg.eig(true_object.to_choi_matrix(0))
+        col_n = 2 if len(v) <= 2 else 4
+        div_html = _generate_eigenvalues_div_3loop(fig_info_list3, col_n=col_n)
     else:
-        raise TypeError()
+        error_message = f"The type of true_object must be Status, Povm, Gate, or MProcess, not {type(true_object)}."
+        raise TypeError(error_message)
     return div_html
 
 
 def _generate_graph_sum_eigenvalues_seq(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     true_object,
 ) -> List[List[dict]]:
-    num_data = estimation_results[0].num_data
     fig_info_list_list = []
     for num_data_index in range(len(num_data)):
         fig_list = physicality_violation_check.make_graphs_sum_unphysical_eigenvalues(
             estimation_results,
+            num_data=num_data,
             num_data_index=num_data_index,
         )
         n_unphysical = physicality_violation_check.calc_unphysical_qobjects_n(
             estimation_results, num_data_index=num_data_index
         )
         fig_info_list = []
-
         for i, fig in enumerate(fig_list):
             fig_name = f"case={case_id}_sum-unphysical-eigenvalues_num={num_data_index}_type={i}"
             fig.update_layout(width=_col2_fig_width, height=_col2_fig_height)
@@ -475,11 +504,15 @@ def _generate_graph_sum_eigenvalues_seq(
             )
 
         fig_info_list_list.append(fig_info_list)
+
     return fig_info_list_list
 
 
 def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
     graph_block_html_all = ""
+    col_n = len(fig_info_list_list[0])
+    css_class = "box" if col_n <= 2 else "box_col4"
+
     for fig_info_list in fig_info_list_list:
         num = fig_info_list[0]["num"]
         n_unphysical = fig_info_list[0]["n_unphysical"]
@@ -489,7 +522,7 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
 
         for fig_info in fig_info_list:
             graph_subblock = (
-                f"<div class='box'><img src={fig_info['image_path']}></div>"
+                f"<div class='{css_class}'><img src={fig_info['image_path']}></div>"
             )
             graph_block_html += graph_subblock
 
@@ -500,11 +533,12 @@ def _generate_sum_eigenvalues_div(fig_info_list_list: List[List[dict]]) -> str:
 
 def generate_sum_eigenvalues_div(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     true_object,
 ):
     fig_info_list_list = _generate_graph_sum_eigenvalues_seq(
-        estimation_results, case_id=case_id, true_object=true_object
+        estimation_results, num_data=num_data, case_id=case_id, true_object=true_object
     )
     div_html = _generate_sum_eigenvalues_div(fig_info_list_list)
     return div_html
@@ -518,11 +552,15 @@ def generate_mse_analytical_div(
     estimation_results_list: List[List[EstimationResult]],
     true_object: "QOperation",
     estimator_list: list,
+    num_data: List[int],
+    qtomography_list,
 ) -> str:
     figs = data_analysis.make_mses_graph_analytical(
         estimation_results_list=estimation_results_list,
         true_object=true_object,
         estimator_list=estimator_list,
+        num_data=num_data,
+        qtomography_list=qtomography_list,
     )
 
     mse_div_list = []
@@ -548,13 +586,14 @@ def generate_mse_analytical_div(
 
 
 def generate_empi_dist_mse_div(
-    estimation_results_list: List[List[EstimationResult]],
+    simulation_result: SimulationResult,
     true_object: "QOperation",
 ) -> str:
 
-    fig = data_analysis.make_empi_dists_mse_graph(
-        estimation_results_list[0], true_object
-    )
+    # fig = data_analysis.make_empi_dists_mse_graph(
+    #     estimation_results_list[0], true_object
+    # )
+    fig = data_analysis.make_empi_dists_mse_graph(simulation_result, true_object)
 
     fig_name = f"empi_dists_mse"
     path = _save_fig_to_tmp_dir(fig, fig_name)
@@ -564,7 +603,22 @@ def generate_empi_dist_mse_div(
 
 
 def _convert_object_to_datafrane(qoperation: "QOperation") -> pd.DataFrame:
-    values = [v.__str__().replace("\n", "<br>") for v in qoperation._info().values()]
+    values = []
+    max_line_width = 120
+    for value in qoperation._info().values():
+        if type(value) == list and type(value[0]) == np.ndarray:
+            lines_list = []
+            for a_array in value:
+                lines_list.append(np.array_str(a_array, max_line_width=max_line_width))
+            text = "\n,\n".join(lines_list).replace("\n", "<br>")
+        elif type(value) == np.ndarray:
+            text = np.array_str(value, max_line_width=max_line_width).replace(
+                "\n", "<br>"
+            )
+        else:
+            text = value.__str__().replace("\n", "<br>")
+        values.append(text)
+
     item_names = qoperation._info().keys()
     df = pd.DataFrame(values, item_names).rename(columns={0: "value"})
 
@@ -585,6 +639,7 @@ def _convert_objects_to_multiindex_dataframe(
 
 def _generate_physicality_violation_test_div_for_state(
     estimation_results_list: List[List["EstimationResult"]],
+    num_data: List[int],
     case_name_list: List[str],
     true_object: State,
 ):
@@ -595,7 +650,7 @@ def _generate_physicality_violation_test_div_for_state(
     for case_id, case_name in enumerate(case_name_list):
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
-        div = generate_trace_div(estimation_results, case_id=case_id)
+        div = generate_trace_div(estimation_results, num_data=num_data, case_id=case_id)
 
         # <h5> is dummy
         test_eq_const_divs += f"""
@@ -606,6 +661,7 @@ def _generate_physicality_violation_test_div_for_state(
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -616,6 +672,7 @@ def _generate_physicality_violation_test_div_for_state(
 
         div = generate_sum_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -641,6 +698,7 @@ def _generate_physicality_violation_test_div_for_state(
 
 def _generate_physicality_violation_test_div_for_povm(
     estimation_results_list: List[List["EstimationResult"]],
+    num_data: List[int],
     case_name_list: List[str],
     true_object: Povm,
 ):
@@ -652,7 +710,11 @@ def _generate_physicality_violation_test_div_for_povm(
         estimation_results = estimation_results_list[case_id]
         # Test of equality constraint violation
         div = generate_sum_vecs_div(
-            estimation_results, case_id=case_id, true_object=true_object, col_n=4
+            estimation_results,
+            num_data=num_data,
+            case_id=case_id,
+            true_object=true_object,
+            col_n=4,
         )
         # <h5> is dummy
         test_eq_const_divs += f"""
@@ -663,6 +725,7 @@ def _generate_physicality_violation_test_div_for_povm(
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -673,6 +736,7 @@ def _generate_physicality_violation_test_div_for_povm(
 
         div = generate_sum_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -698,6 +762,7 @@ def _generate_physicality_violation_test_div_for_povm(
 
 def _generate_physicality_violation_test_div_for_gate(
     estimation_results_list: List[List["EstimationResult"]],
+    num_data: List[int],
     case_name_list: List[str],
     true_object: State,
 ):
@@ -715,6 +780,7 @@ def _generate_physicality_violation_test_div_for_gate(
             fig_type="physicality-violation-eq-trace-error",
             make_graphs_func=physicality_violation_check.make_graphs_trace_error,
             col_n=4,
+            num_data=num_data,
         )
         # <h5> is dummy
         test_eq_const_divs += f"""
@@ -722,8 +788,9 @@ def _generate_physicality_violation_test_div_for_gate(
             <h5></h5>
             {div}
             """
-        num_data_len = len(estimation_results_list[0][0].num_data)
+        num_data_len = len(num_data)
         col_n = num_data_len if num_data_len <= 4 else 4
+
         div = generate_figs_div(
             func=_make_fig_info_list,
             estimation_results=estimation_results,
@@ -732,6 +799,7 @@ def _generate_physicality_violation_test_div_for_gate(
             size=(_col2_fig_width, _col2_fig_height),
             make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
             col_n=col_n,
+            num_data=num_data,
         )
 
         test_eq_const_error_sum_divs += f"""
@@ -742,6 +810,7 @@ def _generate_physicality_violation_test_div_for_gate(
         # Test of inequality constraint violation
         div = generate_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -752,6 +821,7 @@ def _generate_physicality_violation_test_div_for_gate(
 
         div = generate_sum_eigenvalues_div(
             estimation_results,
+            num_data=num_data,
             case_id=case_id,
             true_object=true_object,
         )
@@ -764,7 +834,95 @@ def _generate_physicality_violation_test_div_for_gate(
         <h2>Test of equality constraint violation</h2>
         <h3>Error</h3>
         {test_eq_const_divs}
-        <h3>Sum of Error</h3>
+        <h3>Route Squared of Error</h3>
+        {test_eq_const_error_sum_divs}
+    """
+    ineq_all_div = f"""
+        <h2>Test of inequality constraint violation</h2>
+        <h3>Eigenvalue</h3>
+        {test_ineq_const_eigenvalues_divs}
+        <h3>Sum of unphysical eigenvalues </h3>
+        {test_ineq_const_sum_eigenvalues_divs}
+    """
+
+    return eq_all_div, ineq_all_div
+
+
+def _generate_physicality_violation_test_div_for_mprocess(
+    estimation_results_list: List[List["EstimationResult"]],
+    num_data: List[int],
+    case_name_list: List[str],
+    true_object: State,
+):
+    test_eq_const_divs = ""
+    test_eq_const_error_sum_divs = ""
+    test_ineq_const_eigenvalues_divs = ""
+    test_ineq_const_sum_eigenvalues_divs = ""
+
+    for case_id, case_name in enumerate(case_name_list):
+        estimation_results = estimation_results_list[case_id]
+        # Test of equality constraint violation
+        div = generate_fig_list_list_div(
+            estimation_results=estimation_results,
+            case_id=case_id,
+            fig_type="physicality-violation-eq-trace-error",
+            make_graphs_func=physicality_violation_check.make_graphs_trace_error,
+            col_n=4,
+            num_data=num_data,
+        )
+        # <h5> is dummy
+        test_eq_const_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            <h5></h5>
+            {div}
+            """
+        num_data_len = len(num_data)
+        col_n = num_data_len if num_data_len <= 4 else 4
+
+        div = generate_figs_div(
+            func=_make_fig_info_list,
+            estimation_results=estimation_results,
+            case_id=case_id,
+            fig_type="physicality-violation-eq-trace-sum-error",
+            size=(_col2_fig_width, _col2_fig_height),
+            make_graphs_func=physicality_violation_check.make_graphs_trace_error_sum,
+            col_n=col_n,
+            num_data=num_data,
+        )
+
+        test_eq_const_error_sum_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            <h5></h5>
+            {div}
+        """
+        # Test of inequality constraint violation
+        div = generate_eigenvalues_div(
+            estimation_results,
+            num_data=num_data,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        test_ineq_const_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+        div = generate_sum_eigenvalues_div(
+            estimation_results,
+            num_data=num_data,
+            case_id=case_id,
+            true_object=true_object,
+        )
+        test_ineq_const_sum_eigenvalues_divs += f"""
+            <h4>Case {case_id}: {case_name}<h4>
+            {div}
+            """
+
+    eq_all_div = f"""
+        <h2>Test of equality constraint violation</h2>
+        <h3>Error</h3>
+        {test_eq_const_divs}
+        <h3>Route Squared of Error</h3>
         {test_eq_const_error_sum_divs}
     """
     ineq_all_div = f"""
@@ -782,27 +940,35 @@ def generate_physicality_violation_test_div(
     estimation_results_list: List[List["EstimationResult"]],
     case_name_list: List[str],
     true_object: "QOperation",
+    num_data: List[int],
 ):
     if type(true_object) == State:
         (
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_state(
-            estimation_results_list, case_name_list, true_object
+            estimation_results_list, num_data, case_name_list, true_object
         )
     elif type(true_object) == Povm:
         (
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_povm(
-            estimation_results_list, case_name_list, true_object
+            estimation_results_list, num_data, case_name_list, true_object
         )
     elif type(true_object) == Gate:
         (
             true_all_div,
             false_all_div,
         ) = _generate_physicality_violation_test_div_for_gate(
-            estimation_results_list, case_name_list, true_object
+            estimation_results_list, num_data, case_name_list, true_object
+        )
+    elif type(true_object) == MProcess:
+        (
+            true_all_div,
+            false_all_div,
+        ) = _generate_physicality_violation_test_div_for_mprocess(
+            estimation_results_list, num_data, case_name_list, true_object
         )
     else:
         message = f"true_object must be State, Povm, or Gate, not {type(true_object)}"
@@ -864,18 +1030,18 @@ def generate_condition_table(
     return condition_table
 
 
-def generate_consistency_check_table(
-    estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[StandardQTomographySimulationSetting],
-    true_object: "QOperation",
-    check_results: List["CheckResult"] = None,
-):
-    qtomography_list = [results[0].qtomography for results in estimation_results_list]
-    diff_list = []
+def generate_consistency_check_table(simulation_results: List[SimulationResult]):
+    check_results = []
+    simulation_settings = []
+    for sim_result in simulation_results:
+        check_results.append(sim_result.check_result)
+        simulation_settings.append(sim_result.simulation_setting)
+
+    qtomography_list = [sim_result.qtomography for sim_result in simulation_results]
     result_list = []
     para_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
 
-    if check_results:
+    if len(check_results) == len(simulation_results):
         # Use the results of pre-run checks
         def _extract_consistency_check_results(check_result: "CheckResult") -> dict:
             for r in check_result["results"]:
@@ -885,9 +1051,9 @@ def generate_consistency_check_table(
         result_list = [_extract_consistency_check_results(cr) for cr in check_results]
     else:
         # Execute Consistency Check
-        for i, s in enumerate(simulation_settings):
+        for sim_result in simulation_results:
             sim_check = standard_qtomography_simulation_check.StandardQTomographySimulationCheck(
-                estimation_results=estimation_results_list[i], simulation_setting=s
+                sim_result
             )
             result_dict = sim_check.execute_consistency_check(show_detail=False)
             result_list.append(result_dict)
@@ -1048,20 +1214,31 @@ def _make_fig_info_list(
 
 def _make_fig_info_list_list(
     estimation_results: List["EstimationResult"],
+    num_data: List[int],
     case_id: int,
     fig_type: str,
     make_graphs_func,
     **kwargs,
 ) -> List[List["Figure"]]:
     fig_info_list_list = []
-    num_data = estimation_results[0].num_data
 
     for num_data_index, num in enumerate(num_data):
-        figs = make_graphs_func(
-            estimation_results=estimation_results,
-            num_data_index=num_data_index,
-            **kwargs,
-        )
+        func_parameter_names = make_graphs_func.__code__.co_varnames[
+            : make_graphs_func.__code__.co_argcount
+        ]
+        if "num_data" in func_parameter_names:
+            figs = make_graphs_func(
+                estimation_results=estimation_results,
+                num_data=num_data,
+                num_data_index=num_data_index,
+                **kwargs,
+            )
+        else:
+            figs = make_graphs_func(
+                estimation_results=estimation_results,
+                num_data_index=num_data_index,
+                **kwargs,
+            )
         if type(figs) != list:
             figs = [figs]
         fig_info_list = []
@@ -1105,6 +1282,7 @@ def _generate_figs_div(fig_info_list: List[dict], col_n: int = 2) -> str:
 
 def generate_fig_list_list_div(
     estimation_results: List["EstimationResult"],
+    num_data,
     case_id,
     fig_type: str,
     make_graphs_func,
@@ -1112,7 +1290,7 @@ def generate_fig_list_list_div(
     **kwargs,
 ):
     fig_info_list_list = _make_fig_info_list_list(
-        estimation_results, case_id, fig_type, make_graphs_func, **kwargs
+        estimation_results, num_data, case_id, fig_type, make_graphs_func, **kwargs
     )
     div_html = _generate_fig_info_list_list_div(fig_info_list_list, col_n=col_n)
     return div_html
@@ -1145,7 +1323,8 @@ def generate_computation_time_of_estimators_table(
         num_list = []
         mean_list = []
         std_list = []
-        num_data = estimation_results[0].num_data
+
+        num_data = simulation_settings[0].num_data
         for i, num in enumerate(num_data):
             comp_times = [result.computation_times[i] for result in estimation_results]
             num_list.append(num)
@@ -1187,7 +1366,9 @@ def generate_computation_time_of_estimators_graph(
     simulation_settings: List[StandardQTomographySimulationSetting],
 ) -> str:
     all_divs = ""
-    graph_n = len(estimation_results_list[0][0].num_data)
+
+    graph_n = len(simulation_settings[0].num_data)
+
     col_n = graph_n if graph_n <= 4 else 4
 
     for case_id, simulation_setting in enumerate(simulation_settings):
@@ -1196,6 +1377,7 @@ def generate_computation_time_of_estimators_graph(
         div = generate_figs_div(
             func=_make_fig_info_list,
             estimation_results=estimation_results,
+            num_data=simulation_setting.num_data,
             case_id=case_id,
             fig_type="computation_time",
             size=(_col2_fig_width, _col2_fig_height),
@@ -1265,33 +1447,43 @@ def export_report_from_index(
     sample_index: int,
     output_path: str,
     case_index: int = None,
+    display_items: dict = None,
 ) -> None:
     simulation_results = _load_simulation_results(
         input_root_dir, test_setting_index, sample_index, case_index=case_index
     )
-    estimation_results_list = []
-    simulation_settings = []
-    check_results = []
-    for sim_result in simulation_results:
-        estimation_results_list.append(sim_result.estimation_results)
-        simulation_settings.append(sim_result.simulation_setting)
-        check_results.append(sim_result.check_result)
 
     export_report(
-        output_path,
-        estimation_results_list=estimation_results_list,
-        simulation_settings=simulation_settings,
-        check_results=check_results,
+        output_path, simulation_results=simulation_results, display_items=display_items
     )
+
+
+def setup_display_items(display_items: dict) -> dict:
+    expected_items = [
+        "consistency",
+        "mse_of_estimators",
+        "mse_of_empi_dists",
+        "physicality_violation",
+    ]
+    if not display_items:
+        display_items = {item: True for item in expected_items}
+    else:
+        for item in display_items:
+            if item not in expected_items:
+                error_message = f"The key '{item}' of the argument 'display_items' is invalid. 'display_items' can be used with the following keys: {expected_items}"
+                raise KeyError(error_message)
+
+        for item in expected_items:
+            if item not in display_items.keys():
+                display_items[item] = True
+    return display_items
 
 
 def export_report(
     path: str,
-    estimation_results_list: List[List["EstimationResult"]],
-    simulation_settings: List[StandardQTomographySimulationSetting],
-    check_results: List["CheckResult"] = None,
+    simulation_results: List[SimulationResult],
     keep_tmp_files: bool = False,
-    show_physicality_violation_check: bool = True,
+    display_items: dict = None,
 ):
     """Output a PDF report with simulation settings and results.
 
@@ -1310,6 +1502,13 @@ def export_report(
     show_physicality_violation_check : bool, optional
         [description], by default True
     """
+    display_items = setup_display_items(display_items)
+
+    estimation_results_list = []
+    simulation_settings = []
+    for sim_result in simulation_results:
+        estimation_results_list.append(sim_result.estimation_results)
+        simulation_settings.append(sim_result.simulation_setting)
 
     temp_dir_path = tempfile.mkdtemp()
     global _temp_dir_path
@@ -1325,11 +1524,12 @@ def export_report(
         # set same CompositeSystem
         tester_object._composite_system = true_object.composite_system
 
-    seed = simulation_settings[0].seed
+    seed = simulation_settings[0].seed_data
 
-    num_data = estimation_results_list[0][0].num_data
-    n_rep = len(estimation_results_list[0])
-    qtomography_list = [results[0].qtomography for results in estimation_results_list]
+    num_data = simulation_results[0].simulation_setting.num_data
+    n_rep = simulation_results[0].simulation_setting.n_rep
+    qtomography_list = [sim_result.qtomography for sim_result in simulation_results]
+    parameter_list = [qtomo.on_para_eq_constraint for qtomo in qtomography_list]
     for qtomography in qtomography_list:
         # set same CompositeSystem
         for qobj in qtomography._experiment.states:
@@ -1377,49 +1577,80 @@ def export_report(
     )
 
     # MSE of Empirical Distributions
-    print("​​Generating MSE of empirical distributions blocks ...")
-    empi_dists_mse_div = generate_empi_dist_mse_div(
-        estimation_results_list, true_object
-    )
+    empi_dists_mse_block = ""
+    if display_items["mse_of_empi_dists"]:
+        print("​​Generating MSE of empirical distributions blocks ...")
+        empi_dists_mse_div = generate_empi_dist_mse_div(
+            simulation_results[0], true_object
+        )
+        empi_dists_mse_block = f"""<h1>MSE of empirical distributions</h1>
+    <div>{empi_dists_mse_div}</div>"""
 
     # Consistency Test
-    print("​​Generating consictency test blocks ...")
-    consistency_check_table = generate_consistency_check_table(
-        estimation_results_list, simulation_settings, true_object, check_results
-    )
+    consistency_check_block = ""
+    if display_items["consistency"]:
+        print("​​Generating consictency test blocks ...")
+        consistency_check_table = generate_consistency_check_table(simulation_results)
+        consistency_check_block = f"""<h1>Consistency test</h1>
+    <div>{consistency_check_table}</div>"""
 
-    # MSE
-    print("​Generating a graph for MSE ...")
+    # MSE of estimators
+    mse_of_est_block = ""
+    if display_items["mse_of_estimators"]:
+        print("​Generating a graph for MSE of estimators ...")
 
-    # 1. Comparison of analytical results
-    mse_analytical_results_div = generate_mse_analytical_div(
-        estimation_results_list, true_object, estimator_list
-    )
-    # 2. Comparison of parametrization
-    mse_para_div = generate_figs_div(
-        _make_graphs_mses,
-        make_graphs_func=data_analysis.make_mses_graphs_estimator,
-        mse_type="estimator",
-        estimation_results_list=estimation_results_list,
-        simulation_settings=simulation_settings,
-        true_object=true_object,
-    )
-    # 3. Comparison of estimators
-    mse_est_div = generate_figs_div(
-        _make_graphs_mses,
-        make_graphs_func=data_analysis.make_mses_graphs_para,
-        mse_type="para",
-        estimation_results_list=estimation_results_list,
-        case_names=case_name_list,
-        true_object=true_object,
-    )
+        # 1. Comparison of analytical results
+        mse_analytical_results_div = generate_mse_analytical_div(
+            estimation_results_list,
+            true_object,
+            estimator_list,
+            num_data,
+            qtomography_list,
+        )
+        # 2. Comparison of parametrization
+        mse_para_div = generate_figs_div(
+            _make_graphs_mses,
+            make_graphs_func=data_analysis.make_mses_graphs_estimator,
+            mse_type="estimator",
+            estimation_results_list=estimation_results_list,
+            simulation_settings=simulation_settings,
+            true_object=true_object,
+            qtomography_list=qtomography_list,
+        )
+        # 3. Comparison of estimators
+        mse_est_div = generate_figs_div(
+            _make_graphs_mses,
+            make_graphs_func=data_analysis.make_mses_graphs_para,
+            mse_type="para",
+            estimation_results_list=estimation_results_list,
+            case_names=case_name_list,
+            true_object=true_object,
+            num_data=num_data,
+            parameter_list=parameter_list,
+            qtomography_list=qtomography_list,
+        )
+        mse_of_est_block = f"""
+<h1>MSE of estimators</h1>
+    <h2>Comparison of analytical results</h2>
+        <div>
+            {mse_analytical_results_div}
+        </div>
+    <h2>Comparison of parametrization</h2>
+        <div>
+            {mse_para_div}
+        </div>
+    <h2>Comparison of estimators</h2>
+        <div>
+            {mse_est_div}
+        </div>
+        """
 
     # Physicality Violation Test
     print("​​Generating physicality violation test blocks ...")
     physicality_violation_check_block = ""
-    if show_physicality_violation_check:
+    if display_items["physicality_violation"]:
         physicality_violation_test_div = generate_physicality_violation_test_div(
-            estimation_results_list, case_name_list, true_object
+            estimation_results_list, case_name_list, true_object, num_data
         )
         physicality_violation_check_block = f"""<h1>Physicality violation test</h1>
     <div>
@@ -1479,23 +1710,9 @@ def export_report(
     </div>
 <h1>Computation time of estimators</h1>
     <div>{comp_time_of_est_div}</div>
-<h1>MSE of empirical distributions</h1>
-    <div>{empi_dists_mse_div}</div>
-<h1>Consistency test</h1>
-    <div>{consistency_check_table}</div>
-<h1>MSE of estimators</h1>
-    <h2>Comparison of analytical results</h2>
-        <div>
-            {mse_analytical_results_div}
-        </div>
-    <h2>Comparison of parametrization</h2>
-        <div>
-            {mse_para_div}
-        </div>
-    <h2>Comparison of estimators</h2>
-        <div>
-            {mse_est_div}
-        </div>
+{empi_dists_mse_block}
+{consistency_check_block}
+{mse_of_est_block}
 {physicality_violation_check_block}
 <div id="footer_content">
     <pdf:pagenumber>

@@ -32,7 +32,11 @@ def get_test_data(on_para_eq_constraint=False):
     povm_z = get_z_povm(c_sys)
     povms = [povm_x, povm_y, povm_z]
 
-    qst = StandardQst(povms, on_para_eq_constraint=on_para_eq_constraint, seed=7,)
+    qst = StandardQst(
+        povms,
+        on_para_eq_constraint=on_para_eq_constraint,
+        seed_data=7,
+    )
 
     return qst, c_sys
 
@@ -142,7 +146,7 @@ class TestProjectedGradientDescentBacktrackingOption:
             option.mode_proj_order = "eq_ineq"
 
 
-class TestProjectedGradientDescentBase:
+class TestProjectedGradientDescentBacktracking:
     def test_access_func_proj(self):
         algo = ProjectedGradientDescentBacktracking()
         assert algo.func_proj is None
@@ -488,6 +492,29 @@ class TestProjectedGradientDescentBase:
             )
             actual = algo.optimize(loss, loss_option, algo_option)
             npt.assert_almost_equal(actual.value, expected, decimal=6)
+
+    def test_optimize_max_iteration(self):
+        loss_option = SimpleQuadraticLossFunctionOption()
+
+        var_ref = np.array([1, 1], dtype=np.float64)
+        loss = SimpleQuadraticLossFunction(var_ref)
+
+        proj = func_proj.proj_to_self()
+        algo = ProjectedGradientDescentBacktracking(proj)
+
+        var_start = np.array([3, 3], dtype=np.float64)
+        expected = np.array([1, 1], dtype=np.float64)
+
+        algo_option = ProjectedGradientDescentBacktrackingOption(var_start=var_start)
+        actual = algo.optimize(
+            loss,
+            loss_option,
+            algo_option,
+            max_iteration=5,
+            on_iteration_history=True,
+        )
+
+        assert actual.k == 5
 
     def test_optimize_on_iteration_history(self):
         loss_option = SimpleQuadraticLossFunctionOption()

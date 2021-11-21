@@ -1,3 +1,4 @@
+from quara.objects.qoperation import QOperation
 import time
 from typing import List, Tuple
 
@@ -21,12 +22,11 @@ from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
 class LossMinimizationEstimationResult(StandardQTomographyEstimationResult):
     def __init__(
         self,
-        qtomography: StandardQTomography,
-        data,
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
+        template_qoperation: QOperation,
     ):
-        super().__init__(qtomography, data, estimated_var_sequence, computation_times)
+        super().__init__(estimated_var_sequence, computation_times, template_qoperation)
 
 
 class LossMinimizationEstimator(StandardQTomographyEstimator):
@@ -195,6 +195,6 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
                 computation_times.append(prepare_time + algo_result.computation_time)
 
         result = LossMinimizationEstimationResult(
-            qtomography, empi_dists_sequence, estimated_var_sequence, computation_times
+            estimated_var_sequence, computation_times, qtomography._template_qoperation
         )
         return result

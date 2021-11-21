@@ -6,12 +6,32 @@ workflows:
       - test-3.7
       - test-3.8
       - test-3.9
+      - test-3.9-minimum_module
 jobs:
   test-3.7:
     docker:
       - image: circleci/python:3.7
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
+      - run:
+          name: Monitor RAM
+          command: |
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
       - run:
           name: Run installation
           command: |
@@ -24,14 +44,34 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
+
   test-3.8:
     docker:
       - image: circleci/python:3.8
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
+      - run:
+          name: Monitor RAM
+          command: |
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
       - run:
           name: Run installation
           command: |
@@ -44,14 +84,33 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results
   test-3.9:
     docker:
       - image: circleci/python:3.9
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
+      - run:
+          name: Monitor RAM
+          command: |
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
       - run:
           name: Run installation
           command: |
@@ -64,6 +123,45 @@ jobs:
           name: Run tests
           command: |
             . venv/bin/activate
-            pytest -rfs -m "not threequbit and not twoqutrit" --junit-xml=test-results/pytest.xml
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 --junit-xml=test-results/pytest.xml
+      - store_test_results:
+            path: test-results
+  test-3.9-minimum_module:
+    docker:
+      - image: circleci/python:3.9
+      - image: rigetti/quilc:1.25.1
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+      - image: rigetti/qvm:1.17.2
+        command: "-S"
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Monitor RAM
+          command: |
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "========="
+            done
+          background: true
+      - run:
+          name: Run installation
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+            pip install --upgrade pip
+            python setup.py install
+      - run:
+          name: Run tests
+          command: |
+            . venv/bin/activate
+            pytest -rfs -m "not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit" --durations=0 -o "norecursedirs=quara/interface" --junit-xml=test-results/pytest.xml
       - store_test_results:
             path: test-results

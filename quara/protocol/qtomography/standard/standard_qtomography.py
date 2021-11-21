@@ -208,6 +208,28 @@ class StandardQTomography(QTomography):
         """
         raise NotImplementedError()
 
+    def is_all_same_composite_systems(self, targets: List[QOperation]) -> bool:
+        """check all qoperations have same composite systems.
+
+        Parameters
+        ----------
+        targets : List[QOperation]
+            list of qoperations.
+
+        Returns
+        -------
+        bool
+            whether all qoperations have same composite systems.
+        """
+        if len(targets) <= 1:
+            return True
+
+        checks = [
+            targets[0]._composite_system == target._composite_system
+            for target in targets[1:]
+        ]
+        return all(checks)
+
     def calc_prob_dist(self, qope: QOperation, schedule_index: int) -> List[float]:
         """calculates a probability distribution.
 
@@ -465,9 +487,11 @@ class StandardQTomography(QTomography):
         self, true_object: QOperation
     ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
+        class_name = self.__class__._estimated_qoperation_type.__name__.lower()
         attribute_name = (
-            self.__class__._estimated_qoperation_type.__name__.lower() + "s"
+            class_name + "es" if class_name.endswith("ss") else class_name + "s"
         )
+
         for schedule_index in range(len(tmp_experiment.schedules)):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             getattr(tmp_experiment, attribute_name)[target_index] = true_object

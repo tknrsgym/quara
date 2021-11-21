@@ -11,10 +11,13 @@ from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import get_z_povm
 from quara.objects.state import (
     State,
+    to_density_matrix_from_var,
+    to_var_from_density_matrix,
+    to_vec_from_density_matrix_with_sparsity,
     convert_var_index_to_state_index,
     convert_state_index_to_var_index,
     convert_var_to_state,
-    convert_state_to_var,
+    convert_vec_to_var,
     calc_gradient_from_state,
     get_bell_2q,
     get_x0_1q,
@@ -813,6 +816,31 @@ class TestState:
         expected = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_calc_proj_eq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        vec = np.array([1, 0, 0, 0], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+
+        # case1: on_para_eq_constraint :default(True)
+        actual = state.calc_proj_eq_constraint_with_var(c_sys, state.to_var())
+        expected = np.array([0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case2: on_para_eq_constraint=True
+        actual = state.calc_proj_eq_constraint_with_var(
+            c_sys, state.to_var(), on_para_eq_constraint=True
+        )
+        expected = np.array([0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case3: on_para_eq_constraint=False
+        actual = state.calc_proj_eq_constraint_with_var(
+            c_sys, state.to_stacked_vector(), on_para_eq_constraint=False
+        )
+        expected = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_ineq_constraint(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -843,11 +871,46 @@ class TestState:
         )
         npt.assert_almost_equal(actual, expected, decimal=15)
 
+    def test_calc_proj_ineq_constraint_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        vec = np.array([1, 2, 0, 0], dtype=np.float64) / np.sqrt(2)
+        state = State(c_sys, vec, is_physicality_required=False)
+
+        # case1: on_para_eq_constraint: default(True)
+        actual = state.calc_proj_ineq_constraint_with_var(c_sys, state.to_var())
+        expected = np.array([3 * np.sqrt(2) / 4, 0, 0], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case2: on_para_eq_constraint=True
+        actual = state.calc_proj_ineq_constraint_with_var(
+            c_sys, state.to_var(), on_para_eq_constraint=True
+        )
+        expected = np.array([3 * np.sqrt(2) / 4, 0, 0], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case3: on_para_eq_constraint=False
+        actual = state.calc_proj_ineq_constraint_with_var(
+            c_sys, state.to_stacked_vector(), on_para_eq_constraint=False
+        )
+        expected = np.array(
+            [3 * np.sqrt(2) / 4, 3 * np.sqrt(2) / 4, 0, 0], dtype=np.float64
+        )
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_to_density_matrix(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         state = get_z0_1q(c_sys)
         actual = state.to_density_matrix()
+        expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_to_density_matrix_with_sparsity(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        actual = state.to_density_matrix_with_sparsity()
         expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
         npt.assert_almost_equal(actual, expected, decimal=15)
 
@@ -1352,6 +1415,58 @@ class TestState:
         assert actual.on_algo_ineq_constraint is source_on_algo_ineq_constraint
         assert actual.eps_proj_physical == source_eps_proj_physical
 
+    def test_convert_var_to_stacked_vector(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+
+        # case1: on_para_eq_constraint: default(True)
+        var = np.array([2, 3, 4], dtype=np.float64)
+        actual = state.convert_var_to_stacked_vector(c_sys, var)
+        expected = np.array([1 / np.sqrt(2), 2, 3, 4], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case2: on_para_eq_constraint=True
+        var = np.array([2, 3, 4], dtype=np.float64)
+        actual = state.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=True
+        )
+        expected = np.array([1 / np.sqrt(2), 2, 3, 4], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case3: on_para_eq_constraint=False
+        var = np.array([1, 2, 3, 4], dtype=np.float64)
+        actual = state.convert_var_to_stacked_vector(
+            c_sys, var, on_para_eq_constraint=False
+        )
+        expected = np.array([1, 2, 3, 4], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+    def test_convert_stacked_vector_to_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        vec = np.array([1, 2, 3, 4], dtype=np.float64)
+
+        # case1: on_para_eq_constraint: default(True)
+        actual = state.convert_stacked_vector_to_var(c_sys, vec)
+        expected = np.array([2, 3, 4], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case2: on_para_eq_constraint=True
+        actual = state.convert_stacked_vector_to_var(
+            c_sys, vec, on_para_eq_constraint=True
+        )
+        expected = np.array([2, 3, 4], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
+        # case3: on_para_eq_constraint=False
+        actual = state.convert_stacked_vector_to_var(
+            c_sys, vec, on_para_eq_constraint=False
+        )
+        expected = np.array([1, 2, 3, 4], dtype=np.float64)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+
     def test_calc_proj_physical(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -1436,6 +1551,43 @@ class TestState:
         assert len(history["error_value"]) == 27
         assert history["y"][0] == None
         assert history["error_value"][0] == None
+
+        # check max_iteration
+        max_iteration = 10
+        vec = np.array([1, 0, 0, 1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual, history = state.calc_proj_physical(
+            max_iteration=max_iteration, is_iteration_history=True
+        )
+        assert len(history["x"]) == max_iteration + 1
+
+    def test_calc_proj_physical_with_var(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+
+        # z0 -> z0
+        z0 = get_z0_1q(c_sys)
+        actual = z0.calc_proj_physical_with_var(z0.to_var())
+        expected = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=15)
+        # assert actual.is_physical(actual.eps_proj_physical) == True
+
+        # [1, 0, 0, 1] -> z0
+        vec = np.array([1, 0, 0, 1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual = z0.calc_proj_physical_with_var(state.to_var())
+        expected = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+        npt.assert_almost_equal(actual, expected, decimal=4)
+        # assert actual.is_physical(actual.eps_proj_physical) == True
+
+        # check max_iteration
+        max_iteration = 10
+        vec = np.array([1, 0, 0, 1], dtype=np.float64)
+        state = State(c_sys, vec, is_physicality_required=False)
+        actual, history = state.calc_proj_physical_with_var(
+            state.to_var(), max_iteration=max_iteration, is_iteration_history=True
+        )
+        assert len(history["x"]) == max_iteration + 1
 
     def test_calc_stopping_criterion_birgin_raydan_vectors(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1679,6 +1831,94 @@ class TestState:
         assert actual_qobj.is_physical() == True
 
 
+def test_to_density_matrix_from_var():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+
+    # Case 1: on_para_eq_constraint: default(True)
+    actual = to_density_matrix_from_var(c_sys, state.to_var())
+    expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 2: on_para_eq_constraint=True
+    actual = to_density_matrix_from_var(
+        c_sys, state.to_var(), on_para_eq_constraint=True
+    )
+    expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 3: on_para_eq_constraint=False
+    actual = to_density_matrix_from_var(
+        c_sys, state.to_stacked_vector(), on_para_eq_constraint=False
+    )
+    expected = np.array([[1, 0], [0, 0]], dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_to_var_from_density_matrix():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+
+    # Case 1: on_para_eq_constraint: default(True)
+    actual = to_var_from_density_matrix(c_sys, state.to_density_matrix())
+    expected = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 2: on_para_eq_constraint=True
+    actual = to_var_from_density_matrix(
+        c_sys, state.to_density_matrix(), on_para_eq_constraint=True
+    )
+    expected = np.array([0, 0, 1], dtype=np.float64) / np.sqrt(2)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 3: on_para_eq_constraint=False
+    actual = to_var_from_density_matrix(
+        c_sys, state.to_density_matrix(), on_para_eq_constraint=False
+    )
+    expected = np.array([1, 0, 0, 1], dtype=np.float64) / np.sqrt(2)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_to_vec_from_density_matrix_with_sparsity():
+    # Case 1:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_x0_1q(c_sys)
+    density_matrix = state.to_density_matrix()
+    # Act
+    actual = to_vec_from_density_matrix_with_sparsity(c_sys, density_matrix)
+    # Assert
+    expected = state.vec
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 2:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_y0_1q(c_sys)
+    density_matrix = state.to_density_matrix()
+    # Act
+    actual = to_vec_from_density_matrix_with_sparsity(c_sys, density_matrix)
+    # Assert
+    expected = state.vec
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # Case 3:
+    # Arrange
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+    state = get_z0_1q(c_sys)
+    density_matrix = state.to_density_matrix()
+    # Act
+    actual = to_vec_from_density_matrix_with_sparsity(c_sys, density_matrix)
+    # Assert
+    expected = state.vec
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
 def test_convert_var_index_to_state_index():
     # default
     actual = convert_var_index_to_state_index(1)
@@ -1749,14 +1989,14 @@ def test_convert_var_to_state():
     assert np.all(actual.vec == expected)
 
 
-def test_convert_state_to_var():
+def test_convert_vec_to_var():
     # Arrange
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
 
     # Case 1: default
     # Act
-    actual = convert_state_to_var(
+    actual = convert_vec_to_var(
         c_sys, np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64)
     )
     # Assert
@@ -1765,7 +2005,7 @@ def test_convert_state_to_var():
 
     # Case 2: on_para_eq_constraint=True
     # Act
-    actual = convert_state_to_var(
+    actual = convert_vec_to_var(
         c_sys,
         np.array([1 / np.sqrt(2), 1, 2, 3], dtype=np.float64),
         on_para_eq_constraint=True,
@@ -1776,7 +2016,7 @@ def test_convert_state_to_var():
 
     # Case 3: on_para_eq_constraint=False
     # Act
-    actual = convert_state_to_var(
+    actual = convert_vec_to_var(
         c_sys, np.array([1, 2, 3, 4], dtype=np.float64), on_para_eq_constraint=False
     )
     # Assert

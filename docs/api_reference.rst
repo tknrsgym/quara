@@ -14,4 +14,6 @@ API Reference
    quara.simulation
    quara.utils
    quara.settings
+   quara.interface
+
 

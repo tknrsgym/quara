@@ -32,6 +32,7 @@ class Povm(QOperation):
         on_algo_ineq_constraint: bool = True,
         mode_proj_order: str = "eq_ineq",
         eps_proj_physical: float = None,
+        eps_truncate_imaginary_part: float = None,
     ):
         """Constructor
 
@@ -69,6 +70,7 @@ class Povm(QOperation):
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             mode_proj_order=mode_proj_order,
             eps_proj_physical=eps_proj_physical,
+            eps_truncate_imaginary_part=eps_truncate_imaginary_part,
         )
 
         # Set
@@ -186,7 +188,7 @@ class Povm(QOperation):
         return new_vecs
 
     def to_var(self) -> np.ndarray:
-        return convert_povm_to_var(
+        return convert_vecs_to_var(
             c_sys=self.composite_system,
             vecs=list(self.vecs),
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -207,11 +209,12 @@ class Povm(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return povm
 
     def calc_proj_eq_constraint(self):
-        if not self.composite_system.basis().is_hermitian():
+        if not self.composite_system.is_basis_hermitian:
             raise ValueError("basis is not hermitian.")
 
         size = self.dim ** 2
@@ -240,27 +243,79 @@ class Povm(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_povm
+
+    @staticmethod
+    def calc_proj_eq_constraint_with_var(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """calculates the projection of povm on equal constraint.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this variables.
+        var : np.ndarray
+            variables.
+        on_para_eq_constraint : bool, optional
+            whether this variables is on parameter equality constraint, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            the projection of povm on equal constraint.
+        """
+        # var to vecs
+        vecs = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
+
+        # project
+        size = c_sys.dim ** 2
+        m = len(vecs)
+
+        # c = [√d/m, 0, 0, ...]
+        c = np.hstack(
+            [
+                np.array([np.sqrt(c_sys.dim) / m], dtype=np.float64),
+                np.zeros(size - 1, dtype=np.float64),
+            ]
+        )
+        a_bar = np.sum(np.array(vecs), axis=0) / m
+
+        new_vecs = []
+        for vec in vecs:
+            new_vec = vec - a_bar + c
+            new_vecs.append(new_vec)
+
+        # vecs to var
+        new_var = convert_vecs_to_var(c_sys, new_vecs, on_para_eq_constraint)
+
+        return new_var
 
     def calc_proj_ineq_constraint(self) -> "Povm":
         new_vecs = []
 
-        for matrix in self.matrices():
+        for matrix in self.matrices_with_sparsity():
+            # calc engenvalues and engenvectors
             eigenvals, eigenvec = np.linalg.eigh(matrix)
 
+            # project
             #     |λ0          |
             # Λ = |    ...     |
             #     |        λd-1|
             diag = np.diag(eigenvals)
             diag[diag < 0] = 0
 
+            # calc new vecs
             new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
-            new_vec = [
-                np.vdot(basis, new_matrix).real.astype(np.float64)
-                for basis in self.composite_system.basis()
-            ]
-            new_vec = np.array(new_vec, dtype=np.float64)
+            new_vec = to_vec_from_matrix_with_sparsity(
+                self.composite_system,
+                new_matrix,
+                eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+            )
             new_vecs.append(new_vec)
 
         new_povm = Povm(
@@ -273,9 +328,63 @@ class Povm(QOperation):
             on_algo_ineq_constraint=self.on_algo_ineq_constraint,
             mode_proj_order=self.mode_proj_order,
             eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
 
         return new_povm
+
+    @staticmethod
+    def calc_proj_ineq_constraint_with_var(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+        eps_truncate_imaginary_part: float = None,
+    ) -> np.ndarray:
+        """calculates the projection of State on inequal constraint.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this variables.
+        var : np.ndarray
+            variables.
+        on_para_eq_constraint : bool, optional
+            whether this variables is on parameter equality constraint, by default True.
+        eps_truncate_imaginary_part : float, optional
+            threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
+
+        Returns
+        -------
+        np.ndarray
+            the projection of State on inequal constraint.
+        """
+        # var to matrices
+        matrices = to_matrices_from_var(c_sys, var, on_para_eq_constraint)
+        new_vecs = []
+        for matrix in matrices:
+            # calc engenvalues and engenvectors
+            eigenvals, eigenvec = np.linalg.eigh(matrix)
+
+            # project
+            #     |λ0          |
+            # Λ = |    ...     |
+            #     |        λd-1|
+            diag = np.diag(eigenvals)
+            diag[diag < 0] = 0
+
+            # calc new vecs
+            new_matrix = eigenvec @ diag @ eigenvec.T.conjugate()
+            new_vec = to_vec_from_matrix_with_sparsity(
+                c_sys,
+                new_matrix,
+                eps_truncate_imaginary_part=eps_truncate_imaginary_part,
+            )
+            new_vecs.append(new_vec)
+
+        # vecs to var
+        new_var = convert_vecs_to_var(c_sys, new_vecs, on_para_eq_constraint)
+
+        return new_var
 
     def _generate_from_var_func(self):
         return convert_var_to_povm
@@ -292,6 +401,15 @@ class Povm(QOperation):
     def is_satisfied_stopping_criterion_birgin_raydan_qoperations(self):
         raise NotImplementedError()
 
+    def _md_index2serial_index(self, md_index: Tuple[int]):
+        serial_index_array = np.array(range(self._num_outcomes)).reshape(
+            self.nums_local_outcomes
+        )
+        target = serial_index_array
+        for i in md_index:
+            target = target[i]
+        return target  # serial index
+
     def vec(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns vec of measurement by index.
 
@@ -299,8 +417,8 @@ class Povm(QOperation):
         ----------
         index : Union[int, Tuple]
             index of vec of measurement.
-            if type is int, then regardes it as the index for CompositeSystem.
-            if type is Tuple, then regardes it as the indices for earch ElementalSystems.
+            If type is an int, access is one-dimensional.
+            If type is tuple, access is multi-dimensional.
         Returns
         -------
         np.ndarray
@@ -320,16 +438,8 @@ class Povm(QOperation):
                     f"length of tuple must equal length of the list of measurements. length of tuple={len(index)}, length of the list of measurements={len(self.nums_local_outcomes)}"
                 )
 
-            # calculate index in _vecs by traversing the tuple from the back.
-            # for example, if length of _measurements is 3 and each numbers are len1, len2, len3,
-            # then index in _basis of tuple(x1, x2, x3) can be calculated the following expression:
-            #   x1 * (len2 * len3) + x2 * len3 + x3
-            temp_grobal_index = 0
-            temp_len = 1
-            for position, local_index in enumerate(reversed(index)):
-                temp_grobal_index += local_index * temp_len
-                temp_len = temp_len * (self.nums_local_outcomes[position])
-            return self._vecs[temp_grobal_index]
+            serial_index = self._md_index2serial_index(index)
+            return self._vecs[serial_index]
         else:
             return self._vecs[index]
 
@@ -349,6 +459,18 @@ class Povm(QOperation):
                 matrix += coefficient * basis
             matrix_list.append(matrix)
         return matrix_list
+
+    def matrices_with_sparsity(self) -> List[np.ndarray]:
+        """returns matrices of measurements.
+
+        this function uses the scipy.sparse module.
+
+        Returns
+        -------
+        List[np.ndarray]
+            matrices of measurements.
+        """
+        return to_matrices_from_vecs(self.composite_system, self.vecs)
 
     def matrix(self, index: Union[int, Tuple]) -> np.ndarray:
         """returns matrix of measurement.
@@ -373,6 +495,27 @@ class Povm(QOperation):
 
         return matrix
 
+    def matrix_with_sparsity(self, index: Union[int, Tuple]) -> np.ndarray:
+        """returns matrix of measurement.
+
+        this function uses the scipy.sparse module.
+
+        Parameters
+        ----------
+        index : Union[int, Tuple]
+            index of vec of measurement.
+            if type is int, then regardes it as the index for CompositeSystem.
+            if type is Tuple, then regardes it as the indices for earch ElementalSystems.
+        Returns
+        -------
+        np.ndarray
+            matrix of measurement.
+        """
+        vec = self.vec(index)
+        new_vec = c_sys._basis_T_sparse.dot(self.vec)
+        matrix = new_vec.reshape((self.dim, self.dim))
+        return matrix
+
     def is_hermitian(self) -> bool:
         """Returns whether the povm is a set of Hermit matrices.
 
@@ -381,7 +524,7 @@ class Povm(QOperation):
         bool
             If `True`, the povm is a set of Hermit matrices.
         """
-        for m in self.matrices():
+        for m in self.matrices_with_sparsity():
             if not mutil.is_hermitian(m):
                 return False
         return True
@@ -396,7 +539,7 @@ class Povm(QOperation):
         """
         atol = Settings.get_atol() if atol is None else atol
 
-        for m in self.matrices():
+        for m in self.matrices_with_sparsity():
             if not mutil.is_positive_semidefinite(m, atol):
                 return False
 
@@ -419,7 +562,7 @@ class Povm(QOperation):
     def _sum_matrix(self):
         size = [self.dim, self.dim]
         sum_matrix = np.zeros(size, dtype=np.complex128)
-        for m in self.matrices():
+        for m in self.matrices_with_sparsity():
             sum_matrix += np.reshape(m, size)
 
         return sum_matrix
@@ -442,13 +585,13 @@ class Povm(QOperation):
 
         size = [self._dim, self._dim]
         if index is not None:
-            v = self.matrices()[index]
+            v = self.matrices_with_sparsity()[index]
             w = np.linalg.eigvalsh(v)
             w = sorted(w, reverse=True)
             return w
         else:
             w_list = []
-            for v in self.matrices():
+            for v in self.matrices_with_sparsity():
                 w = np.linalg.eigvalsh(v)
                 w = sorted(w, reverse=True)
                 w_list.append(w)
@@ -516,6 +659,205 @@ class Povm(QOperation):
             new_vecs = [vec / other for vec in self.vecs]
             return new_vecs
 
+    @staticmethod
+    def convert_var_to_stacked_vector(
+        c_sys: CompositeSystem,
+        var: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """converts variables of povm to stacked vector of povm.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this povm.
+        var : np.ndarray
+            variables of povm.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            stacked vector of povm.
+        """
+        if on_para_eq_constraint:
+            vecs = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
+            stacked_vector = np.hstack(vecs)
+        else:
+            stacked_vector = var
+        return stacked_vector
+
+    @staticmethod
+    def convert_stacked_vector_to_var(
+        c_sys: CompositeSystem,
+        stacked_vector: np.ndarray,
+        on_para_eq_constraint: bool = True,
+    ) -> np.ndarray:
+        """converts stacked vector of povm to variables of povm.
+
+        Parameters
+        ----------
+        c_sys : CompositeSystem
+            CompositeSystem of this povm.
+        stacked_vector : np.ndarray
+            stacked vector of povm.
+        on_para_eq_constraint : bool, optional
+            uses equal constraints, by default True.
+
+        Returns
+        -------
+        np.ndarray
+            variables of povm.
+        """
+        if on_para_eq_constraint:
+            vecs = convert_var_to_vecs(
+                c_sys, stacked_vector, on_para_eq_constraint=False
+            )
+            var = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint)
+        else:
+            var = stacked_vector
+
+        return var
+
+
+def to_matrices_from_vecs(
+    c_sys: CompositeSystem, vecs: List[np.ndarray]
+) -> List[np.ndarray]:
+    """returns matrices of measurements.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+    List[np.ndarray]
+        matrices of vec of this povm.
+
+    Returns
+    -------
+    List[np.ndarray]
+        matrices of measurements.
+    """
+    matrices = []
+    for vec in vecs:
+        new_vec = c_sys._basis_T_sparse.dot(vec)
+        matrix = new_vec.reshape((c_sys.dim, c_sys.dim))
+        matrices.append(matrix)
+    return matrices
+
+
+def to_vec_from_matrix_with_sparsity(
+    c_sys: CompositeSystem,
+    matrix: np.ndarray,
+    eps_truncate_imaginary_part: float = None,
+) -> np.ndarray:
+    """converts matrix to vec.
+
+    this function uses the scipy.sparse module.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+    matrix : np.ndarray
+        matrix of vec of this povm.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.ndarray
+        vec of variables.
+    """
+    vec = c_sys._basisconjugate_sparse.dot(matrix.flatten())
+    return mutil.truncate_hs(
+        vec, eps_truncate_imaginary_part=eps_truncate_imaginary_part
+    )
+
+
+def to_vecs_from_matrices_with_sparsity(
+    c_sys: CompositeSystem, matrices: List[np.ndarray]
+) -> np.ndarray:
+    """converts matrices to vecs.
+
+    this function uses the scipy.sparse module.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+    matrices : List[np.ndarray]
+        matrices of this povm.
+
+    Returns
+    -------
+    np.ndarray
+        vecs of variables.
+    """
+    vecs = []
+    for matrix in matrices:
+        new_vec = to_vec_from_matrix_with_sparsity(c_sys, matrix)
+        vecs.append(new_vec)
+    return vecs
+
+
+def to_matrices_from_var(
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    on_para_eq_constraint: bool = True,
+) -> List[np.ndarray]:
+    """converts var to matrices.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+    var : np.ndarray
+        variables of povm elements.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    List[np.ndarray]
+        matrices of this povm.
+    """
+    # var to vecs
+    vecs = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
+
+    # vecs to matrices
+    matrices = to_matrices_from_vecs(c_sys, vecs)
+    return matrices
+
+
+def to_var_from_matrices(
+    c_sys: CompositeSystem,
+    matrices: List[np.ndarray],
+    on_para_eq_constraint: bool = True,
+) -> np.ndarray:
+    """converts matrices to var.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+    matrices : List[np.ndarray]
+        matrices of this povm.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    np.ndarray
+        variables of povm elements.
+    """
+    # matrices to vecs
+    vecs = to_vecs_from_matrices_with_sparsity(c_sys, matrices)
+
+    # vecs to var
+    var = convert_vecs_to_var(c_sys, vecs, on_para_eq_constraint)
+    return var
+
 
 def convert_var_index_to_povm_index(
     c_sys: CompositeSystem,
@@ -580,32 +922,24 @@ def convert_povm_index_to_var_index(
     return var_index
 
 
-def convert_var_to_povm(
-    c_sys: CompositeSystem,
-    var: np.ndarray,
-    is_physicality_required: bool = True,
-    is_estimation_object: bool = True,
-    on_para_eq_constraint: bool = True,
-    on_algo_eq_constraint: bool = True,
-    on_algo_ineq_constraint: bool = True,
-    mode_proj_order: str = "eq_ineq",
-    eps_proj_physical: float = None,
-) -> Povm:
-    """converts vec of variables to povm.
+def convert_var_to_vecs(
+    c_sys: CompositeSystem, var: np.ndarray, on_para_eq_constraint: bool = True
+) -> List[np.ndarray]:
+    """converts variables to vecs.
 
     Parameters
     ----------
     c_sys : CompositeSystem
-        CompositeSystem of this povm.
-    var : List[np.ndarray]
-        list of vec of povm elements.
+        CompositeSystem of this gate.
+    var : np.ndarray
+        variables of povm elements.
     on_para_eq_constraint : bool, optional
         uses equal constraints, by default True.
 
     Returns
     -------
-    Povm
-        converted povm.
+    List[np.ndarray]
+        list of vec of povm elements.
     """
     vecs = copy.copy(var)
     dim = c_sys.dim
@@ -633,6 +967,37 @@ def convert_var_to_povm(
     # convert np.ndarray to list of np.ndarray
     for vec in reshaped_vecs:
         vec_list.append(vec)
+    return vec_list
+
+
+def convert_var_to_povm(
+    c_sys: CompositeSystem,
+    var: np.ndarray,
+    is_physicality_required: bool = True,
+    is_estimation_object: bool = True,
+    on_para_eq_constraint: bool = True,
+    on_algo_eq_constraint: bool = True,
+    on_algo_ineq_constraint: bool = True,
+    mode_proj_order: str = "eq_ineq",
+    eps_proj_physical: float = None,
+) -> Povm:
+    """converts vec of variables to povm.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this povm.
+    var : List[np.ndarray]
+        list of vec of povm elements.
+    on_para_eq_constraint : bool, optional
+        uses equal constraints, by default True.
+
+    Returns
+    -------
+    Povm
+        converted povm.
+    """
+    vec_list = convert_var_to_vecs(c_sys, var, on_para_eq_constraint)
     povm = Povm(
         c_sys,
         vec_list,
@@ -647,7 +1012,7 @@ def convert_var_to_povm(
     return povm
 
 
-def convert_povm_to_var(
+def convert_vecs_to_var(
     c_sys: CompositeSystem, vecs: List[np.ndarray], on_para_eq_constraint: bool = True
 ) -> np.ndarray:
     """converts hs of povm to vec of variables.
@@ -683,6 +1048,7 @@ def calc_gradient_from_povm(
     on_algo_ineq_constraint: bool = True,
     mode_proj_order: str = "eq_ineq",
     eps_proj_physical: float = None,
+    eps_truncate_imaginary_part: float = None,
 ) -> Povm:
     """calculates gradient from gate.
 
@@ -721,6 +1087,7 @@ def calc_gradient_from_povm(
         on_algo_ineq_constraint=on_algo_ineq_constraint,
         mode_proj_order=mode_proj_order,
         eps_proj_physical=eps_proj_physical,
+        eps_truncate_imaginary_part=eps_truncate_imaginary_part,
     )
     return povm
 
