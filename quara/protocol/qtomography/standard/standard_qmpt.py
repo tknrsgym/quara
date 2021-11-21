@@ -109,8 +109,27 @@ class StandardQmpt(StandardQTomography):
         return self._on_para_eq_constraint
 
     @property
-    def num_outcomes(self):
+    def num_outcomes_estimate(self):
         return self._num_outcomes
+
+    def num_outcomes(self, schedule_index: int) -> int:
+        """returns the number of outcomes of probability distribution of a schedule index.
+
+        Parameters
+        ----------
+        schedule_index: int
+
+        Returns
+        -------
+        int
+            the number of outcomes
+        """
+        assert schedule_index >= 0
+        assert schedule_index < self.num_schedules
+        povm_index = self._experiment.schedules[schedule_index][2][1]
+        num_outcomes_povm = len(self._experiment._povms[povm_index].vecs)
+        num_outcomes_mprocess = self._num_outcomes
+        return num_outcomes_povm * num_outcomes_mprocess
 
     def estimation_object_type(self) -> type:
         return MProcess
