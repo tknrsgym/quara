@@ -222,8 +222,8 @@ class TestMultinomialDistribution:
         # case 2: random_generator is int
         actual = dist.execute_random_sampling(num, size, random_generator=7)
         expected = [
-            np.array([6, 24, 27, 43]),
-            np.array([8, 20, 25, 47]),
+            np.array([8, 22, 30, 40]),
+            np.array([13, 21, 33, 33]),
         ]
         assert len(actual) == size
         for a, e in zip(actual, expected):
@@ -232,8 +232,8 @@ class TestMultinomialDistribution:
 
         # case 3: random_generator is Generator
         expected = [
-            np.array([6, 24, 27, 43]),
-            np.array([8, 20, 25, 47]),
+            np.array([8, 22, 30, 40]),
+            np.array([13, 21, 33, 33]),
         ]
         random_gen = np.random.Generator(np.random.MT19937(7))
         actual = dist.execute_random_sampling(num, size, random_generator=random_gen)

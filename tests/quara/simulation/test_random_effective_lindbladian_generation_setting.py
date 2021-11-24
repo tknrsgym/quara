@@ -242,36 +242,37 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         ### generate
         # Act(seed_or_generator: default)
         seed = 7
+        # Compare that the results are the same the first time and the second time.
+        # 1_1
         np.random.seed(seed)
-        (
-            state1,
-            random_variables_h_part,
-            random_variables_k_part,
-            random_unitary,
-            random_el,
-        ) = generation_setting.generate()
+        state1_1, *_ = generation_setting.generate()
+        # 1_2
+        np.random.seed(seed)
+        state1_2, *_ = generation_setting.generate()
+        # Assert
+        npt.assert_almost_equal(state1_1.to_var(), state1_2.to_var(), decimal=15)
 
         # Act(seed_or_generator: int)
-        (
-            state2,
-            random_variables_h_part,
-            random_variables_k_part,
-            random_unitary,
-            random_el,
-        ) = generation_setting.generate(7)
+        # Compare that the results are the same the first time and the second time.
+        # 2_1
+        state2_1, *_ = generation_setting.generate(7)
+        state2_2, *_ = generation_setting.generate(7)
+        # Assert
+        npt.assert_almost_equal(state2_1.to_var(), state2_2.to_var(), decimal=15)
 
         # Act(seed_or_generator: Generator)
+        # Compare that the results are the same the first time and the second time.
+        # 3_1
         random_gen = np.random.Generator(np.random.MT19937(7))
-        (
-            state3,
-            random_variables_h_part,
-            random_variables_k_part,
-            random_unitary,
-            random_el,
-        ) = generation_setting.generate(random_gen)
+        state3_1, *_ = generation_setting.generate(random_gen)
+        # 3_2
+        random_gen = np.random.Generator(np.random.MT19937(7))
+        state3_2, *_ = generation_setting.generate(random_gen)
+        # Assert
+        npt.assert_almost_equal(state3_1.to_var(), state3_2.to_var(), decimal=15)
 
-        npt.assert_almost_equal(state1.to_var(), state2.to_var(), decimal=15)
-        npt.assert_almost_equal(state2.to_var(), state3.to_var(), decimal=15)
+        # Assert
+        npt.assert_almost_equal(state2_1.to_var(), state3_1.to_var(), decimal=15)
 
     def test_generate_gate(self):
         # Arrange
