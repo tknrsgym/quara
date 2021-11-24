@@ -278,7 +278,7 @@ def test_execute_simulation_with_seed_or_generator():
         true_object=true_object,
         tester_objects=tester_objects,
         estimator=LinearEstimator(),
-        seed_data=888,
+        seed_data=777,
         n_rep=5,
         num_data=[10],
         schedules=None,
