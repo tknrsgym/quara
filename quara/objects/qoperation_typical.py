@@ -54,6 +54,8 @@ def generate_qoperation_depolarized(
         qoperation_depolarized = compose_qoperations(qoperation, dp)
     elif mode == "gate":
         qoperation_depolarized = compose_qoperations(dp, qoperation)
+    elif mode == "mprocess":
+        qoperation_depolarized = compose_qoperations(dp, qoperation)
     else:
         raise ValueError(f"mode is invalid.")
 
