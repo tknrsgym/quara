@@ -266,7 +266,6 @@ def execute(
             c_sys=c_sys,
         )
         test_settings.append(test_setting)
-    print(f"{data_saving=}")
     all_results = execute_simulation_test_settings(
         test_settings,
         output_root_dir,
