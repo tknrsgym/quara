@@ -170,9 +170,7 @@ class StandardQTomographySimulationCheck:
     def execute_mse_of_estimators_check(self, show_detail: bool = True):
         try:
             result = check_mse_of_estimators(
-                simulation_setting=self.simulation_result.simulation_setting,
-                estimation_results=self.simulation_result.estimation_results,
-                qtomography=self.simulation_result.qtomography,
+                simulation_result=self.simulation_result,
                 show_detail=show_detail,
             )
         except TypeError as e:

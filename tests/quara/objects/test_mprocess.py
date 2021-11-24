@@ -276,7 +276,7 @@ class TestMProcess:
         with pytest.raises(AttributeError):
             mprocess.mode_sampling = False
 
-    def test_access_random_seed_or_state(self):
+    def test_access_random_seed_or_generator(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -290,40 +290,40 @@ class TestMProcess:
 
         # case 1: default(None)
         mprocess = MProcess(c_sys, hss)
-        assert mprocess.random_seed_or_state == None
+        assert mprocess.random_seed_or_generator == None
 
-        # case 2: random_seed_or_state=1
-        mprocess = MProcess(c_sys, hss, mode_sampling=True, random_seed_or_state=1)
-        assert mprocess.random_seed_or_state == 1
+        # case 2: random_seed_or_generator=1
+        mprocess = MProcess(c_sys, hss, mode_sampling=True, random_seed_or_generator=1)
+        assert mprocess.random_seed_or_generator == 1
 
-        # Test that "random_seed_or_state" cannot be updated
+        # Test that "random_seed_or_generator" cannot be updated
         with pytest.raises(AttributeError):
-            mprocess.random_seed_or_state = 1
+            mprocess.random_seed_or_generator = 1
 
     def test_set_mode_sampling(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
         mprocess = generate_mprocess_from_name(c_sys, "z-type1")
 
-        # case 1: mode_sampling=True, random_seed_or_state=None
+        # case 1: mode_sampling=True, random_seed_or_generator=None
         mprocess.set_mode_sampling(True)
         assert mprocess.mode_sampling == True
-        assert mprocess.random_seed_or_state == None
+        assert mprocess.random_seed_or_generator == None
 
-        # case 2: mode_sampling=True, random_seed_or_state=1
-        mprocess.set_mode_sampling(True, random_seed_or_state=1)
+        # case 2: mode_sampling=True, random_seed_or_generator=1
+        mprocess.set_mode_sampling(True, random_seed_or_generator=1)
         assert mprocess.mode_sampling == True
-        assert mprocess.random_seed_or_state == 1
+        assert mprocess.random_seed_or_generator == 1
 
         # case 3: mode_sampling=True -> mode_sampling=False
-        mprocess.set_mode_sampling(True, random_seed_or_state=1)
+        mprocess.set_mode_sampling(True, random_seed_or_generator=1)
         mprocess.set_mode_sampling(False)
         assert mprocess.mode_sampling == False
-        assert mprocess.random_seed_or_state == None
+        assert mprocess.random_seed_or_generator == None
 
         # case 4: mode_sampling=False, mode_sampling is not None
         with pytest.raises(ValueError):
-            mprocess.set_mode_sampling(False, random_seed_or_state=1)
+            mprocess.set_mode_sampling(False, random_seed_or_generator=1)
 
     def test_access_eps_zero(self):
         # Arrange
@@ -1434,7 +1434,7 @@ class TestMProcess:
         npt.assert_almost_equal(actual.hs(1), expected_1, decimal=15)
         assert actual.shape == (2,)
         assert actual.mode_sampling == False
-        assert actual.random_seed_or_state == None
+        assert actual.random_seed_or_generator == None
 
     def test_convert_var_to_stacked_vector(self):
         # Arrange

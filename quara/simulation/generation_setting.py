@@ -16,10 +16,10 @@ class QOperationGenerationSetting:
         c_sys: "CompositeSystem",
         qoperation_base: Union[QOperation, Tuple[str]],
         ids: List[int] = None,
-        is_seed_or_stream_required: bool = False,
+        is_seed_or_generator_required: bool = False,
     ) -> None:
         self._composite_system = c_sys
-        self._is_seed_or_stream_required = is_seed_or_stream_required
+        self._is_seed_or_generator_required = is_seed_or_generator_required
 
         type_error_message = "Type of 'qoperation_base' must be QOperation or tuple of length 2 containing the string (`('state', 'z0')`, etc.), "
         type_error_message += f"not {type(qoperation_base)}"
@@ -51,8 +51,8 @@ class QOperationGenerationSetting:
         return self._qoperation_base
 
     @property
-    def is_seed_or_stream_required(self):
-        return self._is_seed_or_stream_required
+    def is_seed_or_generator_required(self):
+        return self._is_seed_or_generator_required
 
     def generate(self):
         if type(self.qoperation_base) == State:

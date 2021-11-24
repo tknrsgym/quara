@@ -21,7 +21,7 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
         super().__init__(
             c_sys=c_sys,
             qoperation_base=qoperation_base,
-            is_seed_or_stream_required=False,
+            is_seed_or_generator_required=False,
             ids=ids,
         )
         self._error_rate = error_rate

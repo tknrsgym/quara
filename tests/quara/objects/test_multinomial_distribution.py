@@ -213,31 +213,30 @@ class TestMultinomialDistribution:
         num = 100
         size = 2
 
-        # case 1: random_state is None
+        # case 1: random_generator is None
         actual = dist.execute_random_sampling(num, size)
         assert len(actual) == size
         for a in actual:
             assert np.sum(a) == num
 
-        # case 2: random_state is int
-        actual = dist.execute_random_sampling(num, size, random_state=7)
+        # case 2: random_generator is int
+        actual = dist.execute_random_sampling(num, size, random_generator=7)
         expected = [
-            np.array([6, 24, 27, 43]),
-            np.array([8, 20, 25, 47]),
+            np.array([8, 22, 30, 40]),
+            np.array([13, 21, 33, 33]),
         ]
         assert len(actual) == size
         for a, e in zip(actual, expected):
             assert np.sum(a) == num
             npt.assert_almost_equal(a, e, decimal=15)
 
-        # case 3: random_state is RandomState
+        # case 3: random_generator is Generator
         expected = [
-            np.array([6, 24, 27, 43]),
-            np.array([8, 20, 25, 47]),
+            np.array([8, 22, 30, 40]),
+            np.array([13, 21, 33, 33]),
         ]
-        actual = dist.execute_random_sampling(
-            num, size, random_state=np.random.RandomState(7)
-        )
+        random_gen = np.random.Generator(np.random.MT19937(7))
+        actual = dist.execute_random_sampling(num, size, random_generator=random_gen)
         assert len(actual) == size
         for a, e in zip(actual, expected):
             assert np.sum(a) == num
