@@ -234,14 +234,24 @@ class TestStandardQst:
 
         # seed_or_generator : default
         np.random.seed(7)
-        actual1 = qst.generate_empi_dist(0, state, 10)
+        actual1_1 = qst.generate_empi_dist(0, state, 10)
+        np.random.seed(7)
+        actual1_2 = qst.generate_empi_dist(0, state, 10)
+        npt.assert_almost_equal(actual1_1[1], actual1_2[1], decimal=15)
+
         # seed_or_generator : int
-        actual2 = qst.generate_empi_dist(0, state, 10, seed_or_generator=7)
+        actual2_1 = qst.generate_empi_dist(0, state, 10, seed_or_generator=7)
+        actual2_2 = qst.generate_empi_dist(0, state, 10, seed_or_generator=7)
+        npt.assert_almost_equal(actual2_1[1], actual2_2[1], decimal=15)
+
         # seed_or_generator : np.random.Generator
         random_gen = random_gen = np.random.Generator(np.random.MT19937(7))
-        actual3 = qst.generate_empi_dist(0, state, 10, seed_or_generator=random_gen)
-        npt.assert_almost_equal(actual1[1], actual2[1], decimal=15)
-        npt.assert_almost_equal(actual2[1], actual3[1], decimal=15)
+        actual3_1 = qst.generate_empi_dist(0, state, 10, seed_or_generator=random_gen)
+        random_gen = random_gen = np.random.Generator(np.random.MT19937(7))
+        actual3_2 = qst.generate_empi_dist(0, state, 10, seed_or_generator=random_gen)
+        npt.assert_almost_equal(actual3_1[1], actual3_2[1], decimal=15)
+
+        npt.assert_almost_equal(actual2_1[1], actual3_1[1], decimal=15)
 
     def test_generate_empi_dists(self):
         qst, c_sys = get_test_data()
