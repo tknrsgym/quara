@@ -230,7 +230,7 @@ class TestMultinomialDistribution:
             assert np.sum(a) == num
             npt.assert_almost_equal(a, e, decimal=15)
 
-        # case 3: random_state is RandomState
+        # case 3: random_state is Generator
         expected = [
             np.array([6, 24, 27, 43]),
             np.array([8, 20, 25, 47]),

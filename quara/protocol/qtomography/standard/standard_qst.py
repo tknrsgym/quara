@@ -183,7 +183,7 @@ class StandardQst(StandardQTomography):
         schedule_index: int,
         state: State,
         num_sum: int,
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[int, np.ndarray]:
         """Generate empirical distribution using the data generated from probability distribution of specified schedules.
 
@@ -195,9 +195,9 @@ class StandardQst(StandardQTomography):
             true object.
         num_sum : int
             the number of data to use to generate the experience distributions for each schedule.
-        seed_or_generator : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 
@@ -220,7 +220,7 @@ class StandardQst(StandardQTomography):
         self,
         state: State,
         num_sum: int,
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[Tuple[int, np.ndarray]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -244,7 +244,7 @@ class StandardQst(StandardQTomography):
         self,
         state: State,
         num_sums: List[int],
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[List[Tuple[int, np.ndarray]]]:
         """Generate sequence of empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -254,9 +254,9 @@ class StandardQst(StandardQTomography):
             true object.
         num_sums : List[int]
             list of the number of data to use to generate the experience distributions for each schedule.
-        seed_or_generator : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 

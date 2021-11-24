@@ -20,7 +20,7 @@ def _random_number_to_data(probdist: np.ndarray, random_number: np.float64) -> i
 def generate_data_from_prob_dist(
     prob_dist: np.ndarray,
     data_num: int,
-    seed_or_generator: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.Generator] = None,
     atol: float = None,
 ) -> List[int]:
     """generates random data from a probability distribution.
@@ -36,9 +36,9 @@ def generate_data_from_prob_dist(
         a probability distribution used to generate random data.
     data_num : int
         length of the data.
-    seed_or_generator : Union[int, np.random.RandomState], optional
+    seed_or_generator : Union[int, np.random.Generator], optional
         If the type is int, it is assumed to be a seed used to generate random data.
-        If the type is RandomState, it is used to generate random data.
+        If the type is Generator, it is used to generate random data.
         If argument is None, np.random is used to generate random data.
         Default value is None.
     atol : float, optional
@@ -77,7 +77,7 @@ def generate_data_from_prob_dist(
 def generate_dataset_from_prob_dists(
     prob_dists: List[np.ndarray],
     data_nums: List[int],
-    seeds_or_generators: List[Union[int, np.random.RandomState]] = None,
+    seeds_or_generators: List[Union[int, np.random.Generator]] = None,
 ) -> List[List[int]]:
     """generates random dataset from probability distributions.
 
@@ -89,9 +89,9 @@ def generate_dataset_from_prob_dists(
         a list of probdist.
     data_nums : List[int]
         a list of data_num.
-    seeds_or_generators : Union[int, np.random.RandomState], optional
-        If the type is int, generates RandomState with seed `seed_or_generators` and returned generated RandomState.
-        If the type is RandomState, returns RandomState.
+    seeds_or_generators : Union[int, np.random.Generator], optional
+        If the type is int, generates Generator with seed `seed_or_generators` and returned generated Generator.
+        If the type is Generator, returns Generator.
         If argument is None, returns np.random.
         Default value is None.
 
@@ -287,7 +287,7 @@ def calc_empi_dists_sequence(
 def generate_empi_dist_sequence_from_prob_dist(
     prob_dist: np.ndarray,
     num_sums: List[int],
-    seed_or_generator: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.Generator] = None,
 ) -> List[Tuple[int, np.ndarray]]:
     """calculates a sequence of empirical distribution from probability distribution.
 
@@ -297,9 +297,9 @@ def generate_empi_dist_sequence_from_prob_dist(
         probability distribution.
     num_sums : List[int]
         list of number of trials
-    seed_or_generator : Union[int, np.random.RandomState], optional
+    seed_or_generator : Union[int, np.random.Generator], optional
         If the type is int, it is assumed to be a seed used to generate random data.
-        If the type is RandomState, it is used to generate random data.
+        If the type is Generator, it is used to generate random data.
         If argument is None, np.random is used to generate random data.
         Default value is None.
 
@@ -321,7 +321,7 @@ def generate_empi_dist_sequence_from_prob_dist(
 def generate_empi_dists_sequence_from_prob_dists(
     prob_dists: List[np.ndarray],
     list_num_sums: List[List[int]],
-    seed_or_generator: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.Generator] = None,
 ) -> List[List[Tuple[int, np.ndarray]]]:
     """calculates a sequence of empirical distributions from probability distributions.
 
@@ -331,9 +331,9 @@ def generate_empi_dists_sequence_from_prob_dists(
         probability distributions.
     list_num_sums : List[List[int]]
         list of number of trials
-    seed_or_generator : Union[int, np.random.RandomState], optional
+    seed_or_generator : Union[int, np.random.Generator], optional
         If the type is int, it is assumed to be a seed used to generate random data.
-        If the type is RandomState, it is used to generate random data.
+        If the type is Generator, it is used to generate random data.
         If argument is None, np.random is used to generate random data.
         Default value is None.
 

@@ -524,7 +524,7 @@ class Experiment:
         self,
         schedule_index: int,
         data_num: int,
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[int]:
         """Runs the specified schedule to caluclate the probability distribution and generate random data.
 
@@ -534,9 +534,9 @@ class Experiment:
             Index of the schedule.
         data_num : int
             Length of the data.
-        seed_or_generator : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 
@@ -582,7 +582,7 @@ class Experiment:
             A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
         seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 
@@ -622,7 +622,7 @@ class Experiment:
             List of the number of data to caluclate the experience distribution
         seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 
@@ -651,7 +651,7 @@ class Experiment:
             A list of the number of data to use to calculate the experience distribution for each schedule.
         seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 

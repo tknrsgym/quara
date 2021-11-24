@@ -30,7 +30,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
             To be given for specific asymmetric multi-partite gates
             For example, in the case of gate_name = 'cx', id[0] is for the id of the control qubit and id[1] is for the id of the target qubit.
         is_seed_or_generator_required: bool, Optional
-            Whether the generate function requires seed or stream(numpy.random.RandomState), by default None.
+            Whether the generate function requires seed or stream(numpy.random.Generator), by default None.
 
         Raises
         ------

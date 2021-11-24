@@ -155,15 +155,15 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian_d_part(
         self,
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of d part of effective Lindbladian.
 
         Parameters
         ----------
-        seed_or_generator : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
-            If the type is RandomState, returns RandomState.
+        seed_or_generator : Union[int, np.random.Generator], optional
+            If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+            If the type is Generator, returns Generator.
             If argument is None, returns np.random.
             Default value is None.
 
@@ -203,7 +203,7 @@ class RandomEffectiveLindbladianGenerationSetting(
 
         Parameters
         ----------
-        seed_or_generator : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
             If the type is Generator, returns Generator.
             If argument is None, returns np.random.
@@ -295,15 +295,15 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_gate(
         self,
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns gate(composition of random effective Lindbladian and qoperation base).
 
         Parameters
         ----------
-        seed_or_generator : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
-            If the type is RandomState, returns RandomState.
+        seed_or_generator : Union[int, np.random.Generator], optional
+            If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+            If the type is Generator, returns Generator.
             If argument is None, returns np.random.
             Default value is None.
 
@@ -332,15 +332,15 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_mprocess(
         self,
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[MProcess, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns mprocess(composition of random effective Lindbladian and qoperation base).
 
         Parameters
         ----------
-        seed_or_generator : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
-            If the type is RandomState, returns RandomState.
+        seed_or_generator : Union[int, np.random.Generator], optional
+            If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+            If the type is Generator, returns Generator.
             If argument is None, returns np.random.
             Default value is None.
 
@@ -369,15 +369,15 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_povm(
         self,
-        seed_or_generator: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns povm(composition of random effective Lindbladian and qoperation base).
 
         Parameters
         ----------
-        seed_or_generator : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
-            If the type is RandomState, returns RandomState.
+        seed_or_generator : Union[int, np.random.Generator], optional
+            If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+            If the type is Generator, returns Generator.
             If argument is None, returns np.random.
             Default value is None.
 

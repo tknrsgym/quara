@@ -270,7 +270,7 @@ class SimulationResult:
 def execute_simulation(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
-    seed_or_generator: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.Generator] = None,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
     if seed_or_generator is None:
@@ -436,7 +436,7 @@ def _generate_empi_dists_and_calc_estimate(
     loss_option: ProbabilityBasedLossFunctionOption = None,
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
-    seed_or_generator: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.Generator] = None,
 ) -> Tuple[StandardQTomographyEstimationResult, List[List[Tuple[int, np.ndarray]]]]:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(
         true_object, num_data, seed_or_generator=seed_or_generator
@@ -564,7 +564,7 @@ def generate_empi_dists_and_calc_estimate(
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
     iteration: Optional[int] = None,
-    seed_or_generator: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.Generator] = None,
 ) -> Union[Tuple[StandardQTomographyEstimationResult, list], SimulationResult,]:
 
     if iteration is None:

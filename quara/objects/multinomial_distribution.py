@@ -255,7 +255,7 @@ class MultinomialDistribution:
         self,
         num: int,
         size: int,
-        random_state: Union[int, np.random.RandomState] = None,
+        random_state: Union[int, np.random.Generator] = None,
     ) -> List[np.ndarray]:
         """execute random sampling.
 
@@ -265,10 +265,10 @@ class MultinomialDistribution:
             number of trials
         size : int
             size of trials. this size equals the length of the list returned by this function.
-        random_state : Union[int, np.random.RandomState], optional
+        random_state : Union[int, np.random.Generator], optional
 
-            - If the type is int, generates RandomState with seed `seed_or_generator` and returned generated random.Generator.
-            - If the type is RandomState, returns RandomState.
+            - If the type is int, generates Generator with seed `seed_or_generator` and returned generated random.Generator.
+            - If the type is Generator, returns Generator.
             - If argument is None, returns np.random.
             - Default value is None.
 

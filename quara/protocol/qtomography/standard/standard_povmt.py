@@ -179,7 +179,7 @@ class StandardPovmt(StandardQTomography):
             the number of data to use to generate the experience distributions for each schedule.
         seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 

@@ -110,7 +110,7 @@ def execute_simulation_sample_unit(
     sample_index,
     root_dir,
     pdf_mode: str = "only_ng",
-    stream_qoperation: Union[int, np.random.RandomState] = None,
+    stream_qoperation: Union[int, np.random.Generator] = None,
     exec_sim_check: Dict[str, bool] = None,
     parallel_mode: Dict[str, int] = None,
     data_saving: str = "on_memory",

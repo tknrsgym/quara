@@ -29,7 +29,7 @@ class MProcess(QOperation):
         hss: List[np.ndarray],
         shape: Tuple[int] = None,
         mode_sampling: bool = False,
-        random_seed_or_state: Union[int, np.random.RandomState] = None,
+        random_seed_or_state: Union[int, np.random.Generator] = None,
         is_physicality_required: bool = True,
         is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
@@ -210,23 +210,23 @@ class MProcess(QOperation):
         return self._mode_sampling
 
     @property  # read only
-    def random_seed_or_state(self) -> Union[int, np.random.RandomState]:
+    def random_seed_or_state(self) -> Union[int, np.random.Generator]:
         """returns the random seed or state to sample HS.
 
         Returns
         -------
-        Union[int, np.random.RandomState]
+        Union[int, np.random.Generator]
             the random seed or state to sample HS.
         """
         return self._random_seed_or_state
 
     @property  # read only
-    def random_state(self) -> np.random.RandomState:
+    def random_state(self) -> np.random.Generator:
         """returns the random state to sample HS.
 
         Returns
         -------
-        np.random.RandomState
+        np.random.Generator
             the random state to sample HS.
         """
         return self._random_state
@@ -234,7 +234,7 @@ class MProcess(QOperation):
     def set_mode_sampling(
         self,
         mode_sampling: bool,
-        random_seed_or_state: Union[int, np.random.RandomState] = None,
+        random_seed_or_state: Union[int, np.random.Generator] = None,
     ) -> None:
         # although mode_sampling is False, random_seed_or_state is not None
         if mode_sampling == False and random_seed_or_state is not None:
@@ -1047,7 +1047,7 @@ def calc_gradient_from_mprocess(
     var_index: int,
     shape: Tuple[int] = None,
     mode_sampling: bool = False,
-    random_seed_or_state: Union[int, np.random.RandomState] = None,
+    random_seed_or_state: Union[int, np.random.Generator] = None,
     is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
