@@ -29,7 +29,7 @@ class MProcess(QOperation):
         hss: List[np.ndarray],
         shape: Tuple[int] = None,
         mode_sampling: bool = False,
-        random_seed_or_state: Union[int, np.random.Generator] = None,
+        random_seed_or_generator: Union[int, np.random.Generator] = None,
         is_physicality_required: bool = True,
         is_estimation_object: bool = True,
         on_para_eq_constraint: bool = True,
@@ -97,7 +97,7 @@ class MProcess(QOperation):
                 )
             self._shape = shape
 
-        self.set_mode_sampling(mode_sampling, random_seed_or_state)
+        self.set_mode_sampling(mode_sampling, random_seed_or_generator)
 
         # whether eps_zero is a non-negative value.
         if eps_zero < 0:
@@ -210,7 +210,7 @@ class MProcess(QOperation):
         return self._mode_sampling
 
     @property  # read only
-    def random_seed_or_state(self) -> Union[int, np.random.Generator]:
+    def random_seed_or_generator(self) -> Union[int, np.random.Generator]:
         """returns the random seed or state to sample HS.
 
         Returns
@@ -218,7 +218,7 @@ class MProcess(QOperation):
         Union[int, np.random.Generator]
             the random seed or state to sample HS.
         """
-        return self._random_seed_or_state
+        return self._random_seed_or_generator
 
     @property  # read only
     def random_state(self) -> np.random.Generator:
@@ -234,20 +234,20 @@ class MProcess(QOperation):
     def set_mode_sampling(
         self,
         mode_sampling: bool,
-        random_seed_or_state: Union[int, np.random.Generator] = None,
+        random_seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> None:
-        # although mode_sampling is False, random_seed_or_state is not None
-        if mode_sampling == False and random_seed_or_state is not None:
+        # although mode_sampling is False, random_seed_or_generator is not None
+        if mode_sampling == False and random_seed_or_generator is not None:
             raise ValueError(
-                "although mode_sampling is False, random_seed_or_state is not None."
+                "although mode_sampling is False, random_seed_or_generator is not None."
             )
 
         self._mode_sampling: bool = mode_sampling
         if self.mode_sampling == True:
-            self._random_seed_or_state = random_seed_or_state
-            self._random_state = to_stream(self._random_seed_or_state)
+            self._random_seed_or_generator = random_seed_or_generator
+            self._random_state = to_stream(self._random_seed_or_generator)
         else:
-            self._random_seed_or_state = None
+            self._random_seed_or_generator = None
             self._random_state = None
 
     @property  # read only
@@ -284,7 +284,7 @@ class MProcess(QOperation):
             hss,
             shape=self.shape,
             mode_sampling=self.mode_sampling,
-            random_seed_or_state=self.random_seed_or_state,
+            random_seed_or_generator=self.random_seed_or_generator,
             is_physicality_required=False,
             is_estimation_object=False,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -316,7 +316,7 @@ class MProcess(QOperation):
             hss,
             shape=self.shape,
             mode_sampling=self.mode_sampling,
-            random_seed_or_state=self.random_seed_or_state,
+            random_seed_or_generator=self.random_seed_or_generator,
             is_physicality_required=False,
             is_estimation_object=False,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -346,7 +346,7 @@ class MProcess(QOperation):
             var_index,
             shape=self.shape,
             mode_sampling=self.mode_sampling,
-            random_seed_or_state=self.random_seed_or_state,
+            random_seed_or_generator=self.random_seed_or_generator,
             is_estimation_object=self.is_estimation_object,
             on_para_eq_constraint=self.on_para_eq_constraint,
             on_algo_eq_constraint=self.on_algo_eq_constraint,
@@ -378,7 +378,7 @@ class MProcess(QOperation):
             hss=new_hss,
             shape=self.shape,
             mode_sampling=self.mode_sampling,
-            random_seed_or_state=self.random_seed_or_state,
+            random_seed_or_generator=self.random_seed_or_generator,
             is_physicality_required=self.is_physicality_required,
             is_estimation_object=self.is_estimation_object,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -438,7 +438,7 @@ class MProcess(QOperation):
             hss=new_hss,
             shape=self.shape,
             mode_sampling=self.mode_sampling,
-            random_seed_or_state=self.random_seed_or_state,
+            random_seed_or_generator=self.random_seed_or_generator,
             is_physicality_required=self.is_physicality_required,
             is_estimation_object=self.is_estimation_object,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -560,7 +560,7 @@ class MProcess(QOperation):
             hss=hss,
             shape=self.shape,
             mode_sampling=self.mode_sampling,
-            random_seed_or_state=self.random_seed_or_state,
+            random_seed_or_generator=self.random_seed_or_generator,
             is_physicality_required=is_physicality_required,
             is_estimation_object=is_estimation_object,
             on_para_eq_constraint=on_para_eq_constraint,
@@ -754,7 +754,7 @@ class MProcess(QOperation):
             copy.deepcopy(self.hss),
             copy.deepcopy(self.shape),
             copy.deepcopy(self.mode_sampling),
-            copy.deepcopy(self.random_seed_or_state),
+            copy.deepcopy(self.random_seed_or_generator),
         )
 
     def copy(self) -> "MProcess":
@@ -765,13 +765,13 @@ class MProcess(QOperation):
         MProcess
             copy of MProcess.
         """
-        hss, shape, mode_sampling, random_seed_or_state = self._copy()
+        hss, shape, mode_sampling, random_seed_or_generator = self._copy()
         new_qoperation = self.__class__(
             self.composite_system,
             hss,
             shape=shape,
             mode_sampling=mode_sampling,
-            random_seed_or_state=random_seed_or_state,
+            random_seed_or_generator=random_seed_or_generator,
             is_physicality_required=self.is_physicality_required,
             is_estimation_object=self.is_estimation_object,
             on_para_eq_constraint=self.on_para_eq_constraint,
@@ -1047,7 +1047,7 @@ def calc_gradient_from_mprocess(
     var_index: int,
     shape: Tuple[int] = None,
     mode_sampling: bool = False,
-    random_seed_or_state: Union[int, np.random.Generator] = None,
+    random_seed_or_generator: Union[int, np.random.Generator] = None,
     is_estimation_object: bool = True,
     on_para_eq_constraint: bool = True,
     on_algo_eq_constraint: bool = True,
@@ -1088,7 +1088,7 @@ def calc_gradient_from_mprocess(
         gradient,
         shape=shape,
         mode_sampling=mode_sampling,
-        random_seed_or_state=random_seed_or_state,
+        random_seed_or_generator=random_seed_or_generator,
         is_physicality_required=False,
         is_estimation_object=is_estimation_object,
         on_para_eq_constraint=on_para_eq_constraint,
