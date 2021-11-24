@@ -63,7 +63,7 @@ def generate_data_from_prob_dist(
 
     # generate random numbers. 0 <= rand_val[i] < 1 for all i = 0,..., num_data - 1
     stream = to_stream(seed_or_generator)
-    rand_val = stream.rand(data_num)
+    rand_val = stream.random(data_num)
 
     # use np.frompyfunc to apply the function '_random_number_to_data' to np.ndarray
     def curried_random_number_to_data(random_number):
