@@ -78,7 +78,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             qoperation_base,
             lindbladian_base,
             ids=ids,
-            is_seed_or_stream_required=True,
+            is_seed_or_generator_required=True,
         )
         self._strength_h_part = strength_h_part
         self._strength_k_part = strength_k_part
