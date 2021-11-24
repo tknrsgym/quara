@@ -537,18 +537,18 @@ class TestStandardPovmt:
         assert actual[0] == expected[0]
         npt.assert_almost_equal(actual[1], expected[1], decimal=15)
 
-    def test_generate_empi_dist__seed_or_stream(self):
+    def test_generate_empi_dist__seed_or_generator(self):
         povmt, c_sys = get_test_data()
         povm = generate_povm_from_name("z", c_sys)
 
-        # seed_or_stream : default
+        # seed_or_generator : default
         np.random.seed(7)
         actual1 = povmt.generate_empi_dist(0, povm, 10)
-        # seed_or_stream : int
-        actual2 = povmt.generate_empi_dist(0, povm, 10, seed_or_stream=7)
-        # seed_or_stream : np.random.RandomState
+        # seed_or_generator : int
+        actual2 = povmt.generate_empi_dist(0, povm, 10, seed_or_generator=7)
+        # seed_or_generator : np.random.Generator
         random_gen = np.random.Generator(np.random.MT19937(7))
-        actual3 = povmt.generate_empi_dist(0, povm, 10, seed_or_stream=random_gen)
+        actual3 = povmt.generate_empi_dist(0, povm, 10, seed_or_generator=random_gen)
         npt.assert_almost_equal(actual1[1], actual2[1], decimal=15)
         npt.assert_almost_equal(actual2[1], actual3[1], decimal=15)
 

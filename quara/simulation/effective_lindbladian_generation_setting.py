@@ -13,7 +13,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         qoperation_base: Union[QOperation, Tuple[str]],
         lindbladian_base: Union[EffectiveLindbladian, str],
         ids: List[int] = None,
-        is_seed_or_stream_required: bool = False,
+        is_seed_or_generator_required: bool = False,
     ) -> None:
         """Constructor
 
@@ -29,7 +29,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
             This is a list of elmental system's ids, by default None.
             To be given for specific asymmetric multi-partite gates
             For example, in the case of gate_name = 'cx', id[0] is for the id of the control qubit and id[1] is for the id of the target qubit.
-        is_seed_or_stream_required: bool, Optional
+        is_seed_or_generator_required: bool, Optional
             Whether the generate function requires seed or stream(numpy.random.RandomState), by default None.
 
         Raises
@@ -41,7 +41,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
             c_sys,
             qoperation_base,
             ids=ids,
-            is_seed_or_stream_required=is_seed_or_stream_required,
+            is_seed_or_generator_required=is_seed_or_generator_required,
         )
 
         if isinstance(lindbladian_base, EffectiveLindbladian):

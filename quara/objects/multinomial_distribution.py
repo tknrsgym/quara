@@ -267,7 +267,7 @@ class MultinomialDistribution:
             size of trials. this size equals the length of the list returned by this function.
         random_state : Union[int, np.random.RandomState], optional
 
-            - If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+            - If the type is int, generates RandomState with seed `seed_or_generator` and returned generated random.Generator.
             - If the type is RandomState, returns RandomState.
             - If argument is None, returns np.random.
             - Default value is None.

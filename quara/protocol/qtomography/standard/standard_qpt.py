@@ -118,7 +118,7 @@ class StandardQpt(StandardQTomography):
         schedule_index: int,
         gate: Gate,
         num_sum: int,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[int, np.ndarray]:
         """Generate empirical distribution using the data generated from probability distribution of specified schedules.
 
@@ -130,7 +130,7 @@ class StandardQpt(StandardQTomography):
             true object.
         num_sum : int
             the number of data to use to generate the experience distributions for each schedule.
-        seed_or_stream : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
             If the type is RandomState, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
@@ -145,9 +145,9 @@ class StandardQpt(StandardQTomography):
         target_index = self._get_target_index(tmp_experiment, schedule_index)
         tmp_experiment.gates[target_index] = gate
 
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
-            schedule_index, [num_sum], seed_or_stream=stream
+            schedule_index, [num_sum], seed_or_generator=stream
         )
         return empi_dist_seq[0]
 
@@ -155,7 +155,7 @@ class StandardQpt(StandardQTomography):
         self,
         gate: Gate,
         num_sum: int,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[Tuple[int, np.ndarray]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -167,9 +167,9 @@ class StandardQpt(StandardQTomography):
             tmp_experiment.gates[target_index] = gate
 
         num_sums = [num_sum] * self._num_schedules
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         empi_dist_seq = tmp_experiment.generate_empi_dists_sequence(
-            [num_sums], seed_or_stream=stream
+            [num_sums], seed_or_generator=stream
         )
 
         empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
@@ -179,7 +179,7 @@ class StandardQpt(StandardQTomography):
         self,
         gate: Gate,
         num_sums: List[int],
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
 
@@ -191,9 +191,9 @@ class StandardQpt(StandardQTomography):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.gates[target_index] = gate
 
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
-            list_num_sums_tmp, seed_or_stream=stream
+            list_num_sums_tmp, seed_or_generator=stream
         )
         empi_dists_sequence = [
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)

@@ -33,24 +33,24 @@ def test_check_nonnegative_number():
 
 
 def test_to_stream():
-    # seed_or_stream :default
+    # seed_or_generator :default
     np.random.seed(7)
     actual = number_util.to_stream()
     assert actual.randint(10) == 4
     assert actual.randint(10) == 9
 
-    # seed_or_stream = None
+    # seed_or_generator = None
     np.random.seed(7)
     actual = number_util.to_stream(None)
     assert actual.randint(10) == 4
     assert actual.randint(10) == 9
 
-    # seed_or_stream = int:7
+    # seed_or_generator = int:7
     actual = number_util.to_stream(7)
     assert actual.randint(10) == 4
     assert actual.randint(10) == 9
 
-    # seed_or_stream = RandomState(7)
+    # seed_or_generator = Generator(7)
     random_gen = np.random.Generator(np.random.MT19937(77))
     actual = number_util.to_stream(random_gen)
     assert actual.randint(10) == 4

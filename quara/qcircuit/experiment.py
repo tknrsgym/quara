@@ -524,7 +524,7 @@ class Experiment:
         self,
         schedule_index: int,
         data_num: int,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.RandomState] = None,
     ) -> List[int]:
         """Runs the specified schedule to caluclate the probability distribution and generate random data.
 
@@ -534,7 +534,7 @@ class Experiment:
             Index of the schedule.
         data_num : int
             Length of the data.
-        seed_or_stream : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.RandomState], optional
             If the type is int, it is assumed to be a seed used to generate random data.
             If the type is RandomState, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
@@ -563,16 +563,16 @@ class Experiment:
         self._validate_schedule_index(schedule_index)
 
         prob_dist = self.calc_prob_dist(schedule_index)
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         data = data_generator.generate_data_from_prob_dist(
-            prob_dist, data_num, seed_or_stream=stream
+            prob_dist, data_num, seed_or_generator=stream
         )
         return data
 
     def generate_dataset(
         self,
         data_nums: List[int],
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[List[np.ndarray]]:
         """Run all the schedules to caluclate the probability distribution and generate random data.
 
@@ -580,7 +580,7 @@ class Experiment:
         ----------
         data_nums : List[int]
             A list of the number of data to be generated in each schedule. This parameter should be a list of non-negative integers.
-        seed_or_stream : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
             If the type is RandomState, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
@@ -596,11 +596,11 @@ class Experiment:
 
         prob_dists = self.calc_prob_dists()
 
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         dataset = data_generator.generate_dataset_from_prob_dists(
             prob_dists=prob_dists,
             data_nums=data_nums,
-            seeds_or_streams=[stream] * len(data_nums),
+            seeds_or_generators=[stream] * len(data_nums),
         )
         return dataset
 
@@ -608,7 +608,7 @@ class Experiment:
         self,
         schedule_index: int,
         num_sums: List[int],
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[Tuple[int, np.ndarray]]:
         """Generate an empirical distribution using the data generated from the probability distribution of a specified schedule.
 
@@ -620,7 +620,7 @@ class Experiment:
             Index of schedule.
         num_sums : List[int]
             List of the number of data to caluclate the experience distribution
-        seed_or_stream : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
             If the type is RandomState, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
@@ -633,7 +633,7 @@ class Experiment:
         """
         prob_dist = self.calc_prob_dist(schedule_index)
         empi_dist_sequence = data_generator.generate_empi_dist_sequence_from_prob_dist(
-            prob_dist, num_sums, seed_or_stream
+            prob_dist, num_sums, seed_or_generator
         )
 
         return empi_dist_sequence
@@ -641,7 +641,7 @@ class Experiment:
     def generate_empi_dists_sequence(
         self,
         list_num_sums: List[List[int]],
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[List[Tuple[int, np.ndarray]]]:
         """Generate empirical distributions using the data generated from probability distributions of all specified schedules.
 
@@ -649,7 +649,7 @@ class Experiment:
         ----------
         list_num_sums : List[List[int]]
             A list of the number of data to use to calculate the experience distribution for each schedule.
-        seed_or_stream : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
             If the type is RandomState, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
@@ -668,7 +668,7 @@ class Experiment:
         prob_dists = self.calc_prob_dists()
         empi_dists_sequence = (
             data_generator.generate_empi_dists_sequence_from_prob_dists(
-                prob_dists, list_num_sums_tmp, seed_or_stream
+                prob_dists, list_num_sums_tmp, seed_or_generator
             )
         )
         return empi_dists_sequence

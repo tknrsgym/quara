@@ -263,7 +263,7 @@ def is_same_dist(a_dist: tuple, b_dist: tuple):
     return True
 
 
-def test_execute_simulation_with_seed_or_stream():
+def test_execute_simulation_with_seed_or_generator():
     e_sys = ElementalSystem(0, get_normalized_pauli_basis())
     c_sys = CompositeSystem([e_sys])
     true_object = generate_qoperation(mode="state", name="y0", c_sys=c_sys)
@@ -294,7 +294,7 @@ def test_execute_simulation_with_seed_or_stream():
     sim_result = sim.execute_simulation(
         qtomography=qtomography,
         simulation_setting=sim_setting,
-        seed_or_stream=random_gen,
+        seed_or_generator=random_gen,
     )
     # Assert
     # Verify that it is random.
@@ -308,7 +308,7 @@ def test_execute_simulation_with_seed_or_stream():
     sim_result_1 = sim.execute_simulation(
         qtomography=qtomography,
         simulation_setting=sim_setting,
-        seed_or_stream=random_gen,
+        seed_or_generator=random_gen,
     )
 
     # Assert

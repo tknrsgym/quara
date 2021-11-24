@@ -20,7 +20,7 @@ def _random_number_to_data(probdist: np.ndarray, random_number: np.float64) -> i
 def generate_data_from_prob_dist(
     prob_dist: np.ndarray,
     data_num: int,
-    seed_or_stream: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.RandomState] = None,
     atol: float = None,
 ) -> List[int]:
     """generates random data from a probability distribution.
@@ -36,7 +36,7 @@ def generate_data_from_prob_dist(
         a probability distribution used to generate random data.
     data_num : int
         length of the data.
-    seed_or_stream : Union[int, np.random.RandomState], optional
+    seed_or_generator : Union[int, np.random.RandomState], optional
         If the type is int, it is assumed to be a seed used to generate random data.
         If the type is RandomState, it is used to generate random data.
         If argument is None, np.random is used to generate random data.
@@ -62,7 +62,7 @@ def generate_data_from_prob_dist(
     validate_prob_dist(prob_dist, eps=atol)
 
     # generate random numbers. 0 <= rand_val[i] < 1 for all i = 0,..., num_data - 1
-    stream = to_stream(seed_or_stream)
+    stream = to_stream(seed_or_generator)
     rand_val = stream.rand(data_num)
 
     # use np.frompyfunc to apply the function '_random_number_to_data' to np.ndarray
@@ -77,7 +77,7 @@ def generate_data_from_prob_dist(
 def generate_dataset_from_prob_dists(
     prob_dists: List[np.ndarray],
     data_nums: List[int],
-    seeds_or_streams: List[Union[int, np.random.RandomState]] = None,
+    seeds_or_generators: List[Union[int, np.random.RandomState]] = None,
 ) -> List[List[int]]:
     """generates random dataset from probability distributions.
 
@@ -89,8 +89,8 @@ def generate_dataset_from_prob_dists(
         a list of probdist.
     data_nums : List[int]
         a list of data_num.
-    seeds_or_streams : Union[int, np.random.RandomState], optional
-        If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+    seeds_or_generators : Union[int, np.random.RandomState], optional
+        If the type is int, generates RandomState with seed `seed_or_generators` and returned generated RandomState.
         If the type is RandomState, returns RandomState.
         If argument is None, returns np.random.
         Default value is None.
@@ -114,16 +114,18 @@ def generate_dataset_from_prob_dists(
         )
 
     # whether the length of prob_dists equals the length of seeds_or_streams.
-    if seeds_or_streams is not None:
-        if len(prob_dists) != len(seeds_or_streams):
+    if seeds_or_generators is not None:
+        if len(prob_dists) != len(seeds_or_generators):
             raise ValueError(
-                f"the length of prob_dists must equal the length of seeds_or_streams. the length of prob_dists is {len(prob_dists)}. the length of seeds_or_streams is {len(seeds_or_streams)}"
+                f"the length of prob_dists must equal the length of seeds_or_streams. the length of prob_dists is {len(prob_dists)}. the length of seeds_or_streams is {len(seeds_or_generators)}"
             )
 
     dataset = []
     for index, (prob_dist, data_num) in enumerate(zip(prob_dists, data_nums)):
-        seed_or_stream = None if seeds_or_streams is None else seeds_or_streams[index]
-        data = generate_data_from_prob_dist(prob_dist, data_num, seed_or_stream)
+        seed_or_generator = (
+            None if seeds_or_generators is None else seeds_or_generators[index]
+        )
+        data = generate_data_from_prob_dist(prob_dist, data_num, seed_or_generator)
         dataset.append(data)
 
     return dataset
@@ -285,7 +287,7 @@ def calc_empi_dists_sequence(
 def generate_empi_dist_sequence_from_prob_dist(
     prob_dist: np.ndarray,
     num_sums: List[int],
-    seed_or_stream: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.RandomState] = None,
 ) -> List[Tuple[int, np.ndarray]]:
     """calculates a sequence of empirical distribution from probability distribution.
 
@@ -295,7 +297,7 @@ def generate_empi_dist_sequence_from_prob_dist(
         probability distribution.
     num_sums : List[int]
         list of number of trials
-    seed_or_stream : Union[int, np.random.RandomState], optional
+    seed_or_generator : Union[int, np.random.RandomState], optional
         If the type is int, it is assumed to be a seed used to generate random data.
         If the type is RandomState, it is used to generate random data.
         If argument is None, np.random is used to generate random data.
@@ -306,7 +308,7 @@ def generate_empi_dist_sequence_from_prob_dist(
     List[Tuple[int, np.ndarray]]
         a sequence of empirical distribution.
     """
-    stream = to_stream(seed_or_stream)
+    stream = to_stream(seed_or_generator)
     empi_dist_sequence = []
     for num_sum in num_sums:
         sampling = multinomial.rvs(num_sum, prob_dist, random_state=stream)
@@ -319,7 +321,7 @@ def generate_empi_dist_sequence_from_prob_dist(
 def generate_empi_dists_sequence_from_prob_dists(
     prob_dists: List[np.ndarray],
     list_num_sums: List[List[int]],
-    seed_or_stream: Union[int, np.random.RandomState] = None,
+    seed_or_generator: Union[int, np.random.RandomState] = None,
 ) -> List[List[Tuple[int, np.ndarray]]]:
     """calculates a sequence of empirical distributions from probability distributions.
 
@@ -329,7 +331,7 @@ def generate_empi_dists_sequence_from_prob_dists(
         probability distributions.
     list_num_sums : List[List[int]]
         list of number of trials
-    seed_or_stream : Union[int, np.random.RandomState], optional
+    seed_or_generator : Union[int, np.random.RandomState], optional
         If the type is int, it is assumed to be a seed used to generate random data.
         If the type is RandomState, it is used to generate random data.
         If argument is None, np.random is used to generate random data.
@@ -351,7 +353,7 @@ def generate_empi_dists_sequence_from_prob_dists(
             f"the length of prob_dists must equal the length of list_num_sums. the length of prob_dists is {len(prob_dists)}. the length of list_num_sums is {len(list_num_sums)}"
         )
 
-    stream = to_stream(seed_or_stream)
+    stream = to_stream(seed_or_generator)
     empi_dists_sequence = []
     for prob_dist, num_sums in zip(prob_dists, list_num_sums):
         empi_dists = generate_empi_dist_sequence_from_prob_dist(

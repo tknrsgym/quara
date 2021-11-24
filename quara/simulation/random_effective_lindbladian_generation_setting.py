@@ -108,10 +108,10 @@ class RandomEffectiveLindbladianGenerationSetting(
     def _generate_random_variables(
         self,
         strength: float,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ):
         dim = self.composite_system.dim
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         random_variables = stream.standard_normal(dim ** 2 - 1)
         normalized_factor = 1 / np.sqrt(np.sum(random_variables ** 2))
         random_vector = strength * normalized_factor * random_variables
@@ -119,15 +119,15 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian_h_part(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of h part of effective Lindbladian.
 
         Parameters
         ----------
-        seed_or_stream : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
-            If the type is RandomState, returns RandomState.
+        seed_or_generator : Union[int, np.random.Generator], optional
+            If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+            If the type is Generator, returns Generator.
             If argument is None, returns np.random.
             Default value is None.
 
@@ -138,7 +138,7 @@ class RandomEffectiveLindbladianGenerationSetting(
         """
         # generate randum variables
         random_vector, random_variables = self._generate_random_variables(
-            self.strength_h_part, seed_or_stream
+            self.strength_h_part, seed_or_generator
         )
 
         # calc random h mat
@@ -155,14 +155,14 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian_d_part(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.RandomState] = None,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """generates random HS matrix on computational basis of d part of effective Lindbladian.
 
         Parameters
         ----------
-        seed_or_stream : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+        seed_or_generator : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
             If the type is RandomState, returns RandomState.
             If argument is None, returns np.random.
             Default value is None.
@@ -172,10 +172,10 @@ class RandomEffectiveLindbladianGenerationSetting(
         Tuple[np.ndarray, np.ndarray, np.ndarray]
             tuple of random HS matrix, ramdom variables and random unitary matrix.
         """
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         # generate randum variables
         random_vector, random_variables = self._generate_random_variables(
-            self.strength_k_part, seed_or_stream
+            self.strength_k_part, seed_or_generator
         )
         random_vector = np.abs(random_vector)
 
@@ -197,15 +197,15 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_random_effective_lindbladian(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns effective Lindbladian base + random effective Lindbladian.
 
         Parameters
         ----------
-        seed_or_stream : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
-            If the type is RandomState, returns RandomState.
+        seed_or_generator : Union[int, np.random.RandomState], optional
+            If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+            If the type is Generator, returns Generator.
             If argument is None, returns np.random.
             Default value is None.
 
@@ -214,7 +214,7 @@ class RandomEffectiveLindbladianGenerationSetting(
         Tuple[ EffectiveLindbladian, np.ndarray, np.ndarray, np.ndarray, np.ndarray, ]
             tuple of effective Lindbladian, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
         """
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         (
             random_h_part_cb,
             random_variables_h_part,
@@ -258,15 +258,15 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_state(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[State, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns state(composition of random effective Lindbladian and qoperation base).
 
         Parameters
         ----------
-        seed_or_stream : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
-            If the type is RandomState, returns RandomState.
+        seed_or_generator : Union[int, np.random.Generator], optional
+            If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+            If the type is Generator, returns Generator.
             If argument is None, returns np.random.
             Default value is None.
 
@@ -276,7 +276,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             tuple of state, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         (
             el,
             random_variables_h_part,
@@ -295,14 +295,14 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_gate(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.RandomState] = None,
     ) -> Tuple[Gate, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns gate(composition of random effective Lindbladian and qoperation base).
 
         Parameters
         ----------
-        seed_or_stream : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+        seed_or_generator : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
             If the type is RandomState, returns RandomState.
             If argument is None, returns np.random.
             Default value is None.
@@ -313,7 +313,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             tuple of gate, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         (
             el,
             random_variables_h_part,
@@ -332,14 +332,14 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_mprocess(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.RandomState] = None,
     ) -> Tuple[MProcess, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns mprocess(composition of random effective Lindbladian and qoperation base).
 
         Parameters
         ----------
-        seed_or_stream : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+        seed_or_generator : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
             If the type is RandomState, returns RandomState.
             If argument is None, returns np.random.
             Default value is None.
@@ -350,7 +350,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             tuple of gate, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         (
             el,
             random_variables_h_part,
@@ -369,14 +369,14 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate_povm(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.RandomState] = None,
     ) -> Tuple[Povm, np.ndarray, np.ndarray, np.ndarray, np.ndarray,]:
         """generates random effective Lindbladian and returns povm(composition of random effective Lindbladian and qoperation base).
 
         Parameters
         ----------
-        seed_or_stream : Union[int, np.random.RandomState], optional
-            If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
+        seed_or_generator : Union[int, np.random.RandomState], optional
+            If the type is int, generates RandomState with seed `seed_or_generator` and returned generated RandomState.
             If the type is RandomState, returns RandomState.
             If argument is None, returns np.random.
             Default value is None.
@@ -387,7 +387,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             tuple of povm, ramdom variables for h part, ramdom variables for k part, random unitary matrix and random effective Lindbladian.
 
         """
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         (
             el,
             random_variables_h_part,
@@ -406,9 +406,9 @@ class RandomEffectiveLindbladianGenerationSetting(
 
     def generate(
         self,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ):
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         if type(self.qoperation_base) == State:
             return self.generate_state(stream)
 

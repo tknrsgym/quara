@@ -117,9 +117,9 @@ def execute_simulation_sample_unit(
 ) -> List[SimulationResult]:
     # Generate sample
     _f = generation_settings.true_setting.generate
-    if "seed_or_stream" in _f.__code__.co_varnames[: _f.__code__.co_argcount]:
+    if "seed_or_generator" in _f.__code__.co_varnames[: _f.__code__.co_argcount]:
         true_object = generation_settings.true_setting.generate(
-            seed_or_stream=stream_qoperation
+            seed_or_generator=stream_qoperation
         )
         tester_objects = [
             tester_setting.generate(stream_qoperation)

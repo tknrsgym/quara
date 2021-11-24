@@ -19,7 +19,7 @@ from quara.objects.povm import get_z_povm
 
 
 class TestRandomEffectiveLindbladianGenerationSetting:
-    def test_access_is_seed_or_stream_required(self):
+    def test_access_is_seed_or_generator_required(self):
         # Arrange
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -35,7 +35,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         )
 
         # Assert
-        assert actual.is_seed_or_stream_required == True
+        assert actual.is_seed_or_generator_required == True
 
     def test_access_strength_h_part(self):
         ## init
@@ -240,7 +240,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
         )
 
         ### generate
-        # Act(seed_or_stream: default)
+        # Act(seed_or_generator: default)
         seed = 7
         np.random.seed(seed)
         (
@@ -251,7 +251,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
             random_el,
         ) = generation_setting.generate()
 
-        # Act(seed_or_stream: int)
+        # Act(seed_or_generator: int)
         (
             state2,
             random_variables_h_part,
@@ -260,7 +260,7 @@ class TestRandomEffectiveLindbladianGenerationSetting:
             random_el,
         ) = generation_setting.generate(7)
 
-        # Act(seed_or_stream: RandomState)
+        # Act(seed_or_generator: Generator)
         random_gen = np.random.Generator(np.random.MT19937(7))
         (
             state3,
