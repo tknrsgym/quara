@@ -108,7 +108,7 @@ def convert_instrument_quara_to_qulacs(
     qulacs_gate_list = []
     for index in range(num_indices):
         kraus_matrices = quara_mprocess.to_kraus_matrices(index)
-        kraus_matrices_indices.append(len(kraus_matrices_indices))
+        kraus_matrices_indices.append(len(kraus_matrices))
         for kraus_matrix in kraus_matrices:
             qulacs_gate = DenseMatrix(qubits, kraus_matrix)
             qulacs_gate_list.append(qulacs_gate)
