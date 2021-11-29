@@ -321,7 +321,7 @@ class TestRandomStateQoperation:
                 return False
         return True
 
-    def test_random_state_qoperation(self, tmp_out_dir_fixture):
+    def test_random_generator_qoperation(self, tmp_out_dir_fixture):
         tmp_out_dir = tmp_out_dir_fixture["tmp_out_dir"]
         setting = {
             "mode": "qubit",

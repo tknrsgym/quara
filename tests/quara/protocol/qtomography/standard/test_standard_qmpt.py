@@ -4,12 +4,20 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
+from quara.objects.composite_system import CompositeSystem
+from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_normalized_pauli_basis
+from quara.objects.mprocess import MProcess
+from quara.objects.povm import (
+    get_x_povm,
+    get_y_povm,
+    get_z_povm,
+)
 from quara.objects.qoperation_typical import (
     generate_qoperation,
     generate_qoperation_object,
 )
-from quara.objects.composite_system_typical import generate_composite_system
-from quara.objects.mprocess import MProcess
 from quara.objects.tester_typical import (
     generate_tester_states,
     generate_tester_povms,
@@ -72,6 +80,57 @@ class TestStandardQmpt:
         )
 
         assert len(qmpt.testers) == 7
+
+    def test_is_valid_experiment(self):
+        # Arrange
+        num_qubits = 1
+        c_sys = generate_composite_system(mode="qubit", num=num_qubits)
+
+        # Tester Objects
+        state_names = ["x0", "y0", "z0", "z1"]
+        povm_names = ["x", "y", "z"]
+
+        tester_states = [
+            generate_qoperation_object(
+                mode="state", object_name="state", name=name, c_sys=c_sys
+            )
+            for name in state_names
+        ]
+        tester_povms = [
+            generate_qoperation_object(
+                mode="povm", object_name="povm", name=name, c_sys=c_sys
+            )
+            for name in povm_names
+        ]
+
+        # True Object
+        true_object = generate_qoperation(mode="mprocess", name="x-type1", c_sys=c_sys)
+
+        # Qmpt
+        qmpt = StandardQmpt(
+            states=tester_states,
+            povms=tester_povms,
+            num_outcomes=true_object.num_outcomes,
+            on_para_eq_constraint=True,
+            schedules="all",
+        )
+
+        # is_valid_experiment == True
+        assert qmpt.is_valid_experiment() == True
+
+        # is_valid_experiment == False
+        e_sys0 = ElementalSystem(0, get_normalized_pauli_basis())
+        c_sys0 = CompositeSystem([e_sys0])
+        e_sys1 = ElementalSystem(1, get_normalized_pauli_basis())
+        c_sys1 = CompositeSystem([e_sys1])
+
+        povm_x = get_x_povm(c_sys1)
+        povm_y = get_y_povm(c_sys0)
+        povm_z = get_z_povm(c_sys0)
+        povms = [povm_x, povm_y, povm_z]
+
+        qmpt.experiment.povms = povms
+        assert qmpt.is_valid_experiment() == False
 
 
 def test_cqpt_to_cqmpt():

@@ -20,3 +20,4 @@ qutip
 qiskit
 matplotlib
 pyquil
+joblib

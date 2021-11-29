@@ -51,27 +51,27 @@ def check_nonnegative_number(target: float, parameter_name: str) -> None:
 
 
 def to_stream(
-    seed_or_stream: Union[int, np.random.RandomState] = None
-) -> np.random.RandomState:
-    """returns RandomState to generate random numbers.
+    seed_or_generator: Union[int, np.random.Generator] = None
+) -> np.random.Generator:
+    """returns np.random.Generator to generate random numbers.
 
     Parameters
     ----------
-    seed_or_stream : Union[int, np.random.RandomState], optional
-        If the type is int, generates RandomState with seed `seed_or_stream` and returned generated RandomState.
-        If the type is RandomState, returns RandomState.
+    seed_or_generator : Union[int, np.random.Generator], optional
+        If the type is int, generates Generator with seed `seed_or_generator` and returned generated Generator.
+        If the type is Generator, returns Generator.
         If argument is None, returns np.random.
         Default value is None.
 
     Returns
     -------
-    np.random.RandomState
-        RandomState to generate random numbers.
+    np.random.Generator
+        Generator for random numbers.
     """
-    if seed_or_stream is None:
+    if seed_or_generator is None:
         stream = np.random
-    elif type(seed_or_stream) == int:
-        stream = np.random.RandomState(seed_or_stream)
+    elif type(seed_or_generator) == int:
+        stream = np.random.Generator(np.random.MT19937(seed_or_generator))
     else:
-        stream = seed_or_stream
+        stream = seed_or_generator
     return stream

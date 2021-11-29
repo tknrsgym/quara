@@ -1,14 +1,15 @@
-from itertools import starmap
-from typing import List, Union
+from typing import List, Union, Dict
 import copy
 import time
 from pathlib import Path
 import json
 import pickle
+import itertools
 
 import numpy as np
+from numpy.random import Generator, MT19937, SeedSequence
 import pandas as pd
-from tqdm import tqdm
+import joblib
 
 from quara.simulation import standard_qtomography_simulation_report as report
 
@@ -30,11 +31,14 @@ def execute_simulation_case_unit(
     test_setting,
     true_object,
     tester_objects,
+    empi_dists_sequences,  #
     case_index: int,
     sample_index: int,
     test_setting_index: int,
     root_dir: str,
     exec_sim_check: dict = None,
+    n_jobs: int = 1,
+    data_saving: str = "on_memory",
 ) -> SimulationResult:
     # Generate QTomographySimulationSetting
     sim_setting = test_setting.to_simulation_setting(
@@ -44,24 +48,32 @@ def execute_simulation_case_unit(
 
     org_sim_setting = sim_setting.copy()
 
-    # Generate QTomography
-    # Do not set the random number seed when initializing qtomography.
-    # Use the random number stream later when generating the empirical distribution.
+    # # Generate QTomography
+    # # Do not set the random number seed when initializing qtomography.
+    # # Use the random number stream later when generating the empirical distribution.
     qtomography = sim.generate_qtomography(
         sim_setting,
         para=test_setting.parametrizations[case_index],
         init_with_seed=False,
     )
 
-    # Generate a random number stream to generate the empirical distribution.
-    stream_data = np.random.RandomState(sim_setting.seed_data)
-
     # Execute
-    sim_result = sim.execute_simulation(
-        qtomography=qtomography,
-        simulation_setting=sim_setting,
-        seed_or_stream=stream_data,
-    )
+    if data_saving == "on_memory":
+        sim_result = sim.execute_estimation(
+            qtomography=qtomography,
+            simulation_setting=sim_setting,
+            empi_dists_sequences=empi_dists_sequences,
+            n_jobs=n_jobs,
+        )
+    else:
+        sim_result = sim.execute_estimation_with_saved_empi_dists_sequences(
+            qtomography=qtomography,
+            simulation_setting=sim_setting,
+            dir_path_empi_dists_sequences=Path(root_dir)
+            / str(sample_index)
+            / "empi_dists_sequences",
+            n_jobs=n_jobs,
+        )
 
     # Simulation Check
     sim_check = StandardQTomographySimulationCheck(sim_result)
@@ -98,14 +110,16 @@ def execute_simulation_sample_unit(
     sample_index,
     root_dir,
     pdf_mode: str = "only_ng",
-    stream_qoperation: Union[int, np.random.RandomState] = None,
-    exec_sim_check: dict = None,
+    stream_qoperation: Union[int, np.random.Generator] = None,
+    exec_sim_check: Dict[str, bool] = None,
+    parallel_mode: Dict[str, int] = None,
+    data_saving: str = "on_memory",
 ) -> List[SimulationResult]:
     # Generate sample
     _f = generation_settings.true_setting.generate
-    if "seed_or_stream" in _f.__code__.co_varnames[: _f.__code__.co_argcount]:
+    if "seed_or_generator" in _f.__code__.co_varnames[: _f.__code__.co_argcount]:
         true_object = generation_settings.true_setting.generate(
-            seed_or_stream=stream_qoperation
+            seed_or_generator=stream_qoperation
         )
         tester_objects = [
             tester_setting.generate(stream_qoperation)
@@ -150,18 +164,70 @@ def execute_simulation_sample_unit(
     results = []
     case_n = len(test_setting.case_names)
 
-    for case_index in range(case_n):
-        result = execute_simulation_case_unit(
-            test_setting,
-            true_object=true_object,
-            tester_objects=tester_objects,
-            case_index=case_index,
-            sample_index=sample_index,
-            test_setting_index=test_setting_index,
-            root_dir=root_dir,
-            exec_sim_check=exec_sim_check,
-        )
-        results.append(result)
+    # Generate QTomography
+    # Do not set the random number seed when initializing qtomography.
+    # Use the random number stream later when generating the empirical distribution.
+    dummy_case_index = 0
+    tmp_sim_setting = test_setting.to_simulation_setting(
+        true_object, tester_objects, dummy_case_index
+    )
+    tmp_qtomography = sim.generate_qtomography(
+        tmp_sim_setting,
+        para=test_setting.parametrizations[dummy_case_index],  # dummy
+        init_with_seed=False,
+    )
+
+    # Generate a random number stream to generate the empirical distribution.
+    if type(parallel_mode) == dict and "per_data_generation" in parallel_mode:
+        per_data_generation_n_jobs = parallel_mode["per_data_generation"]
+    else:
+        per_data_generation_n_jobs = 1
+
+    sg = SeedSequence(tmp_sim_setting.seed_data)
+    # The default for RandomState is MT19937, so use this.
+    # Change it if necessary(PCG64, PCG64DXSM, etc.).
+    stream_datas = [Generator(MT19937(s)) for s in sg.spawn(tmp_sim_setting.n_rep)]
+
+    empi_dists_sequences = joblib.Parallel(
+        n_jobs=per_data_generation_n_jobs, verbose=2
+    )(
+        [
+            joblib.delayed(tmp_qtomography.generate_empi_dists_sequence)(
+                true_object, tmp_sim_setting.num_data, s
+            )
+            for s in stream_datas
+        ]
+    )
+
+    if data_saving == "on_storage":
+        raise NotImplementedError()
+
+    if type(parallel_mode) == dict and "per_estimator_unit" in parallel_mode:
+        per_estimator_unit_n_jobs = parallel_mode["per_estimator_unit"]
+    else:
+        per_estimator_unit_n_jobs = 1
+    if type(parallel_mode) == dict and "per_estimator_execution" in parallel_mode:
+        per_estimator_execution_n_jobs = parallel_mode["per_estimator_execution"]
+    else:
+        per_estimator_execution_n_jobs = 1
+
+    results = joblib.Parallel(n_jobs=per_estimator_unit_n_jobs, verbose=2)(
+        [
+            joblib.delayed(execute_simulation_case_unit)(
+                test_setting,
+                true_object,
+                tester_objects,
+                empi_dists_sequences,
+                case_index,
+                sample_index,
+                test_setting_index,
+                root_dir,
+                exec_sim_check,
+                per_estimator_execution_n_jobs,
+            )
+            for case_index in range(case_n)
+        ]
+    )
 
     # Save
     write_result_sample_unit(results, root_dir=root_dir)
@@ -187,30 +253,46 @@ def execute_simulation_test_setting_unit(
     test_setting,
     test_setting_index,
     root_dir,
-    exec_sim_check: dict = None,
+    exec_sim_check: Dict[str, bool] = None,
     pdf_mode: str = "only_ng",
+    parallel_mode: Dict[str, int] = None,
+    data_saving: str = "on_memory",
 ) -> List[SimulationResult]:
     generation_settings = test_setting.to_generation_settings()
     n_sample = test_setting.n_sample
     results = []
 
-    stream_qoperation = np.random.RandomState(test_setting.seed_qoperation)
+    sg = SeedSequence(test_setting.seed_qoperation)
+    # The default for RandomState is MT19937, so use this.
+    # Change it if necessary(PCG64, PCG64DXSM, etc.).
+    gens_qperations = [Generator(MT19937(s)) for s in sg.spawn(n_sample)]
 
-    for sample_index in range(n_sample):
-        sample_results = execute_simulation_sample_unit(
-            test_setting,
-            generation_settings,
-            test_setting_index,
-            sample_index,
-            root_dir,
-            pdf_mode=pdf_mode,
-            stream_qoperation=stream_qoperation,
-            exec_sim_check=exec_sim_check,
-        )
-        results += sample_results
+    if type(parallel_mode) == dict and "per_sample_unit" in parallel_mode:
+        n_jobs = parallel_mode["per_sample_unit"]
+    else:
+        n_jobs = 1
+
+    results = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
+        [
+            joblib.delayed(execute_simulation_sample_unit)(
+                test_setting,
+                generation_settings,
+                test_setting_index,
+                sample_index,
+                root_dir,
+                pdf_mode,
+                random_gen,
+                exec_sim_check,
+                parallel_mode,
+                data_saving,
+            )
+            for sample_index, random_gen in enumerate(gens_qperations)
+        ]
+    )
+    results = list(itertools.chain.from_iterable(results))
 
     # Save
-    write_result_test_setting_unit(results, root_dir)
+    write_result_test_setting_unit(results, root_dir, test_setting_index)
     return results
 
 
@@ -218,7 +300,9 @@ def execute_simulation_test_settings(
     test_settings: List[EstimatorTestSetting],
     root_dir: str,
     pdf_mode: str = "only_ng",
-    exec_sim_check: dict = None,
+    exec_sim_check: Dict[str, bool] = None,
+    parallel_mode: Dict[str, int] = None,
+    data_saving: str = "on_memory",
 ) -> List[SimulationResult]:
     all_results = []
     start = time.time()
@@ -233,6 +317,8 @@ def execute_simulation_test_settings(
             root_dir,
             exec_sim_check=exec_sim_check,
             pdf_mode=pdf_mode,
+            parallel_mode=parallel_mode,
+            data_saving=data_saving,
         )
         all_results += test_results
 
@@ -481,7 +567,7 @@ def re_estimate_test_setting_unit(
         results += sample_results
 
     # Save
-    write_result_test_setting_unit(results, output_root_dir)
+    write_result_test_setting_unit(results, output_root_dir, test_setting_index)
     return results
 
 
@@ -531,9 +617,8 @@ def write_result_sample_unit(results: List[SimulationResult], root_dir: str) -> 
 
 
 def write_result_test_setting_unit(
-    results: List[SimulationResult], root_dir: str
+    results: List[SimulationResult], root_dir: str, test_setting_index: int
 ) -> None:
-    test_setting_index = results[0].result_index["test_setting_index"]
     dir_path = Path(root_dir) / str(test_setting_index)
 
     write_results(results, dir_path)

@@ -1,6 +1,6 @@
 import datetime
 from itertools import product
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import numpy as np
 import numpy.testing as npt
@@ -209,6 +209,8 @@ def execute(
     true_object_ids: List[int] = None,
     tester_ids: List[int] = None,
     pdf_mode: str = "none",
+    parallel_mode: Dict[str, int] = None,
+    data_saving: str = "on_memory",
 ):
     c_sys = generate_composite_system(mode, n_qubit)
     (
@@ -264,9 +266,12 @@ def execute(
             c_sys=c_sys,
         )
         test_settings.append(test_setting)
-
     all_results = execute_simulation_test_settings(
-        test_settings, output_root_dir, pdf_mode=pdf_mode
+        test_settings,
+        output_root_dir,
+        pdf_mode=pdf_mode,
+        parallel_mode=parallel_mode,
+        data_saving=data_saving,
     )
     # show_results(all_results)
     return all_results

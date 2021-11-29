@@ -24,9 +24,10 @@ def test_generate_data_from_prob_dist():
     # normal case
     prob_dist = np.array([0.2, 0.3, 0.5], dtype=np.float64)
     actual = data_generator.generate_data_from_prob_dist(
-        prob_dist, 10, seed_or_stream=7
+        prob_dist, 10, seed_or_generator=7
     )
-    expected = [0, 2, 1, 2, 2, 2, 2, 0, 1, 1]
+    # expected = [0, 2, 1, 2, 2, 2, 2, 0, 1, 1]
+    expected = [1, 2, 0, 2, 2, 2, 2, 2, 1, 2]
     assert actual == expected
 
     ### error cases
@@ -57,8 +58,8 @@ def test_generate_dataset_from_prob_dists():
 
     # Assert
     expected = [
-        [0, 2, 1, 2, 2, 2, 2, 0, 1, 1],
-        [1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1],
+        [1, 2, 0, 2, 2, 2, 2, 2, 1, 2],
+        [1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ]
     assert len(actual) == len(expected)
     for a, e in zip(actual, expected):

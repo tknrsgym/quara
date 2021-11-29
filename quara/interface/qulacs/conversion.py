@@ -132,7 +132,7 @@ def get_index_tuple_from_kraus_matrices_indices(
     Returns
     -------
     Tuple[int, int]
-        returns the (i, j) meaning that j-th matrix of i-th Kraus operator.
+        returns (i, j) meaning that j-th matrix of i-th Kraus operator.
     """
     sum = 0
     for j, num in enumerate(indices):

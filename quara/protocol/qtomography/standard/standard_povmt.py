@@ -104,15 +104,8 @@ class StandardPovmt(StandardQTomography):
         return Povm
 
     def is_valid_experiment(self) -> bool:
-        states = self._experiment.states
-        if len(states) <= 1:
-            return True
-
-        checks = [
-            states[0]._composite_system == state._composite_system
-            for state in states[1:]
-        ]
-        return all(checks)
+        is_ok_states = self.is_all_same_composite_systems(self._experiment.states)
+        return is_ok_states
 
     def _generate_matS(self):
         STATE_ITEM_INDEX = 0
@@ -172,7 +165,7 @@ class StandardPovmt(StandardQTomography):
         schedule_index: int,
         povm: Povm,
         num_sum: int,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> Tuple[int, np.ndarray]:
         """Generate empirical distribution using the data generated from probability distribution of specified schedules.
 
@@ -184,9 +177,9 @@ class StandardPovmt(StandardQTomography):
             true object.
         num_sum : int
             the number of data to use to generate the experience distributions for each schedule.
-        seed_or_stream : Union[int, np.random.RandomState], optional
+        seed_or_generator : Union[int, np.random.Generator], optional
             If the type is int, it is assumed to be a seed used to generate random data.
-            If the type is RandomState, it is used to generate random data.
+            If the type is Generator, it is used to generate random data.
             If argument is None, np.random is used to generate random data.
             Default value is None.
 
@@ -199,9 +192,9 @@ class StandardPovmt(StandardQTomography):
         target_index = self._get_target_index(tmp_experiment, schedule_index)
         tmp_experiment.povms[target_index] = povm
 
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         empi_dist_seq = tmp_experiment.generate_empi_dist_sequence(
-            schedule_index, [num_sum], seed_or_stream=stream
+            schedule_index, [num_sum], seed_or_generator=stream
         )
         return empi_dist_seq[0]
 
@@ -209,7 +202,7 @@ class StandardPovmt(StandardQTomography):
         self,
         povm: Povm,
         num_sum: int,
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_generator: Union[int, np.random.Generator] = None,
     ) -> List[Tuple[int, np.ndarray]]:
         """Generate empirical distributions using the data generated from probability distributions of all schedules.
 
@@ -221,9 +214,9 @@ class StandardPovmt(StandardQTomography):
             tmp_experiment.povms[target_index] = povm
 
         num_sums = [num_sum] * self._num_schedules
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_generator)
         empi_dist_seq = tmp_experiment.generate_empi_dists_sequence(
-            [num_sums], seed_or_stream=stream
+            [num_sums], seed_or_generator=stream
         )
 
         empi_dists = list(itertools.chain.from_iterable(empi_dist_seq))
@@ -233,7 +226,7 @@ class StandardPovmt(StandardQTomography):
         self,
         povm: Povm,
         num_sums: List[int],
-        seed_or_stream: Union[int, np.random.RandomState] = None,
+        seed_or_genrator: Union[int, np.random.Generator] = None,
     ) -> List[List[Tuple[int, np.ndarray]]]:
         tmp_experiment = self._experiment.copy()
 
@@ -245,9 +238,9 @@ class StandardPovmt(StandardQTomography):
             target_index = self._get_target_index(tmp_experiment, schedule_index)
             tmp_experiment.povms[target_index] = povm
 
-        stream = to_stream(seed_or_stream)
+        stream = to_stream(seed_or_genrator)
         empi_dists_sequence_tmp = tmp_experiment.generate_empi_dists_sequence(
-            list_num_sums_tmp, seed_or_stream=stream
+            list_num_sums_tmp, seed_or_generator=stream
         )
         empi_dists_sequence = [
             list(empi_dists) for empi_dists in zip(*empi_dists_sequence_tmp)
@@ -339,4 +332,8 @@ class StandardPovmt(StandardQTomography):
         """
         assert schedule_index >= 0
         assert schedule_index < self.num_schedules
+        return self._num_outcomes
+
+    @property
+    def num_outcomes_estimate(self):
         return self._num_outcomes
