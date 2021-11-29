@@ -145,7 +145,7 @@ def test_convert_intrument_between_quara_and_qulacs_1qubit(state_name, mprocess_
     qulacs_instrument, indices = convert_instrument_quara_to_qulacs(quara_mprocess, [0])
 
     # Check that nubmers of matrices for each Kraus operator is correct.
-    assert indices == [0, 1]
+    assert indices == [1, 1]
 
     N = 1000
     counter = 0
@@ -155,6 +155,46 @@ def test_convert_intrument_between_quara_and_qulacs_1qubit(state_name, mprocess_
         if density_matrix.get_classical_value(0) == 0:
             counter = counter + 1
     simulated_probability_distribution = np.array([counter / N, 1 - counter / N])
+
+    # Check that the probability distribution almost match to each other
+    npt.assert_array_almost_equal(
+        np.array(expected.prob_dist.ps), simulated_probability_distribution, decimal=1
+    )
+
+
+@pytest.mark.qulacs
+@pytest.mark.twoqubit
+@pytest.mark.parametrize(
+    ("state_name", "mprocess_name"),
+    [
+        (state_name, mprocess_name)
+        for state_name, mprocess_name in product(
+            ["z0_z0", "z0_x0", "x0_y0"],
+            ["bell-type1", "xxparity-type1", "zzparity-type1"],
+        )
+    ],
+)
+def test_convert_intrument_between_quara_and_qulacs_2qubit(state_name, mprocess_name):
+    c_sys = generate_composite_system("qubit", 2)
+    quara_mprocess = generate_mprocess_from_name(c_sys, mprocess_name)
+    quara_state = generate_state_from_name(c_sys, state_name)
+    expected = compose_qoperations(quara_mprocess, quara_state)
+
+    qulacs_instrument, indices = convert_instrument_quara_to_qulacs(
+        quara_mprocess, [0, 1]
+    )
+
+    # Check that nubmers of matrices for each Kraus operator is correct.
+    assert len(indices) == quara_mprocess.num_outcomes
+
+    N = 10000
+    counter = [0 for _ in range(quara_mprocess.num_outcomes)]
+    for _ in range(N):
+        density_matrix = convert_state_quara_to_qulacs(quara_state)
+        qulacs_instrument.update_quantum_state(density_matrix)
+        position = density_matrix.get_classical_value(0)
+        counter[position] = counter[position] + 1
+    simulated_probability_distribution = np.array([num / N for num in counter])
 
     # Check that the probability distribution almost match to each other
     npt.assert_array_almost_equal(
