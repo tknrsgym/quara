@@ -18,7 +18,6 @@ from quara.objects.state_typical import (
     get_state_names_3qubit,
     generate_state_from_name,
 )
-from quara.objects.povm_typical import generate_povm_from_name
 from quara.objects.gate_typical import generate_gate_from_gate_name
 from quara.objects.mprocess_typical import generate_mprocess_from_name
 
@@ -125,6 +124,7 @@ def test_convert_gate_between_quara_and_qulacs_3qubit(state_name, gate_name):
     )
 
 
+@pytest.mark.skipci
 @pytest.mark.qulacs
 @pytest.mark.onequbit
 @pytest.mark.parametrize(
@@ -162,6 +162,7 @@ def test_convert_intrument_between_quara_and_qulacs_1qubit(state_name, mprocess_
     )
 
 
+@pytest.mark.skipci
 @pytest.mark.qulacs
 @pytest.mark.twoqubit
 @pytest.mark.parametrize(
