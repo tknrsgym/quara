@@ -144,11 +144,6 @@ class StandardQTomographySimulationCheck:
     def execute_mse_of_empirical_distribution_check(
         self, show_detail: bool = True
     ) -> bool:
-        # result = check_mse_of_empirical_distributions(
-        #     simulation_setting=self.simulation_setting,
-        #     estimation_results=self.estimation_results,
-        #     show_detail=show_detail,
-        # )
         result = check_mse_of_empirical_distributions(
             simulation_result=self.simulation_result,
             show_detail=show_detail,
