@@ -40,6 +40,7 @@ def execute_simulation_case_unit(
     n_jobs: int = 1,
     data_saving: str = "on_memory",
 ) -> SimulationResult:
+
     # Generate QTomographySimulationSetting
     sim_setting = test_setting.to_simulation_setting(
         true_object, tester_objects, case_index
@@ -304,6 +305,31 @@ def execute_simulation_test_settings(
     parallel_mode: Dict[str, int] = None,
     data_saving: str = "on_memory",
 ) -> List[SimulationResult]:
+    """
+    Run a simulation by specifying multiple EstimationTestSettings.
+
+    Parameters
+    ----------
+    test_settings : List[EstimatorTestSetting]
+        List of EstimationTestSetting
+    root_dir : str
+        Root folder where the results will be saved.
+    pdf_mode : str, optional
+        Settings for PDF reporting of simulation results, by default "only_ng".
+        "all": output all. "only_ng": output only if the result of the simulation check is NG. "none": do not output
+    exec_sim_check : Dict[str, bool], optional
+        Items to check for simulation results, by default None.
+        The key of the dictionary is the name of the check item ("consistency", "mse_of_estimators", "mse_of_empi_dists", "physicality_violation"), and the value is whether or not to check (True/False). This check uses `StandardQTomographySimulationCheck`.
+    parallel_mode : Dict[str, int], optional
+        Parallelization settings, by default None.
+        For this parallelization, joblib is used.
+        The key of the dictionary is the type of process to parallelize ("per_sample_unit", "per_data_generation", "per_estimator_unit", "per_estimator_execution"), and the value is the maximum number of concurrently running jobs. This is the same parameter as n_jobs in joblib.
+
+    Returns
+    -------
+    List[SimulationResult]
+        List of simulation results
+    """
     all_results = []
     start = time.time()
 
