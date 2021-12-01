@@ -3,11 +3,9 @@ import copy
 from collections import Counter
 import dataclasses
 import pickle
-import time
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from tqdm import tqdm
 import joblib
 
@@ -325,9 +323,6 @@ def execute_estimation_with_saved_empi_dists_sequences(
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
-    # TODO: remove
-    start = time.time()
-
     estimation_results = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
         [
             joblib.delayed(_load_and_execute_estimation)(
@@ -343,9 +338,6 @@ def execute_estimation_with_saved_empi_dists_sequences(
             for empi_dists_index in range(simulation_setting.n_rep)
         ]
     )
-    # TODO: remove
-    elapsed_time = time.time() - start
-    print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
     simulation_result = SimulationResult(
         qtomography=qtomography,
@@ -365,9 +357,6 @@ def execute_estimation(
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
-    # TODO: remove
-    start = time.time()
-
     estimation_results = joblib.Parallel(n_jobs=n_jobs, verbose=2)(
         [
             joblib.delayed(_execute_estimation)(
@@ -382,9 +371,6 @@ def execute_estimation(
             for empi_dists_seq in empi_dists_sequences
         ]
     )
-    # TODO: remove
-    elapsed_time = time.time() - start
-    print("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
     simulation_result = SimulationResult(
         qtomography=qtomography,
@@ -394,36 +380,6 @@ def execute_estimation(
 
     simulation_result.simulation_setting = org_sim_setting
     return simulation_result
-
-
-# def execute_estimation(
-#     qtomography: "StandardQTomography",
-#     simulation_setting: StandardQTomographySimulationSetting,
-#     empi_dists_sequences: List[List[Tuple[int, np.ndarray]]],
-# ) -> SimulationResult:
-#     org_sim_setting = simulation_setting.copy()
-
-#     estimation_results = []
-#     for empi_dists_seq in tqdm(empi_dists_sequences):
-#         estimation_result = _execute_estimation(
-#             qtomography=qtomography,
-#             empi_dists_seq=empi_dists_seq,
-#             estimator=simulation_setting.estimator,
-#             loss=simulation_setting.loss,
-#             loss_option=simulation_setting.loss_option,
-#             algo=simulation_setting.algo,
-#             algo_option=simulation_setting.algo_option,
-#         )
-#         estimation_results.append(estimation_result)
-
-#     simulation_result = SimulationResult(
-#         qtomography=qtomography,
-#         empi_dists_sequences=empi_dists_sequences,
-#         estimation_results=estimation_results,
-#     )
-
-#     simulation_result.simulation_setting = org_sim_setting
-#     return simulation_result
 
 
 # common
