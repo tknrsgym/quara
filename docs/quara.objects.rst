@@ -20,12 +20,18 @@ Submodules
    quara.objects.gate
    quara.objects.gate_typical
    quara.objects.matrix_basis
+   quara.objects.mprocess
+   quara.objects.mprocess_typical
+   quara.objects.multinomial_distribution
    quara.objects.operators
    quara.objects.povm
    quara.objects.povm_typical
+   quara.objects.prob_dist
    quara.objects.qoperation
    quara.objects.qoperation_typical
    quara.objects.qoperations
    quara.objects.state
+   quara.objects.state_ensemble
+   quara.objects.state_ensemble_typical
    quara.objects.state_typical
    quara.objects.tester_typical

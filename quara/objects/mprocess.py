@@ -490,10 +490,13 @@ class MProcess(QOperation):
         eps_proj_physical: float = None,
         eps_truncate_imaginary_part: float = None,
     ) -> "QOperation":
-        """generates QOperation from variables.
+        """
+        generates QOperation from variables.
+
         Parameters
         ----------
         var : np.ndarray
+            variables.
         is_physicality_required : bool, optional
             whether this QOperation is physicality required, by default None.
             if this parameter is None, the value of this instance is set.

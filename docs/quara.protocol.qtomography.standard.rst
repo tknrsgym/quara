@@ -14,6 +14,7 @@ Submodules
 
    quara.protocol.qtomography.standard.linear_estimator
    quara.protocol.qtomography.standard.loss_minimization_estimator
+   quara.protocol.qtomography.standard.preprocessing
    quara.protocol.qtomography.standard.projected_linear_estimator
    quara.protocol.qtomography.standard.standard_povmt
    quara.protocol.qtomography.standard.standard_qmpt

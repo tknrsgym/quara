@@ -16,3 +16,4 @@ Submodules
    quara.math.func_proj
    quara.math.matrix
    quara.math.norm
+   quara.math.probability
