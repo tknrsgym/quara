@@ -10,6 +10,45 @@ from quara.math.probability import validate_prob_dist
 from quara.settings import Settings
 
 
+def is_real(matrix: np.ndarray, atol: float = None) -> bool:
+    """returns whether the matrix is real.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        input matrix.
+    atol : float, optional
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+
+    Returns
+    -------
+    bool
+        True where ``matrix`` is real, False otherwise.
+    """
+    atol = Settings.get_atol() if atol is None else atol
+    tmp_matrix = truncate_imaginary_part(matrix, atol)
+    return not np.any(tmp_matrix.imag != 0)
+
+
+def is_symmetric(matrix: np.ndarray, atol: float = None) -> bool:
+    """returns whether the matrix is symmetric.
+
+    Parameters
+    ----------
+    matrix : np.ndarray
+        input matrix.
+    atol : float, optional
+        the absolute tolerance parameter, uses :func:`~quara.settings.Settings.get_atol` by default.
+
+    Returns
+    -------
+    bool
+        True where ``matrix`` is symmetric, False otherwise.
+    """
+    atol = Settings.get_atol() if atol is None else atol
+    return np.allclose(matrix, matrix.T, atol=atol, rtol=0.0)
+
+
 def is_unitary(matrix: np.ndarray, atol: float = None) -> bool:
     """returns whether the matrix is unitary.
 
@@ -222,7 +261,9 @@ def truncate_hs(
     if is_zero_imaginary_part_required == True:
         tmp_hs = tmp_hs.real.astype(np.float64)
 
-    truncated_hs = truncate_computational_fluctuation(tmp_hs, eps_truncate_imaginary_part)
+    truncated_hs = truncate_computational_fluctuation(
+        tmp_hs, eps_truncate_imaginary_part
+    )
     return truncated_hs
 
 

@@ -255,10 +255,10 @@ class MProcess(QOperation):
         return self._eps_zero
 
     def is_eq_constraint_satisfied(self, atol: float = None) -> bool:
-        return self.is_sum_tp()
+        return self.is_sum_tp(atol=atol)
 
     def is_ineq_constraint_satisfied(self, atol: float = None) -> bool:
-        return self.is_cp()
+        return self.is_cp(atol=atol)
 
     def set_zero(self):
         hs = np.zeros(self.hs(0).shape, dtype=np.float64)
