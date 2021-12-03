@@ -375,6 +375,17 @@ class TestMProcess:
         mprocess = MProcess(c_sys, hss, is_physicality_required=False)
         assert mprocess.is_eq_constraint_satisfied() == False
 
+        # case 3: atol=1e-1
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1.1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+        assert mprocess.is_eq_constraint_satisfied(atol=1e-1) == True
+
     def test_is_ineq_constraint_satisfied(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
         c_sys = CompositeSystem([e_sys])
@@ -401,6 +412,17 @@ class TestMProcess:
         hss = [hs_0, hs_1]
         mprocess = MProcess(c_sys, hss, is_physicality_required=False)
         assert mprocess.is_ineq_constraint_satisfied() == False
+
+        # case 3: atol=1e-1
+        hs_0 = (1 / 2) * np.array(
+            [[1, 0, 0, 1.1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]
+        )
+        hs_1 = (1 / 2) * np.array(
+            [[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]
+        )
+        hss = [hs_0, hs_1]
+        mprocess = MProcess(c_sys, hss, is_physicality_required=False)
+        assert mprocess.is_ineq_constraint_satisfied(atol=1e-1) == True
 
     def test_set_zero(self):
         # Arrange
