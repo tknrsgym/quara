@@ -307,7 +307,7 @@ class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
 
             # variables for iteration history
             if on_iteration_history:
-                fxs.append(loss_function.value(x_next))
+                fxs.append(loss_function.value(x_next, validate=True))
                 xs.append(x_next)
                 moments.append(moment_next)
 

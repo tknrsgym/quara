@@ -271,7 +271,7 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDesc
 
             # variables for iteration history
             if on_iteration_history:
-                fxs.append(loss_function.value(x_next))
+                fxs.append(loss_function.value(x_next, validate=True))
                 xs.append(x_next)
 
             is_doing = True if value > eps else False

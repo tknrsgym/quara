@@ -18,3 +18,7 @@ def test_validate_prob_dist():
     prob_dist = np.array([-0.1, 0.2, 0.3, 0.5], dtype=np.float64)
     with pytest.raises(ValueError):
         probability.validate_prob_dist(prob_dist)
+
+    # case 4: negative number exists and not raise error
+    prob_dist = np.array([-0.1, 0.2, 0.3, 0.5], dtype=np.float64)
+    probability.validate_prob_dist(prob_dist, raise_error=False)
