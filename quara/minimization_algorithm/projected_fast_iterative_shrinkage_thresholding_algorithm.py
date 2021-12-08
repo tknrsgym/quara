@@ -43,6 +43,8 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithmOption(
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
         var_start: np.ndarray = None,
+        max_iteration_optimization: int = 1000,
+        max_iteration_proj_physical: int = 100000,
         delta: float = None,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
         num_history_stopping_criterion_gradient_descent: int = 1,
@@ -59,6 +61,10 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithmOption(
             whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.ndarray, optional
             initial variable for the algorithm, by default None
+        max_iteration_optimization: int, optional
+            maximun number of iterations of optimization, by default 1000.
+        max_iteration_proj_physical: int, optional
+            maximun number of iterations of projection to physical, by default 100000.
         delta : float, optional
             algorithm option ``r``, by default None
         mode_stopping_criterion_gradient_descent : str, optional
@@ -75,6 +81,8 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithmOption(
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             var_start=var_start,
+            max_iteration_optimization=max_iteration_optimization,
+            max_iteration_proj_physical=max_iteration_proj_physical,
             mode_stopping_criterion_gradient_descent=mode_stopping_criterion_gradient_descent,
             num_history_stopping_criterion_gradient_descent=num_history_stopping_criterion_gradient_descent,
             mode_proj_order=mode_proj_order,
@@ -147,7 +155,6 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDesc
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
         algorithm_option: ProjectedFastIterativeShrinkageThresholdingAlgorithmOption,
-        max_iteration: int = 1000,
         on_iteration_history: bool = False,
     ) -> ProjectedFastIterativeShrinkageThresholdingAlgorithmResult:
         """optimizes using specified parameters.
@@ -160,8 +167,6 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDesc
             Loss Function Option
         algorithm_option : ProjectedFastIterativeShrinkageThresholdingAlgorithmOption
             Projected Fast Iterative Shrinkage-Thresholding Algorithm Option
-        max_iteration: int, optional
-            maximun number of iterations, by default 1000.
         on_iteration_history : bool, optional
             whether to return iteration history, by default False
 
@@ -177,6 +182,8 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDesc
         ValueError
             when ``on_gradient`` of ``loss_function`` is False.
         """
+        max_iteration = algorithm_option.max_iteration_optimization
+
         if loss_function.on_value == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_value' of loss_function must be True."
@@ -264,7 +271,7 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDesc
 
             # variables for iteration history
             if on_iteration_history:
-                fxs.append(loss_function.value(x_next))
+                fxs.append(loss_function.value(x_next, validate=True))
                 xs.append(x_next)
 
             is_doing = True if value > eps else False

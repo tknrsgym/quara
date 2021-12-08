@@ -317,6 +317,8 @@ class TestProjectedGradientDescentWithMomentum:
         assert algo.is_loss_and_option_sufficient() == False
 
     def test_optimize_value_error(self):
+        algo_option = ProjectedGradientDescentWithMomentumOption()
+
         # loss.on_value is False
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
         loss = SimpleQuadraticLossFunction(var_ref)
@@ -324,7 +326,7 @@ class TestProjectedGradientDescentWithMomentum:
         algo = ProjectedGradientDescentWithMomentum()
         algo.set_from_loss(loss)
         with pytest.raises(ValueError):
-            algo.optimize(loss, None, None)
+            algo.optimize(loss, None, algo_option)
 
         # loss.on_gradient is False
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)
@@ -333,4 +335,4 @@ class TestProjectedGradientDescentWithMomentum:
         algo = ProjectedGradientDescentWithMomentum()
         algo.set_from_loss(loss)
         with pytest.raises(ValueError):
-            algo.optimize(loss, None, None)
+            algo.optimize(loss, None, algo_option)

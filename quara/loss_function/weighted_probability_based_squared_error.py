@@ -215,7 +215,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
             self._set_on_hessian(True)
         return self.on_hessian
 
-    def value(self, var: np.ndarray) -> np.float64:
+    def value(self, var: np.ndarray, validate: bool = False) -> np.float64:
         """returns the value of Weighted Probability Based Squared Error.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.value`
@@ -234,7 +234,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
         val = np.sum(tmp_values)
         return val
 
-    def gradient(self, var: np.ndarray) -> np.ndarray:
+    def gradient(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         """returns the gradient of Weighted Probability Based Squared Error.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`
@@ -258,7 +258,7 @@ class WeightedProbabilityBasedSquaredError(ProbabilityBasedLossFunction):
             grad.append(val)
         return 2 * np.array(grad, dtype=np.float64)
 
-    def hessian(self, var: np.ndarray) -> np.ndarray:
+    def hessian(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         """returns the Hessian of Weighted Probability Based Squared Error.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.hessian`

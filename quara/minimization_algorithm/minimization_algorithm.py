@@ -49,6 +49,7 @@ class MinimizationAlgorithmOption:
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
         var_start: np.ndarray = None,
+        max_iteration_optimization: int = None,
     ):
         """Constructor
 
@@ -60,10 +61,13 @@ class MinimizationAlgorithmOption:
             whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.ndarray, optional
             initial variable for the algorithm, by default None.
+        max_iteration_optimization: int, optional
+            maximun number of iterations of optimization, by default None.
         """
         self._on_algo_eq_constraint = on_algo_eq_constraint
         self._on_algo_ineq_constraint = on_algo_ineq_constraint
         self._var_start: np.ndarray = var_start
+        self._max_iteration_optimization: int = max_iteration_optimization
 
     @property
     def on_algo_eq_constraint(self) -> bool:  # read only
@@ -97,6 +101,17 @@ class MinimizationAlgorithmOption:
             initial variable for the algorithm.
         """
         return self._var_start
+
+    @property
+    def max_iteration_optimization(self) -> int:
+        """returns imaximun number of iterations of optimization.
+
+        Returns
+        -------
+        int
+            maximun number of iterations of optimization.
+        """
+        return self._max_iteration_optimization
 
 
 class MinimizationAlgorithm:

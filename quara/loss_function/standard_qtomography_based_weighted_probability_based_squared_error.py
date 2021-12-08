@@ -13,6 +13,7 @@ from quara.math.entropy import (
     hessian_relative_entropy_2nd,
 )
 from quara.math.matrix import multiply_veca_vecb, multiply_veca_vecb_matc
+from quara.math.probability import validate_prob_dist
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 
 
@@ -139,13 +140,22 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
         self._update_on_gradient_true()
         self._update_on_hessian_true()
 
-    def value(self, var: np.ndarray) -> np.float64:
+    def value(self, var: np.ndarray, validate: bool = False) -> np.float64:
         """returns the value of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.value`
         """
         q = self._prob_dists_q_flat
         p = self._matA @ var + self._vecB
+        if validate:
+            num_prob_dists = len(self.prob_dists_q)
+            ps = p.reshape((num_prob_dists, -1))
+            for index, prob in enumerate(ps):
+                validate_prob_dist(
+                    prob,
+                    raise_error=False,
+                    message=f"StandardQTomographyBasedWeightedProbabilityBasedSquaredError.value({index})",
+                )
         vec = p - q
 
         if self._extend_weight_matrix is not None:
@@ -155,13 +165,22 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
 
         return val
 
-    def gradient(self, var: np.ndarray) -> np.ndarray:
+    def gradient(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         """returns the gradient of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`
         """
         q = self._prob_dists_q_flat
         p = self._matA @ var + self._vecB
+        if validate:
+            num_prob_dists = len(self.prob_dists_q)
+            ps = p.reshape((num_prob_dists, -1))
+            for index, prob in enumerate(ps):
+                validate_prob_dist(
+                    prob,
+                    raise_error=False,
+                    message=f"StandardQTomographyBasedWeightedProbabilityBasedSquaredError.gradient({index})",
+                )
         vec = p - q
         grad_ps = self._matA
 
@@ -172,5 +191,5 @@ class StandardQTomographyBasedWeightedProbabilityBasedSquaredError(
 
         return grad
 
-    def hessian(self, var: np.ndarray) -> np.ndarray:
+    def hessian(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         raise NotImplementedError()

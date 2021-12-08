@@ -12,6 +12,7 @@ from quara.math.entropy import (
     gradient_relative_entropy_2nd,
     hessian_relative_entropy_2nd,
 )
+from quara.math.probability import validate_prob_dist
 from quara.utils import matrix_util
 
 
@@ -168,7 +169,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
             self._set_on_hessian(True)
         return self.on_hessian
 
-    def value(self, var: np.ndarray) -> np.float64:
+    def value(self, var: np.ndarray, validate: bool = False) -> np.float64:
         """returns the value of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.value`
@@ -177,6 +178,13 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
         for index in range(len(self.func_prob_dists)):
             q = self.prob_dists_q[index]
             p = self.func_prob_dists[index](var)
+            if validate:
+                validate_prob_dist(
+                    p,
+                    raise_error=False,
+                    message="WeightedRelativeEntropy.value({index})",
+                )
+
             if self.weights:
                 val += self.weights[index] * relative_entropy(
                     q, p, is_valid_required=False
@@ -186,7 +194,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
 
         return val
 
-    def gradient(self, var: np.ndarray) -> np.ndarray:
+    def gradient(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         """returns the gradient of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.gradient`
@@ -201,6 +209,13 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
 
             q = self.prob_dists_q[index]
             p = self.func_prob_dists[index](var)
+            if validate:
+                validate_prob_dist(
+                    p,
+                    raise_error=False,
+                    message="WeightedRelativeEntropy.gradient({index})",
+                )
+
             if self.weights:
                 grad += self.weights[index] * gradient_relative_entropy_2nd(
                     q, p, grad_ps, is_valid_required=False
@@ -212,7 +227,7 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
 
         return grad
 
-    def hessian(self, var: np.ndarray) -> np.ndarray:
+    def hessian(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         """returns the Hessian of Weighted Relative Entropy.
 
         see :func:`~quara.data_analysis.loss_function.LossFunction.hessian`
@@ -238,6 +253,13 @@ class WeightedRelativeEntropy(ProbabilityBasedLossFunction):
 
             q = self.prob_dists_q[index]
             p = self.func_prob_dists[index](var)
+            if validate:
+                validate_prob_dist(
+                    p,
+                    raise_error=False,
+                    message="WeightedRelativeEntropy.hessian({index})",
+                )
+
             if self.weights:
                 hess += self.weights[index] * hessian_relative_entropy_2nd(
                     q, p, grad_ps, hess_ps, is_valid_required=False
