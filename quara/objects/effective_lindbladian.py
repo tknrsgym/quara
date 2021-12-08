@@ -7,7 +7,7 @@ import sys
 from typing import List, Tuple, Optional
 
 import numpy as np
-from scipy.linalg import expm
+from scipy.linalg import expm, kron
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
@@ -160,7 +160,7 @@ class EffectiveLindbladian(Gate):
         for alpha, B_alpha in enumerate(basis[1:]):
             for beta, B_beta in enumerate(basis[1:]):
                 tmp_k_mat[alpha, beta] = np.trace(
-                    lindbladian_cb @ np.kron(B_alpha, B_beta.conj())
+                    lindbladian_cb @ kron(B_alpha, B_beta.conj())
                 )
 
         return tmp_k_mat
@@ -707,7 +707,7 @@ def _calc_k_part_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.nda
     k_part = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
         for col in range(k_mat.shape[0]):
-            term = k_mat[row, col] * np.kron(basis[row + 1], basis[col + 1].conj())
+            term = k_mat[row, col] * kron(basis[row + 1], basis[col + 1].conj())
             k_part += term
 
     return k_part
