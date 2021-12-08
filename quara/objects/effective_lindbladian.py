@@ -1,5 +1,6 @@
 import copy
 import itertools
+import inspect
 from functools import reduce
 from operator import add
 import sys
@@ -90,8 +91,7 @@ class EffectiveLindbladian(Gate):
         )
 
         # whether the EffectiveLindbladian is physically correct
-        if self.is_physicality_required and not self.is_physical():
-            raise ValueError("the EffectiveLindbladian is not phsically correct.")
+        # is_physical() is called in the parent class, so it is not checked here.
 
     def calc_h_mat(self) -> np.ndarray:
         """calculates h matrix of this EffectiveLindbladian.
