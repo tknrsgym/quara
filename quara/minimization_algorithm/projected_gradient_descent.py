@@ -82,6 +82,8 @@ class ProjectedGradientDescentOption(MinimizationAlgorithmOption):
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
         var_start: np.ndarray = None,
+        max_iteration_optimization: int = None,
+        max_iteration_proj_physical: int = None,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
         num_history_stopping_criterion_gradient_descent: int = 1,
         mode_proj_order: str = "eq_ineq",
@@ -97,6 +99,10 @@ class ProjectedGradientDescentOption(MinimizationAlgorithmOption):
             whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.ndarray, optional
             initial variable for the algorithm, by default None
+        max_iteration_optimization: int, optional
+            maximun number of iterations of optimization, by default None.
+        max_iteration_proj_physical: int, optional
+            maximun number of iterations of projection to physical, by default None.
         mode_stopping_criterion_gradient_descent : str, optional
             mode of stopping criterion for gradient descent, by default "single_difference_loss"
         num_history_stopping_criterion_gradient_descent : int, optional
@@ -111,7 +117,10 @@ class ProjectedGradientDescentOption(MinimizationAlgorithmOption):
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             var_start=var_start,
+            max_iteration_optimization=max_iteration_optimization,
         )
+
+        self._max_iteration_proj_physical: int = max_iteration_proj_physical
 
         if not mode_stopping_criterion_gradient_descent in [
             "single_difference_loss",
@@ -145,6 +154,17 @@ class ProjectedGradientDescentOption(MinimizationAlgorithmOption):
         if eps is None:
             eps = Settings.get_atol() / 10.0
         self._eps: float = eps
+
+    @property
+    def max_iteration_proj_physical(self) -> int:
+        """returns maximun number of iterations of optimization.
+
+        Returns
+        -------
+        int
+            maximun number of iterations of optimization.
+        """
+        return self._max_iteration_proj_physical
 
     @property
     def mode_stopping_criterion_gradient_descent(self) -> str:
@@ -242,6 +262,7 @@ class ProjectedGradientDescent(MinimizationAlgorithm):
             self._func_proj = setting_info.func_calc_proj_physical_with_var(
                 on_para_eq_constraint=setting_info.on_para_eq_constraint,
                 mode_proj_order=option.mode_proj_order,
+                max_iteration=option.max_iteration_proj_physical,
             )
         elif (
             option.on_algo_eq_constraint == True
@@ -319,7 +340,6 @@ class ProjectedGradientDescent(MinimizationAlgorithm):
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
         algorithm_option: ProjectedGradientDescentOption,
-        max_iteration: int = 1000,
         on_iteration_history: bool = False,
     ) -> ProjectedGradientDescentResult:
         """optimizes using specified parameters.
@@ -332,8 +352,6 @@ class ProjectedGradientDescent(MinimizationAlgorithm):
             Loss Function Option
         algorithm_option : ProjectedGradientDescentOption
             Projected Gradient Descent Base Algorithm Option
-        max_iteration: int, optional
-            maximun number of iterations, by default 1000.
         on_iteration_history : bool, optional
             whether to return iteration history, by default False
 

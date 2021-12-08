@@ -57,6 +57,8 @@ class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption)
         on_algo_eq_constraint: bool = True,
         on_algo_ineq_constraint: bool = True,
         var_start: np.ndarray = None,
+        max_iteration_optimization: int = 1000,
+        max_iteration_proj_physical: int = 100000,
         mu: float = None,
         gamma: float = 0.3,
         mode_stopping_criterion_gradient_descent: str = "single_difference_loss",
@@ -74,6 +76,10 @@ class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption)
             whether this algorithm needs on algorithm inequality constraint, by default True
         var_start : np.ndarray, optional
             initial variable for the algorithm, by default None
+        max_iteration_optimization: int, optional
+            maximun number of iterations of optimization, by default 1000.
+        max_iteration_proj_physical: int, optional
+            maximun number of iterations of projection to physical, by default 100000.
         mu : float, optional
             algorithm option ``mu``, by default None
         gamma : float, optional
@@ -92,6 +98,8 @@ class ProjectedGradientDescentBacktrackingOption(ProjectedGradientDescentOption)
             on_algo_eq_constraint=on_algo_eq_constraint,
             on_algo_ineq_constraint=on_algo_ineq_constraint,
             var_start=var_start,
+            max_iteration_optimization=max_iteration_optimization,
+            max_iteration_proj_physical=max_iteration_proj_physical,
             mode_stopping_criterion_gradient_descent=mode_stopping_criterion_gradient_descent,
             num_history_stopping_criterion_gradient_descent=num_history_stopping_criterion_gradient_descent,
             mode_proj_order=mode_proj_order,
@@ -181,7 +189,6 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
         loss_function: LossFunction,
         loss_function_option: LossFunctionOption,
         algorithm_option: ProjectedGradientDescentBacktrackingOption,
-        max_iteration: int = 1000,
         on_iteration_history: bool = False,
     ) -> ProjectedGradientDescentBacktrackingResult:
         """optimizes using specified parameters.
@@ -194,8 +201,6 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             Loss Function Option
         algorithm_option : ProjectedGradientDescentBacktrackingOption
             Projected Gradient Descent Backtracking Algorithm Option
-        max_iteration: int, optional
-            maximun number of iterations, by default 1000.
         on_iteration_history : bool, optional
             whether to return iteration history, by default False
 
@@ -211,6 +216,8 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
         ValueError
             when ``on_gradient`` of ``loss_function`` is False.
         """
+        max_iteration = algorithm_option.max_iteration_optimization
+
         if loss_function.on_value == False:
             raise ValueError(
                 "to execute ProjectedGradientDescentBase, 'on_value' of loss_function must be True."

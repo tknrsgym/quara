@@ -816,6 +816,8 @@ class QOperation:
         self,
         on_para_eq_constraint: bool = None,
         mode_proj_order: str = "eq_ineq",
+        max_iteration: int = 1000,
+        is_iteration_history: bool = False,
     ) -> Callable[[np.ndarray], np.ndarray]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
@@ -828,8 +830,18 @@ class QOperation:
                 on_para_eq_constraint=on_para_eq_constraint,
                 mode_proj_order=mode_proj_order,
             )
-            qobj_result = qobj_tmp.calc_proj_physical()
-            return qobj_result.to_var()
+            if is_iteration_history:
+                qobj_result, history = qobj_tmp.calc_proj_physical(
+                    max_iteration=max_iteration,
+                    is_iteration_history=is_iteration_history,
+                )
+                return qobj_result.to_var(), history
+            else:
+                qobj_result = qobj_tmp.calc_proj_physical(
+                    max_iteration=max_iteration,
+                    is_iteration_history=is_iteration_history,
+                )
+                return qobj_result.to_var()
 
         return _func_proj
 
@@ -986,13 +998,16 @@ class QOperation:
         self,
         on_para_eq_constraint: bool = None,
         mode_proj_order: str = "eq_ineq",
+        max_iteration: int = 1000,
     ) -> Callable[[np.ndarray], np.ndarray]:
         if on_para_eq_constraint is None:
             on_para_eq_constraint = self._on_para_eq_constraint
 
         def _func_proj(var: np.ndarray) -> np.ndarray:
             new_var = self.calc_proj_physical_with_var(
-                var, on_para_eq_constraint=on_para_eq_constraint
+                var,
+                on_para_eq_constraint=on_para_eq_constraint,
+                max_iteration=max_iteration,
             )
             return new_var
 

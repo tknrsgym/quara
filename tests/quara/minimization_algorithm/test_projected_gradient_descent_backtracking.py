@@ -541,6 +541,27 @@ class TestProjectedGradientDescentBacktracking:
         assert len(actual.alpha) == actual.k
         assert type(actual.computation_time) == float
 
+    def test_optimize_max_iteration_optimization(self):
+        loss_option = SimpleQuadraticLossFunctionOption()
+
+        var_ref = np.array([1, 1], dtype=np.float64)
+        loss = SimpleQuadraticLossFunction(var_ref)
+
+        proj = func_proj.proj_to_self()
+        algo = ProjectedGradientDescentBacktracking(proj)
+
+        var_start = np.array([3, 3], dtype=np.float64)
+        expected = np.array([1, 1], dtype=np.float64)
+
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            var_start=var_start, max_iteration_optimization=3
+        )
+        actual = algo.optimize(
+            loss, loss_option, algo_option, on_iteration_history=True
+        )
+
+        assert actual.k == 3
+
     def test_optimize_value_error(self):
         # loss.on_value is False
         var_ref = np.array([1, 0, 0, 0], dtype=np.float64) / np.sqrt(2)

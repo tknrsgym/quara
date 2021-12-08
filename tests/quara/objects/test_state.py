@@ -1830,6 +1830,19 @@ class TestState:
         actual_qobj = State(c_sys, actual)
         assert actual_qobj.is_physical() == True
 
+    def test_func_calc_proj_physical_max_iteration(self):
+        e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+        c_sys = CompositeSystem([e_sys])
+        state = get_z0_1q(c_sys)
+        func = state.func_calc_proj_physical(
+            on_para_eq_constraint=False, max_iteration=3, is_iteration_history=True
+        )
+
+        # [1.0, 1.1, 1.2, 1.3]
+        var = np.array([1.0, 1.1, 1.2, 1.3], dtype=np.float64)
+        _, history = func(var)
+        assert len(history["x"]) == 4
+
 
 def test_to_density_matrix_from_var():
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
