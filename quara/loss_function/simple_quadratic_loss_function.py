@@ -55,7 +55,7 @@ class SimpleQuadraticLossFunction(LossFunction):
         self._set_on_hessian(True)
         return True
 
-    def value(self, var: np.ndarray) -> np.float64:
+    def value(self, var: np.ndarray, validate: bool = False) -> np.float64:
         """returns the value of the loss function.
 
         the value of the loss function is :math:`|| \\text{var} - \\text{var_ref} ||^2_2`.
@@ -79,7 +79,7 @@ class SimpleQuadraticLossFunction(LossFunction):
         val = np.sum((var - self._var_ref) ** 2)
         return val
 
-    def gradient(self, var: np.ndarray) -> np.ndarray:
+    def gradient(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         """returns the gradient of the loss function.
 
         the value of the loss function is :math:`2(\\text{var} - \\text{var_ref})`.
@@ -103,7 +103,7 @@ class SimpleQuadraticLossFunction(LossFunction):
         val = 2 * (var - self._var_ref)
         return val
 
-    def hessian(self, var: np.ndarray) -> np.ndarray:
+    def hessian(self, var: np.ndarray, validate: bool = False) -> np.ndarray:
         """returns the Hessian of the loss function.
 
         the value of the loss function is ``2I``, where ``I`` is the identity matrix of size ``num_var``.
