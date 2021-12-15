@@ -225,8 +225,8 @@ class SimulationResult:
     Parameters
     -------
     estimation_results : List[EstimationResult]
-        the index of list is the index of "num_data".
-    empi_dists_sequences: List[List[Tuple[int, np.ndarray]]]
+        the index of list is the index of "n_rep".
+    empi_dists_sequences: List[List[List[Tuple[int, np.ndarray]]]]
         the order of indexes is as follows: "n_rep", "num_data", and "schecule_index".
     qtomography: StandardQTomography
         StandardQTomography object.
@@ -241,11 +241,109 @@ class SimulationResult:
     """
 
     estimation_results: List["EstimationResult"]
-    empi_dists_sequences: List[List[Tuple[int, np.ndarray]]]
+    empi_dists_sequences: List[List[List[Tuple[int, np.ndarray]]]]
     qtomography: StandardQTomography
     simulation_setting: StandardQTomographySimulationSetting = None
     result_index: dict = None
     check_result: dict = None
+
+    def get_variable_estimate(
+        self, n_rep: int, num_data_index: int = None, num_data_value: int = None
+    ) -> np.ndarray:
+        """get variable estimate with specific parameter.
+        Either num_data_index or num_data_value must be specified.
+
+        Parameters
+        ----------
+        n_rep : int
+            value of n_rep.
+        num_data_index : int, optional
+            index of num_data, by default None
+        num_data_value : int, optional
+            value of num_data, by default None
+
+        Returns
+        -------
+        np.ndarray
+            variable estimate.
+
+        Raises
+        ------
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are None.
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are specified.
+        ValueError
+            num_data_value is not found in SimulationResult.
+        """
+        if num_data_index is None and num_data_value is None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are None."
+            )
+        elif num_data_index is not None and num_data_value is not None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are specified."
+            )
+        elif num_data_index is not None:
+            return self.estimation_results[n_rep].estimated_var_sequence[num_data_index]
+        else:
+            for num_data_index, num in enumerate(self.simulation_setting.num_data):
+                if num == num_data_value:
+                    return self.estimation_results[n_rep].estimated_var_sequence[
+                        num_data_index
+                    ]
+            raise ValueError(
+                f"num_data_value({num_data_value}) is not found in SimulationResult."
+            )
+
+    def get_empi_dists(
+        self, n_rep: int, num_data_index: int = None, num_data_value: int = None
+    ) -> List[Tuple[int, np.ndarray]]:
+        """get empi dists with specific parameter.
+        Either num_data_index or num_data_value must be specified.
+
+        Parameters
+        ----------
+        n_rep : int
+            value of n_rep.
+        num_data_index : int, optional
+            index of num_data, by default None
+        num_data_value : int, optional
+            value of num_data, by default None
+
+        Returns
+        -------
+        List[Tuple[int, np.ndarray]]
+            empi dists.
+            the index of list is "schecule_index".
+            the tuple consists of (num_data, empi dist).
+
+        Raises
+        ------
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are None.
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are specified.
+        ValueError
+            num_data_value is not found in SimulationResult.
+        """
+        if num_data_index is None and num_data_value is None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are None."
+            )
+        elif num_data_index is not None and num_data_value is not None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are specified."
+            )
+        elif num_data_index is not None:
+            return self.empi_dists_sequences[n_rep][num_data_index]
+        else:
+            for num_data_index, num in enumerate(self.simulation_setting.num_data):
+                if num == num_data_value:
+                    return self.empi_dists_sequences[n_rep][num_data_index]
+            raise ValueError(
+                f"num_data_value({num_data_value}) is not found in SimulationResult."
+            )
 
     def to_pickle(self, path: Union[str, Path]) -> None:
         path = Path(path)
