@@ -220,6 +220,26 @@ class EstimatorTestSetting:
 
 @dataclasses.dataclass
 class SimulationResult:
+    """Parameters
+
+    Parameters
+    -------
+    estimation_results : List[EstimationResult]
+        the index of list is the index of "num_data".
+    empi_dists_sequences: List[List[Tuple[int, np.ndarray]]]
+        the order of indexes is as follows: "n_rep", "num_data", and "schecule_index".
+    qtomography: StandardQTomography
+        StandardQTomography object.
+    simulation_setting: StandardQTomographySimulationSetting
+        StandardQTomographySimulationSetting object.
+    result_index: dict
+        dictionary of the check result.
+        it contains the following keys: "name", "total_result", and "results".
+    check_result: dict
+        dictionary of the check result.
+        it contains the following keys: "test_setting_index", "sample_index", and "case_index".
+    """
+
     estimation_results: List["EstimationResult"]
     empi_dists_sequences: List[List[Tuple[int, np.ndarray]]]
     qtomography: StandardQTomography
