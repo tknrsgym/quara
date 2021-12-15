@@ -4,20 +4,16 @@ from typing import List, Union
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.qoperation import QOperation
 from quara.objects.operators import compose_qoperations
-from quara.objects.state import State
-from quara.objects.povm import Povm
 from quara.objects.gate import (
     Gate,
     get_depolarizing_channel,
 )
 from quara.objects.state_typical import (
-    generate_state_from_name,
     generate_state_object_from_state_name_object_name,
 )
 from quara.objects.povm_typical import generate_povm_object_from_povm_name_object_name
 from quara.objects.gate_typical import (
     generate_gate_object_from_gate_name_object_name,
-    generate_gate_piover8_mat,
 )
 from quara.objects.mprocess_typical import (
     generate_mprocess_object_from_mprocess_name_object_name,

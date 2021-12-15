@@ -8,12 +8,9 @@ from scipy.linalg import expm
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, convert_hs
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects import effective_lindbladian as el
-from quara.objects.operators import compose_qoperations, tensor_product
-from quara.objects.state import get_y0_1q, get_y1_1q, get_z0_1q, get_z1_1q
-from quara.settings import Settings
+
 
 
 class TestEffectiveLindbladian:

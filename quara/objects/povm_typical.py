@@ -1,13 +1,11 @@
 from itertools import product
 from typing import List, Union
-import re
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
-    calc_matrix_expansion_coefficient,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.povm import Povm
@@ -15,7 +13,7 @@ from quara.objects.state_typical import (
     generate_state_density_mat_from_name,
     generate_state_pure_state_vector_from_name,
 )
-from quara.utils.matrix_util import truncate_hs, calc_mat_from_vector_adjoint
+from quara.utils.matrix_util import calc_mat_from_vector_adjoint
 
 
 def get_povm_object_names() -> List[str]:

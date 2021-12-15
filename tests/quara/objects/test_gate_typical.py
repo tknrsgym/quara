@@ -30,9 +30,6 @@ from quara.objects.gate_typical import (
     calc_pauli_symbol_from_decimal_number,
     calc_hamiltonian_mat_from_gate_name_2qutrit_base_matrices,
 )
-from quara.objects.effective_lindbladian_typical import (
-    generate_gate_1qutrit_single_gellmann_effective_linabladian,
-)
 
 
 def _test_gate(

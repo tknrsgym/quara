@@ -5,10 +5,6 @@ import numpy as np
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import convert_hs
 from quara.objects.mprocess import MProcess
-from quara.objects.state_typical import (
-    generate_state_density_mat_from_name,
-    generate_state_pure_state_vector_from_name,
-)
 from quara.utils.matrix_util import calc_mat_from_vector_adjoint, truncate_hs
 
 

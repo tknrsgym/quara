@@ -1,8 +1,7 @@
 import copy
-import itertools
 from functools import reduce
 from operator import add, mul
-from typing import List, Optional, Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -11,14 +10,10 @@ from quara.objects import gate
 from quara.objects.gate import Gate
 from quara.objects.matrix_basis import (
     MatrixBasis,
-    get_comp_basis,
-    get_normalized_pauli_basis,
 )
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
-from quara.settings import Settings
 from quara.utils.index_util import index_serial_from_index_multi_dimensional
-import quara.utils.matrix_util as mutil
 from quara.utils.number_util import to_stream
 
 
