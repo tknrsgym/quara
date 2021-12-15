@@ -156,6 +156,7 @@ def generate_povm_object_from_povm_name_object_name(
     object_name: str,
     c_sys: CompositeSystem = None,
     basis: MatrixBasis = None,
+    is_physicality_required: bool = True,
 ) -> Union[List[np.ndarray], Povm]:
     """Return a povm-related object.
 
@@ -169,6 +170,8 @@ def generate_povm_object_from_povm_name_object_name(
         To be given for object_name = 'povm', by default None.
     basis : MatrixBasis, optional
         To be given for object_name = 'vectors', by default None.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -197,7 +200,7 @@ def generate_povm_object_from_povm_name_object_name(
     elif object_name == "vectors":
         obj = generate_povm_vectors_from_name(povm_name, basis)
     elif object_name == "povm":
-        obj = generate_povm_from_name(povm_name, c_sys)
+        obj = generate_povm_from_name(povm_name, c_sys, is_physicality_required)
     else:
         raise ValueError(f"object_name is out of range. object_name={object_name}")
     return obj
@@ -366,7 +369,9 @@ def generate_povm_vectors_from_name(
     return vecs
 
 
-def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
+def generate_povm_from_name(
+    povm_name: str, c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> Povm:
     """returns Povm class.
 
     Parameters
@@ -375,6 +380,8 @@ def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
         name of povm.
     c_sys : CompositeSystem
         CompositeSystem of povm.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -387,7 +394,7 @@ def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
         povm_name is invalid.
     """
     vecs = generate_povm_vectors_from_name(povm_name, c_sys.basis())
-    return Povm(c_sys, vecs)
+    return Povm(c_sys, vecs, is_physicality_required=is_physicality_required)
 
 
 def get_povm_xxparity_povm_matrices() -> List[List[np.ndarray]]:

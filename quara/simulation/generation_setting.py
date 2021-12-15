@@ -39,7 +39,11 @@ class QOperationGenerationSetting:
             qoperation_type = qoperation_base[0]
             qoperation_name = qoperation_base[1]
             self._qoperation_base = generate_qoperation(
-                mode=qoperation_type, name=qoperation_name, c_sys=c_sys, ids=ids
+                mode=qoperation_type,
+                name=qoperation_name,
+                c_sys=c_sys,
+                ids=ids,
+                is_physicality_required=is_physicality_required,
             )
         else:
             raise TypeError(type_error_message)

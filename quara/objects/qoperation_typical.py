@@ -31,10 +31,19 @@ from quara.objects.effective_lindbladian_typical import (
 
 
 def generate_qoperation(
-    mode: str, name: str, c_sys: CompositeSystem, ids: List[int] = None
+    mode: str,
+    name: str,
+    c_sys: CompositeSystem,
+    ids: List[int] = None,
+    is_physicality_required: bool = True,
 ) -> QOperation:
     return generate_qoperation_object(
-        mode=mode, name=name, object_name=mode, ids=ids, c_sys=c_sys
+        mode=mode,
+        name=name,
+        object_name=mode,
+        ids=ids,
+        c_sys=c_sys,
+        is_physicality_required=is_physicality_required,
     )
 
 
@@ -63,18 +72,24 @@ def generate_qoperation_depolarized(
 
 
 def generate_state_object(
-    state_name: str, object_name: str, c_sys: CompositeSystem = None
+    state_name: str,
+    object_name: str,
+    c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ):
     return generate_state_object_from_state_name_object_name(
-        state_name, object_name, c_sys
+        state_name, object_name, c_sys, is_physicality_required
     )
 
 
 def generate_povm_object(
-    povm_name: str, object_name: str, c_sys: CompositeSystem = None
+    povm_name: str,
+    object_name: str,
+    c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ):
     return generate_povm_object_from_povm_name_object_name(
-        povm_name, object_name, c_sys
+        povm_name, object_name, c_sys, is_physicality_required=is_physicality_required
     )
 
 
@@ -85,22 +100,37 @@ def generate_qoperation_object(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ):
     if mode == "state":
         return generate_state_object(
-            state_name=name, object_name=object_name, c_sys=c_sys
+            state_name=name,
+            object_name=object_name,
+            c_sys=c_sys,
+            is_physicality_required=is_physicality_required,
         )
     elif mode == "povm":
         return generate_povm_object(
-            povm_name=name, object_name=object_name, c_sys=c_sys
+            povm_name=name,
+            object_name=object_name,
+            c_sys=c_sys,
+            is_physicality_required=is_physicality_required,
         )
     elif mode == "gate":
         return generate_gate_object(
-            gate_name=name, object_name=object_name, c_sys=c_sys, dims=dims, ids=ids
+            gate_name=name,
+            object_name=object_name,
+            c_sys=c_sys,
+            dims=dims,
+            ids=ids,
+            is_physicality_required=is_physicality_required,
         )
     elif mode == "mprocess":
         return generate_mprocess_object(
-            mprocess_name=name, object_name=object_name, c_sys=c_sys
+            mprocess_name=name,
+            object_name=object_name,
+            c_sys=c_sys,
+            is_physicality_required=is_physicality_required,
         )
     elif mode == "state_ensemble":
         return generate_state_ensemble_object(
@@ -127,6 +157,7 @@ def generate_gate_object(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[np.ndarray, "Gate"]:
     """Return a gate-related object.
 
@@ -149,6 +180,9 @@ def generate_gate_object(
     c_sys: CompositeSystem = None, Optional
         To be given for object_name = 'gate'
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     Union[np.ndarray, "Gate"]
@@ -161,7 +195,7 @@ def generate_gate_object(
             Gate class for object_name = 'gate'
     """
     res = generate_gate_object_from_gate_name_object_name(
-        gate_name, object_name, dims, ids, c_sys
+        gate_name, object_name, dims, ids, c_sys, is_physicality_required
     )
     return res
 
@@ -170,9 +204,13 @@ def generate_mprocess_object(
     mprocess_name: str,
     object_name: str,
     c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[np.ndarray, "Gate"]:
     res = generate_mprocess_object_from_mprocess_name_object_name(
-        mprocess_name, object_name, c_sys
+        mprocess_name,
+        object_name,
+        c_sys,
+        is_physicality_required=is_physicality_required,
     )
     return res
 

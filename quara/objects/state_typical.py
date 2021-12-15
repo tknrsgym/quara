@@ -86,7 +86,10 @@ def get_state_names_2qutrit() -> List[str]:
 
 
 def generate_state_object_from_state_name_object_name(
-    state_name: str, object_name: str, c_sys: CompositeSystem = None
+    state_name: str,
+    object_name: str,
+    c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[State, np.ndarray]:
     """[summary]
 
@@ -100,6 +103,9 @@ def generate_state_object_from_state_name_object_name(
         one of ("pure_state_vector" | "density_mat" | "density_matrix_vector" | "state")
     c_sys : CompositeSystem, optional
         Specify if object_name is "state" or "density_matrix_vector", by default None.
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -121,7 +127,7 @@ def generate_state_object_from_state_name_object_name(
     if object_name not in expected_object_names:
         raise ValueError("object_name is out of range.")
     if object_name == "state":
-        return generate_state_from_name(c_sys, state_name)
+        return generate_state_from_name(c_sys, state_name, is_physicality_required)
     elif object_name == "density_matrix_vector":
         return generate_state_density_matrix_vector_from_name(c_sys.basis(), state_name)
     else:
@@ -178,7 +184,9 @@ def generate_state_density_matrix_vector_from_name(
     return vec
 
 
-def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
+def generate_state_from_name(
+    c_sys: CompositeSystem, state_name: str, is_physicality_required: bool = True
+) -> State:
     """Return the state object specified by name.
 
     Parameters
@@ -188,6 +196,8 @@ def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
     state_name : str
         name of the state.
         See the 'state_name' argument of generate_state_pure_state_vector_from_name() for available names.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -196,7 +206,7 @@ def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
     """
 
     vec = generate_state_density_matrix_vector_from_name(c_sys.basis(), state_name)
-    state = State(vec=vec, c_sys=c_sys)
+    state = State(vec=vec, c_sys=c_sys, is_physicality_required=is_physicality_required)
     return state
 
 
