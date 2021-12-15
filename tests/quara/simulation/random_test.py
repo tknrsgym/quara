@@ -211,6 +211,7 @@ def execute(
     pdf_mode: str = "none",
     parallel_mode: Dict[str, int] = None,
     data_saving: str = "on_memory",
+    generation_setting_is_physicality_required: bool = True,
 ):
     c_sys = generate_composite_system(mode, n_qubit)
     (
@@ -264,6 +265,7 @@ def execute(
             loss_list=loss_list,
             parametrizations=parametrizations,
             c_sys=c_sys,
+            generation_setting_is_physicality_required=generation_setting_is_physicality_required,
         )
         test_settings.append(test_setting)
     all_results = execute_simulation_test_settings(

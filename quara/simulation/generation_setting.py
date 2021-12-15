@@ -17,9 +17,11 @@ class QOperationGenerationSetting:
         qoperation_base: Union[QOperation, Tuple[str]],
         ids: List[int] = None,
         is_seed_or_generator_required: bool = False,
+        is_physicality_required: bool = True,
     ) -> None:
         self._composite_system = c_sys
         self._is_seed_or_generator_required = is_seed_or_generator_required
+        self._is_physicality_required = is_physicality_required
 
         type_error_message = "Type of 'qoperation_base' must be QOperation or tuple of length 2 containing the string (`('state', 'z0')`, etc.), "
         type_error_message += f"not {type(qoperation_base)}"

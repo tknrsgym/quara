@@ -58,6 +58,8 @@ def execute_simulation_case_unit(
         init_with_seed=False,
     )
 
+    # TODO: remove
+    # sim_result = []
     # Execute
     if data_saving == "on_memory":
         sim_result = sim.execute_estimation(
@@ -101,6 +103,7 @@ def execute_simulation_case_unit(
 
     # Save
     write_result_case_unit(sim_result, root_dir=root_dir)
+
     return sim_result
 
 

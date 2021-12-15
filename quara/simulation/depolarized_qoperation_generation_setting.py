@@ -13,6 +13,7 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
         qoperation_base: Union[QOperation, Tuple[str]],
         error_rate: float,
         ids: List[int] = None,
+        is_physicality_required: bool = True,
     ) -> None:
         if not (0 <= error_rate <= 1):
             message = "`error_rate` must be between 0 and 1."
@@ -23,6 +24,7 @@ class DepolarizedQOperationGenerationSetting(QOperationGenerationSetting):
             qoperation_base=qoperation_base,
             is_seed_or_generator_required=False,
             ids=ids,
+            is_physicality_required=is_physicality_required,
         )
         self._error_rate = error_rate
 

@@ -205,6 +205,7 @@ def generate_effective_lindbladian_object(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[np.ndarray, "EffectiveLindbladian"]:
     """Return an effective-llindbladian-related object.
 
@@ -227,6 +228,9 @@ def generate_effective_lindbladian_object(
     c_sys: CompositeSystem = None, Optional
         To be given for object_name = 'effective_lindbladian'
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     Union[np.ndarray, "EffectiveLindbladian"]
@@ -243,6 +247,6 @@ def generate_effective_lindbladian_object(
     dims = [] if dims is None else dims
     ids = [] if dims is None else ids
     res = generate_effective_lindbladian_object_from_gate_name_object_name(
-        gate_name, object_name, dims, ids, c_sys
+        gate_name, object_name, dims, ids, c_sys, is_physicality_required
     )
     return res
