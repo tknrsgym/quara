@@ -335,6 +335,40 @@ def _load_and_execute_estimation(
     return estimation_result
 
 
+def load_simulation_results(
+    root_dir: str,
+    test_setting_index: int,
+    sample_index: int,
+    case_index: int = None,
+) -> list:
+    print("Loading SimulationResult pickles ...")
+    print(
+        f"(test_setting_index, sample_index, case_index) = ({test_setting_index}, {sample_index}, {case_index})"
+    )
+    result_dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
+    simulation_results = []
+    if case_index is not None:
+        # load specific pickle file
+        file_name = f"case_{case_index}_result.pickle"
+        file_path = result_dir_path / file_name
+        print(file_path)
+        with open(file_path, "rb") as f:
+            simulation_result = pickle.load(f)
+        simulation_results.append(simulation_result)
+    else:
+        # load some pickle files
+        file_paths = sorted(result_dir_path.glob("case_*_result.pickle"))
+        for file_path in file_paths:
+            print(file_path)
+            with open(file_path, "rb") as f:
+                simulation_result = pickle.load(f)
+            simulation_results.append(simulation_result)
+    print(
+        f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
+    )
+    return simulation_results
+
+
 def execute_estimation_with_saved_empi_dists_sequences(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
