@@ -11,7 +11,6 @@ from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.qcircuit.experiment import Experiment
-from quara.utils import matrix_util
 from quara.utils.number_util import to_stream
 
 

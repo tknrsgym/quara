@@ -13,7 +13,6 @@ from quara.objects.matrix_basis import (
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.gate import Gate
 from quara.objects.gate import convert_hs
 from quara.objects.gate_typical import (
     _is_valid_dims_ids,
@@ -23,13 +22,9 @@ from quara.objects.gate_typical import (
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
     get_gate_names_3qubit,
-    generate_gate_toffoli_hamiltonian_mat,
-    generate_gate_fredkin_hamiltonian_mat,
     # 1-qutrit
     get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
-    calc_base_matrix_1qutrit,
-    calc_levels_axis_angle_from_gate_name_1qutrit_single_gellmann,
     generate_gate_1qutrit_single_gellmann_hamiltonian_mat,
     # 2-qutrit
     get_gate_names_2qutrit,

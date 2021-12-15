@@ -1,16 +1,13 @@
-import copy
-import itertools
-import inspect
 from functools import reduce
 from operator import add
 import sys
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 import numpy as np
 from scipy.linalg import expm, kron
 
 import quara.utils.matrix_util as mutil
-from quara.objects.composite_system import CompositeSystem, ElementalSystem
+from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import (
     Gate,
     convert_hs,
@@ -21,10 +18,8 @@ from quara.objects.gate import (
 from quara.objects.matrix_basis import (
     MatrixBasis,
     get_comp_basis,
-    get_normalized_pauli_basis,
 )
 from quara.settings import Settings
-from quara.objects.qoperation import QOperation
 
 
 class EffectiveLindbladian(Gate):

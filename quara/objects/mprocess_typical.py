@@ -5,10 +5,6 @@ import numpy as np
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import convert_hs
 from quara.objects.mprocess import MProcess
-from quara.objects.state_typical import (
-    generate_state_density_mat_from_name,
-    generate_state_pure_state_vector_from_name,
-)
 from quara.utils.matrix_util import calc_mat_from_vector_adjoint, truncate_hs
 
 
@@ -264,7 +260,9 @@ def generate_mprocess_hss_from_name(
     return hss
 
 
-def generate_mprocess_from_name(c_sys: CompositeSystem, mprocess_name: str) -> MProcess:
+def generate_mprocess_from_name(
+    c_sys: CompositeSystem, mprocess_name: str, is_physicality_required: bool = True
+) -> MProcess:
     """returns MProcess object specified by name.
 
     Parameters
@@ -273,6 +271,8 @@ def generate_mprocess_from_name(c_sys: CompositeSystem, mprocess_name: str) -> M
         CompositeSystem of MProcess.
     mprocess_name : str
         name of the MProcess.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -291,12 +291,17 @@ def generate_mprocess_from_name(c_sys: CompositeSystem, mprocess_name: str) -> M
 
     # generate mprocess
     hss = generate_mprocess_hss_from_name(mprocess_name, c_sys)
-    mprocess = MProcess(hss=hss, c_sys=c_sys)
+    mprocess = MProcess(
+        hss=hss, c_sys=c_sys, is_physicality_required=is_physicality_required
+    )
     return mprocess
 
 
 def generate_mprocess_object_from_mprocess_name_object_name(
-    mprocess_name: str, object_name: str, c_sys: CompositeSystem = None
+    mprocess_name: str,
+    object_name: str,
+    c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[List[List[np.ndarray]], List[np.ndarray], MProcess]:
     """returns a mprocess-related object.
 
@@ -308,6 +313,8 @@ def generate_mprocess_object_from_mprocess_name_object_name(
         Valid object_name. It is given by :func:`~quara.objects.mprocess_typical.get_mprocess_object_names`.
     c_sys : CompositeSystem, optional
         To be given for object_name='hss' or 'mprocess', by default None.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -339,7 +346,9 @@ def generate_mprocess_object_from_mprocess_name_object_name(
     elif object_name == "hss":
         return generate_mprocess_hss_from_name(mprocess_name, c_sys)
     elif object_name == "mprocess":
-        return generate_mprocess_from_name(c_sys, mprocess_name)
+        return generate_mprocess_from_name(
+            c_sys, mprocess_name, is_physicality_required=is_physicality_required
+        )
 
 
 def get_mprocess_xtype1_set_pure_state_vectors() -> List[List[np.ndarray]]:
