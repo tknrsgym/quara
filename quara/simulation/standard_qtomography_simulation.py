@@ -135,7 +135,10 @@ class NoiseSetting:
     ) -> "QOperationGenerationSetting":
         if self.method is None:
             return QOperationGenerationSetting(
-                qoperation_base=self.qoperation_base, c_sys=c_sys, ids=self.ids
+                qoperation_base=self.qoperation_base,
+                c_sys=c_sys,
+                ids=self.ids,
+                is_physicality_required=is_physicality_required,
             )  # dummy
 
         name2class_map = {

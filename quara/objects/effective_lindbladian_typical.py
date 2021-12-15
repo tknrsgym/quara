@@ -2432,13 +2432,15 @@ def generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(
 
 
 def generate_gate_1qutrit_single_gellmann_effective_linabladian(
-    c_sys: CompositeSystem, gate_name: str
+    c_sys: CompositeSystem, gate_name: str, is_physicality_required: bool = True
 ) -> np.ndarray:
     """return the EffectiveLindbladian for the gate."""
     assert len(c_sys.elemental_systems) == 1
     assert c_sys.dim == 3
     hs = generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(gate_name)
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
