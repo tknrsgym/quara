@@ -58,49 +58,52 @@ def execute_simulation_case_unit(
         init_with_seed=False,
     )
 
+    # TODO: remove
+    sim_result = []
     # Execute
-    if data_saving == "on_memory":
-        sim_result = sim.execute_estimation(
-            qtomography=qtomography,
-            simulation_setting=sim_setting,
-            empi_dists_sequences=empi_dists_sequences,
-            n_jobs=n_jobs,
-        )
-    else:
-        sim_result = sim.execute_estimation_with_saved_empi_dists_sequences(
-            qtomography=qtomography,
-            simulation_setting=sim_setting,
-            dir_path_empi_dists_sequences=Path(root_dir)
-            / str(sample_index)
-            / "empi_dists_sequences",
-            n_jobs=n_jobs,
-        )
+    # if data_saving == "on_memory":
+    #     sim_result = sim.execute_estimation(
+    #         qtomography=qtomography,
+    #         simulation_setting=sim_setting,
+    #         empi_dists_sequences=empi_dists_sequences,
+    #         n_jobs=n_jobs,
+    #     )
+    # else:
+    #     sim_result = sim.execute_estimation_with_saved_empi_dists_sequences(
+    #         qtomography=qtomography,
+    #         simulation_setting=sim_setting,
+    #         dir_path_empi_dists_sequences=Path(root_dir)
+    #         / str(sample_index)
+    #         / "empi_dists_sequences",
+    #         n_jobs=n_jobs,
+    #     )
 
-    # Simulation Check
-    sim_check = StandardQTomographySimulationCheck(sim_result)
-    check_result = sim_check.execute_all(
-        show_detail=False, with_detail=True, exec_check=exec_sim_check
-    )
+    # # Simulation Check
+    # sim_check = StandardQTomographySimulationCheck(sim_result)
+    # check_result = sim_check.execute_all(
+    #     show_detail=False, with_detail=True, exec_check=exec_sim_check
+    # )
 
-    # Show result
-    if not check_result["total_result"]:
-        start_red = "\033[31m"
-        end_color = "\033[0m"
-        print(f"Total Result: {start_red}NG{end_color}")
+    # # Show result
+    # if not check_result["total_result"]:
+    #     start_red = "\033[31m"
+    #     end_color = "\033[0m"
+    #     print(f"Total Result: {start_red}NG{end_color}")
 
-    result_index = dict(
-        test_setting_index=test_setting_index,
-        sample_index=sample_index,
-        case_index=case_index,
-    )
+    # result_index = dict(
+    #     test_setting_index=test_setting_index,
+    #     sample_index=sample_index,
+    #     case_index=case_index,
+    # )
 
-    # Add to SimulationResult
-    sim_result.simulation_setting = org_sim_setting
-    sim_result.result_index = result_index
-    sim_result.check_result = check_result
+    # # Add to SimulationResult
+    # sim_result.simulation_setting = org_sim_setting
+    # sim_result.result_index = result_index
+    # sim_result.check_result = check_result
 
-    # Save
-    write_result_case_unit(sim_result, root_dir=root_dir)
+    # # Save
+    # write_result_case_unit(sim_result, root_dir=root_dir)
+
     return sim_result
 
 
@@ -230,22 +233,22 @@ def execute_simulation_sample_unit(
         ]
     )
 
-    # Save
-    write_result_sample_unit(results, root_dir=root_dir)
+    # # Save
+    # write_result_sample_unit(results, root_dir=root_dir)
 
-    # Save PDF
-    if pdf_mode == "all":
-        write_pdf_report(results, root_dir, display_items=exec_sim_check)
-    elif pdf_mode == "only_ng":
-        total_results = [r.check_result["total_result"] for r in results]
-        print(f"total_result={np.all(total_results)}")
-        if not np.all(total_results):
-            write_pdf_report(results, root_dir, display_items=exec_sim_check)
-    elif pdf_mode == "none":
-        pass
-    else:
-        message = "`pdf_mode` must be 'all', 'only_ng', or 'none'."
-        raise ValueError(message)
+    # # Save PDF
+    # if pdf_mode == "all":
+    #     write_pdf_report(results, root_dir, display_items=exec_sim_check)
+    # elif pdf_mode == "only_ng":
+    #     total_results = [r.check_result["total_result"] for r in results]
+    #     print(f"total_result={np.all(total_results)}")
+    #     if not np.all(total_results):
+    #         write_pdf_report(results, root_dir, display_items=exec_sim_check)
+    # elif pdf_mode == "none":
+    #     pass
+    # else:
+    #     message = "`pdf_mode` must be 'all', 'only_ng', or 'none'."
+    #     raise ValueError(message)
 
     return results
 
@@ -293,7 +296,7 @@ def execute_simulation_test_setting_unit(
     results = list(itertools.chain.from_iterable(results))
 
     # Save
-    write_result_test_setting_unit(results, root_dir, test_setting_index)
+    # write_result_test_setting_unit(results, root_dir, test_setting_index)
     return results
 
 
@@ -349,10 +352,10 @@ def execute_simulation_test_settings(
         all_results += test_results
 
     # Save
-    write_results(all_results, root_dir)
+    # write_results(all_results, root_dir)
 
-    elapsed_time = time.time() - start
-    _print_summary(all_results, elapsed_time)
+    # elapsed_time = time.time() - start
+    # _print_summary(all_results, elapsed_time)
 
     return all_results
 

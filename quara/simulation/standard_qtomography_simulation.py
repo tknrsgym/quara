@@ -131,7 +131,7 @@ class NoiseSetting:
     ids: List[int] = None
 
     def to_generation_setting(
-        self, c_sys: "CompositeSystem"
+        self, c_sys: "CompositeSystem", is_physicality_required: bool = True
     ) -> "QOperationGenerationSetting":
         if self.method is None:
             return QOperationGenerationSetting(
@@ -154,6 +154,7 @@ class NoiseSetting:
             c_sys=c_sys,
             **self.para,
             ids=self.ids,
+            is_physicality_required=is_physicality_required,
         )
 
 
@@ -175,6 +176,7 @@ class EstimatorTestSetting:
     loss_list: List[tuple]
     parametrizations: List[bool]
     c_sys: "CompositeSystem"
+    generation_setting_is_physicality_required: bool = True
 
     def to_pickle(self, path: Union[str, Path]) -> None:
         path = Path(path)
@@ -183,9 +185,16 @@ class EstimatorTestSetting:
             pickle.dump(self, f)
 
     def to_generation_settings(self) -> QOperationGenerationSettings:
-        true_setting = self.true_object.to_generation_setting(self.c_sys)
+        true_setting = self.true_object.to_generation_setting(
+            self.c_sys,
+            is_physicality_required=self.generation_setting_is_physicality_required,
+        )
         tester_settings = [
-            setting.to_generation_setting(self.c_sys) for setting in self.tester_objects
+            setting.to_generation_setting(
+                self.c_sys,
+                is_physicality_required=self.generation_setting_is_physicality_required,
+            )
+            for setting in self.tester_objects
         ]
         generation_settings = QOperationGenerationSettings(
             true_setting=true_setting, tester_settings=tester_settings

@@ -14,6 +14,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
         lindbladian_base: Union[EffectiveLindbladian, str],
         ids: List[int] = None,
         is_seed_or_generator_required: bool = False,
+        is_physicality_required: bool = True,
     ) -> None:
         """Constructor
 
@@ -42,6 +43,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
             qoperation_base,
             ids=ids,
             is_seed_or_generator_required=is_seed_or_generator_required,
+            is_physicality_required=is_physicality_required,
         )
 
         if isinstance(lindbladian_base, EffectiveLindbladian):
@@ -53,6 +55,7 @@ class EffectiveLindbladianGenerationSetting(QOperationGenerationSetting):
                 object_name="effective_lindbladian",
                 ids=ids,
                 c_sys=c_sys,
+                is_physicality_required=is_physicality_required,
             )
         else:
             message = f"type of `lindbladian_base` must be EffectiveLindbladian or str, type of `lindbladian_base` is {type(lindbladian_base)}"
