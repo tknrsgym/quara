@@ -24,6 +24,7 @@ from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunctionOption,
 )
 from quara.protocol.qtomography.estimator import EstimationResult
+from quara.protocol.qtomography.qtomography import QTomography
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
@@ -217,6 +218,49 @@ class EstimatorTestSetting:
             ],
         )
 
+    def show_description(self) -> None:
+        """show the description of schema of EstimatorTestSetting."""
+        print(f"=== decsription of {type(self)} ===")
+        self._show_description(self)
+
+    @staticmethod
+    def _show_description(obj, indent: int = 0) -> None:
+        # show attributes of "obj"
+        for attr in dir(obj):
+            # don't show private functions and utility functions
+            if attr.startswith("_") or attr.startswith("to_"):
+                continue
+
+            # show attribute
+            attr_obj = getattr(obj, attr)
+            print(" " * indent, attr, type(attr_obj))
+
+            # do recursive call
+            if type(attr_obj) is dict or type(attr_obj).__name__ == "method":
+                # if "obj" is dict or method or QTomography, it doesn't do recursive call
+                continue
+            elif type(attr_obj) is list:
+                if attr in [
+                    "algo_list",
+                    "case_names",
+                    "eps_proj_physical_list",
+                    "eps_truncate_imaginary_part_list",
+                    "estimators",
+                    "loss_list",
+                    "parametrizations",
+                ]:
+                    print(" " * (indent + 2), "[case_index]")
+                elif attr == "num_data":
+                    print(" " * (indent + 2), "[num_data_index]")
+                elif attr == "tester_objects":
+                    if len(attr_obj) == 0:
+                        print(" " * (indent + 2), "[tester_index]")
+                    else:
+                        print(" " * (indent + 2), f"(list of {type(attr_obj[0])})")
+                        print(" " * (indent + 2), "[tester_index]")
+            elif type(attr_obj) is NoiseSetting:
+                EstimatorTestSetting._show_description(attr_obj, indent + 2)
+
 
 @dataclasses.dataclass
 class SimulationResult:
@@ -381,6 +425,57 @@ class SimulationResult:
 
         return result_dict
 
+    def show_description(self) -> None:
+        """show the description of schema of SimulationResult."""
+        print(f"=== decsription of {type(self)} ===")
+        self._show_description(self)
+
+    @staticmethod
+    def _show_description(obj, indent: int = 0) -> None:
+        # if "obj" is StandardQTomographySimulationSetting or EstimationResult, it doesn't do recursive call
+        if isinstance(obj, StandardQTomographySimulationSetting) or isinstance(
+            obj, EstimationResult
+        ):
+            recursive_call = False
+        else:
+            recursive_call = True
+
+        # show attributes of "obj"
+        for attr in dir(obj):
+            # don't show private functions and utility functions
+            if attr.startswith("_") or attr.startswith("to_"):
+                continue
+
+            # show attribute
+            attr_obj = getattr(obj, attr)
+            print(" " * indent, attr, type(attr_obj))
+
+            # do recursive call
+            if (
+                type(attr_obj) is dict
+                or type(attr_obj).__name__ == "method"
+                or isinstance(attr_obj, QTomography)
+            ):
+                # if "obj" is dict or method or QTomography, it doesn't do recursive call
+                continue
+            elif type(attr_obj) is list:
+                if attr == "empi_dists_sequences":
+                    print(" " * (indent + 2), "(multi-dimensional lists)")
+                    print(" " * (indent + 2), "[n_rep]")
+                    print(" " * (indent + 4), "[num_data]")
+                    print(" " * (indent + 6), "[schecule_index]")
+                elif attr == "estimation_results":
+                    if len(attr_obj) == 0:
+                        print(" " * (indent + 2), f"(list)")
+                        print(" " * (indent + 2), "[n_rep]")
+                    else:
+                        print(" " * (indent + 2), f"(list of {type(attr_obj[0])})")
+                        print(" " * (indent + 2), "[n_rep]")
+                        SimulationResult._show_description(attr_obj[0], indent + 4)
+            else:
+                if recursive_call:
+                    SimulationResult._show_description(attr_obj, indent + 2)
+
 
 # common
 def execute_simulation(
@@ -465,6 +560,19 @@ def load_simulation_results(
         f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
     )
     return simulation_results
+
+
+def load_test_setting(
+    root_dir: str,
+    test_setting_index: int,
+) -> list:
+    result_dir_path = Path(root_dir) / str(test_setting_index)
+    # load test setting pickle file
+    file_name = "test_setting.pickle"
+    file_path = result_dir_path / file_name
+    with open(file_path, "rb") as f:
+        test_setting = pickle.load(f)
+        return test_setting
 
 
 def execute_estimation_with_saved_empi_dists_sequences(
