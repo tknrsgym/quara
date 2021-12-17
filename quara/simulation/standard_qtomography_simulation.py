@@ -24,6 +24,7 @@ from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunctionOption,
 )
 from quara.protocol.qtomography.estimator import EstimationResult
+from quara.protocol.qtomography.qtomography import QTomography
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
@@ -229,15 +230,176 @@ class EstimatorTestSetting:
             ],
         )
 
+    def show_description(self) -> None:
+        """show the description of schema of EstimatorTestSetting."""
+        print(f"=== decsription of {type(self)} ===")
+        self._show_description(self)
+
+    @staticmethod
+    def _show_description(obj, indent: int = 0) -> None:
+        # show attributes of "obj"
+        for attr in dir(obj):
+            # don't show private functions and utility functions
+            if attr.startswith("_") or attr.startswith("to_"):
+                continue
+
+            # show attribute
+            attr_obj = getattr(obj, attr)
+            print(" " * indent, attr, type(attr_obj))
+
+            # do recursive call
+            if type(attr_obj) is dict or type(attr_obj).__name__ == "method":
+                # if "obj" is dict or method or QTomography, it doesn't do recursive call
+                continue
+            elif type(attr_obj) is list:
+                if attr in [
+                    "algo_list",
+                    "case_names",
+                    "eps_proj_physical_list",
+                    "eps_truncate_imaginary_part_list",
+                    "estimators",
+                    "loss_list",
+                    "parametrizations",
+                ]:
+                    print(" " * (indent + 2), "[case_index]")
+                elif attr == "num_data":
+                    print(" " * (indent + 2), "[num_data_index]")
+                elif attr == "tester_objects":
+                    if len(attr_obj) == 0:
+                        print(" " * (indent + 2), "[tester_index]")
+                    else:
+                        print(" " * (indent + 2), f"(list of {type(attr_obj[0])})")
+                        print(" " * (indent + 2), "[tester_index]")
+            elif type(attr_obj) is NoiseSetting:
+                EstimatorTestSetting._show_description(attr_obj, indent + 2)
+
 
 @dataclasses.dataclass
 class SimulationResult:
+    """Parameters
+
+    Parameters
+    -------
+    estimation_results : List[EstimationResult]
+        the index of list is the index of "n_rep".
+    empi_dists_sequences: List[List[List[Tuple[int, np.ndarray]]]]
+        the order of indexes is as follows: "n_rep", "num_data", and "schecule_index".
+    qtomography: StandardQTomography
+        StandardQTomography object.
+    simulation_setting: StandardQTomographySimulationSetting
+        StandardQTomographySimulationSetting object.
+    result_index: dict
+        dictionary of the check result.
+        it contains the following keys: "name", "total_result", and "results".
+    check_result: dict
+        dictionary of the check result.
+        it contains the following keys: "test_setting_index", "sample_index", and "case_index".
+    """
+
     estimation_results: List["EstimationResult"]
-    empi_dists_sequences: List[List[Tuple[int, np.ndarray]]]
+    empi_dists_sequences: List[List[List[Tuple[int, np.ndarray]]]]
     qtomography: StandardQTomography
     simulation_setting: StandardQTomographySimulationSetting = None
     result_index: dict = None
     check_result: dict = None
+
+    def get_variable_estimate(
+        self, n_rep: int, num_data_index: int = None, num_data_value: int = None
+    ) -> np.ndarray:
+        """get variable estimate with specific parameter.
+        Either num_data_index or num_data_value must be specified.
+
+        Parameters
+        ----------
+        n_rep : int
+            value of n_rep.
+        num_data_index : int, optional
+            index of num_data, by default None
+        num_data_value : int, optional
+            value of num_data, by default None
+
+        Returns
+        -------
+        np.ndarray
+            variable estimate.
+
+        Raises
+        ------
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are None.
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are specified.
+        ValueError
+            num_data_value is not found in SimulationResult.
+        """
+        if num_data_index is None and num_data_value is None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are None."
+            )
+        elif num_data_index is not None and num_data_value is not None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are specified."
+            )
+        elif num_data_index is not None:
+            return self.estimation_results[n_rep].estimated_var_sequence[num_data_index]
+        else:
+            for num_data_index, num in enumerate(self.simulation_setting.num_data):
+                if num == num_data_value:
+                    return self.estimation_results[n_rep].estimated_var_sequence[
+                        num_data_index
+                    ]
+            raise ValueError(
+                f"num_data_value({num_data_value}) is not found in SimulationResult."
+            )
+
+    def get_empi_dists(
+        self, n_rep: int, num_data_index: int = None, num_data_value: int = None
+    ) -> List[Tuple[int, np.ndarray]]:
+        """get empi dists with specific parameter.
+        Either num_data_index or num_data_value must be specified.
+
+        Parameters
+        ----------
+        n_rep : int
+            value of n_rep.
+        num_data_index : int, optional
+            index of num_data, by default None
+        num_data_value : int, optional
+            value of num_data, by default None
+
+        Returns
+        -------
+        List[Tuple[int, np.ndarray]]
+            empi dists.
+            the index of list is "schecule_index".
+            the tuple consists of (num_data, empi dist).
+
+        Raises
+        ------
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are None.
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are specified.
+        ValueError
+            num_data_value is not found in SimulationResult.
+        """
+        if num_data_index is None and num_data_value is None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are None."
+            )
+        elif num_data_index is not None and num_data_value is not None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are specified."
+            )
+        elif num_data_index is not None:
+            return self.empi_dists_sequences[n_rep][num_data_index]
+        else:
+            for num_data_index, num in enumerate(self.simulation_setting.num_data):
+                if num == num_data_value:
+                    return self.empi_dists_sequences[n_rep][num_data_index]
+            raise ValueError(
+                f"num_data_value({num_data_value}) is not found in SimulationResult."
+            )
 
     def to_pickle(self, path: Union[str, Path]) -> None:
         path = Path(path)
@@ -274,6 +436,57 @@ class SimulationResult:
         result_dict["warning"] = warning_text
 
         return result_dict
+
+    def show_description(self) -> None:
+        """show the description of schema of SimulationResult."""
+        print(f"=== decsription of {type(self)} ===")
+        self._show_description(self)
+
+    @staticmethod
+    def _show_description(obj, indent: int = 0) -> None:
+        # if "obj" is StandardQTomographySimulationSetting or EstimationResult, it doesn't do recursive call
+        if isinstance(obj, StandardQTomographySimulationSetting) or isinstance(
+            obj, EstimationResult
+        ):
+            recursive_call = False
+        else:
+            recursive_call = True
+
+        # show attributes of "obj"
+        for attr in dir(obj):
+            # don't show private functions and utility functions
+            if attr.startswith("_") or attr.startswith("to_"):
+                continue
+
+            # show attribute
+            attr_obj = getattr(obj, attr)
+            print(" " * indent, attr, type(attr_obj))
+
+            # do recursive call
+            if (
+                type(attr_obj) is dict
+                or type(attr_obj).__name__ == "method"
+                or isinstance(attr_obj, QTomography)
+            ):
+                # if "obj" is dict or method or QTomography, it doesn't do recursive call
+                continue
+            elif type(attr_obj) is list:
+                if attr == "empi_dists_sequences":
+                    print(" " * (indent + 2), "(multi-dimensional lists)")
+                    print(" " * (indent + 2), "[n_rep]")
+                    print(" " * (indent + 4), "[num_data]")
+                    print(" " * (indent + 6), "[schecule_index]")
+                elif attr == "estimation_results":
+                    if len(attr_obj) == 0:
+                        print(" " * (indent + 2), f"(list)")
+                        print(" " * (indent + 2), "[n_rep]")
+                    else:
+                        print(" " * (indent + 2), f"(list of {type(attr_obj[0])})")
+                        print(" " * (indent + 2), "[n_rep]")
+                        SimulationResult._show_description(attr_obj[0], indent + 4)
+            else:
+                if recursive_call:
+                    SimulationResult._show_description(attr_obj, indent + 2)
 
 
 # common
@@ -325,6 +538,53 @@ def _load_and_execute_estimation(
         algo_option=algo_option,
     )
     return estimation_result
+
+
+def load_simulation_results(
+    root_dir: str,
+    test_setting_index: int,
+    sample_index: int,
+    case_index: int = None,
+) -> list:
+    print("Loading SimulationResult pickles ...")
+    print(
+        f"(test_setting_index, sample_index, case_index) = ({test_setting_index}, {sample_index}, {case_index})"
+    )
+    result_dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
+    simulation_results = []
+    if case_index is not None:
+        # load specific pickle file
+        file_name = f"case_{case_index}_result.pickle"
+        file_path = result_dir_path / file_name
+        print(file_path)
+        with open(file_path, "rb") as f:
+            simulation_result = pickle.load(f)
+        simulation_results.append(simulation_result)
+    else:
+        # load some pickle files
+        file_paths = sorted(result_dir_path.glob("case_*_result.pickle"))
+        for file_path in file_paths:
+            print(file_path)
+            with open(file_path, "rb") as f:
+                simulation_result = pickle.load(f)
+            simulation_results.append(simulation_result)
+    print(
+        f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
+    )
+    return simulation_results
+
+
+def load_test_setting(
+    root_dir: str,
+    test_setting_index: int,
+) -> list:
+    result_dir_path = Path(root_dir) / str(test_setting_index)
+    # load test setting pickle file
+    file_name = "test_setting.pickle"
+    file_path = result_dir_path / file_name
+    with open(file_path, "rb") as f:
+        test_setting = pickle.load(f)
+        return test_setting
 
 
 def execute_estimation_with_saved_empi_dists_sequences(
