@@ -161,6 +161,7 @@ class TestCompositeSystem:
         e1 = ElementalSystem(0, basis)
         source = [e1]
         c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate == None
 
         # access by int
         actual = c_sys.basis_basisconjugate(0)
@@ -187,6 +188,34 @@ class TestCompositeSystem:
         actual = c_sys.basis_basisconjugate((3, 1))
         expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
         assert np.all(actual == expected)
+
+    def test_dict_from_hs_to_choi(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate == None
+
+        # act
+        actual = c_sys.dict_from_hs_to_choi
+
+        # assert
+        assert actual != None
+
+    def test_dict_from_choi_to_hs(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate == None
+
+        # act
+        actual = c_sys.dict_from_choi_to_hs
+
+        # assert
+        assert actual != None
 
     def test_access_elemental_systems(self):
         e1 = ElementalSystem(1, get_pauli_basis())

@@ -80,12 +80,12 @@ class CompositeSystem:
 
         # calculate np.kron(basis, basisconjugate)
         basis_no = len(self._total_basis.basis)
-        hs = np.zeros((basis_no, basis_no), dtype=np.float64)
         basis = copy.deepcopy(self._total_basis.basis)
 
-        self._basis_basisconjugate = dict()
-        self._dict_from_hs_to_choi = dict()
-        self._dict_from_choi_to_hs = dict()
+        self._basis_basisconjugate = None
+        self._dict_from_hs_to_choi = None
+        self._dict_from_choi_to_hs = None
+
         basis_tmp = []
         basisconjugate_tmp = []
         basis_basisconjugate_tmp = []
@@ -96,31 +96,8 @@ class CompositeSystem:
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
             matrix = np.kron(b_alpha, b_beta_conj)
-            self._basis_basisconjugate[(alpha, beta)] = matrix
             basis_basisconjugate_tmp.append(matrix.flatten())
 
-            # calc _dict_from_hs_to_choi and _dict_from_choi_to_hs
-            row_indices, column_indices = np.where(matrix != 0)
-            for row_index, column_index in zip(row_indices, column_indices):
-                # _dict_from_hs_to_choi
-                if (row_index, column_index) in self._dict_from_hs_to_choi:
-                    self._dict_from_hs_to_choi[(row_index, column_index)].append(
-                        (alpha, beta, matrix[row_index, column_index])
-                    )
-                else:
-                    self._dict_from_hs_to_choi[(row_index, column_index)] = [
-                        (alpha, beta, matrix[row_index, column_index])
-                    ]
-
-                # _dict_from_choi_to_hs
-                if (alpha, beta) in self._dict_from_choi_to_hs:
-                    self._dict_from_choi_to_hs[(alpha, beta)].append(
-                        (row_index, column_index, matrix[row_index, column_index])
-                    )
-                else:
-                    self._dict_from_choi_to_hs[(alpha, beta)] = [
-                        (row_index, column_index, matrix[row_index, column_index])
-                    ]
         basis_tmp = np.array(basis_tmp)
         self._basis_T_sparse = csr_matrix(basis_tmp.T)
         self._basisconjugate_sparse = csr_matrix(basisconjugate_tmp)
@@ -272,11 +249,79 @@ class CompositeSystem:
         np.ndarray
             :math:`B_{\\alpha} \\otimes \\bar{B_{\\beta}}`
         """
+        # calculate _basis_basisconjugate if it is None
+        if self._basis_basisconjugate is None:
+            self._basis_basisconjugate = dict()
+            basis_no = len(self._total_basis.basis)
+            basis = copy.deepcopy(self._total_basis.basis)
+
+            for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+                b_alpha = basis[alpha]
+                b_beta_conj = np.conjugate(basis[beta])
+                matrix = np.kron(b_alpha, b_beta_conj)
+                self._basis_basisconjugate[(alpha, beta)] = matrix
+
+        # return basis_basisconjugate
         if type(basis_index) == tuple:
             return self._basis_basisconjugate[(basis_index)]
         else:
             basis_index = divmod(basis_index, len(self.basis()))
             return self._basis_basisconjugate[(basis_index)]
+
+    @property
+    def dict_from_hs_to_choi(self) -> dict:
+        # calculate _dict_from_hs_to_choi if it is None
+        if self._dict_from_hs_to_choi is None:
+            self._dict_from_hs_to_choi = dict()
+            basis_no = len(self._total_basis.basis)
+            basis = copy.deepcopy(self._total_basis.basis)
+
+            for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+                b_alpha = basis[alpha]
+                b_beta_conj = np.conjugate(basis[beta])
+                matrix = np.kron(b_alpha, b_beta_conj)
+
+                # calc _dict_from_hs_to_choi
+                row_indices, column_indices = np.where(matrix != 0)
+                for row_index, column_index in zip(row_indices, column_indices):
+                    if (row_index, column_index) in self._dict_from_hs_to_choi:
+                        self._dict_from_hs_to_choi[(row_index, column_index)].append(
+                            (alpha, beta, matrix[row_index, column_index])
+                        )
+                    else:
+                        self._dict_from_hs_to_choi[(row_index, column_index)] = [
+                            (alpha, beta, matrix[row_index, column_index])
+                        ]
+
+        # return _dict_from_hs_to_choi
+        return self._dict_from_hs_to_choi
+
+    @property
+    def dict_from_choi_to_hs(self) -> dict:
+        if self._dict_from_choi_to_hs is None:
+            self._dict_from_choi_to_hs = dict()
+            basis_no = len(self._total_basis.basis)
+            basis = copy.deepcopy(self._total_basis.basis)
+
+            for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+                b_alpha = basis[alpha]
+                b_beta_conj = np.conjugate(basis[beta])
+                matrix = np.kron(b_alpha, b_beta_conj)
+
+                # calc _dict_from_choi_to_hs
+                row_indices, column_indices = np.where(matrix != 0)
+                for row_index, column_index in zip(row_indices, column_indices):
+                    if (alpha, beta) in self._dict_from_choi_to_hs:
+                        self._dict_from_choi_to_hs[(alpha, beta)].append(
+                            (row_index, column_index, matrix[row_index, column_index])
+                        )
+                    else:
+                        self._dict_from_choi_to_hs[(alpha, beta)] = [
+                            (row_index, column_index, matrix[row_index, column_index])
+                        ]
+
+        # return _dict_from_choi_to_hs
+        return self._dict_from_choi_to_hs
 
     @property
     def elemental_systems(self) -> Tuple[ElementalSystem]:
