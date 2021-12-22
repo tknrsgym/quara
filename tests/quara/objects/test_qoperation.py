@@ -1,5 +1,8 @@
 import pytest
 
+import numpy as np
+import numpy.testing as npt
+
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import get_normalized_pauli_basis
@@ -164,3 +167,20 @@ class TestSetQOperation:
         actual = QOperation(c_sys=c_sys)
         actual.set_mode_proj_order("ineq_eq")
         assert actual.mode_proj_order == "ineq_eq"
+
+    def test_permutation_matrix_from_qutrits_to_qubits(self):
+        # num_qutrits = 1
+        num_qutrits = 1
+        diag_mat = np.diag(list(range(4 ** num_qutrits)))
+        actual = QOperation._permutation_matrix_from_qutrits_to_qubits(num_qutrits)
+        actual_diag = np.diag(actual @ diag_mat @ actual.T)
+        expected = [0, 1, 2, 3]
+        npt.assert_almost_equal(actual_diag, expected, decimal=15)
+
+        # num_qutrits = 2
+        num_qutrits = 2
+        actual = QOperation._permutation_matrix_from_qutrits_to_qubits(num_qutrits)
+        diag_mat = np.diag(list(range(4 ** num_qutrits)))
+        actual_diag = np.diag(actual @ diag_mat @ actual.T)
+        expected = [0, 1, 2, 9, 3, 4, 5, 10, 6, 7, 8, 11, 12, 13, 14, 15]
+        npt.assert_almost_equal(actual_diag, expected, decimal=15)
