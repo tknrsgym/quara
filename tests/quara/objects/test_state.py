@@ -1,5 +1,3 @@
-import math
-
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -7,7 +5,6 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.povm import get_z_povm
 from quara.objects.state import (
     State,

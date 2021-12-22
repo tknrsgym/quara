@@ -2,10 +2,6 @@ import datetime
 from itertools import product
 from typing import List, Tuple, Dict
 
-import numpy as np
-import numpy.testing as npt
-
-import quara.objects.qoperation_typical as qt
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.loss_function.standard_qtomography_based_weighted_relative_entropy import (
     StandardQTomographyBasedWeightedRelativeEntropy,

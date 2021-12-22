@@ -1,4 +1,3 @@
-import numpy as np
 import numpy.testing as npt
 
 from quara.protocol.qtomography.estimator import EstimationResult

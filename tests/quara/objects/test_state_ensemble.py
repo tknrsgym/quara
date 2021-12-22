@@ -6,7 +6,6 @@ import quara.objects.state_ensemble as se
 from quara.objects.multinomial_distribution import MultinomialDistribution
 from quara.objects.qoperation_typical import generate_qoperation_object
 from quara.objects.composite_system_typical import generate_composite_system
-from quara.objects.operators import tensor_product
 
 
 class TestStateEnsemble:

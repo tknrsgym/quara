@@ -1,5 +1,4 @@
 import numpy as np
-import numpy.testing as npt
 import pytest
 
 from quara.qcircuit import data_generator

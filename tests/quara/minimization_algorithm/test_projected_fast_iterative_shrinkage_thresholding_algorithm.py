@@ -8,7 +8,6 @@ from quara.minimization_algorithm.projected_fast_iterative_shrinkage_thresholdin
 )
 from quara.loss_function.simple_quadratic_loss_function import (
     SimpleQuadraticLossFunction,
-    SimpleQuadraticLossFunctionOption,
 )
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
@@ -18,7 +17,6 @@ from quara.objects.povm import (
     get_y_povm,
     get_z_povm,
 )
-from quara.objects.state import convert_var_to_state, get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.math import func_proj
 

@@ -4,7 +4,6 @@ import pytest
 
 from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
-    get_normalized_gell_mann_basis,
 )
 from quara.objects.state import State
 from quara.objects import state_typical as st
