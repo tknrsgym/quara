@@ -1,6 +1,5 @@
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.linear_estimator import LinearEstimator

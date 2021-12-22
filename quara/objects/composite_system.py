@@ -3,7 +3,7 @@ import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
-from scipy.sparse import csc_matrix, csr_matrix
+from scipy.sparse import csr_matrix
 
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis, get_comp_basis

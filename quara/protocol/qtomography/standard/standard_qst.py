@@ -3,7 +3,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 
-from quara.objects.state import State, convert_var_to_state
+from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations

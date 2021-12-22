@@ -4,8 +4,6 @@ from quara.objects.mprocess import MProcess
 from typing import List, Tuple, Union
 
 import numpy as np
-from scipy.stats import multinomial
-
 
 from quara.objects.gate import Gate
 from quara.objects.povm import Povm

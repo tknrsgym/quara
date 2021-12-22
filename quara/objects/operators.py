@@ -1,7 +1,7 @@
 import copy
 import itertools
 from functools import reduce
-from operator import add, mul, itemgetter
+from operator import add, itemgetter
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -16,7 +16,6 @@ from quara.objects.state import State
 from quara.objects.mprocess import MProcess
 from quara.objects.state_ensemble import StateEnsemble
 from quara.objects.multinomial_distribution import MultinomialDistribution
-from quara.settings import Settings
 from quara.utils import matrix_util
 
 

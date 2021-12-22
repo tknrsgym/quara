@@ -4,7 +4,7 @@ import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, get_x
+from quara.objects.gate import get_x
 from quara.objects.gate_typical import generate_gate_from_gate_name
 from quara.objects.matrix_basis import get_normalized_pauli_basis, get_comp_basis
 from quara.objects.mprocess_typical import generate_mprocess_from_name
@@ -15,9 +15,8 @@ from quara.objects.povm import (
     get_z_povm,
 )
 from quara.objects.qoperations import SetQOperations
-from quara.objects.state import State, get_z0_1q
+from quara.objects.state import get_z0_1q
 from quara.protocol.qtomography.qtomography import QTomography
-from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.qcircuit.experiment import Experiment
 
 

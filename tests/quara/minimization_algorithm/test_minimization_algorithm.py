@@ -1,10 +1,8 @@
 import numpy as np
-import numpy.testing as npt
 import pytest
 
 from quara.loss_function.simple_quadratic_loss_function import (
     SimpleQuadraticLossFunction,
-    SimpleQuadraticLossFunctionOption,
 )
 from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,

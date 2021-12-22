@@ -1,5 +1,3 @@
-from abc import abstractmethod
-
 import numpy as np
 
 from quara.loss_function.loss_function import LossFunction, LossFunctionOption

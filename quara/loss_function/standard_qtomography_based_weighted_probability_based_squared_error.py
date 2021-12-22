@@ -1,16 +1,10 @@
-from abc import abstractmethod
-from typing import Callable, List, Tuple, Union
+from typing import List
 
 import numpy as np
 
 from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
-)
-from quara.math.entropy import (
-    relative_entropy_vector,
-    gradient_relative_entropy_2nd_vector,
-    hessian_relative_entropy_2nd,
 )
 from quara.math.matrix import multiply_veca_vecb, multiply_veca_vecb_matc
 from quara.math.probability import validate_prob_dist

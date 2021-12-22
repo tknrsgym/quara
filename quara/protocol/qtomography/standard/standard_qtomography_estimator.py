@@ -1,8 +1,7 @@
 from abc import abstractmethod
-from typing import Any, Dict, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
-from quara.objects import qoperation
 
 from quara.objects.qoperation import QOperation
 from quara.protocol.qtomography.qtomography_estimator import (

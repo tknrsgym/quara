@@ -8,18 +8,14 @@ from scipy.linalg import expm
 
 from quara.math.matrix import project_to_traceless_matrix
 from quara.objects import matrix_basis
-from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.gate import Gate
-from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.effective_lindbladian import generate_effective_lindbladian_from_h
 from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
     get_gate_names_3qubit,
-    get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
 )
 from quara.objects.qoperation_typical import (

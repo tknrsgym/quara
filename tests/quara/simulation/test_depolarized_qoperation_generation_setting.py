@@ -1,6 +1,5 @@
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem

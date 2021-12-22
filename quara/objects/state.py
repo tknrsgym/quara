@@ -1,12 +1,10 @@
 import copy
-import itertools
 from typing import List
 
 import numpy as np
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
     convert_vec,
