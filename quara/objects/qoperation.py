@@ -1,10 +1,12 @@
 from abc import abstractmethod
+from itertools import product
 import logging
 from typing import Callable, Dict, Tuple, Union
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
 from quara.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -395,6 +397,41 @@ class QOperation:
             this function does not be implemented in the subclass.
         """
         raise NotImplementedError()
+
+    @staticmethod
+    def _permutation_matrix_from_qutrits_to_qubits(num_qutrits: int):
+        names = [0, 1, 2, 3]
+        basis_qubits = list(product(names, repeat=num_qutrits))
+
+        # generate permutation index
+        basis_include_3 = []
+        basis_exclude_3 = []
+        permutation_indices = []
+        for index_qubits, qubit in enumerate(basis_qubits):
+            if 3 in qubit:
+                basis_include_3.append(qubit)
+                index_qutrits = 3 ** num_qutrits + len(basis_include_3) - 1
+                permutation_indices.append((index_qubits, index_qutrits))
+            else:
+                basis_exclude_3.append(qubit)
+                index_qutrits = len(basis_exclude_3) - 1
+                permutation_indices.append((index_qubits, index_qutrits))
+
+        # generate permutation matrix
+        permutation_matrix = np.zeros((4 ** num_qutrits, 4 ** num_qutrits))
+        for permutation in permutation_indices:
+            permutation_matrix[permutation[0], permutation[1]] = 1
+        return permutation_matrix
+
+    @staticmethod
+    def embed_qoperation_from_qutrits_to_qubits(
+        qoperation: "QOperation", e_syss: List[ElementalSystem]
+    ) -> "QOperation":
+        # TODO validation
+
+        #
+        num_qutrits = qoperation.composite_system.num_e_sys
+        perm = QOperation._permutation_matrix_from_qutrits_to_qubits(num_qutrits)
 
     @abstractmethod
     def calc_gradient(self, var_index: int) -> "QOperation":
