@@ -74,3 +74,44 @@ def test_generate_qoperation_depolarized():
     ]
     for a, e in zip(actual.vecs, expected):
         npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_generate_qoperation_depolarized_is_physicality_required():
+    # Arrange
+    e_sys = ElementalSystem(0, get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # Case 1:
+    # Act
+    actual = generate_qoperation_depolarized(
+        mode="state",
+        name="z0",
+        c_sys=c_sys,
+        error_rate=0.1,
+        is_physicality_required=True,
+    )
+
+    # Assert
+    assert actual.is_physicality_required is True
+
+    # Case 2:
+    # Act
+    actual = generate_qoperation_depolarized(
+        mode="state",
+        name="z0",
+        c_sys=c_sys,
+        error_rate=0.1,
+        is_physicality_required=False,
+    )
+
+    # Assert
+    assert actual.is_physicality_required is False
+
+    # Case 3:
+    # Act
+    actual = generate_qoperation_depolarized(
+        mode="state", name="z0", c_sys=c_sys, error_rate=0.1
+    )
+
+    # Assert
+    assert actual.is_physicality_required is True

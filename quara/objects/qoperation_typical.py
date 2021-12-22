@@ -49,9 +49,16 @@ def generate_qoperation_depolarized(
     c_sys: CompositeSystem,
     error_rate: np.float64,
     ids: List[int] = None,
+    is_physicality_required: bool = True,
 ) -> QOperation:
     dp = get_depolarizing_channel(p=error_rate, c_sys=c_sys)
-    qoperation = generate_qoperation(mode=mode, name=name, c_sys=c_sys, ids=ids)
+    qoperation = generate_qoperation(
+        mode=mode,
+        name=name,
+        c_sys=c_sys,
+        ids=ids,
+        is_physicality_required=is_physicality_required,
+    )
 
     if mode == "state":
         qoperation_depolarized = compose_qoperations(dp, qoperation)
