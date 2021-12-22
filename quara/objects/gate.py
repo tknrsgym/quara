@@ -638,7 +638,7 @@ def to_choi_from_hs_with_dict(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndar
     num_basis = len(c_sys.basis())
     choi = np.zeros((num_basis, num_basis), dtype=np.complex128)
     for i, j in itertools.product(range(num_basis), range(num_basis)):
-        non_zeros = c_sys._dict_from_hs_to_choi.get((i, j), [])
+        non_zeros = c_sys.dict_from_hs_to_choi.get((i, j), [])
         for alpha, beta, coefficient in non_zeros:
             choi[i, j] += hs[alpha, beta] * coefficient
 
@@ -716,7 +716,7 @@ def to_hs_from_choi_with_dict(
     hs = np.zeros((num_basis, num_basis), dtype=np.complex128)
 
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
-        non_zeros = c_sys._dict_from_choi_to_hs.get((alpha, beta), [])
+        non_zeros = c_sys.dict_from_choi_to_hs.get((alpha, beta), [])
         for i, j, coefficient in non_zeros:
             hs[alpha, beta] += coefficient * choi[j, i]
 
