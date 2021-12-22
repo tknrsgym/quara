@@ -12,7 +12,6 @@ from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects import effective_lindbladian as el
 
 
-
 class TestEffectiveLindbladian:
     def test_init_error(self):
         # basis is not Hermitian
@@ -548,6 +547,27 @@ def test_calc_j_part_from_j_mat():
     npt.assert_almost_equal(actual, expected, decimal=15)
 
 
+def test__calc_k_part_from_slowly():
+    # basis is normalized Pauli basis
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # k=0
+    k_mat = np.zeros((3, 3), dtype=np.complex128)
+    actual = el._calc_k_part_from_k_mat(k_mat, c_sys)
+    expected = np.zeros((4, 4), dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # k=I
+    k_mat = np.eye(3, dtype=np.complex128)
+    actual = el._calc_k_part_from_k_mat(k_mat, c_sys)
+    expected = np.array(
+        [[1 / 2, 0, 0, 1], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [1, 0, 0, 1 / 2]],
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
 def test_calc_k_part_from_k_mat():
     # basis is normalized Pauli basis
     e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -562,6 +582,27 @@ def test_calc_k_part_from_k_mat():
     # k=I
     k_mat = np.eye(3, dtype=np.complex128)
     actual = el._calc_k_part_from_k_mat(k_mat, c_sys)
+    expected = np.array(
+        [[1 / 2, 0, 0, 1], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [1, 0, 0, 1 / 2]],
+        dtype=np.complex128,
+    )
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_calc_k_part_from_k_mat_with_sparsity():
+    # basis is normalized Pauli basis
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    # k=0
+    k_mat = np.zeros((3, 3), dtype=np.complex128)
+    actual = el._calc_k_part_from_k_mat_with_sparsity(k_mat, c_sys)
+    expected = np.zeros((4, 4), dtype=np.float64)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    # k=I
+    k_mat = np.eye(3, dtype=np.complex128)
+    actual = el._calc_k_part_from_k_mat_with_sparsity(k_mat, c_sys)
     expected = np.array(
         [[1 / 2, 0, 0, 1], [0, -1 / 2, 0, 0], [0, 0, -1 / 2, 0], [1, 0, 0, 1 / 2]],
         dtype=np.complex128,

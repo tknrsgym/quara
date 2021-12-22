@@ -698,13 +698,24 @@ def _check_k_mat(k_mat: np.ndarray, dim: int) -> None:
 
 
 def _calc_k_part_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
+    return _calc_k_part_from_k_mat_with_sparsity(k_mat, c_sys)
+
+
+def _calc_k_part_from_slowly(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
     basis = c_sys.basis()
     k_part = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
         for col in range(k_mat.shape[0]):
             term = k_mat[row, col] * kron(basis[row + 1], basis[col + 1].conj())
             k_part += term
+    return k_part
 
+
+def _calc_k_part_from_k_mat_with_sparsity(
+    k_mat: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    k_part_vec = c_sys._basis_basisconjugate_T_sparse_from_1.dot(k_mat.flatten())
+    k_part = k_part_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
     return k_part
 
 
