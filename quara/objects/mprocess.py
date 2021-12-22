@@ -1,11 +1,11 @@
 import copy
 from functools import reduce
-from operator import add, mul
+from operator import mul
 from typing import List, Tuple, Union
 
 import numpy as np
 
-from quara.objects.composite_system import CompositeSystem, ElementalSystem
+from quara.objects.composite_system import CompositeSystem
 from quara.objects import gate
 from quara.objects.gate import Gate
 from quara.objects.matrix_basis import (

@@ -1,4 +1,3 @@
-from quara.protocol import qtomography
 import time
 from typing import Callable, List, Optional, Union
 import copy

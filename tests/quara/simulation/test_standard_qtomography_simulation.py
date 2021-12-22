@@ -32,7 +32,6 @@ from quara.objects.composite_system_typical import generate_composite_system
 from quara.simulation.standard_qtomography_simulation import (
     EstimatorTestSetting,
     NoiseSetting,
-    SimulationResult,
 )
 
 from tests.quara.simulation import random_test

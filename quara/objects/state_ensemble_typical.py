@@ -1,6 +1,8 @@
 from typing import Tuple, List
-from quara.objects.state_ensemble import StateEnsemble
+
 import numpy as np
+
+from quara.objects.state_ensemble import StateEnsemble
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.state import State
 from quara.objects.state_ensemble import StateEnsemble

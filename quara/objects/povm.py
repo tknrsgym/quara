@@ -3,7 +3,6 @@ import itertools
 from typing import List, Tuple, Union
 
 import numpy as np
-from numpy.testing._private.utils import measure
 
 import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem

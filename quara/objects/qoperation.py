@@ -1,6 +1,6 @@
 from abc import abstractmethod
 import logging
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Callable, Dict, Tuple, Union
 
 import numpy as np
 

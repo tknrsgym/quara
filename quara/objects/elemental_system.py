@@ -1,7 +1,4 @@
-from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
-
-import numpy as np
 
 
 class ElementalSystem:

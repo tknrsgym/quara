@@ -10,7 +10,6 @@ import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
 from quara.objects.matrix_basis import (
     MatrixBasis,
-    get_comp_basis,
     get_normalized_pauli_basis,
 )
 from quara.settings import Settings

@@ -1,5 +1,4 @@
-from abc import abstractmethod
-from typing import Callable, List, Tuple, Union
+from typing import List, Union
 
 import numpy as np
 
@@ -10,7 +9,6 @@ from quara.loss_function.weighted_relative_entropy import (
 from quara.math.entropy import (
     relative_entropy_vector,
     gradient_relative_entropy_2nd_vector,
-    hessian_relative_entropy_2nd,
 )
 from quara.math.probability import validate_prob_dist
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
