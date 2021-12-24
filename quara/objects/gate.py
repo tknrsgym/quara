@@ -660,7 +660,7 @@ def to_choi_from_hs_with_sparsity(c_sys: CompositeSystem, hs: np.ndarray) -> np.
     np.ndarray
         Choi matrix of this gate.
     """
-    choi_vec = c_sys._basis_basisconjugate_T_sparse.dot(hs.flatten())
+    choi_vec = c_sys.basis_basisconjugate_T_sparse.dot(hs.flatten())
     choi = choi_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
     return choi
 
@@ -748,7 +748,7 @@ def to_hs_from_choi_with_sparsity(
     np.ndarray
         HS representation of this gate.
     """
-    hs_vec = c_sys._basisconjugate_basis_sparse.dot(choi.flatten())
+    hs_vec = c_sys.basisconjugate_basis_sparse.dot(choi.flatten())
     hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
 
     return mutil.truncate_hs(

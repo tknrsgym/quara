@@ -511,7 +511,7 @@ class Povm(QOperation):
             matrix of measurement.
         """
         vec = self.vec(index)
-        new_vec = c_sys._basis_T_sparse.dot(self.vec)
+        new_vec = c_sys.basis_T_sparse.dot(self.vec)
         matrix = new_vec.reshape((self.dim, self.dim))
         return matrix
 
@@ -739,7 +739,7 @@ def to_matrices_from_vecs(
     """
     matrices = []
     for vec in vecs:
-        new_vec = c_sys._basis_T_sparse.dot(vec)
+        new_vec = c_sys.basis_T_sparse.dot(vec)
         matrix = new_vec.reshape((c_sys.dim, c_sys.dim))
         matrices.append(matrix)
     return matrices
@@ -768,7 +768,7 @@ def to_vec_from_matrix_with_sparsity(
     np.ndarray
         vec of variables.
     """
-    vec = c_sys._basisconjugate_sparse.dot(matrix.flatten())
+    vec = c_sys.basisconjugate_sparse.dot(matrix.flatten())
     return mutil.truncate_hs(
         vec, eps_truncate_imaginary_part=eps_truncate_imaginary_part
     )
