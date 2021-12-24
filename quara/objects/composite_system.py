@@ -85,27 +85,10 @@ class CompositeSystem:
         self._basis_basisconjugate = None
         self._dict_from_hs_to_choi = None
         self._dict_from_choi_to_hs = None
-
-        basis_tmp = []
-        basisconjugate_tmp = []
-        basis_basisconjugate_tmp = []
-        for b_alpha in basis:
-            basis_tmp.append(b_alpha.flatten())
-            basisconjugate_tmp.append(b_alpha.conjugate().flatten())
-        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
-            b_alpha = basis[alpha]
-            b_beta_conj = np.conjugate(basis[beta])
-            matrix = np.kron(b_alpha, b_beta_conj)
-            basis_basisconjugate_tmp.append(matrix.flatten())
-
-        basis_tmp = np.array(basis_tmp)
-        self._basis_T_sparse = csr_matrix(basis_tmp.T)
-        self._basisconjugate_sparse = csr_matrix(basisconjugate_tmp)
-        basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)
-        self._basisconjugate_basis_sparse = csr_matrix(
-            basis_basisconjugate_tmp.conjugate()
-        )
-        self._basis_basisconjugate_T_sparse = csr_matrix(basis_basisconjugate_tmp.T)
+        self._basis_T_sparse = None
+        self._basisconjugate_sparse = None
+        self._basisconjugate_basis_sparse = None
+        self._basis_basisconjugate_T_sparse = None
 
     def comp_basis(self, mode: str = "row_major") -> MatrixBasis:
         """returns computational basis of CompositeSystem.
@@ -322,6 +305,59 @@ class CompositeSystem:
 
         # return _dict_from_choi_to_hs
         return self._dict_from_choi_to_hs
+
+    def _calc_basis_sparse(self) -> None:
+        basis = copy.deepcopy(self._total_basis.basis)
+        basis_tmp = []
+        basisconjugate_tmp = []
+        for b_alpha in basis:
+            basis_tmp.append(b_alpha.flatten())
+            basisconjugate_tmp.append(b_alpha.conjugate().flatten())
+
+        basis_tmp = np.array(basis_tmp)
+        self._basis_T_sparse = csr_matrix(basis_tmp.T)
+        self._basisconjugate_sparse = csr_matrix(basisconjugate_tmp)
+
+    @property
+    def basis_T_sparse(self) -> np.ndarray:
+        if self._basis_T_sparse is None:
+            self._calc_basis_sparse()
+        return self._basis_T_sparse
+
+    @property
+    def basisconjugate_sparse(self) -> np.ndarray:
+        if self._basisconjugate_sparse is None:
+            self._calc_basis_sparse()
+        return self._basisconjugate_sparse
+
+    def _calc_basis_basisconjugate_sparse(self) -> None:
+        basis_no = len(self._total_basis.basis)
+        basis = copy.deepcopy(self._total_basis.basis)
+
+        basis_basisconjugate_tmp = []
+        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+            b_alpha = basis[alpha]
+            b_beta_conj = np.conjugate(basis[beta])
+            matrix = np.kron(b_alpha, b_beta_conj)
+            basis_basisconjugate_tmp.append(matrix.flatten())
+
+        basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)
+        self._basisconjugate_basis_sparse = csr_matrix(
+            basis_basisconjugate_tmp.conjugate()
+        )
+        self._basis_basisconjugate_T_sparse = csr_matrix(basis_basisconjugate_tmp.T)
+
+    @property
+    def basisconjugate_basis_sparse(self) -> np.ndarray:
+        if self._basisconjugate_basis_sparse is None:
+            self._calc_basis_basisconjugate_sparse()
+        return self._basisconjugate_basis_sparse
+
+    @property
+    def basis_basisconjugate_T_sparse(self) -> np.ndarray:
+        if self._basis_basisconjugate_T_sparse is None:
+            self._calc_basis_basisconjugate_sparse()
+        return self._basis_basisconjugate_T_sparse
 
     @property
     def elemental_systems(self) -> Tuple[ElementalSystem]:
