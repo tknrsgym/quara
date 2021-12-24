@@ -1,12 +1,14 @@
 from abc import abstractmethod
 from itertools import product
 import logging
-from typing import Callable, Dict, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_normalized_pauli_basis
+
 from quara.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -424,14 +426,31 @@ class QOperation:
         return permutation_matrix
 
     @staticmethod
+    def _calc_matrix_from_qutrits_to_qubits(
+        num_qutrits: int, perm_matrix, mat_qutrits, coeff
+    ):
+        I = np.eye(4 ** num_qutrits - 3 ** num_qutrits)
+        zero = np.zeros((3 ** num_qutrits, 4 ** num_qutrits - 3 ** num_qutrits))
+        mat_blocks = np.block([[mat_qutrits, zero], [zero.T, coeff * I]])
+        mat_qubits = perm_matrix @ mat_blocks @ perm_matrix.T
+        return mat_qubits
+
+    @staticmethod
     def embed_qoperation_from_qutrits_to_qubits(
         qoperation: "QOperation", e_syss: List[ElementalSystem]
     ) -> "QOperation":
         # TODO validation
 
-        #
+        c_sys_qubits = CompositeSystem(e_syss)
+
+        # generate permutation matrix
         num_qutrits = qoperation.composite_system.num_e_sys
-        perm = QOperation._permutation_matrix_from_qutrits_to_qubits(num_qutrits)
+        perm_matrix = QOperation._permutation_matrix_from_qutrits_to_qubits(num_qutrits)
+
+        qope_qubits = qoperation._calc_matrix_from_qutrits_to_qubits(
+            perm_matrix, c_sys_qubits
+        )
+        return qope_qubits
 
     @abstractmethod
     def calc_gradient(self, var_index: int) -> "QOperation":
