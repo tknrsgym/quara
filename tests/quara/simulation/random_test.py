@@ -112,6 +112,8 @@ def generate_common_setting():
 
     def generate_pgdb_algo_option():
         return ProjectedGradientDescentBacktrackingOption(
+            max_iteration_optimization=10000,
+            max_iteration_proj_physical=100000,
             mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
             num_history_stopping_criterion_gradient_descent=1,
             eps=1e-9,
@@ -300,6 +302,7 @@ def execute_qst_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -331,6 +334,7 @@ def execute_qst_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -362,6 +366,7 @@ def execute_qst_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -394,6 +399,7 @@ def execute_qst_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -428,6 +434,7 @@ def execute_qst_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -457,6 +464,7 @@ def execute_povmt_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -489,6 +497,7 @@ def execute_povmt_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -521,6 +530,7 @@ def execute_povmt_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -563,6 +573,7 @@ def execute_povmt_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -608,6 +619,7 @@ def execute_povmt_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -651,6 +663,7 @@ def execute_qpt_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -685,6 +698,7 @@ def execute_qpt_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -719,6 +733,7 @@ def execute_qpt_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -765,6 +780,7 @@ def execute_qpt_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -816,6 +832,7 @@ def execute_qpt_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -850,6 +867,7 @@ def execute_qmpt_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -884,6 +902,7 @@ def execute_qmpt_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -918,6 +937,7 @@ def execute_qmpt_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -964,6 +984,7 @@ def execute_qmpt_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
@@ -1015,6 +1036,7 @@ def execute_qmpt_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
     }
     execute(**setting)
 
