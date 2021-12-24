@@ -752,6 +752,22 @@ class QOperation:
         logger.debug(f"result of _calc_stopping_criterion_birgin_raydan_vectors={val}")
         return val
 
+    def _calc_stopping_criterion_birgin_raydan2_vectors(
+        self,
+        p_prev: np.ndarray,
+        p_next: np.ndarray,
+        q_prev: np.ndarray,
+        q_next: np.ndarray,
+        x_prev: np.ndarray,
+        x_next: np.ndarray,
+        y_prev: np.ndarray,
+        y_next: np.ndarray,
+    ) -> float:
+        val = np.sum((p_prev - p_next) ** 2 + (q_prev - q_next) ** 2)
+
+        logger.debug(f"result of _calc_stopping_criterion_birgin_raydan2_vectors={val}")
+        return val
+
     def _is_satisfied_stopping_criterion_birgin_raydan_vectors(
         self,
         p_prev: np.ndarray,
@@ -764,7 +780,7 @@ class QOperation:
         y_next: np.ndarray,
         eps_proj_physical: float,
     ):
-        error_value = self._calc_stopping_criterion_birgin_raydan_vectors(
+        error_value = self._calc_stopping_criterion_birgin_raydan2_vectors(
             p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
         )
         if error_value < eps_proj_physical:
