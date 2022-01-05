@@ -368,24 +368,17 @@ class CompositeSystem:
             basishermitian_basis_tmp_from_1.T
         )
 
-
     @property
     def basisconjugate_basis_sparse(self) -> np.ndarray:
         if self._basisconjugate_basis_sparse is None:
             self._calc_basis_basisconjugate_sparse()
         return self._basisconjugate_basis_sparse
-     
+
     @property
     def basis_basisconjugate_T_sparse(self) -> np.ndarray:
         if self._basis_basisconjugate_T_sparse is None:
             self._calc_basis_basisconjugate_sparse()
         return self._basis_basisconjugate_T_sparse
-      
-    @property
-    def basisconjugate_basis_sparse_from_1(self) -> np.ndarray:
-        if self._basisconjugate_basis_sparse_from_1 is None:
-            self._calc_basis_basisconjugate_sparse()
-        return self._basisconjugate_basis_sparse_from_1
 
     @property
     def basis_basisconjugate_T_sparse_from_1(self) -> np.ndarray:

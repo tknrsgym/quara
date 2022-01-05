@@ -675,7 +675,7 @@ def _calc_j_mat_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndar
 def _calc_j_mat_from_k_mat_with_sparsity(
     k_mat: np.ndarray, c_sys: CompositeSystem
 ) -> np.ndarray:
-    j_mat_vec = c_sys._basishermitian_basis_tmp_from_1.dot(k_mat.flatten())
+    j_mat_vec = c_sys.basishermitian_basis_T_from_1.dot(k_mat.flatten())
     j_mat = j_mat_vec.reshape((c_sys.dim, c_sys.dim))
     return -1 / 2 * j_mat
 
@@ -728,7 +728,7 @@ def _calc_k_part_from_slowly(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.nd
 def _calc_k_part_from_k_mat_with_sparsity(
     k_mat: np.ndarray, c_sys: CompositeSystem
 ) -> np.ndarray:
-    k_part_vec = c_sys._basis_basisconjugate_T_sparse_from_1.dot(k_mat.flatten())
+    k_part_vec = c_sys.basis_basisconjugate_T_sparse_from_1.dot(k_mat.flatten())
     k_part = k_part_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
     return k_part
 
