@@ -336,6 +336,7 @@ class CompositeSystem:
         basis_basisconjugate_tmp = []
         basis_basisconjugate_tmp_from_1 = []
         basishermitian_basis_tmp_from_1 = []
+
         for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
@@ -367,23 +368,24 @@ class CompositeSystem:
             basishermitian_basis_tmp_from_1.T
         )
 
+
     @property
     def basisconjugate_basis_sparse(self) -> np.ndarray:
         if self._basisconjugate_basis_sparse is None:
             self._calc_basis_basisconjugate_sparse()
         return self._basisconjugate_basis_sparse
-
-    @property
-    def basisconjugate_basis_sparse_from_1(self) -> np.ndarray:
-        if self._basisconjugate_basis_sparse_from_1 is None:
-            self._calc_basis_basisconjugate_sparse()
-        return self._basisconjugate_basis_sparse_from_1
-
+     
     @property
     def basis_basisconjugate_T_sparse(self) -> np.ndarray:
         if self._basis_basisconjugate_T_sparse is None:
             self._calc_basis_basisconjugate_sparse()
         return self._basis_basisconjugate_T_sparse
+      
+    @property
+    def basisconjugate_basis_sparse_from_1(self) -> np.ndarray:
+        if self._basisconjugate_basis_sparse_from_1 is None:
+            self._calc_basis_basisconjugate_sparse()
+        return self._basisconjugate_basis_sparse_from_1
 
     @property
     def basis_basisconjugate_T_sparse_from_1(self) -> np.ndarray:
