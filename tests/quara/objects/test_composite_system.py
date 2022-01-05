@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 from quara.objects.composite_system import CompositeSystem
@@ -9,6 +12,7 @@ from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
 )
 from quara.objects.operators import tensor_product
+from quara.objects.composite_system_typical import generate_composite_system
 
 
 class TestCompositeSystem:
@@ -161,6 +165,7 @@ class TestCompositeSystem:
         e1 = ElementalSystem(0, basis)
         source = [e1]
         c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate == None
 
         # access by int
         actual = c_sys.basis_basisconjugate(0)
@@ -187,6 +192,34 @@ class TestCompositeSystem:
         actual = c_sys.basis_basisconjugate((3, 1))
         expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
         assert np.all(actual == expected)
+
+    def test_dict_from_hs_to_choi(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate == None
+
+        # act
+        actual = c_sys.dict_from_hs_to_choi
+
+        # assert
+        assert actual != None
+
+    def test_dict_from_choi_to_hs(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate == None
+
+        # act
+        actual = c_sys.dict_from_choi_to_hs
+
+        # assert
+        assert actual != None
 
     def test_access_elemental_systems(self):
         e1 = ElementalSystem(1, get_pauli_basis())
@@ -307,3 +340,63 @@ class TestCompositeSystemImmutable:
             # AttributeError: can't set 'is_orthonormal_hermitian_0thprop_identity'
             c_sys.is_orthonormal_hermitian_0thprop_identity = True
         assert c_sys.is_orthonormal_hermitian_0thprop_identity == False
+
+
+def test_basis_basisconjugate_T_sparse():
+    # 2qubit
+    # Arrange
+    c_sys = generate_composite_system("qubit", 2)
+    path = (
+        Path(__file__).parent / "data/expected_basis_basisconjugate_T_sparse_2qubit.npy"
+    )
+    expected = np.load(path)
+    # Act
+    actual = c_sys._basis_basisconjugate_T_sparse
+    # Assert
+    assert actual is None
+
+    # property
+    # Act
+    actual = c_sys.basis_basisconjugate_T_sparse
+    # Assert
+    npt.assert_allclose(actual.toarray(), expected, atol=10 ** (-15), rtol=0)
+
+
+def test_basis_basisconjugate_T_sparse_from_1():
+    # 2qubit
+    # Arrange
+    c_sys = generate_composite_system("qubit", 2)
+    path = (
+        Path(__file__).parent
+        / "data/expected_basis_basisconjugate_T_sparse_from_1_2qubit.npy"
+    )
+    expected = np.load(path)
+    # Act
+    actual = c_sys._basis_basisconjugate_T_sparse_from_1
+    # Assert
+    assert actual is None
+
+    # property
+    # Act
+    actual = c_sys.basis_basisconjugate_T_sparse_from_1
+    # Assert
+    npt.assert_allclose(actual.toarray(), expected, atol=10 ** (-15), rtol=0)
+
+
+def test_basishermitian_basis_T_from_1():
+    # 2qubit
+    # Arrange
+    c_sys = generate_composite_system("qubit", 2)
+    path = (
+        Path(__file__).parent / "data/expected_basishermitian_basis_T_from_1_2qubit.npy"
+    )
+    expected = np.load(path)
+    # Act
+    actual = c_sys._basishermitian_basis_T_from_1
+    # Assert
+    assert actual is None
+
+    # Act
+    actual = c_sys.basishermitian_basis_T_from_1
+    # Assert
+    npt.assert_allclose(actual.toarray(), expected, atol=10 ** (-15), rtol=0)

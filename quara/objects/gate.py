@@ -638,7 +638,7 @@ def to_choi_from_hs_with_dict(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndar
     num_basis = len(c_sys.basis())
     choi = np.zeros((num_basis, num_basis), dtype=np.complex128)
     for i, j in itertools.product(range(num_basis), range(num_basis)):
-        non_zeros = c_sys._dict_from_hs_to_choi.get((i, j), [])
+        non_zeros = c_sys.dict_from_hs_to_choi.get((i, j), [])
         for alpha, beta, coefficient in non_zeros:
             choi[i, j] += hs[alpha, beta] * coefficient
 
@@ -660,7 +660,7 @@ def to_choi_from_hs_with_sparsity(c_sys: CompositeSystem, hs: np.ndarray) -> np.
     np.ndarray
         Choi matrix of this gate.
     """
-    choi_vec = c_sys._basis_basisconjugate_T_sparse.dot(hs.flatten())
+    choi_vec = c_sys.basis_basisconjugate_T_sparse.dot(hs.flatten())
     choi = choi_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
     return choi
 
@@ -716,7 +716,7 @@ def to_hs_from_choi_with_dict(
     hs = np.zeros((num_basis, num_basis), dtype=np.complex128)
 
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
-        non_zeros = c_sys._dict_from_choi_to_hs.get((alpha, beta), [])
+        non_zeros = c_sys.dict_from_choi_to_hs.get((alpha, beta), [])
         for i, j, coefficient in non_zeros:
             hs[alpha, beta] += coefficient * choi[j, i]
 
@@ -748,7 +748,7 @@ def to_hs_from_choi_with_sparsity(
     np.ndarray
         HS representation of this gate.
     """
-    hs_vec = c_sys._basisconjugate_basis_sparse.dot(choi.flatten())
+    hs_vec = c_sys.basisconjugate_basis_sparse.dot(choi.flatten())
     hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
 
     return mutil.truncate_hs(
