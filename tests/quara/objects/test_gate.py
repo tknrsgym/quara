@@ -34,6 +34,7 @@ from quara.objects.gate import (
     to_hs_from_choi,
     to_hs_from_choi_with_dict,
     to_hs_from_choi_with_sparsity,
+    to_hs_from_kraus_matrices,
     get_depolarizing_channel,
     get_x_rotation,
     get_amplitutde_damping_channel,
@@ -1298,6 +1299,47 @@ def test_to_hs_from_choi_with_sparsity():
     source_choi = gate.to_choi_matrix()
     # Act
     actual = to_hs_from_choi_with_sparsity(c_sys, source_choi)
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_to_hs_from_kraus_matrices():
+    e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
+    c_sys = CompositeSystem([e_sys])
+
+    ### Case 1: x gate
+    # Arrange
+    gate = get_x(c_sys)
+    kraus = gate.to_kraus_matrices()
+
+    # Act
+    actual = to_hs_from_kraus_matrices(c_sys, kraus)
+
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    ### Case 2: y gate
+    # Arrange
+    gate = get_y(c_sys)
+    kraus = gate.to_kraus_matrices()
+
+    # Act
+    actual = to_hs_from_kraus_matrices(c_sys, kraus)
+
+    # Assert
+    expected = gate.hs
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+    ### Case 3: z gate
+    # Arrange
+    gate = get_z(c_sys)
+    kraus = gate.to_kraus_matrices()
+
+    # Act
+    actual = to_hs_from_kraus_matrices(c_sys, kraus)
+
     # Assert
     expected = gate.hs
     npt.assert_almost_equal(actual, expected, decimal=15)

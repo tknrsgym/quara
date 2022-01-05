@@ -193,15 +193,15 @@ class State(QOperation):
         """
         return self._vec
 
-    """
-    def _calc_matrix_from_qutrits_to_qubits(
+    def _embed_qoperation_from_qutrits_to_qubits(
         self, perm_matrix, c_sys_qubits
-    ) -> np.ndarray:
+    ) -> QOperation:
         num_qutrits = self.composite_system.num_e_sys
 
         mat_qutrits = self.to_density_matrix_with_sparsity()
         coeff = 0
 
+        # calc matrix for qubits
         mat_qubits = QOperation._calc_matrix_from_qutrits_to_qubits(
             num_qutrits, perm_matrix, mat_qutrits, coeff
         )
@@ -225,7 +225,6 @@ class State(QOperation):
             eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
         )
         return new_qope
-    """
 
     def calc_gradient(self, var_index: int) -> "State":
         """calculates gradient of State.

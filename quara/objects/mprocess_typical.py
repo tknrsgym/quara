@@ -248,10 +248,8 @@ def generate_mprocess_hss_from_name(
     for kraus_matrices in set_kraus_matrices:
         tmp_hs = np.zeros((size, size), dtype=np.complex128)
         for kraus_matrix in kraus_matrices:
-            kron_mat = np.kron(kraus_matrix, kraus_matrix.conjugate())
             tmp_hs += np.kron(kraus_matrix, kraus_matrix.conjugate())
         hss_cb.append(tmp_hs)
-    # TODO remove truncate_hs
     hss = [
         truncate_hs(convert_hs(hs_cb, c_sys.comp_basis(), c_sys.basis()))
         for hs_cb in hss_cb

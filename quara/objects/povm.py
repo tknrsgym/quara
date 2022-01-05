@@ -197,6 +197,41 @@ class Povm(QOperation):
         stacked_vec = np.hstack(self.vecs)
         return stacked_vec
 
+    def _embed_qoperation_from_qutrits_to_qubits(
+        self, perm_matrix, c_sys_qubits
+    ) -> QOperation:
+        num_qutrits = self.composite_system.num_e_sys
+
+        mats_qutrits = self.matrices_with_sparsity()
+        coeff = 1 / len(mats_qutrits)
+
+        # calc matrices for qubits
+        mats_qubits = []
+        for mat_qutrits in mats_qutrits:
+            mat_qubits = QOperation._calc_matrix_from_qutrits_to_qubits(
+                num_qutrits, perm_matrix, mat_qutrits, coeff
+            )
+            mats_qubits.append(mat_qubits)
+
+        # gerenera qoperation for qubits
+        vecs = to_vecs_from_matrices_with_sparsity(
+            c_sys_qubits,
+            mats_qubits,
+        )
+        new_qope = Povm(
+            c_sys_qubits,
+            vecs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+        )
+        return new_qope
+
     def calc_gradient(self, var_index: int) -> "Povm":
         povm = calc_gradient_from_povm(
             self.composite_system,
