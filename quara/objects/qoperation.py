@@ -425,9 +425,17 @@ class QOperation:
             permutation_matrix[permutation[0], permutation[1]] = 1
         return permutation_matrix
 
+    def _embed_qoperation_from_qutrits_to_qubits(
+        self, perm_matrix, c_sys_qubits
+    ) -> "QOperation":
+        raise NotImplementedError()
+
     @staticmethod
     def _calc_matrix_from_qutrits_to_qubits(
-        num_qutrits: int, perm_matrix, mat_qutrits, coeff
+        num_qutrits: int,
+        perm_matrix: np.ndarray,
+        mat_qutrits: np.ndarray,
+        coeff: float,
     ):
         I = np.eye(4 ** num_qutrits - 3 ** num_qutrits)
         zero = np.zeros((3 ** num_qutrits, 4 ** num_qutrits - 3 ** num_qutrits))
@@ -439,15 +447,38 @@ class QOperation:
     def embed_qoperation_from_qutrits_to_qubits(
         qoperation: "QOperation", e_syss: List[ElementalSystem]
     ) -> "QOperation":
-        # TODO validation
+        """embeds qoperation from qutrits to qubits.
 
+        Parameters
+        ----------
+        qoperation : QOperation
+            QOperation to embed from qutrits.
+        e_syss : List[ElementalSystem]
+            list of ElementalSystem to embed to qubits.
+
+        Returns
+        -------
+        QOperation
+            qoperation embeded to qubits.
+
+        Raises
+        ------
+        ValueError
+            2x ``num_qutrits`` and ``len(e_syss)`` are not equal.
+        """
+        num_qutrits = qoperation.composite_system.num_e_sys
         c_sys_qubits = CompositeSystem(e_syss)
 
+        # validation
+        if 2 * num_qutrits != len(e_syss):
+            raise ValueError(
+                f"2x num_qutrits and len(e_syss) must be equal. num_qutrits={num_qutrits} len(e_syss)={len(e_syss)}"
+            )
+
         # generate permutation matrix
-        num_qutrits = qoperation.composite_system.num_e_sys
         perm_matrix = QOperation._permutation_matrix_from_qutrits_to_qubits(num_qutrits)
 
-        qope_qubits = qoperation._calc_matrix_from_qutrits_to_qubits(
+        qope_qubits = qoperation._embed_qoperation_from_qutrits_to_qubits(
             perm_matrix, c_sys_qubits
         )
         return qope_qubits
