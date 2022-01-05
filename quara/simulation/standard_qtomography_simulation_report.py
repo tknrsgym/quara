@@ -3,7 +3,6 @@ import shutil
 
 from typing import List, Optional
 from pathlib import Path
-import pickle
 
 import numpy as np
 import pandas as pd
@@ -20,7 +19,6 @@ from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.mprocess import MProcess
 from quara.protocol.qtomography.estimator import EstimationResult
-from quara.simulation import consistency_check
 from quara.simulation import standard_qtomography_simulation_check
 from quara.simulation.standard_qtomography_simulation import (
     SimulationResult,
