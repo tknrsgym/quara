@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 import numpy as np
 import numpy.testing as npt
@@ -10,6 +11,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects import effective_lindbladian as el
+from quara.objects.composite_system_typical import generate_composite_system
 
 
 class TestEffectiveLindbladian:
@@ -777,3 +779,17 @@ def test_generate_k_part_gb_from_jump_operators():
         dtype=np.float64,
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_calc_j_mat_from_k_mat():
+    # Arrange
+    path = Path(__file__).parent / "data/source_k_mat.npy"
+    source_k_mat = np.load(path)
+    path = Path(__file__).parent / "data/expected_j_mat.npy"
+    expected_j_mat = np.load(path)
+    c_sys = generate_composite_system("qubit", 3)
+
+    # Act
+    actual_j_mat = el._calc_j_mat_from_k_mat(source_k_mat, c_sys)
+    # Assert
+    npt.assert_allclose(actual_j_mat, expected_j_mat, atol=10 ** (-15), rtol=0)

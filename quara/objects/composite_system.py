@@ -91,6 +91,8 @@ class CompositeSystem:
         basisconjugate_tmp = []
         basis_basisconjugate_tmp = []
         basis_basisconjugate_tmp_from_1 = []
+        basishermitian_basis_tmp_from_1 = []
+
         for b_alpha in basis:
             basis_tmp.append(b_alpha.flatten())
             basisconjugate_tmp.append(b_alpha.conjugate().flatten())
@@ -103,6 +105,9 @@ class CompositeSystem:
 
             if alpha != 0 and beta != 0:
                 basis_basisconjugate_tmp_from_1.append(matrix.flatten())
+
+                matrix_2 = basis[beta].conj().T @ b_alpha
+                basishermitian_basis_tmp_from_1.append(matrix_2.flatten())
 
             # calc _dict_from_hs_to_choi and _dict_from_choi_to_hs
             row_indices, column_indices = np.where(matrix != 0)
@@ -142,6 +147,11 @@ class CompositeSystem:
         )
         self._basis_basisconjugate_T_sparse_from_1 = csr_matrix(
             basis_basisconjugate_tmp_from_1.T
+        )
+
+        basishermitian_basis_tmp_from_1 = np.array(basishermitian_basis_tmp_from_1)
+        self._basishermitian_basis_tmp_from_1 = csr_matrix(
+            basishermitian_basis_tmp_from_1.T
         )
 
     def comp_basis(self, mode: str = "row_major") -> MatrixBasis:

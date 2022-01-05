@@ -668,7 +668,21 @@ def _check_j_mat(j_mat: np.ndarray, dim: int) -> None:
         )
 
 
-def _calc_j_mat_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> None:
+def _calc_j_mat_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
+    return _calc_j_mat_from_k_mat_with_sparsity(k_mat, c_sys)
+
+
+def _calc_j_mat_from_k_mat_with_sparsity(
+    k_mat: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    j_mat_vec = c_sys._basishermitian_basis_tmp_from_1.dot(k_mat.flatten())
+    j_mat = j_mat_vec.reshape((c_sys.dim, c_sys.dim))
+    return -1 / 2 * j_mat
+
+
+def _calc_j_mat_from_k_mat_slowly(
+    k_mat: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
     basis = c_sys.basis()
     j_mat = np.zeros((c_sys.dim, c_sys.dim), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
