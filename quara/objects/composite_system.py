@@ -4,6 +4,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix
+from scipy.linalg import kron
 
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
@@ -74,7 +75,7 @@ class CompositeSystem:
             temp = basis_list[0]
             for elem in basis_list[1:]:
                 temp = [
-                    np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                    kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
                 ]
             self._total_basis = MatrixBasis(temp)
 
@@ -96,7 +97,7 @@ class CompositeSystem:
         for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
-            matrix = np.kron(b_alpha, b_beta_conj)
+            matrix = kron(b_alpha, b_beta_conj)
             self._basis_basisconjugate[(alpha, beta)] = matrix
             basis_basisconjugate_tmp.append(matrix.flatten())
 
@@ -136,7 +137,6 @@ class CompositeSystem:
         self._basis_basisconjugate_T_sparse = csr_matrix(basis_basisconjugate_tmp.T)
 
         basis_basisconjugate_tmp_from_1 = np.array(basis_basisconjugate_tmp_from_1)
-
         self._basisconjugate_basis_sparse_1 = csr_matrix(
             basis_basisconjugate_tmp_from_1.conjugate()
         )
