@@ -270,7 +270,7 @@ def calc_c_qpt(
         dim = np.sqrt(vec_size)
         schedule_c_list = []
         for m_index, povm_vec in enumerate(povm.vecs):  # each measurement
-            c = np.kron(povm_vec, state.vec.T)
+            c = np.outer(povm_vec, state.vec).flatten()
 
             if on_para_eq_constraint:
                 a = c[int(dim * dim) :]
