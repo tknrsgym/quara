@@ -9,6 +9,7 @@ from quara.loss_function.weighted_probability_based_squared_error import (
     WeightedProbabilityBasedSquaredError,
     WeightedProbabilityBasedSquaredErrorOption,
 )
+from quara.minimization_algorithm.minimization_algorithm import MinimizationResult
 from quara.minimization_algorithm.projected_gradient_descent_backtracking import (
     ProjectedGradientDescentBacktracking,
     ProjectedGradientDescentBacktrackingOption,
@@ -26,6 +27,7 @@ from quara.objects.state import convert_var_to_state, get_z0_1q
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
+    LossMinimizationEstimationResult,
 )
 
 
@@ -75,6 +77,9 @@ class TestLossMinimizationEstimator:
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert type(actual.computation_time) == float
+        assert type(actual.detailed_results) == list
+        assert len(actual.detailed_results) == 1
+        assert isinstance(actual.detailed_results[0], MinimizationResult) == True
 
         # is_computation_time_required=False
         actual = estimator.calc_estimate(
@@ -84,6 +89,7 @@ class TestLossMinimizationEstimator:
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert actual.computation_time == None
+        assert actual.detailed_results == None
 
     def test_calc_estimate__on_algo_xx_constraint(self):
         empi_dists = [

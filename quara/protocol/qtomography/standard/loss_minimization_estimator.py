@@ -11,6 +11,7 @@ from quara.loss_function.probability_based_loss_function import (
 from quara.minimization_algorithm.minimization_algorithm import (
     MinimizationAlgorithm,
     MinimizationAlgorithmOption,
+    MinimizationResult,
 )
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.standard_qtomography_estimator import (
@@ -25,8 +26,21 @@ class LossMinimizationEstimationResult(StandardQTomographyEstimationResult):
         estimated_var_sequence: List[np.ndarray],
         computation_times: List[float],
         template_qoperation: QOperation,
+        detailed_results: List[MinimizationResult] = None,
     ):
         super().__init__(estimated_var_sequence, computation_times, template_qoperation)
+        self._detailed_results = detailed_results
+
+    @property
+    def detailed_results(self) -> List[MinimizationResult]:
+        """returns result details. the type of result details is List[MinimizationResult].
+
+        Returns
+        -------
+        List[MinimizationResult]
+            detailed results.
+        """
+        return self._detailed_results
 
 
 class LossMinimizationEstimator(StandardQTomographyEstimator):
@@ -101,6 +115,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         algo: MinimizationAlgorithm,
         algo_option: MinimizationAlgorithmOption,
         is_computation_time_required: bool = False,
+        is_detailed_results_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
         """calculates sequence of estimate variables.
 
@@ -122,6 +137,8 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
             MinimizationAlgorithmOption to calculates estimate variables.
         is_computation_time_required : bool, optional
             whether to include computation time in the return value or not, by default False.
+        is_detailed_results_required : bool, optional
+            whether to include detailed results in the return value or not, by default False.
 
         Returns
         -------
@@ -141,6 +158,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         """
         estimated_var_sequence = []
         computation_times = [] if is_computation_time_required else None
+        detailed_results = [] if is_detailed_results_required else None
 
         for empi_dists in empi_dists_sequence:
             if is_computation_time_required:
@@ -193,8 +211,13 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
             estimated_var_sequence.append(algo_result.value)
             if is_computation_time_required:
                 computation_times.append(prepare_time + algo_result.computation_time)
+            if is_detailed_results_required:
+                detailed_results.append(algo_result)
 
         result = LossMinimizationEstimationResult(
-            estimated_var_sequence, computation_times, qtomography._template_qoperation
+            estimated_var_sequence,
+            computation_times,
+            qtomography._template_qoperation,
+            detailed_results=detailed_results,
         )
         return result
