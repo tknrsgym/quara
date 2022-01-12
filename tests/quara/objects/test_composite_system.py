@@ -221,6 +221,134 @@ class TestCompositeSystem:
         # assert
         assert actual != None
 
+    def test_delete_dict_from_hs_to_choi(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._dict_from_hs_to_choi == None
+        assert c_sys.dict_from_hs_to_choi != None
+
+        # act
+        c_sys.delete_dict_from_hs_to_choi()
+
+        # assert
+        assert c_sys._dict_from_hs_to_choi == None
+        assert c_sys.dict_from_hs_to_choi != None
+
+    def test_delete_dict_from_choi_to_hs(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._dict_from_choi_to_hs == None
+        assert c_sys.dict_from_choi_to_hs != None
+
+        # act
+        c_sys.delete_dict_from_choi_to_hs()
+
+        # assert
+        assert c_sys._dict_from_choi_to_hs == None
+        assert c_sys.dict_from_choi_to_hs != None
+
+    def test_delete_basis_T_sparse(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basis_T_sparse == None
+        assert c_sys.basis_T_sparse != None
+
+        # act
+        c_sys.delete_basis_T_sparse()
+
+        # assert
+        assert c_sys._basis_T_sparse == None
+        assert c_sys.basis_T_sparse != None
+
+    def test_delete_basisconjugate_sparse(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basisconjugate_sparse == None
+        assert c_sys.basisconjugate_sparse != None
+
+        # act
+        c_sys.delete_basisconjugate_sparse()
+
+        # assert
+        assert c_sys._basisconjugate_sparse == None
+        assert c_sys.basisconjugate_sparse != None
+
+    def test_delete_basisconjugate_basis_sparse(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basisconjugate_basis_sparse == None
+        assert c_sys.basisconjugate_basis_sparse != None
+
+        # act
+        c_sys.delete_basisconjugate_basis_sparse()
+
+        # assert
+        assert c_sys._basisconjugate_basis_sparse == None
+        assert c_sys.basisconjugate_basis_sparse != None
+
+    def test_delete_basis_basisconjugate_T_sparse(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate_T_sparse == None
+        assert c_sys.basis_basisconjugate_T_sparse != None
+
+        # act
+        c_sys.delete_basis_basisconjugate_T_sparse()
+
+        # assert
+        assert c_sys._basis_basisconjugate_T_sparse == None
+        assert c_sys.basis_basisconjugate_T_sparse != None
+
+    def test_delete_basis_basisconjugate_T_sparse_from_1(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basis_basisconjugate_T_sparse_from_1 == None
+        assert c_sys.basis_basisconjugate_T_sparse_from_1 != None
+
+        # act
+        c_sys.delete_basis_basisconjugate_T_sparse_from_1()
+
+        # assert
+        assert c_sys._basis_basisconjugate_T_sparse_from_1 == None
+        assert c_sys.basis_basisconjugate_T_sparse_from_1 != None
+
+    def test_delete_basishermitian_basis_T_from_1(self):
+        # arrange
+        basis = get_normalized_pauli_basis()
+        e1 = ElementalSystem(0, basis)
+        source = [e1]
+        c_sys = CompositeSystem(source)
+        assert c_sys._basishermitian_basis_T_from_1 == None
+        assert c_sys.basishermitian_basis_T_from_1 != None
+
+        # act
+        c_sys.delete_basishermitian_basis_T_from_1()
+
+        # assert
+        assert c_sys._basishermitian_basis_T_from_1 == None
+        assert c_sys.basishermitian_basis_T_from_1 != None
+
     def test_access_elemental_systems(self):
         e1 = ElementalSystem(1, get_pauli_basis())
         e2 = ElementalSystem(2, get_comp_basis())
