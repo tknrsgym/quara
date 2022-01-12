@@ -160,7 +160,6 @@ def generate_hamiltonian_vec_from_gate_name(
         The vector for the Hamiltonian matrix, to be real.
     """
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -232,7 +231,6 @@ def generate_hamiltonian_mat_from_gate_name(
         The Hamiltonian matrix the gate, to be complex.
     """
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -296,7 +294,6 @@ def generate_effective_lindbladian_mat_from_gate_name(
         The HS matrix of the effective lindbladian, to be real.
     """
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -375,7 +372,6 @@ def generate_effective_lindbladian_from_gate_name(
     EffectiveLindbladian
         The effective lindbladian class object of the gate.
     """
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
