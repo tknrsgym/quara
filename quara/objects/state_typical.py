@@ -23,6 +23,21 @@ def get_state_names() -> List[str]:
     return names
 
 
+def is_valid_state_name(name: str) -> bool:
+    if name in get_state_names_1qubit():
+        return True
+    elif name in get_state_names_2qubit():
+        return True
+    elif name in get_state_names_3qubit():
+        return True
+    elif name in get_state_names_1qutrit():
+        return True
+    elif name in get_state_names_2qutrit():
+        return True
+    else:
+        return False
+
+
 def get_state_names_1qubit() -> List[str]:
     """Return the list of valid gate names of 1-qubit states."""
     names = [a + b for a, b in product("xyz", "01")] + ["a"]
@@ -151,7 +166,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
         density matrix ( :math:`|\\rho\\rangle` )
     """
 
-    if state_name in get_state_names():
+    if is_valid_state_name(state_name):
         pure_state_vec = generate_state_pure_state_vector_from_name(state_name)
         density_mat = calc_mat_from_vector_adjoint(pure_state_vec)
         return density_mat
@@ -239,9 +254,14 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
     ValueError
         'state_name' is out of range.
     """
-    if state_name not in get_state_names():
+    if not is_valid_state_name(state_name):
         message = f"state_name is out of range."
         raise ValueError(message)
+
+    def _get_typical_pure_state_vec(state_name):
+        method_name = f"get_state_{state_name}_pure_state_vector"
+        method = eval(method_name)
+        return method()
 
     typical_names = (
         get_state_names_1qubit()
@@ -249,12 +269,17 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
         + get_state_names_1qutrit()
         + _get_state_names_2qutrit_typical()
     )
-    if state_name in typical_names:
-        method_name = f"get_state_{state_name}_pure_state_vector"
-        method = eval(method_name)
-        return method()
+    # Check step by step to improve speed.
+    if state_name in get_state_names_1qubit():
+        return _get_typical_pure_state_vec(state_name)
     elif state_name in _get_state_names_2qubit_typical():
         return get_state_bell_pure_state_vector(state_name)
+    elif state_name in _get_state_names_3qubit_typical():
+        return _get_typical_pure_state_vec(state_name)
+    elif state_name in get_state_names_1qutrit():
+        return _get_typical_pure_state_vec(state_name)
+    elif state_name in _get_state_names_2qutrit_typical():
+        return _get_typical_pure_state_vec(state_name)
 
     return _generate_pure_state_vec_tensor_product(state_name)
 
