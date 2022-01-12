@@ -494,6 +494,8 @@ def execute_simulation(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
     seed_or_generator: Union[int, np.random.Generator] = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
     if seed_or_generator is None:
@@ -510,6 +512,8 @@ def execute_simulation(
         algo_option=simulation_setting.algo_option,
         iteration=simulation_setting.n_rep,
         seed_or_generator=seed_or_generator,
+        is_computation_time_required=is_computation_time_required,
+        is_detailed_results_required=is_detailed_results_required,
     )
     simulation_result.simulation_setting = org_sim_setting
     return simulation_result
@@ -524,6 +528,8 @@ def _load_and_execute_estimation(
     loss_option: ProbabilityBasedLossFunctionOption = None,
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> EstimationResult:
     # Load
     with open(empi_dists_path, "rb") as f:
@@ -536,6 +542,8 @@ def _load_and_execute_estimation(
         loss_option=loss_option,
         algo=algo,
         algo_option=algo_option,
+        is_computation_time_required=is_computation_time_required,
+        is_detailed_results_required=is_detailed_results_required,
     )
     return estimation_result
 
@@ -592,6 +600,8 @@ def execute_estimation_with_saved_empi_dists_sequences(
     simulation_setting: StandardQTomographySimulationSetting,
     dir_path_empi_dists_sequences: Union[str, Path],
     n_jobs: int = 1,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
@@ -601,11 +611,14 @@ def execute_estimation_with_saved_empi_dists_sequences(
                 Path(dir_path_empi_dists_sequences)
                 / f"empi_dists_{empi_dists_index}.pickle",
                 qtomography,
+                None,
                 simulation_setting.estimator,
                 simulation_setting.loss,
                 simulation_setting.loss_option,
                 simulation_setting.algo,
                 simulation_setting.algo_option,
+                is_computation_time_required=is_computation_time_required,
+                is_detailed_results_required=is_detailed_results_required,
             )
             for empi_dists_index in range(simulation_setting.n_rep)
         ]
@@ -626,6 +639,8 @@ def execute_estimation(
     simulation_setting: StandardQTomographySimulationSetting,
     empi_dists_sequences: List[List[Tuple[int, np.ndarray]]],
     n_jobs: int = 1,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
@@ -639,6 +654,8 @@ def execute_estimation(
                 simulation_setting.loss_option,
                 simulation_setting.algo,
                 simulation_setting.algo_option,
+                is_computation_time_required,
+                is_detailed_results_required,
             )
             for empi_dists_seq in empi_dists_sequences
         ]
@@ -665,6 +682,8 @@ def _generate_empi_dists_and_calc_estimate(
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
     seed_or_generator: Union[int, np.random.Generator] = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> Tuple[StandardQTomographyEstimationResult, List[List[Tuple[int, np.ndarray]]]]:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(
         true_object, num_data, seed_or_generator=seed_or_generator
@@ -677,6 +696,8 @@ def _generate_empi_dists_and_calc_estimate(
         loss_option=loss_option,
         algo=algo,
         algo_option=algo_option,
+        is_computation_time_required=is_computation_time_required,
+        is_detailed_results_required=is_detailed_results_required,
     )
     return estimation_result, empi_dists_seq
 
@@ -689,6 +710,8 @@ def _execute_estimation(
     loss_option: ProbabilityBasedLossFunctionOption = None,
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> StandardQTomographyEstimationResult:
     if isinstance(estimator, LossMinimizationEstimator):
         estimation_result = estimator.calc_estimate_sequence(
@@ -698,13 +721,14 @@ def _execute_estimation(
             loss_option=loss_option,
             algo=algo,
             algo_option=algo_option,
-            is_computation_time_required=True,
+            is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
     else:
         estimation_result = estimator.calc_estimate_sequence(
             qtomography,
             empi_dists_seq,
-            is_computation_time_required=True,
+            is_computation_time_required=is_computation_time_required,
         )
     return estimation_result
 
@@ -793,6 +817,8 @@ def generate_empi_dists_and_calc_estimate(
     algo_option: MinimizationAlgorithmOption = None,
     iteration: Optional[int] = None,
     seed_or_generator: Union[int, np.random.Generator] = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> Union[Tuple[StandardQTomographyEstimationResult, list], SimulationResult,]:
 
     if iteration is None:
@@ -806,6 +832,8 @@ def generate_empi_dists_and_calc_estimate(
             algo=algo,
             algo_option=algo_option,
             seed_or_generator=seed_or_generator,
+            is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
         return estimation_result, empi_dists_seq
     else:
@@ -822,6 +850,8 @@ def generate_empi_dists_and_calc_estimate(
                 algo=algo,
                 algo_option=algo_option,
                 seed_or_generator=seed_or_generator,
+                is_computation_time_required=is_computation_time_required,
+                is_detailed_results_required=is_detailed_results_required,
             )
             estimation_results.append(estimation_result)
             empi_dists_sequences.append(empi_dists_seq)
