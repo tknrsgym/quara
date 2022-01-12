@@ -224,7 +224,6 @@ def generate_unitary_mat_from_gate_name(
         ids = []
 
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -296,7 +295,6 @@ def generate_gate_mat_from_gate_name(
         ids = []
 
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -368,7 +366,7 @@ def generate_gate_from_gate_name(
     Gate
         The gate class for the input
     """
-    assert gate_name in get_gate_names()
+
     if ids is None:
         ids = []
 
