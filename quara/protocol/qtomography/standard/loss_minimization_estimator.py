@@ -56,6 +56,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
         algo: MinimizationAlgorithm,
         algo_option: MinimizationAlgorithmOption,
         is_computation_time_required: bool = False,
+        is_detailed_results_required: bool = False,
     ) -> StandardQTomographyEstimationResult:
         """calculates estimate variables.
 
@@ -77,6 +78,8 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
             MinimizationAlgorithmOption to calculates estimate variables.
         is_computation_time_required : bool, optional
             whether to include computation time in the return value or not, by default False.
+        is_detailed_results_required : bool, optional
+            whether to include detailed results in the return value or not, by default False.
 
         Returns
         -------
@@ -102,6 +105,7 @@ class LossMinimizationEstimator(StandardQTomographyEstimator):
             algo,
             algo_option,
             is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
 
         return result

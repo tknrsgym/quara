@@ -77,9 +77,6 @@ class TestLossMinimizationEstimator:
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert type(actual.computation_time) == float
-        assert type(actual.detailed_results) == list
-        assert len(actual.detailed_results) == 1
-        assert isinstance(actual.detailed_results[0], MinimizationResult) == True
 
         # is_computation_time_required=False
         actual = estimator.calc_estimate(
@@ -89,6 +86,48 @@ class TestLossMinimizationEstimator:
         assert actual.estimated_qoperation.is_physical()
         npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert actual.computation_time == None
+
+    def test_calc_estimate__is_detailed_results_required(self):
+        empi_dists = [
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([0.5, 0.5], dtype=np.float64)),
+            (10000, np.array([1, 0], dtype=np.float64)),
+        ]
+        loss = WeightedProbabilityBasedSquaredError(4)
+        loss_option = WeightedProbabilityBasedSquaredErrorOption(mode_weight="identity")
+
+        qst, _ = get_test_data()
+        algo = ProjectedGradientDescentBacktracking()
+        algo_option = ProjectedGradientDescentBacktrackingOption(
+            on_algo_eq_constraint=True, on_algo_ineq_constraint=True
+        )
+
+        estimator = LossMinimizationEstimator()
+
+        # is_detailed_results_required=True
+        actual = estimator.calc_estimate(
+            qst,
+            empi_dists,
+            loss,
+            loss_option,
+            algo,
+            algo_option,
+            is_detailed_results_required=True,
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
+        assert type(actual.detailed_results) == list
+        assert len(actual.detailed_results) == 1
+        assert isinstance(actual.detailed_results[0], MinimizationResult) == True
+
+        # is_detailed_results_required=False
+        actual = estimator.calc_estimate(
+            qst, empi_dists, loss, loss_option, algo, algo_option
+        )
+        expected = [1 / np.sqrt(2), 0, 0, 1 / np.sqrt(2)]
+        assert actual.estimated_qoperation.is_physical()
+        npt.assert_almost_equal(actual.estimated_var, expected, decimal=7)
         assert actual.detailed_results == None
 
     def test_calc_estimate__on_algo_xx_constraint(self):
