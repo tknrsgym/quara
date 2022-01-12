@@ -400,3 +400,22 @@ def test_basishermitian_basis_T_from_1():
     actual = c_sys.basishermitian_basis_T_from_1
     # Assert
     npt.assert_allclose(actual.toarray(), expected, atol=10 ** (-15), rtol=0)
+
+
+def test_basisconjugate_basis_sparse():
+    # 2qubit
+    # Arrange
+    c_sys = generate_composite_system("qubit", 2)
+    path = (
+        Path(__file__).parent / "data/expected_basisconjugate_basis_sparse_2qubit.npy"
+    )
+    expected = np.load(path)
+    # Act
+    actual = c_sys._basisconjugate_basis_sparse
+    # Assert
+    assert actual is None
+
+    # Act
+    actual = c_sys.basisconjugate_basis_sparse
+    # Assert
+    npt.assert_allclose(actual.toarray(), expected, atol=10 ** (-15), rtol=0)

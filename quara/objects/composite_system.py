@@ -4,10 +4,12 @@ from typing import List, Tuple, Union
 
 import numpy as np
 from scipy.sparse import csr_matrix
+from scipy import sparse
 from scipy.linalg import kron
+from tqdm import tqdm
 
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
+from quara.objects.matrix_basis import MatrixBasis, SparseMatrixBasis, get_comp_basis
 
 
 class CompositeSystem:
@@ -74,10 +76,17 @@ class CompositeSystem:
             basis_list = [e_sys.basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
             for elem in basis_list[1:]:
+                # temp = [
+                #     kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                # ]
+
                 temp = [
-                    kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                    sparse.kron(val1, val2, format="csr")
+                    for val1, val2 in itertools.product(temp, elem)
                 ]
-            self._total_basis = MatrixBasis(temp)
+            # TODO: 修正
+            # self._total_basis = MatrixBasis(temp)
+            self._total_basis = SparseMatrixBasis(temp)
 
         self._basis_basisconjugate = None
         self._dict_from_hs_to_choi = None
@@ -329,6 +338,45 @@ class CompositeSystem:
             self._calc_basis_sparse()
         return self._basisconjugate_sparse
 
+    # def _calc_basis_basisconjugate_sparse(self) -> None:
+    #     basis_no = len(self._total_basis.basis)
+    #     basis = copy.deepcopy(self._total_basis.basis)
+
+    #     basis_basisconjugate_tmp = []
+    #     basis_basisconjugate_tmp_from_1 = []
+    #     basishermitian_basis_tmp_from_1 = []
+
+    #     for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+    #         b_alpha = basis[alpha]
+    #         b_beta_conj = np.conjugate(basis[beta])
+    #         matrix = np.kron(b_alpha, b_beta_conj)
+    #         basis_basisconjugate_tmp.append(matrix.flatten())
+
+    #         if alpha != 0 and beta != 0:
+    #             basis_basisconjugate_tmp_from_1.append(matrix.flatten())
+
+    #             matrix_2 = basis[beta].conj().T @ b_alpha
+    #             basishermitian_basis_tmp_from_1.append(matrix_2.flatten())
+
+    #     # set _basisconjugate_basis_sparse and _basis_basisconjugate_T_sparse
+    #     basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)
+    #     self._basisconjugate_basis_sparse = csr_matrix(
+    #         basis_basisconjugate_tmp.conjugate()
+    #     )
+    #     self._basis_basisconjugate_T_sparse = csr_matrix(basis_basisconjugate_tmp.T)
+
+    #     # set _basis_basisconjugate_T_sparse_from_1
+    #     basis_basisconjugate_tmp_from_1 = np.array(basis_basisconjugate_tmp_from_1)
+    #     self._basis_basisconjugate_T_sparse_from_1 = csr_matrix(
+    #         basis_basisconjugate_tmp_from_1.T
+    #     )
+
+    #     # set _basishermitian_basis_T_from
+    #     basishermitian_basis_tmp_from_1 = np.array(basishermitian_basis_tmp_from_1)
+    #     self._basishermitian_basis_T_from_1 = csr_matrix(
+    #         basishermitian_basis_tmp_from_1.T
+    #     )
+
     def _calc_basis_basisconjugate_sparse(self) -> None:
         basis_no = len(self._total_basis.basis)
         basis = copy.deepcopy(self._total_basis.basis)
@@ -336,18 +384,23 @@ class CompositeSystem:
         basis_basisconjugate_tmp = []
         basis_basisconjugate_tmp_from_1 = []
         basishermitian_basis_tmp_from_1 = []
+        print(f"{basis_no=}")
 
-        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+        for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
-            matrix = np.kron(b_alpha, b_beta_conj)
-            basis_basisconjugate_tmp.append(matrix.flatten())
+            matrix = sparse.kron(b_alpha, b_beta_conj, format="csr")
+            # matrix = np.kron(b_alpha, b_beta_conj)
+            # basis_basisconjugate_tmp.append(matrix.flatten())
+            basis_basisconjugate_tmp.append(matrix.toarray().flatten())
 
             if alpha != 0 and beta != 0:
-                basis_basisconjugate_tmp_from_1.append(matrix.flatten())
+                # basis_basisconjugate_tmp_from_1.append(matrix.flatten())
+                basis_basisconjugate_tmp_from_1.append(matrix.toarray().flatten())
 
                 matrix_2 = basis[beta].conj().T @ b_alpha
-                basishermitian_basis_tmp_from_1.append(matrix_2.flatten())
+                # basishermitian_basis_tmp_from_1.append(matrix_2.flatten())
+                basishermitian_basis_tmp_from_1.append(matrix_2.toarray().flatten())
 
         # set _basisconjugate_basis_sparse and _basis_basisconjugate_T_sparse
         basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)

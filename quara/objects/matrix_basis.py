@@ -201,6 +201,78 @@ class MatrixBasis(Basis):
         return f"{self.__class__.__name__}(basis={repr(list(self._basis))})"
 
 
+# TODO: move
+from scipy.sparse import csr_matrix
+
+
+class SparseMatrixBasis(MatrixBasis):
+    def __init__(self, basis: List[np.ndarray]):
+        # make _basis immutable
+        # self._basis: csr_matrix = csr_matrix(np.array([b.flatten() for b in basis]))
+        if type(basis[0]) == np.ndarray:
+            basis = tuple([csr_matrix(b) for b in basis])
+        elif type(basis[0]) != csr_matrix:
+            message = ""
+            raise TypeError(message)
+        self._basis: Tuple[csr_matrix, ...] = basis
+        self._dim = basis[0].shape[0]
+
+    def is_hermitian(self) -> bool:
+        """Returns whether matrices are Hermitian.
+
+        Returns
+        -------
+        bool
+            True where matrices are Hermitian, False otherwise.
+        """
+        for mat in self:
+            if not mutil.is_hermitian(mat.toarray()):
+                return False
+        return True
+
+    def is_normal(self) -> bool:
+        """Returns whether matrices are normalized.
+
+        Returns
+        -------
+        bool
+            True where matrices are normalized, False otherwise.
+        """
+        for mat in self:
+            i_product = np.vdot(mat.toarray(), mat.toarray())
+            if not np.isclose(i_product, 1, atol=Settings.get_atol()):
+                return False
+        return True
+
+    def is_orthogonal(self) -> bool:
+        """Returns whether matrices are orthogonal.
+
+        Returns
+        -------
+        bool
+            True where matrices are orthogonal, False otherwise.
+        """
+        for index, left in enumerate(self.basis[:-1]):
+            for right in self.basis[index + 1 :]:
+                i_product = np.vdot(left.toarray(), right.toarray())
+                if not np.isclose(i_product, 0, atol=Settings.get_atol()):
+                    return False
+        return True
+
+    def is_0thpropI(self) -> bool:
+        """Returns whether first matrix is constant multiple of identity matrix.
+
+        Returns
+        -------
+        bool
+            True where first matrix is constant multiple of identity matrix, False otherwise.
+        """
+        mat = self[0].toarray()
+        scalar = mat[0, 0]
+        identity = np.identity(self._dim, dtype=np.complex128)
+        return np.allclose(scalar * identity, mat)
+
+
 class VectorizedMatrixBasis(Basis):
     def __init__(self, source: MatrixBasis):
         # Currently, only the MatrixBasis parameter is assumed.
