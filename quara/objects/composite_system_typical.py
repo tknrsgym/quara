@@ -49,7 +49,6 @@ def generate_composite_system(
         elif mode == "qutrit":
             basis = get_normalized_gell_mann_basis()
 
-        # TODO:
         basis = SparseMatrixBasis(basis._basis)
 
     # elemental systems
