@@ -2,10 +2,11 @@ import time
 from scipy.sparse import csr_matrix
 from quara.objects.matrix_basis import MatrixBasis, SparseMatrixBasis
 from quara.objects.composite_system_typical import generate_composite_system
+from memory_profiler import profile
 
-
+@profile
 def main():
-    c_sys = generate_composite_system(mode="qutrit", num=3)
+    c_sys = generate_composite_system(mode="qubit", num=4)
     _ = c_sys._calc_basis_basisconjugate_sparse()
 
 

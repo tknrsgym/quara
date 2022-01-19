@@ -1,7 +1,7 @@
 import copy
 import itertools
 from typing import List, Tuple, Union
-
+from memory_profiler import profile
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy import sparse
@@ -346,7 +346,7 @@ class CompositeSystem:
     #     basis_basisconjugate_tmp_from_1 = []
     #     basishermitian_basis_tmp_from_1 = []
 
-    #     for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+    #     for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
     #         b_alpha = basis[alpha]
     #         b_beta_conj = np.conjugate(basis[beta])
     #         matrix = np.kron(b_alpha, b_beta_conj)
@@ -377,6 +377,7 @@ class CompositeSystem:
     #         basishermitian_basis_tmp_from_1.T
     #     )
 
+    @profile
     def _calc_basis_basisconjugate_sparse(self) -> None:
         basis_no = len(self._total_basis.basis)
         basis = copy.deepcopy(self._total_basis.basis)
@@ -384,42 +385,44 @@ class CompositeSystem:
         basis_basisconjugate_tmp = []
         basis_basisconjugate_tmp_from_1 = []
         basishermitian_basis_tmp_from_1 = []
+        element_size = basis[0].size ** 2 ** 2
+        element_size_2 = basis[0].size ** 2
+
         print(f"{basis_no=}")
 
         for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
             matrix = sparse.kron(b_alpha, b_beta_conj, format="csr")
-            # matrix = np.kron(b_alpha, b_beta_conj)
-            # basis_basisconjugate_tmp.append(matrix.flatten())
-            basis_basisconjugate_tmp.append(matrix.toarray().flatten())
+            reshaped_matrix = matrix.reshape(1, element_size)
+            basis_basisconjugate_tmp.append(reshaped_matrix)
 
             if alpha != 0 and beta != 0:
-                # basis_basisconjugate_tmp_from_1.append(matrix.flatten())
-                basis_basisconjugate_tmp_from_1.append(matrix.toarray().flatten())
+                basis_basisconjugate_tmp_from_1.append(reshaped_matrix)
 
                 matrix_2 = basis[beta].conj().T @ b_alpha
-                # basishermitian_basis_tmp_from_1.append(matrix_2.flatten())
-                basishermitian_basis_tmp_from_1.append(matrix_2.toarray().flatten())
+                basishermitian_basis_tmp_from_1.append(
+                    matrix_2.reshape(1, element_size_2)
+                )
 
         # set _basisconjugate_basis_sparse and _basis_basisconjugate_T_sparse
-        basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)
-        self._basisconjugate_basis_sparse = csr_matrix(
-            basis_basisconjugate_tmp.conjugate()
+        basis_basisconjugate_tmp = sparse.vstack(basis_basisconjugate_tmp).reshape(
+            len(basis_basisconjugate_tmp), element_size
         )
-        self._basis_basisconjugate_T_sparse = csr_matrix(basis_basisconjugate_tmp.T)
+        self._basisconjugate_basis_sparse = basis_basisconjugate_tmp.conjugate()
+        self._basis_basisconjugate_T_sparse = basis_basisconjugate_tmp.T
 
         # set _basis_basisconjugate_T_sparse_from_1
-        basis_basisconjugate_tmp_from_1 = np.array(basis_basisconjugate_tmp_from_1)
-        self._basis_basisconjugate_T_sparse_from_1 = csr_matrix(
-            basis_basisconjugate_tmp_from_1.T
-        )
+        basis_basisconjugate_tmp_from_1 = sparse.vstack(
+            basis_basisconjugate_tmp_from_1
+        ).reshape(len(basis_basisconjugate_tmp_from_1), element_size)
+        self._basis_basisconjugate_T_sparse_from_1 = basis_basisconjugate_tmp_from_1.T
 
         # set _basishermitian_basis_T_from
-        basishermitian_basis_tmp_from_1 = np.array(basishermitian_basis_tmp_from_1)
-        self._basishermitian_basis_T_from_1 = csr_matrix(
-            basishermitian_basis_tmp_from_1.T
-        )
+        basishermitian_basis_tmp_from_1 = sparse.vstack(
+            basishermitian_basis_tmp_from_1
+        ).reshape(len(basishermitian_basis_tmp_from_1), element_size_2)
+        self._basishermitian_basis_T_from_1 = basishermitian_basis_tmp_from_1.T
 
     @property
     def basisconjugate_basis_sparse(self) -> np.ndarray:
