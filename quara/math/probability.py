@@ -1,5 +1,8 @@
 import numpy as np
 
+start_red = "\033[31m"
+end_color = "\033[0m"
+
 
 def validate_prob_dist(
     prob_dist: np.ndarray,
@@ -40,11 +43,11 @@ def validate_prob_dist(
         if prob < 0 and not np.isclose(prob, 0, atol=eps, rtol=0.0):
             if raise_error:
                 raise ValueError(
-                    f"each probability must be a non-negative number. there is {prob} in a probability distribution({index})"
+                    f"({message}) each probability must be a non-negative number. there is {prob} in a probability distribution({index})"
                 )
             else:
                 print(
-                    f"({message}) each probability must be a non-negative number. there is {prob} in a probability distribution({index})"
+                    f"{start_red}Warning!{end_color} ({message}) each probability must be a non-negative number. there is {prob} in a probability distribution({index})"
                 )
 
     # whether the sum of probabilities equals 1.
@@ -53,9 +56,9 @@ def validate_prob_dist(
         if not np.isclose(sum_p, 1.0, atol=eps, rtol=0.0):
             if raise_error:
                 raise ValueError(
-                    f"the sum of prob_dist must be 1. the sum of prob_dist={sum_p}"
+                    f"({message}) the sum of prob_dist must be 1. the sum of prob_dist={sum_p}"
                 )
             else:
                 print(
-                    f"({message}) the sum of prob_dist must be 1. the sum of prob_dist={sum_p}"
+                    f"{start_red}Warning!{end_color} ({message}) the sum of prob_dist must be 1. the sum of prob_dist={sum_p}"
                 )
