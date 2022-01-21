@@ -807,6 +807,13 @@ class QOperation:
             if is_stopping:
                 break
 
+        if k == max_iteration - 1:
+            start_red = "\033[31m"
+            end_color = "\033[0m"
+            print(
+                f"{start_red}Warning!{end_color} projection iterations exceeds the limit {max_iteration}."
+            )
+
         if is_iteration_history:
             history = {
                 "p": ps,
@@ -1079,6 +1086,13 @@ class QOperation:
 
             if is_stopping:
                 break
+
+        if k == max_iteration - 1:
+            start_red = "\033[31m"
+            end_color = "\033[0m"
+            print(
+                f"{start_red}Warning!{end_color} projection iterations exceeds the limit {max_iteration}."
+            )
 
         x_next = self.convert_stacked_vector_to_var(
             self.composite_system,
