@@ -114,10 +114,7 @@ class SuperMatrixBasis(Basis):
         bool
             True where matrices are basis, False otherwise.
         """
-        # TODO: 
-        # size = self[0].shape[0] * self[0].shape[1]
-        # row_list = [mat.reshape(1, size).toarray() for mat in self]
-
+        # If there is a way to keep it as a sparse matrix, change it.
         row_list = [mat.toarray().flatten() for mat in self]
 
         rank = np.linalg.matrix_rank(row_list)
@@ -188,8 +185,6 @@ class SuperMatrixBasis(Basis):
         """
         for index in range(1, len(self)):
             mat = self[index]
-            # TODO: wip
-            # tr = np.trace(mat)
             tr = mat.diagonal().sum()
             if tr != 0:
                 return False
