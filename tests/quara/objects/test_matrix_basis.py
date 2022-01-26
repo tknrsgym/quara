@@ -345,9 +345,10 @@ class TestVectorizedMatrixBasiImmutable:
             v_basis.basis[0] = np.array([0, 0, 0, 0], dtype=np.complex128)
         assert np.array_equal(v_basis.basis[0], expected)
 
-        with pytest.raises(ValueError):
-            # ValueError: assignment destination is read-only
-            v_basis.basis[0][0] = 2
+        if type(v_basis.basis) == np.ndarray:
+            with pytest.raises(ValueError):
+                # ValueError: assignment destination is read-only
+                v_basis.basis[0][0] = 2
         assert np.array_equal(v_basis.basis[0], expected)
 
         # Test to ensure that no copies are made on each access
