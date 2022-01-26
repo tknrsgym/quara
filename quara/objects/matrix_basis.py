@@ -42,7 +42,8 @@ class SuperMatrixBasis(Basis):
         # make _basis immutable
         self._basis: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(basis))
         for b in self._basis:
-            b.setflags(write=False)
+            if type(b) == np.ndarray:
+                b.setflags(write=False)
 
         self._dim = self[0].shape[0]
 
@@ -115,7 +116,12 @@ class SuperMatrixBasis(Basis):
             True where matrices are basis, False otherwise.
         """
         # If there is a way to keep it as a sparse matrix, change it.
-        row_list = [mat.toarray().flatten() for mat in self]
+        row_list = []
+        for mat in self:
+            if type(mat) == np.ndarray:
+                row_list.append(mat.flatten())
+            else:
+                row_list.append(mat.toarray().flatten())
 
         rank = np.linalg.matrix_rank(row_list)
         return rank >= self.dim ** 2
@@ -211,6 +217,7 @@ from scipy.sparse import csr_matrix
 # class SparseMatrixBasis(MatrixBasis):
 class MatrixBasis(SuperMatrixBasis):
     def __init__(self, basis: List[np.ndarray]):
+        super().__init__(basis)
         # make _basis immutable
         # self._basis: csr_matrix = csr_matrix(np.array([b.flatten() for b in basis]))
         if type(basis[0]) == np.ndarray:
