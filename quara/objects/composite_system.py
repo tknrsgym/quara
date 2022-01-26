@@ -8,9 +8,11 @@ from scipy.linalg import kron
 from tqdm import tqdm
 
 from quara.objects.elemental_system import ElementalSystem
+
 # TODO: revert
 # from quara.objects.matrix_basis import MatrixBasis, SparseMatrixBasis, get_comp_basis
 from quara.objects.matrix_basis import MatrixBasis, SuperMatrixBasis, get_comp_basis
+from quara.utils import matrix_util
 
 
 class CompositeSystem:
@@ -274,7 +276,7 @@ class CompositeSystem:
                 matrix = np.kron(b_alpha, b_beta_conj)
 
                 # calc _dict_from_hs_to_choi
-                row_indices, column_indices = np.where(matrix != 0)
+                row_indices, column_indices = matrix_util.where_not_zero(matrix)
                 for row_index, column_index in zip(row_indices, column_indices):
                     if (row_index, column_index) in self._dict_from_hs_to_choi:
                         self._dict_from_hs_to_choi[(row_index, column_index)].append(
@@ -301,7 +303,7 @@ class CompositeSystem:
                 matrix = np.kron(b_alpha, b_beta_conj)
 
                 # calc _dict_from_choi_to_hs
-                row_indices, column_indices = np.where(matrix != 0)
+                row_indices, column_indices = matrix_util.where_not_zero(matrix)
                 for row_index, column_index in zip(row_indices, column_indices):
                     if (alpha, beta) in self._dict_from_choi_to_hs:
                         self._dict_from_choi_to_hs[(alpha, beta)].append(
@@ -375,15 +377,14 @@ class CompositeSystem:
         # set _basis_basisconjugate_T_sparse_from_1
         basis_basisconjugate_tmp_from_1 = sparse.vstack(
             basis_basisconjugate_tmp_from_1
-        ).reshape((basis_no-1)**2, element_size)
+        ).reshape((basis_no - 1) ** 2, element_size)
         self._basis_basisconjugate_T_sparse_from_1 = basis_basisconjugate_tmp_from_1.T
 
         # set _basishermitian_basis_T_from
         basishermitian_basis_tmp_from_1 = sparse.vstack(
             basishermitian_basis_tmp_from_1
-        ).reshape((basis_no-1)**2, element_size_2)
+        ).reshape((basis_no - 1) ** 2, element_size_2)
         self._basishermitian_basis_T_from_1 = basishermitian_basis_tmp_from_1.T
-
 
     @property
     def basisconjugate_basis_sparse(self) -> np.ndarray:

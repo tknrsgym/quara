@@ -5,7 +5,7 @@ from functools import reduce
 from operator import add
 
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy import sparse
 
 from quara.math.probability import validate_prob_dist
 from quara.settings import Settings
@@ -762,17 +762,35 @@ def calc_mat_from_vector_adjoint(vec: np.ndarray) -> np.ndarray:
 
 
 def allclose(a, b, rtol=1.0e-5, atol=1.0e-8, equal_nan=False) -> bool:
-    if type(a) == csr_matrix:
+    if type(a) == sparse.csr_matrix:
         a = a.toarray()
-    if type(b) == csr_matrix:
+    if type(b) == sparse.csr_matrix:
         b = b.toarray()
     return np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def vdot(a: Union[csr_matrix, np.ndarray], b: Union[csr_matrix, np.ndarray]) -> float:
+def vdot(a: Union[sparse.csr_matrix, np.ndarray], b: Union[sparse.csr_matrix, np.ndarray]) -> float:
     # If there is a way to keep it as a sparse matrix, change it.
-    if type(a) == csr_matrix:
+    if type(a) == sparse.csr_matrix:
         a = a.toarray()
-    if type(b) == csr_matrix:
+    if type(b) == sparse.csr_matrix:
         b = b.toarray()
     return np.vdot(a, b)
+
+def where_not_zero(matrix) -> Tuple[List[int], List[int]]:
+    if type(matrix) == sparse.csr_matrix:
+        matrix = matrix.toarray()
+    return np.where(matrix != 0)
+
+
+def kron(a, b):
+    # kron(csr_matrix, csr_matrix)
+    if type(a) == sparse.csr_matrix and type(b) == sparse.csr_matrix:
+        return sparse.kron(a, b, format="csr")
+
+    # other cases (use np.kron)
+    if type(a) == sparse.csr_matrix:
+        a = a.toarray()
+    if type(b) == sparse.csr_matrix:
+        b = b.toarray()
+    return np.kron(a, b)

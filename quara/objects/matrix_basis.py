@@ -35,6 +35,7 @@ class Basis:
     def __str__(self):
         return str(self._basis)
 
+
 # TODO: revert
 # class MatrixBasis(Basis):
 class SuperMatrixBasis(Basis):
@@ -223,8 +224,7 @@ class MatrixBasis(SuperMatrixBasis):
         if type(basis[0]) == np.ndarray:
             basis = tuple([csr_matrix(b) for b in basis])
         elif type(basis[0]) != csr_matrix:
-            message = ""
-            raise TypeError(message)
+            raise TypeError(f"MatrixBasis doesn't support type {type(basis[0])}.")
         self._basis: Tuple[csr_matrix, ...] = basis
         self._dim = basis[0].shape[0]
 

@@ -345,7 +345,8 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     elif type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         # MatrixBasis (x) MatrixBasis -> MatrixBasis
         new_basis = [
-            np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
+            matrix_util.kron(val1, val2)
+            for val1, val2 in itertools.product(elem1, elem2)
         ]
         m_basis = MatrixBasis(new_basis)
         return m_basis
