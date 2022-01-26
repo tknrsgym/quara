@@ -769,7 +769,9 @@ def allclose(a, b, rtol=1.0e-5, atol=1.0e-8, equal_nan=False) -> bool:
     return np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def vdot(a: Union[sparse.csr_matrix, np.ndarray], b: Union[sparse.csr_matrix, np.ndarray]) -> float:
+def vdot(
+    a: Union[sparse.csr_matrix, np.ndarray], b: Union[sparse.csr_matrix, np.ndarray]
+) -> float:
     # If there is a way to keep it as a sparse matrix, change it.
     if type(a) == sparse.csr_matrix:
         a = a.toarray()
@@ -777,10 +779,17 @@ def vdot(a: Union[sparse.csr_matrix, np.ndarray], b: Union[sparse.csr_matrix, np
         b = b.toarray()
     return np.vdot(a, b)
 
+
 def where_not_zero(matrix) -> Tuple[List[int], List[int]]:
     if type(matrix) == sparse.csr_matrix:
         matrix = matrix.toarray()
     return np.where(matrix != 0)
+
+
+def flatten(matrix) -> np.ndarray:
+    if type(matrix) == sparse.csr_matrix:
+        matrix = matrix.toarray()
+    return matrix.flatten()
 
 
 def kron(a, b):
