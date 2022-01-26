@@ -5,6 +5,7 @@ from functools import reduce
 from operator import add
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 from quara.math.probability import validate_prob_dist
 from quara.settings import Settings
@@ -758,3 +759,11 @@ def calc_permutation_matrix(
 
 def calc_mat_from_vector_adjoint(vec: np.ndarray) -> np.ndarray:
     return np.array([vec]).T @ np.array([vec]).conjugate()
+
+
+def allclose(a, b, rtol=1.0e-5, atol=1.0e-8, equal_nan=False) -> bool:
+    if type(a) == csr_matrix:
+        a = a.toarray()
+    if type(b) == csr_matrix:
+        b = b.toarray()
+    return np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan)
