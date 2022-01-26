@@ -373,10 +373,12 @@ def test_to_vect():
     basis = matrix_basis.get_comp_basis()
     actual = matrix_basis.to_vect(basis)
     assert len(actual) == 4
-    assert np.all(actual[0] == matrix_basis.get_comp_basis()[0].flatten())
-    assert np.all(actual[1] == matrix_basis.get_comp_basis()[1].flatten())
-    assert np.all(actual[2] == matrix_basis.get_comp_basis()[2].flatten())
-    assert np.all(actual[3] == matrix_basis.get_comp_basis()[3].flatten())
+    for a, comp_basis in zip(actual, matrix_basis.get_comp_basis()):
+        if type(comp_basis) == np.ndarray:
+            e = comp_basis.flatten()
+        else:
+            e = comp_basis.toarray().flatten()
+        assert np.all(a == e)
 
 
 def test_get_comp_basis():

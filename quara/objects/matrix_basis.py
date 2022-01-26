@@ -296,8 +296,11 @@ class VectorizedMatrixBasis(Basis):
             # "ravel" doesn't make copies, so it performs better than "flatten".
             # But, use "flatten" at this time to avoid breaking the original data(self._org_basis).
             # When performance issues arise, reconsider.
-            vectorized_b = b.flatten()
-            vectorized_b.setflags(write=False)
+            if type(b) == np.ndarray:
+                vectorized_b = b.flatten()
+                vectorized_b.setflags(write=False)
+            else:
+                vectorized_b = b.toarray().flatten()
             temp_basis.append(vectorized_b)
         self._basis: Tuple[np.ndarray, ...] = tuple(temp_basis)
 
