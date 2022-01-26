@@ -146,7 +146,10 @@ class TestMatrixBasis:
         source_np = matrix_basis.get_pauli_basis().basis
         basis = MatrixBasis(source_np)
         for i in range(len(source_np)):
-            assert np.allclose(basis[i], source_np[i])
+            if type(basis[i]) == np.ndarray:
+                assert np.allclose(basis[i], source_np[i])
+            else:
+                assert np.allclose(basis[i].toarray(), source_np[i].toarray())
 
     def test_str(self):
         source_np = matrix_basis.get_pauli_basis().basis
@@ -220,11 +223,11 @@ class TestVectorizedMatrixBasis:
 
         # test member "basis"
         for i, actual in enumerate(actual_vec_basis.basis):
-            assert np.allclose(actual, expected_vec_basis[i])
+            npt.assert_allclose(actual, expected_vec_basis[i])
 
         # test iter
         for i, actual in enumerate(actual_vec_basis):
-            assert np.allclose(actual, expected_vec_basis[i])
+            npt.assert_allclose(actual, expected_vec_basis[i])
 
         # test len
         actual = len(actual_vec_basis)
@@ -233,7 +236,7 @@ class TestVectorizedMatrixBasis:
         # test original matrix basis
         actual_org_basis = actual_vec_basis.org_basis
         for i, actual in enumerate(actual_org_basis):
-            assert np.array_equal(actual, source_basis[i])
+            npt.assert_array_equal(actual.toarray(), source_basis[i].toarray())
 
 
 class TestMatrixBasisImmutable:
@@ -250,13 +253,13 @@ class TestMatrixBasisImmutable:
         # If "source" is updated, the data in MatrixBasis is not updated
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
         source[0] = np.zeros([2, 2], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
-        assert np.array_equal(comp_basis[0], expected)
+        npt.assert_array_equal(comp_basis.basis[0].toarray(), expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
         # If "array00" is updated, the data in MatrixBasis is not updated
         array00[0] = np.array([2, 2], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
-        assert np.array_equal(comp_basis[0], expected)
+        npt.assert_array_equal(comp_basis.basis[0].toarray(), expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
     def test_deney_update_basis_item(self):
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -270,19 +273,13 @@ class TestMatrixBasisImmutable:
             # TypeError: 'MatrixBasis' object does not support item assignment
             comp_basis[0] = np.array([[0, 0], [0, 0]], dtype=np.complex128)
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(comp_basis[0], expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
         with pytest.raises(TypeError):
             # TypeError: 'tuple' object does not support item assignment
             comp_basis.basis[0] = np.array([[0, 0], [0, 0]], dtype=np.complex128)
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
-
-        with pytest.raises(ValueError):
-            # ValueError: assignment destination is read-only
-            comp_basis.basis[0][0] = np.array([2, 2], dtype=np.complex128)
-        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
         # Test to ensure that no copies are made on each access
         first_access = id(comp_basis[0])
@@ -306,7 +303,7 @@ class TestVectorizedMatrixBasiImmutable:
         assert id(v_basis.org_basis[0]) == id(comp_basis.basis[0])
 
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(v_basis.org_basis[0], expected)
+        npt.assert_array_equal(v_basis.org_basis[0].toarray(), expected)
 
         # Case 2: Use a method of MatrixBasis
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -322,7 +319,7 @@ class TestVectorizedMatrixBasiImmutable:
         assert id(v_basis.org_basis[0]) == id(comp_basis.basis[0])
 
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(v_basis.org_basis[0], expected)
+        npt.assert_array_equal(v_basis.org_basis[0].toarray(), expected)
 
     def test_deney_update_basis_item(self):
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -345,9 +342,10 @@ class TestVectorizedMatrixBasiImmutable:
             v_basis.basis[0] = np.array([0, 0, 0, 0], dtype=np.complex128)
         assert np.array_equal(v_basis.basis[0], expected)
 
-        with pytest.raises(ValueError):
-            # ValueError: assignment destination is read-only
-            v_basis.basis[0][0] = 2
+        if type(v_basis.basis) == np.ndarray:
+            with pytest.raises(ValueError):
+                # ValueError: assignment destination is read-only
+                v_basis.basis[0][0] = 2
         assert np.array_equal(v_basis.basis[0], expected)
 
         # Test to ensure that no copies are made on each access
@@ -373,10 +371,12 @@ def test_to_vect():
     basis = matrix_basis.get_comp_basis()
     actual = matrix_basis.to_vect(basis)
     assert len(actual) == 4
-    assert np.all(actual[0] == matrix_basis.get_comp_basis()[0].flatten())
-    assert np.all(actual[1] == matrix_basis.get_comp_basis()[1].flatten())
-    assert np.all(actual[2] == matrix_basis.get_comp_basis()[2].flatten())
-    assert np.all(actual[3] == matrix_basis.get_comp_basis()[3].flatten())
+    for a, comp_basis in zip(actual, matrix_basis.get_comp_basis()):
+        if type(comp_basis) == np.ndarray:
+            e = comp_basis.flatten()
+        else:
+            e = comp_basis.toarray().flatten()
+        assert np.all(a == e)
 
 
 def test_get_comp_basis():
