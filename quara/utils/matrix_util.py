@@ -767,3 +767,12 @@ def allclose(a, b, rtol=1.0e-5, atol=1.0e-8, equal_nan=False) -> bool:
     if type(b) == csr_matrix:
         b = b.toarray()
     return np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan)
+
+
+def vdot(a: Union[csr_matrix, np.ndarray], b: Union[csr_matrix, np.ndarray]) -> float:
+    # If there is a way to keep it as a sparse matrix, change it.
+    if type(a) == csr_matrix:
+        a = a.toarray()
+    if type(b) == csr_matrix:
+        b = b.toarray()
+    return np.vdot(a, b)

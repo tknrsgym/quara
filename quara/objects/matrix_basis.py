@@ -835,17 +835,8 @@ def convert_vec(
         )
 
     # "converted_vec"_{\alpha} = \sum_{\beta} Tr["to_basis"_{\beta}^{\dagger} "from_basis"_{\alpha}] "from_vec"_{\alpha}
-
-    # representation_matrix = [
-    #     np.vdot(val1, val2) for val1, val2 in itertools.product(to_basis, from_basis)
-    # ]
-    # If there is a way to keep it as a sparse matrix, change it.
-    def _dot(val1, val2):
-        val1 = val1.toarray().flatten()
-        val2 = val2.toarray().flatten()
-        return np.vdot(val1,  val2)
     representation_matrix = [
-        _dot(val1, val2) for val1, val2 in itertools.product(to_basis, from_basis)
+        mutil.vdot(val1, val2) for val1, val2 in itertools.product(to_basis, from_basis)
     ]
 
     rep_mat = np.array(representation_matrix).reshape(len_basis, len_basis)

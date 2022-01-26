@@ -1203,6 +1203,7 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
     agf = 1 - (d ** 2 - trace) / (d * (d + 1))
     return agf
 
+from quara.utils.matrix_util import vdot
 
 def convert_hs(
     from_hs: np.ndarray, from_basis: MatrixBasis, to_basis: MatrixBasis
@@ -1235,7 +1236,7 @@ def convert_hs(
         length of ``from_basis`` does not equal length of ``to_basis``.
     """
     ### parameter check
-
+    print("debug")
     # whether HS is square matrix
     size = from_hs.shape
     if size[0] != size[1]:
@@ -1262,7 +1263,7 @@ def convert_hs(
 
     # U_{\alpha,\bata} := Tr[to_basis_{\alpha}^{\dagger} @ from_basis_{\beta}]
     trans_matrix = [
-        np.vdot(B_alpha, B_beta)
+        vdot(B_alpha, B_beta)
         for B_alpha, B_beta in itertools.product(to_basis, from_basis)
     ]
     U = np.array(trans_matrix).reshape(from_basis.dim ** 2, from_basis.dim ** 2)
