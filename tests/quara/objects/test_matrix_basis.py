@@ -146,7 +146,10 @@ class TestMatrixBasis:
         source_np = matrix_basis.get_pauli_basis().basis
         basis = MatrixBasis(source_np)
         for i in range(len(source_np)):
-            assert np.allclose(basis[i], source_np[i])
+            if type(basis[i]) == np.ndarray:
+                assert np.allclose(basis[i], source_np[i])
+            else:
+                assert np.allclose(basis[i].toarray(), source_np[i].toarray())
 
     def test_str(self):
         source_np = matrix_basis.get_pauli_basis().basis
