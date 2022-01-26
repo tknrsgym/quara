@@ -924,7 +924,7 @@ def test_get_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_generalized_gell_mann_basis(dim=2)
@@ -940,12 +940,12 @@ def test_get_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # if dim = 2, Generalized Gell-Mann matrices basis and Pauli basis are same
     other = matrix_basis.get_pauli_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_generalized_gell_mann_basis(dim=3)
@@ -967,12 +967,12 @@ def test_get_generalized_gell_mann_basis_dim():
         * np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # if dim = 3, Generalized Gell-Mann matrices basis and Gell-Mann matrices basis are same
     other = matrix_basis.get_gell_mann_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
 
 
 def test_get_normalized_generalized_gell_mann_basis_n_qubit():
