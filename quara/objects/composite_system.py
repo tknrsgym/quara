@@ -388,7 +388,6 @@ class CompositeSystem:
         element_size = basis[0].size ** 2 ** 2
         element_size_2 = basis[0].size ** 2
 
-        print(f"{basis_no=}")
         for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
