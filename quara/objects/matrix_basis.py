@@ -114,7 +114,12 @@ class SuperMatrixBasis(Basis):
         bool
             True where matrices are basis, False otherwise.
         """
-        row_list = [mat.flatten() for mat in self]
+        # TODO: 
+        # size = self[0].shape[0] * self[0].shape[1]
+        # row_list = [mat.reshape(1, size).toarray() for mat in self]
+
+        row_list = [mat.toarray().flatten() for mat in self]
+
         rank = np.linalg.matrix_rank(row_list)
         return rank >= self.dim ** 2
 
@@ -183,7 +188,9 @@ class SuperMatrixBasis(Basis):
         """
         for index in range(1, len(self)):
             mat = self[index]
-            tr = np.trace(mat)
+            # TODO: wip
+            # tr = np.trace(mat)
+            tr = mat.diagonal().sum()
             if tr != 0:
                 return False
         return True
