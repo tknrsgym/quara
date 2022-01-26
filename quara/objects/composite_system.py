@@ -346,8 +346,9 @@ class CompositeSystem:
         basis_basisconjugate_tmp = []
         basis_basisconjugate_tmp_from_1 = []
         basishermitian_basis_tmp_from_1 = []
-        element_size = basis[0].size ** 2 ** 2
-        element_size_2 = basis[0].size ** 2
+
+        element_size = basis[0].shape[0] ** 2 ** 2
+        element_size_2 = basis[0].shape[0] ** 2
 
         for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
             b_alpha = basis[alpha]

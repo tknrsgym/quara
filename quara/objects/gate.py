@@ -544,7 +544,7 @@ def is_tp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
         for index, basis in enumerate(c_sys.basis()):
             # calculate Tr[B_\alpha]
-            trace_before_mapped = np.trace(basis)
+            trace_before_mapped = basis.diagonal().sum()
 
             # calculate Tr[A(B_\alpha)]
             vec = np.zeros((c_sys.dim ** 2))
