@@ -35,6 +35,7 @@ class Basis:
     def __str__(self):
         return str(self._basis)
 
+
 # TODO: revert
 # class MatrixBasis(Basis):
 class SuperMatrixBasis(Basis):
@@ -223,8 +224,7 @@ class MatrixBasis(SuperMatrixBasis):
         if type(basis[0]) == np.ndarray:
             basis = tuple([csr_matrix(b) for b in basis])
         elif type(basis[0]) != csr_matrix:
-            message = ""
-            raise TypeError(message)
+            raise TypeError(f"MatrixBasis doesn't support type {type(basis[0])}.")
         self._basis: Tuple[csr_matrix, ...] = basis
         self._dim = basis[0].shape[0]
 
@@ -843,7 +843,8 @@ def convert_vec(
     def _dot(val1, val2):
         val1 = val1.toarray().flatten()
         val2 = val2.toarray().flatten()
-        return np.vdot(val1,  val2)
+        return np.vdot(val1, val2)
+
     representation_matrix = [
         _dot(val1, val2) for val1, val2 in itertools.product(to_basis, from_basis)
     ]
