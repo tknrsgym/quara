@@ -86,8 +86,8 @@ class CompositeSystem:
                     for val1, val2 in itertools.product(temp, elem)
                 ]
 
-            # self._total_basis = MatrixBasis(temp)
-            self._total_basis = SparseMatrixBasis(temp)
+            self._total_basis = MatrixBasis(temp)
+            # self._total_basis = SparseMatrixBasis(temp)
 
         self._basis_basisconjugate = None
         self._dict_from_hs_to_choi = None
