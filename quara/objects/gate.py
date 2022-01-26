@@ -686,7 +686,9 @@ def to_hs_from_choi(c_sys: CompositeSystem, choi: np.ndarray) -> np.ndarray:
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
         b_bc = c_sys.basis_basisconjugate((alpha, beta))
         b_bc_dag = np.conjugate(b_bc.T)
-        hs[alpha, beta] = (np.trace(b_bc_dag @ choi)).real.astype(np.float64)
+
+        tr = (b_bc_dag @ choi).diagonal().sum()
+        hs[alpha, beta] = tr.real.astype(np.float64)
 
     return hs
 
