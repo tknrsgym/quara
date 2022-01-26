@@ -658,7 +658,7 @@ def test_get_normalized_pauli_basis():
         np.kron(val1, val2) for val1, val2 in itertools.product(basis_1q, basis_1q)
     ]
     for i, a in enumerate(actual):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
 
 def test_get_hermitian_basis():
