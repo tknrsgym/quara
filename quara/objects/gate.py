@@ -1236,7 +1236,6 @@ def convert_hs(
         length of ``from_basis`` does not equal length of ``to_basis``.
     """
     ### parameter check
-    print("debug")
     # whether HS is square matrix
     size = from_hs.shape
     if size[0] != size[1]:
