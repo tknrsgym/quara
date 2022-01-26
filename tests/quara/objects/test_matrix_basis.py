@@ -593,7 +593,7 @@ def test_get_pauli_basis():
         ),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
 
 def test_get_normalized_pauli_basis():
@@ -676,7 +676,7 @@ def test_get_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_hermitian_basis(2)
@@ -692,7 +692,7 @@ def test_get_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_hermitian_basis(3)
@@ -712,7 +712,7 @@ def test_get_hermitian_basis():
         np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
 
 def test_get_normalized_hermitian_basis():
@@ -730,7 +730,7 @@ def test_get_normalized_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_normalized_hermitian_basis(2)
@@ -746,7 +746,7 @@ def test_get_normalized_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_normalized_hermitian_basis(3)
@@ -769,7 +769,7 @@ def test_get_normalized_hermitian_basis():
         np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
 
 def test_get_gell_mann_basis():
@@ -815,7 +815,7 @@ def test_get_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: n_qubit = 1
     basis = matrix_basis.get_generalized_gell_mann_basis(n_qubit=1)
@@ -831,7 +831,7 @@ def test_get_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: n_qubit = 2
     basis = matrix_basis.get_generalized_gell_mann_basis(n_qubit=2)
@@ -906,7 +906,7 @@ def test_get_generalized_gell_mann_basis_n_qubit():
         ),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
 
 def test_get_generalized_gell_mann_basis_dim():
@@ -990,7 +990,7 @@ def test_get_normalized_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: n_qubit = 1
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(n_qubit=1)
@@ -1006,7 +1006,7 @@ def test_get_normalized_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: n_qubit = 2
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(n_qubit=2)
@@ -1097,7 +1097,7 @@ def test_get_normalized_generalized_gell_mann_basis_n_qubit():
         / 2,
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
 
 def test_get_normalized_generalized_gell_mann_basis_dim():
@@ -1115,7 +1115,7 @@ def test_get_normalized_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(dim=2)
@@ -1131,12 +1131,12 @@ def test_get_normalized_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # if dim = 2, normalized Generalized Gell-Mann matrices basis and normalized Pauli basis are same
     other = matrix_basis.get_normalized_pauli_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(dim=3)
@@ -1159,12 +1159,12 @@ def test_get_normalized_generalized_gell_mann_basis_dim():
         np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128) / np.sqrt(6),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a, expected[i], decimal=15)
+        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
 
     # if dim = 3, normalized Generalized Gell-Mann matrices basis and normalized Gell-Mann matrices basis are same
     other = matrix_basis.get_normalized_gell_mann_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual, expected, decimal=15)
+        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
 
 
 def test_convert_vec_raise_exception_invalid_length():
