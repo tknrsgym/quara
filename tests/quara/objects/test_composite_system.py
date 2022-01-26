@@ -343,6 +343,18 @@ class TestCompositeSystemImmutable:
         assert c_sys.is_orthonormal_hermitian_0thprop_identity == False
 
 
+def test_basis_basisconjugate_1qubit():
+    c_sys = generate_composite_system("qubit", 1)
+    dir_path = (
+        Path(__file__).parent / "data"
+    )
+    for i in range(16):
+        path = dir_path / f"basis_basisconjugate/1qubit_{i}.npy"
+        expected = np.load(path)
+        actual = c_sys.basis_basisconjugate(basis_index=i)
+
+        npt.assert_almost_equal(actual.toarray(), expected)
+
 def test_basis_basisconjugate_T_sparse():
     # 2qubit
     # Arrange

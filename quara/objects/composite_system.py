@@ -252,7 +252,7 @@ class CompositeSystem:
             for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
                 b_alpha = basis[alpha]
                 b_beta_conj = np.conjugate(basis[beta])
-                matrix = np.kron(b_alpha, b_beta_conj)
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
                 self._basis_basisconjugate[(alpha, beta)] = matrix
 
         # return basis_basisconjugate
