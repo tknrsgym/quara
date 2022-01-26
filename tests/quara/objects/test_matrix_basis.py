@@ -7,6 +7,7 @@ import pytest
 
 from quara.objects import matrix_basis
 from quara.objects.matrix_basis import MatrixBasis, VectorizedMatrixBasis
+from quara.utils import matrix_util
 
 
 class TestMatrixBasis:
@@ -146,10 +147,7 @@ class TestMatrixBasis:
         source_np = matrix_basis.get_pauli_basis().basis
         basis = MatrixBasis(source_np)
         for i in range(len(source_np)):
-            if type(basis[i]) == np.ndarray:
-                assert np.allclose(basis[i], source_np[i])
-            else:
-                assert np.allclose(basis[i].toarray(), source_np[i].toarray())
+            assert matrix_util.allclose(basis[i], source_np[i])
 
     def test_str(self):
         source_np = matrix_basis.get_pauli_basis().basis
