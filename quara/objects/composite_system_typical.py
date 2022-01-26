@@ -3,7 +3,8 @@ from typing import List
 # Quara
 from quara.objects.matrix_basis import (
     MatrixBasis,
-    SparseMatrixBasis,
+    # SparseMatrixBasis,  # TODO: revert
+    SuperMatrixBasis,
     get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
 )
@@ -49,7 +50,9 @@ def generate_composite_system(
         elif mode == "qutrit":
             basis = get_normalized_gell_mann_basis()
 
-        basis = SparseMatrixBasis(basis._basis)
+        # TODO: revert
+        # basis = SparseMatrixBasis(basis._basis)
+        basis = MatrixBasis(basis._basis)
 
     # elemental systems
     l_esys = []

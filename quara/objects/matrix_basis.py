@@ -35,8 +35,9 @@ class Basis:
     def __str__(self):
         return str(self._basis)
 
-
-class MatrixBasis(Basis):
+# TODO: revert
+# class MatrixBasis(Basis):
+class SuperMatrixBasis(Basis):
     def __init__(self, basis: List[np.ndarray]):
         # make _basis immutable
         self._basis: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(basis))
@@ -204,8 +205,9 @@ class MatrixBasis(Basis):
 # TODO: move
 from scipy.sparse import csr_matrix
 
-
-class SparseMatrixBasis(MatrixBasis):
+# TODO: revert
+# class SparseMatrixBasis(MatrixBasis):
+class MatrixBasis(SuperMatrixBasis):
     def __init__(self, basis: List[np.ndarray]):
         # make _basis immutable
         # self._basis: csr_matrix = csr_matrix(np.array([b.flatten() for b in basis]))

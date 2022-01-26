@@ -8,7 +8,9 @@ from scipy.linalg import kron
 from tqdm import tqdm
 
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis, SparseMatrixBasis, get_comp_basis
+# TODO: revert
+# from quara.objects.matrix_basis import MatrixBasis, SparseMatrixBasis, get_comp_basis
+from quara.objects.matrix_basis import MatrixBasis, SuperMatrixBasis, get_comp_basis
 
 
 class CompositeSystem:
