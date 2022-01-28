@@ -170,28 +170,28 @@ class TestCompositeSystem:
 
         # access by int
         actual = c_sys.basis_basisconjugate(0)
-        expected = np.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
+        expected = matrix_util.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
         assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate(6)
-        expected = np.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
+        expected = matrix_util.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
         assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate(13)
-        expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
+        expected = matrix_util.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
         assert matrix_util.allclose(actual, expected)
 
         # access by tuple
         actual = c_sys.basis_basisconjugate((0, 0))
-        expected = np.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
+        expected = matrix_util.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
         assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate((1, 2))
-        expected = np.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
+        expected = matrix_util.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
         assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate((3, 1))
-        expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
+        expected = matrix_util.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
         assert matrix_util.allclose(actual, expected)
 
     def test_dict_from_hs_to_choi(self):
@@ -345,15 +345,14 @@ class TestCompositeSystemImmutable:
 
 def test_basis_basisconjugate_1qubit():
     c_sys = generate_composite_system("qubit", 1)
-    dir_path = (
-        Path(__file__).parent / "data"
-    )
+    dir_path = Path(__file__).parent / "data"
     for i in range(16):
         path = dir_path / f"basis_basisconjugate/1qubit_{i}.npy"
         expected = np.load(path)
         actual = c_sys.basis_basisconjugate(basis_index=i)
 
         npt.assert_almost_equal(actual.toarray(), expected)
+
 
 def test_basis_basisconjugate_T_sparse():
     # 2qubit
