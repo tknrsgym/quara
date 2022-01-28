@@ -6,6 +6,7 @@ from scipy.linalg import expm
 
 from quara.utils.matrix_util import (
     is_hermitian,
+    kron,
     truncate_computational_fluctuation,
 )
 from quara.objects.matrix_basis import MatrixBasis
@@ -441,7 +442,7 @@ def calc_gate_mat_from_unitary_mat(
     assert to_basis.is_orthogonal() == True
     assert to_basis.is_normal() == True
 
-    hs_comp = np.kron(from_u, np.conjugate(from_u))
+    hs_comp = kron(from_u, np.conjugate(from_u))
     basis_comp = get_comp_basis(dim)
     hs = convert_hs(from_hs=hs_comp, from_basis=basis_comp, to_basis=to_basis)
 
