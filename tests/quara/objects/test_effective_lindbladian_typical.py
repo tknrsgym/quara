@@ -22,6 +22,7 @@ from quara.objects.qoperation_typical import (
     generate_gate_object,
     generate_effective_lindbladian_object,
 )
+import quara.utils.matrix_util as mutil
 
 
 def _test_hamiltonian_vec_hamiltonian_mat(
@@ -59,7 +60,7 @@ def _test_hamiltonian_vec_hamiltonian_mat(
     # Assert
     expected = h_mat
     # The case of decimal=16 below returns AssertionError.
-    npt.assert_almost_equal(actual, expected, decimal=decimal)
+    npt.assert_almost_equal(mutil.toarray(actual), mutil.toarray(expected), decimal=decimal)
 
 
 def _test_hamiltonian_mat_unitary_mat(
@@ -82,7 +83,9 @@ def _test_hamiltonian_mat_unitary_mat(
 
     # Assert
     expected = u_mat
-    npt.assert_almost_equal(actual, expected, decimal=decimal)
+    npt.assert_almost_equal(
+        mutil.toarray(actual), mutil.toarray(expected), decimal=decimal
+    )
 
 
 def _test_effective_lindbladian_mat_gate_mat(
