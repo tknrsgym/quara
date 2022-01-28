@@ -98,7 +98,7 @@ def is_hermitian(matrix: np.ndarray, atol: float = None) -> bool:
         return False
 
     adjoint = matrix.conj().T
-    return np.allclose(matrix, adjoint, atol=atol, rtol=0.0)
+    return allclose(matrix, adjoint, atol=atol, rtol=0.0)
 
 
 def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
@@ -788,6 +788,12 @@ def kron(a, b):
     if type(b) == sparse.csr_matrix or type(b) == sparse.csc_matrix:
         b = b.toarray()
     return np.kron(a, b)
+
+
+def toarray(matrix):
+    if type(matrix) == sparse.csr_matrix or type(matrix) == sparse.csc_matrix:
+        matrix = matrix.toarray()
+    return matrix
 
 
 def vdot(
