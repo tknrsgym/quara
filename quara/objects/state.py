@@ -11,9 +11,8 @@ from quara.objects.matrix_basis import (
     convert_vec,
     get_normalized_pauli_basis,
 )
-from quara.settings import Settings
-
 from quara.objects.qoperation import QOperation
+from quara.settings import Settings
 
 
 class State(QOperation):
@@ -403,6 +402,7 @@ class State(QOperation):
         density = np.zeros((self._dim, self._dim), dtype=np.complex128)
         for coefficient, basis in zip(self._vec, self.composite_system.basis()):
             density += coefficient * basis
+        density = np.asarray(density)
         return density
 
     def to_density_matrix_with_sparsity(self) -> np.ndarray:
@@ -598,7 +598,7 @@ def to_vec_from_density_matrix_with_sparsity(
     np.ndarray
         vec of variables.
     """
-    vec = c_sys.basisconjugate_sparse.dot(density_matrix.flatten())
+    vec = c_sys.basisconjugate_sparse.dot(mutil.flatten(density_matrix))
     return mutil.truncate_hs(
         vec, eps_truncate_imaginary_part=eps_truncate_imaginary_part
     )

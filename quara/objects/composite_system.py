@@ -322,8 +322,8 @@ class CompositeSystem:
         basis_tmp = []
         basisconjugate_tmp = []
         for b_alpha in basis:
-            basis_tmp.append(b_alpha.flatten())
-            basisconjugate_tmp.append(b_alpha.conjugate().flatten())
+            basis_tmp.append(matrix_util.flatten(b_alpha))
+            basisconjugate_tmp.append(matrix_util.flatten(b_alpha.conjugate()))
 
         basis_tmp = np.array(basis_tmp)
         self._basis_T_sparse = csr_matrix(basis_tmp.T)
