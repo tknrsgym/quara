@@ -273,7 +273,7 @@ class CompositeSystem:
             for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
                 b_alpha = basis[alpha]
                 b_beta_conj = np.conjugate(basis[beta])
-                matrix = np.kron(b_alpha, b_beta_conj)
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
 
                 # calc _dict_from_hs_to_choi
                 row_indices, column_indices = matrix_util.where_not_zero(matrix)
@@ -300,7 +300,7 @@ class CompositeSystem:
             for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
                 b_alpha = basis[alpha]
                 b_beta_conj = np.conjugate(basis[beta])
-                matrix = np.kron(b_alpha, b_beta_conj)
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
 
                 # calc _dict_from_choi_to_hs
                 row_indices, column_indices = matrix_util.where_not_zero(matrix)
