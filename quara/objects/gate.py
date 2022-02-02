@@ -858,11 +858,6 @@ def to_process_matrix_from_hs(
     # \chi_{\alpha, \beta}(A) = Tr[(B_{\alpha}^{\dagger} \otimes B_{\beta}^T) HS(A)] for computational basis.
     comp_basis = c_sys.comp_basis()
     hs_comp = convert_hs(hs, c_sys.basis(), comp_basis)
-    # TODO: remove
-    # process_matrix = [
-    #     np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
-    #     for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
-    # ]
     process_matrix = [
         (mutil.kron(B_alpha.conj().T, B_beta.T) @ hs_comp).diagonal().sum()
         for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
@@ -1210,6 +1205,7 @@ def calc_agf(g: Gate, u: Gate) -> np.float64:
     trace = np.vdot(u.hs, g.hs)
     agf = 1 - (d ** 2 - trace) / (d * (d + 1))
     return agf
+
 
 def convert_hs(
     from_hs: np.ndarray, from_basis: MatrixBasis, to_basis: MatrixBasis
