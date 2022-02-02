@@ -98,7 +98,7 @@ def is_hermitian(matrix: np.ndarray, atol: float = None) -> bool:
         return False
 
     adjoint = matrix.conj().T
-    return np.allclose(matrix, adjoint, atol=atol, rtol=0.0)
+    return allclose(matrix, adjoint, atol=atol, rtol=0.0)
 
 
 def is_positive_semidefinite(matrix: np.ndarray, atol: float = None) -> bool:
@@ -762,35 +762,52 @@ def calc_mat_from_vector_adjoint(vec: np.ndarray) -> np.ndarray:
 
 
 def allclose(a, b, rtol=1.0e-5, atol=1.0e-8, equal_nan=False) -> bool:
-    if type(a) == sparse.csr_matrix:
+    if type(a) == sparse.csr_matrix or type(a) == sparse.csc_matrix:
         a = a.toarray()
-    if type(b) == sparse.csr_matrix:
+    if type(b) == sparse.csr_matrix or type(b) == sparse.csc_matrix:
         b = b.toarray()
     return np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
-def vdot(a: Union[sparse.csr_matrix, np.ndarray], b: Union[sparse.csr_matrix, np.ndarray]) -> float:
-    # If there is a way to keep it as a sparse matrix, change it.
-    if type(a) == sparse.csr_matrix:
-        a = a.toarray()
-    if type(b) == sparse.csr_matrix:
-        b = b.toarray()
-    return np.vdot(a, b)
-
-def where_not_zero(matrix) -> Tuple[List[int], List[int]]:
-    if type(matrix) == sparse.csr_matrix:
+def flatten(matrix) -> np.ndarray:
+    if type(matrix) == sparse.csr_matrix or type(matrix) == sparse.csc_matrix:
         matrix = matrix.toarray()
-    return np.where(matrix != 0)
+    return matrix.flatten()
 
 
 def kron(a, b):
     # kron(csr_matrix, csr_matrix)
-    if type(a) == sparse.csr_matrix and type(b) == sparse.csr_matrix:
+    if (type(a) == sparse.csr_matrix or type(a) == sparse.csc_matrix) and (
+        type(b) == sparse.csr_matrix or type(b) == sparse.csc_matrix
+    ):
         return sparse.kron(a, b, format="csr")
 
     # other cases (use np.kron)
-    if type(a) == sparse.csr_matrix:
+    if type(a) == sparse.csr_matrix or type(a) == sparse.csc_matrix:
         a = a.toarray()
-    if type(b) == sparse.csr_matrix:
+    if type(b) == sparse.csr_matrix or type(b) == sparse.csc_matrix:
         b = b.toarray()
     return np.kron(a, b)
+
+
+def toarray(matrix):
+    if type(matrix) == sparse.csr_matrix or type(matrix) == sparse.csc_matrix:
+        matrix = matrix.toarray()
+    return matrix
+
+
+def vdot(
+    a: Union[sparse.csr_matrix, np.ndarray], b: Union[sparse.csr_matrix, np.ndarray]
+) -> float:
+    # If there is a way to keep it as a sparse matrix, change it.
+    if type(a) == sparse.csr_matrix or type(a) == sparse.csc_matrix:
+        a = a.toarray()
+    if type(b) == sparse.csr_matrix or type(b) == sparse.csc_matrix:
+        b = b.toarray()
+    return np.vdot(a, b)
+
+
+def where_not_zero(matrix) -> Tuple[List[int], List[int]]:
+    if type(matrix) == sparse.csr_matrix or type(matrix) == sparse.csc_matrix:
+        matrix = matrix.toarray()
+    return np.where(matrix != 0)

@@ -62,6 +62,7 @@ from quara.objects.state_typical import generate_state_from_name
 from quara.objects.qoperation_typical import generate_qoperation_object
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.multinomial_distribution import MultinomialDistribution
+from quara.utils import matrix_util as mutil
 
 
 def test_tensor_product_Gate_Gate():
@@ -382,11 +383,13 @@ def test_tensor_product_MatrixBasis_MatrixBasis():
             ]
         ),
     ]
-    assert np.array_equal(actual, expected)
+    for a, e in zip(actual, expected):
+        assert mutil.allclose(a, e)
 
     # tensor_product of computational basis (list arguments)
     actual = tensor_product([comp1, comp2])
-    assert np.array_equal(actual, expected)
+    for a, e in zip(actual, expected):
+        assert mutil.allclose(a, e)
 
     # error case: no arguments
     with pytest.raises(ValueError):
@@ -404,7 +407,8 @@ def test_tensor_product_MatrixBasis_MatrixBasis():
 
     basis34_5 = tensor_product(tensor_product(comp3, comp4), comp5)
     basis3_45 = tensor_product(comp3, tensor_product(comp4, comp5))
-    assert np.array_equal(basis34_5, basis3_45)
+    for mat34_5, mat3_45 in zip(basis34_5.basis, basis3_45.basis):
+        assert mutil.allclose(mat34_5, mat3_45)
 
 
 def test_tensor_product_State_State():
