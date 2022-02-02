@@ -751,7 +751,7 @@ def to_hs_from_choi_with_sparsity(
     np.ndarray
         HS representation of this gate.
     """
-    hs_vec = c_sys.basisconjugate_basis_sparse.dot(choi.flatten())
+    hs_vec = c_sys.basisconjugate_basis_sparse.dot(mutil.flatten(choi))
     hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
 
     return mutil.truncate_hs(
