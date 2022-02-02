@@ -811,3 +811,9 @@ def where_not_zero(matrix) -> Tuple[List[int], List[int]]:
     if type(matrix) == sparse.csr_matrix or type(matrix) == sparse.csc_matrix:
         matrix = matrix.toarray()
     return np.where(matrix != 0)
+
+
+def eig(matrix: Union[sparse.csr_matrix, np.ndarray]) -> Tuple[np.ndarray]:
+    if type(matrix) == sparse.csr_matrix or type(matrix) == sparse.csc_matrix:
+        matrix = matrix.toarray()
+    return np.linalg.eig(matrix)

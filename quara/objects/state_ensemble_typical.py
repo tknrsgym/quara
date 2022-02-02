@@ -36,7 +36,6 @@ def get_state_ensemble_z0_elements(
     c_sys: CompositeSystem,
     is_physicality_required: bool = True,
 ) -> Tuple[List[State], List[float]]:
-    print("🐰")
     z0 = generate_state_from_name(
         state_name="z0", c_sys=c_sys, is_physicality_required=is_physicality_required
     )

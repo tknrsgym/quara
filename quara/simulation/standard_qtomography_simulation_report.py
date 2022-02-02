@@ -25,6 +25,7 @@ from quara.simulation.standard_qtomography_simulation import (
     StandardQTomographySimulationSetting,
     load_simulation_results,
 )
+import quara.utils.matrix_util as mutil
 
 _temp_dir_path = ""
 
@@ -450,7 +451,7 @@ def generate_eigenvalues_div(
             case_id=case_id,
             true_object=true_object,
         )
-        v, _ = np.linalg.eig(true_object.to_choi_matrix())
+        v, _ = mutil.eig(true_object.to_choi_matrix())
         col_n = 2 if len(v) <= 2 else 4
         div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
 
@@ -461,7 +462,7 @@ def generate_eigenvalues_div(
             case_id=case_id,
             true_object=true_object,
         )
-        v, _ = np.linalg.eig(true_object.to_choi_matrix(0))
+        v, _ = mutil.eig(true_object.to_choi_matrix(0))
         col_n = 2 if len(v) <= 2 else 4
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3, col_n=col_n)
     else:
