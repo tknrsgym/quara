@@ -1,3 +1,4 @@
+import copy
 from typing import List, Union
 
 import numpy as np
@@ -20,6 +21,7 @@ from quara.objects.gate import (
     Gate,
     to_choi_from_var,
 )
+from quara.objects.mprocess import MProcess
 
 
 def get_valid_qopeartion_type() -> List[str]:
@@ -43,7 +45,7 @@ def num_cvxpy_variable(t: str, dim: int, num_outcomes: int = None) -> int:
     Parameters
     ----------
     t : str
-        Type of QOperation. "state", "povm", "gate", "mprocess"
+        Type of QOperation. "state", "povm", "gate", or "mprocess"
     dim : int
         Dimension of the system
     num_outcoms : int, optional
@@ -100,10 +102,10 @@ def generate_cvxpy_variable(
     Parameters
     ----------
     t : str
-        Type of QOperation. "state", "povm", "gate", "mprocess"
+        Type of QOperation. "state", "povm", "gate", or "mprocess"
     dim : int
         Dimension of the system
-    num_outcoms: int, optional
+    num_outcoms : int, optional
         Number of outcomes for t = "povm" or  "mprocess", by default None
 
     Returns
@@ -124,20 +126,17 @@ def generate_cvxpy_constraints_from_cvxpy_variable(
 
     Parameters
     ----------
-    c_sys: CompositeSystem
+    c_sys : CompositeSystem
         Composite system that the QOperation acts on
-
-    t:str
+    t : str
         Type of QOperation. "state", "povm", "gate", or "mprocess"
-
-    var:CvxpyVariable
+    var  :CvxpyVariable
         Variable of CVXPY
-
-    num_outcoms:int=None
-        Number of outcomes for t = "povm"
+    num_outcoms : int, optional
+        Number of outcomes for t = "povm" or  "mprocess", by default None
 
     Returns
-    ----------
+    -------
     CvxpyConstraint
         Constraint of CVXPY
     """
@@ -167,6 +166,20 @@ def generate_cvxpy_constraints_from_cvxpy_variable(
 def dmat_from_var(
     c_sys: CompositeSystem, var: Union[np.ndarray, CvxpyVariable]
 ) -> Union[np.ndarray, CvxpyVariable]:
+    """Converts from Variable of quara or cvxpy to density matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[np.ndarray, CvxpyVariable]
+        Density matrix
+    """
     d = c_sys.dim
     basis = c_sys.basis()
     expr = np.eye(d) / d
@@ -182,6 +195,24 @@ def povm_element_from_var(
     x: int,
     var: Union[np.ndarray, CvxpyVariable],
 ) -> Union[np.ndarray, CvxpyVariable]:
+    """Converts from Variable of quara or cvxpy to povm element.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    num_outcomes : int
+        Number of outcomes
+    x : int
+        Index of povm element
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[np.ndarray, CvxpyVariable]
+        povm element
+    """
     d = c_sys.dim
     m = num_outcomes
     if 0 <= x and x < m - 1:
@@ -201,6 +232,20 @@ def povm_element_from_var(
 def choi_from_var(
     c_sys: CompositeSystem, var: Union[np.ndarray, CvxpyVariable]
 ) -> Union[np.ndarray, CvxpyVariable]:
+    """Converts from Variable of quara or cvxpy to Choi matrix.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[np.ndarray, CvxpyVariable]
+        Choi matrix
+    """
     d = c_sys.dim
     choi = np.eye(d * d, dtype=np.complex128) / d
     for a in range(1, d * d):
@@ -217,6 +262,24 @@ def mprocess_element_choi_from_var(
     x: int,
     var: Union[np.ndarray, CvxpyVariable],
 ) -> Union[np.ndarray, CvxpyVariable]:
+    """Converts from Variable of quara or cvxpy to mprocess element.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    num_outcomes : int
+        Number of outcomes
+    x : int
+        Index of mprocess element
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[np.ndarray, CvxpyVariable]
+        mprocess element
+    """
     d = c_sys.dim
     m = num_outcomes
     if 0 <= x and x < m - 1:
@@ -248,20 +311,17 @@ def generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
 
     Parameters
     ----------
-    c_sys: CompositeSystem
+    c_sys : CompositeSystem
         Composite system that the QOperation acts on
-
-    t:str
+    t : str
         Type of QOperation. "state", "povm", "gate", or "mprocess"
-
-    var:CvxpyVariable
+    var : CvxpyVariable
         Variable of CVXPY
-
-    num_outcoms:int=None
-        Number of outcomes for t = "povm"
+    num_outcomes : int, optional
+        Number of outcomes for t = "povm" or  "mprocess", by default None
 
     Returns
-    ----------
+    -------
     CvxpyConstraint
         Constraint of CVXPY
     """
@@ -359,8 +419,22 @@ def mprocess_element_choi_from_var_with_sparsity(
     return choi
 
 
-# Conversion from CVXPY.Variavle to Quara.QOparation
+# Conversion from CVXPY.Variable to Quara.QOparation
 def convert_cxvpy_variable_to_state_vec(dim: int, var: CvxpyVariable) -> np.ndarray:
+    """Converts from Variable of CVXPY to vec of state.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    np.ndarray
+        vec of state
+    """
     d = dim
     l = [1 / np.sqrt(d)]
     l.extend(var.value)
@@ -371,6 +445,22 @@ def convert_cxvpy_variable_to_state_vec(dim: int, var: CvxpyVariable) -> np.ndar
 def convert_cxvpy_variable_to_povm_vecs(
     dim: int, num_outcomes: int, var: CvxpyVariable
 ) -> np.ndarray:
+    """Converts from Variable of CVXPY to vecs of povm.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    num_outcomes : int
+        Number of outcomes
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    np.ndarray
+        vecs of povm
+    """
     d = dim
     vec_sum = np.zeros(d * d)
     vec_sum[0] = np.sqrt(d)
@@ -387,7 +477,20 @@ def convert_cxvpy_variable_to_povm_vecs(
 
 
 def convert_cvxpy_variable_to_gate_hs(dim: int, var: CvxpyVariable) -> np.ndarray:
-    # Probably this function does not work correctly because shape of hs is invalid. It must be (d^2, d^2).
+    """Converts from Variable of CVXPY to HS matrix of gate.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    np.ndarray
+        HS matrix of gate
+    """
     d = dim
     ll = []
     vec = np.zeros(d * d, dtype=np.float64)
@@ -402,13 +505,66 @@ def convert_cvxpy_variable_to_gate_hs(dim: int, var: CvxpyVariable) -> np.ndarra
 
 def convert_cvxpy_variable_to_mprocess_hss(
     dim: int, num_outcomes: int, var: CvxpyVariable
-) -> np.ndarray:
-    raise NotImplementedError
+) -> List[np.ndarray]:
+    """Converts from Variable of CVXPY to HS matrices of mprocess.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    num_outcomes : int
+        Number of outcomes
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    List[np.ndarray]
+        HS matrices of mprocess
+    """
+    hs_size = dim ** 2 * dim ** 2
+
+    vector = copy.copy(var.value)
+    num_outcomes = vector.shape[0] // hs_size + 1
+
+    one = np.zeros(dim ** 2, dtype=np.float64)
+    one[0] = 1
+
+    sum_first_row = np.zeros(dim ** 2, dtype=np.float64)
+    for outcome in range(num_outcomes - 1):
+        sum_first_row += vector[hs_size * outcome : hs_size * outcome + dim ** 2]
+    first_row_of_last_hs = one - sum_first_row
+
+    print(
+        f"size={vector.size} shape={vector.shape} index={hs_size * (num_outcomes - 1)}"
+    )
+    vector = np.insert(vector, hs_size * (num_outcomes - 1), first_row_of_last_hs)
+
+    vec_list = []
+    reshaped_vecs = vector.reshape((num_outcomes, dim ** 2, dim ** 2))
+    # convert np.ndarray to list of np.ndarray
+    for vec in reshaped_vecs:
+        vec_list.append(vec)
+    return vec_list
 
 
 def convert_cvxpy_variable_to_state(
     c_sys: CompositeSystem, var: CvxpyVariable
 ) -> State:
+    """Converts from Variable of CVXPY to state.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    State
+        state
+    """
     vec = convert_cxvpy_variable_to_state_vec(c_sys.dim, var)
     state = convert_var_to_state(
         c_sys=c_sys,
@@ -419,8 +575,26 @@ def convert_cvxpy_variable_to_state(
     return state
 
 
-def convert_cvxpy_variable_to_povm(c_sys: CompositeSystem, var: CvxpyVariable) -> Povm:
-    vecs = convert_cxvpy_variable_to_povm_vecs(c_sys.dim, var)
+def convert_cvxpy_variable_to_povm(
+    c_sys: CompositeSystem, num_outcomes: int, var: CvxpyVariable
+) -> Povm:
+    """Converts from Variable of CVXPY to povm.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    num_outcomes : int
+        Number of outcomes
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    Povm
+        povm
+    """
+    vecs = convert_cxvpy_variable_to_povm_vecs(c_sys.dim, num_outcomes, var)
     povm = Povm(
         c_sys=c_sys,
         vecs=vecs,
@@ -431,7 +605,20 @@ def convert_cvxpy_variable_to_povm(c_sys: CompositeSystem, var: CvxpyVariable) -
 
 
 def convert_cvxpy_variable_to_gate(c_sys: CompositeSystem, var: CvxpyVariable) -> Gate:
-    # Probably this function does not work correctly.
+    """Converts from Variable of CVXPY to gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    Gate
+        gate
+    """
     hs = convert_cvxpy_variable_to_gate_hs(c_sys.dim, var)
     gate = Gate(
         c_sys=c_sys,
@@ -442,24 +629,90 @@ def convert_cvxpy_variable_to_gate(c_sys: CompositeSystem, var: CvxpyVariable) -
     return gate
 
 
-def convert_cvxpy_variable_to_qoperation(
-    t: str, c_sys: CompositeSystem, var: CvxpyVariable
-) -> QOperation:
+def convert_cvxpy_variable_to_mprocess(
+    c_sys: CompositeSystem, num_outcomes: int, var: CvxpyVariable
+) -> MProcess:
+    """Converts from Variable of CVXPY to mprocess.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    num_outcomes : int
+        Number of outcomes
+    var : CvxpyVariable
+        Variable of CVXPY
+
+    Returns
+    -------
+    MProcess
+        mprocess
     """
-    t:str
-        type of estimate, "state", "povm", "gate".
+    hss = convert_cvxpy_variable_to_mprocess_hss(c_sys.dim, num_outcomes, var)
+    mprocess = MProcess(
+        c_sys=c_sys,
+        hss=hss,
+        on_para_eq_constraint=False,
+        is_physicality_required=False,
+    )
+    return mprocess
+
+
+def convert_cvxpy_variable_to_qoperation(
+    t: str, c_sys: CompositeSystem, var: CvxpyVariable, num_outcomes: int = None
+) -> QOperation:
+    """Converts from Variable of CVXPY to QOperation.
+
+    Parameters
+    ----------
+    t : str
+        Type of estimate, "state", "povm", "gate", or "mprocess".
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : CvxpyVariable
+        Variable of CVXPY
+    num_outcoms : int, optional
+        Number of outcomes for t = "povm" or  "mprocess", by default None
+
+    Returns
+    -------
+    QOperation
+        QOperation
+
+    Raises
+    ------
+    ValueError
+        Unsupported type of QOperation is specified.
     """
     if t == "state":
         qop = convert_cvxpy_variable_to_state(c_sys, var)
     elif t == "povm":
-        qop = convert_cvxpy_variable_to_povm(c_sys, var)
+        qop = convert_cvxpy_variable_to_povm(c_sys, num_outcomes, var)
     elif t == "gate":
         qop = convert_cvxpy_variable_to_gate(c_sys, var)
+    elif t == "mprocess":
+        qop = convert_cvxpy_variable_to_mprocess(c_sys, num_outcomes, var)
+    else:
+        raise ValueError(f"Unsupported type of estimate is specified. t={t}")
     return qop
 
 
-# Conversion from Variavle in Quara to Quara.QOparation
+# Conversion from Variable in Quara to Quara.QOparation
 def convert_quara_variable_to_state_vec(dim: int, var: np.ndarray) -> np.ndarray:
+    """Converts from Variable in quara to vec of state.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    var : np.ndarray
+        Variable in quara
+
+    Returns
+    -------
+    np.ndarray
+        vec of state.
+    """
     d = dim
     l = [1 / np.sqrt(d)]
     l.extend(var)
@@ -470,6 +723,22 @@ def convert_quara_variable_to_state_vec(dim: int, var: np.ndarray) -> np.ndarray
 def convert_quara_variable_to_povm_vecs(
     dim: int, num_outcomes: int, var: np.ndarray
 ) -> List[np.ndarray]:
+    """Converts from Variable in quara to vecs of povm.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    num_outcomes : int
+        Number of outcomes
+    var : np.ndarray
+        Variable in quara
+
+    Returns
+    -------
+    List[np.ndarray]
+        vecs of povm
+    """
     d = dim
     vec_sum = np.zeros(d * d)
     vec_sum[0] = np.sqrt(d)
@@ -486,7 +755,20 @@ def convert_quara_variable_to_povm_vecs(
 
 
 def convert_quara_variable_to_gate_hs(dim: int, var: np.ndarray) -> np.ndarray:
-    # Probably this function does not work correctly because hs must be d^2 times d^2 matrix.
+    """Converts from Variable in quara to HS matrix of gate.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    var : np.ndarray
+        Variable in quara
+
+    Returns
+    -------
+    np.ndarray
+        HS matrix of gate
+    """
     d = dim
     ll = []
     vec = np.zeros(d * d, dtype=np.float64)
@@ -499,7 +781,62 @@ def convert_quara_variable_to_gate_hs(dim: int, var: np.ndarray) -> np.ndarray:
     return hs
 
 
+def convert_quara_variable_to_mprocess_hss(
+    dim: int, num_outcomes: int, var: np.ndarray
+) -> List[np.ndarray]:
+    """Converts from Variable in quara to HS matrices of mprocess.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the system
+    num_outcomes : int
+        Number of outcomes
+    var : np.ndarray
+        Variable in quara
+
+    Returns
+    -------
+    List[np.ndarray]
+        HS matrices of mprocess
+    """
+    hs_size = dim ** 2 * dim ** 2
+
+    vector = copy.copy(var)
+
+    one = np.zeros(dim ** 2, dtype=np.float64)
+    one[0] = 1
+
+    sum_first_row = np.zeros(dim ** 2, dtype=np.float64)
+    for outcome in range(num_outcomes - 1):
+        sum_first_row += vector[hs_size * outcome : hs_size * outcome + dim ** 2]
+    first_row_of_last_hs = one - sum_first_row
+
+    vector = np.insert(vector, hs_size * (num_outcomes - 1), first_row_of_last_hs)
+
+    vec_list = []
+    reshaped_vecs = vector.reshape((num_outcomes, dim ** 2, dim ** 2))
+    # convert np.ndarray to list of np.ndarray
+    for vec in reshaped_vecs:
+        vec_list.append(vec)
+    return vec_list
+
+
 def convert_quara_variable_to_state(c_sys: CompositeSystem, var: np.ndarray) -> State:
+    """Converts from Variable in quara to state.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : np.ndarray
+        Variable in quara
+
+    Returns
+    -------
+    State
+        state
+    """
     vec = convert_quara_variable_to_state_vec(c_sys.dim, var)
     state = convert_var_to_state(
         c_sys=c_sys,
@@ -510,8 +847,26 @@ def convert_quara_variable_to_state(c_sys: CompositeSystem, var: np.ndarray) -> 
     return state
 
 
-def convert_quara_variable_to_povm(c_sys: CompositeSystem, var: np.ndarray) -> Povm:
-    vecs = convert_quara_variable_to_povm_vecs(c_sys.dim, var)
+def convert_quara_variable_to_povm(
+    c_sys: CompositeSystem, num_outcomes: int, var: np.ndarray
+) -> Povm:
+    """Converts from Variable in quara to povm.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    num_outcomes : int
+        Number of outcomes
+    var : np.ndarray
+        Variable in quara
+
+    Returns
+    -------
+    Povm
+        povm
+    """
+    vecs = convert_quara_variable_to_povm_vecs(c_sys.dim, num_outcomes, var)
     povm = Povm(
         c_sys=c_sys,
         vecs=vecs,
@@ -522,7 +877,20 @@ def convert_quara_variable_to_povm(c_sys: CompositeSystem, var: np.ndarray) -> P
 
 
 def convert_quara_variable_to_gate(c_sys: CompositeSystem, var) -> Gate:
-    # Probably this function does not work correctly.
+    """Converts from Variable in quara to gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : [type]
+        Variable in quara
+
+    Returns
+    -------
+    Gate
+        gate
+    """
     hs = convert_quara_variable_to_gate_hs(c_sys.dim, var)
     gate = Gate(
         c_sys=c_sys,
@@ -533,16 +901,70 @@ def convert_quara_variable_to_gate(c_sys: CompositeSystem, var) -> Gate:
     return gate
 
 
+def convert_quara_variable_to_mprocess(
+    c_sys: CompositeSystem, num_outcomes: int, var: np.ndarray
+) -> MProcess:
+    """Converts from Variable in quara to mprocess.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    num_outcomes : int
+        Number of outcomes
+    var : np.ndarray
+        Variable in quara
+
+    Returns
+    -------
+    MProcess
+        mprocess
+    """
+    hss = convert_quara_variable_to_mprocess_hss(c_sys.dim, num_outcomes, var)
+    mprocess = MProcess(
+        c_sys=c_sys,
+        hss=hss,
+        on_para_eq_constraint=False,
+        is_physicality_required=False,
+    )
+    return mprocess
+
+
 def convert_quara_variable_to_qoperation(
-    t: str, c_sys: CompositeSystem, var
+    t: str, c_sys: CompositeSystem, var: np.ndarray, num_outcomes: int = None
 ) -> QOperation:
+    """Converts from Variable in quara to QOperation.
+
+    Parameters
+    ----------
+    t : str
+        Type of QOperation. "state", "povm", "gate", or "mprocess"
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : np.ndarray
+        Variable in quara
+    num_outcomes : int, optional
+        Number of outcomes for t = "povm" or  "mprocess", by default None
+
+    Returns
+    -------
+    QOperation
+        QOperation
+
+    Raises
+    ------
+    ValueError
+        Unsupported type of QOperation is specified.
+    """
     if t == "state":
         qop = convert_quara_variable_to_state(c_sys, var)
     elif t == "povm":
-        qop = convert_quara_variable_to_povm(c_sys, var)
+        qop = convert_quara_variable_to_povm(c_sys, num_outcomes, var)
     elif t == "gate":
         qop = convert_quara_variable_to_gate(c_sys, var)
     elif t == "mprocess":
-        pass
-        # qop = convert_quara_variable_to_mprocess(c_sys, var)
+        qop = convert_quara_variable_to_mprocess(c_sys, num_outcomes, var)
+    else:
+        raise ValueError(f"Unsupported type of estimate is specified. t={t}")
+
     return qop

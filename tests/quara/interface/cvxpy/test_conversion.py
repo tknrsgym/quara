@@ -3,6 +3,7 @@ import numpy.testing as npt
 import pytest
 
 from cvxpy.constraints.psd import PSD
+from cvxpy.expressions.variable import Variable as CvxpyVariable
 
 from quara.interface.cvxpy import conversion
 from quara.objects.composite_system_typical import generate_composite_system
@@ -187,11 +188,442 @@ def test_mprocess_element_choi_from_var():
         assert actual.shape == (4, 4)
 
 
-def test_convert_quara_variable_to_state_vec():
+"""
+def test_dmat_from_var_with_sparsity():
     # Arrange
-    var = np.array([0, 0, 1]) / np.sqrt(2)
+    c_sys = generate_composite_system("qubit", 1)
+    var = conversion.generate_cvxpy_variable("state", 2)
+
     # Act
-    actual = conversion.convert_quara_variable_to_state_vec(2, var)
+    actual = conversion.dmat_from_var_with_sparsity(c_sys, var)
+
+    # Assert
+    assert actual.curvature == "AFFINE"
+    assert actual.sign == "UNKNOWN"
+    assert actual.shape == (2, 2)
+"""
+
+
+def test_convert_cxvpy_variable_to_state_vec():
+    # Arrange
+    var = CvxpyVariable(3)
+    var.value = np.array([0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_cxvpy_variable_to_state_vec(2, var)
+
     # Assert
     expected = np.array([1, 0, 0, 1]) / np.sqrt(2)
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_convert_cxvpy_variable_to_povm_vecs():
+    # Arrange
+    var = CvxpyVariable(4)
+    var.value = np.array([1, 0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_cxvpy_variable_to_povm_vecs(2, 2, var)
+
+    # Assert
+    expected = [
+        np.array([1, 0, 0, 1]) / np.sqrt(2),
+        np.array([1, 0, 0, -1]) / np.sqrt(2),
+    ]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_cvxpy_variable_to_gate_hs():
+    # Arrange
+    var = CvxpyVariable(12)
+    var.value = np.array([0, 1, 0, 0] + [0, 0, 1, 0] + [0, 0, 0, -1])
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_gate_hs(2, var)
+
+    # Assert
+    expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_convert_cvxpy_variable_to_mprocess_hss():
+    # Arrange
+    vec0 = [1, 0, 0, 1] + [0, 0, 0, 0] + [0, 0, 0, 0] + [1, 0, 0, 1]
+    vec1 = [0, 0, 0, 0] + [0, 0, 0, 0] + [-1, 0, 0, 1]
+    var = CvxpyVariable(28)
+    var.value = np.array(vec0 + vec1) / 2
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_mprocess_hss(2, 2, var)
+
+    # Assert
+    expected = [
+        np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+        np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]) / 2,
+    ]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_cvxpy_variable_to_state():
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = CvxpyVariable(3)
+    var.value = np.array([0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_state(c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    npt.assert_almost_equal(actual.vec, expected, decimal=15)
+
+
+def test_convert_cvxpy_variable_to_povm():
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = CvxpyVariable(4)
+    var.value = np.array([1, 0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_povm(c_sys, 2, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([1, 0, 0, 1]) / np.sqrt(2),
+        np.array([1, 0, 0, -1]) / np.sqrt(2),
+    ]
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_cvxpy_variable_to_gate():
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = CvxpyVariable(12)
+    var.value = np.array([0, 1, 0, 0] + [0, 0, 1, 0] + [0, 0, 0, -1])
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_gate(c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+
+def test_convert_cvxpy_variable_to_mprocess():
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    vec0 = [1, 0, 0, 1] + [0, 0, 0, 0] + [0, 0, 0, 0] + [1, 0, 0, 1]
+    vec1 = [0, 0, 0, 0] + [0, 0, 0, 0] + [-1, 0, 0, 1]
+    var = CvxpyVariable(28)
+    var.value = np.array(vec0 + vec1) / 2
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_mprocess(c_sys, 2, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+        np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]) / 2,
+    ]
+    for a, e in zip(actual.hss, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_cvxpy_variable_to_qoperation():
+    c_sys = generate_composite_system("qubit", 1)
+
+    ### state: var = z0
+    # Arrange
+    var = CvxpyVariable(3)
+    var.value = np.array([0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_qoperation("state", c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    npt.assert_almost_equal(actual.vec, expected, decimal=15)
+
+    ### povm: var = z0
+    # Arrange
+    var = CvxpyVariable(4)
+    var.value = np.array([1, 0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_qoperation(
+        "povm", c_sys, var, num_outcomes=2
+    )
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([1, 0, 0, 1]) / np.sqrt(2),
+        np.array([1, 0, 0, -1]) / np.sqrt(2),
+    ]
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    ### gate: var = z
+    # Arrange
+    var = CvxpyVariable(12)
+    var.value = np.array([0, 1, 0, 0] + [0, 0, 1, 0] + [0, 0, 0, -1])
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_qoperation("gate", c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+    ### mprocess: var = z-type1
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    vec0 = [1, 0, 0, 1] + [0, 0, 0, 0] + [0, 0, 0, 0] + [1, 0, 0, 1]
+    vec1 = [0, 0, 0, 0] + [0, 0, 0, 0] + [-1, 0, 0, 1]
+    var = CvxpyVariable(28)
+    var.value = np.array(vec0 + vec1) / 2
+
+    # Act
+    actual = conversion.convert_cvxpy_variable_to_qoperation(
+        "mprocess", c_sys, var, num_outcomes=2
+    )
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+        np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]) / 2,
+    ]
+    for a, e in zip(actual.hss, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    ### unsupported type of estimate
+    with pytest.raises(ValueError):
+        conversion.convert_cvxpy_variable_to_qoperation("unsupported", c_sys, var)
+
+
+def test_convert_quara_variable_to_state_vec():
+    ### var = z0
+    # Arrange
+    var = np.array([0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_quara_variable_to_state_vec(2, var)
+
+    # Assert
+    expected = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_convert_quara_variable_to_povm_vecs():
+    ### var = z
+    # Arrange
+    var = np.array([1, 0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_quara_variable_to_povm_vecs(2, 2, var)
+
+    # Assert
+    expected = [
+        np.array([1, 0, 0, 1]) / np.sqrt(2),
+        np.array([1, 0, 0, -1]) / np.sqrt(2),
+    ]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_quara_variable_to_gate_hs():
+    ### var = z
+    # Arrange
+    var = np.array([0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1])
+
+    # Act
+    actual = conversion.convert_quara_variable_to_gate_hs(2, var)
+
+    # Assert
+    expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
+    npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_convert_quara_variable_to_mprocess_hss():
+    ### var = z-type1
+    # Arrange
+    vec0 = [1, 0, 0, 1] + [0, 0, 0, 0] + [0, 0, 0, 0] + [1, 0, 0, 1]
+    vec1 = [0, 0, 0, 0] + [0, 0, 0, 0] + [-1, 0, 0, 1]
+    var = np.array(vec0 + vec1) / 2
+
+    # Act
+    actual = conversion.convert_quara_variable_to_mprocess_hss(2, 2, var)
+
+    # Assert
+    expected = [
+        np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+        np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]) / 2,
+    ]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_quara_variable_to_state():
+    ### var = z0
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = np.array([0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_quara_variable_to_state(c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    npt.assert_almost_equal(actual.vec, expected, decimal=15)
+
+
+def test_convert_quara_variable_to_povm():
+    ### var = z
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = np.array([1, 0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_quara_variable_to_povm(c_sys, 2, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([1, 0, 0, 1]) / np.sqrt(2),
+        np.array([1, 0, 0, -1]) / np.sqrt(2),
+    ]
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_quara_variable_to_gate():
+    ### var = z
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = np.array([0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1])
+
+    # Act
+    actual = conversion.convert_quara_variable_to_gate(c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+
+def test_convert_quara_variable_to_mprocess():
+    ### var = z-type1
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    vec0 = [1, 0, 0, 1] + [0, 0, 0, 0] + [0, 0, 0, 0] + [1, 0, 0, 1]
+    vec1 = [0, 0, 0, 0] + [0, 0, 0, 0] + [-1, 0, 0, 1]
+    var = np.array(vec0 + vec1) / 2
+
+    # Act
+    actual = conversion.convert_quara_variable_to_mprocess(c_sys, 2, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+        np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]) / 2,
+    ]
+    for a, e in zip(actual.hss, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+
+def test_convert_quara_variable_to_qoperation():
+    c_sys = generate_composite_system("qubit", 1)
+
+    ### state: var = z0
+    # Arrange
+    var = np.array([0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_quara_variable_to_qoperation("state", c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([1, 0, 0, 1]) / np.sqrt(2)
+    npt.assert_almost_equal(actual.vec, expected, decimal=15)
+
+    ### povm: var = z
+    # Arrange
+    var = np.array([1, 0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.convert_quara_variable_to_qoperation(
+        "povm", c_sys, var, num_outcomes=2
+    )
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([1, 0, 0, 1]) / np.sqrt(2),
+        np.array([1, 0, 0, -1]) / np.sqrt(2),
+    ]
+    for a, e in zip(actual.vecs, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    ### gate: var = z
+    # Arrange
+    var = np.array([0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1])
+
+    # Act
+    actual = conversion.convert_quara_variable_to_qoperation("gate", c_sys, var)
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
+    npt.assert_almost_equal(actual.hs, expected, decimal=15)
+
+    ### mprocess: var = z-type1
+    # Arrange
+    vec0 = [1, 0, 0, 1] + [0, 0, 0, 0] + [0, 0, 0, 0] + [1, 0, 0, 1]
+    vec1 = [0, 0, 0, 0] + [0, 0, 0, 0] + [-1, 0, 0, 1]
+    var = np.array(vec0 + vec1) / 2
+
+    # Act
+    actual = conversion.convert_quara_variable_to_qoperation(
+        "mprocess", c_sys, var, num_outcomes=2
+    )
+
+    # Assert
+    assert actual.on_para_eq_constraint == False
+    assert actual.is_physicality_required == False
+    expected = [
+        np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]]) / 2,
+        np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]]) / 2,
+    ]
+    for a, e in zip(actual.hss, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
+
+    ### unsupported type of estimate
+    with pytest.raises(ValueError):
+        conversion.convert_quara_variable_to_qoperation("unsupported", c_sys, var)
