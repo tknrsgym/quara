@@ -286,7 +286,7 @@ class TestGate:
 
         assert len(actual) == 4
         for i in range(4):
-            npt.assert_allclose(actual[i].toarray(), expected[i].toarray())
+            npt.assert_allclose(actual[i].toarray(), expected[i])
 
     def test_is_tp(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1035,7 +1035,9 @@ class TestGate:
         expected_choi = np.array(
             [[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]]
         )
-        npt.assert_almost_equal(actual.to_choi_matrix().toarray(), expected_choi, decimal=14)
+        npt.assert_almost_equal(
+            actual.to_choi_matrix().toarray(), expected_choi, decimal=14
+        )
         expected_hs = np.array(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]
         )

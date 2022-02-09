@@ -6,7 +6,11 @@ import numpy.testing as npt
 import pytest
 
 from quara.objects import matrix_basis
-from quara.objects.matrix_basis import SparseMatrixBasis, VectorizedMatrixBasis
+from quara.objects.matrix_basis import (
+    SparseMatrixBasis,
+    VectorizedMatrixBasis,
+    MatrixBasis,
+)
 from quara.utils import matrix_util
 
 
@@ -21,18 +25,18 @@ class TestMatrixBasis:
         # Case 1: Not enough matrices.
         source = [identity, pauli_x, pauli_y]
         with pytest.raises(ValueError):
-            _ = SparseMatrixBasis(source)
+            _ = MatrixBasis(source)
 
         # Case 2: Not independent (B_3 = B_0 + B_1)
         invalid_array = identity + pauli_x
         source = [identity, pauli_x, pauli_y, invalid_array]
         with pytest.raises(ValueError):
-            _ = SparseMatrixBasis(source)
+            _ = MatrixBasis(source)
 
     def test_is_same_size(self):
         # Case1: All the same size
         source_basis = matrix_basis.get_pauli_basis().basis
-        basis = SparseMatrixBasis(source_basis)
+        basis = MatrixBasis(source_basis)
         assert basis._is_same_size() == True
 
         # Case2: Not same size
@@ -43,12 +47,12 @@ class TestMatrixBasis:
             np.array([[0, 0], [0, 1]]),
         ]
         with pytest.raises(ValueError):
-            _ = SparseMatrixBasis(source)
+            _ = MatrixBasis(source)
 
     def test_is_squares(self):
         # Case1: Square matrix
         source_basis = matrix_basis.get_pauli_basis().basis
-        basis = SparseMatrixBasis(source_basis)
+        basis = MatrixBasis(source_basis)
         assert basis._is_squares() == True
 
         # Case2: There is a non-square matrix
@@ -59,12 +63,12 @@ class TestMatrixBasis:
             np.array([[0, 0], [0, 1]]),
         ]
         with pytest.raises(ValueError):
-            _ = SparseMatrixBasis(source)
+            _ = MatrixBasis(source)
 
     def test_is_orthogonal(self):
         # Case1: orthorogonal
         source_basis = matrix_basis.get_pauli_basis().basis
-        m_basis = SparseMatrixBasis(source_basis)
+        m_basis = MatrixBasis(source_basis)
         assert m_basis.is_orthogonal() == True
 
         # Case2: basis, but non orthorogonal
@@ -74,7 +78,7 @@ class TestMatrixBasis:
             np.array([[1, 1], [1, 0]]),
             np.array([[0, 0], [0, 1]]),
         ]
-        non_orthorogonal_basis = SparseMatrixBasis(non_orthorogonal_source)
+        non_orthorogonal_basis = MatrixBasis(non_orthorogonal_source)
         assert non_orthorogonal_basis.is_orthogonal() == False
 
         # Case3: basis, but non orthorogonal
@@ -82,24 +86,24 @@ class TestMatrixBasis:
         Y = np.array([[0, 1], [0, 0]])
         Z = X + Y + 2
         non_orthorogonal_source = [np.eye(2), X, Y, Z]
-        non_orthorogonal_basis = SparseMatrixBasis(non_orthorogonal_source)
+        non_orthorogonal_basis = MatrixBasis(non_orthorogonal_source)
         assert non_orthorogonal_basis.is_orthogonal() == False
 
     def test_is_normal(self):
         # Case1: Normalized
         source = matrix_basis.get_normalized_pauli_basis().basis
-        normalized_basis = SparseMatrixBasis(source)
+        normalized_basis = MatrixBasis(source)
         assert normalized_basis.is_normal() == True
 
         # Case2: Not Normalized
         source = matrix_basis.get_pauli_basis().basis
-        non_normalized_basis = SparseMatrixBasis(source)
+        non_normalized_basis = MatrixBasis(source)
         assert non_normalized_basis.is_normal() == False
 
     def test_is_hermitian(self):
         # Case1: Hermitian matrix
         source = matrix_basis.get_pauli_basis().basis
-        hermitian_basis = SparseMatrixBasis(source)
+        hermitian_basis = MatrixBasis(source)
         assert hermitian_basis.is_hermitian() == True
 
         # Case2: Non Hermitian matrix
@@ -109,34 +113,34 @@ class TestMatrixBasis:
             np.array([[0, 0], [1, 0]]),
             np.array([[0, 0], [0, 1]]),
         ]
-        non_hermitian_basis = SparseMatrixBasis(non_hermitian_source)
+        non_hermitian_basis = MatrixBasis(non_hermitian_source)
         assert non_hermitian_basis.is_hermitian() == False
 
     def test_is_0thpropI(self):
         # Case1: B_0 = C*I
         source = matrix_basis.get_pauli_basis().basis
-        basis = SparseMatrixBasis(source)
+        basis = MatrixBasis(source)
         assert basis.is_0thpropI() == True
 
         # Case2: B_0 != C*I
         source = matrix_basis.get_comp_basis().basis
-        basis = SparseMatrixBasis(source)
+        basis = MatrixBasis(source)
         assert basis.is_0thpropI() == False
 
     def test_is_trace_less(self):
         # Case1: Tr[B_alpha] = 0, alpha >= 1
         source = matrix_basis.get_pauli_basis().basis
-        basis = SparseMatrixBasis(source)
+        basis = MatrixBasis(source)
         assert basis.is_trace_less() == True
 
         # Case2: Tr[B_alpha] != 0, alpha >= 1
         source = matrix_basis.get_comp_basis().basis
-        basis = SparseMatrixBasis(source)
+        basis = MatrixBasis(source)
         assert basis.is_trace_less() == False
 
     def test_to_vect(self):
         source = matrix_basis.get_pauli_basis().basis
-        basis = SparseMatrixBasis(source)
+        basis = MatrixBasis(source)
         v_basis = basis.to_vect()
         assert np.allclose(v_basis.basis[0], np.array([1, 0, 0, 1]))
         assert np.allclose(v_basis.basis[1], np.array([0, 1, 1, 0]))
@@ -145,13 +149,13 @@ class TestMatrixBasis:
 
     def test_get_item(self):
         source_np = matrix_basis.get_pauli_basis().basis
-        basis = SparseMatrixBasis(source_np)
+        basis = MatrixBasis(source_np)
         for i in range(len(source_np)):
             assert matrix_util.allclose(basis[i], source_np[i])
 
     def test_str(self):
         source_np = matrix_basis.get_pauli_basis().basis
-        basis = SparseMatrixBasis(source_np)
+        basis = MatrixBasis(source_np)
         assert str(basis) == str(source_np)
 
 
@@ -234,7 +238,7 @@ class TestVectorizedMatrixBasis:
         # test original matrix basis
         actual_org_basis = actual_vec_basis.org_basis
         for i, actual in enumerate(actual_org_basis):
-            npt.assert_array_equal(actual.toarray(), source_basis[i].toarray())
+            npt.assert_array_equal(actual, source_basis[i])
 
 
 class TestMatrixBasisImmutable:
@@ -591,7 +595,7 @@ def test_get_pauli_basis():
         ),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_normalized_pauli_basis():
@@ -656,7 +660,7 @@ def test_get_normalized_pauli_basis():
         np.kron(val1, val2) for val1, val2 in itertools.product(basis_1q, basis_1q)
     ]
     for i, a in enumerate(actual):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_hermitian_basis():
@@ -674,7 +678,7 @@ def test_get_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_hermitian_basis(2)
@@ -690,7 +694,7 @@ def test_get_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_hermitian_basis(3)
@@ -728,7 +732,7 @@ def test_get_normalized_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_normalized_hermitian_basis(2)
@@ -744,7 +748,7 @@ def test_get_normalized_hermitian_basis():
         np.array([[0, 0], [0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_normalized_hermitian_basis(3)
@@ -767,7 +771,7 @@ def test_get_normalized_hermitian_basis():
         np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_gell_mann_basis():
@@ -813,7 +817,7 @@ def test_get_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: n_qubit = 1
     basis = matrix_basis.get_generalized_gell_mann_basis(n_qubit=1)
@@ -829,7 +833,7 @@ def test_get_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: n_qubit = 2
     basis = matrix_basis.get_generalized_gell_mann_basis(n_qubit=2)
@@ -904,7 +908,7 @@ def test_get_generalized_gell_mann_basis_n_qubit():
         ),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_generalized_gell_mann_basis_dim():
@@ -922,7 +926,7 @@ def test_get_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_generalized_gell_mann_basis(dim=2)
@@ -938,12 +942,12 @@ def test_get_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # if dim = 2, Generalized Gell-Mann matrices basis and Pauli basis are same
     other = matrix_basis.get_pauli_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_generalized_gell_mann_basis(dim=3)
@@ -965,12 +969,12 @@ def test_get_generalized_gell_mann_basis_dim():
         * np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # if dim = 3, Generalized Gell-Mann matrices basis and Gell-Mann matrices basis are same
     other = matrix_basis.get_gell_mann_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_get_normalized_generalized_gell_mann_basis_n_qubit():
@@ -988,7 +992,7 @@ def test_get_normalized_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: n_qubit = 1
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(n_qubit=1)
@@ -1004,7 +1008,7 @@ def test_get_normalized_generalized_gell_mann_basis_n_qubit():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: n_qubit = 2
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(n_qubit=2)
@@ -1095,7 +1099,7 @@ def test_get_normalized_generalized_gell_mann_basis_n_qubit():
         / 2,
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_normalized_generalized_gell_mann_basis_dim():
@@ -1113,7 +1117,7 @@ def test_get_normalized_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # case: dim = 2
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(dim=2)
@@ -1129,12 +1133,12 @@ def test_get_normalized_generalized_gell_mann_basis_dim():
         np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # if dim = 2, normalized Generalized Gell-Mann matrices basis and normalized Pauli basis are same
     other = matrix_basis.get_normalized_pauli_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     # case: dim = 3
     basis = matrix_basis.get_normalized_generalized_gell_mann_basis(dim=3)
@@ -1157,12 +1161,12 @@ def test_get_normalized_generalized_gell_mann_basis_dim():
         np.array([[1, 0, 0], [0, 1, 0], [0, 0, -2]], dtype=np.complex128) / np.sqrt(6),
     ]
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
     # if dim = 3, normalized Generalized Gell-Mann matrices basis and normalized Gell-Mann matrices basis are same
     other = matrix_basis.get_normalized_gell_mann_basis()
     for actual, expected in zip(basis, other):
-        npt.assert_almost_equal(actual.toarray(), expected.toarray(), decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
 
 def test_convert_vec_raise_exception_invalid_length():

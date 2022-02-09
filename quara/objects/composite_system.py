@@ -72,7 +72,9 @@ class CompositeSystem:
 
         # calculate tensor product of ElamentalSystem list for getting total MatrixBasis
         if len(self._elemental_systems) == 1:
-            self._total_basis = self._elemental_systems[0].basis
+            # TODO: check
+            # self._total_basis = self._elemental_systems[0].basis
+            self._total_basis = SparseMatrixBasis(self._elemental_systems[0].basis)
         else:
             basis_list = [e_sys.basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
@@ -81,13 +83,14 @@ class CompositeSystem:
                     matrix_util.kron(val1, val2)
                     for val1, val2 in itertools.product(temp, elem)
                 ]
-            if type(basis_list[0]) == SparseMatrixBasis:
-                self._total_basis = SparseMatrixBasis(temp)
-            elif type(basis_list[0]) == MatrixBasis:
-                self._total_basis = MatrixBasis(temp)
-            else:
-                error_message = f"The Type of basis_list[0] must be MatrixBasis or SparseMatrixBasis, not {type(basis_list[0])}"
-                raise ValueError(error_message)
+            # if type(basis_list[0]) == SparseMatrixBasis:
+            #     self._total_basis = SparseMatrixBasis(temp)
+            # elif type(basis_list[0]) == MatrixBasis:
+            #     self._total_basis = MatrixBasis(temp)
+            # else:
+            #     error_message = f"The Type of basis_list[0] must be MatrixBasis or SparseMatrixBasis, not {type(basis_list[0])}"
+            #     raise ValueError(error_message)
+            self._total_basis = SparseMatrixBasis(temp)
 
         self._basis_basisconjugate = None
         self._dict_from_hs_to_choi = None
@@ -131,8 +134,8 @@ class CompositeSystem:
 
         Returns
         -------
-        MatrixBasis
-            MatrixBasis of CompositeSystem.
+        SparseMatrixBasis
+            SparseMatrixBasis of CompositeSystem.
         """
         return self._total_basis
 
