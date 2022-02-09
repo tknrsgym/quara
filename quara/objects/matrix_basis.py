@@ -60,7 +60,6 @@ class MatrixBasis(Basis):
 
         if not self._is_basis():
             raise ValueError("Invalid argument. `basis` is not basis.")
-        print(f"MatrixBasis: type: {type(self._basis[0])=}")
 
     @property
     def dim(self) -> int:
