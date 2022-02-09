@@ -5,7 +5,7 @@ import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.povm import Povm
@@ -153,7 +153,7 @@ def generate_povm_object_from_povm_name_object_name(
     povm_name: str,
     object_name: str,
     c_sys: CompositeSystem = None,
-    basis: MatrixBasis = None,
+    basis: SparseMatrixBasis = None,
     is_physicality_required: bool = True,
 ) -> Union[List[np.ndarray], Povm]:
     """Return a povm-related object.
@@ -336,7 +336,7 @@ def generate_povm_matrices_from_name(povm_name: str) -> List[np.ndarray]:
 
 
 def generate_povm_vectors_from_name(
-    povm_name: str, basis: MatrixBasis
+    povm_name: str, basis: SparseMatrixBasis
 ) -> List[np.ndarray]:
     """returns vectors on Hermitian basis.
 

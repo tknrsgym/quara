@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Union
 
 # Quara
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     # SparseMatrixBasis,  # TODO: revert
-    SuperMatrixBasis,
+    MatrixBasis,
     get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
 )
@@ -13,7 +13,11 @@ from quara.objects.composite_system import CompositeSystem
 
 
 def generate_composite_system(
-    mode: str, num: int, ids_esys: List[int] = None, basis: MatrixBasis = None
+    mode: str,
+    num: int,
+    ids_esys: List[int] = None,
+    basis: Union[MatrixBasis, SparseMatrixBasis] = None,
+    is_sparse: bool = False,
 ) -> CompositeSystem:
     """return a composite system consisting identical elemental systems.
 
@@ -50,9 +54,12 @@ def generate_composite_system(
         elif mode == "qutrit":
             basis = get_normalized_gell_mann_basis()
 
-        # TODO: revert
-        # basis = SparseMatrixBasis(basis._basis)
-        basis = MatrixBasis(basis._basis)
+        if is_sparse:
+            basis = SparseMatrixBasis(basis._basis)
+        elif (mode == "qubit" and num <= 3) or (mode == "qutrit" and num <= 2):
+            basis = MatrixBasis(basis._basis)
+        else:
+            basis = SparseMatrixBasis(basis._basis)
 
     # elemental systems
     l_esys = []

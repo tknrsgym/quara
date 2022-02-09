@@ -768,6 +768,8 @@ def allclose(a, b, rtol=1.0e-5, atol=1.0e-8, equal_nan=False) -> bool:
         b = b.toarray()
     return np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
+def isclose(a, b, rtol=1.0e-5, atol=1.0e-8) -> bool:
+    return np.ab(a - b) <= (atol + rtol * np.abs(b))
 
 def flatten(matrix) -> np.ndarray:
     if type(matrix) == sparse.csr_matrix or type(matrix) == sparse.csc_matrix:

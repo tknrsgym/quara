@@ -3,7 +3,7 @@ import pytest
 
 import quara.objects.elemental_system as esys
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     get_comp_basis,
     get_gell_mann_basis,
     get_pauli_basis,
@@ -113,7 +113,7 @@ class TestElementalSystem:
             np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
             np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
         ]
-        m_basis = MatrixBasis(basis)
+        m_basis = SparseMatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
         assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
@@ -124,7 +124,7 @@ class TestElementalSystem:
             np.array([[0, 0], [1, 0]], dtype=np.complex128),
             np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
         ]
-        m_basis = MatrixBasis(basis)
+        m_basis = SparseMatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
         assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
@@ -135,7 +135,7 @@ class TestElementalSystem:
             np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
             np.array([[1, 0], [0, -2]], dtype=np.complex128) / np.sqrt(5),
         ]
-        m_basis = MatrixBasis(basis)
+        m_basis = SparseMatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
         assert e1.is_orthonormal_hermitian_0thprop_identity == False
 

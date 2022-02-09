@@ -9,7 +9,7 @@ from quara.utils.matrix_util import (
     kron,
     truncate_computational_fluctuation,
 )
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import SparseMatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
@@ -417,7 +417,7 @@ def generate_gate_from_gate_name(
 
 
 def calc_gate_mat_from_unitary_mat(
-    from_u: np.ndarray, to_basis: MatrixBasis
+    from_u: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """Return the HS matrix for a gate represented by an unitary matrix.
 
@@ -450,7 +450,7 @@ def calc_gate_mat_from_unitary_mat(
 
 
 def calc_gate_mat_from_unitary_mat_with_hermitian_basis(
-    from_u: np.ndarray, to_basis: MatrixBasis
+    from_u: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """Return the HS matrix w.r.t. a Hermitian (orthonormal) matrix basis for a gate represented by an unitary matrix.
 
@@ -492,7 +492,7 @@ def calc_unitary_mat_from_hamiltonian_mat(h: np.ndarray) -> np.ndarray:
 
 
 def calc_gate_mat_from_hamiltonian_mat(
-    h: np.ndarray, to_basis: MatrixBasis
+    h: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """return a HS matrix of a gate for a given Hamiltonian matrix.
 

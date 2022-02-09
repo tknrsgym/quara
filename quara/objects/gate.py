@@ -10,6 +10,7 @@ import quara.utils.matrix_util as mutil
 from quara.utils.matrix_util import vdot
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
 from quara.objects.matrix_basis import (
+    SparseMatrixBasis,
     MatrixBasis,
     get_normalized_pauli_basis,
 )

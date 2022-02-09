@@ -16,7 +16,7 @@ from quara.objects.gate import (
     convert_hs_to_var,
 )
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     get_comp_basis,
 )
 from quara.settings import Settings
@@ -1221,7 +1221,7 @@ def generate_j_part_cb_from_jump_operators(
 
 def generate_j_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
-    basis: MatrixBasis,
+    basis: SparseMatrixBasis,
     eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates j part of EffectiveLindbladian from jump operators.
@@ -1272,7 +1272,7 @@ def generate_k_part_cb_from_jump_operators(
 
 def generate_k_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
-    basis: MatrixBasis,
+    basis: SparseMatrixBasis,
     eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates k part of EffectiveLindbladian from jump operators.
@@ -1324,7 +1324,7 @@ def generate_d_part_cb_from_jump_operators(
 
 def generate_d_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
-    basis: MatrixBasis,
+    basis: SparseMatrixBasis,
     eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates d part of EffectiveLindbladian from jump operators.

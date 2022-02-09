@@ -532,6 +532,3 @@ def test_vdot():
     actual = util.vdot(a, b)
     # Assert
     assert actual == expected
-
-    with pytest.raises(TypeError):
-        _ = util.vdot(a, b.toarray())

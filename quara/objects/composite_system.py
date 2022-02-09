@@ -9,9 +9,7 @@ from tqdm import tqdm
 
 from quara.objects.elemental_system import ElementalSystem
 
-# TODO: revert
-# from quara.objects.matrix_basis import MatrixBasis, SparseMatrixBasis, get_comp_basis
-from quara.objects.matrix_basis import MatrixBasis, SuperMatrixBasis, get_comp_basis
+from quara.objects.matrix_basis import SparseMatrixBasis, MatrixBasis, get_comp_basis
 from quara.utils import matrix_util
 
 
@@ -79,17 +77,17 @@ class CompositeSystem:
             basis_list = [e_sys.basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
             for elem in basis_list[1:]:
-                # temp = [
-                #     kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
-                # ]
-
                 temp = [
-                    sparse.kron(val1, val2, format="csr")
+                    matrix_util.kron(val1, val2)
                     for val1, val2 in itertools.product(temp, elem)
                 ]
-
-            self._total_basis = MatrixBasis(temp)
-            # self._total_basis = SparseMatrixBasis(temp)
+            if type(basis_list[0]) == SparseMatrixBasis:
+                self._total_basis = SparseMatrixBasis(temp)
+            elif type(basis_list[0]) == MatrixBasis:
+                self._total_basis = MatrixBasis(temp)
+            else:
+                error_message = f"The Type of basis_list[0] must be MatrixBasis or SparseMatrixBasis, not {type(basis_list[0])}"
+                raise ValueError(error_message)
 
         self._basis_basisconjugate = None
         self._dict_from_hs_to_choi = None
@@ -101,7 +99,7 @@ class CompositeSystem:
         self._basis_basisconjugate_T_sparse_from_1 = None
         self._basishermitian_basis_T_from_1 = None
 
-    def comp_basis(self, mode: str = "row_major") -> MatrixBasis:
+    def comp_basis(self, mode: str = "row_major") -> SparseMatrixBasis:
         """returns computational basis of CompositeSystem.
 
         Parameters
@@ -120,7 +118,7 @@ class CompositeSystem:
             ``mode`` is unsupported.
         """
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
-        basis_tmp: MatrixBasis
+        basis_tmp: SparseMatrixBasis
 
         if len(self._elemental_systems) == 1:
             basis_tmp = self._elemental_systems[0].comp_basis(mode=mode)
@@ -128,7 +126,7 @@ class CompositeSystem:
             basis_tmp = get_comp_basis(self.dim, mode=mode)
         return basis_tmp
 
-    def basis(self) -> MatrixBasis:
+    def basis(self) -> SparseMatrixBasis:
         """returns MatrixBasis of CompositeSystem.
 
         Returns
@@ -182,7 +180,7 @@ class CompositeSystem:
         """
         return self._elemental_systems[i].dim
 
-    def get_basis(self, index: Union[int, Tuple]) -> MatrixBasis:
+    def get_basis(self, index: Union[int, Tuple]) -> SparseMatrixBasis:
         """returns basis specified by index.
 
         Parameters

@@ -7,7 +7,7 @@ import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     convert_vec,
     get_normalized_pauli_basis,
 )
@@ -485,7 +485,7 @@ class State(QOperation):
         values = sorted(values, reverse=True)
         return values
 
-    def convert_basis(self, other_basis: MatrixBasis) -> np.ndarray:
+    def convert_basis(self, other_basis: SparseMatrixBasis) -> np.ndarray:
         """returns vector representation for ``other_basis``.
 
         Parameters

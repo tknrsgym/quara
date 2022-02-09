@@ -3,6 +3,7 @@ import itertools
 from typing import List, Tuple
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 from quara.settings import Settings
 import quara.utils.matrix_util as mutil
@@ -38,7 +39,7 @@ class Basis:
 
 # TODO: revert
 # class MatrixBasis(Basis):
-class SuperMatrixBasis(Basis):
+class MatrixBasis(Basis):
     def __init__(self, basis: List[np.ndarray]):
         # make _basis immutable
         self._basis: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(basis))
@@ -59,6 +60,7 @@ class SuperMatrixBasis(Basis):
 
         if not self._is_basis():
             raise ValueError("Invalid argument. `basis` is not basis.")
+        print(f"MatrixBasis: type: {type(self._basis[0])=}")
 
     @property
     def dim(self) -> int:
@@ -150,6 +152,7 @@ class SuperMatrixBasis(Basis):
         bool
             True where matrices are normalized, False otherwise.
         """
+
         for mat in self:
             i_product = np.vdot(mat, mat)
             if not np.isclose(i_product, 1, atol=Settings.get_atol()):
@@ -211,12 +214,7 @@ class SuperMatrixBasis(Basis):
         return f"{self.__class__.__name__}(basis={repr(list(self._basis))})"
 
 
-# TODO: move
-from scipy.sparse import csr_matrix
-
-# TODO: revert
-# class SparseMatrixBasis(MatrixBasis):
-class MatrixBasis(SuperMatrixBasis):
+class SparseMatrixBasis(MatrixBasis):
     def __init__(self, basis: List[np.ndarray]):
         super().__init__(basis)
         # make _basis immutable
@@ -250,8 +248,8 @@ class MatrixBasis(SuperMatrixBasis):
             True where matrices are normalized, False otherwise.
         """
         for mat in self:
-            i_product = np.vdot(mat.toarray(), mat.toarray())
-            if not np.isclose(i_product, 1, atol=Settings.get_atol()):
+            i_product = mutil.vdot(mat, mat)
+            if not mutil.isclose(i_product, 1, atol=Settings.get_atol()):
                 return False
         return True
 
