@@ -400,9 +400,7 @@ def extract_prob_dists_from_empi_dists(
     List[np.array]
         A list of probability distributions
     """
-    prob_dists = []
-    for empi_dist in empi_dists:
-        prob_dists.append(empi_dist[1])
+    prob_dists = [empi_dist[1] for empi_dist in empi_dists]
     return prob_dists
 
 

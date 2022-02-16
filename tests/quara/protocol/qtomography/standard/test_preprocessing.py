@@ -6,9 +6,6 @@ import pytest
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.state_typical import generate_state_from_name
 from quara.objects.povm_typical import generate_povm_from_name
-from quara.protocol.qtomography.standard.preprocessing import (
-    extract_nums_from_empi_dists,
-)
 import quara.protocol.qtomography.standard.preprocessing as pre
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
@@ -61,15 +58,31 @@ def test_extract_nums_from_empi_dists():
     # Arrange
     empi_dists = [
         (100, np.array([0.1, 0.9])),
-        (200, np.array([0.2, 0.9])),
+        (200, np.array([0.2, 0.8])),
     ]
 
     # Act
-    actual = extract_nums_from_empi_dists(empi_dists)
+    actual = pre.extract_nums_from_empi_dists(empi_dists)
 
     # Assert
     expected = [100, 200]
     assert actual == expected
+
+
+def test_extract_prob_dists_from_empi_dists():
+    # Arrange
+    empi_dists = [
+        (100, np.array([0.1, 0.9])),
+        (200, np.array([0.2, 0.8])),
+    ]
+
+    # Act
+    actual = pre.extract_prob_dists_from_empi_dists(empi_dists)
+
+    # Assert
+    expected = [np.array([0.1, 0.9]), np.array([0.2, 0.8])]
+    for a, e in zip(actual, expected):
+        npt.assert_almost_equal(a, e, decimal=15)
 
 
 def test_calc_total_num():
