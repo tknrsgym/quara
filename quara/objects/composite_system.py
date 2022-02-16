@@ -291,6 +291,13 @@ class CompositeSystem:
         # return _dict_from_hs_to_choi
         return self._dict_from_hs_to_choi
 
+    def delete_dict_from_hs_to_choi(self) -> None:
+        """delete ``dict_from_hs_to_choi`` property to save memory.
+
+        If you use ``dict_from_hs_to_choi`` again, call ``dict_from_hs_to_choi`` again.
+        """
+        self._dict_from_hs_to_choi = None
+
     @property
     def dict_from_choi_to_hs(self) -> dict:
         if self._dict_from_choi_to_hs is None:
@@ -318,6 +325,13 @@ class CompositeSystem:
         # return _dict_from_choi_to_hs
         return self._dict_from_choi_to_hs
 
+    def delete_dict_from_choi_to_hs(self) -> None:
+        """delete ``dict_from_choi_to_hs`` property to save memory.
+
+        If you use ``dict_from_choi_to_hs`` again, call ``dict_from_choi_to_hs`` again.
+        """
+        self._dict_from_choi_to_hs = None
+
     def _calc_basis_sparse(self) -> None:
         basis = copy.deepcopy(self._total_basis.basis)
         basis_tmp = []
@@ -336,11 +350,25 @@ class CompositeSystem:
             self._calc_basis_sparse()
         return self._basis_T_sparse
 
+    def delete_basis_T_sparse(self) -> None:
+        """delete ``basis_T_sparse`` property to save memory.
+
+        If you use ``basis_T_sparse`` again, call ``basis_T_sparse`` again.
+        """
+        self._basis_T_sparse = None
+
     @property
     def basisconjugate_sparse(self) -> np.ndarray:
         if self._basisconjugate_sparse is None:
             self._calc_basis_sparse()
         return self._basisconjugate_sparse
+
+    def delete_basisconjugate_sparse(self) -> None:
+        """delete ``basisconjugate_sparse`` property to save memory.
+
+        If you use ``basisconjugate_sparse`` again, call ``basisconjugate_sparse`` again.
+        """
+        self._basisconjugate_sparse = None
 
     def _calc_basis_basisconjugate_sparse(self) -> None:
         basis_no = len(self._total_basis.basis)
@@ -393,11 +421,25 @@ class CompositeSystem:
             self._calc_basis_basisconjugate_sparse()
         return self._basisconjugate_basis_sparse
 
+    def delete_basisconjugate_basis_sparse(self) -> None:
+        """delete ``basisconjugate_basis_sparse`` property to save memory.
+
+        If you use ``basisconjugate_basis_sparse`` again, call ``basisconjugate_basis_sparse`` again.
+        """
+        self._basisconjugate_basis_sparse = None
+
     @property
     def basis_basisconjugate_T_sparse(self) -> np.ndarray:
         if self._basis_basisconjugate_T_sparse is None:
             self._calc_basis_basisconjugate_sparse()
         return self._basis_basisconjugate_T_sparse
+
+    def delete_basis_basisconjugate_T_sparse(self) -> None:
+        """delete ``basis_basisconjugate_T_sparse`` property to save memory.
+
+        If you use ``basis_basisconjugate_T_sparse`` again, call ``basis_basisconjugate_T_sparse`` again.
+        """
+        self._basis_basisconjugate_T_sparse = None
 
     @property
     def basis_basisconjugate_T_sparse_from_1(self) -> np.ndarray:
@@ -405,11 +447,25 @@ class CompositeSystem:
             self._calc_basis_basisconjugate_sparse()
         return self._basis_basisconjugate_T_sparse_from_1
 
+    def delete_basis_basisconjugate_T_sparse_from_1(self) -> None:
+        """delete ``basis_basisconjugate_T_sparse_from_1`` property to save memory.
+
+        If you use ``basis_basisconjugate_T_sparse_from_1`` again, call ``basis_basisconjugate_T_sparse_from_1`` again.
+        """
+        self._basis_basisconjugate_T_sparse_from_1 = None
+
     @property
     def basishermitian_basis_T_from_1(self) -> np.ndarray:
         if self._basishermitian_basis_T_from_1 is None:
             self._calc_basis_basisconjugate_sparse()
         return self._basishermitian_basis_T_from_1
+
+    def delete_basishermitian_basis_T_from_1(self) -> None:
+        """delete ``basishermitian_basis_T_from_1`` property to save memory.
+
+        If you use ``basishermitian_basis_T_from_1`` again, call ``basishermitian_basis_T_from_1`` again.
+        """
+        self._basishermitian_basis_T_from_1 = None
 
     @property
     def elemental_systems(self) -> Tuple[ElementalSystem]:

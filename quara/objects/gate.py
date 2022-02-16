@@ -159,6 +159,42 @@ class Gate(QOperation):
     def to_stacked_vector(self) -> np.ndarray:
         return self.hs.flatten()
 
+    def _embed_qoperation_from_qutrits_to_qubits(
+        self, perm_matrix, c_sys_qubits
+    ) -> QOperation:
+        num_qutrits = self.composite_system.num_e_sys
+
+        mats_qutrits = self.to_kraus_matrices()
+        coeff = 1 / np.sqrt(len(mats_qutrits))
+
+        # calc matrices for qubits
+        mats_qubits = []
+        for mat_qutrits in mats_qutrits:
+            mat_qubits = QOperation._calc_matrix_from_qutrits_to_qubits(
+                num_qutrits, perm_matrix, mat_qutrits, coeff
+            )
+            mats_qubits.append(mat_qubits)
+
+        # gerenera qoperation for qubits
+        hs = to_hs_from_kraus_matrices(
+            c_sys_qubits,
+            mats_qubits,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+        )
+        new_qope = Gate(
+            c_sys_qubits,
+            hs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+        )
+        return new_qope
+
     def calc_gradient(self, var_index: int) -> "Gate":
         gate = calc_gradient_from_gate(
             self.composite_system,
@@ -840,6 +876,35 @@ def to_kraus_matrices_from_hs(
         else:
             kraus.append(k)
     return kraus
+
+
+def to_hs_from_kraus_matrices(
+    c_sys: CompositeSystem,
+    kraus: List[np.ndarray],
+    eps_truncate_imaginary_part: float = None,
+) -> np.ndarray:
+    """returns HS representation of this gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    kraus : List[np.ndarray]
+        Kraus matrices of gate.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.ndarray
+        HS representation of this gate.
+    """
+    kraus_tensor = [np.kron(mat, mat.conjugate()) for mat in kraus]
+    hs_cb = sum(kraus_tensor)
+    hs = convert_hs(hs_cb, c_sys.comp_basis(), c_sys.basis())
+    return mutil.truncate_hs(
+        hs, eps_truncate_imaginary_part=eps_truncate_imaginary_part
+    )
 
 
 def to_process_matrix_from_hs(
