@@ -619,13 +619,48 @@ def combine_nums_prob_dists(
 
 
 def squared_distance_state(state1: State, state2: State) -> float:
+    """Calculate the square of the distance between States.
+
+    Parameters
+    ----------
+    state1 : State
+        State 1
+    state2 : State
+        State 2
+
+    Returns
+    -------
+    float
+        Square of the difference between the State1 vector and the State2 vector.
+    """
     diff = state1.vec - state2.vec
     res = np.inner(diff, diff)
     return res
 
 
 def squared_distance_povm(povm1: Povm, povm2: Povm) -> float:
-    assert povm1.num_outcomes == povm2.num_outcomes
+    """Calculate the square of the distance between Povms.
+
+    Parameters
+    ----------
+    povm1 : Povm
+        Povm 1
+    povm2 : Povm
+        Povm 2
+
+    Returns
+    -------
+    float
+        Square of the difference between the Povm1 vector and the Povm2 vector.
+
+    Raises
+    ------
+    ValueError
+        The num_outcomes of povm1 and povm2 must be the same.
+    """
+    if povm1.num_outcomes != povm2.num_outcomes:
+        error_message = f"The num_outcomes of povm1 and povm2 must be the same. povm1.num_outcomes={povm1.num_outcomes}, povm2.num_outcomes={povm2.num_outcomes}"
+        raise ValueError(error_message)
     res = 0.0
     for x in range(povm1.num_outcomes):
         diff = povm1.vecs[x] - povm2.vecs[x]
