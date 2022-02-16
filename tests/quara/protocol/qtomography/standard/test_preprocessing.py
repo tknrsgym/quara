@@ -4,9 +4,10 @@ import numpy.testing as npt
 import pytest
 
 from quara.objects.composite_system_typical import generate_composite_system
+from quara.objects.state_typical import generate_state_from_name
 from quara.objects.povm_typical import generate_povm_from_name
 from quara.protocol.qtomography.standard.preprocessing import (
-    StandardQTomographyPreprocessing,
+    extract_nums_from_empi_dists,
 )
 import quara.protocol.qtomography.standard.preprocessing as pre
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
@@ -33,22 +34,42 @@ def get_test_data_qst(on_para_eq_constraint=True):
     return qst, c_sys
 
 
-class TestStandardQTomographyPreprocessing:
-    def test_init(self):
-        # Arrange
-        sqt, _ = get_test_data_qst()
+def get_test_data_povmt(on_para_eq_constraint=True):
+    c_sys = generate_composite_system("qubit", 1)
 
-        # Act
-        preprocessing = StandardQTomographyPreprocessing(sqt)
+    # |+><+|
+    state_x0 = generate_state_from_name(c_sys, "x0")
+    # |+i><+i|
+    state_y0 = generate_state_from_name(c_sys, "y0")
+    # |0><0|
+    state_z0 = generate_state_from_name(c_sys, "z0")
+    # |1><1|
+    state_z1 = generate_state_from_name(c_sys, "z1")
+    tester_objects = [state_x0, state_y0, state_z0, state_z1]
 
-        # Assert
-        assert preprocessing.type_estimate == "state"
-        assert type(preprocessing.sqt) == StandardQst
-        assert preprocessing.prob_dists == None
-        assert preprocessing.eps_prob_zero == 10 ** (-12)
-        assert preprocessing.nums_data == None
-        assert preprocessing.num_data_total == None
-        assert preprocessing.num_data_ratios == None
+    povmt = StandardPovmt(
+        tester_objects,
+        on_para_eq_constraint=on_para_eq_constraint,
+        num_outcomes=2,
+        seed_data=7,
+    )
+
+    return povmt, c_sys
+
+
+def test_extract_nums_from_empi_dists():
+    # Arrange
+    empi_dists = [
+        (100, np.array([0.1, 0.9])),
+        (200, np.array([0.2, 0.9])),
+    ]
+
+    # Act
+    actual = extract_nums_from_empi_dists(empi_dists)
+
+    # Assert
+    expected = [100, 200]
+    assert actual == expected
 
 
 def test_calc_total_num():
