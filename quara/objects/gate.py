@@ -5,6 +5,7 @@ from operator import add
 from typing import List, Tuple, Optional
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 import quara.utils.matrix_util as mutil
 from quara.utils.matrix_util import vdot
@@ -614,7 +615,10 @@ def to_choi_from_hs(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:
     num_basis = len(c_sys.basis())
     tmp_list = []
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
-        tmp = hs[alpha][beta] * c_sys.basis_basisconjugate((alpha, beta))
+        bb = c_sys.basis_basisconjugate((alpha, beta))
+        if type(bb) == csr_matrix:
+            bb = bb.toarray()
+        tmp = hs[alpha][beta] * bb
         tmp_list.append(tmp)
 
     # summing
