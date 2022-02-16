@@ -127,6 +127,12 @@ def test_generate_cvxpy_constraints_from_cvxpy_variable():
         assert expression.sign == "UNKNOWN"
         assert expression.shape == (4, 4)
 
+    ### unsupported type of estimate
+    with pytest.raises(ValueError):
+        conversion.generate_cvxpy_constraints_from_cvxpy_variable(
+            c_sys, "unsupported", var
+        )
+
 
 def test_dmat_from_var():
     # Arrange
@@ -188,7 +194,74 @@ def test_mprocess_element_choi_from_var():
         assert actual.shape == (4, 4)
 
 
-"""
+def test_generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity():
+    c_sys = generate_composite_system("qubit", 1)
+
+    ### state
+    # Arrange
+    var = np.array([0, 0, 1]) / np.sqrt(2)
+
+    # Act
+    actual = conversion.generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
+        c_sys, "state", var
+    )
+
+    # Assert
+    assert len(actual) == 1
+    assert type(actual[0]) == PSD
+    assert actual[0].shape == (2, 2)
+
+    ### povm
+    # Arrange
+    var = conversion.generate_cvxpy_variable("povm", 2, num_outcomes=2)
+
+    # Act
+    actual = conversion.generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
+        c_sys, "povm", var, num_outcomes=2
+    )
+
+    # Assert
+    assert len(actual) == 2
+    for a in actual:
+        assert type(a) == PSD
+        assert a.shape == (2, 2)
+
+    ### gate
+    # Arrange
+    var = conversion.generate_cvxpy_variable("gate", 2)
+
+    # Act
+    actual = conversion.generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
+        c_sys, "gate", var
+    )
+
+    # Assert
+    assert len(actual) == 1
+    assert type(actual[0]) == PSD
+    assert actual[0].shape == (4, 4)
+
+    ### mprocess
+    # Arrange
+    var = conversion.generate_cvxpy_variable("mprocess", 2, num_outcomes=2)
+
+    # Act
+    actual = conversion.generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
+        c_sys, "mprocess", var, num_outcomes=2
+    )
+
+    # Assert
+    assert len(actual) == 2
+    for a in actual:
+        assert type(a) == PSD
+        assert a.shape == (4, 4)
+
+    ### unsupported type of estimate
+    with pytest.raises(ValueError):
+        conversion.generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
+            c_sys, "unsupported", var
+        )
+
+
 def test_dmat_from_var_with_sparsity():
     # Arrange
     c_sys = generate_composite_system("qubit", 1)
@@ -201,7 +274,53 @@ def test_dmat_from_var_with_sparsity():
     assert actual.curvature == "AFFINE"
     assert actual.sign == "UNKNOWN"
     assert actual.shape == (2, 2)
-"""
+
+
+def test_povm_matrices_from_var_with_sparsity():
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = conversion.generate_cvxpy_variable("povm", 2, num_outcomes=2)
+
+    # Act
+    actual = conversion.povm_matrices_from_var_with_sparsity(c_sys, var)
+
+    assert len(actual) == 2
+    for a in actual:
+        # Assert
+        assert a.curvature == "AFFINE"
+        assert a.sign == "UNKNOWN"
+        assert a.shape == (2, 2)
+
+
+def test_choi_from_var_with_sparsity():
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = conversion.generate_cvxpy_variable("gate", 2)
+
+    # Act
+    actual = conversion.choi_from_var_with_sparsity(c_sys, var)
+
+    # Assert
+    assert actual.curvature == "AFFINE"
+    assert actual.sign == "UNKNOWN"
+    assert actual.shape == (4, 4)
+
+
+def test_mprocess_element_choi_from_var_with_sparsity():
+    # Arrange
+    c_sys = generate_composite_system("qubit", 1)
+    var = conversion.generate_cvxpy_variable("mprocess", 2, num_outcomes=2)
+
+    for index_outcomes in range(2):
+        # Act
+        actual = conversion.mprocess_element_choi_from_var(
+            c_sys, 2, index_outcomes, var
+        )
+
+        # Assert
+        assert actual.curvature == "AFFINE"
+        assert actual.sign == "UNKNOWN"
+        assert actual.shape == (4, 4)
 
 
 def test_convert_cxvpy_variable_to_state_vec():
