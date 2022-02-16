@@ -393,22 +393,22 @@ class TestGate:
         # for I
         actual = get_i(c_sys).to_choi_matrix()
         expected = np.array([[1, 0, 0, 1], [0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 1]])
-        npt.assert_almost_equal(actual.toarray(), expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for X
         actual = get_x(c_sys).to_choi_matrix()
         expected = np.array([[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]])
-        npt.assert_almost_equal(actual.toarray(), expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for Y
         actual = get_y(c_sys).to_choi_matrix()
         expected = np.array([[0, 0, 0, 0], [0, 1, -1, 0], [0, -1, 1, 0], [0, 0, 0, 0]])
-        npt.assert_almost_equal(actual.toarray(), expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for Z
         actual = get_z(c_sys).to_choi_matrix()
         expected = np.array([[1, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0], [-1, 0, 0, 1]])
-        npt.assert_almost_equal(actual.toarray(), expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
         # for H
         actual = get_h(c_sys).to_choi_matrix()
@@ -417,7 +417,7 @@ class TestGate:
             / 2
             * np.array([[1, 1, 1, -1], [1, 1, 1, -1], [1, 1, 1, -1], [-1, -1, -1, 1]])
         )
-        npt.assert_almost_equal(actual.toarray(), expected, decimal=15)
+        npt.assert_almost_equal(actual, expected, decimal=15)
 
     def test_to_choi_matrix_with_dict(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1035,9 +1035,7 @@ class TestGate:
         expected_choi = np.array(
             [[0, 0, 0, 0], [0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0]]
         )
-        npt.assert_almost_equal(
-            actual.to_choi_matrix().toarray(), expected_choi, decimal=14
-        )
+        npt.assert_almost_equal(actual.to_choi_matrix(), expected_choi, decimal=14)
         expected_hs = np.array(
             [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, -1]]
         )
