@@ -31,7 +31,7 @@ def type_standard_qtomography(sqt: StandardQTomography) -> str:
 
     Raises
     ------
-    ValueError
+    TypeError
         Type of StandardQTomography is invalid.
     """
     if type(sqt) == StandardQst:
@@ -43,7 +43,7 @@ def type_standard_qtomography(sqt: StandardQTomography) -> str:
     elif type(sqt) == StandardQmpt:
         t = "mprocess"
     else:
-        raise ValueError(
+        raise TypeError(
             f"Type of StandardQTomography is invalid. Type of sqt={type(sqt)}"
         )
     return t

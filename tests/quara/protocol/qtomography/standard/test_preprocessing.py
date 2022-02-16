@@ -18,6 +18,7 @@ from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.qoperation_typical import generate_qoperation
+from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 
 
 def get_test_data_qst(on_para_eq_constraint=True):
@@ -69,6 +70,75 @@ def test_extract_nums_from_empi_dists():
     # Assert
     expected = [100, 200]
     assert actual == expected
+
+
+def test_type_standard_qtomography():
+    # Case 1:
+    # Arrange
+    c_sys = generate_composite_system(mode="qubit", num=1)
+    povms = [generate_qoperation("povm", name, c_sys=c_sys) for name in "xyz"]
+    source_sqt = StandardQst(povms)
+
+    # Act
+    actual = pre.type_standard_qtomography(source_sqt)
+
+    # Assert
+    expected = "state"
+    assert actual == expected
+
+    # Case 2:
+    # Arrange
+    c_sys = generate_composite_system(mode="qubit", num=1)
+    states = [
+        generate_qoperation("state", name, c_sys=c_sys) for name in ["x0", "x1", "y0"]
+    ]
+    source_sqt = StandardPovmt(states, num_outcomes=2)
+
+    # Act
+    actual = pre.type_standard_qtomography(source_sqt)
+
+    # Assert
+    expected = "povm"
+    assert actual == expected
+
+    # Case 3:
+    # Arrange
+    c_sys = generate_composite_system(mode="qubit", num=1)
+    states = [
+        generate_qoperation("state", name, c_sys=c_sys) for name in ["x0", "x1", "y0"]
+    ]
+    povms = [generate_qoperation("povm", name, c_sys=c_sys) for name in "xyz"]
+    source_sqt = StandardQpt(states, povms)
+
+    # Act
+    actual = pre.type_standard_qtomography(source_sqt)
+
+    # Assert
+    expected = "gate"
+    assert actual == expected
+
+    # Case 4:
+    # Arrange
+    c_sys = generate_composite_system(mode="qubit", num=1)
+    states = [
+        generate_qoperation("state", name, c_sys=c_sys) for name in ["x0", "x1", "y0"]
+    ]
+    povms = [generate_qoperation("povm", name, c_sys=c_sys) for name in "xyz"]
+    source_sqt = StandardQmpt(states, povms, num_outcomes=2)
+
+    # Act
+    actual = pre.type_standard_qtomography(source_sqt)
+
+    # Assert
+    expected = "mprocess"
+    assert actual == expected
+
+    # Case 5:
+    invalid_source = ["dummy"]
+
+    # Act & Assert
+    with pytest.raises(TypeError):
+        _ = pre.type_standard_qtomography(invalid_source)
 
 
 def test_squared_distance_state():
