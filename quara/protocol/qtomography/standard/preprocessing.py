@@ -2,6 +2,8 @@ from abc import abstractmethod
 from typing import List, Tuple
 import numpy as np
 
+from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.composite_system import CompositeSystem
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
@@ -22,13 +24,18 @@ class StandardQTomographyPreprocessing:
         self.set_sqt(sqt=sqt)
         self.set_eps_prob_zero(eps_prob_zero)
 
-    def set_type_estimate(self, t: str):
+        self._prob_dists: List[np.ndarray] = None
+        self._nums_data: List[int] = None
+        self._num_data_total: int = None
+        self._num_data_ratios: List[float] = None
+
+    def set_type_estimate(self, t: str) -> None:
         self._type_estimate = t
 
-    def set_sqt(self, sqt: StandardQTomography):
+    def set_sqt(self, sqt: StandardQTomography) -> None:
         self._sqt = sqt
 
-    def set_prob_dists(self, p: List[np.ndarray]):
+    def set_prob_dists(self, p: List[np.ndarray]) -> None:
         q = p
         for i, pi in enumerate(p):
             for x, pi_x in enumerate(pi):
@@ -38,10 +45,10 @@ class StandardQTomographyPreprocessing:
                     q[i][x] = 1
         self._prob_dists = q
 
-    def set_eps_prob_zero(self, eps: float):
+    def set_eps_prob_zero(self, eps: float) -> None:
         self._eps_prob_zero = eps
 
-    def set_from_empi_dists(self, empi_dists: List[Tuple[int, np.ndarray]]):
+    def set_from_empi_dists(self, empi_dists: List[Tuple[int, np.ndarray]]) -> None:
         self._nums_data = extract_nums_from_empi_dists(empi_dists)
         self._num_data_total = calc_total_num(self.nums_data)
         self._num_data_ratios = calc_num_ratios(self.nums_data)
@@ -49,35 +56,35 @@ class StandardQTomographyPreprocessing:
         # self._prob_dists = extract_prob_dists_from_empi_dists(empi_dists)
 
     @property
-    def type_estimate(self):
+    def type_estimate(self) -> str:
         return self._type_estimate
 
     @property
-    def sqt(self):
+    def sqt(self) -> StandardQTomography:
         return self._sqt
 
     @property
-    def prob_dists(self):
+    def prob_dists(self) -> List[np.ndarray]:
         return self._prob_dists
 
     @property
-    def eps_prob_zero(self):
+    def eps_prob_zero(self) -> float:
         return self._eps_prob_zero
 
     @property
-    def nums_data(self):
+    def nums_data(self) -> List[int]:
         return self._nums_data
 
     @property
-    def num_data_total(self):
+    def num_data_total(self) -> int:
         return self._num_data_total
 
     @property
-    def num_data_ratios(self):
+    def num_data_ratios(self) -> List[float]:
         return self._num_data_ratios
 
     @property
-    def composite_system(self):
+    def composite_system(self) -> CompositeSystem:
         t = self.type_estimate
         if t == "state":
             c_sys = self.sqt._experiment.povms[0]._composite_system
@@ -86,13 +93,13 @@ class StandardQTomographyPreprocessing:
         elif t == "gate":
             c_sys = self.sqt._experiment.povms[0]._composite_system
         elif t == "mprocess":
-            c_sys = self.sqt._experiment.povms[0]._composite_system    
+            c_sys = self.sqt._experiment.povms[0]._composite_system
         return c_sys
 
-    def basis(self):
+    def basis(self) -> MatrixBasis:
         return self.composite_system().basis()
 
-    def calc_prob_dist_from_var(self, var, i):
+    def calc_prob_dist_from_var(self, var, i) -> np.ndarray:
         vec = self.to_vec_from_var(var)
         p = self.sqt.get_coeffs_1st_mat(i) @ vec + self.sqt.get_coeffs_0th_vec(i)
         for x, px in enumerate(p):
@@ -101,7 +108,7 @@ class StandardQTomographyPreprocessing:
 
         return p
 
-    def dim_sys(self):
+    def dim_sys(self) -> int:
         t = self.type_estimate
         if t == "state":
             d = self.sqt._experiment.povms[0].dim
@@ -110,18 +117,33 @@ class StandardQTomographyPreprocessing:
         elif t == "gate":
             d = self.sqt._experiment.povms[0].dim
         elif t == "mprocess":
-            d = self.sqt._experiment.povms[0].dim    
+            d = self.sqt._experiment.povms[0].dim
         return d
 
-    def num_outcomes_estimate(self):
+    def num_outcomes_estimate(self) -> int:
         assert self.type_estimate == "povm" or self.type_estimate == "mprocess"
         num = self.sqt.num_outcomes(schedule_index=0)
         return num
 
 
-
 def type_standard_qtomography(sqt: StandardQTomography) -> str:
-    """ Return Type of Standard Q Tomography """
+    """Returns string of Type of StandardQTomography.
+
+    Parameters
+    ----------
+    sqt : StandardQTomography
+        StandardQTomography object to get string of Type.
+
+    Returns
+    -------
+    str
+        string of Type of StandardQTomography.
+
+    Raises
+    ------
+    ValueError
+        Type of StandardQTomography is invalid.
+    """
     if type(sqt) == StandardQst:
         t = "state"
     elif type(sqt) == StandardPovmt:
@@ -131,12 +153,14 @@ def type_standard_qtomography(sqt: StandardQTomography) -> str:
     elif type(sqt) == StandardQmpt:
         t = "mprocess"
     else:
-        raise ValueError(f"Type of StandardQTomography is invalid!")
+        raise ValueError(
+            f"Type of StandardQTomography is invalid. Type of sqt={type(sqt)}"
+        )
     return t
 
 
 def is_prob_dist(p: np.ndarray, eps: float = 10 ** (-12)) -> bool:
-    """return True if p is a probability distribution and False if not. """
+    """return True if p is a probability distribution and False if not."""
     assert p.dtype == float
     assert p.ndim == 1
 
@@ -189,7 +213,7 @@ def which_type_prob_dist(p: np.ndarray, eps: float = 10 ** (-12)) -> int:
 
 
 def is_prob_dist(p: np.ndarray, eps: float = 10 ** (-12)) -> bool:
-    """return True if p is a probability distribution and False if not. """
+    """return True if p is a probability distribution and False if not."""
     assert p.dtype == float
     assert p.ndim == 1
 
@@ -615,6 +639,7 @@ def squared_distance_gate(gate1: Gate, gate2: Gate) -> float:
     res = np.trace(diff.T @ diff)
     return res
 
+
 def squared_distance_mprocess(mprocess1: MProcess, mprocess2: MProcess) -> float:
     assert mprocess1.num_outcomes == mprocess2.num_outcomes
     res = 0.0
@@ -622,7 +647,7 @@ def squared_distance_mprocess(mprocess1: MProcess, mprocess2: MProcess) -> float
         diff = mprocess1.hss[x] - mprocess2.hss[x]
         res += np.trace(diff.T @ diff)
     res = res / mprocess1.num_outcomes
-    return res        
+    return res
 
 
 def squared_distance_qoperation(qop1: QOperation, qop2: QOperation) -> float:
@@ -634,7 +659,7 @@ def squared_distance_qoperation(qop1: QOperation, qop2: QOperation) -> float:
     elif type(qop1) == Gate:
         res = squared_distance_gate(qop1, qop2)
     elif type(qop1) == MProcess:
-        res = squared_distance_mprocess(qop1, qop2)    
+        res = squared_distance_mprocess(qop1, qop2)
     else:
         raise ValueError(f"Type of qop1 or qop2 is invalid!")
     return res
