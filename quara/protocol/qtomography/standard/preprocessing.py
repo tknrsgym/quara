@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from multiprocessing.sharedctypes import Value
 from typing import List, Tuple
 import numpy as np
 
@@ -562,12 +563,21 @@ def calc_num_ratios(nums: List[int]) -> List[float]:
     =======
     List[float]
         a list of racios, ci:=Ni/N, where N:=sum_i Ni
+
+    Raises
+    ------
+    ValueError
+        All elements of nums must be non-negative.
     """
-    for Ni in nums:
-        assert Ni >= 0
+    for i, Ni in enumerate(nums):
+        if Ni < 0:
+            error_message = (
+                "All elements of nums must be non-negative. nums[{i}] = {Ni}"
+            )
+            raise ValueError(error_message)
 
     N = calc_total_num(nums)
-    assert N > 0
+
     cs = []
     for Ni in nums:
         ci = Ni / N
