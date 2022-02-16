@@ -16,116 +16,6 @@ from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
 from quara.protocol.qtomography.standard.standard_qmpt import StandardQmpt
 
 
-class StandardQTomographyPreprocessing:
-    def __init__(self, sqt: StandardQTomography, eps_prob_zero: float = 10 ** (-12)):
-        # Type of Standard Q Tomography
-        type_estimate = type_standard_qtomography(sqt)
-        self.set_type_estimate(t=type_estimate)
-        self.set_sqt(sqt=sqt)
-        self.set_eps_prob_zero(eps_prob_zero)
-
-        self._prob_dists: List[np.ndarray] = None
-        self._nums_data: List[int] = None
-        self._num_data_total: int = None
-        self._num_data_ratios: List[float] = None
-
-    def set_type_estimate(self, t: str) -> None:
-        self._type_estimate = t
-
-    def set_sqt(self, sqt: StandardQTomography) -> None:
-        self._sqt = sqt
-
-    def set_prob_dists(self, p: List[np.ndarray]) -> None:
-        q = p
-        for i, pi in enumerate(p):
-            for x, pi_x in enumerate(pi):
-                if pi_x < self._eps_prob_zero:
-                    q[i][x] = 0
-                elif pi_x > 1.0:
-                    q[i][x] = 1
-        self._prob_dists = q
-
-    def set_eps_prob_zero(self, eps: float) -> None:
-        self._eps_prob_zero = eps
-
-    def set_from_empi_dists(self, empi_dists: List[Tuple[int, np.ndarray]]) -> None:
-        self._nums_data = extract_nums_from_empi_dists(empi_dists)
-        self._num_data_total = calc_total_num(self.nums_data)
-        self._num_data_ratios = calc_num_ratios(self.nums_data)
-        self.set_prob_dists(extract_prob_dists_from_empi_dists(empi_dists))
-        # self._prob_dists = extract_prob_dists_from_empi_dists(empi_dists)
-
-    @property
-    def type_estimate(self) -> str:
-        return self._type_estimate
-
-    @property
-    def sqt(self) -> StandardQTomography:
-        return self._sqt
-
-    @property
-    def prob_dists(self) -> List[np.ndarray]:
-        return self._prob_dists
-
-    @property
-    def eps_prob_zero(self) -> float:
-        return self._eps_prob_zero
-
-    @property
-    def nums_data(self) -> List[int]:
-        return self._nums_data
-
-    @property
-    def num_data_total(self) -> int:
-        return self._num_data_total
-
-    @property
-    def num_data_ratios(self) -> List[float]:
-        return self._num_data_ratios
-
-    @property
-    def composite_system(self) -> CompositeSystem:
-        t = self.type_estimate
-        if t == "state":
-            c_sys = self.sqt._experiment.povms[0]._composite_system
-        elif t == "povm":
-            c_sys = self.sqt._experiment.states[0]._composite_system
-        elif t == "gate":
-            c_sys = self.sqt._experiment.povms[0]._composite_system
-        elif t == "mprocess":
-            c_sys = self.sqt._experiment.povms[0]._composite_system
-        return c_sys
-
-    def basis(self) -> MatrixBasis:
-        return self.composite_system().basis()
-
-    def calc_prob_dist_from_var(self, var, i) -> np.ndarray:
-        vec = self.to_vec_from_var(var)
-        p = self.sqt.get_coeffs_1st_mat(i) @ vec + self.sqt.get_coeffs_0th_vec(i)
-        for x, px in enumerate(p):
-            if px < 10 ** (-12):
-                p[x] = 0.0
-
-        return p
-
-    def dim_sys(self) -> int:
-        t = self.type_estimate
-        if t == "state":
-            d = self.sqt._experiment.povms[0].dim
-        elif t == "povm":
-            d = self.sqt._experiment.states[0].dim
-        elif t == "gate":
-            d = self.sqt._experiment.povms[0].dim
-        elif t == "mprocess":
-            d = self.sqt._experiment.povms[0].dim
-        return d
-
-    def num_outcomes_estimate(self) -> int:
-        assert self.type_estimate == "povm" or self.type_estimate == "mprocess"
-        num = self.sqt.num_outcomes(schedule_index=0)
-        return num
-
-
 def type_standard_qtomography(sqt: StandardQTomography) -> str:
     """Returns string of Type of StandardQTomography.
 
@@ -157,23 +47,6 @@ def type_standard_qtomography(sqt: StandardQTomography) -> str:
             f"Type of StandardQTomography is invalid. Type of sqt={type(sqt)}"
         )
     return t
-
-
-def is_prob_dist(p: np.ndarray, eps: float = 10 ** (-12)) -> bool:
-    """return True if p is a probability distribution and False if not."""
-    assert p.dtype == float
-    assert p.ndim == 1
-
-    res = True
-    for px in p:
-        if px < -eps or px > 1 + eps:
-            res = False
-
-    s = np.sum(p)
-    if abs(1 - s) > eps:
-        res = False
-
-    return res
 
 
 def which_type_prob_dist(p: np.ndarray, eps: float = 10 ** (-12)) -> int:
@@ -496,20 +369,19 @@ def get_indices_list_remain_type_zero(
 
 
 def extract_nums_from_empi_dists(empi_dists: List[Tuple[int, np.ndarray]]) -> List[int]:
-    """returns a list of numbers of data extracted from empirical distributions.
+    """Returns a list of numbers of data extracted from empirical distributions.
 
     Parameters
     ----------
     empi_dists: List[Tuple[int, np.array]]
+        A empirical distributions
 
     Returns
     -------
     List[int]
         A list of numbers of data
     """
-    nums = []
-    for empi_dist in empi_dists:
-        nums.append(empi_dist[0])
+    nums = [empi_dist[0] for empi_dist in empi_dists]
     return nums
 
 
