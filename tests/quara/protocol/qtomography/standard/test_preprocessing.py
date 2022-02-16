@@ -51,6 +51,33 @@ class TestStandardQTomographyPreprocessing:
         assert preprocessing.num_data_ratios == None
 
 
+def test_calc_total_num():
+    # Arrange
+    source = [0.5, 0.3, 0.2]
+    # Act
+    actual = pre.calc_total_num(source)
+    # Assert
+    assert actual == 1
+
+
+def test_calc_num_ratio():
+    # Case 1: invalid input
+    # Arrange
+    source = [-1]
+    # Act & Assert
+    with pytest.raises(ValueError):
+        _ = pre.calc_num_ratios(source)
+
+    # Case 2:
+    # Arrange
+    source = [1, 1, 0]
+    # Act
+    actual = pre.calc_num_ratios(source)
+    # Assert
+    expected = [0.5, 0.5, 0]
+    assert actual == expected
+
+
 def test_type_standard_qtomography():
     # Case 1:
     # Arrange
