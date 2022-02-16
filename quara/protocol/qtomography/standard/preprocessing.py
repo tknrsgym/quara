@@ -6,10 +6,12 @@ from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.povm import Povm
 from quara.objects.gate import Gate
+from quara.objects.mprocess import MProcess
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
 from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
 from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
+from quara.protocol.qtomography.standard.standard_qmpt import StandardQmpt
 
 
 class StandardQTomographyPreprocessing:
@@ -83,14 +85,12 @@ class StandardQTomographyPreprocessing:
             c_sys = self.sqt._experiment.states[0]._composite_system
         elif t == "gate":
             c_sys = self.sqt._experiment.povms[0]._composite_system
+        elif t == "mprocess":
+            c_sys = self.sqt._experiment.povms[0]._composite_system    
         return c_sys
 
     def basis(self):
         return self.composite_system().basis()
-
-    @abstractmethod
-    def to_vec_from_var(self, var):
-        raise NotImplementedError()
 
     def calc_prob_dist_from_var(self, var, i):
         vec = self.to_vec_from_var(var)
@@ -109,12 +109,15 @@ class StandardQTomographyPreprocessing:
             d = self.sqt._experiment.states[0].dim
         elif t == "gate":
             d = self.sqt._experiment.povms[0].dim
+        elif t == "mprocess":
+            d = self.sqt._experiment.povms[0].dim    
         return d
 
     def num_outcomes_estimate(self):
-        assert self.type_estimate == "povm"
+        assert self.type_estimate == "povm" or self.type_estimate == "mprocess"
         num = self.sqt.num_outcomes(schedule_index=0)
         return num
+
 
 
 def type_standard_qtomography(sqt: StandardQTomography) -> str:
@@ -125,8 +128,8 @@ def type_standard_qtomography(sqt: StandardQTomography) -> str:
         t = "povm"
     elif type(sqt) == StandardQpt:
         t = "gate"
-    # elif type(sqt) == StandardQmpt:
-    #    raise NotImplementedError
+    elif type(sqt) == StandardQmpt:
+        t = "mprocess"
     else:
         raise ValueError(f"Type of StandardQTomography is invalid!")
     return t
@@ -612,6 +615,15 @@ def squared_distance_gate(gate1: Gate, gate2: Gate) -> float:
     res = np.trace(diff.T @ diff)
     return res
 
+def squared_distance_mprocess(mprocess1: MProcess, mprocess2: MProcess) -> float:
+    assert mprocess1.num_outcomes == mprocess2.num_outcomes
+    res = 0.0
+    for x in range(mprocess1.num_outcomes):
+        diff = mprocess1.hss[x] - mprocess2.hss[x]
+        res += np.trace(diff.T @ diff)
+    res = res / mprocess1.num_outcomes
+    return res        
+
 
 def squared_distance_qoperation(qop1: QOperation, qop2: QOperation) -> float:
     assert type(qop1) == type(qop2)
@@ -621,6 +633,8 @@ def squared_distance_qoperation(qop1: QOperation, qop2: QOperation) -> float:
         res = squared_distance_povm(qop1, qop2)
     elif type(qop1) == Gate:
         res = squared_distance_gate(qop1, qop2)
+    elif type(qop1) == MProcess:
+        res = squared_distance_mprocess(qop1, qop2)    
     else:
         raise ValueError(f"Type of qop1 or qop2 is invalid!")
     return res
