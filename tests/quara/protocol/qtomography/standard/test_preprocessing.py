@@ -8,6 +8,9 @@ from quara.protocol.qtomography.standard.preprocessing import (
     StandardQTomographyPreprocessing,
 )
 from quara.protocol.qtomography.standard.standard_qst import StandardQst
+from quara.protocol.qtomography.standard.standard_povmt import StandardPovmt
+from quara.protocol.qtomography.standard.standard_qpt import StandardQpt
+from quara.protocol.qtomography.standard.standard_qmpt import StandardQmpt
 
 
 def get_test_data_qst(on_para_eq_constraint=True):
@@ -23,6 +26,19 @@ def get_test_data_qst(on_para_eq_constraint=True):
     return qst, c_sys
 
 
-def test_init():
-    sqt, c_sys = get_test_data_qst()
-    StandardQTomographyPreprocessing(sqt)
+class TestStandardQTomographyPreprocessing:
+    def test_init(self):
+        # Arrange
+        sqt, _ = get_test_data_qst()
+
+        # Act
+        preprocessing = StandardQTomographyPreprocessing(sqt)
+
+        # Assert
+        assert preprocessing.type_estimate == "state"
+        assert type(preprocessing.sqt) == StandardQst
+        assert preprocessing.prob_dists == None
+        assert preprocessing.eps_prob_zero == 10 ** (-12)
+        assert preprocessing.nums_data == None
+        assert preprocessing.num_data_total == None
+        assert preprocessing.num_data_ratios == None
