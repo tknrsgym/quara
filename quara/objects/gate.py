@@ -5,10 +5,13 @@ from operator import add
 from typing import List, Tuple, Optional
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 import quara.utils.matrix_util as mutil
+from quara.utils.matrix_util import vdot
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
 from quara.objects.matrix_basis import (
+    SparseMatrixBasis,
     MatrixBasis,
     get_normalized_pauli_basis,
 )
@@ -580,7 +583,7 @@ def is_tp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
         for index, basis in enumerate(c_sys.basis()):
             # calculate Tr[B_\alpha]
-            trace_before_mapped = np.trace(basis)
+            trace_before_mapped = basis.diagonal().sum()
 
             # calculate Tr[A(B_\alpha)]
             vec = np.zeros((c_sys.dim ** 2))
@@ -648,7 +651,10 @@ def to_choi_from_hs(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:
     num_basis = len(c_sys.basis())
     tmp_list = []
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
-        tmp = hs[alpha][beta] * c_sys.basis_basisconjugate((alpha, beta))
+        bb = c_sys.basis_basisconjugate((alpha, beta))
+        if type(bb) == csr_matrix:
+            bb = bb.toarray()
+        tmp = hs[alpha][beta] * bb
         tmp_list.append(tmp)
 
     # summing
@@ -722,7 +728,9 @@ def to_hs_from_choi(c_sys: CompositeSystem, choi: np.ndarray) -> np.ndarray:
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
         b_bc = c_sys.basis_basisconjugate((alpha, beta))
         b_bc_dag = np.conjugate(b_bc.T)
-        hs[alpha, beta] = (np.trace(b_bc_dag @ choi)).real.astype(np.float64)
+
+        tr = (b_bc_dag @ choi).diagonal().sum()
+        hs[alpha, beta] = tr.real.astype(np.float64)
 
     return hs
 
@@ -784,7 +792,7 @@ def to_hs_from_choi_with_sparsity(
     np.ndarray
         HS representation of this gate.
     """
-    hs_vec = c_sys.basisconjugate_basis_sparse.dot(choi.flatten())
+    hs_vec = c_sys.basisconjugate_basis_sparse.dot(mutil.flatten(choi))
     hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
 
     return mutil.truncate_hs(
@@ -921,7 +929,7 @@ def to_process_matrix_from_hs(
     comp_basis = c_sys.comp_basis()
     hs_comp = convert_hs(hs, c_sys.basis(), comp_basis)
     process_matrix = [
-        np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
+        (mutil.kron(B_alpha.conj().T, B_beta.T) @ hs_comp).diagonal().sum()
         for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
     ]
     return np.array(process_matrix).reshape((c_sys.dim ** 2, c_sys.dim ** 2))
@@ -1300,7 +1308,6 @@ def convert_hs(
         length of ``from_basis`` does not equal length of ``to_basis``.
     """
     ### parameter check
-
     # whether HS is square matrix
     size = from_hs.shape
     if size[0] != size[1]:
@@ -1327,7 +1334,7 @@ def convert_hs(
 
     # U_{\alpha,\bata} := Tr[to_basis_{\alpha}^{\dagger} @ from_basis_{\beta}]
     trans_matrix = [
-        np.vdot(B_alpha, B_beta)
+        vdot(B_alpha, B_beta)
         for B_alpha, B_beta in itertools.product(to_basis, from_basis)
     ]
     U = np.array(trans_matrix).reshape(from_basis.dim ** 2, from_basis.dim ** 2)

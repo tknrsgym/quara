@@ -14,6 +14,7 @@ from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.mprocess import MProcess
 from quara.settings import Settings
+import quara.utils.matrix_util as mutil
 
 
 __eq_const_eps_true = Settings.get_atol()
@@ -538,7 +539,7 @@ def _get_sorted_eigenvalue_for_gate(gates: List[Gate]) -> list:
     sorted_eigenvalues_list = []
     for gate in gates:
         choi_matrix = gate.to_choi_matrix()
-        eigenvals, _ = np.linalg.eig(choi_matrix)
+        eigenvals, _ = mutil.eig(choi_matrix)
         sorted_eigenvalues = [eig.real for eig in sorted(eigenvals, reverse=True)]
         sorted_eigenvalues_list.append(sorted_eigenvalues)
     return sorted_eigenvalues_list

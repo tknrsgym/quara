@@ -1,13 +1,16 @@
 import copy
 import itertools
 from typing import List, Tuple, Union
-
 import numpy as np
 from scipy.sparse import csr_matrix
+from scipy import sparse
 from scipy.linalg import kron
+from tqdm import tqdm
 
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
+
+from quara.objects.matrix_basis import SparseMatrixBasis, MatrixBasis, get_comp_basis
+from quara.utils import matrix_util
 
 
 class CompositeSystem:
@@ -69,15 +72,25 @@ class CompositeSystem:
 
         # calculate tensor product of ElamentalSystem list for getting total MatrixBasis
         if len(self._elemental_systems) == 1:
-            self._total_basis = self._elemental_systems[0].basis
+            # TODO: check
+            # self._total_basis = self._elemental_systems[0].basis
+            self._total_basis = SparseMatrixBasis(self._elemental_systems[0].basis)
         else:
             basis_list = [e_sys.basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
             for elem in basis_list[1:]:
                 temp = [
-                    kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                    matrix_util.kron(val1, val2)
+                    for val1, val2 in itertools.product(temp, elem)
                 ]
-            self._total_basis = MatrixBasis(temp)
+            # if type(basis_list[0]) == SparseMatrixBasis:
+            #     self._total_basis = SparseMatrixBasis(temp)
+            # elif type(basis_list[0]) == MatrixBasis:
+            #     self._total_basis = MatrixBasis(temp)
+            # else:
+            #     error_message = f"The Type of basis_list[0] must be MatrixBasis or SparseMatrixBasis, not {type(basis_list[0])}"
+            #     raise ValueError(error_message)
+            self._total_basis = SparseMatrixBasis(temp)
 
         self._basis_basisconjugate = None
         self._dict_from_hs_to_choi = None
@@ -89,7 +102,7 @@ class CompositeSystem:
         self._basis_basisconjugate_T_sparse_from_1 = None
         self._basishermitian_basis_T_from_1 = None
 
-    def comp_basis(self, mode: str = "row_major") -> MatrixBasis:
+    def comp_basis(self, mode: str = "row_major") -> SparseMatrixBasis:
         """returns computational basis of CompositeSystem.
 
         Parameters
@@ -108,7 +121,7 @@ class CompositeSystem:
             ``mode`` is unsupported.
         """
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
-        basis_tmp: MatrixBasis
+        basis_tmp: SparseMatrixBasis
 
         if len(self._elemental_systems) == 1:
             basis_tmp = self._elemental_systems[0].comp_basis(mode=mode)
@@ -116,13 +129,13 @@ class CompositeSystem:
             basis_tmp = get_comp_basis(self.dim, mode=mode)
         return basis_tmp
 
-    def basis(self) -> MatrixBasis:
+    def basis(self) -> SparseMatrixBasis:
         """returns MatrixBasis of CompositeSystem.
 
         Returns
         -------
-        MatrixBasis
-            MatrixBasis of CompositeSystem.
+        SparseMatrixBasis
+            SparseMatrixBasis of CompositeSystem.
         """
         return self._total_basis
 
@@ -170,7 +183,7 @@ class CompositeSystem:
         """
         return self._elemental_systems[i].dim
 
-    def get_basis(self, index: Union[int, Tuple]) -> MatrixBasis:
+    def get_basis(self, index: Union[int, Tuple]) -> SparseMatrixBasis:
         """returns basis specified by index.
 
         Parameters
@@ -240,7 +253,7 @@ class CompositeSystem:
             for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
                 b_alpha = basis[alpha]
                 b_beta_conj = np.conjugate(basis[beta])
-                matrix = np.kron(b_alpha, b_beta_conj)
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
                 self._basis_basisconjugate[(alpha, beta)] = matrix
 
         # return basis_basisconjugate
@@ -261,10 +274,10 @@ class CompositeSystem:
             for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
                 b_alpha = basis[alpha]
                 b_beta_conj = np.conjugate(basis[beta])
-                matrix = np.kron(b_alpha, b_beta_conj)
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
 
                 # calc _dict_from_hs_to_choi
-                row_indices, column_indices = np.where(matrix != 0)
+                row_indices, column_indices = matrix_util.where_not_zero(matrix)
                 for row_index, column_index in zip(row_indices, column_indices):
                     if (row_index, column_index) in self._dict_from_hs_to_choi:
                         self._dict_from_hs_to_choi[(row_index, column_index)].append(
@@ -295,10 +308,10 @@ class CompositeSystem:
             for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
                 b_alpha = basis[alpha]
                 b_beta_conj = np.conjugate(basis[beta])
-                matrix = np.kron(b_alpha, b_beta_conj)
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
 
                 # calc _dict_from_choi_to_hs
-                row_indices, column_indices = np.where(matrix != 0)
+                row_indices, column_indices = matrix_util.where_not_zero(matrix)
                 for row_index, column_index in zip(row_indices, column_indices):
                     if (alpha, beta) in self._dict_from_choi_to_hs:
                         self._dict_from_choi_to_hs[(alpha, beta)].append(
@@ -324,8 +337,8 @@ class CompositeSystem:
         basis_tmp = []
         basisconjugate_tmp = []
         for b_alpha in basis:
-            basis_tmp.append(b_alpha.flatten())
-            basisconjugate_tmp.append(b_alpha.conjugate().flatten())
+            basis_tmp.append(matrix_util.flatten(b_alpha))
+            basisconjugate_tmp.append(matrix_util.flatten(b_alpha.conjugate()))
 
         basis_tmp = np.array(basis_tmp)
         self._basis_T_sparse = csr_matrix(basis_tmp.T)
@@ -365,36 +378,42 @@ class CompositeSystem:
         basis_basisconjugate_tmp_from_1 = []
         basishermitian_basis_tmp_from_1 = []
 
-        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+        element_size = basis[0].shape[0] ** 2 ** 2
+        element_size_2 = basis[0].shape[0] ** 2
+
+        for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
-            matrix = np.kron(b_alpha, b_beta_conj)
-            basis_basisconjugate_tmp.append(matrix.flatten())
+            matrix = sparse.kron(b_alpha, b_beta_conj, format="csr")
+            reshaped_matrix = matrix.reshape(1, element_size)
+            basis_basisconjugate_tmp.append(reshaped_matrix)
 
             if alpha != 0 and beta != 0:
-                basis_basisconjugate_tmp_from_1.append(matrix.flatten())
+                basis_basisconjugate_tmp_from_1.append(reshaped_matrix)
 
                 matrix_2 = basis[beta].conj().T @ b_alpha
-                basishermitian_basis_tmp_from_1.append(matrix_2.flatten())
+                basishermitian_basis_tmp_from_1.append(
+                    matrix_2.reshape(1, element_size_2)
+                )
 
         # set _basisconjugate_basis_sparse and _basis_basisconjugate_T_sparse
-        basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)
-        self._basisconjugate_basis_sparse = csr_matrix(
-            basis_basisconjugate_tmp.conjugate()
+        basis_basisconjugate_tmp = sparse.vstack(basis_basisconjugate_tmp).reshape(
+            basis_no ** 2, element_size
         )
-        self._basis_basisconjugate_T_sparse = csr_matrix(basis_basisconjugate_tmp.T)
+        self._basisconjugate_basis_sparse = basis_basisconjugate_tmp.conjugate()
+        self._basis_basisconjugate_T_sparse = basis_basisconjugate_tmp.T
 
         # set _basis_basisconjugate_T_sparse_from_1
-        basis_basisconjugate_tmp_from_1 = np.array(basis_basisconjugate_tmp_from_1)
-        self._basis_basisconjugate_T_sparse_from_1 = csr_matrix(
-            basis_basisconjugate_tmp_from_1.T
-        )
+        basis_basisconjugate_tmp_from_1 = sparse.vstack(
+            basis_basisconjugate_tmp_from_1
+        ).reshape((basis_no - 1) ** 2, element_size)
+        self._basis_basisconjugate_T_sparse_from_1 = basis_basisconjugate_tmp_from_1.T
 
         # set _basishermitian_basis_T_from
-        basishermitian_basis_tmp_from_1 = np.array(basishermitian_basis_tmp_from_1)
-        self._basishermitian_basis_T_from_1 = csr_matrix(
-            basishermitian_basis_tmp_from_1.T
-        )
+        basishermitian_basis_tmp_from_1 = sparse.vstack(
+            basishermitian_basis_tmp_from_1
+        ).reshape((basis_no - 1) ** 2, element_size_2)
+        self._basishermitian_basis_T_from_1 = basishermitian_basis_tmp_from_1.T
 
     @property
     def basisconjugate_basis_sparse(self) -> np.ndarray:

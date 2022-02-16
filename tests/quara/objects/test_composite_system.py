@@ -13,6 +13,7 @@ from quara.objects.matrix_basis import (
 )
 from quara.objects.operators import tensor_product
 from quara.objects.composite_system_typical import generate_composite_system
+from quara.utils import matrix_util
 
 
 class TestCompositeSystem:
@@ -59,18 +60,18 @@ class TestCompositeSystem:
         actual = CompositeSystem(source).comp_basis()
         expected = get_comp_basis()
         assert len(actual) == 4
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
-        assert np.all(actual[2] == expected[2])
-        assert np.all(actual[3] == expected[3])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
+        assert matrix_util.allclose(actual[2], expected[2])
+        assert matrix_util.allclose(actual[3], expected[3])
 
         # case: multi ElementalSystem
         source = [e2, e1]
         actual = CompositeSystem(source).comp_basis()
         expected = tensor_product(get_comp_basis(), get_comp_basis())
         assert len(actual) == 16
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
 
         ### mode="row_major"
         e = ElementalSystem(1, get_comp_basis(mode="row_major"))
@@ -78,10 +79,10 @@ class TestCompositeSystem:
         actual = CompositeSystem(source).comp_basis(mode="row_major")
         expected = get_comp_basis(mode="row_major")
         assert len(actual) == 4
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
-        assert np.all(actual[2] == expected[2])
-        assert np.all(actual[3] == expected[3])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
+        assert matrix_util.allclose(actual[2], expected[2])
+        assert matrix_util.allclose(actual[3], expected[3])
 
         ### mode="column_major"
         e = ElementalSystem(1, get_comp_basis(mode="column_major"))
@@ -89,10 +90,10 @@ class TestCompositeSystem:
         actual = CompositeSystem(source).comp_basis(mode="column_major")
         expected = get_comp_basis(mode="column_major")
         assert len(actual) == 4
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
-        assert np.all(actual[2] == expected[2])
-        assert np.all(actual[3] == expected[3])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
+        assert matrix_util.allclose(actual[2], expected[2])
+        assert matrix_util.allclose(actual[3], expected[3])
 
         ### unsupported mode
         e = ElementalSystem(1, get_comp_basis(mode="column_major"))
@@ -109,18 +110,18 @@ class TestCompositeSystem:
         actual = CompositeSystem(source).basis()
         expected = get_pauli_basis()
         assert len(actual) == 4
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
-        assert np.all(actual[2] == expected[2])
-        assert np.all(actual[3] == expected[3])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
+        assert matrix_util.allclose(actual[2], expected[2])
+        assert matrix_util.allclose(actual[3], expected[3])
 
         # case: multi ElementalSystem
         source = [e2, e1]
         actual = CompositeSystem(source).basis()
         expected = tensor_product(get_pauli_basis(), get_comp_basis())
         assert len(actual) == 16
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
 
     def test_access_dim(self):
         e1 = ElementalSystem(1, get_pauli_basis())
@@ -145,20 +146,20 @@ class TestCompositeSystem:
         # access by int
         actual = c_sys.get_basis(0)
         expected = tensor_product(get_pauli_basis(), get_comp_basis())[0]
-        assert np.all(actual == expected)
+        assert matrix_util.allclose(actual, expected)
 
         # access by tuple
         actual = c_sys.get_basis((0, 0))
         expected = tensor_product(get_pauli_basis(), get_comp_basis())[0]
-        assert np.all(actual == expected)
+        assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.get_basis((1, 2))
         expected = tensor_product(get_pauli_basis(), get_comp_basis())[6]  # 1*2**2 + 2
-        assert np.all(actual == expected)
+        assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.get_basis((3, 1))
         expected = tensor_product(get_pauli_basis(), get_comp_basis())[13]  # 3*2**2 + 1
-        assert np.all(actual == expected)
+        assert matrix_util.allclose(actual, expected)
 
     def test_basis_basisconjugate(self):
         basis = get_normalized_pauli_basis()
@@ -169,29 +170,29 @@ class TestCompositeSystem:
 
         # access by int
         actual = c_sys.basis_basisconjugate(0)
-        expected = np.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
-        assert np.all(actual == expected)
+        expected = matrix_util.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
+        assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate(6)
-        expected = np.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
-        assert np.all(actual == expected)
+        expected = matrix_util.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
+        assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate(13)
-        expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
-        assert np.all(actual == expected)
+        expected = matrix_util.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
+        assert matrix_util.allclose(actual, expected)
 
         # access by tuple
         actual = c_sys.basis_basisconjugate((0, 0))
-        expected = np.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
-        assert np.all(actual == expected)
+        expected = matrix_util.kron(basis[0], np.conjugate(basis[0]))  # 0*2**2 + 0 = 0
+        assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate((1, 2))
-        expected = np.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
-        assert np.all(actual == expected)
+        expected = matrix_util.kron(basis[1], np.conjugate(basis[2]))  # 1*2**2 + 2 = 6
+        assert matrix_util.allclose(actual, expected)
 
         actual = c_sys.basis_basisconjugate((3, 1))
-        expected = np.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
-        assert np.all(actual == expected)
+        expected = matrix_util.kron(basis[3], np.conjugate(basis[1]))  # 3*2**2 + 1 = 13
+        assert matrix_util.allclose(actual, expected)
 
     def test_dict_from_hs_to_choi(self):
         # arrange
@@ -206,6 +207,110 @@ class TestCompositeSystem:
 
         # assert
         assert actual != None
+        expected = {
+            (0, 0): [
+                (0, 0, (0.5 + 0j)),
+                (0, 3, (0.5 + 0j)),
+                (3, 0, (0.5 + 0j)),
+                (3, 3, (0.5 + 0j)),
+            ],
+            (1, 1): [
+                (0, 0, (0.5 + 0j)),
+                (0, 3, (-0.5 - 0j)),
+                (3, 0, (0.5 + 0j)),
+                (3, 3, (-0.5 - 0j)),
+            ],
+            (2, 2): [
+                (0, 0, (0.5 + 0j)),
+                (0, 3, (0.5 + 0j)),
+                (3, 0, (-0.5 + 0j)),
+                (3, 3, (-0.5 + 0j)),
+            ],
+            (3, 3): [
+                (0, 0, (0.5 + 0j)),
+                (0, 3, (-0.5 - 0j)),
+                (3, 0, (-0.5 + 0j)),
+                (3, 3, (0.5 + 0j)),
+            ],
+            (0, 1): [
+                (0, 1, (0.5 + 0j)),
+                (0, 2, 0.5j),
+                (3, 1, (0.5 + 0j)),
+                (3, 2, 0.5j),
+            ],
+            (1, 0): [
+                (0, 1, (0.5 + 0j)),
+                (0, 2, -0.5j),
+                (3, 1, (0.5 + 0j)),
+                (3, 2, -0.5j),
+            ],
+            (2, 3): [
+                (0, 1, (0.5 + 0j)),
+                (0, 2, 0.5j),
+                (3, 1, (-0.5 + 0j)),
+                (3, 2, (-0 - 0.5j)),
+            ],
+            (3, 2): [
+                (0, 1, (0.5 + 0j)),
+                (0, 2, -0.5j),
+                (3, 1, (-0.5 + 0j)),
+                (3, 2, 0.5j),
+            ],
+            (0, 2): [
+                (1, 0, (0.5 + 0j)),
+                (1, 3, (0.5 + 0j)),
+                (2, 0, -0.5j),
+                (2, 3, -0.5j),
+            ],
+            (1, 3): [
+                (1, 0, (0.5 + 0j)),
+                (1, 3, (-0.5 - 0j)),
+                (2, 0, -0.5j),
+                (2, 3, (-0 + 0.5j)),
+            ],
+            (2, 0): [
+                (1, 0, (0.5 + 0j)),
+                (1, 3, (0.5 + 0j)),
+                (2, 0, 0.5j),
+                (2, 3, 0.5j),
+            ],
+            (3, 1): [
+                (1, 0, (0.5 + 0j)),
+                (1, 3, (-0.5 - 0j)),
+                (2, 0, 0.5j),
+                (2, 3, -0.5j),
+            ],
+            (0, 3): [
+                (1, 1, (0.5 + 0j)),
+                (1, 2, 0.5j),
+                (2, 1, -0.5j),
+                (2, 2, (0.5 + 0j)),
+            ],
+            (1, 2): [
+                (1, 1, (0.5 + 0j)),
+                (1, 2, -0.5j),
+                (2, 1, -0.5j),
+                (2, 2, (-0.5 - 0j)),
+            ],
+            (2, 1): [
+                (1, 1, (0.5 + 0j)),
+                (1, 2, 0.5j),
+                (2, 1, 0.5j),
+                (2, 2, (-0.5 + 0j)),
+            ],
+            (3, 0): [
+                (1, 1, (0.5 + 0j)),
+                (1, 2, -0.5j),
+                (2, 1, 0.5j),
+                (2, 2, (0.5 + 0j)),
+            ],
+        }
+        assert len(actual) == len(expected)
+        for a, e in zip(actual.items(), expected.items()):
+            assert a[0] == e[0]
+            assert len(a[1]) == len(e[1])
+            for a_tuple, e_tuple in zip(a[1], e[1]):
+                npt.assert_allclose(a_tuple, e_tuple)
 
     def test_dict_from_choi_to_hs(self):
         # arrange
@@ -220,6 +325,81 @@ class TestCompositeSystem:
 
         # assert
         assert actual != None
+        expected = {
+            (0, 0): [
+                (0, 0, (0.5 + 0j)),
+                (1, 1, (0.5 + 0j)),
+                (2, 2, (0.5 + 0j)),
+                (3, 3, (0.5 + 0j)),
+            ],
+            (0, 1): [
+                (0, 1, (0.5 + 0j)),
+                (1, 0, (0.5 + 0j)),
+                (2, 3, (0.5 + 0j)),
+                (3, 2, (0.5 + 0j)),
+            ],
+            (0, 2): [(0, 1, 0.5j), (1, 0, -0.5j), (2, 3, 0.5j), (3, 2, -0.5j)],
+            (0, 3): [
+                (0, 0, (0.5 + 0j)),
+                (1, 1, (-0.5 - 0j)),
+                (2, 2, (0.5 + 0j)),
+                (3, 3, (-0.5 - 0j)),
+            ],
+            (1, 0): [
+                (0, 2, (0.5 + 0j)),
+                (1, 3, (0.5 + 0j)),
+                (2, 0, (0.5 + 0j)),
+                (3, 1, (0.5 + 0j)),
+            ],
+            (1, 1): [
+                (0, 3, (0.5 + 0j)),
+                (1, 2, (0.5 + 0j)),
+                (2, 1, (0.5 + 0j)),
+                (3, 0, (0.5 + 0j)),
+            ],
+            (1, 2): [(0, 3, 0.5j), (1, 2, -0.5j), (2, 1, 0.5j), (3, 0, -0.5j)],
+            (1, 3): [
+                (0, 2, (0.5 + 0j)),
+                (1, 3, (-0.5 - 0j)),
+                (2, 0, (0.5 + 0j)),
+                (3, 1, (-0.5 - 0j)),
+            ],
+            (2, 0): [(0, 2, -0.5j), (1, 3, -0.5j), (2, 0, 0.5j), (3, 1, 0.5j)],
+            (2, 1): [(0, 3, -0.5j), (1, 2, -0.5j), (2, 1, 0.5j), (3, 0, 0.5j)],
+            (2, 2): [
+                (0, 3, (0.5 + 0j)),
+                (1, 2, (-0.5 - 0j)),
+                (2, 1, (-0.5 + 0j)),
+                (3, 0, (0.5 + 0j)),
+            ],
+            (2, 3): [(0, 2, -0.5j), (1, 3, (-0 + 0.5j)), (2, 0, 0.5j), (3, 1, -0.5j)],
+            (3, 0): [
+                (0, 0, (0.5 + 0j)),
+                (1, 1, (0.5 + 0j)),
+                (2, 2, (-0.5 + 0j)),
+                (3, 3, (-0.5 + 0j)),
+            ],
+            (3, 1): [
+                (0, 1, (0.5 + 0j)),
+                (1, 0, (0.5 + 0j)),
+                (2, 3, (-0.5 + 0j)),
+                (3, 2, (-0.5 + 0j)),
+            ],
+            (3, 2): [(0, 1, 0.5j), (1, 0, -0.5j), (2, 3, (-0 - 0.5j)), (3, 2, 0.5j)],
+            (3, 3): [
+                (0, 0, (0.5 + 0j)),
+                (1, 1, (-0.5 - 0j)),
+                (2, 2, (-0.5 + 0j)),
+                (3, 3, (0.5 + 0j)),
+            ],
+        }
+
+        assert len(actual) == len(expected)
+        for a, e in zip(actual.items(), expected.items()):
+            assert a[0] == e[0]
+            assert len(a[1]) == len(e[1])
+            for a_tuple, e_tuple in zip(a[1], e[1]):
+                npt.assert_allclose(a_tuple, e_tuple)
 
     def test_delete_dict_from_hs_to_choi(self):
         # arrange
@@ -470,6 +650,17 @@ class TestCompositeSystemImmutable:
         assert c_sys.is_orthonormal_hermitian_0thprop_identity == False
 
 
+def test_basis_basisconjugate_1qubit():
+    c_sys = generate_composite_system("qubit", 1)
+    dir_path = Path(__file__).parent / "data"
+    for i in range(16):
+        path = dir_path / f"basis_basisconjugate/1qubit_{i}.npy"
+        expected = np.load(path)
+        actual = c_sys.basis_basisconjugate(basis_index=i)
+
+        npt.assert_almost_equal(actual.toarray(), expected)
+
+
 def test_basis_basisconjugate_T_sparse():
     # 2qubit
     # Arrange
@@ -526,5 +717,24 @@ def test_basishermitian_basis_T_from_1():
 
     # Act
     actual = c_sys.basishermitian_basis_T_from_1
+    # Assert
+    npt.assert_allclose(actual.toarray(), expected, atol=10 ** (-15), rtol=0)
+
+
+def test_basisconjugate_basis_sparse():
+    # 2qubit
+    # Arrange
+    c_sys = generate_composite_system("qubit", 2)
+    path = (
+        Path(__file__).parent / "data/expected_basisconjugate_basis_sparse_2qubit.npy"
+    )
+    expected = np.load(path)
+    # Act
+    actual = c_sys._basisconjugate_basis_sparse
+    # Assert
+    assert actual is None
+
+    # Act
+    actual = c_sys.basisconjugate_basis_sparse
     # Assert
     npt.assert_allclose(actual.toarray(), expected, atol=10 ** (-15), rtol=0)

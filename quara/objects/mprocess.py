@@ -9,7 +9,7 @@ from quara.objects.composite_system import CompositeSystem
 from quara.objects import gate
 from quara.objects.gate import Gate,to_hs_from_kraus_matrices
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
 )
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
@@ -644,7 +644,7 @@ class MProcess(QOperation):
         new_hss = [hs / other for hs in self.hss]
         return new_hss
 
-    def get_basis(self) -> MatrixBasis:
+    def get_basis(self) -> SparseMatrixBasis:
         """returns MatrixBasis of gate.
         Returns
         -------
@@ -663,7 +663,7 @@ class MProcess(QOperation):
                 return False
         return True
 
-    def convert_basis(self, other_basis: MatrixBasis) -> List[np.ndarray]:
+    def convert_basis(self, other_basis: SparseMatrixBasis) -> List[np.ndarray]:
         """returns list of HS representations for ``other_basis``.
         Parameters
         ----------

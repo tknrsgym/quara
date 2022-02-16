@@ -3,7 +3,7 @@ import numpy as np
 from typing import List, Union
 
 from quara.utils.matrix_util import is_hermitian
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import SparseMatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
@@ -22,6 +22,9 @@ from quara.objects.gate_typical import (
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
     get_gate_names_3qubit,
+    # 3-qubit
+    generate_gate_toffoli_hamiltonian_mat,
+    generate_gate_fredkin_hamiltonian_mat,
     # 1-qutrit
     get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
@@ -82,7 +85,7 @@ def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(
 
 
 def calc_effective_lindbladian_mat_from_hamiltonian(
-    h: np.ndarray, to_basis: MatrixBasis
+    h: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the given matrix basis from a given Hamiltonian.
 
@@ -113,7 +116,7 @@ def calc_effective_lindbladian_mat_from_hamiltonian(
 
 
 def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
-    h: np.ndarray, to_basis: MatrixBasis
+    h: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the given Hermitian matrix basis from a given Hamiltonian.
 

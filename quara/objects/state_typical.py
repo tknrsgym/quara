@@ -3,7 +3,7 @@ from typing import List, Union
 
 import numpy as np
 from quara.objects.state import State
-from quara.objects.matrix_basis import MatrixBasis, convert_vec
+from quara.objects.matrix_basis import SparseMatrixBasis, convert_vec
 from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
@@ -175,7 +175,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
 
 
 def generate_state_density_matrix_vector_from_name(
-    basis: MatrixBasis, state_name: str
+    basis: SparseMatrixBasis, state_name: str
 ) -> np.ndarray:
     """Return the density matrix vector ( :math:`|\\rho\\rangle\\rangle` ) of state specified by name.
 

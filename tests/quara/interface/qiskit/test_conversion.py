@@ -257,6 +257,10 @@ def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids):
     expected = generate_qiskit_gate_from_gate_name(gate_name, ids)
     source = generate_quara_gate_from_ids(gate_name, c_sys, ids)
     actual = convert_gate_quara_to_qiskit(source, dim)
+
+    if (mode == "qubit" and num > 3) or (mode == "qutrit" and num > 2):
+        actual = actual.toarray()
+
     npt.assert_almost_equal(actual, expected, decimal=10)
 
 

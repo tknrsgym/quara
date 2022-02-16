@@ -112,8 +112,6 @@ def generate_common_setting():
 
     def generate_pgdb_algo_option():
         return ProjectedGradientDescentBacktrackingOption(
-            max_iteration_optimization=10000,
-            max_iteration_proj_physical=100000,
             mode_stopping_criterion_gradient_descent="sum_absolute_difference_variable",
             num_history_stopping_criterion_gradient_descent=1,
             eps=1e-9,
@@ -271,7 +269,7 @@ def execute(
     all_results = execute_simulation_test_settings(
         test_settings,
         output_root_dir,
-        pdf_mode=pdf_mode,
+        pdf_mode="all",
         parallel_mode=parallel_mode,
         data_saving=data_saving,
         is_computation_time_required=is_computation_time_required,

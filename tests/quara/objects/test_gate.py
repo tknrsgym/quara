@@ -286,10 +286,8 @@ class TestGate:
         expected = matrix_basis.get_normalized_pauli_basis().basis
 
         assert len(actual) == 4
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
-        assert np.all(actual[2] == expected[2])
-        assert np.all(actual[3] == expected[3])
+        for i in range(4):
+            npt.assert_allclose(actual[i].toarray(), expected[i])
 
     def test_is_tp(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

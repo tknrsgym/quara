@@ -1,10 +1,10 @@
-from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
+from quara.objects.matrix_basis import SparseMatrixBasis, get_comp_basis
 
 
 class ElementalSystem:
     """Class for representing an individual quantum system."""
 
-    def __init__(self, name: int, basis: MatrixBasis):
+    def __init__(self, name: int, basis: SparseMatrixBasis):
         """Constructor
 
         Parameters
@@ -33,7 +33,7 @@ class ElementalSystem:
         # But just in case, implement ``system_id``.
         self._system_id: int = id(self)
         self._dim: int = basis.dim
-        self._basis: MatrixBasis = basis
+        self._basis: SparseMatrixBasis = basis
         self._is_hermitian = self._basis.is_hermitian()
         self._is_orthonormal_hermitian_0thprop_identity = (
             self._basis.is_normal()
@@ -78,11 +78,11 @@ class ElementalSystem:
         """
         return self._dim
 
-    def comp_basis(self, mode: str = "row_major") -> MatrixBasis:  # read only
+    def comp_basis(self, mode: str = "row_major") -> SparseMatrixBasis:  # read only
         return get_comp_basis(self._dim, mode=mode)
 
     @property
-    def basis(self) -> MatrixBasis:  # read only
+    def basis(self) -> SparseMatrixBasis:  # read only
         return self._basis
 
     @property

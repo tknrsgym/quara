@@ -11,7 +11,7 @@ import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import convert_hs
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     convert_vec,
     get_normalized_pauli_basis,
 )
@@ -638,7 +638,7 @@ class Povm(QOperation):
                 w_list.append(w)
             return w_list
 
-    def convert_basis(self, other_basis: MatrixBasis) -> List[np.ndarray]:
+    def convert_basis(self, other_basis: SparseMatrixBasis) -> List[np.ndarray]:
         """Calculate vector representation for ``other_basis``.
 
         Parameters
