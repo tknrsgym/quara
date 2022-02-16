@@ -139,9 +139,12 @@ def generate_cvxpy_constraints_from_cvxpy_variable(
     -------
     CvxpyConstraint
         Constraint of CVXPY
-    """
-    assert t in get_valid_qopeartion_type()
 
+    Raises
+    ------
+    ValueError
+        Unsupported type of QOperation is specified.
+    """
     if t == "state":
         constraints = [dmat_from_var(c_sys, var) >> 0]
     elif t == "povm":
@@ -156,13 +159,13 @@ def generate_cvxpy_constraints_from_cvxpy_variable(
             constraints.append(
                 mprocess_element_choi_from_var(c_sys, num_outcomes, x, var) >> 0
             )
+    else:
+        raise ValueError(f"Unsupported type of QOperation is specified. t={t}")
 
     return constraints
 
 
 # Conversion from Variable of quara or cvxpy to Matrix Representation
-
-
 def dmat_from_var(
     c_sys: CompositeSystem, var: Union[np.ndarray, CvxpyVariable]
 ) -> Union[np.ndarray, CvxpyVariable]:
@@ -305,9 +308,9 @@ def mprocess_element_choi_from_var(
 
 def generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
     c_sys: CompositeSystem, t: str, var: CvxpyVariable, num_outcomes: int = None
-) -> CvxpyConstraint:
+) -> List[CvxpyConstraint]:
     """
-    Returns Constraint of CVXPY
+    Returns list of Constraint of CVXPY
 
     Parameters
     ----------
@@ -322,11 +325,14 @@ def generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
 
     Returns
     -------
-    CvxpyConstraint
-        Constraint of CVXPY
-    """
-    assert t in get_valid_qopeartion_type()
+    List[CvxpyConstraint]
+        List of Constraint of CVXPY
 
+    Raises
+    ------
+    ValueError
+        Unsupported type of QOperation is specified.
+    """
     if t == "state":
         constraints = [dmat_from_var_with_sparsity(c_sys, var) >> 0]
     elif t == "povm":
@@ -345,15 +351,31 @@ def generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
                 )
                 >> 0
             )
+    else:
+        raise ValueError(f"Unsupported type of QOperation is specified. t={t}")
+
     return constraints
 
 
 def dmat_from_var_with_sparsity(
     c_sys: CompositeSystem, var: Union[np.ndarray, CvxpyVariable]
 ) -> Union[np.ndarray, CvxpyVariable]:
+    """Converts from Variable of quara or cvxpy to density matrix with sparsity.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[np.ndarray, CvxpyVariable]
+        Density matrix
+    """
     vec = cp.hstack([1 / np.sqrt(c_sys.dim), var])
-    # density_vec = c_sys._basis_T_sparse.dot(vec)
-    density_vec = c_sys._basis_T_sparse @ vec
+    density_vec = c_sys.basis_T_sparse @ vec
     expr = cp.reshape(density_vec, (c_sys.dim, c_sys.dim))
     return expr
 
@@ -361,7 +383,21 @@ def dmat_from_var_with_sparsity(
 def povm_matrices_from_var_with_sparsity(
     c_sys: CompositeSystem,
     var: Union[np.ndarray, CvxpyVariable],
-) -> Union[List[np.ndarray], CvxpyVariable]:
+) -> Union[List[np.ndarray], List[CvxpyVariable]]:
+    """Converts from Variable of quara or cvxpy to povm matrices with sparsity.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[List[np.ndarray], List[CvxpyVariable]]
+        List of povm matrices
+    """
     dim = c_sys.dim
     num_outcome = var.shape[0] // (dim ** 2) + 1
     var_reshaped = cp.reshape(var, (num_outcome - 1, dim ** 2), order="C")
@@ -374,8 +410,7 @@ def povm_matrices_from_var_with_sparsity(
 
     matrices = []
     for vec in vecs:
-        # new_vec = c_sys._basis_T_sparse.dot(vec)
-        new_vec = c_sys._basis_T_sparse @ vec
+        new_vec = c_sys.basis_T_sparse @ vec
         matrix = cp.reshape(new_vec, (c_sys.dim, c_sys.dim))
         matrices.append(matrix)
     return matrices
@@ -384,11 +419,25 @@ def povm_matrices_from_var_with_sparsity(
 def choi_from_var_with_sparsity(
     c_sys: CompositeSystem, var: Union[np.ndarray, CvxpyVariable]
 ) -> Union[np.ndarray, CvxpyVariable]:
+    """Converts from Variable of quara or cvxpy to Choi matrix with sparsity.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[np.ndarray, CvxpyVariable]
+        Choi matrix
+    """
     dim = c_sys.dim
     c = np.zeros(dim ** 2)
     c[0] = 1
     hs_vec = cp.hstack([c, var])
-    choi_vec = c_sys._basis_basisconjugate_T_sparse @ hs_vec
+    choi_vec = c_sys.basis_basisconjugate_T_sparse @ hs_vec
     choi = cp.reshape(choi_vec, (dim ** 2, dim ** 2))
     return choi
 
@@ -399,6 +448,24 @@ def mprocess_element_choi_from_var_with_sparsity(
     x: int,
     var: Union[np.ndarray, CvxpyVariable],
 ) -> Union[np.ndarray, CvxpyVariable]:
+    """Converts from Variable of quara or cvxpy to mprocess element with sparsity.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        Composite system that the QOperation acts on
+    num_outcomes : int
+        Number of outcomes
+    x : int
+        Index of mprocess element
+    var : Union[np.ndarray, CvxpyVariable]
+        Variable of CVXPY
+
+    Returns
+    -------
+    Union[np.ndarray, CvxpyVariable]
+        mprocess element
+    """
     d = c_sys.dim
     m = num_outcomes
     if 0 <= x and x < m - 1:
@@ -411,10 +478,7 @@ def mprocess_element_choi_from_var_with_sparsity(
         w = var[(m - 1) * (d ** 4) : m * (d ** 4)]
         vec = cp.hstack([v, w])
 
-    # for debug
-    # print(vec.value)
-
-    choi_vec = c_sys._basis_basisconjugate_T_sparse @ vec
+    choi_vec = c_sys.basis_basisconjugate_T_sparse @ vec
     choi = cp.reshape(choi_vec, (d ** 2, d ** 2))
     return choi
 
@@ -535,9 +599,6 @@ def convert_cvxpy_variable_to_mprocess_hss(
         sum_first_row += vector[hs_size * outcome : hs_size * outcome + dim ** 2]
     first_row_of_last_hs = one - sum_first_row
 
-    print(
-        f"size={vector.size} shape={vector.shape} index={hs_size * (num_outcomes - 1)}"
-    )
     vector = np.insert(vector, hs_size * (num_outcomes - 1), first_row_of_last_hs)
 
     vec_list = []
