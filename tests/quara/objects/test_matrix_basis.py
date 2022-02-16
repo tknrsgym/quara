@@ -713,8 +713,9 @@ def test_get_hermitian_basis():
         np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128),
         np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=np.complex128),
     ]
+
     for i, a in enumerate(basis):
-        npt.assert_almost_equal(a.toarray(), expected[i], decimal=15)
+        npt.assert_almost_equal(a, expected[i], decimal=15)
 
 
 def test_get_normalized_hermitian_basis():

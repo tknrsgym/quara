@@ -267,7 +267,7 @@ def execute(
     all_results = execute_simulation_test_settings(
         test_settings,
         output_root_dir,
-        pdf_mode=pdf_mode,
+        pdf_mode="all",
         parallel_mode=parallel_mode,
         data_saving=data_saving,
     )

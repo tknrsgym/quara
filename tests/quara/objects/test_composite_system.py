@@ -530,7 +530,7 @@ def test_basis_basisconjugate_1qubit():
         expected = np.load(path)
         actual = c_sys.basis_basisconjugate(basis_index=i)
 
-        npt.assert_almost_equal(actual, expected)
+        npt.assert_almost_equal(actual.toarray(), expected)
 
 
 def test_basis_basisconjugate_T_sparse():
