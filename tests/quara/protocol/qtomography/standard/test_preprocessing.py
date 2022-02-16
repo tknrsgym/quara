@@ -50,12 +50,6 @@ class TestStandardQTomographyPreprocessing:
         assert preprocessing.num_data_ratios == None
 
 
-def squared_distance_state(state1: State, state2: State) -> float:
-    diff = state1.vec - state2.vec
-    res = np.inner(diff, diff)
-    return res
-
-
 def test_squared_distance_state():
     # 1qubit
     # Arrange
