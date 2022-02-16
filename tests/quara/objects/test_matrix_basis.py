@@ -1255,3 +1255,143 @@ def test_convert_vec():
     # Assert
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1])
     assert np.all(actual == expected)
+
+
+class TestSparseMatrixBasis:
+    def test_raise_not_basis(self):
+        identity = np.array([[1, 0], [0, 1]], dtype=np.complex128)
+        pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        pauli_y = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        pauli_z = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+
+        # Testing for non-basis inputs
+        # Case 1: Not enough matrices.
+        source = [identity, pauli_x, pauli_y]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+        # Case 2: Not independent (B_3 = B_0 + B_1)
+        invalid_array = identity + pauli_x
+        source = [identity, pauli_x, pauli_y, invalid_array]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+    def test_is_same_size(self):
+        # Case1: All the same size
+        source_basis = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source_basis)
+        assert basis._is_same_size() == True
+
+        # Case2: Not same size
+        source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+    def test_is_squares(self):
+        # Case1: Square matrix
+        source_basis = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source_basis)
+        assert basis._is_squares() == True
+
+        # Case2: There is a non-square matrix
+        source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1], [0, 0], [0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+    def test_is_orthogonal(self):
+        # Case1: orthorogonal
+        source_basis = matrix_basis.get_pauli_basis().basis
+        m_basis = SparseMatrixBasis(source_basis)
+        assert m_basis.is_orthogonal() == True
+
+        # Case2: basis, but non orthorogonal
+        non_orthorogonal_source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1], [0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        non_orthorogonal_basis = SparseMatrixBasis(non_orthorogonal_source)
+        assert non_orthorogonal_basis.is_orthogonal() == False
+
+        # Case3: basis, but non orthorogonal
+        X = np.array([[1, 0], [0, 0]])
+        Y = np.array([[0, 1], [0, 0]])
+        Z = X + Y + 2
+        non_orthorogonal_source = [np.eye(2), X, Y, Z]
+        non_orthorogonal_basis = SparseMatrixBasis(non_orthorogonal_source)
+        assert non_orthorogonal_basis.is_orthogonal() == False
+
+    def test_is_normal(self):
+        # Case1: Normalized
+        source = matrix_basis.get_normalized_pauli_basis().basis
+        normalized_basis = SparseMatrixBasis(source)
+        assert normalized_basis.is_normal() == True
+
+        # Case2: Not Normalized
+        source = matrix_basis.get_pauli_basis().basis
+        non_normalized_basis = SparseMatrixBasis(source)
+        assert non_normalized_basis.is_normal() == False
+
+    def test_is_hermitian(self):
+        # Case1: Hermitian matrix
+        source = matrix_basis.get_pauli_basis().basis
+        hermitian_basis = SparseMatrixBasis(source)
+        assert hermitian_basis.is_hermitian() == True
+
+        # Case2: Non Hermitian matrix
+        non_hermitian_source = [
+            np.array([[1, 0], [0, 0]]),
+            np.array([[0, 1], [0, 0]]),
+            np.array([[0, 0], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        non_hermitian_basis = SparseMatrixBasis(non_hermitian_source)
+        assert non_hermitian_basis.is_hermitian() == False
+
+    def test_is_0thpropI(self):
+        # Case1: B_0 = C*I
+        source = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_0thpropI() == True
+
+        # Case2: B_0 != C*I
+        source = matrix_basis.get_comp_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_0thpropI() == False
+
+    def test_is_trace_less(self):
+        # Case1: Tr[B_alpha] = 0, alpha >= 1
+        source = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_trace_less() == True
+
+        # Case2: Tr[B_alpha] != 0, alpha >= 1
+        source = matrix_basis.get_comp_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_trace_less() == False
+
+    def test_to_vect(self):
+        source = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source)
+        v_basis = basis.to_vect()
+        assert np.allclose(v_basis.basis[0], np.array([1, 0, 0, 1]))
+        assert np.allclose(v_basis.basis[1], np.array([0, 1, 1, 0]))
+        assert np.allclose(v_basis.basis[2], np.array([0, -1j, 1j, 0]))
+        assert np.allclose(v_basis.basis[3], np.array([1, 0, 0, -1]))
+
+    def test_get_item(self):
+        source_np = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source_np)
+        for i in range(len(source_np)):
+            assert matrix_util.allclose(basis[i], source_np[i])

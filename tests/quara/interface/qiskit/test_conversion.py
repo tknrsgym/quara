@@ -260,9 +260,7 @@ def _test_convert_gate_quara_to_qiskit(mode, num, gate_name, ids):
 
     if (mode == "qubit" and num > 3) or (mode == "qutrit" and num > 2):
         actual = actual.toarray()
-    # print(f"{type(actual[0])=}")
-    # print(f"{actual=}")
-    # print(f"{type(expected)=}")
+
     npt.assert_almost_equal(actual, expected, decimal=10)
 
 

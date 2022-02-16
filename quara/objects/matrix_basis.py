@@ -37,8 +37,6 @@ class Basis:
         return str(self._basis)
 
 
-# TODO: revert
-# class MatrixBasis(Basis):
 class MatrixBasis(Basis):
     def __init__(self, basis: List[np.ndarray]):
         # make _basis immutable
