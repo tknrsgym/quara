@@ -86,12 +86,12 @@ def calc_total_num(nums: List[int]) -> int:
     """Returns the total number in the list.
 
     Parameters
-    ==========
+    ----------
     nums : List[int]
         a list of non-negative integers, Ni.
 
     Returns
-    =======
+    -------
     int
         sum_i Ni
     """
@@ -103,12 +103,12 @@ def calc_num_ratios(nums: List[int]) -> List[float]:
     """Returns number ratios.
 
     Parameters
-    ==========
+    ----------
     nums : List[int]
         a list of non-negative integers
 
     Returns
-    =======
+    -------
     List[float]
         a list of racios, ci:=Ni/N, where N:=sum_i Ni
 
