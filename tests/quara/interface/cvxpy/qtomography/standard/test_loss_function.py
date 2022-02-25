@@ -66,6 +66,11 @@ class TestCvxpyLossFunctionOption:
 
 
 class TestCvxpyLossFunction:
+    def test_access_on_value_cvxpy(self):
+        actual = loss_function.CvxpyLossFunction()
+        assert actual.on_value == False
+        assert actual.on_value_cvxpy == False
+
     def test_access_eps_prob_zero(self):
         # eps_prob_zero = default
         actual = loss_function.CvxpyLossFunction()
@@ -317,6 +322,11 @@ class TestCvxpyLossFunction:
 
 
 class TestCvxpyRelativeEntropy:
+    def test_access_on_value_cvxpy(self):
+        actual = loss_function.CvxpyRelativeEntropy()
+        assert actual.on_value == True
+        assert actual.on_value_cvxpy == True
+
     def test_is_option_sufficient(self):
         # is_option_sufficient = True
         actual = loss_function.CvxpyRelativeEntropy()
@@ -378,6 +388,11 @@ class TestCvxpyRelativeEntropy:
 
 
 class TestCvxpyUniformSquaredError:
+    def test_access_on_value_cvxpy(self):
+        actual = loss_function.CvxpyUniformSquaredError()
+        assert actual.on_value == True
+        assert actual.on_value_cvxpy == True
+
     def test_value(self):
         # Arrange
         loss = loss_function.CvxpyUniformSquaredError()
@@ -434,6 +449,11 @@ class TestCvxpyUniformSquaredError:
 
 
 class TestCvxpyApproximateRelativeEntropyWithZeroProbabilityTerm:
+    def test_access_on_value_cvxpy(self):
+        actual = loss_function.CvxpyUniformSquaredError()
+        assert actual.on_value == True
+        assert actual.on_value_cvxpy == True
+
     def test_value(self):
         # Arrange
         loss = loss_function.CvxpyApproximateRelativeEntropyWithZeroProbabilityTerm()

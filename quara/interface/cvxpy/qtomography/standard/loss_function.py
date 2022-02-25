@@ -31,6 +31,7 @@ class CvxpyLossFunctionOption(LossFunctionOption):
         eps_prob_zero : np.float64, optional
             Threshold to truncate probability, by default 1e-12
         """
+        super().__init__()
         self._eps_prob_zero = eps_prob_zero
 
     @property
@@ -55,6 +56,8 @@ class CvxpyLossFunction(LossFunction):
             number of variables, by default None
         """
         super().__init__(num_var)
+        self._on_value = False
+        self._on_value_cvxpy: bool = False
         self._eps_prob_zero = 1e-12
         self._nums_data = None
         self._num_data_total = None
@@ -64,6 +67,17 @@ class CvxpyLossFunction(LossFunction):
         self._sqt = None
         self._type_estimate = None
         self._option = None
+
+    @property
+    def on_value_cvxpy(self) -> bool:
+        """returns whether or not to support value_cvxpy.
+
+        Returns
+        -------
+        bool
+            whether or not to support value_cvxpy.
+        """
+        return self._on_value_cvxpy
 
     @property
     def eps_prob_zero(self) -> np.float64:
@@ -375,6 +389,8 @@ class CvxpyRelativeEntropy(CvxpyLossFunction):
     def __init__(self):
         """Constructor"""
         super().__init__()
+        self._on_value = True
+        self._on_value_cvxpy = True
 
     def is_option_sufficient(self) -> bool:
         return True
@@ -427,6 +443,8 @@ class CvxpyRelativeEntropy(CvxpyLossFunction):
 class CvxpyUniformSquaredError(CvxpyLossFunction):
     def __init__(self):
         super().__init__()
+        self._on_value = True
+        self._on_value_cvxpy = True
 
     def value_cvxpy(self, var: CvxpyVariable) -> CvxpyExpression:
         """returns the value of the loss function in the form of Expression of CVXPY.
@@ -464,6 +482,8 @@ class CvxpyUniformSquaredError(CvxpyLossFunction):
 class CvxpyApproximateRelativeEntropyWithZeroProbabilityTerm(CvxpyLossFunction):
     def __init__(self):
         super().__init__()
+        self._on_value = True
+        self._on_value_cvxpy = True
 
     def value_cvxpy(self, var: CvxpyVariable) -> CvxpyExpression:
         """returns the value of the loss function in the form of Expression of CVXPY.
