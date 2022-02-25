@@ -1,7 +1,7 @@
 from typing import List
-import numpy as np
 import time
 
+import numpy as np
 import cvxpy as cp
 
 from quara.minimization_algorithm.minimization_algorithm import (
@@ -25,6 +25,13 @@ from quara.interface.cvxpy.qtomography.standard.loss_function import (
 
 
 def get_valid_names_solver() -> List[str]:
+    """returns valid names of solver.
+
+    Returns
+    -------
+    List[str]
+        valid names of solver.
+    """
     l = ["scs"]
     l.append("cvxopt")
     l.append("mosek")
@@ -32,8 +39,14 @@ def get_valid_names_solver() -> List[str]:
 
 
 def get_valid_modes_constraints() -> List[str]:
+    """returns valid modes of constraints.
+
+    Returns
+    -------
+    List[str]
+        valid modes of constraints.
+    """
     l = ["physical"]
-    l.append("physical_and_zero_probability_equation_satisfied")
     l.append("unconstraint")
     return l
 
@@ -90,32 +103,88 @@ class CvxpyMinimizationAlgorithmOption(MinimizationAlgorithmOption):
         eps_tol: np.float64 = 1e-8,
         mode_constraint: str = "physical",
     ):
-        assert name_solver in get_valid_names_solver()
-        self._name_solver = name_solver
-        self._verbose = verbose
-        assert eps_tol >= 0
-        self._eps_tol = eps_tol
-        assert mode_constraint in get_valid_modes_constraints()
-        self._mode_constraint = mode_constraint
+        """Constructor
+
+        Parameters
+        ----------
+        name_solver : str
+            name of solver
+        verbose : bool, optional
+            verbose option of solver, by default False
+        eps_tol : np.float64, optional
+            eps option of solver, by default 1e-8
+        mode_constraint : str, optional
+            mode of constraint, by default "physical"
+
+        Raises
+        ------
+        ValueError
+            Unsupported name_solver is specified.
+        ValueError
+            eps_tol is negative.
+        ValueError
+            Unsupported mode_constraint is specified.
+        """
+        if name_solver not in get_valid_names_solver():
+            raise ValueError(
+                f"Unsupported name_solver is specified. name_solver={name_solver}"
+            )
+        self._name_solver: str = name_solver
+
+        self._verbose: bool = verbose
+
+        if eps_tol < 0:
+            raise ValueError(f"eps_tol must be non-negative. eps_tol={eps_tol}")
+        self._eps_tol: np.float64 = eps_tol
+
+        if mode_constraint not in get_valid_modes_constraints():
+            raise ValueError(
+                f"Unsupported mode_constraint is specified. mode_constraint={mode_constraint}"
+            )
+        self._mode_constraint: str = mode_constraint
 
     @property
-    def name_solver(self):
+    def name_solver(self) -> str:
+        """returns name of solver.
+
+        Returns
+        -------
+        str
+            name of solver.
+        """
         return self._name_solver
 
     @property
-    def requires_grad(self):
-        return self._requires_grad
+    def verbose(self) -> bool:
+        """returns verbose option of solver.
 
-    @property
-    def verbose(self):
+        Returns
+        -------
+        bool
+            verbose option of solver.
+        """
         return self._verbose
 
     @property
-    def eps_tol(self):
+    def eps_tol(self) -> np.float64:
+        """returns eps option of solver.
+
+        Returns
+        -------
+        np.float64
+            eps option of solver.
+        """
         return self._eps_tol
 
     @property
-    def mode_constraint(self):
+    def mode_constraint(self) -> str:
+        """returns mode of constraint.
+
+        Returns
+        -------
+        str
+            mode of constraint.
+        """
         return self._mode_constraint
 
 
@@ -125,7 +194,7 @@ class CvxpyMinimizationAlgorithm(MinimizationAlgorithm):
 
     def is_loss_sufficient(self) -> bool:
         res = False
-        if self.loss.on_value:
+        if self.loss != None and self.loss.on_value:
             res = True
         return res
 
@@ -133,11 +202,13 @@ class CvxpyMinimizationAlgorithm(MinimizationAlgorithm):
         res = True
         if (
             type(self.loss) == CvxpyRelativeEntropy
+            and self.option != None
             and self.option.name_solver == "cvxopt"
         ):
             res = False
         elif (
             type(self.loss) == CvxpyRelativeEntropy
+            and self.option != None
             and self.option.mode_constraint == "unconstraint"
         ):
             res = False
@@ -146,7 +217,10 @@ class CvxpyMinimizationAlgorithm(MinimizationAlgorithm):
     def optimize(
         self,
     ) -> MinimizationResult:
-        assert self.loss != None
+        if self.loss == None:
+            raise ValueError(f"loss is not set.")
+        if self.option == None:
+            raise ValueError(f"algorithm option is not set.")
 
         time_start = time.time()
 
@@ -160,31 +234,20 @@ class CvxpyMinimizationAlgorithm(MinimizationAlgorithm):
         elif t == "povm" or t == "mprocess":
             num_outcomes = self.loss.num_outcomes_estimate()
             var = generate_cvxpy_variable(t, dim, num_outcomes)
+        else:
+            raise ValueError(f"type of estimate is invalid! type of estimate={t}")
 
         # CVXPY constraints
         if self.option.mode_constraint == "unconstraint":
             constraints = []
-        elif (
-            self.option.mode_constraint == "physical"
-            or self.option.mode_constraint
-            == "physical_and_zero_probability_equation_satisfied"
-        ):
-            # if t == "state" or t == "gate":
-            #    constraints = generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(c_sys, t, var)
-            # elif t == "povm" or t == "mprocess":
+        elif self.option.mode_constraint == "physical":
             constraints = generate_cvxpy_constraints_from_cvxpy_variable_with_sparsity(
                 c_sys, t, var, num_outcomes
             )
-
-        if (
-            self.option.mode_constraint
-            == "physical_and_zero_probability_equation_satisfied"
-        ):
-            for i, prob_dist in enumerate(self.loss.prob_dists_data):
-                for x, q in enumerate(prob_dist):
-                    if q < self.loss.eps_prob_zero:
-                        pi_x = self.loss.calc_prob_model(i, x, var)
-                        constraints.append(pi_x == 0)
+        else:
+            raise ValueError(
+                f"mode_constraint is invalid! mode_constraint={self.option.mode_constraint}"
+            )
 
         objective = cp.Minimize(self.loss.value_cvxpy(var))
         problem = cp.Problem(objective, constraints)
@@ -205,7 +268,7 @@ class CvxpyMinimizationAlgorithm(MinimizationAlgorithm):
         elif name_solver == "cvxopt":
             problem.solve(solver=cp.CVXOPT, verbose=verbose)
         else:
-            raise ValueError(f"name_solver is invalid!")
+            raise ValueError(f"name_solver is invalid! name_solver={name_solver}")
 
         time_elapsed = time.time() - time_start
 
