@@ -1,5 +1,3 @@
-from typing import List
-
 import numpy as np
 import numpy.testing as npt
 import pytest

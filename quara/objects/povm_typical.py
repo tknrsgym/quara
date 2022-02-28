@@ -1,13 +1,11 @@
 from itertools import product
 from typing import List, Union
-import re
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.matrix_basis import (
-    MatrixBasis,
-    calc_matrix_expansion_coefficient,
+    SparseMatrixBasis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.povm import Povm
@@ -15,7 +13,7 @@ from quara.objects.state_typical import (
     generate_state_density_mat_from_name,
     generate_state_pure_state_vector_from_name,
 )
-from quara.utils.matrix_util import truncate_hs, calc_mat_from_vector_adjoint
+from quara.utils.matrix_util import calc_mat_from_vector_adjoint
 
 
 def get_povm_object_names() -> List[str]:
@@ -155,7 +153,8 @@ def generate_povm_object_from_povm_name_object_name(
     povm_name: str,
     object_name: str,
     c_sys: CompositeSystem = None,
-    basis: MatrixBasis = None,
+    basis: SparseMatrixBasis = None,
+    is_physicality_required: bool = True,
 ) -> Union[List[np.ndarray], Povm]:
     """Return a povm-related object.
 
@@ -169,6 +168,8 @@ def generate_povm_object_from_povm_name_object_name(
         To be given for object_name = 'povm', by default None.
     basis : MatrixBasis, optional
         To be given for object_name = 'vectors', by default None.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -197,7 +198,7 @@ def generate_povm_object_from_povm_name_object_name(
     elif object_name == "vectors":
         obj = generate_povm_vectors_from_name(povm_name, basis)
     elif object_name == "povm":
-        obj = generate_povm_from_name(povm_name, c_sys)
+        obj = generate_povm_from_name(povm_name, c_sys, is_physicality_required)
     else:
         raise ValueError(f"object_name is out of range. object_name={object_name}")
     return obj
@@ -335,7 +336,7 @@ def generate_povm_matrices_from_name(povm_name: str) -> List[np.ndarray]:
 
 
 def generate_povm_vectors_from_name(
-    povm_name: str, basis: MatrixBasis
+    povm_name: str, basis: SparseMatrixBasis
 ) -> List[np.ndarray]:
     """returns vectors on Hermitian basis.
 
@@ -366,7 +367,9 @@ def generate_povm_vectors_from_name(
     return vecs
 
 
-def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
+def generate_povm_from_name(
+    povm_name: str, c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> Povm:
     """returns Povm class.
 
     Parameters
@@ -375,6 +378,8 @@ def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
         name of povm.
     c_sys : CompositeSystem
         CompositeSystem of povm.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -387,7 +392,7 @@ def generate_povm_from_name(povm_name: str, c_sys: CompositeSystem) -> Povm:
         povm_name is invalid.
     """
     vecs = generate_povm_vectors_from_name(povm_name, c_sys.basis())
-    return Povm(c_sys, vecs)
+    return Povm(c_sys, vecs, is_physicality_required=is_physicality_required)
 
 
 def get_povm_xxparity_povm_matrices() -> List[List[np.ndarray]]:

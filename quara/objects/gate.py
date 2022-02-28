@@ -5,12 +5,14 @@ from operator import add
 from typing import List, Tuple, Optional
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 import quara.utils.matrix_util as mutil
+from quara.utils.matrix_util import vdot
 from quara.objects.composite_system import CompositeSystem, ElementalSystem
 from quara.objects.matrix_basis import (
+    SparseMatrixBasis,
     MatrixBasis,
-    get_comp_basis,
     get_normalized_pauli_basis,
 )
 from quara.settings import Settings
@@ -156,6 +158,42 @@ class Gate(QOperation):
 
     def to_stacked_vector(self) -> np.ndarray:
         return self.hs.flatten()
+
+    def _embed_qoperation_from_qutrits_to_qubits(
+        self, perm_matrix, c_sys_qubits
+    ) -> QOperation:
+        num_qutrits = self.composite_system.num_e_sys
+
+        mats_qutrits = self.to_kraus_matrices()
+        coeff = 1 / np.sqrt(len(mats_qutrits))
+
+        # calc matrices for qubits
+        mats_qubits = []
+        for mat_qutrits in mats_qutrits:
+            mat_qubits = QOperation._calc_matrix_from_qutrits_to_qubits(
+                num_qutrits, perm_matrix, mat_qutrits, coeff
+            )
+            mats_qubits.append(mat_qubits)
+
+        # gerenera qoperation for qubits
+        hs = to_hs_from_kraus_matrices(
+            c_sys_qubits,
+            mats_qubits,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+        )
+        new_qope = Gate(
+            c_sys_qubits,
+            hs,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+        )
+        return new_qope
 
     def calc_gradient(self, var_index: int) -> "Gate":
         gate = calc_gradient_from_gate(
@@ -545,7 +583,7 @@ def is_tp(c_sys: CompositeSystem, hs: np.ndarray, atol: float = None) -> bool:
         # if A:HS representation of gate, then A:TP <=> Tr[A(B_\alpha)] = Tr[B_\alpha] for all basis.
         for index, basis in enumerate(c_sys.basis()):
             # calculate Tr[B_\alpha]
-            trace_before_mapped = np.trace(basis)
+            trace_before_mapped = basis.diagonal().sum()
 
             # calculate Tr[A(B_\alpha)]
             vec = np.zeros((c_sys.dim ** 2))
@@ -613,7 +651,10 @@ def to_choi_from_hs(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndarray:
     num_basis = len(c_sys.basis())
     tmp_list = []
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
-        tmp = hs[alpha][beta] * c_sys.basis_basisconjugate((alpha, beta))
+        bb = c_sys.basis_basisconjugate((alpha, beta))
+        if type(bb) == csr_matrix:
+            bb = bb.toarray()
+        tmp = hs[alpha][beta] * bb
         tmp_list.append(tmp)
 
     # summing
@@ -639,7 +680,7 @@ def to_choi_from_hs_with_dict(c_sys: CompositeSystem, hs: np.ndarray) -> np.ndar
     num_basis = len(c_sys.basis())
     choi = np.zeros((num_basis, num_basis), dtype=np.complex128)
     for i, j in itertools.product(range(num_basis), range(num_basis)):
-        non_zeros = c_sys._dict_from_hs_to_choi.get((i, j), [])
+        non_zeros = c_sys.dict_from_hs_to_choi.get((i, j), [])
         for alpha, beta, coefficient in non_zeros:
             choi[i, j] += hs[alpha, beta] * coefficient
 
@@ -661,7 +702,7 @@ def to_choi_from_hs_with_sparsity(c_sys: CompositeSystem, hs: np.ndarray) -> np.
     np.ndarray
         Choi matrix of this gate.
     """
-    choi_vec = c_sys._basis_basisconjugate_T_sparse.dot(hs.flatten())
+    choi_vec = c_sys.basis_basisconjugate_T_sparse.dot(hs.flatten())
     choi = choi_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
     return choi
 
@@ -687,7 +728,9 @@ def to_hs_from_choi(c_sys: CompositeSystem, choi: np.ndarray) -> np.ndarray:
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
         b_bc = c_sys.basis_basisconjugate((alpha, beta))
         b_bc_dag = np.conjugate(b_bc.T)
-        hs[alpha, beta] = (np.trace(b_bc_dag @ choi)).real.astype(np.float64)
+
+        tr = (b_bc_dag @ choi).diagonal().sum()
+        hs[alpha, beta] = tr.real.astype(np.float64)
 
     return hs
 
@@ -717,7 +760,7 @@ def to_hs_from_choi_with_dict(
     hs = np.zeros((num_basis, num_basis), dtype=np.complex128)
 
     for alpha, beta in itertools.product(range(num_basis), range(num_basis)):
-        non_zeros = c_sys._dict_from_choi_to_hs.get((alpha, beta), [])
+        non_zeros = c_sys.dict_from_choi_to_hs.get((alpha, beta), [])
         for i, j, coefficient in non_zeros:
             hs[alpha, beta] += coefficient * choi[j, i]
 
@@ -749,7 +792,7 @@ def to_hs_from_choi_with_sparsity(
     np.ndarray
         HS representation of this gate.
     """
-    hs_vec = c_sys._basisconjugate_basis_sparse.dot(choi.flatten())
+    hs_vec = c_sys.basisconjugate_basis_sparse.dot(mutil.flatten(choi))
     hs = hs_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
 
     return mutil.truncate_hs(
@@ -835,6 +878,35 @@ def to_kraus_matrices_from_hs(
     return kraus
 
 
+def to_hs_from_kraus_matrices(
+    c_sys: CompositeSystem,
+    kraus: List[np.ndarray],
+    eps_truncate_imaginary_part: float = None,
+) -> np.ndarray:
+    """returns HS representation of this gate.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        CompositeSystem of this gate.
+    kraus : List[np.ndarray]
+        Kraus matrices of gate.
+    eps_truncate_imaginary_part : float, optional
+        threshold to truncate imaginary part, by default :func:`~quara.settings.Settings.get_atol`
+
+    Returns
+    -------
+    np.ndarray
+        HS representation of this gate.
+    """
+    kraus_tensor = [np.kron(mat, mat.conjugate()) for mat in kraus]
+    hs_cb = sum(kraus_tensor)
+    hs = convert_hs(hs_cb, c_sys.comp_basis(), c_sys.basis())
+    return mutil.truncate_hs(
+        hs, eps_truncate_imaginary_part=eps_truncate_imaginary_part
+    )
+
+
 def to_process_matrix_from_hs(
     c_sys: CompositeSystem,
     hs: np.ndarray,
@@ -857,7 +929,7 @@ def to_process_matrix_from_hs(
     comp_basis = c_sys.comp_basis()
     hs_comp = convert_hs(hs, c_sys.basis(), comp_basis)
     process_matrix = [
-        np.trace(np.kron(B_alpha.conj().T, B_beta.T) @ hs_comp)
+        (mutil.kron(B_alpha.conj().T, B_beta.T) @ hs_comp).diagonal().sum()
         for B_alpha, B_beta in itertools.product(comp_basis, comp_basis)
     ]
     return np.array(process_matrix).reshape((c_sys.dim ** 2, c_sys.dim ** 2))
@@ -1236,7 +1308,6 @@ def convert_hs(
         length of ``from_basis`` does not equal length of ``to_basis``.
     """
     ### parameter check
-
     # whether HS is square matrix
     size = from_hs.shape
     if size[0] != size[1]:
@@ -1263,7 +1334,7 @@ def convert_hs(
 
     # U_{\alpha,\bata} := Tr[to_basis_{\alpha}^{\dagger} @ from_basis_{\beta}]
     trans_matrix = [
-        np.vdot(B_alpha, B_beta)
+        vdot(B_alpha, B_beta)
         for B_alpha, B_beta in itertools.product(to_basis, from_basis)
     ]
     U = np.array(trans_matrix).reshape(from_basis.dim ** 2, from_basis.dim ** 2)

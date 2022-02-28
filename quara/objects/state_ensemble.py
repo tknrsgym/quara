@@ -1,4 +1,4 @@
-from typing import List, Tuple, Type, Union
+from typing import List, Tuple, Union
 import numpy as np
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State

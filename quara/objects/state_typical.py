@@ -3,7 +3,7 @@ from typing import List, Union
 
 import numpy as np
 from quara.objects.state import State
-from quara.objects.matrix_basis import MatrixBasis, convert_vec
+from quara.objects.matrix_basis import SparseMatrixBasis, convert_vec
 from quara.objects.matrix_basis import (
     get_normalized_pauli_basis,
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
@@ -21,6 +21,21 @@ def get_state_names() -> List[str]:
     names += get_state_names_1qutrit()
     names += get_state_names_2qutrit()
     return names
+
+
+def is_valid_state_name(name: str) -> bool:
+    if name in get_state_names_1qubit():
+        return True
+    elif name in get_state_names_2qubit():
+        return True
+    elif name in get_state_names_3qubit():
+        return True
+    elif name in get_state_names_1qutrit():
+        return True
+    elif name in get_state_names_2qutrit():
+        return True
+    else:
+        return False
 
 
 def get_state_names_1qubit() -> List[str]:
@@ -86,7 +101,10 @@ def get_state_names_2qutrit() -> List[str]:
 
 
 def generate_state_object_from_state_name_object_name(
-    state_name: str, object_name: str, c_sys: CompositeSystem = None
+    state_name: str,
+    object_name: str,
+    c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[State, np.ndarray]:
     """[summary]
 
@@ -100,6 +118,9 @@ def generate_state_object_from_state_name_object_name(
         one of ("pure_state_vector" | "density_mat" | "density_matrix_vector" | "state")
     c_sys : CompositeSystem, optional
         Specify if object_name is "state" or "density_matrix_vector", by default None.
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -121,7 +142,7 @@ def generate_state_object_from_state_name_object_name(
     if object_name not in expected_object_names:
         raise ValueError("object_name is out of range.")
     if object_name == "state":
-        return generate_state_from_name(c_sys, state_name)
+        return generate_state_from_name(c_sys, state_name, is_physicality_required)
     elif object_name == "density_matrix_vector":
         return generate_state_density_matrix_vector_from_name(c_sys.basis(), state_name)
     else:
@@ -145,7 +166,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
         density matrix ( :math:`|\\rho\\rangle` )
     """
 
-    if state_name in get_state_names():
+    if is_valid_state_name(state_name):
         pure_state_vec = generate_state_pure_state_vector_from_name(state_name)
         density_mat = calc_mat_from_vector_adjoint(pure_state_vec)
         return density_mat
@@ -154,7 +175,7 @@ def generate_state_density_mat_from_name(state_name: str) -> np.ndarray:
 
 
 def generate_state_density_matrix_vector_from_name(
-    basis: MatrixBasis, state_name: str
+    basis: SparseMatrixBasis, state_name: str
 ) -> np.ndarray:
     """Return the density matrix vector ( :math:`|\\rho\\rangle\\rangle` ) of state specified by name.
 
@@ -178,7 +199,9 @@ def generate_state_density_matrix_vector_from_name(
     return vec
 
 
-def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
+def generate_state_from_name(
+    c_sys: CompositeSystem, state_name: str, is_physicality_required: bool = True
+) -> State:
     """Return the state object specified by name.
 
     Parameters
@@ -188,6 +211,8 @@ def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
     state_name : str
         name of the state.
         See the 'state_name' argument of generate_state_pure_state_vector_from_name() for available names.
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     -------
@@ -196,7 +221,7 @@ def generate_state_from_name(c_sys: CompositeSystem, state_name: str) -> State:
     """
 
     vec = generate_state_density_matrix_vector_from_name(c_sys.basis(), state_name)
-    state = State(vec=vec, c_sys=c_sys)
+    state = State(vec=vec, c_sys=c_sys, is_physicality_required=is_physicality_required)
     return state
 
 
@@ -229,9 +254,14 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
     ValueError
         'state_name' is out of range.
     """
-    if state_name not in get_state_names():
+    if not is_valid_state_name(state_name):
         message = f"state_name is out of range."
         raise ValueError(message)
+
+    def _get_typical_pure_state_vec(state_name):
+        method_name = f"get_state_{state_name}_pure_state_vector"
+        method = eval(method_name)
+        return method()
 
     typical_names = (
         get_state_names_1qubit()
@@ -239,12 +269,17 @@ def generate_state_pure_state_vector_from_name(state_name: str) -> np.ndarray:
         + get_state_names_1qutrit()
         + _get_state_names_2qutrit_typical()
     )
-    if state_name in typical_names:
-        method_name = f"get_state_{state_name}_pure_state_vector"
-        method = eval(method_name)
-        return method()
+    # Check step by step to improve speed.
+    if state_name in get_state_names_1qubit():
+        return _get_typical_pure_state_vec(state_name)
     elif state_name in _get_state_names_2qubit_typical():
         return get_state_bell_pure_state_vector(state_name)
+    elif state_name in _get_state_names_3qubit_typical():
+        return _get_typical_pure_state_vec(state_name)
+    elif state_name in get_state_names_1qutrit():
+        return _get_typical_pure_state_vec(state_name)
+    elif state_name in _get_state_names_2qutrit_typical():
+        return _get_typical_pure_state_vec(state_name)
 
     return _generate_pure_state_vec_tensor_product(state_name)
 

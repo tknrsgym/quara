@@ -24,6 +24,7 @@ from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunctionOption,
 )
 from quara.protocol.qtomography.estimator import EstimationResult
+from quara.protocol.qtomography.qtomography import QTomography
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.loss_minimization_estimator import (
     LossMinimizationEstimator,
@@ -131,11 +132,14 @@ class NoiseSetting:
     ids: List[int] = None
 
     def to_generation_setting(
-        self, c_sys: "CompositeSystem"
+        self, c_sys: "CompositeSystem", is_physicality_required: bool = True
     ) -> "QOperationGenerationSetting":
         if self.method is None:
             return QOperationGenerationSetting(
-                qoperation_base=self.qoperation_base, c_sys=c_sys, ids=self.ids
+                qoperation_base=self.qoperation_base,
+                c_sys=c_sys,
+                ids=self.ids,
+                is_physicality_required=is_physicality_required,
             )  # dummy
 
         name2class_map = {
@@ -154,6 +158,7 @@ class NoiseSetting:
             c_sys=c_sys,
             **self.para,
             ids=self.ids,
+            is_physicality_required=is_physicality_required,
         )
 
 
@@ -175,6 +180,7 @@ class EstimatorTestSetting:
     loss_list: List[tuple]
     parametrizations: List[bool]
     c_sys: "CompositeSystem"
+    generation_setting_is_physicality_required: bool = True
 
     def to_pickle(self, path: Union[str, Path]) -> None:
         path = Path(path)
@@ -183,9 +189,16 @@ class EstimatorTestSetting:
             pickle.dump(self, f)
 
     def to_generation_settings(self) -> QOperationGenerationSettings:
-        true_setting = self.true_object.to_generation_setting(self.c_sys)
+        true_setting = self.true_object.to_generation_setting(
+            self.c_sys,
+            is_physicality_required=self.generation_setting_is_physicality_required,
+        )
         tester_settings = [
-            setting.to_generation_setting(self.c_sys) for setting in self.tester_objects
+            setting.to_generation_setting(
+                self.c_sys,
+                is_physicality_required=self.generation_setting_is_physicality_required,
+            )
+            for setting in self.tester_objects
         ]
         generation_settings = QOperationGenerationSettings(
             true_setting=true_setting, tester_settings=tester_settings
@@ -217,15 +230,176 @@ class EstimatorTestSetting:
             ],
         )
 
+    def show_description(self) -> None:
+        """show the description of schema of EstimatorTestSetting."""
+        print(f"=== decsription of {type(self)} ===")
+        self._show_description(self)
+
+    @staticmethod
+    def _show_description(obj, indent: int = 0) -> None:
+        # show attributes of "obj"
+        for attr in dir(obj):
+            # don't show private functions and utility functions
+            if attr.startswith("_") or attr.startswith("to_"):
+                continue
+
+            # show attribute
+            attr_obj = getattr(obj, attr)
+            print(" " * indent, attr, type(attr_obj))
+
+            # do recursive call
+            if type(attr_obj) is dict or type(attr_obj).__name__ == "method":
+                # if "obj" is dict or method or QTomography, it doesn't do recursive call
+                continue
+            elif type(attr_obj) is list:
+                if attr in [
+                    "algo_list",
+                    "case_names",
+                    "eps_proj_physical_list",
+                    "eps_truncate_imaginary_part_list",
+                    "estimators",
+                    "loss_list",
+                    "parametrizations",
+                ]:
+                    print(" " * (indent + 2), "[case_index]")
+                elif attr == "num_data":
+                    print(" " * (indent + 2), "[num_data_index]")
+                elif attr == "tester_objects":
+                    if len(attr_obj) == 0:
+                        print(" " * (indent + 2), "[tester_index]")
+                    else:
+                        print(" " * (indent + 2), f"(list of {type(attr_obj[0])})")
+                        print(" " * (indent + 2), "[tester_index]")
+            elif type(attr_obj) is NoiseSetting:
+                EstimatorTestSetting._show_description(attr_obj, indent + 2)
+
 
 @dataclasses.dataclass
 class SimulationResult:
+    """Parameters
+
+    Parameters
+    -------
+    estimation_results : List[EstimationResult]
+        the index of list is the index of "n_rep".
+    empi_dists_sequences: List[List[List[Tuple[int, np.ndarray]]]]
+        the order of indexes is as follows: "n_rep", "num_data", and "schecule_index".
+    qtomography: StandardQTomography
+        StandardQTomography object.
+    simulation_setting: StandardQTomographySimulationSetting
+        StandardQTomographySimulationSetting object.
+    result_index: dict
+        dictionary of the check result.
+        it contains the following keys: "name", "total_result", and "results".
+    check_result: dict
+        dictionary of the check result.
+        it contains the following keys: "test_setting_index", "sample_index", and "case_index".
+    """
+
     estimation_results: List["EstimationResult"]
-    empi_dists_sequences: List[List[Tuple[int, np.ndarray]]]
+    empi_dists_sequences: List[List[List[Tuple[int, np.ndarray]]]]
     qtomography: StandardQTomography
     simulation_setting: StandardQTomographySimulationSetting = None
     result_index: dict = None
     check_result: dict = None
+
+    def get_variable_estimate(
+        self, n_rep: int, num_data_index: int = None, num_data_value: int = None
+    ) -> np.ndarray:
+        """get variable estimate with specific parameter.
+        Either num_data_index or num_data_value must be specified.
+
+        Parameters
+        ----------
+        n_rep : int
+            value of n_rep.
+        num_data_index : int, optional
+            index of num_data, by default None
+        num_data_value : int, optional
+            value of num_data, by default None
+
+        Returns
+        -------
+        np.ndarray
+            variable estimate.
+
+        Raises
+        ------
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are None.
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are specified.
+        ValueError
+            num_data_value is not found in SimulationResult.
+        """
+        if num_data_index is None and num_data_value is None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are None."
+            )
+        elif num_data_index is not None and num_data_value is not None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are specified."
+            )
+        elif num_data_index is not None:
+            return self.estimation_results[n_rep].estimated_var_sequence[num_data_index]
+        else:
+            for num_data_index, num in enumerate(self.simulation_setting.num_data):
+                if num == num_data_value:
+                    return self.estimation_results[n_rep].estimated_var_sequence[
+                        num_data_index
+                    ]
+            raise ValueError(
+                f"num_data_value({num_data_value}) is not found in SimulationResult."
+            )
+
+    def get_empi_dists(
+        self, n_rep: int, num_data_index: int = None, num_data_value: int = None
+    ) -> List[Tuple[int, np.ndarray]]:
+        """get empi dists with specific parameter.
+        Either num_data_index or num_data_value must be specified.
+
+        Parameters
+        ----------
+        n_rep : int
+            value of n_rep.
+        num_data_index : int, optional
+            index of num_data, by default None
+        num_data_value : int, optional
+            value of num_data, by default None
+
+        Returns
+        -------
+        List[Tuple[int, np.ndarray]]
+            empi dists.
+            the index of list is "schecule_index".
+            the tuple consists of (num_data, empi dist).
+
+        Raises
+        ------
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are None.
+        ValueError
+            Either num_data_index or num_data_value must be specified. But both are specified.
+        ValueError
+            num_data_value is not found in SimulationResult.
+        """
+        if num_data_index is None and num_data_value is None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are None."
+            )
+        elif num_data_index is not None and num_data_value is not None:
+            raise ValueError(
+                f"Either num_data_index or num_data_value must be specified. But both are specified."
+            )
+        elif num_data_index is not None:
+            return self.empi_dists_sequences[n_rep][num_data_index]
+        else:
+            for num_data_index, num in enumerate(self.simulation_setting.num_data):
+                if num == num_data_value:
+                    return self.empi_dists_sequences[n_rep][num_data_index]
+            raise ValueError(
+                f"num_data_value({num_data_value}) is not found in SimulationResult."
+            )
 
     def to_pickle(self, path: Union[str, Path]) -> None:
         path = Path(path)
@@ -263,12 +437,65 @@ class SimulationResult:
 
         return result_dict
 
+    def show_description(self) -> None:
+        """show the description of schema of SimulationResult."""
+        print(f"=== decsription of {type(self)} ===")
+        self._show_description(self)
+
+    @staticmethod
+    def _show_description(obj, indent: int = 0) -> None:
+        # if "obj" is StandardQTomographySimulationSetting or EstimationResult, it doesn't do recursive call
+        if isinstance(obj, StandardQTomographySimulationSetting) or isinstance(
+            obj, EstimationResult
+        ):
+            recursive_call = False
+        else:
+            recursive_call = True
+
+        # show attributes of "obj"
+        for attr in dir(obj):
+            # don't show private functions and utility functions
+            if attr.startswith("_") or attr.startswith("to_"):
+                continue
+
+            # show attribute
+            attr_obj = getattr(obj, attr)
+            print(" " * indent, attr, type(attr_obj))
+
+            # do recursive call
+            if (
+                type(attr_obj) is dict
+                or type(attr_obj).__name__ == "method"
+                or isinstance(attr_obj, QTomography)
+            ):
+                # if "obj" is dict or method or QTomography, it doesn't do recursive call
+                continue
+            elif type(attr_obj) is list:
+                if attr == "empi_dists_sequences":
+                    print(" " * (indent + 2), "(multi-dimensional lists)")
+                    print(" " * (indent + 2), "[n_rep]")
+                    print(" " * (indent + 4), "[num_data]")
+                    print(" " * (indent + 6), "[schecule_index]")
+                elif attr == "estimation_results":
+                    if len(attr_obj) == 0:
+                        print(" " * (indent + 2), f"(list)")
+                        print(" " * (indent + 2), "[n_rep]")
+                    else:
+                        print(" " * (indent + 2), f"(list of {type(attr_obj[0])})")
+                        print(" " * (indent + 2), "[n_rep]")
+                        SimulationResult._show_description(attr_obj[0], indent + 4)
+            else:
+                if recursive_call:
+                    SimulationResult._show_description(attr_obj, indent + 2)
+
 
 # common
 def execute_simulation(
     qtomography: "StandardQTomography",
     simulation_setting: StandardQTomographySimulationSetting,
     seed_or_generator: Union[int, np.random.Generator] = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
     if seed_or_generator is None:
@@ -285,6 +512,8 @@ def execute_simulation(
         algo_option=simulation_setting.algo_option,
         iteration=simulation_setting.n_rep,
         seed_or_generator=seed_or_generator,
+        is_computation_time_required=is_computation_time_required,
+        is_detailed_results_required=is_detailed_results_required,
     )
     simulation_result.simulation_setting = org_sim_setting
     return simulation_result
@@ -299,6 +528,8 @@ def _load_and_execute_estimation(
     loss_option: ProbabilityBasedLossFunctionOption = None,
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> EstimationResult:
     # Load
     with open(empi_dists_path, "rb") as f:
@@ -311,8 +542,57 @@ def _load_and_execute_estimation(
         loss_option=loss_option,
         algo=algo,
         algo_option=algo_option,
+        is_computation_time_required=is_computation_time_required,
+        is_detailed_results_required=is_detailed_results_required,
     )
     return estimation_result
+
+
+def load_simulation_results(
+    root_dir: str,
+    test_setting_index: int,
+    sample_index: int,
+    case_index: int = None,
+) -> list:
+    print("Loading SimulationResult pickles ...")
+    print(
+        f"(test_setting_index, sample_index, case_index) = ({test_setting_index}, {sample_index}, {case_index})"
+    )
+    result_dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
+    simulation_results = []
+    if case_index is not None:
+        # load specific pickle file
+        file_name = f"case_{case_index}_result.pickle"
+        file_path = result_dir_path / file_name
+        print(file_path)
+        with open(file_path, "rb") as f:
+            simulation_result = pickle.load(f)
+        simulation_results.append(simulation_result)
+    else:
+        # load some pickle files
+        file_paths = sorted(result_dir_path.glob("case_*_result.pickle"))
+        for file_path in file_paths:
+            print(file_path)
+            with open(file_path, "rb") as f:
+                simulation_result = pickle.load(f)
+            simulation_results.append(simulation_result)
+    print(
+        f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
+    )
+    return simulation_results
+
+
+def load_test_setting(
+    root_dir: str,
+    test_setting_index: int,
+) -> list:
+    result_dir_path = Path(root_dir) / str(test_setting_index)
+    # load test setting pickle file
+    file_name = "test_setting.pickle"
+    file_path = result_dir_path / file_name
+    with open(file_path, "rb") as f:
+        test_setting = pickle.load(f)
+        return test_setting
 
 
 def execute_estimation_with_saved_empi_dists_sequences(
@@ -320,6 +600,8 @@ def execute_estimation_with_saved_empi_dists_sequences(
     simulation_setting: StandardQTomographySimulationSetting,
     dir_path_empi_dists_sequences: Union[str, Path],
     n_jobs: int = 1,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
@@ -329,11 +611,14 @@ def execute_estimation_with_saved_empi_dists_sequences(
                 Path(dir_path_empi_dists_sequences)
                 / f"empi_dists_{empi_dists_index}.pickle",
                 qtomography,
+                None,
                 simulation_setting.estimator,
                 simulation_setting.loss,
                 simulation_setting.loss_option,
                 simulation_setting.algo,
                 simulation_setting.algo_option,
+                is_computation_time_required=is_computation_time_required,
+                is_detailed_results_required=is_detailed_results_required,
             )
             for empi_dists_index in range(simulation_setting.n_rep)
         ]
@@ -354,6 +639,8 @@ def execute_estimation(
     simulation_setting: StandardQTomographySimulationSetting,
     empi_dists_sequences: List[List[Tuple[int, np.ndarray]]],
     n_jobs: int = 1,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> SimulationResult:
     org_sim_setting = simulation_setting.copy()
 
@@ -367,6 +654,8 @@ def execute_estimation(
                 simulation_setting.loss_option,
                 simulation_setting.algo,
                 simulation_setting.algo_option,
+                is_computation_time_required,
+                is_detailed_results_required,
             )
             for empi_dists_seq in empi_dists_sequences
         ]
@@ -393,6 +682,8 @@ def _generate_empi_dists_and_calc_estimate(
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
     seed_or_generator: Union[int, np.random.Generator] = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> Tuple[StandardQTomographyEstimationResult, List[List[Tuple[int, np.ndarray]]]]:
     empi_dists_seq = qtomography.generate_empi_dists_sequence(
         true_object, num_data, seed_or_generator=seed_or_generator
@@ -405,6 +696,8 @@ def _generate_empi_dists_and_calc_estimate(
         loss_option=loss_option,
         algo=algo,
         algo_option=algo_option,
+        is_computation_time_required=is_computation_time_required,
+        is_detailed_results_required=is_detailed_results_required,
     )
     return estimation_result, empi_dists_seq
 
@@ -417,6 +710,8 @@ def _execute_estimation(
     loss_option: ProbabilityBasedLossFunctionOption = None,
     algo: MinimizationAlgorithm = None,
     algo_option: MinimizationAlgorithmOption = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> StandardQTomographyEstimationResult:
     if isinstance(estimator, LossMinimizationEstimator):
         estimation_result = estimator.calc_estimate_sequence(
@@ -426,13 +721,14 @@ def _execute_estimation(
             loss_option=loss_option,
             algo=algo,
             algo_option=algo_option,
-            is_computation_time_required=True,
+            is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
     else:
         estimation_result = estimator.calc_estimate_sequence(
             qtomography,
             empi_dists_seq,
-            is_computation_time_required=True,
+            is_computation_time_required=is_computation_time_required,
         )
     return estimation_result
 
@@ -521,6 +817,8 @@ def generate_empi_dists_and_calc_estimate(
     algo_option: MinimizationAlgorithmOption = None,
     iteration: Optional[int] = None,
     seed_or_generator: Union[int, np.random.Generator] = None,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> Union[Tuple[StandardQTomographyEstimationResult, list], SimulationResult,]:
 
     if iteration is None:
@@ -534,6 +832,8 @@ def generate_empi_dists_and_calc_estimate(
             algo=algo,
             algo_option=algo_option,
             seed_or_generator=seed_or_generator,
+            is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
         return estimation_result, empi_dists_seq
     else:
@@ -550,6 +850,8 @@ def generate_empi_dists_and_calc_estimate(
                 algo=algo,
                 algo_option=algo_option,
                 seed_or_generator=seed_or_generator,
+                is_computation_time_required=is_computation_time_required,
+                is_detailed_results_required=is_detailed_results_required,
             )
             estimation_results.append(estimation_result)
             empi_dists_sequences.append(empi_dists_seq)

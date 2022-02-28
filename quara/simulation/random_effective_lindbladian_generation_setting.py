@@ -36,6 +36,7 @@ class RandomEffectiveLindbladianGenerationSetting(
         strength_h_part: float,
         strength_k_part: float,
         ids: List[int] = None,
+        is_physicality_required: bool = True,
     ) -> None:
         """Constructor
 
@@ -79,6 +80,7 @@ class RandomEffectiveLindbladianGenerationSetting(
             lindbladian_base,
             ids=ids,
             is_seed_or_generator_required=True,
+            is_physicality_required=is_physicality_required,
         )
         self._strength_h_part = strength_h_part
         self._strength_k_part = strength_k_part

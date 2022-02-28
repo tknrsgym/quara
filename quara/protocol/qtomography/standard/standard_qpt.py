@@ -1,6 +1,6 @@
 import itertools
 from itertools import product
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 
 import numpy as np
 
@@ -11,7 +11,6 @@ from quara.objects.qoperation import QOperation
 from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.qcircuit.experiment import Experiment
-from quara.utils import matrix_util
 from quara.utils.number_util import to_stream
 
 
@@ -250,10 +249,12 @@ class StandardQpt(StandardQTomography):
         return len(self._experiment._povms[povm_index].vecs)
 
 
-def calc_c_qpt(states, povms, schedules, on_para_eq_constraint: bool):
+def calc_c_qpt(
+    states, povms, schedules, on_para_eq_constraint: bool
+) -> Tuple[Dict[Tuple[int], Union[float, np.ndarray]]]:
     coeffs_0th = dict()  # b
     coeffs_1st = dict()  # a
-    # c_list = []
+
     c_dict = dict()  # c
     STATE_ITEM_INDEX = 0
     POVM_ITEM_INDEX = 2
@@ -269,7 +270,7 @@ def calc_c_qpt(states, povms, schedules, on_para_eq_constraint: bool):
         dim = np.sqrt(vec_size)
         schedule_c_list = []
         for m_index, povm_vec in enumerate(povm.vecs):  # each measurement
-            c = np.kron(povm_vec, state.vec.T)
+            c = np.outer(povm_vec, state.vec).flatten()
 
             if on_para_eq_constraint:
                 a = c[int(dim * dim) :]
@@ -278,7 +279,6 @@ def calc_c_qpt(states, povms, schedules, on_para_eq_constraint: bool):
             else:
                 coeffs_1st[(schedule_index, m_index)] = c
                 coeffs_0th[(schedule_index, m_index)] = 0
-            # c_list.append(c)
             schedule_c_list.append(c)
 
         c_dict[schedule_index] = np.array(schedule_c_list)

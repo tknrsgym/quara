@@ -1,6 +1,4 @@
 import itertools
-import os
-from pathlib import Path
 import copy
 
 import numpy as np
@@ -295,6 +293,113 @@ class TestPovm:
         assert len(actual) == len(expected)
         for i, a in enumerate(actual):
             assert np.all(a == expected[i])
+
+    def test_generate_mprocess(self):
+        ### case: mode_backaction = 0
+        # Arrange
+        c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+        povm_z = generate_qoperation_object(
+            mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+        )
+
+        # Act
+        actual = povm_z.generate_mprocess()
+
+        # Assert
+        expected = [
+            np.array([[0.5, 0, 0, 0.5], [0, 0, 0, 0], [0, 0, 0, 0], [0.5, 0, 0, 0.5]]),
+            np.array(
+                [[0.5, 0, 0, -0.5], [0, 0, 0, 0], [0, 0, 0, 0], [-0.5, 0, 0, 0.5]]
+            ),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        ### case: mode_backaction = 1
+        # Arrange
+        c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+        povm_z = generate_qoperation_object(
+            mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+        )
+
+        # Act
+        actual = povm_z.generate_mprocess(mode_backaction=1)
+
+        # Assert
+        expected = [
+            np.array([[0.5, 0, 0, 0.5], [0, 0, 0, 0], [0, 0, 0, 0], [0.5, 0, 0, 0.5]]),
+            np.array(
+                [[0.5, 0, 0, -0.5], [0, 0, 0, 0], [0, 0, 0, 0], [-0.5, 0, 0, 0.5]]
+            ),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        ### case: mode_backaction = 2, post_selected_states = State
+        state_z0 = generate_qoperation_object(
+            mode="state", object_name="state", name="z0", c_sys=c_sys_1q
+        )
+
+        # Act
+        actual = povm_z.generate_mprocess(
+            mode_backaction=2, post_selected_states=state_z0
+        )
+
+        # Assert
+        expected = [
+            np.array([[0.5, 0, 0, 0.5], [0, 0, 0, 0], [0, 0, 0, 0], [0.5, 0, 0, 0.5]]),
+            np.array(
+                [[0.5, 0, 0, -0.5], [0, 0, 0, 0], [0, 0, 0, 0], [0.5, 0, 0, -0.5]]
+            ),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+        ### case: mode_backaction = 3, post_selected_states = List[State]
+        state_z0 = generate_qoperation_object(
+            mode="state", object_name="state", name="z0", c_sys=c_sys_1q
+        )
+        state_z1 = generate_qoperation_object(
+            mode="state", object_name="state", name="z1", c_sys=c_sys_1q
+        )
+
+        # Act
+        actual = povm_z.generate_mprocess(
+            mode_backaction=2, post_selected_states=[state_z0, state_z1]
+        )
+
+        # Assert
+        expected = [
+            np.array([[0.5, 0, 0, 0.5], [0, 0, 0, 0], [0, 0, 0, 0], [0.5, 0, 0, 0.5]]),
+            np.array(
+                [[0.5, 0, 0, -0.5], [0, 0, 0, 0], [0, 0, 0, 0], [-0.5, 0, 0, 0.5]]
+            ),
+        ]
+        for a, e in zip(actual.hss, expected):
+            npt.assert_almost_equal(a, e, decimal=15)
+
+    def test_generate_mprocess_error(self):
+        # Arrange
+        c_sys_1q = generate_composite_system(mode="qubit", num=1, ids_esys=[0])
+        povm_z = generate_qoperation_object(
+            mode="povm", object_name="povm", name="z", c_sys=c_sys_1q
+        )
+
+        ### case: mode_backaction = 0 and post_selected_states is not None
+        with pytest.raises(ValueError):
+            povm_z.generate_mprocess(mode_backaction=0, post_selected_states="not None")
+
+        ### case: mode_backaction = 1 and post_selected_states is not None
+        with pytest.raises(ValueError):
+            povm_z.generate_mprocess(mode_backaction=1, post_selected_states="not None")
+
+        ### case: mode_backaction = 2 and post_selected_states is None
+        with pytest.raises(ValueError):
+            povm_z.generate_mprocess(mode_backaction=2, post_selected_states=None)
+
+        ### case: mode_backaction = 3
+        with pytest.raises(ValueError):
+            povm_z.generate_mprocess(mode_backaction=3)
 
     def test_measurements(self):
         # Case 1:

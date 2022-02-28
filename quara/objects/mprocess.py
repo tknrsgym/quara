@@ -1,24 +1,19 @@
 import copy
-import itertools
 from functools import reduce
-from operator import add, mul
-from typing import List, Optional, Tuple, Union
+from operator import mul
+from typing import List, Tuple, Union
 
 import numpy as np
 
-from quara.objects.composite_system import CompositeSystem, ElementalSystem
+from quara.objects.composite_system import CompositeSystem
 from quara.objects import gate
-from quara.objects.gate import Gate
+from quara.objects.gate import Gate,to_hs_from_kraus_matrices
 from quara.objects.matrix_basis import (
-    MatrixBasis,
-    get_comp_basis,
-    get_normalized_pauli_basis,
+    SparseMatrixBasis,
 )
 from quara.objects.povm import Povm
 from quara.objects.qoperation import QOperation
-from quara.settings import Settings
 from quara.utils.index_util import index_serial_from_index_multi_dimensional
-import quara.utils.matrix_util as mutil
 from quara.utils.number_util import to_stream
 
 
@@ -339,6 +334,56 @@ class MProcess(QOperation):
         stacked_vec = np.array(self.hss).flatten()
         return stacked_vec
 
+    def _embed_qoperation_from_qutrits_to_qubits(
+        self, perm_matrix, c_sys_qubits
+    ) -> QOperation:
+        num_qutrits = self.composite_system.num_e_sys
+
+        mats_qutrits_list = []
+        num_kraus = 0
+        for index in range(len(self.hss)):
+            mats_qutrits = self.to_kraus_matrices(index)
+            mats_qutrits_list.append(mats_qutrits)
+            num_kraus += len(mats_qutrits)
+        coeff = 1 / np.sqrt(num_kraus)
+
+        # calc matrices for qubits
+        hss = []
+        for mats_qutrits in mats_qutrits_list:
+            kraus_qubits = []
+            for mat_qutrits in mats_qutrits:
+                mat_qubits = QOperation._calc_matrix_from_qutrits_to_qubits(
+                    num_qutrits, perm_matrix, mat_qutrits, coeff
+                )
+                kraus_qubits.append(mat_qubits)
+
+            # convert to hss
+            hs = to_hs_from_kraus_matrices(
+                c_sys_qubits,
+                kraus_qubits,
+                eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+            )
+            hss.append(hs)
+
+        # gerenera qoperation for qubits
+        new_qope = MProcess(
+            c_sys_qubits,
+            hss,
+            shape=self.shape,
+            mode_sampling=self.mode_sampling,
+            random_seed_or_generator=self.random_seed_or_generator,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+            eps_zero=self.eps_zero,
+        )
+        return new_qope
+
     def calc_gradient(self, var_index: int) -> "MProcess":
         mprocess = calc_gradient_from_mprocess(
             self.composite_system,
@@ -599,7 +644,7 @@ class MProcess(QOperation):
         new_hss = [hs / other for hs in self.hss]
         return new_hss
 
-    def get_basis(self) -> MatrixBasis:
+    def get_basis(self) -> SparseMatrixBasis:
         """returns MatrixBasis of gate.
         Returns
         -------
@@ -618,7 +663,7 @@ class MProcess(QOperation):
                 return False
         return True
 
-    def convert_basis(self, other_basis: MatrixBasis) -> List[np.ndarray]:
+    def convert_basis(self, other_basis: SparseMatrixBasis) -> List[np.ndarray]:
         """returns list of HS representations for ``other_basis``.
         Parameters
         ----------

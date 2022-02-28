@@ -13,14 +13,6 @@ from quara.minimization_algorithm.projected_gradient_descent import (
 
 
 class ProjectedGradientDescentWithMomentumResult(ProjectedGradientDescentResult):
-    """This algorithm is based on the following:
-
-    Eliot Bolduc, George C. Knee, Erik M. Gauger & Jonathan Leach, "Projected gradient descent algorithms for quantum state tomography",
-
-    - npj Quantum Information volume 3, Article number: 44 (2017) https://www.nature.com/articles/s41534-017-0043-1
-    - arXiv:1612.09531 https://arxiv.org/abs/1612.09531
-    """
-
     def __init__(
         self,
         value: np.ndarray,
@@ -29,10 +21,12 @@ class ProjectedGradientDescentWithMomentumResult(ProjectedGradientDescentResult)
         fx: List[np.ndarray] = None,
         x: List[np.ndarray] = None,
         moment: List[np.ndarray] = None,
+        zeta: List[float] = None,
         error_values: List[float] = None,
     ):
         super().__init__(value, computation_time, k, fx, x, error_values)
         self._moment: List[np.ndarray] = moment
+        self._zeta: List[np.ndarray] = zeta
 
     @property
     def moment(self) -> List[np.ndarray]:
@@ -44,6 +38,17 @@ class ProjectedGradientDescentWithMomentumResult(ProjectedGradientDescentResult)
             the moment per iteration.
         """
         return self._moment
+
+    @property
+    def zeta(self) -> List[np.ndarray]:
+        """return the zeta per iteration.
+
+        Returns
+        -------
+        List[np.ndarray]
+            the zeta per iteration.
+        """
+        return self._zeta
 
 
 class ProjectedGradientDescentWithMomentumOption(ProjectedGradientDescentOption):
@@ -130,6 +135,19 @@ class ProjectedGradientDescentWithMomentumOption(ProjectedGradientDescentOption)
 
 
 class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
+    """This algorithm is based on the following paper:
+
+    Eliot Bolduc, George C. Knee, Erik M. Gauger & Jonathan Leach, "Projected gradient descent algorithms for quantum state tomography",
+
+    - npj Quantum Information volume 3, Article number: 44 (2017) https://www.nature.com/articles/s41534-017-0043-1
+    - arXiv:1612.09531 https://arxiv.org/abs/1612.09531
+
+    Warning
+    -------
+    This is an experimental implementation.
+    It is not recommended to use this because of its poor accuracy when the maximum number of iterations is exceeded.
+    """
+
     def __init__(self, func_proj: Callable[[np.ndarray], np.ndarray] = None):
         """Constructor
 
@@ -248,8 +266,11 @@ class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
         else:
             raise ValueError("unable to set the algorithm option mu.")
 
+        magnitude_prev = np.ceil(np.log10(loss_function.value(x_prev)))
+
         x_next = None
         moment_next = None
+        magnitude_next = None
 
         zeta = 0.95
         eps = algorithm_option.eps
@@ -260,6 +281,7 @@ class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
             fxs = [loss_function.value(x_prev)]
             xs = [x_prev]
             moments = [moment_prev]
+            zetas = [zeta]
         error_values = []
 
         is_doing = True
@@ -268,6 +290,11 @@ class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
             if x_next is not None:
                 x_prev = x_next
                 moment_prev = moment_next
+
+            magnitude_next = np.ceil(np.log10(loss_function.value(x_prev)))
+            if magnitude_next < magnitude_prev:
+                zeta = 1 - (1 - zeta) * 0.95
+                magnitude_prev = magnitude_next
 
             moment_next = zeta * moment_prev - gamma * loss_function.gradient(x_prev)
             x_next = self.func_proj(x_prev + moment_next)
@@ -310,10 +337,18 @@ class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
                 fxs.append(loss_function.value(x_next, validate=True))
                 xs.append(x_next)
                 moments.append(moment_next)
+                zetas.append(zeta)
 
             is_doing = True if value > eps else False
             if not is_doing:
                 break
+
+        if k == max_iteration:
+            start_red = "\033[31m"
+            end_color = "\033[0m"
+            print(
+                f"{start_red}Warning!{end_color} pgdm iterations exceeds the limit {max_iteration}."
+            )
 
         if on_iteration_history:
             computation_time = time.time() - start_time
@@ -324,6 +359,7 @@ class ProjectedGradientDescentWithMomentum(ProjectedGradientDescent):
                 fx=fxs,
                 x=xs,
                 moment=moments,
+                zeta=zetas,
                 error_values=error_values,
             )
             return result

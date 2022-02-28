@@ -39,6 +39,8 @@ def execute_simulation_case_unit(
     exec_sim_check: dict = None,
     n_jobs: int = 1,
     data_saving: str = "on_memory",
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> SimulationResult:
 
     # Generate QTomographySimulationSetting
@@ -58,6 +60,8 @@ def execute_simulation_case_unit(
         init_with_seed=False,
     )
 
+    # TODO: remove
+    # sim_result = []
     # Execute
     if data_saving == "on_memory":
         sim_result = sim.execute_estimation(
@@ -65,6 +69,8 @@ def execute_simulation_case_unit(
             simulation_setting=sim_setting,
             empi_dists_sequences=empi_dists_sequences,
             n_jobs=n_jobs,
+            is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
     else:
         sim_result = sim.execute_estimation_with_saved_empi_dists_sequences(
@@ -74,6 +80,8 @@ def execute_simulation_case_unit(
             / str(sample_index)
             / "empi_dists_sequences",
             n_jobs=n_jobs,
+            is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
 
     # Simulation Check
@@ -101,6 +109,7 @@ def execute_simulation_case_unit(
 
     # Save
     write_result_case_unit(sim_result, root_dir=root_dir)
+
     return sim_result
 
 
@@ -115,6 +124,8 @@ def execute_simulation_sample_unit(
     exec_sim_check: Dict[str, bool] = None,
     parallel_mode: Dict[str, int] = None,
     data_saving: str = "on_memory",
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> List[SimulationResult]:
     # Generate sample
     _f = generation_settings.true_setting.generate
@@ -225,6 +236,8 @@ def execute_simulation_sample_unit(
                 root_dir,
                 exec_sim_check,
                 per_estimator_execution_n_jobs,
+                is_computation_time_required=is_computation_time_required,
+                is_detailed_results_required=is_detailed_results_required,
             )
             for case_index in range(case_n)
         ]
@@ -258,6 +271,8 @@ def execute_simulation_test_setting_unit(
     pdf_mode: str = "only_ng",
     parallel_mode: Dict[str, int] = None,
     data_saving: str = "on_memory",
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> List[SimulationResult]:
     generation_settings = test_setting.to_generation_settings()
     n_sample = test_setting.n_sample
@@ -286,6 +301,8 @@ def execute_simulation_test_setting_unit(
                 exec_sim_check,
                 parallel_mode,
                 data_saving,
+                is_computation_time_required=is_computation_time_required,
+                is_detailed_results_required=is_detailed_results_required,
             )
             for sample_index, random_gen in enumerate(gens_qperations)
         ]
@@ -304,6 +321,8 @@ def execute_simulation_test_settings(
     exec_sim_check: Dict[str, bool] = None,
     parallel_mode: Dict[str, int] = None,
     data_saving: str = "on_memory",
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ) -> List[SimulationResult]:
     """
     Run a simulation by specifying multiple EstimationTestSettings.
@@ -345,6 +364,8 @@ def execute_simulation_test_settings(
             pdf_mode=pdf_mode,
             parallel_mode=parallel_mode,
             data_saving=data_saving,
+            is_computation_time_required=is_computation_time_required,
+            is_detailed_results_required=is_detailed_results_required,
         )
         all_results += test_results
 

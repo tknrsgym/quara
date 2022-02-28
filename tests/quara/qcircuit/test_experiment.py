@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 import numpy as np
 import numpy.testing as npt
 import pytest
@@ -7,10 +5,9 @@ import pytest
 from quara.objects import matrix_basis
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.gate import Gate, get_h, get_i, get_x, get_cnot, get_swap, get_cz
+from quara.objects.gate import get_h, get_i, get_x, get_cnot, get_swap, get_cz
 from quara.objects.mprocess_typical import generate_mprocess_from_name
 from quara.objects.povm import (
-    Povm,
     get_x_povm,
     get_y_povm,
     get_z_povm,
@@ -19,7 +16,7 @@ from quara.objects.povm import (
     get_yy_povm,
     get_zz_povm,
 )
-from quara.objects.state import State, get_x0_1q, get_y0_1q, get_z0_1q
+from quara.objects.state import get_x0_1q, get_y0_1q, get_z0_1q
 from quara.qcircuit.experiment import (
     Experiment,
     QuaraScheduleItemError,
@@ -206,7 +203,6 @@ class TestExperiment:
         with pytest.raises(ValueError):
             experiment.qoperations("unsupported")
 
-
     def test_num_qoperations(self):
         # Arrange
         experiment = self.array_experiment_data_with_all_mode()
@@ -226,7 +222,6 @@ class TestExperiment:
         # Act & Assert
         with pytest.raises(ValueError):
             experiment.num_qoperations("unsupported")
-
 
     def test_reset_seed(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())

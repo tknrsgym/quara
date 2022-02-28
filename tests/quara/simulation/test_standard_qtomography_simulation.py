@@ -29,6 +29,11 @@ from quara.simulation.standard_qtomography_simulation import (
 from quara.objects.qoperation_typical import generate_qoperation_object
 from quara.objects.composite_system_typical import generate_composite_system
 
+from quara.simulation.standard_qtomography_simulation import (
+    EstimatorTestSetting,
+    NoiseSetting,
+)
+
 from tests.quara.simulation import random_test
 
 
@@ -370,3 +375,125 @@ def test_generate_qtomography_with_qmpt():
 
     assert type(actual) == StandardQmpt
     assert actual.on_para_eq_constraint == on_para_eq_constraint
+
+
+class TestEstimatorTestSetting:
+    def _make_test_setting(self, generation_setting_is_physicality_required: bool):
+        c_sys = generate_composite_system(mode="qubit", num=1)
+        setting = {
+            "mode": "qubit",
+            "n_qubit": 1,
+            "tomography_type": "state",
+            "true_objects": ["z0"],
+            "tester_names": [("povm", name) for name in ["x", "y", "z"]],
+            "noise_method": "random_effective_lindbladian",
+            "noise_para": {
+                "lindbladian_base": "identity",
+                "strength_h_part": 0.1,
+                "strength_k_part": 0.1,
+            },
+            "n_sample": 1,
+            "n_rep": 1,
+            "num_data": [1000, 10000],
+            "seed_qoperation": 888,
+            "seed_data": 777,
+        }
+
+        true_object_noise_setting = NoiseSetting(
+            qoperation_base=(setting["tomography_type"], setting["true_objects"][0]),
+            method=setting["noise_method"],
+            para=setting["noise_para"],
+            ids=None,
+        )
+
+        tester_object_noise_settings = [
+            NoiseSetting(
+                qoperation_base=name,
+                method=setting["noise_method"],
+                para=setting["noise_para"],
+                ids=None,
+            )
+            for name in setting["tester_names"]
+        ]
+
+        if generation_setting_is_physicality_required is None:
+            test_setting = EstimatorTestSetting(
+                true_object=true_object_noise_setting,
+                tester_objects=tester_object_noise_settings,
+                seed_qoperation=setting["seed_qoperation"],
+                seed_data=setting["seed_data"],
+                n_sample=setting["n_sample"],
+                n_rep=setting["n_rep"],
+                num_data=setting["num_data"],
+                schedules="all",
+                case_names=["Linear (True)"],
+                estimators=[LinearEstimator()],
+                eps_proj_physical_list=[1e-5],
+                eps_truncate_imaginary_part_list=[1e-5],
+                algo_list=[(None, None)],
+                loss_list=[(None, None)],
+                parametrizations=[True],
+                c_sys=c_sys,
+            )
+        else:
+            test_setting = EstimatorTestSetting(
+                true_object=true_object_noise_setting,
+                tester_objects=tester_object_noise_settings,
+                seed_qoperation=setting["seed_qoperation"],
+                seed_data=setting["seed_data"],
+                n_sample=setting["n_sample"],
+                n_rep=setting["n_rep"],
+                num_data=setting["num_data"],
+                schedules="all",
+                case_names=["Linear (True)"],
+                estimators=[LinearEstimator()],
+                eps_proj_physical_list=[1e-5],
+                eps_truncate_imaginary_part_list=[1e-5],
+                algo_list=[(None, None)],
+                loss_list=[(None, None)],
+                parametrizations=[True],
+                c_sys=c_sys,
+                generation_setting_is_physicality_required=generation_setting_is_physicality_required,
+            )
+
+        return test_setting
+
+    def test_to_generation_settings_is_physilicaty_required(self):
+        # Case 1:
+        # Arrange
+        source_setting = self._make_test_setting(True)
+        # Act
+        actual = source_setting.to_generation_settings()
+
+        # Assert
+        expected = True
+        assert actual.true_setting.qoperation_base.is_physicality_required is expected
+
+        for a in actual.tester_settings:
+            assert a.qoperation_base.is_physicality_required is expected
+
+        # Case 2:
+        # Arrange
+        source_setting = self._make_test_setting(False)
+        # Act
+        actual = source_setting.to_generation_settings()
+        expected = False
+
+        # Assert
+        assert actual.true_setting.qoperation_base.is_physicality_required is expected
+
+        for a in actual.tester_settings:
+            assert a.qoperation_base.is_physicality_required is expected
+
+        # Case 1:
+        # Arrange
+        source_setting = self._make_test_setting(None)
+        # Act
+        actual = source_setting.to_generation_settings()
+
+        # Assert
+        expected = True
+        assert actual.true_setting.qoperation_base.is_physicality_required is expected
+
+        for a in actual.tester_settings:
+            assert a.qoperation_base.is_physicality_required is expected

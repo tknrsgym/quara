@@ -15,14 +15,6 @@ from quara.minimization_algorithm.projected_gradient_descent import (
 class ProjectedFastIterativeShrinkageThresholdingAlgorithmResult(
     ProjectedGradientDescentResult
 ):
-    """This algorithm is based on the following:
-
-    Eliot Bolduc, George C. Knee, Erik M. Gauger & Jonathan Leach, "Projected gradient descent algorithms for quantum state tomography",
-
-    - npj Quantum Information volume 3, Article number: 44 (2017) https://www.nature.com/articles/s41534-017-0043-1
-    - arXiv:1612.09531 https://arxiv.org/abs/1612.09531
-    """
-
     def __init__(
         self,
         value: np.ndarray,
@@ -104,6 +96,14 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithmOption(
 
 
 class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDescent):
+    """This algorithm is based on the following:
+
+    Eliot Bolduc, George C. Knee, Erik M. Gauger & Jonathan Leach, "Projected gradient descent algorithms for quantum state tomography",
+
+    - npj Quantum Information volume 3, Article number: 44 (2017) https://www.nature.com/articles/s41534-017-0043-1
+    - arXiv:1612.09531 https://arxiv.org/abs/1612.09531
+    """
+
     def __init__(self, func_proj: Callable[[np.ndarray], np.ndarray] = None):
         """Constructor
 
@@ -277,6 +277,13 @@ class ProjectedFastIterativeShrinkageThresholdingAlgorithm(ProjectedGradientDesc
             is_doing = True if value > eps else False
             if not is_doing:
                 break
+
+        if k == max_iteration:
+            start_red = "\033[31m"
+            end_color = "\033[0m"
+            print(
+                f"{start_red}Warning!{end_color} pfista iterations exceeds the limit {max_iteration}."
+            )
 
         if on_iteration_history:
             computation_time = time.time() - start_time

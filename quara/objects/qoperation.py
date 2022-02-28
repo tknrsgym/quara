@@ -1,10 +1,14 @@
 from abc import abstractmethod
+from itertools import product
 import logging
 from typing import Callable, Dict, List, Tuple, Union
 
 import numpy as np
 
 from quara.objects.composite_system import CompositeSystem
+from quara.objects.elemental_system import ElementalSystem
+from quara.objects.matrix_basis import get_normalized_pauli_basis
+
 from quara.settings import Settings
 
 logger = logging.getLogger(__name__)
@@ -396,6 +400,89 @@ class QOperation:
         """
         raise NotImplementedError()
 
+    @staticmethod
+    def _permutation_matrix_from_qutrits_to_qubits(num_qutrits: int):
+        names = [0, 1, 2, 3]
+        basis_qubits = list(product(names, repeat=num_qutrits))
+
+        # generate permutation index
+        basis_include_3 = []
+        basis_exclude_3 = []
+        permutation_indices = []
+        for index_qubits, qubit in enumerate(basis_qubits):
+            if 3 in qubit:
+                basis_include_3.append(qubit)
+                index_qutrits = 3 ** num_qutrits + len(basis_include_3) - 1
+                permutation_indices.append((index_qubits, index_qutrits))
+            else:
+                basis_exclude_3.append(qubit)
+                index_qutrits = len(basis_exclude_3) - 1
+                permutation_indices.append((index_qubits, index_qutrits))
+
+        # generate permutation matrix
+        permutation_matrix = np.zeros((4 ** num_qutrits, 4 ** num_qutrits))
+        for permutation in permutation_indices:
+            permutation_matrix[permutation[0], permutation[1]] = 1
+        return permutation_matrix
+
+    def _embed_qoperation_from_qutrits_to_qubits(
+        self, perm_matrix, c_sys_qubits
+    ) -> "QOperation":
+        raise NotImplementedError()
+
+    @staticmethod
+    def _calc_matrix_from_qutrits_to_qubits(
+        num_qutrits: int,
+        perm_matrix: np.ndarray,
+        mat_qutrits: np.ndarray,
+        coeff: float,
+    ):
+        I = np.eye(4 ** num_qutrits - 3 ** num_qutrits)
+        zero = np.zeros((3 ** num_qutrits, 4 ** num_qutrits - 3 ** num_qutrits))
+        mat_blocks = np.block([[mat_qutrits, zero], [zero.T, coeff * I]])
+        mat_qubits = perm_matrix @ mat_blocks @ perm_matrix.T
+        return mat_qubits
+
+    @staticmethod
+    def embed_qoperation_from_qutrits_to_qubits(
+        qoperation: "QOperation", e_syss: List[ElementalSystem]
+    ) -> "QOperation":
+        """embeds qoperation from qutrits to qubits.
+
+        Parameters
+        ----------
+        qoperation : QOperation
+            QOperation to embed from qutrits.
+        e_syss : List[ElementalSystem]
+            list of ElementalSystem to embed to qubits.
+
+        Returns
+        -------
+        QOperation
+            qoperation embeded to qubits.
+
+        Raises
+        ------
+        ValueError
+            2x ``num_qutrits`` and ``len(e_syss)`` are not equal.
+        """
+        num_qutrits = qoperation.composite_system.num_e_sys
+        c_sys_qubits = CompositeSystem(e_syss)
+
+        # validation
+        if 2 * num_qutrits != len(e_syss):
+            raise ValueError(
+                f"2x num_qutrits and len(e_syss) must be equal. num_qutrits={num_qutrits} len(e_syss)={len(e_syss)}"
+            )
+
+        # generate permutation matrix
+        perm_matrix = QOperation._permutation_matrix_from_qutrits_to_qubits(num_qutrits)
+
+        qope_qubits = qoperation._embed_qoperation_from_qutrits_to_qubits(
+            perm_matrix, c_sys_qubits
+        )
+        return qope_qubits
+
     @abstractmethod
     def calc_gradient(self, var_index: int) -> "QOperation":
         """calculates gradient of QOperation.
@@ -720,6 +807,13 @@ class QOperation:
             if is_stopping:
                 break
 
+        if k == max_iteration - 1:
+            start_red = "\033[31m"
+            end_color = "\033[0m"
+            print(
+                f"{start_red}Warning!{end_color} projection iterations exceeds the limit {max_iteration}."
+            )
+
         if is_iteration_history:
             history = {
                 "p": ps,
@@ -752,6 +846,22 @@ class QOperation:
         logger.debug(f"result of _calc_stopping_criterion_birgin_raydan_vectors={val}")
         return val
 
+    def _calc_stopping_criterion_birgin_raydan2_vectors(
+        self,
+        p_prev: np.ndarray,
+        p_next: np.ndarray,
+        q_prev: np.ndarray,
+        q_next: np.ndarray,
+        x_prev: np.ndarray,
+        x_next: np.ndarray,
+        y_prev: np.ndarray,
+        y_next: np.ndarray,
+    ) -> float:
+        val = np.sum((p_prev - p_next) ** 2 + (q_prev - q_next) ** 2)
+
+        logger.debug(f"result of _calc_stopping_criterion_birgin_raydan2_vectors={val}")
+        return val
+
     def _is_satisfied_stopping_criterion_birgin_raydan_vectors(
         self,
         p_prev: np.ndarray,
@@ -764,7 +874,7 @@ class QOperation:
         y_next: np.ndarray,
         eps_proj_physical: float,
     ):
-        error_value = self._calc_stopping_criterion_birgin_raydan_vectors(
+        error_value = self._calc_stopping_criterion_birgin_raydan2_vectors(
             p_prev, p_next, q_prev, q_next, x_prev, x_next, y_prev, y_next
         )
         if error_value < eps_proj_physical:
@@ -976,6 +1086,13 @@ class QOperation:
 
             if is_stopping:
                 break
+
+        if k == max_iteration - 1:
+            start_red = "\033[31m"
+            end_color = "\033[0m"
+            print(
+                f"{start_red}Warning!{end_color} projection iterations exceeds the limit {max_iteration}."
+            )
 
         x_next = self.convert_stacked_vector_to_var(
             self.composite_system,

@@ -3,7 +3,7 @@ import numpy as np
 from typing import List, Union
 
 from quara.utils.matrix_util import is_hermitian
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import SparseMatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
@@ -13,7 +13,6 @@ from quara.objects.matrix_basis import (
     calc_hermitian_matrix_expansion_coefficient_hermitian_basis,
 )
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.gate import Gate
 from quara.objects.gate import convert_hs
 from quara.objects.gate_typical import (
     _is_valid_dims_ids,
@@ -23,13 +22,12 @@ from quara.objects.gate_typical import (
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
     get_gate_names_3qubit,
+    # 3-qubit
     generate_gate_toffoli_hamiltonian_mat,
     generate_gate_fredkin_hamiltonian_mat,
     # 1-qutrit
     get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
-    calc_base_matrix_1qutrit,
-    calc_levels_axis_angle_from_gate_name_1qutrit_single_gellmann,
     generate_gate_1qutrit_single_gellmann_hamiltonian_mat,
     # 2-qutrit
     get_gate_names_2qutrit,
@@ -45,6 +43,7 @@ def generate_effective_lindbladian_object_from_gate_name_object_name(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[np.ndarray, "EffectiveLindbladian"]:
     if object_name == "hamiltonian_vec":
         obj = generate_hamiltonian_vec_from_gate_name(gate_name, dims, ids)
@@ -53,7 +52,9 @@ def generate_effective_lindbladian_object_from_gate_name_object_name(
     elif object_name == "effective_lindbladian_mat":
         obj = generate_effective_lindbladian_mat_from_gate_name(gate_name, dims, ids)
     elif object_name == "effective_lindbladian":
-        obj = generate_effective_lindbladian_from_gate_name(gate_name, c_sys, ids)
+        obj = generate_effective_lindbladian_from_gate_name(
+            gate_name, c_sys, ids, is_physicality_required
+        )
     else:
         raise ValueError(f"object_name is out of range.")
     return obj
@@ -84,7 +85,7 @@ def calc_effective_lindbladian_mat_comp_basis_from_hamiltonian(
 
 
 def calc_effective_lindbladian_mat_from_hamiltonian(
-    h: np.ndarray, to_basis: MatrixBasis
+    h: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the given matrix basis from a given Hamiltonian.
 
@@ -115,7 +116,7 @@ def calc_effective_lindbladian_mat_from_hamiltonian(
 
 
 def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
-    h: np.ndarray, to_basis: MatrixBasis
+    h: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """return the HS matrix of an effective Lindbladian w.r.t. the given Hermitian matrix basis from a given Hamiltonian.
 
@@ -139,7 +140,9 @@ def calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
 
 
 def generate_hamiltonian_vec_from_gate_name(
-    gate_name: str, dims: List[int] = None, ids: List[int] = None
+    gate_name: str,
+    dims: List[int] = None,
+    ids: List[int] = None,
 ) -> np.ndarray:
     """return the vector representation of the Hamiltonian of a gate.
 
@@ -160,7 +163,6 @@ def generate_hamiltonian_vec_from_gate_name(
         The vector for the Hamiltonian matrix, to be real.
     """
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -232,7 +234,6 @@ def generate_hamiltonian_mat_from_gate_name(
         The Hamiltonian matrix the gate, to be complex.
     """
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -296,7 +297,6 @@ def generate_effective_lindbladian_mat_from_gate_name(
         The HS matrix of the effective lindbladian, to be real.
     """
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -349,7 +349,10 @@ def generate_effective_lindbladian_mat_from_gate_name(
 
 
 def generate_effective_lindbladian_from_gate_name(
-    gate_name: str, c_sys: CompositeSystem, ids: List[int] = None
+    gate_name: str,
+    c_sys: CompositeSystem,
+    ids: List[int] = None,
+    is_physicality_required: bool = True,
 ) -> "EffectiveLindbladian":
     """returns the Hilbert-Schmidt representation matrix of a gate.
 
@@ -364,30 +367,32 @@ def generate_effective_lindbladian_from_gate_name(
     ids : List[int] (optional)
         list of ids for elemental systems
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
         The effective lindbladian class object of the gate.
     """
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
         method = eval(method_name)
-        el = method(c_sys)
+        el = method(c_sys, is_physicality_required)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
         method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
         method = eval(method_name)
-        el = method(c_sys)
+        el = method(c_sys, is_physicality_required)
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
         method_name = "generate_gate_" + gate_name + "_effective_lindbladian"
         method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
-            el = method(c_sys, ids)
+            el = method(c_sys, ids, is_physicality_required)
         else:
-            el = method(c_sys)
+            el = method(c_sys, is_physicality_required)
     # 3-qubit gate
     elif gate_name in get_gate_names_3qubit():
         basis = get_normalized_pauli_basis(n_qubit=3)
@@ -397,13 +402,15 @@ def generate_effective_lindbladian_from_gate_name(
         mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
             h=h, to_basis=basis
         )
-        el = EffectiveLindbladian(c_sys=c_sys, hs=mat)
+        el = EffectiveLindbladian(
+            c_sys=c_sys, hs=mat, is_physicality_required=is_physicality_required
+        )
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
             method_name = "generate_gate_1qutrit_single_gellmann_effective_linabladian"
             method = eval(method_name)
-            el = method(c_sys, gate_name)
+            el = method(c_sys, gate_name, is_physicality_required)
     # 2-qutrit
     elif gate_name in get_gate_names_2qutrit():
         h = generate_gate_2qutrit_hamiltonian_mat_from_gate_name(gate_name, ids)
@@ -411,7 +418,9 @@ def generate_effective_lindbladian_from_gate_name(
         mat = calc_effective_lindbladian_mat_hermitian_basis_from_hamiltonian(
             h=h, to_basis=basis
         )
-        el = EffectiveLindbladian(c_sys=c_sys, hs=mat)
+        el = EffectiveLindbladian(
+            c_sys=c_sys, hs=mat, is_physicality_required=is_physicality_required
+        )
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -480,7 +489,7 @@ def generate_gate_identity_effective_lindbladian_mat(dim: int) -> np.ndarray:
 
 
 def generate_gate_identity_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the identity gate on the composite system.
 
@@ -489,6 +498,9 @@ def generate_gate_identity_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -496,7 +508,9 @@ def generate_gate_identity_effective_lindbladian(
     """
     dim = c_sys.dim
     hs = generate_gate_identity_effective_lindbladian_mat(dim)
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -563,7 +577,7 @@ def generate_gate_x90_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_x90_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the X90 gate on the composite system.
 
@@ -572,6 +586,9 @@ def generate_gate_x90_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -579,7 +596,9 @@ def generate_gate_x90_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x90_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -646,7 +665,7 @@ def generate_gate_x180_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_x180_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the X180 gate on the composite system.
 
@@ -655,6 +674,9 @@ def generate_gate_x180_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -662,7 +684,9 @@ def generate_gate_x180_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x180_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -731,7 +755,7 @@ def generate_gate_x_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_x_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the X gate on the composite system.
 
@@ -740,6 +764,9 @@ def generate_gate_x_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -747,7 +774,9 @@ def generate_gate_x_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -814,7 +843,7 @@ def generate_gate_y90_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_y90_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Y90 gate on the composite system.
 
@@ -823,6 +852,9 @@ def generate_gate_y90_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -830,7 +862,9 @@ def generate_gate_y90_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y90_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -897,7 +931,7 @@ def generate_gate_y180_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_y180_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Y180 gate on the composite system.
 
@@ -906,6 +940,9 @@ def generate_gate_y180_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -913,7 +950,9 @@ def generate_gate_y180_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y180_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -982,7 +1021,7 @@ def generate_gate_y_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_y_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Y180 gate on the composite system.
 
@@ -991,6 +1030,9 @@ def generate_gate_y_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -998,7 +1040,9 @@ def generate_gate_y_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1065,7 +1109,7 @@ def generate_gate_z90_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_z90_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Z90 gate on the composite system.
 
@@ -1074,6 +1118,9 @@ def generate_gate_z90_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1081,7 +1128,9 @@ def generate_gate_z90_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z90_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1148,7 +1197,7 @@ def generate_gate_z180_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_z180_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Z180 gate on the composite system.
 
@@ -1157,6 +1206,9 @@ def generate_gate_z180_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1164,7 +1216,9 @@ def generate_gate_z180_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z180_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1233,7 +1287,7 @@ def generate_gate_z_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_z_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Z gate on the composite system.
 
@@ -1242,6 +1296,9 @@ def generate_gate_z_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1249,7 +1306,9 @@ def generate_gate_z_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1318,7 +1377,7 @@ def generate_gate_phase_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_phase_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Phase (S) gate on the composite system.
 
@@ -1327,6 +1386,9 @@ def generate_gate_phase_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1334,7 +1396,9 @@ def generate_gate_phase_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1403,7 +1467,7 @@ def generate_gate_phase_daggered_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_phase_daggered_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Phase daggered (:math:`S^\\dagger`) gate on the composite system.
 
@@ -1412,6 +1476,9 @@ def generate_gate_phase_daggered_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1419,7 +1486,9 @@ def generate_gate_phase_daggered_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_daggered_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1488,7 +1557,7 @@ def generate_gate_piover8_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_piover8_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the pi/8 (T) gate on the composite system.
 
@@ -1497,6 +1566,9 @@ def generate_gate_piover8_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1504,7 +1576,9 @@ def generate_gate_piover8_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1573,7 +1647,7 @@ def generate_gate_piover8_daggered_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_piover8_daggered_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the pi/8 daggered (T^dagger) gate on the composite system.
 
@@ -1582,6 +1656,9 @@ def generate_gate_piover8_daggered_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1589,7 +1666,9 @@ def generate_gate_piover8_daggered_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_daggered_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1660,7 +1739,7 @@ def generate_gate_hadamard_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_hadamard_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Hadamard (H) gate on the composite system.
 
@@ -1669,6 +1748,9 @@ def generate_gate_hadamard_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1676,7 +1758,9 @@ def generate_gate_hadamard_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_hadamard_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -1923,7 +2007,7 @@ def generate_gate_cx_effective_lindbladian_mat(ids: List[int]) -> np.ndarray:
 
 
 def generate_gate_cx_effective_lindbladian(
-    c_sys: "CompositeSystem", ids: List[int]
+    c_sys: "CompositeSystem", ids: List[int], is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Control-X gate on the composite system.
 
@@ -1932,6 +2016,9 @@ def generate_gate_cx_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -1939,7 +2026,9 @@ def generate_gate_cx_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cx_effective_lindbladian_mat(ids)
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -2019,7 +2108,7 @@ def generate_gate_cz_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_cz_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the Control-Z gate on the composite system.
 
@@ -2028,6 +2117,9 @@ def generate_gate_cz_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -2035,7 +2127,9 @@ def generate_gate_cz_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cz_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -2115,7 +2209,7 @@ def generate_gate_swap_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_swap_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the SWAP gate on the composite system.
 
@@ -2124,6 +2218,9 @@ def generate_gate_swap_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -2131,7 +2228,9 @@ def generate_gate_swap_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_swap_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -2203,7 +2302,7 @@ def generate_gate_zx90_effective_lindbladian_mat(ids: List[int]) -> np.ndarray:
 
 
 def generate_gate_zx90_effective_lindbladian(
-    c_sys: "CompositeSystem", ids: List[int]
+    c_sys: "CompositeSystem", ids: List[int], is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the ZX90 gate on the composite system.
 
@@ -2215,6 +2314,9 @@ def generate_gate_zx90_effective_lindbladian(
     ids : List[int]
         ids[0] for control system id, and ids[1] for target system id
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -2222,7 +2324,9 @@ def generate_gate_zx90_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zx90_effective_lindbladian_mat(ids)
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -2272,7 +2376,7 @@ def generate_gate_zz90_effective_lindbladian_mat() -> np.ndarray:
 
 
 def generate_gate_zz90_effective_lindbladian(
-    c_sys: "CompositeSystem",
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
 ) -> "EffectiveLindbladian":
     """Return the class EffectiveLindbladian for the ZZ90 gate on the composite system.
 
@@ -2281,6 +2385,9 @@ def generate_gate_zz90_effective_lindbladian(
     c_sys : CompositeSystem
         The class CompositeSystem on which the gate acts.
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     EffectiveLindbladian
@@ -2288,7 +2395,9 @@ def generate_gate_zz90_effective_lindbladian(
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zz90_effective_lindbladian_mat()
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 
@@ -2317,13 +2426,15 @@ def generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(
 
 
 def generate_gate_1qutrit_single_gellmann_effective_linabladian(
-    c_sys: CompositeSystem, gate_name: str
+    c_sys: CompositeSystem, gate_name: str, is_physicality_required: bool = True
 ) -> np.ndarray:
     """return the EffectiveLindbladian for the gate."""
     assert len(c_sys.elemental_systems) == 1
     assert c_sys.dim == 3
     hs = generate_gate_1qutrit_single_gellmann_effective_lindbladian_mat(gate_name)
-    el = EffectiveLindbladian(c_sys=c_sys, hs=hs)
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
     return el
 
 

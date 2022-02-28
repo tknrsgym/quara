@@ -1,12 +1,16 @@
 import copy
 import itertools
 from typing import List, Tuple, Union
-
 import numpy as np
-from scipy.sparse import csc_matrix, csr_matrix
+from scipy.sparse import csr_matrix
+from scipy import sparse
+from scipy.linalg import kron
+from tqdm import tqdm
 
 from quara.objects.elemental_system import ElementalSystem
-from quara.objects.matrix_basis import MatrixBasis, get_comp_basis
+
+from quara.objects.matrix_basis import SparseMatrixBasis, MatrixBasis, get_comp_basis
+from quara.utils import matrix_util
 
 
 class CompositeSystem:
@@ -68,69 +72,37 @@ class CompositeSystem:
 
         # calculate tensor product of ElamentalSystem list for getting total MatrixBasis
         if len(self._elemental_systems) == 1:
-            self._total_basis = self._elemental_systems[0].basis
+            # TODO: check
+            # self._total_basis = self._elemental_systems[0].basis
+            self._total_basis = SparseMatrixBasis(self._elemental_systems[0].basis)
         else:
             basis_list = [e_sys.basis for e_sys in self._elemental_systems]
             temp = basis_list[0]
             for elem in basis_list[1:]:
                 temp = [
-                    np.kron(val1, val2) for val1, val2 in itertools.product(temp, elem)
+                    matrix_util.kron(val1, val2)
+                    for val1, val2 in itertools.product(temp, elem)
                 ]
-            self._total_basis = MatrixBasis(temp)
+            # if type(basis_list[0]) == SparseMatrixBasis:
+            #     self._total_basis = SparseMatrixBasis(temp)
+            # elif type(basis_list[0]) == MatrixBasis:
+            #     self._total_basis = MatrixBasis(temp)
+            # else:
+            #     error_message = f"The Type of basis_list[0] must be MatrixBasis or SparseMatrixBasis, not {type(basis_list[0])}"
+            #     raise ValueError(error_message)
+            self._total_basis = SparseMatrixBasis(temp)
 
-        # calculate np.kron(basis, basisconjugate)
-        basis_no = len(self._total_basis.basis)
-        hs = np.zeros((basis_no, basis_no), dtype=np.float64)
-        basis = copy.deepcopy(self._total_basis.basis)
+        self._basis_basisconjugate = None
+        self._dict_from_hs_to_choi = None
+        self._dict_from_choi_to_hs = None
+        self._basis_T_sparse = None
+        self._basisconjugate_sparse = None
+        self._basisconjugate_basis_sparse = None
+        self._basis_basisconjugate_T_sparse = None
+        self._basis_basisconjugate_T_sparse_from_1 = None
+        self._basishermitian_basis_T_from_1 = None
 
-        self._basis_basisconjugate = dict()
-        self._dict_from_hs_to_choi = dict()
-        self._dict_from_choi_to_hs = dict()
-        basis_tmp = []
-        basisconjugate_tmp = []
-        basis_basisconjugate_tmp = []
-        for b_alpha in basis:
-            basis_tmp.append(b_alpha.flatten())
-            basisconjugate_tmp.append(b_alpha.conjugate().flatten())
-        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
-            b_alpha = basis[alpha]
-            b_beta_conj = np.conjugate(basis[beta])
-            matrix = np.kron(b_alpha, b_beta_conj)
-            self._basis_basisconjugate[(alpha, beta)] = matrix
-            basis_basisconjugate_tmp.append(matrix.flatten())
-
-            # calc _dict_from_hs_to_choi and _dict_from_choi_to_hs
-            row_indices, column_indices = np.where(matrix != 0)
-            for row_index, column_index in zip(row_indices, column_indices):
-                # _dict_from_hs_to_choi
-                if (row_index, column_index) in self._dict_from_hs_to_choi:
-                    self._dict_from_hs_to_choi[(row_index, column_index)].append(
-                        (alpha, beta, matrix[row_index, column_index])
-                    )
-                else:
-                    self._dict_from_hs_to_choi[(row_index, column_index)] = [
-                        (alpha, beta, matrix[row_index, column_index])
-                    ]
-
-                # _dict_from_choi_to_hs
-                if (alpha, beta) in self._dict_from_choi_to_hs:
-                    self._dict_from_choi_to_hs[(alpha, beta)].append(
-                        (row_index, column_index, matrix[row_index, column_index])
-                    )
-                else:
-                    self._dict_from_choi_to_hs[(alpha, beta)] = [
-                        (row_index, column_index, matrix[row_index, column_index])
-                    ]
-        basis_tmp = np.array(basis_tmp)
-        self._basis_T_sparse = csr_matrix(basis_tmp.T)
-        self._basisconjugate_sparse = csr_matrix(basisconjugate_tmp)
-        basis_basisconjugate_tmp = np.array(basis_basisconjugate_tmp)
-        self._basisconjugate_basis_sparse = csr_matrix(
-            basis_basisconjugate_tmp.conjugate()
-        )
-        self._basis_basisconjugate_T_sparse = csr_matrix(basis_basisconjugate_tmp.T)
-
-    def comp_basis(self, mode: str = "row_major") -> MatrixBasis:
+    def comp_basis(self, mode: str = "row_major") -> SparseMatrixBasis:
         """returns computational basis of CompositeSystem.
 
         Parameters
@@ -149,7 +121,7 @@ class CompositeSystem:
             ``mode`` is unsupported.
         """
         # calculate tensor product of ElamentalSystem list for getting new MatrixBasis
-        basis_tmp: MatrixBasis
+        basis_tmp: SparseMatrixBasis
 
         if len(self._elemental_systems) == 1:
             basis_tmp = self._elemental_systems[0].comp_basis(mode=mode)
@@ -157,13 +129,13 @@ class CompositeSystem:
             basis_tmp = get_comp_basis(self.dim, mode=mode)
         return basis_tmp
 
-    def basis(self) -> MatrixBasis:
+    def basis(self) -> SparseMatrixBasis:
         """returns MatrixBasis of CompositeSystem.
 
         Returns
         -------
-        MatrixBasis
-            MatrixBasis of CompositeSystem.
+        SparseMatrixBasis
+            SparseMatrixBasis of CompositeSystem.
         """
         return self._total_basis
 
@@ -211,7 +183,7 @@ class CompositeSystem:
         """
         return self._elemental_systems[i].dim
 
-    def get_basis(self, index: Union[int, Tuple]) -> MatrixBasis:
+    def get_basis(self, index: Union[int, Tuple]) -> SparseMatrixBasis:
         """returns basis specified by index.
 
         Parameters
@@ -272,11 +244,228 @@ class CompositeSystem:
         np.ndarray
             :math:`B_{\\alpha} \\otimes \\bar{B_{\\beta}}`
         """
+        # calculate _basis_basisconjugate if it is None
+        if self._basis_basisconjugate is None:
+            self._basis_basisconjugate = dict()
+            basis_no = len(self._total_basis.basis)
+            basis = copy.deepcopy(self._total_basis.basis)
+
+            for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+                b_alpha = basis[alpha]
+                b_beta_conj = np.conjugate(basis[beta])
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
+                self._basis_basisconjugate[(alpha, beta)] = matrix
+
+        # return basis_basisconjugate
         if type(basis_index) == tuple:
             return self._basis_basisconjugate[(basis_index)]
         else:
             basis_index = divmod(basis_index, len(self.basis()))
             return self._basis_basisconjugate[(basis_index)]
+
+    @property
+    def dict_from_hs_to_choi(self) -> dict:
+        # calculate _dict_from_hs_to_choi if it is None
+        if self._dict_from_hs_to_choi is None:
+            self._dict_from_hs_to_choi = dict()
+            basis_no = len(self._total_basis.basis)
+            basis = copy.deepcopy(self._total_basis.basis)
+
+            for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+                b_alpha = basis[alpha]
+                b_beta_conj = np.conjugate(basis[beta])
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
+
+                # calc _dict_from_hs_to_choi
+                row_indices, column_indices = matrix_util.where_not_zero(matrix)
+                for row_index, column_index in zip(row_indices, column_indices):
+                    if (row_index, column_index) in self._dict_from_hs_to_choi:
+                        self._dict_from_hs_to_choi[(row_index, column_index)].append(
+                            (alpha, beta, matrix[row_index, column_index])
+                        )
+                    else:
+                        self._dict_from_hs_to_choi[(row_index, column_index)] = [
+                            (alpha, beta, matrix[row_index, column_index])
+                        ]
+
+        # return _dict_from_hs_to_choi
+        return self._dict_from_hs_to_choi
+
+    def delete_dict_from_hs_to_choi(self) -> None:
+        """delete ``dict_from_hs_to_choi`` property to save memory.
+
+        If you use ``dict_from_hs_to_choi`` again, call ``dict_from_hs_to_choi`` again.
+        """
+        self._dict_from_hs_to_choi = None
+
+    @property
+    def dict_from_choi_to_hs(self) -> dict:
+        if self._dict_from_choi_to_hs is None:
+            self._dict_from_choi_to_hs = dict()
+            basis_no = len(self._total_basis.basis)
+            basis = copy.deepcopy(self._total_basis.basis)
+
+            for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
+                b_alpha = basis[alpha]
+                b_beta_conj = np.conjugate(basis[beta])
+                matrix = matrix_util.kron(b_alpha, b_beta_conj)
+
+                # calc _dict_from_choi_to_hs
+                row_indices, column_indices = matrix_util.where_not_zero(matrix)
+                for row_index, column_index in zip(row_indices, column_indices):
+                    if (alpha, beta) in self._dict_from_choi_to_hs:
+                        self._dict_from_choi_to_hs[(alpha, beta)].append(
+                            (row_index, column_index, matrix[row_index, column_index])
+                        )
+                    else:
+                        self._dict_from_choi_to_hs[(alpha, beta)] = [
+                            (row_index, column_index, matrix[row_index, column_index])
+                        ]
+
+        # return _dict_from_choi_to_hs
+        return self._dict_from_choi_to_hs
+
+    def delete_dict_from_choi_to_hs(self) -> None:
+        """delete ``dict_from_choi_to_hs`` property to save memory.
+
+        If you use ``dict_from_choi_to_hs`` again, call ``dict_from_choi_to_hs`` again.
+        """
+        self._dict_from_choi_to_hs = None
+
+    def _calc_basis_sparse(self) -> None:
+        basis = copy.deepcopy(self._total_basis.basis)
+        basis_tmp = []
+        basisconjugate_tmp = []
+        for b_alpha in basis:
+            basis_tmp.append(matrix_util.flatten(b_alpha))
+            basisconjugate_tmp.append(matrix_util.flatten(b_alpha.conjugate()))
+
+        basis_tmp = np.array(basis_tmp)
+        self._basis_T_sparse = csr_matrix(basis_tmp.T)
+        self._basisconjugate_sparse = csr_matrix(basisconjugate_tmp)
+
+    @property
+    def basis_T_sparse(self) -> np.ndarray:
+        if self._basis_T_sparse is None:
+            self._calc_basis_sparse()
+        return self._basis_T_sparse
+
+    def delete_basis_T_sparse(self) -> None:
+        """delete ``basis_T_sparse`` property to save memory.
+
+        If you use ``basis_T_sparse`` again, call ``basis_T_sparse`` again.
+        """
+        self._basis_T_sparse = None
+
+    @property
+    def basisconjugate_sparse(self) -> np.ndarray:
+        if self._basisconjugate_sparse is None:
+            self._calc_basis_sparse()
+        return self._basisconjugate_sparse
+
+    def delete_basisconjugate_sparse(self) -> None:
+        """delete ``basisconjugate_sparse`` property to save memory.
+
+        If you use ``basisconjugate_sparse`` again, call ``basisconjugate_sparse`` again.
+        """
+        self._basisconjugate_sparse = None
+
+    def _calc_basis_basisconjugate_sparse(self) -> None:
+        basis_no = len(self._total_basis.basis)
+        basis = copy.deepcopy(self._total_basis.basis)
+
+        basis_basisconjugate_tmp = []
+        basis_basisconjugate_tmp_from_1 = []
+        basishermitian_basis_tmp_from_1 = []
+
+        element_size = basis[0].shape[0] ** 2 ** 2
+        element_size_2 = basis[0].shape[0] ** 2
+
+        for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
+            b_alpha = basis[alpha]
+            b_beta_conj = np.conjugate(basis[beta])
+            matrix = sparse.kron(b_alpha, b_beta_conj, format="csr")
+            reshaped_matrix = matrix.reshape(1, element_size)
+            basis_basisconjugate_tmp.append(reshaped_matrix)
+
+            if alpha != 0 and beta != 0:
+                basis_basisconjugate_tmp_from_1.append(reshaped_matrix)
+
+                matrix_2 = basis[beta].conj().T @ b_alpha
+                basishermitian_basis_tmp_from_1.append(
+                    matrix_2.reshape(1, element_size_2)
+                )
+
+        # set _basisconjugate_basis_sparse and _basis_basisconjugate_T_sparse
+        basis_basisconjugate_tmp = sparse.vstack(basis_basisconjugate_tmp).reshape(
+            basis_no ** 2, element_size
+        )
+        self._basisconjugate_basis_sparse = basis_basisconjugate_tmp.conjugate()
+        self._basis_basisconjugate_T_sparse = basis_basisconjugate_tmp.T
+
+        # set _basis_basisconjugate_T_sparse_from_1
+        basis_basisconjugate_tmp_from_1 = sparse.vstack(
+            basis_basisconjugate_tmp_from_1
+        ).reshape((basis_no - 1) ** 2, element_size)
+        self._basis_basisconjugate_T_sparse_from_1 = basis_basisconjugate_tmp_from_1.T
+
+        # set _basishermitian_basis_T_from
+        basishermitian_basis_tmp_from_1 = sparse.vstack(
+            basishermitian_basis_tmp_from_1
+        ).reshape((basis_no - 1) ** 2, element_size_2)
+        self._basishermitian_basis_T_from_1 = basishermitian_basis_tmp_from_1.T
+
+    @property
+    def basisconjugate_basis_sparse(self) -> np.ndarray:
+        if self._basisconjugate_basis_sparse is None:
+            self._calc_basis_basisconjugate_sparse()
+        return self._basisconjugate_basis_sparse
+
+    def delete_basisconjugate_basis_sparse(self) -> None:
+        """delete ``basisconjugate_basis_sparse`` property to save memory.
+
+        If you use ``basisconjugate_basis_sparse`` again, call ``basisconjugate_basis_sparse`` again.
+        """
+        self._basisconjugate_basis_sparse = None
+
+    @property
+    def basis_basisconjugate_T_sparse(self) -> np.ndarray:
+        if self._basis_basisconjugate_T_sparse is None:
+            self._calc_basis_basisconjugate_sparse()
+        return self._basis_basisconjugate_T_sparse
+
+    def delete_basis_basisconjugate_T_sparse(self) -> None:
+        """delete ``basis_basisconjugate_T_sparse`` property to save memory.
+
+        If you use ``basis_basisconjugate_T_sparse`` again, call ``basis_basisconjugate_T_sparse`` again.
+        """
+        self._basis_basisconjugate_T_sparse = None
+
+    @property
+    def basis_basisconjugate_T_sparse_from_1(self) -> np.ndarray:
+        if self._basis_basisconjugate_T_sparse_from_1 is None:
+            self._calc_basis_basisconjugate_sparse()
+        return self._basis_basisconjugate_T_sparse_from_1
+
+    def delete_basis_basisconjugate_T_sparse_from_1(self) -> None:
+        """delete ``basis_basisconjugate_T_sparse_from_1`` property to save memory.
+
+        If you use ``basis_basisconjugate_T_sparse_from_1`` again, call ``basis_basisconjugate_T_sparse_from_1`` again.
+        """
+        self._basis_basisconjugate_T_sparse_from_1 = None
+
+    @property
+    def basishermitian_basis_T_from_1(self) -> np.ndarray:
+        if self._basishermitian_basis_T_from_1 is None:
+            self._calc_basis_basisconjugate_sparse()
+        return self._basishermitian_basis_T_from_1
+
+    def delete_basishermitian_basis_T_from_1(self) -> None:
+        """delete ``basishermitian_basis_T_from_1`` property to save memory.
+
+        If you use ``basishermitian_basis_T_from_1`` again, call ``basishermitian_basis_T_from_1`` again.
+        """
+        self._basishermitian_basis_T_from_1 = None
 
     @property
     def elemental_systems(self) -> Tuple[ElementalSystem]:

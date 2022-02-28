@@ -1,5 +1,4 @@
 import copy
-import itertools
 from typing import List
 
 import numpy as np
@@ -8,13 +7,12 @@ import quara.utils.matrix_util as mutil
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     convert_vec,
     get_normalized_pauli_basis,
 )
-from quara.settings import Settings
-
 from quara.objects.qoperation import QOperation
+from quara.settings import Settings
 
 
 class State(QOperation):
@@ -194,6 +192,39 @@ class State(QOperation):
         """
         return self._vec
 
+    def _embed_qoperation_from_qutrits_to_qubits(
+        self, perm_matrix, c_sys_qubits
+    ) -> QOperation:
+        num_qutrits = self.composite_system.num_e_sys
+
+        mat_qutrits = self.to_density_matrix_with_sparsity()
+        coeff = 0
+
+        # calc matrix for qubits
+        mat_qubits = QOperation._calc_matrix_from_qutrits_to_qubits(
+            num_qutrits, perm_matrix, mat_qutrits, coeff
+        )
+
+        # gerenera qoperation for qubits
+        vec = to_vec_from_density_matrix_with_sparsity(
+            c_sys_qubits,
+            mat_qubits,
+            self.eps_truncate_imaginary_part,
+        )
+        new_qope = State(
+            c_sys_qubits,
+            vec,
+            is_physicality_required=self.is_physicality_required,
+            is_estimation_object=self.is_estimation_object,
+            on_para_eq_constraint=self.on_para_eq_constraint,
+            on_algo_eq_constraint=self.on_algo_eq_constraint,
+            on_algo_ineq_constraint=self.on_algo_ineq_constraint,
+            mode_proj_order=self.mode_proj_order,
+            eps_proj_physical=self.eps_proj_physical,
+            eps_truncate_imaginary_part=self.eps_truncate_imaginary_part,
+        )
+        return new_qope
+
     def calc_gradient(self, var_index: int) -> "State":
         """calculates gradient of State.
 
@@ -370,6 +401,7 @@ class State(QOperation):
         density = np.zeros((self._dim, self._dim), dtype=np.complex128)
         for coefficient, basis in zip(self._vec, self.composite_system.basis()):
             density += coefficient * basis
+        density = np.asarray(density)
         return density
 
     def to_density_matrix_with_sparsity(self) -> np.ndarray:
@@ -452,7 +484,7 @@ class State(QOperation):
         values = sorted(values, reverse=True)
         return values
 
-    def convert_basis(self, other_basis: MatrixBasis) -> np.ndarray:
+    def convert_basis(self, other_basis: SparseMatrixBasis) -> np.ndarray:
         """returns vector representation for ``other_basis``.
 
         Parameters
@@ -537,7 +569,7 @@ def to_density_matrix_from_vec(c_sys: CompositeSystem, vec: np.ndarray) -> np.nd
     np.ndarray
         density matrix of this state.
     """
-    density_vec = c_sys._basis_T_sparse.dot(vec)
+    density_vec = c_sys.basis_T_sparse.dot(vec)
     density = density_vec.reshape((c_sys.dim, c_sys.dim))
     return density
 
@@ -565,7 +597,7 @@ def to_vec_from_density_matrix_with_sparsity(
     np.ndarray
         vec of variables.
     """
-    vec = c_sys._basisconjugate_sparse.dot(density_matrix.flatten())
+    vec = c_sys.basisconjugate_sparse.dot(mutil.flatten(density_matrix))
     return mutil.truncate_hs(
         vec, eps_truncate_imaginary_part=eps_truncate_imaginary_part
     )

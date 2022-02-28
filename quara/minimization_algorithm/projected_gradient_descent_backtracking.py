@@ -317,6 +317,13 @@ class ProjectedGradientDescentBacktracking(ProjectedGradientDescent):
             if not is_doing:
                 break
 
+        if k == max_iteration:
+            start_red = "\033[31m"
+            end_color = "\033[0m"
+            print(
+                f"{start_red}Warning!{end_color} pgdb iterations exceeds the limit {max_iteration}."
+            )
+
         if on_iteration_history:
             computation_time = time.time() - start_time
             result = ProjectedGradientDescentBacktrackingResult(

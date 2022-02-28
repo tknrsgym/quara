@@ -6,7 +6,12 @@ import numpy.testing as npt
 import pytest
 
 from quara.objects import matrix_basis
-from quara.objects.matrix_basis import MatrixBasis, VectorizedMatrixBasis
+from quara.objects.matrix_basis import (
+    SparseMatrixBasis,
+    VectorizedMatrixBasis,
+    MatrixBasis,
+)
+from quara.utils import matrix_util
 
 
 class TestMatrixBasis:
@@ -146,7 +151,7 @@ class TestMatrixBasis:
         source_np = matrix_basis.get_pauli_basis().basis
         basis = MatrixBasis(source_np)
         for i in range(len(source_np)):
-            assert np.allclose(basis[i], source_np[i])
+            assert matrix_util.allclose(basis[i], source_np[i])
 
     def test_str(self):
         source_np = matrix_basis.get_pauli_basis().basis
@@ -162,47 +167,47 @@ class TestMatrixBasis_3x3:
         # Case 1: Not enough matrices.
         source = gell_mann_source[:-1]
         with pytest.raises(ValueError):
-            _ = MatrixBasis(source)
+            _ = SparseMatrixBasis(source)
 
         # Case 2: Not independent (B_3 = B_0 + B_1)
         source = copy.copy(gell_mann_source)
         source[3] = source[0] + source[1]
         with pytest.raises(ValueError):
-            _ = MatrixBasis(source)
+            _ = SparseMatrixBasis(source)
 
     def test_is_same_size(self):
         # Case1: All the same size
         source_basis = matrix_basis.get_gell_mann_basis().basis
-        basis = MatrixBasis(source_basis)
+        basis = SparseMatrixBasis(source_basis)
         assert basis._is_same_size() == True
 
         # Case2: Not same size
         source_basis = list(source_basis)
         source_basis[1] = np.array([[1, 0], [0, 1]])
         with pytest.raises(ValueError):
-            _ = MatrixBasis(source_basis)
+            _ = SparseMatrixBasis(source_basis)
 
     def test_is_squares(self):
         # Case1: Square matrix
         source_basis = matrix_basis.get_gell_mann_basis().basis
-        basis = MatrixBasis(source_basis)
+        basis = SparseMatrixBasis(source_basis)
         assert basis._is_squares() == True
 
         # Case2: There is a non-square matrix
         source_basis = list(source_basis)
         source_basis[1] = np.array([[0, 1, 1], [0, 0, 1], [0, 0, 1], [1, 1, 1]])
         with pytest.raises(ValueError):
-            _ = MatrixBasis(source_basis)
+            _ = SparseMatrixBasis(source_basis)
 
     def test_is_normal(self):
         # Case1: Normalized
         source = matrix_basis.get_normalized_gell_mann_basis().basis
-        normalized_basis = MatrixBasis(source)
+        normalized_basis = SparseMatrixBasis(source)
         assert normalized_basis.is_normal() == True
 
         # Case2: Not Normalized
         source = matrix_basis.get_gell_mann_basis().basis
-        non_normalized_basis = MatrixBasis(source)
+        non_normalized_basis = SparseMatrixBasis(source)
         assert non_normalized_basis.is_normal() == False
 
 
@@ -220,11 +225,11 @@ class TestVectorizedMatrixBasis:
 
         # test member "basis"
         for i, actual in enumerate(actual_vec_basis.basis):
-            assert np.allclose(actual, expected_vec_basis[i])
+            npt.assert_allclose(actual, expected_vec_basis[i])
 
         # test iter
         for i, actual in enumerate(actual_vec_basis):
-            assert np.allclose(actual, expected_vec_basis[i])
+            npt.assert_allclose(actual, expected_vec_basis[i])
 
         # test len
         actual = len(actual_vec_basis)
@@ -233,7 +238,7 @@ class TestVectorizedMatrixBasis:
         # test original matrix basis
         actual_org_basis = actual_vec_basis.org_basis
         for i, actual in enumerate(actual_org_basis):
-            assert np.array_equal(actual, source_basis[i])
+            npt.assert_array_equal(actual, source_basis[i])
 
 
 class TestMatrixBasisImmutable:
@@ -243,20 +248,20 @@ class TestMatrixBasisImmutable:
         array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
         array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
         source = [array00, array01, array10, array11]
-        comp_basis = MatrixBasis(source)
+        comp_basis = SparseMatrixBasis(source)
 
         assert id(source) != id(comp_basis.basis)
 
         # If "source" is updated, the data in MatrixBasis is not updated
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
         source[0] = np.zeros([2, 2], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
-        assert np.array_equal(comp_basis[0], expected)
+        npt.assert_array_equal(comp_basis.basis[0].toarray(), expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
         # If "array00" is updated, the data in MatrixBasis is not updated
         array00[0] = np.array([2, 2], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
-        assert np.array_equal(comp_basis[0], expected)
+        npt.assert_array_equal(comp_basis.basis[0].toarray(), expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
     def test_deney_update_basis_item(self):
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -264,25 +269,19 @@ class TestMatrixBasisImmutable:
         array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
         array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
         source = [array00, array01, array10, array11]
-        comp_basis = MatrixBasis(source)
+        comp_basis = SparseMatrixBasis(source)
 
         with pytest.raises(TypeError):
             # TypeError: 'MatrixBasis' object does not support item assignment
             comp_basis[0] = np.array([[0, 0], [0, 0]], dtype=np.complex128)
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(comp_basis[0], expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
         with pytest.raises(TypeError):
             # TypeError: 'tuple' object does not support item assignment
             comp_basis.basis[0] = np.array([[0, 0], [0, 0]], dtype=np.complex128)
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
-
-        with pytest.raises(ValueError):
-            # ValueError: assignment destination is read-only
-            comp_basis.basis[0][0] = np.array([2, 2], dtype=np.complex128)
-        expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(comp_basis.basis[0], expected)
+        npt.assert_array_equal(comp_basis[0].toarray(), expected)
 
         # Test to ensure that no copies are made on each access
         first_access = id(comp_basis[0])
@@ -298,7 +297,7 @@ class TestVectorizedMatrixBasiImmutable:
         array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
         array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
         source = [array00, array01, array10, array11]
-        comp_basis = MatrixBasis(source)
+        comp_basis = SparseMatrixBasis(source)
         v_basis = VectorizedMatrixBasis(comp_basis)
 
         assert id(v_basis.org_basis) == id(comp_basis)
@@ -306,7 +305,7 @@ class TestVectorizedMatrixBasiImmutable:
         assert id(v_basis.org_basis[0]) == id(comp_basis.basis[0])
 
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(v_basis.org_basis[0], expected)
+        npt.assert_array_equal(v_basis.org_basis[0].toarray(), expected)
 
         # Case 2: Use a method of MatrixBasis
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -314,7 +313,7 @@ class TestVectorizedMatrixBasiImmutable:
         array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
         array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
         source = [array00, array01, array10, array11]
-        comp_basis = MatrixBasis(source)
+        comp_basis = SparseMatrixBasis(source)
         v_basis = comp_basis.to_vect()
 
         assert id(v_basis.org_basis) == id(comp_basis)
@@ -322,7 +321,7 @@ class TestVectorizedMatrixBasiImmutable:
         assert id(v_basis.org_basis[0]) == id(comp_basis.basis[0])
 
         expected = np.array([[1, 0], [0, 0]], dtype=np.complex128)
-        assert np.array_equal(v_basis.org_basis[0], expected)
+        npt.assert_array_equal(v_basis.org_basis[0].toarray(), expected)
 
     def test_deney_update_basis_item(self):
         array00 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
@@ -330,7 +329,7 @@ class TestVectorizedMatrixBasiImmutable:
         array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
         array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
         source = [array00, array01, array10, array11]
-        comp_basis = MatrixBasis(source)
+        comp_basis = SparseMatrixBasis(source)
         v_basis = VectorizedMatrixBasis(comp_basis)
 
         expected = np.array([1, 0, 0, 0], dtype=np.complex128)
@@ -345,9 +344,10 @@ class TestVectorizedMatrixBasiImmutable:
             v_basis.basis[0] = np.array([0, 0, 0, 0], dtype=np.complex128)
         assert np.array_equal(v_basis.basis[0], expected)
 
-        with pytest.raises(ValueError):
-            # ValueError: assignment destination is read-only
-            v_basis.basis[0][0] = 2
+        if type(v_basis.basis) == np.ndarray:
+            with pytest.raises(ValueError):
+                # ValueError: assignment destination is read-only
+                v_basis.basis[0][0] = 2
         assert np.array_equal(v_basis.basis[0], expected)
 
         # Test to ensure that no copies are made on each access
@@ -361,7 +361,7 @@ class TestVectorizedMatrixBasiImmutable:
         array10 = np.array([[0, 0], [1, 0]], dtype=np.complex128)
         array11 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
         source = [array00, array01, array10, array11]
-        comp_basis = MatrixBasis(source)
+        comp_basis = SparseMatrixBasis(source)
         v_basis = VectorizedMatrixBasis(comp_basis)
 
         with pytest.raises(AttributeError):
@@ -373,10 +373,12 @@ def test_to_vect():
     basis = matrix_basis.get_comp_basis()
     actual = matrix_basis.to_vect(basis)
     assert len(actual) == 4
-    assert np.all(actual[0] == matrix_basis.get_comp_basis()[0].flatten())
-    assert np.all(actual[1] == matrix_basis.get_comp_basis()[1].flatten())
-    assert np.all(actual[2] == matrix_basis.get_comp_basis()[2].flatten())
-    assert np.all(actual[3] == matrix_basis.get_comp_basis()[3].flatten())
+    for a, comp_basis in zip(actual, matrix_basis.get_comp_basis()):
+        if type(comp_basis) == np.ndarray:
+            e = comp_basis.flatten()
+        else:
+            e = comp_basis.toarray().flatten()
+        assert np.all(a == e)
 
 
 def test_get_comp_basis():
@@ -711,6 +713,7 @@ def test_get_hermitian_basis():
         np.array([[0, 0, 0], [0, 0, -1j], [0, 1j, 0]], dtype=np.complex128),
         np.array([[0, 0, 0], [0, 0, 0], [0, 0, 1]], dtype=np.complex128),
     ]
+
     for i, a in enumerate(basis):
         npt.assert_almost_equal(a, expected[i], decimal=15)
 
@@ -1175,7 +1178,7 @@ def test_convert_vec_raise_exception_invalid_length():
     m_4 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
 
     source = [m_1, m_2, m_3, m_4, m_4]
-    basis_1 = MatrixBasis(source)  # len = 5
+    basis_1 = SparseMatrixBasis(source)  # len = 5
     basis_2 = matrix_basis.get_pauli_basis()  # len = 5
     v = np.array([1, 2, 3, 4])
 
@@ -1194,7 +1197,7 @@ def test_convert_vec_raise_exception_invalid_dim():
     m_4 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
 
     source = [m_1, m_2, m_3, m_4, m_4, m_4, m_4, m_4, m_4]
-    basis_1 = MatrixBasis(source)  # len=9, dim=2
+    basis_1 = SparseMatrixBasis(source)  # len=9, dim=2
     basis_2 = matrix_basis.get_gell_mann_basis()  # len=9, dim=3
     v = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
@@ -1252,3 +1255,143 @@ def test_convert_vec():
     # Assert
     expected = 1 / np.sqrt(2) * np.array([1, 0, 0, -1])
     assert np.all(actual == expected)
+
+
+class TestSparseMatrixBasis:
+    def test_raise_not_basis(self):
+        identity = np.array([[1, 0], [0, 1]], dtype=np.complex128)
+        pauli_x = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+        pauli_y = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+        pauli_z = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+
+        # Testing for non-basis inputs
+        # Case 1: Not enough matrices.
+        source = [identity, pauli_x, pauli_y]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+        # Case 2: Not independent (B_3 = B_0 + B_1)
+        invalid_array = identity + pauli_x
+        source = [identity, pauli_x, pauli_y, invalid_array]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+    def test_is_same_size(self):
+        # Case1: All the same size
+        source_basis = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source_basis)
+        assert basis._is_same_size() == True
+
+        # Case2: Not same size
+        source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+    def test_is_squares(self):
+        # Case1: Square matrix
+        source_basis = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source_basis)
+        assert basis._is_squares() == True
+
+        # Case2: There is a non-square matrix
+        source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1], [0, 0], [0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        with pytest.raises(ValueError):
+            _ = SparseMatrixBasis(source)
+
+    def test_is_orthogonal(self):
+        # Case1: orthorogonal
+        source_basis = matrix_basis.get_pauli_basis().basis
+        m_basis = SparseMatrixBasis(source_basis)
+        assert m_basis.is_orthogonal() == True
+
+        # Case2: basis, but non orthorogonal
+        non_orthorogonal_source = [
+            np.array([[1, 0], [0, 1]]),
+            np.array([[0, 1], [0, 0]]),
+            np.array([[1, 1], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        non_orthorogonal_basis = SparseMatrixBasis(non_orthorogonal_source)
+        assert non_orthorogonal_basis.is_orthogonal() == False
+
+        # Case3: basis, but non orthorogonal
+        X = np.array([[1, 0], [0, 0]])
+        Y = np.array([[0, 1], [0, 0]])
+        Z = X + Y + 2
+        non_orthorogonal_source = [np.eye(2), X, Y, Z]
+        non_orthorogonal_basis = SparseMatrixBasis(non_orthorogonal_source)
+        assert non_orthorogonal_basis.is_orthogonal() == False
+
+    def test_is_normal(self):
+        # Case1: Normalized
+        source = matrix_basis.get_normalized_pauli_basis().basis
+        normalized_basis = SparseMatrixBasis(source)
+        assert normalized_basis.is_normal() == True
+
+        # Case2: Not Normalized
+        source = matrix_basis.get_pauli_basis().basis
+        non_normalized_basis = SparseMatrixBasis(source)
+        assert non_normalized_basis.is_normal() == False
+
+    def test_is_hermitian(self):
+        # Case1: Hermitian matrix
+        source = matrix_basis.get_pauli_basis().basis
+        hermitian_basis = SparseMatrixBasis(source)
+        assert hermitian_basis.is_hermitian() == True
+
+        # Case2: Non Hermitian matrix
+        non_hermitian_source = [
+            np.array([[1, 0], [0, 0]]),
+            np.array([[0, 1], [0, 0]]),
+            np.array([[0, 0], [1, 0]]),
+            np.array([[0, 0], [0, 1]]),
+        ]
+        non_hermitian_basis = SparseMatrixBasis(non_hermitian_source)
+        assert non_hermitian_basis.is_hermitian() == False
+
+    def test_is_0thpropI(self):
+        # Case1: B_0 = C*I
+        source = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_0thpropI() == True
+
+        # Case2: B_0 != C*I
+        source = matrix_basis.get_comp_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_0thpropI() == False
+
+    def test_is_trace_less(self):
+        # Case1: Tr[B_alpha] = 0, alpha >= 1
+        source = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_trace_less() == True
+
+        # Case2: Tr[B_alpha] != 0, alpha >= 1
+        source = matrix_basis.get_comp_basis().basis
+        basis = SparseMatrixBasis(source)
+        assert basis.is_trace_less() == False
+
+    def test_to_vect(self):
+        source = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source)
+        v_basis = basis.to_vect()
+        assert np.allclose(v_basis.basis[0], np.array([1, 0, 0, 1]))
+        assert np.allclose(v_basis.basis[1], np.array([0, 1, 1, 0]))
+        assert np.allclose(v_basis.basis[2], np.array([0, -1j, 1j, 0]))
+        assert np.allclose(v_basis.basis[3], np.array([1, 0, 0, -1]))
+
+    def test_get_item(self):
+        source_np = matrix_basis.get_pauli_basis().basis
+        basis = SparseMatrixBasis(source_np)
+        for i in range(len(source_np)):
+            assert matrix_util.allclose(basis[i], source_np[i])

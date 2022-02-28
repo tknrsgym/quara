@@ -8,24 +8,21 @@ from scipy.linalg import expm
 
 from quara.math.matrix import project_to_traceless_matrix
 from quara.objects import matrix_basis
-from quara.objects.matrix_basis import MatrixBasis
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.composite_system import CompositeSystem
-from quara.objects.gate import Gate
-from quara.objects.effective_lindbladian import EffectiveLindbladian
 from quara.objects.effective_lindbladian import generate_effective_lindbladian_from_h
 from quara.objects.gate_typical import (
     get_gate_names_1qubit,
     get_gate_names_2qubit,
     get_gate_names_2qubit_asymmetric,
     get_gate_names_3qubit,
-    get_gate_names_1qutrit,
     get_gate_names_1qutrit_single_gellmann,
 )
 from quara.objects.qoperation_typical import (
     generate_gate_object,
     generate_effective_lindbladian_object,
 )
+import quara.utils.matrix_util as mutil
 
 
 def _test_hamiltonian_vec_hamiltonian_mat(
@@ -63,7 +60,7 @@ def _test_hamiltonian_vec_hamiltonian_mat(
     # Assert
     expected = h_mat
     # The case of decimal=16 below returns AssertionError.
-    npt.assert_almost_equal(actual, expected, decimal=decimal)
+    npt.assert_almost_equal(mutil.toarray(actual), mutil.toarray(expected), decimal=decimal)
 
 
 def _test_hamiltonian_mat_unitary_mat(
@@ -86,7 +83,9 @@ def _test_hamiltonian_mat_unitary_mat(
 
     # Assert
     expected = u_mat
-    npt.assert_almost_equal(actual, expected, decimal=decimal)
+    npt.assert_almost_equal(
+        mutil.toarray(actual), mutil.toarray(expected), decimal=decimal
+    )
 
 
 def _test_effective_lindbladian_mat_gate_mat(

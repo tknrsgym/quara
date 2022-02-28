@@ -3,12 +3,13 @@ import pytest
 
 import quara.objects.elemental_system as esys
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     get_comp_basis,
     get_gell_mann_basis,
     get_pauli_basis,
     get_normalized_pauli_basis,
 )
+from quara.utils import matrix_util
 
 
 class TestElementalSystem:
@@ -60,10 +61,10 @@ class TestElementalSystem:
         actual = e1.comp_basis()
         expected = get_comp_basis()
         assert len(actual) == 4
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
-        assert np.all(actual[2] == expected[2])
-        assert np.all(actual[3] == expected[3])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
+        assert matrix_util.allclose(actual[2], expected[2])
+        assert matrix_util.allclose(actual[3], expected[3])
 
         # case: dim = 3
         m_basis = get_gell_mann_basis()
@@ -71,15 +72,15 @@ class TestElementalSystem:
         actual = e1.comp_basis()
         expected = get_comp_basis(3)
         assert len(actual) == 9
-        assert np.all(actual[0] == expected[0])
-        assert np.all(actual[1] == expected[1])
-        assert np.all(actual[2] == expected[2])
-        assert np.all(actual[3] == expected[3])
-        assert np.all(actual[4] == expected[4])
-        assert np.all(actual[5] == expected[5])
-        assert np.all(actual[6] == expected[6])
-        assert np.all(actual[7] == expected[7])
-        assert np.all(actual[8] == expected[8])
+        assert matrix_util.allclose(actual[0], expected[0])
+        assert matrix_util.allclose(actual[1], expected[1])
+        assert matrix_util.allclose(actual[2], expected[2])
+        assert matrix_util.allclose(actual[3], expected[3])
+        assert matrix_util.allclose(actual[4], expected[4])
+        assert matrix_util.allclose(actual[5], expected[5])
+        assert matrix_util.allclose(actual[6], expected[6])
+        assert matrix_util.allclose(actual[7], expected[7])
+        assert matrix_util.allclose(actual[8], expected[8])
 
     def test_access_basis(self):
         m_basis = get_comp_basis()
@@ -112,7 +113,7 @@ class TestElementalSystem:
             np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
             np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
         ]
-        m_basis = MatrixBasis(basis)
+        m_basis = SparseMatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
         assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
@@ -123,7 +124,7 @@ class TestElementalSystem:
             np.array([[0, 0], [1, 0]], dtype=np.complex128),
             np.array([[1, 0], [0, -1]], dtype=np.complex128) / np.sqrt(2),
         ]
-        m_basis = MatrixBasis(basis)
+        m_basis = SparseMatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
         assert e1.is_orthonormal_hermitian_0thprop_identity == False
 
@@ -134,7 +135,7 @@ class TestElementalSystem:
             np.array([[0, -1j], [1j, 0]], dtype=np.complex128) / np.sqrt(2),
             np.array([[1, 0], [0, -2]], dtype=np.complex128) / np.sqrt(5),
         ]
-        m_basis = MatrixBasis(basis)
+        m_basis = SparseMatrixBasis(basis)
         e1 = esys.ElementalSystem(1, m_basis)
         assert e1.is_orthonormal_hermitian_0thprop_identity == False
 

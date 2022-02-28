@@ -3,7 +3,6 @@ import shutil
 
 from typing import List, Optional
 from pathlib import Path
-import pickle
 
 import numpy as np
 import pandas as pd
@@ -20,12 +19,13 @@ from quara.objects.povm import Povm
 from quara.objects.gate import Gate
 from quara.objects.mprocess import MProcess
 from quara.protocol.qtomography.estimator import EstimationResult
-from quara.simulation import consistency_check
 from quara.simulation import standard_qtomography_simulation_check
 from quara.simulation.standard_qtomography_simulation import (
     SimulationResult,
     StandardQTomographySimulationSetting,
+    load_simulation_results,
 )
+import quara.utils.matrix_util as mutil
 
 _temp_dir_path = ""
 
@@ -451,7 +451,7 @@ def generate_eigenvalues_div(
             case_id=case_id,
             true_object=true_object,
         )
-        v, _ = np.linalg.eig(true_object.to_choi_matrix())
+        v, _ = mutil.eig(true_object.to_choi_matrix())
         col_n = 2 if len(v) <= 2 else 4
         div_html = _generate_eigenvalues_div(fig_info_list_list, col_n=col_n)
 
@@ -462,7 +462,7 @@ def generate_eigenvalues_div(
             case_id=case_id,
             true_object=true_object,
         )
-        v, _ = np.linalg.eig(true_object.to_choi_matrix(0))
+        v, _ = mutil.eig(true_object.to_choi_matrix(0))
         col_n = 2 if len(v) <= 2 else 4
         div_html = _generate_eigenvalues_div_3loop(fig_info_list3, col_n=col_n)
     else:
@@ -1407,40 +1407,6 @@ def generate_computation_time_of_estimators_div(
     return div
 
 
-def _load_simulation_results(
-    root_dir: str,
-    test_setting_index: int,
-    sample_index: int,
-    case_index: int = None,
-) -> list:
-    print("Loading SimulationResult pickles ...")
-    print(
-        f"(test_setting_index, sample_index, case_index) = ({test_setting_index}, {sample_index}, {case_index})"
-    )
-    result_dir_path = Path(root_dir) / str(test_setting_index) / str(sample_index)
-    simulation_results = []
-    if case_index is not None:
-        # load specific pickle file
-        file_name = f"case_{case_index}_result.pickle"
-        file_path = result_dir_path / file_name
-        print(file_path)
-        with open(file_path, "rb") as f:
-            simulation_result = pickle.load(f)
-        simulation_results.append(simulation_result)
-    else:
-        # load some pickle files
-        file_paths = sorted(result_dir_path.glob("case_*_result.pickle"))
-        for file_path in file_paths:
-            print(file_path)
-            with open(file_path, "rb") as f:
-                simulation_result = pickle.load(f)
-            simulation_results.append(simulation_result)
-    print(
-        f"Completed to load SimulationResult pickles. ({len(simulation_results)} files)"
-    )
-    return simulation_results
-
-
 def export_report_from_index(
     input_root_dir: str,
     test_setting_index: int,
@@ -1449,7 +1415,7 @@ def export_report_from_index(
     case_index: int = None,
     display_items: dict = None,
 ) -> None:
-    simulation_results = _load_simulation_results(
+    simulation_results = load_simulation_results(
         input_root_dir, test_setting_index, sample_index, case_index=case_index
     )
 

@@ -2,10 +2,6 @@ import datetime
 from itertools import product
 from typing import List, Tuple, Dict
 
-import numpy as np
-import numpy.testing as npt
-
-import quara.objects.qoperation_typical as qt
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.loss_function.standard_qtomography_based_weighted_relative_entropy import (
     StandardQTomographyBasedWeightedRelativeEntropy,
@@ -211,6 +207,9 @@ def execute(
     pdf_mode: str = "none",
     parallel_mode: Dict[str, int] = None,
     data_saving: str = "on_memory",
+    generation_setting_is_physicality_required: bool = True,
+    is_computation_time_required: bool = True,
+    is_detailed_results_required: bool = False,
 ):
     c_sys = generate_composite_system(mode, n_qubit)
     (
@@ -264,14 +263,17 @@ def execute(
             loss_list=loss_list,
             parametrizations=parametrizations,
             c_sys=c_sys,
+            generation_setting_is_physicality_required=generation_setting_is_physicality_required,
         )
         test_settings.append(test_setting)
     all_results = execute_simulation_test_settings(
         test_settings,
         output_root_dir,
-        pdf_mode=pdf_mode,
+        pdf_mode="all",
         parallel_mode=parallel_mode,
         data_saving=data_saving,
+        is_computation_time_required=is_computation_time_required,
+        is_detailed_results_required=is_detailed_results_required,
     )
     # show_results(all_results)
     return all_results
@@ -302,6 +304,9 @@ def execute_qst_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -333,6 +338,9 @@ def execute_qst_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -364,6 +372,9 @@ def execute_qst_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -396,6 +407,9 @@ def execute_qst_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -430,6 +444,9 @@ def execute_qst_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qst_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -459,6 +476,9 @@ def execute_povmt_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -491,6 +511,9 @@ def execute_povmt_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -523,6 +546,9 @@ def execute_povmt_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -565,6 +591,9 @@ def execute_povmt_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -610,6 +639,9 @@ def execute_povmt_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_povmt_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -653,6 +685,9 @@ def execute_qpt_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -687,6 +722,9 @@ def execute_qpt_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -721,6 +759,9 @@ def execute_qpt_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -767,6 +808,9 @@ def execute_qpt_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -818,6 +862,9 @@ def execute_qpt_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qpt_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -852,6 +899,9 @@ def execute_qmpt_1qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_1qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -886,6 +936,9 @@ def execute_qmpt_2qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_2qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -920,6 +973,9 @@ def execute_qmpt_3qubit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_3qubit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -966,6 +1022,9 @@ def execute_qmpt_1qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_1qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -1017,6 +1076,9 @@ def execute_qmpt_2qutrit():
         "output_root_dir": output_root_dir_prefix
         + "result_random_qmpt_2qutrit-"
         + get_current_time_string(),
+        "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 
@@ -1043,6 +1105,8 @@ def main():
         + "result_random_qst_1qubit-"
         + get_current_time_string(),
         "pdf_mode": "all",
+        "is_computation_time_required": True,
+        "is_detailed_results_required": False,
     }
     execute(**setting)
 

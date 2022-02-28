@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.testing as npt
 import pytest
+from scipy import sparse
 
 import quara.utils.matrix_util as util
 
@@ -520,3 +521,14 @@ def test_calc_fisher_matrix_total():
         dtype=np.float64,
     )
     npt.assert_almost_equal(actual, expected, decimal=15)
+
+
+def test_vdot():
+    # Arrange
+    a = sparse.csr_matrix(np.array([1, 3, 5, 7]))
+    b = sparse.csr_matrix(np.array([11, 13, 17, 19]))
+    expected = 268
+    # Act
+    actual = util.vdot(a, b)
+    # Assert
+    assert actual == expected

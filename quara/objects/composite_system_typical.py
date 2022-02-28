@@ -1,7 +1,9 @@
-from typing import List
+from typing import List, Union
 
 # Quara
 from quara.objects.matrix_basis import (
+    SparseMatrixBasis,
+    # SparseMatrixBasis,  # TODO: revert
     MatrixBasis,
     get_normalized_pauli_basis,
     get_normalized_gell_mann_basis,
@@ -11,7 +13,11 @@ from quara.objects.composite_system import CompositeSystem
 
 
 def generate_composite_system(
-    mode: str, num: int, ids_esys: List[int] = None, basis: MatrixBasis = None
+    mode: str,
+    num: int,
+    ids_esys: List[int] = None,
+    basis: Union[MatrixBasis, SparseMatrixBasis] = None,
+    is_sparse: bool = False,
 ) -> CompositeSystem:
     """return a composite system consisting identical elemental systems.
 
@@ -47,6 +53,13 @@ def generate_composite_system(
             basis = get_normalized_pauli_basis()
         elif mode == "qutrit":
             basis = get_normalized_gell_mann_basis()
+
+        if is_sparse:
+            basis = SparseMatrixBasis(basis._basis)
+        elif (mode == "qubit" and num <= 3) or (mode == "qutrit" and num <= 2):
+            basis = MatrixBasis(basis._basis)
+        else:
+            basis = SparseMatrixBasis(basis._basis)
 
     # elemental systems
     l_esys = []

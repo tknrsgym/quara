@@ -1,6 +1,5 @@
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 from quara.math import func_proj
 
@@ -98,4 +97,3 @@ def test_proj_to_nonnegative():
     actual = proj(var)
     expected = np.array([0.0, 0.0], dtype=np.float64)
     npt.assert_almost_equal(actual, expected, decimal=15)
-

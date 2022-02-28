@@ -1,16 +1,13 @@
-import copy
-import itertools
-import inspect
 from functools import reduce
 from operator import add
 import sys
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 import numpy as np
-from scipy.linalg import expm, kron
+from scipy.linalg import expm
 
 import quara.utils.matrix_util as mutil
-from quara.objects.composite_system import CompositeSystem, ElementalSystem
+from quara.objects.composite_system import CompositeSystem
 from quara.objects.gate import (
     Gate,
     convert_hs,
@@ -19,12 +16,10 @@ from quara.objects.gate import (
     convert_hs_to_var,
 )
 from quara.objects.matrix_basis import (
-    MatrixBasis,
+    SparseMatrixBasis,
     get_comp_basis,
-    get_normalized_pauli_basis,
 )
 from quara.settings import Settings
-from quara.objects.qoperation import QOperation
 
 
 class EffectiveLindbladian(Gate):
@@ -110,7 +105,7 @@ class EffectiveLindbladian(Gate):
         for B_alpha in basis:
             trace = np.trace(
                 lindbladian_cb
-                @ (np.kron(B_alpha, identity) - np.kron(identity, B_alpha.conj()))
+                @ (mutil.kron(B_alpha, identity) - mutil.kron(identity, B_alpha.conj()))
             )
             h_alpha = 1j / (2 * self.dim) * trace
             tmp_h_mat += h_alpha * B_alpha
@@ -134,7 +129,7 @@ class EffectiveLindbladian(Gate):
         for alpha, B_alpha in enumerate(basis[1:]):
             trace = np.trace(
                 lindbladian_cb
-                @ (np.kron(B_alpha, identity) + np.kron(identity, B_alpha.conj()))
+                @ (mutil.kron(B_alpha, identity) + mutil.kron(identity, B_alpha.conj()))
             )
             delta = 1 if alpha == 0 else 0
             j_alpha = 1 / (2 * self.dim * (1 + delta)) * trace
@@ -160,7 +155,7 @@ class EffectiveLindbladian(Gate):
         for alpha, B_alpha in enumerate(basis[1:]):
             for beta, B_beta in enumerate(basis[1:]):
                 tmp_k_mat[alpha, beta] = np.trace(
-                    lindbladian_cb @ kron(B_alpha, B_beta.conj())
+                    lindbladian_cb @ mutil.kron(B_alpha, B_beta.conj())
                 )
 
         return tmp_k_mat
@@ -411,7 +406,7 @@ class EffectiveLindbladian(Gate):
         """
         # step1. calc the eigenvalue decomposition of Choi matrix.
         #   Choi = \sum_{\alpha} c_{\alpha} |c_{\alpha}><c_{\alpha}| s.t. c_{\alpha} are eigenvalues and |c_{\alpha}> are eigenvectors of orthogonal basis.
-        choi = self.to_choi_matrix()
+        choi = mutil.toarray(self.to_choi_matrix())
         eigen_vals, eigen_vecs = np.linalg.eig(choi)
         eigens = [
             (eigen_vals[index], eigen_vecs[:, index])
@@ -657,7 +652,7 @@ def _check_h_mat(h_mat: np.ndarray, dim: int) -> None:
 
 def _calc_h_part_from_h_mat(h_mat: np.ndarray) -> np.ndarray:
     identity = np.eye(h_mat.shape[0])
-    return -1j * (np.kron(h_mat, identity) - np.kron(identity, h_mat.conj()))
+    return -1j * (mutil.kron(h_mat, identity) - mutil.kron(identity, h_mat.conj()))
 
 
 def _check_j_mat(j_mat: np.ndarray, dim: int) -> None:
@@ -673,7 +668,21 @@ def _check_j_mat(j_mat: np.ndarray, dim: int) -> None:
         )
 
 
-def _calc_j_mat_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> None:
+def _calc_j_mat_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
+    return _calc_j_mat_from_k_mat_with_sparsity(k_mat, c_sys)
+
+
+def _calc_j_mat_from_k_mat_with_sparsity(
+    k_mat: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    j_mat_vec = c_sys.basishermitian_basis_T_from_1.dot(k_mat.flatten())
+    j_mat = j_mat_vec.reshape((c_sys.dim, c_sys.dim))
+    return -1 / 2 * j_mat
+
+
+def _calc_j_mat_from_k_mat_slowly(
+    k_mat: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
     basis = c_sys.basis()
     j_mat = np.zeros((c_sys.dim, c_sys.dim), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
@@ -686,7 +695,7 @@ def _calc_j_mat_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> None:
 
 def _calc_j_part_from_j_mat(j_mat: np.ndarray) -> np.ndarray:
     identity = np.eye(j_mat.shape[0])
-    return np.kron(j_mat, identity) + np.kron(identity, j_mat.conj())
+    return mutil.kron(j_mat, identity) + mutil.kron(identity, j_mat.conj())
 
 
 def _check_k_mat(k_mat: np.ndarray, dim: int) -> None:
@@ -703,13 +712,24 @@ def _check_k_mat(k_mat: np.ndarray, dim: int) -> None:
 
 
 def _calc_k_part_from_k_mat(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
+    return _calc_k_part_from_k_mat_with_sparsity(k_mat, c_sys)
+
+
+def _calc_k_part_from_slowly(k_mat: np.ndarray, c_sys: CompositeSystem) -> np.ndarray:
     basis = c_sys.basis()
     k_part = np.zeros((c_sys.dim ** 2, c_sys.dim ** 2), dtype=np.complex128)
     for row in range(k_mat.shape[0]):
         for col in range(k_mat.shape[0]):
-            term = k_mat[row, col] * kron(basis[row + 1], basis[col + 1].conj())
+            term = k_mat[row, col] * mutil.kron(basis[row + 1], basis[col + 1].conj())
             k_part += term
+    return k_part
 
+
+def _calc_k_part_from_k_mat_with_sparsity(
+    k_mat: np.ndarray, c_sys: CompositeSystem
+) -> np.ndarray:
+    k_part_vec = c_sys.basis_basisconjugate_T_sparse_from_1.dot(k_mat.flatten())
+    k_part = k_part_vec.reshape((c_sys.dim ** 2, c_sys.dim ** 2))
     return k_part
 
 
@@ -1192,7 +1212,7 @@ def generate_j_part_cb_from_jump_operators(
     dim = jump_operators[0].shape[0]
     identity = np.eye(dim)
     terms = [
-        np.kron(opertor, identity) + np.kron(identity, opertor.conj())
+        mutil.kron(opertor, identity) + mutil.kron(identity, opertor.conj())
         for opertor in jump_operators
     ]
     j_part_cb = -1 / 2 * reduce(add, terms)
@@ -1201,7 +1221,7 @@ def generate_j_part_cb_from_jump_operators(
 
 def generate_j_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
-    basis: MatrixBasis,
+    basis: SparseMatrixBasis,
     eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates j part of EffectiveLindbladian from jump operators.
@@ -1245,14 +1265,14 @@ def generate_k_part_cb_from_jump_operators(
     np.ndarray
         k part of EffectiveLindbladian.
     """
-    terms = [np.kron(opertor, opertor.conj()) for opertor in jump_operators]
+    terms = [mutil.kron(opertor, opertor.conj()) for opertor in jump_operators]
     k_part_cb = reduce(add, terms)
     return k_part_cb
 
 
 def generate_k_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
-    basis: MatrixBasis,
+    basis: SparseMatrixBasis,
     eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates k part of EffectiveLindbladian from jump operators.
@@ -1304,7 +1324,7 @@ def generate_d_part_cb_from_jump_operators(
 
 def generate_d_part_gb_from_jump_operators(
     jump_operators: List[np.ndarray],
-    basis: MatrixBasis,
+    basis: SparseMatrixBasis,
     eps_truncate_imaginary_part: float = None,
 ) -> np.ndarray:
     """generates d part of EffectiveLindbladian from jump operators.

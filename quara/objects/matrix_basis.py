@@ -3,6 +3,7 @@ import itertools
 from typing import List, Tuple
 
 import numpy as np
+from scipy.sparse import csr_matrix
 
 from quara.settings import Settings
 import quara.utils.matrix_util as mutil
@@ -41,7 +42,8 @@ class MatrixBasis(Basis):
         # make _basis immutable
         self._basis: Tuple[np.ndarray, ...] = tuple(copy.deepcopy(basis))
         for b in self._basis:
-            b.setflags(write=False)
+            if type(b) == np.ndarray:
+                b.setflags(write=False)
 
         self._dim = self[0].shape[0]
 
@@ -113,7 +115,14 @@ class MatrixBasis(Basis):
         bool
             True where matrices are basis, False otherwise.
         """
-        row_list = [mat.flatten() for mat in self]
+        # If there is a way to keep it as a sparse matrix, change it.
+        row_list = []
+        for mat in self:
+            if type(mat) == np.ndarray:
+                row_list.append(mat.flatten())
+            else:
+                row_list.append(mat.toarray().flatten())
+
         rank = np.linalg.matrix_rank(row_list)
         return rank >= self.dim ** 2
 
@@ -140,6 +149,7 @@ class MatrixBasis(Basis):
         bool
             True where matrices are normalized, False otherwise.
         """
+
         for mat in self:
             i_product = np.vdot(mat, mat)
             if not np.isclose(i_product, 1, atol=Settings.get_atol()):
@@ -182,7 +192,7 @@ class MatrixBasis(Basis):
         """
         for index in range(1, len(self)):
             mat = self[index]
-            tr = np.trace(mat)
+            tr = mat.diagonal().sum()
             if tr != 0:
                 return False
         return True
@@ -201,6 +211,74 @@ class MatrixBasis(Basis):
         return f"{self.__class__.__name__}(basis={repr(list(self._basis))})"
 
 
+class SparseMatrixBasis(MatrixBasis):
+    def __init__(self, basis: List[np.ndarray]):
+        super().__init__(basis)
+        # make _basis immutable
+        # self._basis: csr_matrix = csr_matrix(np.array([b.flatten() for b in basis]))
+        if type(basis[0]) == np.ndarray:
+            basis = tuple([csr_matrix(b) for b in basis])
+        elif type(basis[0]) != csr_matrix:
+            raise TypeError(f"MatrixBasis doesn't support type {type(basis[0])}.")
+        self._basis: Tuple[csr_matrix, ...] = basis
+        self._dim = basis[0].shape[0]
+
+    def is_hermitian(self) -> bool:
+        """Returns whether matrices are Hermitian.
+
+        Returns
+        -------
+        bool
+            True where matrices are Hermitian, False otherwise.
+        """
+        for mat in self:
+            if not mutil.is_hermitian(mat.toarray()):
+                return False
+        return True
+
+    def is_normal(self) -> bool:
+        """Returns whether matrices are normalized.
+
+        Returns
+        -------
+        bool
+            True where matrices are normalized, False otherwise.
+        """
+        for mat in self:
+            i_product = mutil.vdot(mat, mat)
+            if not mutil.isclose(i_product, 1, atol=Settings.get_atol()):
+                return False
+        return True
+
+    def is_orthogonal(self) -> bool:
+        """Returns whether matrices are orthogonal.
+
+        Returns
+        -------
+        bool
+            True where matrices are orthogonal, False otherwise.
+        """
+        for index, left in enumerate(self.basis[:-1]):
+            for right in self.basis[index + 1 :]:
+                i_product = np.vdot(left.toarray(), right.toarray())
+                if not np.isclose(i_product, 0, atol=Settings.get_atol()):
+                    return False
+        return True
+
+    def is_0thpropI(self) -> bool:
+        """Returns whether first matrix is constant multiple of identity matrix.
+
+        Returns
+        -------
+        bool
+            True where first matrix is constant multiple of identity matrix, False otherwise.
+        """
+        mat = self[0].toarray()
+        scalar = mat[0, 0]
+        identity = np.identity(self._dim, dtype=np.complex128)
+        return np.allclose(scalar * identity, mat)
+
+
 class VectorizedMatrixBasis(Basis):
     def __init__(self, source: MatrixBasis):
         # Currently, only the MatrixBasis parameter is assumed.
@@ -213,8 +291,11 @@ class VectorizedMatrixBasis(Basis):
             # "ravel" doesn't make copies, so it performs better than "flatten".
             # But, use "flatten" at this time to avoid breaking the original data(self._org_basis).
             # When performance issues arise, reconsider.
-            vectorized_b = b.flatten()
-            vectorized_b.setflags(write=False)
+            if type(b) == np.ndarray:
+                vectorized_b = b.flatten()
+                vectorized_b.setflags(write=False)
+            else:
+                vectorized_b = b.toarray().flatten()
             temp_basis.append(vectorized_b)
         self._basis: Tuple[np.ndarray, ...] = tuple(temp_basis)
 
@@ -750,8 +831,9 @@ def convert_vec(
 
     # "converted_vec"_{\alpha} = \sum_{\beta} Tr["to_basis"_{\beta}^{\dagger} "from_basis"_{\alpha}] "from_vec"_{\alpha}
     representation_matrix = [
-        np.vdot(val1, val2) for val1, val2 in itertools.product(to_basis, from_basis)
+        mutil.vdot(val1, val2) for val1, val2 in itertools.product(to_basis, from_basis)
     ]
+
     rep_mat = np.array(representation_matrix).reshape(len_basis, len_basis)
     converted_vec = rep_mat @ from_vec
 

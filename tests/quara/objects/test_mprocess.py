@@ -14,8 +14,9 @@ from quara.objects.mprocess import (
     convert_var_to_hss,
 )
 from quara.objects.mprocess_typical import generate_mprocess_from_name
-from quara.settings import Settings
 from quara.objects.povm_typical import generate_povm_from_name
+from quara.settings import Settings
+from quara.utils import matrix_util as mutil
 
 
 class TestMProcess:
@@ -1160,7 +1161,8 @@ class TestMProcess:
         # Assert
         expected = matrix_basis.get_normalized_pauli_basis()
         for a, e in zip(actual, expected):
-            npt.assert_almost_equal(a, e, decimal=15)
+            # npt.assert_almost_equal(a, e, decimal=15)
+            assert mutil.allclose(a, e, atol=1e-15)
 
     def test_is_sum_tp(self):
         e_sys = ElementalSystem(0, matrix_basis.get_normalized_pauli_basis())
@@ -1316,8 +1318,8 @@ class TestMProcess:
         # Assert
         expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
         expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
-        npt.assert_almost_equal(choi_0, expected_0, decimal=15)
-        npt.assert_almost_equal(choi_1, expected_1, decimal=15)
+        assert mutil.allclose(choi_0, expected_0, atol=1e-15)
+        assert mutil.allclose(choi_1, expected_1, atol=1e-15)
 
     def test_to_choi_matrix_with_dict(self):
         # Arrange
@@ -1340,8 +1342,10 @@ class TestMProcess:
         # Assert
         expected_0 = np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
         expected_1 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]])
-        npt.assert_almost_equal(choi_0, expected_0, decimal=15)
-        npt.assert_almost_equal(choi_1, expected_1, decimal=15)
+        print(f"{choi_1}")
+        print(f"{expected_1}")
+        assert mutil.allclose(choi_0, expected_0, atol=1e-15)
+        assert mutil.allclose(choi_1, expected_1, atol=1e-15)
 
     def test_to_choi_matrix_with_sparsity(self):
         # Arrange

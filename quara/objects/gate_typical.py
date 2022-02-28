@@ -6,9 +6,10 @@ from scipy.linalg import expm
 
 from quara.utils.matrix_util import (
     is_hermitian,
+    kron,
     truncate_computational_fluctuation,
 )
-from quara.objects.matrix_basis import MatrixBasis
+from quara.objects.matrix_basis import SparseMatrixBasis
 from quara.objects.matrix_basis import (
     get_comp_basis,
     get_pauli_basis,
@@ -135,6 +136,7 @@ def generate_gate_object_from_gate_name_object_name(
     dims: List[int] = None,
     ids: List[int] = None,
     c_sys: CompositeSystem = None,
+    is_physicality_required: bool = True,
 ) -> Union[np.ndarray, "Gate"]:
     if dims is None:
         dims = []
@@ -146,7 +148,9 @@ def generate_gate_object_from_gate_name_object_name(
     elif object_name == "gate_mat":
         obj = generate_gate_mat_from_gate_name(gate_name, dims, ids)
     elif object_name == "gate":
-        obj = generate_gate_from_gate_name(gate_name, c_sys, ids)
+        obj = generate_gate_from_gate_name(
+            gate_name, c_sys, ids, is_physicality_required=is_physicality_required
+        )
     else:
         raise ValueError(f"object_name is out of range.")
     return obj
@@ -221,7 +225,6 @@ def generate_unitary_mat_from_gate_name(
         ids = []
 
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -293,7 +296,6 @@ def generate_gate_mat_from_gate_name(
         ids = []
 
     _is_valid_dims_ids(dims, ids)
-    assert gate_name in get_gate_names()
 
     if gate_name == "identity":
         dim_total = _dim_total_from_dims(dims)
@@ -340,7 +342,10 @@ def generate_gate_mat_from_gate_name(
 
 
 def generate_gate_from_gate_name(
-    gate_name: str, c_sys: CompositeSystem, ids: List[int] = None
+    gate_name: str,
+    c_sys: CompositeSystem,
+    ids: List[int] = None,
+    is_physicality_required: bool = True,
 ) -> "Gate":
     """returns gate class.
 
@@ -354,48 +359,57 @@ def generate_gate_from_gate_name(
     ids : List[int] (optional)
         list of ids for elemental systems
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     Gate
         The gate class for the input
     """
-    assert gate_name in get_gate_names()
+
     if ids is None:
         ids = []
 
     if gate_name == "identity":
         method_name = "generate_gate_" + gate_name
         method = eval(method_name)
-        gate = method(c_sys)
+        gate = method(c_sys, is_physicality_required=is_physicality_required)
     # 1-qubit gate
     elif gate_name in get_gate_names_1qubit():
         method_name = "generate_gate_" + gate_name
         method = eval(method_name)
-        gate = method(c_sys)
+        gate = method(c_sys, is_physicality_required=is_physicality_required)
     # 2-qubit gate
     elif gate_name in get_gate_names_2qubit():
         method_name = "generate_gate_" + gate_name
         method = eval(method_name)
         if gate_name in get_gate_names_2qubit_asymmetric():
-            gate = method(c_sys, ids)
+            gate = method(c_sys, ids, is_physicality_required=is_physicality_required)
         else:
-            gate = method(c_sys)
+            gate = method(c_sys, is_physicality_required=is_physicality_required)
     # 3-qubit gate
     elif gate_name in get_gate_names_3qubit():
         method_name = "generate_gate_" + gate_name + "_hamiltonian_mat"
         method = eval(method_name)
         h = method(ids)
-        gate = calc_gate_from_hamiltonian_mat(c_sys=c_sys, h=h)
+        gate = calc_gate_from_hamiltonian_mat(
+            c_sys=c_sys, h=h, is_physicality_required=is_physicality_required
+        )
     # 1-qutrit gate
     elif gate_name in get_gate_names_1qutrit():
         if gate_name in get_gate_names_1qutrit_single_gellmann():
             method_name = "generate_gate_1qutrit_single_gellmann"
             method = eval(method_name)
-            gate = method(c_sys, gate_name)
+            gate = method(
+                c_sys, gate_name, is_physicality_required=is_physicality_required
+            )
     # 2-qutrit gate
     elif gate_name in get_gate_names_2qutrit():
         mat = generate_gate_mat_from_gate_name(gate_name, ids)
-        gate = Gate(c_sys=c_sys, hs=mat)
+        gate = Gate(
+            c_sys=c_sys, hs=mat, is_physicality_required=is_physicality_required
+        )
     else:
         raise ValueError(f"gate_name is out of range.")
 
@@ -403,7 +417,7 @@ def generate_gate_from_gate_name(
 
 
 def calc_gate_mat_from_unitary_mat(
-    from_u: np.ndarray, to_basis: MatrixBasis
+    from_u: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """Return the HS matrix for a gate represented by an unitary matrix.
 
@@ -428,7 +442,7 @@ def calc_gate_mat_from_unitary_mat(
     assert to_basis.is_orthogonal() == True
     assert to_basis.is_normal() == True
 
-    hs_comp = np.kron(from_u, np.conjugate(from_u))
+    hs_comp = kron(from_u, np.conjugate(from_u))
     basis_comp = get_comp_basis(dim)
     hs = convert_hs(from_hs=hs_comp, from_basis=basis_comp, to_basis=to_basis)
 
@@ -436,7 +450,7 @@ def calc_gate_mat_from_unitary_mat(
 
 
 def calc_gate_mat_from_unitary_mat_with_hermitian_basis(
-    from_u: np.ndarray, to_basis: MatrixBasis
+    from_u: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """Return the HS matrix w.r.t. a Hermitian (orthonormal) matrix basis for a gate represented by an unitary matrix.
 
@@ -478,7 +492,7 @@ def calc_unitary_mat_from_hamiltonian_mat(h: np.ndarray) -> np.ndarray:
 
 
 def calc_gate_mat_from_hamiltonian_mat(
-    h: np.ndarray, to_basis: MatrixBasis
+    h: np.ndarray, to_basis: SparseMatrixBasis
 ) -> np.ndarray:
     """return a HS matrix of a gate for a given Hamiltonian matrix.
 
@@ -501,7 +515,9 @@ def calc_gate_mat_from_hamiltonian_mat(
     return hs
 
 
-def calc_gate_from_hamiltonian_mat(c_sys: CompositeSystem, h: np.ndarray) -> "Gate":
+def calc_gate_from_hamiltonian_mat(
+    c_sys: CompositeSystem, h: np.ndarray, is_physicality_required: bool = True
+) -> "Gate":
     """return a Gate class object for a given Hamiltonian matrix.
 
     Parameters
@@ -510,13 +526,16 @@ def calc_gate_from_hamiltonian_mat(c_sys: CompositeSystem, h: np.ndarray) -> "Ga
 
     h : np.ndarray((dim, dim), dtype=np.complex128)
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     Gate
     """
     b = c_sys.basis()
     hs = calc_gate_mat_from_hamiltonian_mat(h=h, to_basis=b)
-    g = Gate(c_sys=c_sys, hs=hs)
+    g = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return g
 
 
@@ -562,12 +581,17 @@ def generate_gate_identity_mat(dim: int) -> np.ndarray:
     return mat
 
 
-def generate_gate_identity(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_identity(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the identity gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -576,7 +600,7 @@ def generate_gate_identity(c_sys: CompositeSystem) -> "Gate":
     """
     dim = c_sys.dim
     hs = generate_gate_identity_mat(dim)
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -618,12 +642,17 @@ def generate_gate_x90_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_x90(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_x90(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the X90 gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -632,7 +661,7 @@ def generate_gate_x90(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x90_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -674,12 +703,17 @@ def generate_gate_x180_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_x180(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_x180(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the X180 gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -688,7 +722,7 @@ def generate_gate_x180(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x180_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -732,12 +766,17 @@ def generate_gate_x_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_x(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_x(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the X gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -746,7 +785,7 @@ def generate_gate_x(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_x_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -788,12 +827,17 @@ def generate_gate_y90_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_y90(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_y90(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Y90 gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -802,7 +846,7 @@ def generate_gate_y90(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y90_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -844,12 +888,17 @@ def generate_gate_y180_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_y180(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_y180(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Y180 gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -858,7 +907,7 @@ def generate_gate_y180(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y180_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -902,12 +951,17 @@ def generate_gate_y_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_y(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_y(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Y gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -916,7 +970,7 @@ def generate_gate_y(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_y_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -958,12 +1012,17 @@ def generate_gate_z90_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_z90(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_z90(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Z90 gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -972,7 +1031,7 @@ def generate_gate_z90(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z90_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1014,12 +1073,17 @@ def generate_gate_z180_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_z180(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_z180(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Z180 gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1028,7 +1092,7 @@ def generate_gate_z180(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z180_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1072,12 +1136,17 @@ def generate_gate_z_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_z(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_z(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Z gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1086,7 +1155,7 @@ def generate_gate_z(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1128,12 +1197,17 @@ def generate_gate_phase_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_phase(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_phase(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Phase (S) gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1142,7 +1216,7 @@ def generate_gate_phase(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1184,12 +1258,17 @@ def generate_gate_phase_daggered_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_phase_daggered(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_phase_daggered(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Phase daggered (S^dagger) gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1198,7 +1277,7 @@ def generate_gate_phase_daggered(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_phase_daggered_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1247,12 +1326,17 @@ def generate_gate_piover8_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_piover8(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_piover8(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the pi/8 (T) gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1261,7 +1345,7 @@ def generate_gate_piover8(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1310,12 +1394,17 @@ def generate_gate_piover8_daggered_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_piover8_daggered(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_piover8_daggered(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the pi/8 daggered (T^dagger) gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1324,7 +1413,7 @@ def generate_gate_piover8_daggered(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_piover8_daggered_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1366,12 +1455,17 @@ def generate_gate_hadamard_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_hadamard(c_sys: CompositeSystem) -> "Gate":
+def generate_gate_hadamard(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
     """Return the Gate class for the Hadamard (H) gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1380,7 +1474,7 @@ def generate_gate_hadamard(c_sys: CompositeSystem) -> "Gate":
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_hadamard_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1444,7 +1538,9 @@ def generate_gate_cx_mat(ids: List[int]) -> np.ndarray:
     return mat
 
 
-def generate_gate_cx(c_sys: "CompositeSystem", ids: List[int]) -> Gate:
+def generate_gate_cx(
+    c_sys: "CompositeSystem", ids: List[int], is_physicality_required: bool = True
+) -> Gate:
     """Return the Gate class for the Control-X (CX) gate on the composite system.
 
     Parameters
@@ -1455,6 +1551,9 @@ def generate_gate_cx(c_sys: "CompositeSystem", ids: List[int]) -> Gate:
         ids[0] for control system index
         ids[1] for target system index
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     Gate
@@ -1462,7 +1561,7 @@ def generate_gate_cx(c_sys: "CompositeSystem", ids: List[int]) -> Gate:
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cx_mat(ids)
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1509,12 +1608,17 @@ def generate_gate_cz_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_cz(c_sys: "CompositeSystem") -> Gate:
+def generate_gate_cz(
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
+) -> Gate:
     """Return the Gate class for the Control-Z (CZ) gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1523,7 +1627,7 @@ def generate_gate_cz(c_sys: "CompositeSystem") -> Gate:
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_cz_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1570,12 +1674,17 @@ def generate_gate_swap_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_swap(c_sys: "CompositeSystem") -> Gate:
+def generate_gate_swap(
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
+) -> Gate:
     """Return the Gate class for the SWAP gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1584,7 +1693,7 @@ def generate_gate_swap(c_sys: "CompositeSystem") -> Gate:
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_swap_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1654,7 +1763,9 @@ def generate_gate_zx90_mat(ids: List[int]) -> np.ndarray:
     return mat
 
 
-def generate_gate_zx90(c_sys: "CompositeSystem", ids: List[int]) -> Gate:
+def generate_gate_zx90(
+    c_sys: "CompositeSystem", ids: List[int], is_physicality_required: bool = True
+) -> Gate:
     """Return the Gate class for the ZX90 gate on the composite system.
 
     Parameters
@@ -1665,6 +1776,9 @@ def generate_gate_zx90(c_sys: "CompositeSystem", ids: List[int]) -> Gate:
         ids[0] for control system index
         ids[1] for target system index
 
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
     Returns
     ----------
     Gate
@@ -1672,7 +1786,7 @@ def generate_gate_zx90(c_sys: "CompositeSystem", ids: List[int]) -> Gate:
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zx90_mat(ids)
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -1728,12 +1842,17 @@ def generate_gate_zz90_mat() -> np.ndarray:
     return mat
 
 
-def generate_gate_zz90(c_sys: "CompositeSystem") -> Gate:
+def generate_gate_zz90(
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
+) -> Gate:
     """Return the Gate class for the ZZ90 gate on the composite system.
 
     Parameters
     ----------
     c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
 
     Returns
     ----------
@@ -1742,7 +1861,7 @@ def generate_gate_zz90(c_sys: "CompositeSystem") -> Gate:
     """
     assert len(c_sys.elemental_systems) == 2
     hs = generate_gate_zz90_mat()
-    gate = Gate(c_sys=c_sys, hs=hs)
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 
 
@@ -2344,13 +2463,13 @@ def generate_gate_1qutrit_single_gellmann_mat(gate_name: str) -> np.ndarray:
 
 
 def generate_gate_1qutrit_single_gellmann(
-    c_sys: CompositeSystem, gate_name: str
+    c_sys: CompositeSystem, gate_name: str, is_physicality_required: bool = True
 ) -> Gate:
     """return the Gate for the gate."""
     assert len(c_sys.elemental_systems) == 1
     assert c_sys.dim == 3
     hs = generate_gate_1qutrit_single_gellmann_mat(gate_name)
-    G = Gate(c_sys=c_sys, hs=hs)
+    G = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return G
 
 

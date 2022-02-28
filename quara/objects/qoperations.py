@@ -1,7 +1,7 @@
-from abc import abstractmethod
 from typing import List, Dict, Union
 
 import numpy as np
+
 from quara.objects.qoperation import QOperation
 from quara.objects.state import State
 from quara.objects.gate import Gate

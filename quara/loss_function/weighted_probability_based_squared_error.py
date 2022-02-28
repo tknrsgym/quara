@@ -1,15 +1,12 @@
-from abc import abstractmethod
-from typing import Callable, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 
-from quara.loss_function.loss_function import LossFunctionOption
 from quara.loss_function.probability_based_loss_function import (
     ProbabilityBasedLossFunction,
     ProbabilityBasedLossFunctionOption,
 )
 from quara.math.matrix import multiply_veca_vecb, multiply_veca_vecb_matc
-from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.utils import matrix_util
 
 

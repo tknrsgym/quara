@@ -1,7 +1,7 @@
 import copy
 import itertools
 from functools import reduce
-from operator import add, mul, itemgetter
+from operator import add, itemgetter
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -10,17 +10,16 @@ from scipy.stats import multinomial
 from quara.objects.composite_system import CompositeSystem
 from quara.objects.elemental_system import ElementalSystem
 from quara.objects.gate import Gate
-from quara.objects.matrix_basis import MatrixBasis, convert_vec
+from quara.objects.matrix_basis import SparseMatrixBasis, MatrixBasis, convert_vec
 from quara.objects.povm import Povm
 from quara.objects.state import State
 from quara.objects.mprocess import MProcess
 from quara.objects.state_ensemble import StateEnsemble
 from quara.objects.multinomial_distribution import MultinomialDistribution
-from quara.settings import Settings
 from quara.utils import matrix_util
 
 
-def tensor_product(*elements) -> Union[MatrixBasis, State, Povm, Gate]:
+def tensor_product(*elements) -> Union[SparseMatrixBasis, State, Povm, Gate]:
     """calculates tensor product of ``elements``.
 
     this function can calculate tensor product of the following combinations of types:
@@ -329,7 +328,7 @@ def _tensor_product_Povm_Povm(povm1: Povm, povm2: Povm) -> Povm:
     return tensor_povm
 
 
-def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
+def _tensor_product(elem1, elem2) -> Union[SparseMatrixBasis, State, Povm, Gate]:
     # implement tensor product calculation for each type
     if type(elem1) == Gate and type(elem2) == Gate:
         # Gate (x) Gate -> Gate
@@ -343,10 +342,19 @@ def _tensor_product(elem1, elem2) -> Union[MatrixBasis, State, Povm, Gate]:
     elif type(elem1) == MProcess and type(elem2) == MProcess:
         # MProcess (x) MProcess -> MProcess
         return _tensor_product_MProcess_MProcess(elem1, elem2)
+    elif type(elem1) == SparseMatrixBasis and type(elem2) == SparseMatrixBasis:
+        # MatrixBasis (x) MatrixBasis -> MatrixBasis
+        new_basis = [
+            matrix_util.kron(val1, val2)
+            for val1, val2 in itertools.product(elem1, elem2)
+        ]
+        m_basis = SparseMatrixBasis(new_basis)
+        return m_basis
     elif type(elem1) == MatrixBasis and type(elem2) == MatrixBasis:
         # MatrixBasis (x) MatrixBasis -> MatrixBasis
         new_basis = [
-            np.kron(val1, val2) for val1, val2 in itertools.product(elem1, elem2)
+            matrix_util.kron(val1, val2)
+            for val1, val2 in itertools.product(elem1, elem2)
         ]
         m_basis = MatrixBasis(new_basis)
         return m_basis

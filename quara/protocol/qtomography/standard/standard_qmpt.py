@@ -3,7 +3,6 @@ from itertools import product
 from typing import List, Tuple, Union
 
 import numpy as np
-from numpy.core.shape_base import block
 from scipy.linalg import block_diag
 
 from quara.objects.state import State
@@ -14,7 +13,6 @@ from quara.objects.qoperations import SetQOperations
 from quara.protocol.qtomography.standard.standard_qtomography import StandardQTomography
 from quara.protocol.qtomography.standard.standard_qpt import calc_c_qpt
 from quara.qcircuit.experiment import Experiment
-from quara.utils import matrix_util
 from quara.utils.number_util import to_stream
 
 
