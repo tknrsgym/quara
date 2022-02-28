@@ -65,6 +65,10 @@ class CircuitResult:
     def empi_dists(self):
         return self._empi_dists
 
+    @property
+    def raw_result(self):
+        return self._raw_result
+
     def calc_empi_dist(self) -> List[MultinomialDistribution]:
         """Calculates empirical distributions based on raw readout data for every measurement operator in a quantum circuit.
 
