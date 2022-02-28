@@ -1,6 +1,5 @@
 from typing import List, Union
 
-from pyquil import Program
 from quara.interface.qulacs.conversion import (
     convert_gate_quara_to_qulacs,
     convert_instrument_quara_to_qulacs,
