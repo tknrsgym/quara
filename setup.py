@@ -24,7 +24,6 @@ setup(
     license="Apache License 2.0",
     python_requires=">=3.7",
     install_requires=[
-        "reportlab==3.6.6",
         "numpy",
         "scipy",
         "pandas",
@@ -32,11 +31,11 @@ setup(
         "plotly",
         "plotly-express",
         "tqdm",
+        "reportlab==3.6.6",
         "xhtml2pdf",
         "psutil",
         "kaleido>=0.1.0,<=0.1.0.post1",
         "jinja2",
-        "reportlab==3.6.6",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
