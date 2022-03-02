@@ -69,3 +69,64 @@ class TestCvxpyLossMinimizationEstimationResult:
         # Test that "estimated_loss_sequence" cannot be updated
         with pytest.raises(AttributeError):
             actual.estimated_loss_sequence = estimated_loss_sequence
+
+
+class TestCvxpyLossMinimizationEstimator:
+    def test_calc_estimate(self):
+        # Arrange
+        sqt, c_sys = get_test_data_qst()
+        true_object = generate_state_from_name(c_sys, "z0")
+        prob_dists = sqt.calc_prob_dists(true_object)
+        empi_dists = [(10, prob_dist) for prob_dist in prob_dists]
+        loss = CvxpyRelativeEntropy()
+        loss_option = CvxpyLossFunctionOption()
+        algo = CvxpyMinimizationAlgorithm()
+        algo_option = CvxpyMinimizationAlgorithmOption(
+            name_solver="scs", mode_constraint="physical"
+        )
+        estimator = CvxpyLossMinimizationEstimator()
+
+        # Act
+        actual = estimator.calc_estimate(
+            sqt, empi_dists, loss, loss_option, algo, algo_option
+        )
+
+        # Assert
+        assert type(actual.estimated_var_sequence) == list
+        assert len(actual.estimated_var_sequence) == 1
+        assert type(actual.estimated_loss_sequence) == list
+        assert len(actual.estimated_loss_sequence) == 1
+        expected = np.array([0, 0, 1 / np.sqrt(2)])
+        npt.assert_almost_equal(actual.estimated_var_sequence[0], expected, decimal=9)
+
+    def test_calc_estimate_sequence(self):
+        # Arrange
+        sqt, c_sys = get_test_data_qst()
+        true_object0 = generate_state_from_name(c_sys, "z0")
+        prob_dists0 = sqt.calc_prob_dists(true_object0)
+        empi_dists0 = [(10, prob_dist) for prob_dist in prob_dists0]
+        true_object1 = generate_state_from_name(c_sys, "x0")
+        prob_dists1 = sqt.calc_prob_dists(true_object1)
+        empi_dists1 = [(10, prob_dist) for prob_dist in prob_dists1]
+        loss = CvxpyRelativeEntropy()
+        loss_option = CvxpyLossFunctionOption()
+        algo = CvxpyMinimizationAlgorithm()
+        algo_option = CvxpyMinimizationAlgorithmOption(
+            name_solver="scs", mode_constraint="physical"
+        )
+        estimator = CvxpyLossMinimizationEstimator()
+
+        # Act
+        actual = estimator.calc_estimate_sequence(
+            sqt, [empi_dists0, empi_dists1], loss, loss_option, algo, algo_option
+        )
+
+        # Assert
+        assert type(actual.estimated_var_sequence) == list
+        assert len(actual.estimated_var_sequence) == 2
+        assert type(actual.estimated_loss_sequence) == list
+        assert len(actual.estimated_loss_sequence) == 2
+        expected = np.array([0, 0, 1 / np.sqrt(2)])
+        npt.assert_almost_equal(actual.estimated_var_sequence[0], expected, decimal=9)
+        expected = np.array([1 / np.sqrt(2), 0, 0])
+        npt.assert_almost_equal(actual.estimated_var_sequence[1], expected, decimal=9)
