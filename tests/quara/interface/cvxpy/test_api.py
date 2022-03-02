@@ -1,7 +1,6 @@
-import pytest
-
 import numpy as np
 import numpy.testing as npt
+import pytest
 
 from quara.interface.cvxpy import api
 from quara.objects.qoperation_typical import (
@@ -13,17 +12,9 @@ from quara.interface.cvxpy.qtomography.standard.loss_function import (
     CvxpyRelativeEntropy,
 )
 from quara.interface.cvxpy.qtomography.standard.loss_function import (
-    CvxpyLossFunctionOption,
     CvxpyRelativeEntropy,
     CvxpyUniformSquaredError,
     CvxpyApproximateRelativeEntropyWithZeroProbabilityTerm,
-)
-from quara.interface.cvxpy.qtomography.standard.minimization_algorithm import (
-    CvxpyMinimizationAlgorithm,
-    CvxpyMinimizationAlgorithmOption,
-)
-from quara.interface.cvxpy.qtomography.standard.estimator import (
-    CvxpyLossMinimizationEstimator,
 )
 
 
