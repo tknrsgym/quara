@@ -45,6 +45,7 @@ def _get_tester_1qubit(mode: str):
         return tester_povms
 
 
+@pytest.mark.cvxpy
 @pytest.mark.parametrize(
     ("estimator_name", "name_solver"),
     [
@@ -97,6 +98,7 @@ def test_estimate_standard_qst_with_cvxpy(estimator_name: str, name_solver: str)
     npt.assert_almost_equal(actual_var, expected_var, decimal=decimal)
 
 
+@pytest.mark.cvxpy
 @pytest.mark.parametrize(
     ("estimator_name", "name_solver"),
     [
@@ -152,6 +154,7 @@ def test_estimate_standard_povmt_with_cvxpy(estimator_name: str, name_solver: st
     npt.assert_almost_equal(actual_var, expected_var, decimal=decimal)
 
 
+@pytest.mark.cvxpy
 @pytest.mark.parametrize(
     ("estimator_name", "name_solver"),
     [
@@ -215,6 +218,7 @@ def test_estimate_standard_qpt_with_cvxpy(estimator_name: str, name_solver: str)
     npt.assert_almost_equal(actual_var, expected_var, decimal=decimal)
 
 
+@pytest.mark.cvxpy
 @pytest.mark.parametrize(
     ("estimator_name", "name_solver"),
     [
@@ -282,6 +286,7 @@ def test_estimate_standard_qmpt_with_cvxpy(estimator_name: str, name_solver: str
     npt.assert_almost_equal(actual_var, expected_var, decimal=decimal)
 
 
+@pytest.mark.cvxpy
 def test_estimate_standard_qtomography_with_cvxpy_invalid():
     # Arrange
     c_sys = generate_composite_system(mode="qubit", num=1)
