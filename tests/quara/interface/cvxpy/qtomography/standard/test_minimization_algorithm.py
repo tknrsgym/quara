@@ -219,6 +219,7 @@ class TestCvxpyMinimizationAlgorithm:
         actual.set_from_loss(loss)
         assert actual.is_loss_and_option_sufficient() == False
 
+    @pytest.mark.cvxpy
     def test_optimize(self):
         # case: loss = None
         algo = CvxpyMinimizationAlgorithm()
