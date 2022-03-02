@@ -25,3 +25,4 @@ joblib
 cvxpy
 cvxopt
 Mosek
+reportlab == 3.6.6
