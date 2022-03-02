@@ -22,3 +22,6 @@ matplotlib
 pyquil
 qulacs
 joblib
+cvxpy
+cvxopt
+Mosek
