@@ -1,3 +1,4 @@
+reportlab == 3.6.6
 numpy
 black
 plotly
@@ -26,3 +27,4 @@ joblib
 cvxpy
 cvxopt
 Mosek
+reportlab == 3.6.6
