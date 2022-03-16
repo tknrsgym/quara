@@ -177,16 +177,18 @@ def _is_valid_dims_ids(dims: List[int], ids: List[int]) -> bool:
     res = True
 
     # whether components of dims are integers larger than 1
-    for d in dims:
-        if d <= 1:
-            res = False
-            raise ValueError(f"Component of dims must be larger than 1.")
+    if dims:
+        for d in dims:
+            if d <= 1:
+                res = False
+                raise ValueError(f"Component of dims must be larger than 1.")
 
     # whether components of id_sys_list are non-negative integers
-    for i in ids:
-        if i < 0:
-            res = False
-            raise ValueError(f"Component of ids must be non-negative.")
+    if ids:
+        for i in ids:
+            if i < 0:
+                res = False
+                raise ValueError(f"Component of ids must be non-negative.")
 
     return res
 
