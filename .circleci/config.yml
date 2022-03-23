@@ -11,16 +11,6 @@ jobs:
   test-3.7:
     docker:
       - image: cimg/python:3.7
-      - image: rigetti/quilc:1.25.1
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
-      - image: rigetti/qvm:1.17.2
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
@@ -52,16 +42,6 @@ jobs:
   test-3.8:
     docker:
       - image: cimg/python:3.8
-      - image: rigetti/quilc:1.25.1
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
-      - image: rigetti/qvm:1.17.2
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
@@ -92,16 +72,6 @@ jobs:
   test-3.9:
     docker:
       - image: cimg/python:3.9
-      - image: rigetti/quilc:1.25.1
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
-      - image: rigetti/qvm:1.17.2
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
@@ -132,16 +102,6 @@ jobs:
   test-3.9-minimum_module:
     docker:
       - image: cimg/python:3.9
-      - image: rigetti/quilc:1.25.1
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
-      - image: rigetti/qvm:1.17.2
-        command: "-S"
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run:
