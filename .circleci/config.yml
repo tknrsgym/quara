@@ -42,6 +42,7 @@ jobs:
             python setup.py install
       - run:
           name: Run tests
+          no_output_timeout: 20m
           command: |
             . venv/bin/activate
             pytest -rfs -m "not skipci and not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit and not cvxpy" --durations=0 --junit-xml=test-results/pytest.xml
@@ -82,6 +83,7 @@ jobs:
             python setup.py install
       - run:
           name: Run tests
+          no_output_timeout: 20m
           command: |
             . venv/bin/activate
             pytest -rfs -m "not skipci and not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit and not cvxpy" --durations=0 --junit-xml=test-results/pytest.xml
@@ -121,6 +123,7 @@ jobs:
             python setup.py install
       - run:
           name: Run tests
+          no_output_timeout: 20m
           command: |
             . venv/bin/activate
             pytest -rfs -m "not skipci and not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit and not cvxpy" --durations=0 --junit-xml=test-results/pytest.xml
@@ -160,6 +163,7 @@ jobs:
             python setup.py install
       - run:
           name: Run tests
+          no_output_timeout: 20m
           command: |
             . venv/bin/activate
             pytest -rfs -m "not skipci and not threequbit and not twoqutrit and not qmpt_twoqubit and not qmpt_onequtrit and not cvxpy" --durations=0 -o "norecursedirs=quara/interface" --junit-xml=test-results/pytest.xml
