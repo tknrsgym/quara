@@ -24,10 +24,9 @@ Welcome to Quara's documentation!
 
    ./tutorials/tutorial_for_system
    ./tutorials/tutorial_for_qoperation
-   ./tutorials/tutorial_for_system_state_measurement_gate
-   ./tutorials/tutorial_for_standardqtomography
    ./tutorials/tutorial_for_compose
    ./tutorials/tutorial_for_tensor_product
+   ./tutorials/tutorial_for_standardqtomography
    ./tutorials/tutorial_for_standardqtomography_from_qutip
 
 .. toctree::
