@@ -250,12 +250,13 @@ def choi_from_var(
         Choi matrix
     """
     d = c_sys.dim
-    choi = np.eye(d * d, dtype=np.complex128) / d
+    matrices = [np.eye(d * d, dtype=np.complex128) / d]
     for a in range(1, d * d):
         for b in range(d * d):
             mat = c_sys.basis_basisconjugate((a, b))
             coeff = var[(a - 1) * d * d + b]
-            choi += coeff * mat
+            matrices.append(coeff * mat)
+    choi = cp.sum(matrices)
     return choi
 
 
@@ -288,18 +289,20 @@ def mprocess_element_choi_from_var(
     if 0 <= x and x < m - 1:
         vec = var[x * (d ** 4) : (x + 1) * (d ** 4)]
     elif x == m - 1:
-        v = np.zeros(d ** 2)
+        vectors = [np.zeros(d ** 2)]
         for y in range(m - 2):
-            v += var[y * (d ** 4) : y * (d ** 4) + d ** 2]
+            vectors.append(var[y * (d ** 4) : y * (d ** 4) + d ** 2])
+        v = cp.sum(vectors)
         w = var[(m - 1) * (d ** 4) : m * (d ** 4)]
         vec = cp.hstack([v, w])
 
-    choi = np.zeros((d ** 2, d ** 2))
+    matrices = []
     for a in range(d * d):
         for b in range(d * d):
             mat = c_sys.basis_basisconjugate((a, b))
             coeff = vec[a * d * d + b]
-            choi += coeff * mat
+            matrices.append(coeff * mat)
+    choi = cp.sum(matrices)
     return choi
 
 
@@ -471,10 +474,12 @@ def mprocess_element_choi_from_var_with_sparsity(
     if 0 <= x and x < m - 1:
         vec = var[x * (d ** 4) : (x + 1) * (d ** 4)]
     elif x == m - 1:
-        v = np.zeros(d ** 2)
-        v[0] = 1.0
+        v0 = np.zeros(d ** 2)
+        v0[0] = 1.0
+        vectors = [v0]
         for y in range(m - 1):
-            v -= var[y * (d ** 4) : y * (d ** 4) + d ** 2]
+            vectors.append(-var[y * (d ** 4) : y * (d ** 4) + d ** 2])
+        v = cp.sum(vectors)
         w = var[(m - 1) * (d ** 4) : m * (d ** 4)]
         vec = cp.hstack([v, w])
 
