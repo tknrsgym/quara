@@ -4,7 +4,6 @@ import pytest
 
 from quara.objects.composite_system_typical import generate_composite_system
 from quara.objects.circuit import (
-    CircuitResult,
     Circuit,
 )
 from quara.objects.gate_typical import generate_gate_from_gate_name
@@ -69,7 +68,6 @@ class TestCircuit:
         circuit.add_mprocess([0], mprocess_name="z-type1")
         circuit.run(10, initial_state_mode="all_zero")
 
-    # TODO: remove mark
     @pytest.mark.skipci
     def test_initial_state_all_zero(self):
         circuit = Circuit(4, "qubit")
@@ -105,6 +103,7 @@ class TestCircuit:
             expected_nd = np.array(expected, dtype=np.float64)
             npt.assert_equal(actual.ps, expected_nd)
 
+    @pytest.mark.skipci
     def test_run_circuit_case1(self):
         circuit = Circuit(3, "qubit")
         # q_0 = |0>
@@ -126,6 +125,7 @@ class TestCircuit:
             expected_nd = np.array(expected, dtype=np.float64)
             npt.assert_equal(actual.ps, expected_nd)
 
+    @pytest.mark.skipci
     def test_run_circuit_case2(self):
         circuit = Circuit(3, "qubit")
 
