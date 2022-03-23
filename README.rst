@@ -54,6 +54,19 @@ Install
 
 .. _start_of_install_3rd_packages:
 
+
+Use with other optimization parsers and solvers
+=====================================================
+
+Quara can also be used with other optimization parsers and solvers. The currently supported combinations are as follows:
+
++---------+---------+------------------------------------------------------------+
+| parser  | solver  | install                                                    |
++=========+=========+============================================================+
+| CVXPY   |  MOSEK  | See `the CVXPY website <https://www.cvxpy.org/install/>`_  |
++---------+---------+------------------------------------------------------------+
+
+
 Interface from different packages
 ==========================================
 
@@ -71,10 +84,16 @@ Quara supports the wrappers for executing standard tomography from several packa
 
    pip install qutip
 
-Refer to the tutorial for detailed instructions.
+**Forest:**
+
+Install Forest SDK, pyQuil, QVM, and Quil Compiler. See `the pyQuil website <https://pyquil-docs.rigetti.com/en/stable/start.html>`_ for installation instructions.
+
+
+See the tutorial for detailed instructions.
 
 - `Using Quara's standard tomography features from Qiskit <https://github.com/tknrsgym/quara/blob/master/tutorials/tutrial_for_standardtomography_from_qiskit.ipynb>`_
 - `Using Quara's standard tomography features from QuTiP <https://github.com/tknrsgym/quara/blob/master/tutorials/tutorial_for_standardqtomography_from_qutip.ipynb>`_
+- Using Quara's standard tomography features from Forest [ `1qubit <https://github.com/tknrsgym/quara/blob/master/tutorials/tutorial_for_standardqtomography_from_forest_1qubit.ipynb>`_ / `2qubit <https://github.com/tknrsgym/quara/blob/master/tutorials/tutorial_for_standardqtomography_from_forest_2qubit.ipynb>`_ ]
 
 .. _end_of_install_3rd_packages:
 
