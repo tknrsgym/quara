@@ -69,6 +69,8 @@ class TestCircuit:
         circuit.add_mprocess([0], mprocess_name="z-type1")
         circuit.run(10, initial_state_mode="all_zero")
 
+    # TODO: remove mark
+    @pytest.mark.skipci
     def test_initial_state_all_zero(self):
         circuit = Circuit(4, "qubit")
         for i in range(4):
