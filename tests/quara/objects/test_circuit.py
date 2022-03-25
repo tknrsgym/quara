@@ -68,12 +68,12 @@ class TestCircuit:
         circuit.add_mprocess([0], mprocess_name="z-type1")
         circuit.run(10, initial_state_mode="all_zero")
 
-    @pytest.mark.skipci
+    # @pytest.mark.skipci
     def test_initial_state_all_zero(self):
         circuit = Circuit(4, "qubit")
         for i in range(4):
             circuit.add_mprocess([i], mprocess_name="z-type1")
-        res = circuit.run(100, initial_state_mode="all_zero")
+        res = circuit.run(1, initial_state_mode="all_zero")
         expected = np.array([1, 0], dtype=np.float64)
         for actual in res.empi_dists:
             npt.assert_equal(actual.ps, expected)
@@ -82,7 +82,7 @@ class TestCircuit:
         for i in range(4):
             circuit.add_gate([i], gate_name="x")
             circuit.add_mprocess([i], mprocess_name="z-type2")
-        res = circuit.run(100, initial_state_mode="all_zero")
+        res = circuit.run(1, initial_state_mode="all_zero")
         expected = np.array([0, 1], dtype=np.float64)
         for actual in res.empi_dists:
             npt.assert_equal(actual.ps, expected)
@@ -97,13 +97,13 @@ class TestCircuit:
         for i, state_name in enumerate(state_names):
             circuit.add_mprocess([i], mprocess_name=f"{state_name[0]}-type1")
 
-        res = circuit.run(100, initial_states=states)
+        res = circuit.run(1, initial_states=states)
         expects = [[0, 1], [1, 0], [0, 1], [0, 1]]
         for actual, expected in zip(res.empi_dists, expects):
             expected_nd = np.array(expected, dtype=np.float64)
             npt.assert_equal(actual.ps, expected_nd)
 
-    @pytest.mark.skipci
+    # @pytest.mark.skipci
     def test_run_circuit_case1(self):
         circuit = Circuit(3, "qubit")
         # q_0 = |0>
@@ -119,13 +119,13 @@ class TestCircuit:
         circuit.add_mprocess([2], mprocess_name="y-type1")
 
         # check that circuit generates states of z0, x0, y0.
-        res = circuit.run(100, initial_state_mode="all_zero")
+        res = circuit.run(1, initial_state_mode="all_zero")
         expects = [[1, 0], [1, 0], [1, 0]]
         for actual, expected in zip(res.empi_dists, expects):
             expected_nd = np.array(expected, dtype=np.float64)
             npt.assert_equal(actual.ps, expected_nd)
 
-    @pytest.mark.skipci
+    # @pytest.mark.skipci
     def test_run_circuit_case2(self):
         circuit = Circuit(3, "qubit")
 
@@ -138,7 +138,7 @@ class TestCircuit:
         circuit.add_mprocess([1], mprocess_name="z-type1")
         circuit.add_mprocess([2], mprocess_name="z-type1")
 
-        res = circuit.run(100, initial_state_mode="all_zero")
+        res = circuit.run(1, initial_state_mode="all_zero")
         expects = [[1, 0], [0, 1], [0, 1]]
         for actual, expected in zip(res.empi_dists, expects):
             expected_nd = np.array(expected, dtype=np.float64)
@@ -153,7 +153,7 @@ class TestCircuit:
 
         circuit.add_mprocess([0, 1], mprocess_name="bell-type1")
 
-        res = circuit.run(100, initial_state_mode="all_zero")
+        res = circuit.run(1, initial_state_mode="all_zero")
         expects = [[1, 0, 0, 0]]
         for actual, expected in zip(res.empi_dists, expects):
             expected_nd = np.array(expected, dtype=np.float64)
