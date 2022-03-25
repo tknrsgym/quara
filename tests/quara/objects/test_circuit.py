@@ -73,7 +73,7 @@ class TestCircuit:
         circuit = Circuit(4, "qubit")
         for i in range(4):
             circuit.add_mprocess([i], mprocess_name="z-type1")
-        res = circuit.run(1, initial_state_mode="all_zero")
+        res = circuit.run(10, initial_state_mode="all_zero")
         expected = np.array([1, 0], dtype=np.float64)
         for actual in res.empi_dists:
             npt.assert_equal(actual.ps, expected)
@@ -82,7 +82,7 @@ class TestCircuit:
         for i in range(4):
             circuit.add_gate([i], gate_name="x")
             circuit.add_mprocess([i], mprocess_name="z-type2")
-        res = circuit.run(1, initial_state_mode="all_zero")
+        res = circuit.run(10, initial_state_mode="all_zero")
         expected = np.array([0, 1], dtype=np.float64)
         for actual in res.empi_dists:
             npt.assert_equal(actual.ps, expected)
