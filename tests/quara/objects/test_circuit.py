@@ -119,7 +119,7 @@ class TestCircuit:
         circuit.add_mprocess([2], mprocess_name="y-type1")
 
         # check that circuit generates states of z0, x0, y0.
-        res = circuit.run(10, initial_state_mode="all_zero")
+        res = circuit.run(1, initial_state_mode="all_zero")
         expects = [[1, 0], [1, 0], [1, 0]]
         for actual, expected in zip(res.empi_dists, expects):
             expected_nd = np.array(expected, dtype=np.float64)
@@ -138,7 +138,7 @@ class TestCircuit:
         circuit.add_mprocess([1], mprocess_name="z-type1")
         circuit.add_mprocess([2], mprocess_name="z-type1")
 
-        res = circuit.run(1, initial_state_mode="all_zero")
+        res = circuit.run(10, initial_state_mode="all_zero")
         expects = [[1, 0], [0, 1], [0, 1]]
         for actual, expected in zip(res.empi_dists, expects):
             expected_nd = np.array(expected, dtype=np.float64)
