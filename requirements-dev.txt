@@ -3,6 +3,7 @@ black
 plotly
 pytest
 pytest-cov
+pytest-profiling
 sphinx == 4.0.2
 sphinx_rtd_theme
 ipykernel

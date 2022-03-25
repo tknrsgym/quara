@@ -87,6 +87,7 @@ class TestCircuit:
         for actual in res.empi_dists:
             npt.assert_equal(actual.ps, expected)
 
+    @pytest.mark.skipci
     def test_initial_state_custom(self):
         circuit = Circuit(4, "qubit")
         state_names = ["z1", "x0", "x1", "y1"]
@@ -144,6 +145,7 @@ class TestCircuit:
             expected_nd = np.array(expected, dtype=np.float64)
             npt.assert_equal(actual.ps, expected_nd)
 
+    @pytest.mark.skipci
     def test_run_circuit_case3(self):
         circuit = Circuit(3, "qubit")
 
