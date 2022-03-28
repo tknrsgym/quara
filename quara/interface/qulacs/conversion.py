@@ -76,7 +76,7 @@ def convert_gate_quara_to_qulacs(quara_gate: Gate, qubits: List[int]) -> CPTP:
         Qulacs CPTP object which Kraus-represented matrices are stored.
     """
     kraus_matrices = quara_gate.to_kraus_matrices()
-    assert len(qubits) == int(np.log2(quara_gate.dim))
+    assert 2**len(qubits) == quara_gate.dim or 2**(2*len(qubits)) == quara_gate.dim
     qulacs_gate_list = []
     for kraus_matrix in kraus_matrices:
         qulacs_gate = DenseMatrix(qubits, kraus_matrix)
@@ -104,7 +104,7 @@ def convert_instrument_quara_to_qulacs(
     """
     num_indices = len(quara_mprocess.hss)
     kraus_matrices_indices = []
-    assert len(qubits) == int(np.log2(quara_mprocess.dim))
+    assert 2**len(qubits) == quara_mprocess.dim or 2**(2*len(qubits)) == quara_mprocess.dim
     qulacs_gate_list = []
     for index in range(num_indices):
         kraus_matrices = quara_mprocess.to_kraus_matrices(index)
