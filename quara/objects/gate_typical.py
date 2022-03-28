@@ -406,7 +406,7 @@ def generate_gate_from_gate_name(
             )
     # 2-qutrit gate
     elif gate_name in get_gate_names_2qutrit():
-        mat = generate_gate_mat_from_gate_name(gate_name, ids)
+        mat = generate_gate_mat_from_gate_name(gate_name, ids=ids)
         gate = Gate(
             c_sys=c_sys, hs=mat, is_physicality_required=is_physicality_required
         )
