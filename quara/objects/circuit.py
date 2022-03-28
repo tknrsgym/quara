@@ -13,7 +13,9 @@ from quara.objects.gate import Gate
 from quara.objects.gate_typical import (
     generate_gate_from_gate_name,
     get_gate_names_1qubit,
+    get_gate_names_1qutrit,
     get_gate_names_2qubit,
+    get_gate_names_2qutrit,
     get_gate_names_3qubit,
 )
 from quara.objects.mprocess import MProcess
@@ -121,20 +123,33 @@ class Circuit(object):
         self._qobjects: List[dict] = []
 
     def _generate_gate_from_name(self, gate_name: str, ids: List[int]) -> Gate:
-        gate_qubit_num = None
+        gate_q_num = None
         if gate_name in get_gate_names_1qubit():
-            gate_qubit_num = 1
+            gate_q_num = 1
         elif gate_name in get_gate_names_2qubit():
-            gate_qubit_num = 2
+            gate_q_num = 2
         elif gate_name in get_gate_names_3qubit():
-            gate_qubit_num = 3
+            gate_q_num = 3
+        elif gate_name in get_gate_names_1qutrit():
+            gate_q_num = 1
+        elif gate_name in get_gate_names_2qutrit():
+            gate_q_num = 2
         else:
             raise ValueError(f"No such gate_name: {gate_name}")
-        c_sys = generate_composite_system(self._mode, gate_qubit_num)
+        c_sys = generate_composite_system(self._mode, gate_q_num)
         return generate_gate_from_gate_name(gate_name, c_sys, ids)
 
     def _calc_qulacs_target_ids(self, ids: List[int]) -> List[int]:
-        return [self._num - 1 - i for i in ids[::-1]]
+        if self._mode == "qubit":
+            return [self._num - 1 - i for i in ids[::-1]]
+        elif self._mode == "qutrit":
+            # add padding because qutrit system is embeded into qubit system.
+            # double the number of target indices with dummy targets
+            target_ids = []
+            for i in ids[::-1]:
+                target_ids.append(2*self._num - 1 - 2*i)
+                target_ids.append(2*self._num - 2 - 2*i)
+            return target_ids
 
     def add_gate(
         self,
@@ -171,6 +186,9 @@ class Circuit(object):
             )
         if gate_name:
             gate = self._generate_gate_from_name(gate_name, quara_ids)
+        if self._mode == "qutrit":
+            c_sys = generate_composite_system("qubit", 2*len(ids))
+            gate = Gate.embed_qoperation_from_qutrits_to_qubits(gate, list(c_sys.elemental_systems))
         qulacs_gate = convert_gate_quara_to_qulacs(gate, qulacs_target_ids)
         self._qobjects.append(
             {
@@ -221,6 +239,9 @@ class Circuit(object):
             )
         if mprocess_name:
             mprocess = self._generate_mprocess_from_name(mprocess_name, ids)
+        if self._mode == "qutrit":
+            c_sys = generate_composite_system("qubit", 2*len(ids))
+            mprocess = MProcess.embed_qoperation_from_qutrits_to_qubits(mprocess, list(c_sys.elemental_systems))
         qulacs_instrument, qulacs_ids = convert_instrument_quara_to_qulacs(
             mprocess, qulacs_target_ids
         )
@@ -234,7 +255,7 @@ class Circuit(object):
             }
         )
 
-    def _generate_initial_state_from_states(self, initial_states: List[State]) -> DensityMatrix:
+    def _generate_initial_state_from_states_qubit(self, initial_states: List[State]) -> DensityMatrix:
         qulacs_density_mat = convert_state_quara_to_qulacs(initial_states[-1])
         # the order of qubits are opposite between quara and qulacs
         for state in initial_states[-2::-1]:
@@ -244,8 +265,43 @@ class Circuit(object):
             )
         return qulacs_density_mat
 
+    def _generate_initial_state_from_states_qutrit(self, initial_states: List[State]) -> DensityMatrix:
+        c_sys = generate_composite_system("qubit", 2)
+        state_tmp = State.embed_qoperation_from_qutrits_to_qubits(initial_states[-1], list(c_sys.elemental_systems))
+        qulacs_density_mat = convert_state_quara_to_qulacs(state_tmp)
+        # the order of qubits are opposite between quara and qulacs
+        for state in initial_states[-2::-1]:
+            tmp_state = State.embed_qoperation_from_qutrits_to_qubits(state, list(c_sys.elemental_systems))
+            tmp_mat = convert_state_quara_to_qulacs(tmp_state)
+            qulacs_density_mat = qulacs_state.tensor_product(
+                tmp_mat, qulacs_density_mat
+            )
+        return qulacs_density_mat
 
-    def _generate_initial_state_from_name(self, initial_state_mode: str = "all_zero") -> DensityMatrix:
+    def _generate_initial_state_from_states(self, initial_states: List[State]) -> DensityMatrix:
+        if self._mode == "qubit":
+            return self._generate_initial_state_from_states_qubit(initial_states)
+        elif self._mode == "qutrit":
+            return self._generate_initial_state_from_states_qutrit(initial_states)
+            
+    def _generate_initial_state_from_name_qutrit(self, initial_state_mode: str = "all_zero") -> DensityMatrix:
+        states = []
+        c_sys = generate_composite_system("qutrit", 1)
+        c_sys_qubit = generate_composite_system("qubit", 2)
+        if initial_state_mode == "all_zero":
+            for _ in range(self._num):
+                tmp_state = generate_state_from_name(c_sys, "01z0")
+                states.append(State.embed_qoperation_from_qutrits_to_qubits(tmp_state, list(c_sys_qubit.elemental_systems)))
+        qulacs_density_mat = convert_state_quara_to_qulacs(states[0])
+        for state in states[1::]:
+            tmp_mat = convert_state_quara_to_qulacs(state)
+            qulacs_density_mat = qulacs_state.tensor_product(
+                tmp_mat, qulacs_density_mat
+            )
+        return qulacs_density_mat
+
+
+    def _generate_initial_state_from_name_qubit(self, initial_state_mode: str = "all_zero") -> DensityMatrix:
         states = []
         c_sys = generate_composite_system("qubit", 1)
         if initial_state_mode == "all_zero":
@@ -258,6 +314,12 @@ class Circuit(object):
                 tmp_mat, qulacs_density_mat
             )
         return qulacs_density_mat
+
+    def _generate_initial_state_from_name(self, initial_state_mode) -> DensityMatrix:
+        if self._mode == "qubit":
+            return self._generate_initial_state_from_name_qubit(initial_state_mode)
+        elif self._mode == "qutrit":
+            return self._generate_initial_state_from_name_qutrit(initial_state_mode)
 
     def _run_once(
         self,
