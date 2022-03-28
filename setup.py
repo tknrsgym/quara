@@ -31,6 +31,7 @@ setup(
         "plotly",
         "plotly-express",
         "tqdm",
+        "reportlab==3.6.6",
         "xhtml2pdf",
         "psutil",
         "kaleido>=0.1.0,<=0.1.0.post1",

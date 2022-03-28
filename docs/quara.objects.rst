@@ -12,6 +12,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   quara.objects.circuit
    quara.objects.composite_system
    quara.objects.composite_system_typical
    quara.objects.effective_lindbladian

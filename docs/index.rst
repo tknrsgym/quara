@@ -22,7 +22,17 @@ Welcome to Quara's documentation!
    :caption: Tutorials
    :glob:
 
-   ./tutorials/tutorial_for_system_state_measurement_gate
+   ./tutorials/tutorial_for_system
+   ./tutorials/tutorial_for_qoperation
+   ./tutorials/tutorial_for_state
+   ./tutorials/tutorial_for_povm
+   ./tutorials/tutorial_for_gate
+   ./tutorials/tutorial_for_effective_lindbladian
+   ./tutorials/tutorial_for_mprocess
+   ./tutorials/tutorial_for_multinomial_distribution
+   ./tutorials/tutorial_for_state_ensemble
+   ./tutorials/tutorial_for_compose
+   ./tutorials/tutorial_for_tensor_product
    ./tutorials/tutorial_for_standardqtomography
    ./tutorials/tutorial_for_standardqtomography_from_qutip
 

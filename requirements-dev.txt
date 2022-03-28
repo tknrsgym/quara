@@ -3,6 +3,7 @@ black
 plotly
 pytest
 pytest-cov
+pytest-profiling
 sphinx == 4.0.2
 sphinx_rtd_theme
 ipykernel
@@ -13,6 +14,7 @@ nbsphinx == 0.8.6
 plotly
 plotly-express
 tqdm
+reportlab == 3.6.6
 xhtml2pdf
 psutil
 kaleido >= 0.1.0, <=0.1.0.post1
@@ -22,3 +24,6 @@ matplotlib
 pyquil
 qulacs
 joblib
+cvxpy
+cvxopt
+Mosek

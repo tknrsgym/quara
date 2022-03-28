@@ -12,6 +12,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   quara.interface.cvxpy
    quara.interface.forest
    quara.interface.qulacs
    quara.interface.qutip
