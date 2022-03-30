@@ -14,7 +14,7 @@ def read_file(filename):
 
 setup(
     name="quara",
-    version="0.2.0",
+    version="0.3.0",
     author="Takanori Sugiyama",
     author_email="quara@googlegroups.com",
     packages=find_packages(),
