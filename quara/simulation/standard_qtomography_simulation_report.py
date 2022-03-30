@@ -1003,7 +1003,7 @@ def generate_case_table(
         dict(selector=".col1", props=[("width", "180px")]),
         dict(selector=".col2", props=[("width", "200px")]),
     ]
-    case_table = case_df.style.set_table_styles(styles).render()
+    case_table = case_df.style.set_table_styles(styles).to_html()
     return case_table
 
 
@@ -1117,7 +1117,7 @@ def generate_consistency_check_table(simulation_results: List[SimulationResult])
     ]
 
     table_df = pd.DataFrame(result_dict)
-    consistency_check_table = table_df.style.set_table_styles(styles).render()
+    consistency_check_table = table_df.style.set_table_styles(styles).to_html()
     return consistency_check_table
 
 
@@ -1159,7 +1159,7 @@ def generate_tolerance_table_div() -> pd.DataFrame:
         dict(selector=".col1", props=[("width", "100px")]),
     ]
 
-    tolerance_table = df.style.set_table_styles(styles).render()
+    tolerance_table = df.style.set_table_styles(styles).to_html()
 
     tolerance_table_div = f"""
         <h1>Tolerance of physicality constraint violation</h1>
@@ -1356,7 +1356,7 @@ def generate_computation_time_of_estimators_table(
         df_list.append(time_df)
 
     time_df = pd.concat(df_list, axis=0).reset_index(drop=True)
-    time_table = time_df.style.set_table_styles(styles).render()
+    time_table = time_df.style.set_table_styles(styles).to_html()
     time_div = f"<div><h2>Table</h2>{time_table}</div>"
     return time_div
 
