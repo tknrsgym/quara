@@ -30,7 +30,7 @@ setup(
         "tqdm",
         "plotly",
         "plotly-express",
-        "tqdm",
+        "joblib",
         "reportlab==3.6.6",
         "xhtml2pdf",
         "psutil",

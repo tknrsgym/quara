@@ -5,7 +5,6 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy import sparse
 from scipy.linalg import kron
-from tqdm import tqdm
 
 from quara.objects.elemental_system import ElementalSystem
 
@@ -381,7 +380,7 @@ class CompositeSystem:
         element_size = basis[0].shape[0] ** 2 ** 2
         element_size_2 = basis[0].shape[0] ** 2
 
-        for alpha, beta in tqdm(itertools.product(range(basis_no), range(basis_no))):
+        for alpha, beta in itertools.product(range(basis_no), range(basis_no)):
             b_alpha = basis[alpha]
             b_beta_conj = np.conjugate(basis[beta])
             matrix = sparse.kron(b_alpha, b_beta_conj, format="csr")

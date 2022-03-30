@@ -33,8 +33,17 @@ Welcome to Quara's documentation!
    ./tutorials/tutorial_for_state_ensemble
    ./tutorials/tutorial_for_compose
    ./tutorials/tutorial_for_tensor_product
+   ./tutorials/turorial_for_quantum_circuit
    ./tutorials/tutorial_for_standardqtomography
    ./tutorials/tutorial_for_standardqtomography_from_qutip
+   ./tutorials/tutrial_for_standardtomography_from_qiskit
+   ./tutorials/tutorial_for_standardqtomography_from_forest_1qubit
+   ./tutorials/tutorial_for_standardqtomography_from_forest_2qubit
+   ./tutorials/example_cvxpy_qst_1qubit
+   ./tutorials/example_cvxpy_povmt_1qubit
+   ./tutorials/example_cvxpy_qpt_1qubit
+   ./tutorials/example_cvxpy_qmpt_1qubit
+   
 
 .. toctree::
    :caption: Limitations
