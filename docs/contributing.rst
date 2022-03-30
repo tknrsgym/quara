@@ -57,4 +57,4 @@ To generate a coverage report, enter the following command:
 Building the documentation
 --------------------------
 
-To learn how to build the documentation, refer to `"How to build the docs" <https://github.com/tknrsgym/quara/tree/master/docs#how-to-build-the-docs>`__
+To learn how to build the documentation, refer to `"How to build the docs" <https://github.com/tknrsgym/quara/tree/master/docs#readme>`__
