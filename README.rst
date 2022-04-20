@@ -29,7 +29,7 @@ Quara
 
 .. _start_of_about:
 
-Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations. Currently protocols of standard tomography for quantum states, POVMs, and gates are implemented.
+Quara, which stands for "Quantum Characterization", is an open-source library for characterizing elementary quantum operations. Currently protocols of standard tomography for quantum states, POVMs, gates, and measurement processes are implemented.
 
 .. _end_of_about:
 
