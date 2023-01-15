@@ -513,7 +513,7 @@ class CvxpyApproximateRelativeEntropyWithZeroProbabilityTerm(CvxpyLossFunction):
                 qi_j = self.prob_dists_data[i][j]
                 pi_j = self.calc_prob_model(i, j, var)
                 if qi_j > self.eps_prob_zero:
-                    t += 0.50 * cp.quad_over_lin(pi_j - qi_j, pi_j)
+                    t += 0.50 * cp.quad_over_lin(pi_j - qi_j, qi_j)
                 else:
                     t += pi_j
             ci = self.num_data_ratios[i]
