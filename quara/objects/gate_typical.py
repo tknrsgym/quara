@@ -52,6 +52,7 @@ def get_gate_names_1qubit() -> List[str]:
     names.append("piover8")
     names.append("piover8_daggered")
     names.append("hadamard")
+    names.append("zm90")
 
     return names
 
@@ -1033,6 +1034,67 @@ def generate_gate_z90(
     """
     assert len(c_sys.elemental_systems) == 1
     hs = generate_gate_z90_mat()
+    gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
+    return gate
+
+
+# Z(-90) gate on 1-qubit
+
+
+def generate_gate_zm90_unitary_mat() -> np.ndarray:
+    """Return the unitary matrix for a Z(-90) gate.
+
+    The result is a 2 times 2 complex matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.ndarray
+        The unitary matrix, which is a complex matrix.
+    """
+    u = np.array([[1 + 1j, 0], [0, 1 - 1j]], dtype=np.complex128) / np.sqrt(2)
+    return u
+
+
+def generate_gate_zm90_mat() -> np.ndarray:
+    """Return the Hilbert-Schmidt representation matrix for a Z(-90) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.ndarray
+        The real Hilbert-Schmidt representation matrix for the gate.
+    """
+    l = [[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
+    mat = np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_zm90(
+    c_sys: CompositeSystem, is_physicality_required: bool = True
+) -> "Gate":
+    """Return the Gate class for the Z(-90) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys: CompositeSystem
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
+    Returns
+    ----------
+    Gate
+        The Gate class for the Z90 gate on the composite system.
+    """
+    assert len(c_sys.elemental_systems) == 1
+    hs = generate_gate_zm90_mat()
     gate = Gate(c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required)
     return gate
 

@@ -1133,6 +1133,93 @@ def generate_gate_z90_effective_lindbladian(
     )
     return el
 
+# Z(-90) gate on 1-qubit
+
+
+def generate_gate_zm90_hamiltonian_vec() -> np.ndarray:
+    """Return the vector representation for the Hamiltonian of a Z(-90) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is the real vector with size 4.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.ndarray
+        The real vector representation of the Hamiltonian of the gate.
+    """
+    dim = 2
+    coeff = -0.25 * math.pi * np.sqrt(2)
+    vec = np.zeros(dim * dim, dtype=np.float64)
+    vec[3] = coeff
+    return vec
+
+
+def generate_gate_zm90_hamiltonian_mat() -> np.ndarray:
+    """Return Hamiltonian matrix for a Z(-90) gate.
+
+    The result is the 2 times 2 complex matrix, :math:`-0.25 \\pi Z`.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.ndarray
+        The Hamiltonian, which is a complex matrix.
+    """
+    num_qubit = 1
+    index = 3
+    coeff = -0.25 * math.pi
+    mat = coeff * get_pauli_basis(num_qubit)[index]
+    return mat
+
+
+def generate_gate_zm90_effective_lindbladian_mat() -> np.ndarray:
+    """Return the Hilbert-Schmidt representation matrix for the effective Lindbladian of a Z(-90) gate with respect to the orthonormal Hermitian matrix basis with the normalized identity matrix as the 0th element.
+
+    The result is a 4 times 4 real matrix.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    np.ndarray
+        The real Hilbert-Schmidt representation matrix for the effective lindbladian of the gate.
+    """
+    l = [[0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 0]]
+    coeff = -0.50 * math.pi
+    mat = coeff * np.array(l, dtype=np.float64)
+    return mat
+
+
+def generate_gate_zm90_effective_lindbladian(
+    c_sys: "CompositeSystem", is_physicality_required: bool = True
+) -> "EffectiveLindbladian":
+    """Return the class EffectiveLindbladian for the Z(-90) gate on the composite system.
+
+    Parameters
+    ----------
+    c_sys : CompositeSystem
+        The class CompositeSystem on which the gate acts.
+
+    is_physicality_required: bool = True
+        whether the generated object is physicality required, by default True
+
+    Returns
+    ----------
+    EffectiveLindbladian
+        The effective Lindbladian of the gate.
+    """
+    assert len(c_sys.elemental_systems) == 1
+    hs = generate_gate_zm90_effective_lindbladian_mat()
+    el = EffectiveLindbladian(
+        c_sys=c_sys, hs=hs, is_physicality_required=is_physicality_required
+    )
+    return el
+
 
 # Z180 gate on 1-qubit
 
