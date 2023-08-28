@@ -31,7 +31,7 @@ setup(
         "plotly",
         "plotly-express",
         "joblib",
-        "reportlab==3.6.6",
+        "reportlab==3.6.13",
         "xhtml2pdf",
         "psutil",
         "kaleido>=0.1.0,<=0.1.0.post1",
